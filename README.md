@@ -100,7 +100,7 @@ game data, generated source, saves or memory dumps.
 
 ## Credits and licensing
 
-Maintained by **Vlad Yanhursky**, with development assistance from Claude Code
+Maintained by **vyanhursky**, with development assistance from Claude Code
 and Codex. The port builds on **sp00nz's xboxrecomp** and work from the Xbox
 emulation community. xemu provides hardware references and attributed components
 in the toolkit. [Burnout 3](https://github.com/sp00nznet/burnout3) and

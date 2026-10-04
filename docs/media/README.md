@@ -1,6 +1,6 @@
 # README gameplay visuals
 
-Vlad supplied and explicitly approved these visuals for the public README on
+vyanhursky supplied and explicitly approved these visuals for the public README on
 October 4, 2026 (D58):
 
 - `fight-screenshot.png`: the supplied Windows gameplay screenshot, unchanged.
