@@ -8,7 +8,10 @@ negative control pass 3/3 with `cl`. Hosted CI revalidation passed 7/7,
 with 533 toolkit tests and 107 subtests passing (one skipped). The merged-main
 CI also passed 7/7. Private v0.1.0 release workflow passed 9/9 and created
 a draft with zero uploaded assets; it remains unpublished. Public snapshot
-CI and publication await the repository transition approval.
+CI and publication are complete under the approved `DefJamFFNY-recomp` name:
+main CI `37223781912` passes 7/7 and v0.1.0 workflow `37223822550` passes 9/9.
+The inspected source draft is published with zero uploaded assets. Current
+project tests pass 96/96, including exact approved-media fingerprints.
 
 ## Implementation and first hosted-run finding
 

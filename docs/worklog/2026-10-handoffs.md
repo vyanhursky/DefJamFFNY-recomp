@@ -1,5 +1,49 @@
 # Handoffs, October 2026
 
+## Superseded by public publication completion, 2026-10-04
+
+## 7. Hand-off
+
+### Public publication authorized, 2026-10-04
+Vlad approved a fresh PUBLIC `vyanhursky/DefJamFFNY-recomp` (D58).
+Keep `vyanhursky/DJFFNY-recomp` PRIVATE, with its original name/history.
+Do not push private history to public. Local working game checkout remains
+`C:/Users/Vlad/code/defjam-recomp`; clean public checkout is
+`C:/Users/Vlad/code/DJFFNY-public-preview`. Accepted game binary/toolkit pin
+`aa1a1b9` unchanged; no game runs/rebuilds for docs/release work.
+
+README feedback applied: playable and FUN, owner reports over an hour of Story
+Mode without additional graphical glitches, macOS/native Linux future roadmap,
+removed fork-consolidation paragraph from What Comes Next. Root README/setup/
+release links now target the approved public name. Screenshots and GIF are
+explicit owner-approved D58 exceptions; the two exact SHA-256 fingerprints in
+`scripts/check-source-tree.py` are the only permitted media. Matching
+AGENTS/CLAUDE and contributor/release rules updated. Source archives include
+these two README visuals; game executable/data/lifted code remain excluded.
+
+Private CI/release proof: PR #2 merged at `43a2b07`; CI 7/7, Source release
+`37221619994` 9/9, v0.1.0 private draft unpublished/zero uploaded assets.
+Tests: project92, toolkit533 and107 subtests (one skip), saves19, all five
+native CTest cases pass. MSVC-only; initial Clang failures documented.
+
+Current next steps: test approved-media boundary and matching instructions,
+commit/push private main, refresh one-root-commit public preview, verify no
+private parent history and exact toolkit pin, create requested public repo,
+push main, wait all seven CI jobs, push approved v0.1.0 tag, wait all nine
+source-release jobs, inspect draft, publish source Release. Record URLs and
+final results here in the same turn. No extra permission needed for this
+approved publication. Each upstream PR still requires separate approval.
+
+History audit/redaction evidence: `docs/research/publication-history-audit.md`;
+132 Markdown guest-code fences redacted in 21 current documents, historical
+copies retained privately. Ignored snapshot manifest/archive in
+`logs/rebase-work/`; it records exact hashes and public-source inventory.
+
+### Standing gameplay backlog
+Two-pad gameplay, long-session memory, rare `sub_001A3310` crash/silent boot,
+loading bar, black profile thumbnails, Blazin' film grain and half-pixel alignment.
+Next feature work: agree M6 PC slice, then M5 Proton and M9 macOS.
+
 ## Superseded by owner publication approval, 2026-10-04
 
 ## 7. Hand-off

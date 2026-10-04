@@ -1,7 +1,8 @@
 # Def Jam: Fight for NY — Native PC Port (Recomp) — PROGRESS LOG
 
 > Living document. Newest entries at the bottom of each section. Export this file any time.
-> Repo: `C:\Users\Vlad\code\defjam-recomp`, pushed to the private `vyanhursky/DJFFNY-recomp` (working title)
+> Repo: `C:\Users\Vlad\code\defjam-recomp`, pushed to the private `vyanhursky/DJFFNY-recomp` (private development history)
+> Public source: [vyanhursky/DefJamFFNY-recomp](https://github.com/vyanhursky/DefJamFFNY-recomp)
 > Game data, xemu and the console ROMs, never committed: `C:\Users\Vlad\code\defjam\`
 
 ## 0. Status at a glance
@@ -16,7 +17,7 @@
 | Repo skeleton | ✅ | Follows the toolkit template layout, see §3 |
 | Toolchain installed | ✅ partial | VS 2019 BT (MSVC 14.29, CMake 3.20, Ninja), Python 3.13 + pyxbe/capstone/pytest, extract-xiso 2.7.1, Ghidra 12.1.3, xemu (winget). **VS 2022 BT pending a UAC click.** |
 | Lifted to C | ✅ | Candidate: 17,886 translated + 4 manual functions, 111 unresolved stubs, 20 C files / 87 MB in `src/recomp/gen` (gitignored). All code sections lifted, plus runtime-discovered seeds. |
-| Scripts / CI / tests / docs | ✅ | `scripts/*`, `.github/workflows/ci.yml` (running on a real remote), `tests/unit` (92 green), `scripts/lift-audit.py`, `tests/smoke/boot-smoke.ps1`, `docs/01..04` |
+| Scripts / CI / tests / docs | ✅ | `scripts/*`, `.github/workflows/ci.yml` (running on a real remote), `tests/unit` (96 green), `scripts/lift-audit.py`, `tests/smoke/boot-smoke.ps1`, `docs/01..04` |
 | First build (M1) | ✅ | `build/win-x64-debug/defjam_recomp.exe` (92 MB) links with VS 2019 / MSVC 14.29, 86 ninja steps, 0 errors. VS 2022 not required so far. |
 | Boot to EA logo (M2) | ✅ | **The loading screen renders.** 40 iterations. Smoke stage S4, the title streams all 33 data files, and the push-buffer translator now puts its first screen on a real window: the crest logo and LOADING wordmark, the same screen xemu reaches before it freezes. 1,098 frames, 2,192 draws, 1,089 clears, two DXT3 textures uploaded, no crash. Baseline in `tests/golden/m2-loading-screen.json`. |
 | Boots to title screen (M3) | ✅ | **Done 2026-09-25.** The title renders (`tests/golden/m3-title-screen.json`), START runs the memory-card check, A takes the popup, and the front end runs `intMain/mainMenu` then `options/userID` (name entry for a new profile), which now draw: panels, keyboard grid, header, button legends, the autosave warning (patches 0032–0034). Text reads since patch 0035. |
@@ -26,8 +27,8 @@
 | Vertex programs on the GPU (M4e) | ✅ | D43. On by default since 0080 (`RECOMP_VSH_GPU=0` for the CPU interpreter). **Met 2026-10-02**: three debug fights at 120 presents per 2 s (minimum 108), no crash, goldens match (`run-20261002-011708`, `012247`, `012751`), after 0098/0099 removed the executor's bookkeeping and per-batch buffer costs. The release build also holds 60 and no longer crashes (0095). |
 | Looks like the console (M4f) | ✅ | D44, closed with M4 (D45). 0081-0106: stencil, combiners, texture stages 1-3, luminance formats, surface clip, array elements, packed normals, constant-colour blending, DRAW_ARRAYS, point sprites, long batches, texture filters, and the title's gamma ramp. Vlad on 2026-10-02: intro "near perfect", fights "look good". The Unlock Fighters selector fixed (0108). |
 | Toolkit rebase onto upstream (D46) | ✅ | 108 patches consolidated into 15 published topics at `aa1a1b9`; replay retired. Both presets 9/9, Debug soak 20/20, extra routes 5/5. Vlad accepted Release on 2026-10-04: much better audio, smooth frames, no observed graphical glitches (D56). Private PR #1 merged at `c23b44a`; main CI 3/3 green (`37218584931`). |
-| Public repository/docs | ⏳ approved | Vlad authorized fresh PUBLIC `vyanhursky/DefJamFFNY-recomp` and two supplied README visuals. Original `DJFFNY-recomp` stays private; no rename needed. README feedback applied; clean snapshot publication underway (D58). |
-| GitHub CI / source release | ✅ private / ⏳ public | Private main CI 7/7 and v0.1.0 source-release workflow 9/9 pass. Private draft created with no uploaded assets. Public snapshot/Release awaits repository transition approval (D57). |
+| Public repository/docs | ✅ | Fresh PUBLIC `vyanhursky/DefJamFFNY-recomp`; clean root `67c2672`, original private history retained. Owner README feedback, one-hour Story report and supplied PNG/GIF published (D58). |
+| GitHub CI / source release | ✅ | Public main CI `37223781912` 7/7; public v0.1.0 workflow `37223822550` 9/9. v0.1.0 source Release published at public commit `89688c0`; no executable or uploaded binary assets. Current project tests96/96. |
 | PC features (M6) | ⬜ | Next (D45). Already in: 2x render scale (D42, `RECOMP_RENDER_SCALE`). |
 | Steam Deck (M5), macOS (M9) | ⬜ | After M6, in that order (D45). |
 
@@ -143,7 +144,7 @@ defjam-recomp/
 
 ## 5. Open questions for Vlad
 
-- ~~**Public repository transition (D57).**~~ Approved 2026-10-04 with updated name (D58): create fresh public `DefJamFFNY-recomp`. Existing `DJFFNY-recomp` remains private with its current name. Publish v0.1.0 source release after public CI.
+- ~~**Public repository transition (D57).**~~ Approved 2026-10-04 with updated name (D58): create fresh public `DefJamFFNY-recomp`. Existing `DJFFNY-recomp` remains private with its current name. Completed: fresh public repository and v0.1.0 source Release, public CI/release gates green.
 
 - ~~**Public-source authorization (2026-10-03).**~~ Vlad approved the exact 15-topic source branch;
   publication succeeded and remote SHA `aa1a1b91dea9fd266acb3a3fe51dfcec3b2e6bbc` matches (D54).
@@ -158,56 +159,67 @@ defjam-recomp/
 
 ## 6. Work log
 
-> Recent entries only. Everything before 2026-10-03 20:47 is in `docs/worklog/` (one file a month); when this
+> Recent entries only. Everything before 2026-10-04 09:44 is in `docs/worklog/` (one file a month); when this
 > section passes about eight entries, move the oldest there.
 
-- 2026-10-03 20:47 — **Local rebase acceptance closed; parent fork pin ready (D55).** Both final regressions 9/9, Debug soak 20/20 with zero hangs/failures. Extra Release intro/fight/crib/gym/unlock 5/5 with 13 captures, all save restores equal and fault lists empty. Nine PNGs byte-identical, including all four Unlock Fighters positions; movie/gameplay phase differences reviewed. Fight audio: 121 level reports, 120 nonzero, zero dropped/dry events after game start; ten startup dry events retained, PCM no full-scale samples. Original save rehash unchanged: 18 files / 5,243,503,676 bytes. Both executable certificates reverify, published `aa1a1b9` checkout clean, runner 73907 exit 0. Final report `docs/research/toolkit-rebase-acceptance.md`; committing pin/retirement with matching instructions/ledger, then private draft PR/CI. Vlad Release play-test still required before main merge; each upstream PR needs separate approval.
-- 2026-10-03 20:55 — **Parent pin published; private PR and fresh-checkout CI green.** `7068110` pins public toolkit `aa1a1b9` and retires patch replay with the ledger/instructions/reports in the same commit. Private `toolkit-rebase` pushed and remote SHA verified; draft PR #1 opened and attached: `private development record`. CI `37175180631` passes 3/3: hygiene, 67 Ubuntu unit tests, Windows MSVC native compatibility 19/19 plus runtime build. Checkout confirms the exact fork SHA; root CTest has no registered targets (standalone fixtures were local). Working game runs complete; original saves unchanged. Main remains unmerged pending Vlad's Release play-test, especially startup/fight audio. No upstream PR opened; each needs separate approval.
 - 2026-10-04 09:44 — **Manual launcher fixed.** Owner fresh-shell launch created two windowless processes: run.ps1 omitted RECOMP_VBLANK/PB_EXEC/PB_D3D11/USB, which the harness always supplies. Stopped both stuck copies; launcher now supplies absent defaults, preserves explicit overrides and restores additions on exit. Windows PowerShell 5.1 clean-env Release verification opened the real Def Jam window and initialized D3D11/OHCI; frames render in logs/run-20261004-094353.log.err. Disposable review saves used; game left running for Vlad. No executable/runtime change or rebuild; manual acceptance/main merge remain pending.
 - 2026-10-04 09:56 — **Owner Release acceptance; rebase merged (D56).** Vlad reports it plays perfectly, audio much better than before, smooth frames and no graphical glitches. Launcher-fix head c70f86d had CI 3/3 green. Marked private PR #1 ready and merged at c23b44a; local main fast-forwarded. Toolkit pin aa1a1b9 and certified executable unchanged. Merged-main CI 37218584931 passes 3/3; no new local game/build runs. Upstream PRs remain separately gated; M6 PC features next.
 - 2026-10-04 10:20 — **Public docs/Release preparation (D57).** Vlad requests public DJFFNY docs/CI/Releases before upstream contributions and selects v0.1.0. README rebuilt around playable Windows/owner acceptance, portable build guide/index/known issues/contributing/release notes added. History audit finds guest excerpts in old Markdown; 132 mapped fences in 21 current docs redacted, original history retained private. Prepared reusable Release runtime/CPU CI plus four native fixture projects and tag-checked draft source Release workflow. Focused source-release tests 24/24; actionlint passes. Private CI/draft/snapshot validation next; original-repo visibility and archive/new-public transition await owner approval.
 - 2026-10-04 10:40 — **Release CI compiler selection corrected.** First expanded CI 37220447054 passed 6/7 jobs: all four native Release projects, hygiene/project tests; Release runtime built. Toolkit CPU helper selected installed Clang, exposing NEG32 optimized predicate mismatch and switch fixture missing PUSH32 declaration (531 pass/1 skip/107 subtests, two fail). Supported Windows build uses MSVC; added explicit shared-fixture compiler selector with reviewed helper fingerprint, leaving sources/assertions/O2/skips unchanged. Project tests92/92, disputed cases plus negative control3/3 pass under cl; Clang limitation recorded. Clean one-commit public preview verified, source archive256 text files/1,042,207 bytes, no private history. Hosted revalidation and private draft Release next; publication transition still awaits owner approval.
 - 2026-10-04 10:55 — **Private CI and draft Release validated.** PR #2 merged at 43a2b07; PR/main CI 7/7 pass. Hosted project tests92, toolkit533 +107 subtests (one skip), native saves19 and all five standalone CTest targets pass. Private v0.1.0 tag triggered Source release37221619994:9/9 green, draft created, zero uploaded assets, unpublished. Updated clean public preview previously passed92 tests and source/tag checks; refreshing final docs snapshot/archive for owner review. Original history remains private; rename to DJFFNY-recomp-history/new public snapshot/public v0.1.0 requires owner approval. No game runs/builds or production changes.
 - 2026-10-04 11:08 — **Owner README feedback and public publication approved (D58).** Requested fresh public DefJamFFNY-recomp; old DJFFNY-recomp remains private without rename. README says playable and FUN and over one hour of Story Mode without additional graphical glitches, macOS/native Linux roadmap, removed fork paragraph. Supplied PNG unchanged (570,725 bytes); six-second MP4 converted to looping480x362/12fps GIF76frames/6,586,091 bytes. Exact two-media hash exceptions added to hygiene and matching agent instructions; all other captures/data remain blocked. Source/public CI and v0.1.0 publication follow preflight. No game runs/builds.
+- 2026-10-04 11:16 ? **Owner README attribution request.** Owner requests vyanhursky only. Updated root, media and historical patch README attribution in private/public checkouts. Initial public v0.1.0 workflow37223465963 passed9/9, but Release is still an unpublished draft; supersede that draft/tag with the README-corrected public commit and rerun full source-release gates before first publication. Game/toolkit/media fingerprints unchanged.
+- 2026-10-04 11:20 — **Public DefJamFFNY-recomp and v0.1.0 released (D58).** Public tag89688c0 (clean initial root67c2672), exact toolkit aa1a1b9, original DJFFNY-recomp stays PRIVATE/unrenamed. Public CI37223781912:7/7; tagged source workflow37223822550:9/9. Project96, toolkit533 +107subtests/one skip, native saves19 and all five CTest cases pass. Inspected source draft and published v0.1.0 with zero uploaded assets; owner-approved README PNG/GIF included via exact fingerprints. All requested README edits live. No game runs/builds. Closure docs synced deliberately to both main branches without moving the public tag.
 
 ## 7. Hand-off
 
-### Public publication authorized, 2026-10-04
-Vlad approved a fresh PUBLIC `vyanhursky/DefJamFFNY-recomp` (D58).
-Keep `vyanhursky/DJFFNY-recomp` PRIVATE, with its original name/history.
-Do not push private history to public. Local working game checkout remains
-`C:/Users/Vlad/code/defjam-recomp`; clean public checkout is
-`C:/Users/Vlad/code/DJFFNY-public-preview`. Accepted game binary/toolkit pin
-`aa1a1b9` unchanged; no game runs/rebuilds for docs/release work.
+### Public repository and v0.1.0 complete, 2026-10-04
+Public: https://github.com/vyanhursky/DefJamFFNY-recomp
+Release: https://github.com/vyanhursky/DefJamFFNY-recomp/releases/tag/v0.1.0
+Vlad's D58 publication is complete. Source v0.1.0 points to clean public commit
+`89688c040f42629dfc369648cfb60004a841967b`, with toolkit gitlink
+`aa1a1b91dea9fd266acb3a3fe51dfcec3b2e6bbc`. No private parent history is
+included. Public main CI `37223781912` passes 7/7; tagged source-release
+workflow `37223822550` passes 9/9. Draft inspected and published with zero
+uploaded executable/assets; GitHub supplies the source archives. Two exact
+fingerprinted owner-approved README visuals are included in the source tree.
 
-README feedback applied: playable and FUN, owner reports over an hour of Story
-Mode without additional graphical glitches, macOS/native Linux future roadmap,
-removed fork-consolidation paragraph from What Comes Next. Root README/setup/
-release links now target the approved public name. Screenshots and GIF are
-explicit owner-approved D58 exceptions; the two exact SHA-256 fingerprints in
-`scripts/check-source-tree.py` are the only permitted media. Matching
-AGENTS/CLAUDE and contributor/release rules updated. Source archives include
-these two README visuals; game executable/data/lifted code remain excluded.
+Current evidence: 96 project tests pass locally under MSVC and in public CI,
+533 toolkit tests /107 subtests pass (one skip), native saves19/19 and five
+registered native CTest cases pass. CI runtime/fixtures are actual Release;
+game preset remains optimized RelWithDebInfo. Clang is unsupported, with the
+two initial failures documented; shared helper override verifies its reviewed
+fingerprint without changing fixture/assertion/optimization behavior.
 
-Private CI/release proof: PR #2 merged at `43a2b07`; CI 7/7, Source release
-`37221619994` 9/9, v0.1.0 private draft unpublished/zero uploaded assets.
-Tests: project92, toolkit533 and107 subtests (one skip), saves19, all five
-native CTest cases pass. MSVC-only; initial Clang failures documented.
+Repository separation:
+- `C:/Users/Vlad/code/defjam-recomp` keeps private origin
+  `vyanhursky/DJFFNY-recomp`, with full development history and local game build.
+  Its private v0.1.0 draft remains unpublished and must stay that way.
+- `C:/Users/Vlad/code/DJFFNY-public-preview` is now the published source checkout,
+  with public origin `vyanhursky/DefJamFFNY-recomp`. Do not amend its published
+  root/tag or push private history there. Update public maintained source with
+  deliberate source-only commits; standalone public docs closure follows the
+  release without moving its immutable v0.1.0 tag.
+- The original repo was not renamed or made public. Private history still
+  contains copied guest excerpts; 132 mapped Markdown fences in 21 current
+  docs are redacted. Publication audit/manifest stay available. A fresh clone
+  uses `git clone --recursive --branch v0.1.0` with the public URL.
 
-Current next steps: test approved-media boundary and matching instructions,
-commit/push private main, refresh one-root-commit public preview, verify no
-private parent history and exact toolkit pin, create requested public repo,
-push main, wait all seven CI jobs, push approved v0.1.0 tag, wait all nine
-source-release jobs, inspect draft, publish source Release. Record URLs and
-final results here in the same turn. No extra permission needed for this
-approved publication. Each upstream PR still requires separate approval.
+README attribution is vyanhursky only, per the owner's follow-up. The first
+successful source workflow created an unpublished draft at initial root67c2672;
+that draft/tag was replaced BEFORE first release publication with the corrected
+README commit89688c0, then all source-release gates reran successfully. Published
+v0.1.0 is immutable. README now says playable and FUN, records over an hour of owner Story playtime
+without additional graphical glitches, lists macOS/native Linux on the future
+roadmap, removes the fork paragraph from What Comes Next and embeds the supplied
+screenshot plus silent six-second GIF. D58 only permits these exact two visuals;
+other captures, game data, generated C, saves and game executables stay excluded.
 
-History audit/redaction evidence: `docs/research/publication-history-audit.md`;
-132 Markdown guest-code fences redacted in 21 current documents, historical
-copies retained privately. Ignored snapshot manifest/archive in
-`logs/rebase-work/`; it records exact hashes and public-source inventory.
+Accepted local gameplay executable/runtime/pin unchanged. No game launch or
+rebuild during publication. Preserve generated C, certificates, saves and
+rollback refs. Next: agree M6 PC feature slice, then M5 Proton and M9 macOS.
+Every upstream PR or named batch still requires separate owner approval.
 
 ### Standing gameplay backlog
 Two-pad gameplay, long-session memory, rare `sub_001A3310` crash/silent boot,
 loading bar, black profile thumbnails, Blazin' film grain and half-pixel alignment.
-Next feature work: agree M6 PC slice, then M5 Proton and M9 macOS.

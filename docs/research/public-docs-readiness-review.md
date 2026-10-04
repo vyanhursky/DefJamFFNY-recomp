@@ -11,8 +11,10 @@ not change milestone definitions or reopen the accepted rebase.
 The recommendations below were applied: README, portable build/play guide,
 docs index, known issues and contribution/release guides now reflect the
 accepted Windows build. Private PR #2 is merged and CI/release validation
-is green. A sanitized one-commit preview is ready; original history stays
-private pending owner approval of the proposed repository transition.
+is green. Vlad approved the fresh public `DefJamFFNY-recomp` name and supplied
+README visuals (D58). The sanitized source and v0.1.0 Release are published;
+original history remains private. README feedback and exact approved-media
+policy are implemented. Public CI passes 7/7 and source release gates 9/9.
 
 ## Summary (original review)
 

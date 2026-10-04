@@ -12,6 +12,18 @@ sanitized public snapshot; the repository rename/new-public-repository transitio
 still requires the owner's approval. This report and map support that approach. No history rewriting,
 publishing, visibility change, release, build, or game run was performed here.
 
+## Publication outcome, 2026-10-04
+
+Vlad approved a different public name (D58), so the original repository was
+not renamed. `vyanhursky/DJFFNY-recomp` remains PRIVATE with its development
+history. Fresh PUBLIC `vyanhursky/DefJamFFNY-recomp` starts at sanitized root
+`67c2672`; v0.1.0 includes the README attribution correction at
+`89688c040f42629dfc369648cfb60004a841967b`. None of the original parent history
+is reachable from it. The source v0.1.0 Release is published after public CI
+7/7 and source-release workflow9/9. The two supplied README visuals are an
+explicit owner-approved exception with exact paths/SHA-256 fingerprints;
+no general game-data or capture exception was introduced.
+
 ## Inventory and scanner scope
 
 | Item | Count |
