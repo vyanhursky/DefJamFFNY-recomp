@@ -1,0 +1,45 @@
+name: Source release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  release-policy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - name: Verify source tag, version, notes and main ancestry
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: python scripts/check-release.py "$RELEASE_TAG"
+
+  ci:
+    needs: release-policy
+    uses: ./.github/workflows/ci.yml
+
+  draft-release:
+    needs: [release-policy, ci]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create reviewed source release draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          gh release create "$RELEASE_TAG" --verify-tag --draft \
+            --title "Def Jam: Fight for NY — Recompiled $RELEASE_TAG" \
+            --notes-file "docs/releases/$RELEASE_TAG.md"
+      # No game executable, lifted source or game-data assets are uploaded.
+      # Source archives contain the two fingerprinted owner-approved README visuals.
+      # GitHub provides source archives; cloning recursively fetches the pinned toolkit.

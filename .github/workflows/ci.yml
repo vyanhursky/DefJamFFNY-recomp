@@ -1,0 +1,81 @@
+name: CI
+# Runs WITHOUT any game data. Validates: repo hygiene, Python tooling, and that the
+# pinned xboxrecomp runtime libraries build on Windows.
+on:
+  push: { branches: [main] }
+  pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  hygiene:
+    name: No game data committed
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Fail if any disc/XBE/asset file is tracked
+        run: python scripts/check-source-tree.py
+
+  python-tools:
+    name: Scripts + unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install pyxbe capstone pytest
+      - run: python -m pytest -q tests/unit
+      - run: python -m py_compile scripts/verify-dump.py
+
+  runtime-windows:
+    name: Release runtime + CPU tests (Windows, MSVC)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { submodules: recursive }
+      - uses: ilammy/msvc-dev-cmd@v1
+        with: { arch: x64 }
+      - uses: seanmiddleditch/gha-setup-ninja@v5
+      # Build the exact published fork commit checked out by the gitlink.
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: python -m pip install pyxbe capstone pytest
+      - name: Native legacy-save compatibility (MSVC, synthetic data)
+        run: python -m pytest -q tests/unit/test_save_compat.py
+      - run: cmake --preset ci-runtime-only
+      - name: Verify Release configuration without game code
+        shell: pwsh
+        run: |
+          $cache = Get-Content build/ci-runtime-only/CMakeCache.txt -Raw
+          if ($cache -notmatch '(?m)^CMAKE_BUILD_TYPE:STRING=Release\r?$') { throw 'Expected Release runtime' }
+          if ($cache -notmatch '(?m)^DEFJAM_BUILD_GAME:BOOL=OFF\r?$') { throw 'Game input must stay outside CI' }
+      # No explicit target: the toolkit's `xboxrecomp` is an INTERFACE library
+      # and has no build rule, so naming it fails with "unknown target". The
+      # default target builds every runtime library, which is the point here.
+      - run: cmake --build --preset ci-runtime-only
+      - name: Toolkit compiled CPU semantics
+        run: python scripts/test-toolkit-msvc.py
+
+  native-fixtures:
+    name: Release fixture (${{ matrix.fixture }})
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        fixture: [kernel_bridge, kernel_directory, usb_transfer, nv2a_vsh]
+    steps:
+      - uses: actions/checkout@v4
+        with: { submodules: recursive }
+      - uses: ilammy/msvc-dev-cmd@v1
+        with: { arch: x64 }
+      - uses: seanmiddleditch/gha-setup-ninja@v5
+      - name: Configure Release fixture
+        run: cmake -S tools/xboxrecomp/tests/${{ matrix.fixture }} -B build/ci-${{ matrix.fixture }} -G Ninja -DCMAKE_BUILD_TYPE=Release
+      - name: Build fixture
+        run: cmake --build build/ci-${{ matrix.fixture }}
+      - name: Run registered tests (empty suites fail)
+        run: ctest --test-dir build/ci-${{ matrix.fixture }} --output-on-failure --no-tests=error

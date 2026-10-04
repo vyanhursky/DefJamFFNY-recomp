@@ -1,0 +1,54 @@
+# ---- NEVER commit game data: the user supplies their own dump ----
+*.iso
+*.xiso
+*.xiso.iso
+*.xbe
+*.7z
+*.zip
+*.rar
+private/
+src/recomp/gen/**
+src/recomp/gen-pending-*/
+!src/recomp/gen/.gitkeep
+game/assets/
+assets/
+extracted/
+
+# ---- build output ----
+build/
+out/
+cmake-build-*/
+*.obj
+*.o
+*.pdb
+*.ilk
+*.exe
+*.dll
+*.so
+*.a
+*.lib
+
+# ---- editors / OS ----
+.vs/
+.vscode/
+.idea/
+*.swp
+Thumbs.db
+.DS_Store
+
+# ---- python ----
+__pycache__/
+*.pyc
+.venv/
+
+# ---- local junction to the extracted disc (never committed) ----
+/game/
+
+# ---- runtime logs ----
+logs/
+*.log
+
+# ---- rendered frames are game artwork; captures stay local ----
+*.bmp
+*.ppm
+tests/golden/*.png

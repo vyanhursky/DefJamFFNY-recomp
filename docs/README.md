@@ -1,0 +1,31 @@
+# Documentation
+
+Start with the guides below. Dated research and work logs preserve the development
+history; their conclusions and old commands may have been superseded.
+
+| Guide | Purpose |
+|---|---|
+| [Build and play](build-and-play.md) | Prerequisites, your own dump, Release build, launch and saves |
+| [Known issues](known-issues.md) | Current limitations and unvalidated features |
+| [Contributing](../CONTRIBUTING.md) | Change boundaries, tests and reporting |
+| [Workflows](03-workflows.md) | Maintainer pipeline, troubleshooting and diagnostics |
+| [Runtime reference](05-reference.md) | Rendering architecture and investigation tools |
+| [Test plan](02-test-plan.md) | Milestone gates and regression discipline |
+| [Release process](releasing.md) | Source releases, tag checks and GitHub CI |
+| [v0.1.0 notes](releases/v0.1.0.md) | Scope of the first public version |
+
+[PROGRESS.md](../PROGRESS.md) carries current decisions and the handoff.
+[The roadmap](01-plan-review.md) contains the approved milestone order and exit
+criteria. Its initial review is dated September 2026; historical toolkit and
+emulator observations are not a current support matrix.
+
+The [rebase acceptance](research/toolkit-rebase-acceptance.md) records the October
+2026 checks and owner play-test. The [108-patch ledger](research/toolkit-rebase-ledger.md)
+maps the old archive to the published fork. [The rebase plan](06-toolkit-rebase-plan.md)
+preserves the migration and upstream contribution process.
+
+`research/` contains dated investigations. `worklog/` contains archived progress
+and superseded handoffs. The two owner-approved README visuals in `media/`
+are the only published captures (D58). Other local logs, screenshots, PCM recordings and generated
+game code referenced in those records are not shipped. Historical local paths
+describe the development machine; use your own paths in the build guide.
