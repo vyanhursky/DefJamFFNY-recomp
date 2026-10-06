@@ -24,7 +24,7 @@ Hosted CI has no game dump and does not run the full game.
 
 ## Ordered implementation To-Do
 
-Status as of v0.2.3 (2026-10-06): `[x]` done, `[~]` partly done, `[ ]` open. How to run what exists: [09-testing-harness.md](09-testing-harness.md).
+Status as of v0.2.4 (2026-10-06): `[x]` done, `[~]` partly done, `[ ]` open. How to run what exists: [09-testing-harness.md](09-testing-harness.md).
 
 ### 1. Repeatable setup and useful combat assertions
 
@@ -47,12 +47,12 @@ Exit: a fight that renders but ignores controls or never causes damage cannot pa
 
 ### 2. Visual regression
 
-- [ ] Select fight and cutscene checkpoints anchored to game state or simulation
+- [~] Select fight and cutscene checkpoints anchored to game state or simulation
   frames, with warm-up and tolerances documented.
-  *Open: captures are still taken at host-time offsets.*
-- [~] Compare local approved baselines using pixel/perceptual metrics and masks
+  *Part: `--step-shots` captures at a fight step; cutscene captures are still at host-time offsets.*
+- [x] Compare local approved baselines using pixel/perceptual metrics and masks
   for legitimately variable regions. Produce baseline/current/difference images.
-  *Part: the comparison, masks, difference images and hash-locked approval exist; no baseline is approved and the tolerances are examples.*
+  *Done for still screens: crib, Learn Moves and the move preview have reviewed local baselines with measured tolerances and masks (`regress.py --only visual`). Fights: fighters, HUD and arena repeat pixel for pixel but the two crowds do not (`docs/research/crowd-nondeterminism.md`), so whole-frame fight baselines are not usable.*
 - [ ] Cover normal gamma, fighters, arena, lighting, transparency, effects and FMV.
 - [ ] Keep console-fidelity references distinct from last-known-good port images.
 - [ ] Prove representative missing textures/effects fail without making healthy
@@ -80,7 +80,7 @@ Any public media exception requires the existing owner review process.
 
 - [~] Add grapple/combo, two-player input, representative venues/fight modes,
   Story progression, save/load, cutscene natural/skip and unlock navigation scenarios.
-  *Part: One on One, four-fighter Free For All, the Terrordome, crib, gym, intro and unlock routes exist. Open: grapples, two pads, save and load, cutscene skipping.*
+  *Part: One on One, Free For All (to its result, with eliminations asserted), two pads, two matches in one launch, the Terrordome, crib, gym, intro and unlock. Open: grapples as such, save and load, cutscene skipping.*
 - [~] Measure frame-time percentiles/hitches, memory growth over repeated matches,
   long sessions and simulation speed across supported FPS settings.
   *Part: frame pacing and memory growth are asserted for one fight. Open: repeated matches, long sessions, other frame rates.*

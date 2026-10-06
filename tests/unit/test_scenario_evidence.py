@@ -311,6 +311,9 @@ def test_full_regression_has_the_terrordome_match_and_the_combat_check():
     assert 'fight-terrordome' in regress.CHECKS and 'fight-terrordome' not in regress.DEFAULT
     assert 'repeat' in regress.CHECKS and 'repeat' not in regress.DEFAULT
     assert 'replay' in regress.DEFAULT and 'replay' not in regress.QUICK
+    assert 'visual' in regress.CHECKS and 'visual' not in regress.DEFAULT
+    assert 'versus' in regress.DEFAULT and 'ffa-result' in regress.CHECKS and 'ffa-result' not in regress.DEFAULT
+    assert 'two-matches' in regress.CHECKS and 'two-matches' not in regress.DEFAULT
     assert not {'ffa-terrordome', 'fight-terrordome', 'combat'} & set(regress.QUICK)
     assert set(regress.ORDER) == set(regress.CHECKS)
     assert harness.ROUTES['story-tour']['until'] == harness.ROUTES['gym']['until']
@@ -578,3 +581,91 @@ def test_fight_stream_golden_is_a_hash_and_matches_the_repeat_check():
     # Nothing but identifiers and numbers: no game state is stored, only its hash.
     assert set(golden) == {'schema', 'what', 'route', 'rng_seed', 'step_input', 'max_step', 'records', 'sha256',
                            'recorded', 'note'}
+
+
+def played_free_for_all():
+    """Event shapes of a live four-fighter match: two fighters put out, then the decisive result."""
+    def roster(health):
+        return [dict(slot=i, character=4 + i, cpu=int(i > 0), health=h) for i, h in enumerate(health)]
+    return [dict(event='match_start', match=1, step=1, match_type=2, fighters=roster([265.6, 278.4, 265.6, 265.6])),
+            dict(event='movement', match=1, step=700, slot=0, distance=2.2, held=8),
+            dict(event='attack', match=1, step=800, slot=0, target_slot=2, pressed=32, steps_since_press=2),
+            dict(event='damage', match=1, step=801, slot=2, cpu=1, health_before=265.6, health_after=260.0),
+            dict(event='result', match=1, step=2450, code=32, decisive=False, draw=False, time_up=False,
+                 winners=[3], losers=[2], fighters=roster([199.5, 264.3, 0, 216.1])),
+            dict(event='result', match=1, step=10864, code=32, decisive=False, draw=False, time_up=False,
+                 winners=[3], losers=[0], fighters=roster([0, 60.3, 0, 65.8])),
+            dict(event='result', match=1, step=16633, code=9, decisive=True, draw=False, time_up=False,
+                 winners=[3], losers=[1], fighters=roster([0, 0, 0, 36.3])),
+            dict(event='match_over', match=1, step=16634, winner_slot=3, phase=2, fighters=roster([0, 0, 0, 36.3]))]
+
+
+def test_free_for_all_requires_every_other_fighter_to_be_put_out():
+    checks = statuses(ev.combat_checks(fight_log(played_free_for_all()), fighters=4))
+    assert set(checks.values()) == {'pass'} and 'combat.eliminations' in checks
+    # A One on One has no such assertion.
+    assert 'combat.eliminations' not in statuses(ev.combat_checks(fight_log(played_fight())))
+    for change in (lambda e: e.pop(5),                                   # a fighter was never put out
+                   lambda e: e[5].update(losers=[2]),                    # the same fighter twice
+                   lambda e: e[6]['fighters'][0].update(health=12.0),    # a "loser" still standing
+                   lambda e: e[6]['fighters'][3].update(health=0)):      # the winner at zero
+        events = played_free_for_all()
+        change(events)
+        assert statuses(ev.combat_checks(fight_log(events), fighters=4))['combat.eliminations'] == 'fail'
+
+
+def played_versus():
+    roster = [dict(slot=0, character=9, cpu=0, health=265.6), dict(slot=1, character=14, cpu=0, health=265.6)]
+    return [dict(event='match_start', match=1, step=1, match_type=2, fighters=roster),
+            dict(event='movement', match=1, step=650, slot=0, distance=2.1, held=8),
+            dict(event='movement', match=1, step=655, slot=1, distance=2.1, held=4),
+            dict(event='attack', match=1, step=700, slot=0, target_slot=1, pressed=32, steps_since_press=3),
+            dict(event='damage', match=1, step=701, slot=1, cpu=0, health_before=265.6, health_after=262.0),
+            dict(event='attack', match=1, step=760, slot=1, target_slot=0, pressed=16, steps_since_press=1),
+            dict(event='damage', match=1, step=760, slot=0, cpu=0, health_before=265.6, health_after=261.0)]
+
+
+def test_two_pad_match_needs_both_players_to_move_and_hit():
+    log = fight_log(played_versus(), summary=False)
+    checks = statuses(ev.combat_checks(log, humans=2, require_result=False))
+    assert set(checks.values()) == {'pass'} and 'combat.two_players' in checks
+    assert 'combat.two_players' not in statuses(ev.combat_checks(log, require_result=False))
+    for change in (lambda e: e[0]['fighters'][1].update(cpu=1),     # the second fighter is the CPU
+                   lambda e: e.pop(2),                               # the second pad never walked
+                   lambda e: e.pop(5),                               # the second pad never hit
+                   lambda e: e[6].update(health_after=265.6)):       # its hit did nothing
+        events = played_versus()
+        change(events)
+        result = statuses(ev.combat_checks(fight_log(events, summary=False), humans=2, require_result=False))
+        assert result['combat.two_players'] == 'fail'
+
+
+def test_versus_route_plugs_two_pads_and_scripts_both():
+    route = harness.ROUTES['versus']
+    assert route['env'] == {'RECOMP_USB_PADS': '2'}
+    assert 'p2-start' in ''.join(route['stages']) and 'p2-left:' in route['tail'] and 'p2-x:' in route['tail']
+    path = suite.step_input(Path(__file__).parent / '..' / '..' / 'logs' / 'unit-step-input.txt', seconds=30, slots=(0, 1)) \
+        if (Path(__file__).parent / '..' / '..' / 'logs').is_dir() else None
+    if path:
+        rows = [line.split() for line in Path(path).read_text().splitlines() if not line.startswith('#')]
+        assert {r[0] for r in rows} == {'0', '1'}
+        assert {r[3] for r in rows if r[0] == '0'} == {'8', '10', '20', '40', '80'}
+        assert {r[3] for r in rows if r[0] == '1'} == {'4', '10', '20', '40', '80'}
+        Path(path).unlink()
+
+
+def test_anchor_can_wait_for_the_nth_call():
+    summary = {'calls': ['Game.StartGame()', 'Game.GetMatchSummary(0, 1)', 'Game.StartGame()']}
+    assert harness.reached(summary, 'game.startgame(') and harness.reached(summary, 'game.startgame(#2')
+    assert not harness.reached(summary, 'game.startgame(#3') and not harness.reached(summary, 'game.getmatchsummary(#2')
+    # A comma would end the anchor in the runtime's script, and lose the count with it.
+    for part in harness.SECOND_MATCH_FFA.split(','):
+        assert not part.startswith('@') or part.count('#') <= 1
+    anchors = [p for p in harness.SECOND_MATCH_FFA.split(',') if p.startswith('@')]
+    assert '@controllersetup(0#2' in anchors and '@getscreeninfo(battle/cmtype#2' in anchors
+
+
+def test_two_matches_route_judges_each_match_on_its_own():
+    route = harness.ROUTES['two-matches']
+    assert route['until'] == 'game.getmatchsummary(#3' and '@game.startgame(#2' in route['tail']
+    assert suite.SESSION_ROUTES['two-matches'] == ((1, 2), (2, 4))

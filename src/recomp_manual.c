@@ -57,6 +57,15 @@ void sub_00087700_enter(void) { defjam_test_step(); }
 void sub_001A4D90_enter(void) { defjam_test_match_start(); }
 void sub_001BC690_enter(void) { defjam_test_rng(g_esp); }
 void sub_001AD220_enter(void) { defjam_test_ai_seed(g_esp); }
+/* The seeding routine every generator of this kind goes through (thiscall). */
+void sub_000AA0D0_enter(void) { defjam_test_generator_seed(g_ecx, g_esp); }
+/* Every draw (RECOMP_TEST_DRAWS): the C runtime's rand, the match generator, and the two
+ * wrappers the object-form generators are drawn through; then the background crowd's update. */
+void sub_00200820_enter(void) { defjam_test_draw(1, MEM32(g_esp)); }
+void sub_001BC6E0_enter(void) { defjam_test_draw(2, MEM32(g_esp)); }
+void sub_000AA300_enter(void) { defjam_test_draw(g_ecx, MEM32(g_esp)); }
+void sub_000AA340_enter(void) { defjam_test_draw(g_ecx, MEM32(g_esp)); }
+void sub_000DB870_enter(void) { defjam_test_crowd_update(); }
 /* The per-fighter pad reader: RECOMP_TEST_INPUT replaces what it is about to read. */
 void sub_001BAA00_enter(void) { defjam_test_input(MEM32(g_esp + 4)); }
 void sub_001A6A80_enter(void)

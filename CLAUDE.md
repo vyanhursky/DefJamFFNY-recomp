@@ -149,6 +149,9 @@ python scripts/scenario_suite.py run fight-result --fixture logs/fixtures/NAME -
   four-fighter Terrordome match. `--step-input default --rng-seed N` makes a fight repeat; the `replay`
   check compares thirty seconds of game state with `tests/golden/fight-stream.json` and fails when a
   change alters the simulation (`--only repeat --update-golden` if that is intended).
+  `versus` (two emulated pads, in the full run), `ffa-result`, `two-matches` and `visual` (still screens
+  against reviewed baselines in `<data>/test-baselines/`, never committed) are further checks; the last
+  three are `--only`. In a pad script `anchor#N` waits for the Nth call; an anchor cannot contain a comma.
   Guide: `docs/09-testing-harness.md`.
 - A new screen to reach: run the nearest route with extra `--stage`s and `--shots`, look at the captures
   (`harness.py montage`), and add the stage to `ROUTES` once it is right.

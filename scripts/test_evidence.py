@@ -276,7 +276,8 @@ ATTACK_PRESS_STEPS = 60
 DAMAGE_AFTER_ATTACK_STEPS = 5
 
 
-def combat_checks(log, fighters=2, match=None, require_result=True, results_anchor='game.getmatchsummary('):
+def combat_checks(log, fighters=2, match=None, require_result=True, results_anchor='game.getmatchsummary(',
+                  humans=1):
     """Assert a played fight from the game's own state (src/hooks/test_telemetry.c).
 
     Absent telemetry is `blocked`, never a pass. `fighters` is how many fighter
@@ -290,6 +291,10 @@ def combat_checks(log, fighters=2, match=None, require_result=True, results_anch
       damage     that attack's target then lost health
       result     the game recorded one decisive, non-draw result naming a winner
                  and a loser, and its "decided" phase agreed on the winner
+      eliminations  (more than two fighters) every fighter but the winner was
+                 recorded as a loser, each once, and ended at zero health
+      two_players  (humans > 1) that many fighters are pad-controlled, each walked,
+                 and each landed a hit on another that took damage
       results    the front end asked for the match summary after the result
 
     What it does not prove: which move was performed, that the damage came from
@@ -315,22 +320,23 @@ def combat_checks(log, fighters=2, match=None, require_result=True, results_anch
 
     start = first('match_start')
     roster = (start or {}).get('fighters', [])
-    humans = [f['slot'] for f in roster if not f.get('cpu')]
-    checks.append(assertion('combat.setup', bool(start) and len(roster) == fighters and bool(humans),
+    humans_list = sorted(f['slot'] for f in roster if not f.get('cpu'))
+    humans_set = set(humans_list)
+    checks.append(assertion('combat.setup', bool(start) and len(roster) == fighters and bool(humans_list),
                             'match started with the expected fighter records and a human-controlled one',
-                            fighters=len(roster), expected=fighters, human_slots=humans,
+                            fighters=len(roster), expected=fighters, human_slots=humans_list,
                             characters=[f.get('character') for f in roster]))
 
-    move = first('movement', lambda e: e.get('slot') in humans and e.get('distance', 0) > 0)
+    move = first('movement', lambda e: e.get('slot') in humans_set and e.get('distance', 0) > 0)
     checks.append(assertion('combat.movement', bool(move), 'a human fighter walked while a direction was held', event=move))
 
-    attack = first('attack', lambda e: e.get('slot') in humans and
+    attack = first('attack', lambda e: e.get('slot') in humans_set and
                    0 <= e.get('steps_since_press', -1) <= ATTACK_PRESS_STEPS and e.get('pressed'))
     checks.append(assertion('combat.attack', bool(attack),
                             'a hit by a human fighter resolved shortly after its action press', event=attack))
 
     damage = None
-    for a in (e for e in mine if e.get('event') == 'attack' and e.get('slot') in humans
+    for a in (e for e in mine if e.get('event') == 'attack' and e.get('slot') in humans_set
               and 0 <= e.get('steps_since_press', -1) <= ATTACK_PRESS_STEPS):
         damage = first('damage', lambda e: e.get('slot') == a.get('target_slot') and
                        0 <= e['step'] - a['step'] <= DAMAGE_AFTER_ATTACK_STEPS and
@@ -341,6 +347,19 @@ def combat_checks(log, fighters=2, match=None, require_result=True, results_anch
     checks.append(assertion('combat.damage', bool(damage),
                             "the target of a human fighter's hit lost health within a few steps", event=damage))
 
+    if humans > 1:
+        walked = sorted({e['slot'] for e in mine if e.get('event') == 'movement' and e.get('slot') in humans_set})
+        landed = set()
+        for a in (e for e in mine if e.get('event') == 'attack' and e.get('slot') in humans_set
+                  and 0 <= e.get('steps_since_press', -1) <= ATTACK_PRESS_STEPS):
+            if first('damage', lambda e: e.get('slot') == a.get('target_slot') and
+                     0 <= e['step'] - a['step'] <= DAMAGE_AFTER_ATTACK_STEPS and
+                     e.get('health_before', 0) > e.get('health_after', 0) >= 0):
+                landed.add(a['slot'])
+        checks.append(assertion('combat.two_players',
+                                len(humans_list) == humans and walked == humans_list and sorted(landed) == humans_list,
+                                'every pad-controlled fighter walked and landed a hit that did damage',
+                                human_slots=humans_list, expected=humans, walked=walked, landed_hits=sorted(landed)))
     if not require_result:
         return checks
     decisive = [e for e in mine if e.get('event') == 'result' and e.get('decisive')]
@@ -352,12 +371,26 @@ def combat_checks(log, fighters=2, match=None, require_result=True, results_anch
     ok = ok and bool(winners) and bool(losers) and set(winners) | set(losers) <= slots and not set(winners) & set(losers)
     ok = ok and bool(over) and over.get('winner_slot') == winners[0] and over['step'] >= result['step']
     summary = {k: (result or {}).get(k) for k in ('step', 'code', 'time_up', 'winners', 'losers', 'clock')}
-    summary['winner_is_human'] = bool(winners) and winners[0] in humans
+    summary['winner_is_human'] = bool(winners) and winners[0] in humans_set
     summary['loser_health'] = [f.get('health') for f in (result or {}).get('fighters', []) if f.get('slot') in losers]
     summary['decided_winner_slot'] = (over or {}).get('winner_slot')
     checks.append(assertion('combat.result', ok,
                             'one decisive result with a winner and a loser, confirmed by the decided phase', **summary))
 
+    if fighters > 2:
+        # A Free For All records one result per fighter put out (not decisive) and
+        # a decisive one for the last. Seen live: codes 32, 32, then 9.
+        recorded = [e for e in mine if e.get('event') == 'result' and e['step'] <= (result or {}).get('step', -1)]
+        out = [slot for e in recorded for slot in e.get('losers', [])]
+        final = {f['slot']: f.get('health') for f in (result or {}).get('fighters', [])}
+        alive = sorted(slot for slot, health in final.items() if health and health > 0)
+        good = (bool(result) and len(out) == fighters - 1 and len(set(out)) == len(out)
+                and set(out) | set(winners) == slots and alive == sorted(winners)
+                and all(e.get('winners') for e in recorded))
+        checks.append(assertion('combat.eliminations', good,
+                                'every fighter but the winner was put out once and ended at zero health',
+                                order=out, steps=[e['step'] for e in recorded], codes=[e.get('code') for e in recorded],
+                                alive_at_end=alive))
     # Line order in the log: the decisive result of this match, then the request.
     marker = position = -1
     for number, line in enumerate(log.splitlines()):

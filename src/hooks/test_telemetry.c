@@ -180,12 +180,71 @@ static void put_slot_list(const char *name, uint32_t list)
     put("]");
 }
 
+
+/* RECOMP_TEST_DRAWS=1: count every draw from a random generator by generator and
+ * calling site, and report the counts at a few points of a match. Two runs whose
+ * counts differ at the same point drew a different number of values on the way
+ * there, which is how host-timed code (menus, loading) leaks into a fight.
+ * The last line of a report has the generators' states, the game's own count of
+ * screen updates (0x340538) and the count of background-crowd updates.
+ * Generator 1 is the C runtime's rand, 2 the match generator; anything else is the
+ * address of an object-form generator. */
+#define DRAW_MAX 256
+static struct { uint32_t generator, caller; LONG count; } s_draws[DRAW_MAX];
+static LONG s_draw_used;
+static SRWLOCK s_draw_lock = SRWLOCK_INIT;
+static int s_draws_on = -1;
+static LONG s_crowd_updates;         /* calls of the background crowd's update */
+
+void defjam_test_draw(uint32_t generator, uint32_t caller)
+{
+    LONG i;
+    if (s_draws_on < 0) s_draws_on = defjam_test_observations_enabled() && getenv("RECOMP_TEST_DRAWS") != NULL;
+    if (!s_draws_on) return;
+    AcquireSRWLockExclusive(&s_draw_lock);
+    for (i = 0; i < s_draw_used; i++)
+        if (s_draws[i].generator == generator && s_draws[i].caller == caller) break;
+    if (i == s_draw_used && s_draw_used < DRAW_MAX) {
+        s_draws[i].generator = generator;
+        s_draws[i].caller = caller;
+        s_draws[i].count = 0;
+        s_draw_used++;
+    }
+    if (i < DRAW_MAX) s_draws[i].count++;
+    ReleaseSRWLockExclusive(&s_draw_lock);
+}
+
+static void draws_report(const char *when)
+{
+    LONG i;
+    if (s_draws_on <= 0) return;
+    for (i = 0; i < s_draw_used; i++) {
+        begin_line("TEST-DRAWS", when);
+        put(",\"generator\":%u,\"caller\":%u,\"count\":%ld", s_draws[i].generator, s_draws[i].caller, s_draws[i].count);
+        end_line();
+    }
+    begin_line("TEST-DRAWS", when);
+    put(",\"utility_state\":%u,\"logic_state\":%u,\"match_state\":%u,\"screen_updates\":%u,\"crowd_updates\":%ld",
+        MEM32(0x39C160), MEM32(0x37705C), MEM32(0x3C1404), MEM32(0x340538), s_crowd_updates);
+    end_line();
+}
+
+/* sub_000DB870: the background crowd's animation update. Counted for the draw
+ * report: it is called once a screen update, and one call more or fewer while the
+ * match loads is enough to put the crowd in a different pose for the whole fight
+ * (docs/research/crowd-nondeterminism.md). */
+void defjam_test_crowd_update(void)
+{
+    if (s_draws_on > 0) InterlockedIncrement(&s_crowd_updates);
+}
+
 /* sub_001A4D90: the match is being set up. The records are filled by this call,
  * so the match_start event waits for the first step after it. */
 void defjam_test_match_start(void)
 {
     if (!defjam_test_observations_enabled()) return;
     InterlockedIncrement(&s_match);
+    draws_report("setup");
     s_dump_pad = getenv("RECOMP_TEST_PAD_DUMP") != NULL;
     s_step = 0;
     s_in_match = 1;
@@ -224,6 +283,7 @@ void defjam_test_step(void)
     int slot;
     if (!defjam_test_observations_enabled() || !s_in_match) return;
     s_step++;
+    if (s_step == 1 || s_step == 300 || s_step == 900) draws_report(s_step == 1 ? "step1" : s_step == 300 ? "step300" : "step900");
 
     if (s_setup_due) {
         s_setup_due = 0;
@@ -430,5 +490,75 @@ void defjam_test_ai_seed(uint32_t stack)
     if (!budget()) return;
     begin_line("TEST-EVENT", "ai_seed");
     put(",\"seed\":%u,\"forced\":%s", seed, forced ? "true" : "false");
+    end_line();
+}
+
+/* ---- Captures at a fight step (RECOMP_TEST_SHOT_STEPS=600,1200,...) -------------
+ *
+ * The presenting thread asks, once a frame, whether a capture is due. One is due
+ * when the fight has reached the next listed step; the step's number names the
+ * file. The picture is of the first frame presented at or after that step, which
+ * may show the state one or two steps later: the game runs up to four steps a
+ * frame. Steps are counted from the match start, so the list restarts with each
+ * match. */
+#define SHOT_MAX 32
+static LONG64 s_shot_steps[SHOT_MAX];
+static int s_shot_count = -1, s_shot_next;
+static LONG s_shot_match;
+
+long defjam_test_shot_due(void)
+{
+    LONG64 step = s_step;       /* written by the game thread; a stale read only delays a frame */
+    if (!defjam_test_observations_enabled() || !s_in_match) return 0;
+    if (s_shot_count < 0) {
+        const char *list = getenv("RECOMP_TEST_SHOT_STEPS");
+        s_shot_count = 0;
+        while (list && *list && s_shot_count < SHOT_MAX) {
+            char *end;
+            long long value = strtoll(list, &end, 10);
+            if (end == list) break;
+            if (value > 0) s_shot_steps[s_shot_count++] = value;
+            list = (*end == ',') ? end + 1 : end;
+        }
+    }
+    if (s_shot_match != s_match) {
+        s_shot_match = s_match;
+        s_shot_next = 0;
+    }
+    if (s_shot_next < s_shot_count && step >= s_shot_steps[s_shot_next]) {
+        long due = (long)s_shot_steps[s_shot_next++];
+        if (budget()) {
+            begin_line("TEST-EVENT", "capture");
+            put(",\"at_step\":%ld", due);
+            end_line();
+        }
+        return due;
+    }
+    return 0;
+}
+
+/* sub_000AA0D0(this = generator, high, low): the routine every generator of this
+ * kind is seeded through. Logged, not changed.
+ *
+ * Seven seedings were seen before a One on One: one at start-up (0x39C0E0, the
+ * general-purpose generator), the four AI generators (0x3BFC70, 0x88 apart;
+ * pinned above through their one seed word), and two more in the match set-up
+ * (0x375F68 and 0x376FDC, the latter seeded from the time-stamp counter).
+ *
+ * Replacing the last three as well was tried on 2026-10-06, in the hope of
+ * pinning the crowd, which is the one thing that differs between two frames of
+ * the same pinned fight. It did not: the crowd still differed with all seven
+ * seeds identical, so the crowd is not chosen from these generators' seeds
+ * alone. And it changed the game-state stream, so at least one of them feeds the
+ * fight even though their time-seeded values had never made two pinned runs
+ * differ in thirty seconds. They are therefore left as the game seeds them.
+ *
+ * Reported as [TEST-SEED], not [TEST-EVENT]: some seedings happen before the
+ * match's own events and are not part of the recorded state stream. */
+void defjam_test_generator_seed(uint32_t generator, uint32_t stack)
+{
+    if (!defjam_test_observations_enabled() || !budget()) return;
+    begin_line("TEST-SEED", "generator");
+    put(",\"generator\":%u,\"high\":%u,\"low\":%u", generator, MEM32(stack + 4), MEM32(stack + 8));
     end_line();
 }

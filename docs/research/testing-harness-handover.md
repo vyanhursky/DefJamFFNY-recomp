@@ -1,7 +1,8 @@
 # Gameplay test harness: state and what is left
 
 Updated 2026-10-05 by the Claude chat that took the work over from the Codex agent
-(D67). The first stage was released as v0.2.2; v0.2.3 adds repeatable fights. The testing roadmap
+(D67). The first stage was released as v0.2.2; v0.2.3 adds repeatable fights; v0.2.4 adds two pads,
+four-fighter results, two matches in one launch and still-screen baselines. The testing roadmap
 (`docs/08-testing-roadmap.md`) is **not** complete; its checklist carries the
 status of every item. How to run what exists is in `docs/09-testing-harness.md`.
 
@@ -60,28 +61,51 @@ status of every item. How to run what exists is in `docs/09-testing-harness.md`.
 - Research: `fight-determinism.md`, `dsound-voice-list-crash.md`, and the v0.2.3
   section of `combat-telemetry.md`.
 
+## Added in v0.2.4
+
+- Route `ffa-result` and assertion `combat.eliminations`: a four-fighter match to
+  its result, every fighter but the winner put out once.
+- Route `versus` and assertion `combat.two_players`: two emulated pads
+  (`RECOMP_USB_PADS=2`, `p2-` presses) join, pick fighters, walk and land hits. In
+  the full regression.
+- Route `two-matches`: a One on One, back through summary and menus, then a Free
+  For All, each judged by its match ordinal. `anchor#N` in a pad script waits for
+  the Nth call; an anchor must not contain a comma (the script splits on them).
+- `--step-shots`: captures at a fight step (`RECOMP_TEST_SHOT_STEPS`).
+- Reviewed still-screen baselines for `story-tour`, kept in the data folder under
+  `test-baselines/`; `regress.py --only visual`.
+- `[TEST-SEED]` logs every seeding of a generator of the game's common kind.
+- `RECOMP_TEST_DRAWS=1`: `[TEST-DRAWS]`, the count of draws from every generator by
+  calling site at setup and at steps 1, 300 and 900, with the game's screen-update
+  count. It found the two crowds.
+
 ## Next, in order of value
 
 1. **The audio chip model's trap handling** (toolkit, `src/apu/`): latch the first
    trapped method and voice, stop the frame's voice walk at a trap. This is the
    real fix for the sound-library crash; the guard only keeps the game alive.
-   Audio is what Vlad praised after the rebase, so it needs his ear afterwards.
-2. **Why a pinned fight can still part after about fifty seconds.** One pair did at
-   step 3,121. Candidates not yet tested: audio capture being on, asynchronous
-   loading, a generator not yet found. Sample every step around the divergence.
-3. **Step-anchored captures**, then visual baselines for fights: with a repeatable
-   fight a capture at a fixed step is comparable between runs. Still screens
-   (crib, gym, menus) can be done now.
-4. **Several matches in one launch.** After the summary the scripted presses reach
-   the match-type menu again (`Game.Quit()` then `battle/cmtype`). Later matches
-   take the match seed from the time-stamp counter, so pin it. Assert each match by
-   its ordinal (`combat_checks(match=N)`).
-5. **Sounds tied to events.** Needs a sample counter from the audio output so a
+   A to-do, not scheduled (backlog 1b, D70); audio needs Vlad's ear afterwards.
+2. **A repeatable loading window** (`crowd-nondeterminism.md`). Two crowds start
+   animating while the match loads: the background one (`sub_000DB870`, C runtime
+   `rand`) and the 3D spectators (`sub_0007D2F0`, generator `0x375F68`). The window is
+   906 screen updates in every run and every seed is identical, yet the background
+   crowd's update ran 902 or 903 times and the spectators drew a different number
+   of values. The spectators push fighters, so this is also the likely cause of
+   pinned fights parting (step 871 in three pairs, 3,121 once before). Find what is
+   host-timed inside the window (disc loads are the first suspect) and make it land
+   on the same update in test mode; equal `[TEST-DRAWS]` counts at step 1 are the
+   test. Clearing the crowd's update flag crashes; copying and restoring the
+   background crowd alone changes nothing visible.
+3. **Until then the `replay` golden can fail by chance.** If it starts to, shorten
+   the window (`--stream-steps`) rather than loosening the comparison.
+4. **Sounds tied to events.** Needs a sample counter from the audio output so a
    damage event can be matched to a rise in level. Toolkit change.
-6. **More coverage.** Four-fighter result, a human win (needs a better scripted
-   fighter than button cycling), time-up, grapples, two pads, save and load,
-   cutscene skipping, long sessions and repeated matches.
-7. **The three-game upstream-release matrix** in the roadmap's second half is
+5. **More coverage.** A human win (needs a better scripted fighter than button
+   cycling), time-up, grapples as such, save and load, cutscene skipping, long
+   sessions, three and four pads. The result codes of a Free For All are not
+   mapped: eliminations were seen as 32 then 9 in one match and 32 then 8 in
+   another, with 33 or 9 on the decisive one.
+6. **The three-game upstream-release matrix** in the roadmap's second half is
    untouched and concerns other repositories.
 
 ## Working notes

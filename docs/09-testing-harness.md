@@ -14,16 +14,17 @@ game's artwork and stay under `logs/`, which git ignores.
 | Command | Time | What it is for |
 |---|---|---|
 | `python scripts/regress.py --quick` | about 10 min | after every change: unit tests, three golden frames, one fight |
-| `python scripts/regress.py` | about 55 min | before a commit that touches the runtime, renderer or generated code |
+| `python scripts/regress.py` | about an hour | before a commit that touches the runtime, renderer or generated code |
 | `python scripts/scenario_suite.py run <route> ...` | one launch | one scenario with all its evidence and a browsable report |
 
 Never run two of these at once: they share the save area, the window and the
 frame-rate measurements.
 
 The full regression is the quick one plus a four-fighter Free For All, the same
-at the Terrordome for four minutes, the **combat check**, the **replay check**, the
-Story intro, crib, gym and a boot soak. `--only a,b` picks checks; `fight-terrordome`
-and `repeat` are selectable that way only.
+at the Terrordome for four minutes, the **combat check**, a **two-pad match**, the
+**replay check**, the Story intro, crib, gym and a boot soak. `--only a,b` picks
+checks; `fight-terrordome`, `ffa-result`, `two-matches`, `repeat` and `visual` are
+selectable that way only.
 
 ## The combat check
 
@@ -45,6 +46,19 @@ the game's own state rather than from the picture:
 | `combat.result` | the game recorded exactly one decisive result with a winner and a loser, and its "decided" phase named the same winner |
 | `combat.results_screen` | the front end requested the match summary after that |
 
+Two more assertions appear where they apply:
+
+| Assertion | Route | Proves |
+|---|---|---|
+| `combat.eliminations` | `ffa-result` | every fighter but the winner was recorded as put out, each once, and ended at zero health |
+| `combat.two_players` | `versus` | both fighters are pad-controlled, each walked, and each landed a hit that did damage |
+
+`versus` plugs in a second emulated controller: both pads press START to join, pick
+their fighters and fight, so the second pad's whole path through the USB model is
+exercised. `two-matches` plays a One on One to its result, goes back through the
+summary and the menus, and plays a Free For All to its result; each match is judged
+on its own events (`combat.result.match1`, `combat.eliminations.match2`, ...).
+
 A fight that renders but ignores the pad, or never causes damage, or never ends,
 fails. With no telemetry in the log the check is `blocked`, which is a failure,
 never a skip. It does not prove which move was performed or why the fight ended;
@@ -61,8 +75,10 @@ and any image differences. The report records the source and build identity, the
 machine and GPU driver, the fixture's hashes, the settings, the input schedule and
 which gates were selected. A gate that could not be evaluated is an error.
 
-Routes: `fight`, `fight-result`, `ffa`, `fight-terrordome`, `ffa-terrordome`,
-`story-tour` (crib and gym in one launch), `intro`, `crib`, `gym`, `boot`, `unlock`.
+Routes: `fight`, `fight-result`, `ffa`, `ffa-result`, `versus` (two pads),
+`two-matches` (a One on One and a Free For All in one launch), `fight-terrordome`,
+`ffa-terrordome`, `story-tour` (crib and gym in one launch), `intro`, `crib`, `gym`,
+`boot`, `unlock`.
 
 Options:
 
@@ -72,6 +88,7 @@ Options:
 - `--no-audio` / `--audio` fight routes check audio by default.
 - `--baselines <manifest>` compare captures with locally approved images.
 - `--step-input`, `--rng-seed`, `--stream-out`, `--stream-expect` repeatable fights (below).
+- `--step-shots N,N` capture the frame at those fight steps.
 - `--settings file.json` render scale, gamma and vsync for the run.
 - `--session-plan file.json` experimental: live input driven by screen events.
 
@@ -150,14 +167,43 @@ the saves when the run ends.
 
 ## Visual baselines
 
+Images are compared against baselines you have looked at and approved yourself.
+They are the game's artwork, so they live in the data folder and are never
+committed; each machine makes its own.
+
 ```powershell
-python scripts/scenario_suite.py baseline-candidates --report logs/scenarios/RUN/report.json --output logs/baselines/NAME
+python scripts/scenario_suite.py baseline-candidates --report logs/scenarios/RUN/report.json --output C:/DATA/test-baselines/NAME
 ```
 
 copies a run's captures and a manifest with `approved: false`. Look at each image,
-set `approved` only for the ones that are right, and pass the manifest with
-`--baselines`. Approval is locked to the image's hash. Nothing is approved
-automatically, and fights differ from run to run, so this suits still screens.
+set `approved` only for the ones that are right, add `masks` (rectangles to ignore)
+for what legitimately varies, and pass the manifest with `--baselines`. Approval is
+locked to the image's hash; nothing is approved automatically.
+
+**Still screens work now.** `python scripts/regress.py --only visual` compares the
+crib menu, the Learn Moves list and the move preview playing against
+`<data folder>/test-baselines/story-tour-v1/manifest.json`, and is `blocked` when
+that does not exist. What two healthy runs of those screens differed by:
+
+- the crib's "now playing" strip (the track is chosen at random): masked;
+- the Learn Moves list: 0.4 percent of pixels;
+- the preview movie's frame, which depends on timing: masked for a strict
+  comparison of everything else, plus a loose unmasked comparison that a blank
+  preview screen fails.
+
+**Fights are a different matter.** `--step-shots` captures the frame at a fight
+step, and in a repeatable fight (above) the fighters, the health bars, the clock,
+the arena and the camera came out pixel-identical between two runs. The crowd did
+not, and it covers 10 to 20 percent of the picture. There are two crowds, a
+background one and the 3D spectators near the camera; both start animating while
+the match loads and leave that window in a slightly different state every run,
+with identical seeds (`docs/research/crowd-nondeterminism.md`). So a whole-frame
+fight baseline is not usable yet; mask the crowd by hand for a particular camera
+position or compare the game-state stream instead.
+
+`--test-env RECOMP_TEST_DRAWS=1` adds `[TEST-DRAWS]` lines: how many values each
+random generator had given out, by calling site, at match setup and at fight steps
+1, 300 and 900. Two runs with different counts at the same point differ there.
 
 ## Game-state telemetry
 
@@ -170,13 +216,13 @@ play leaves the probes off. Adding or removing a probe point needs a re-lift.
 ## Not done
 
 - Menus are still driven on the host's clock; only the fight's input is step-timed.
-- Repeatability is established for thirty seconds; the cause of a later divergence
-  seen once is unknown.
-- No visual baseline is approved; tolerances are examples. Fight captures are still
-  taken at host-time offsets, so they are not comparable between runs.
+- Repeatability is not guaranteed even for thirty seconds: the spectators push
+  fighters, the spectators do not repeat, and pinned pairs have parted at step 871.
+  The `replay` check has passed every time so far and can fail by chance.
+- Whole-frame fight baselines: the crowds are not repeatable (see above).
 - Sounds are not tied to events (hit effects, the announcer).
-- Only One on One has been played to a result. Four-fighter results, a human win,
-  time-up, several matches in one launch, two pads, save and load, and cutscene
+- A human win, time-up, grapples and throws as such, save and load, and cutscene
   skipping are not covered.
-- The live-input session recipes in `tests/scenarios/` are uncalibrated examples.
-- Long sessions and repeated matches are not measured.
+- The live-input session recipes in `tests/scenarios/` are uncalibrated examples;
+  the `two-matches` route uses the ordinary pad script instead.
+- Long sessions and many repeated matches are not measured.

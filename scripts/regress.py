@@ -17,8 +17,16 @@ Checks, in order:
   combat   a One on One played to its result on a copy of the profiles: movement, a
            player attack, damage, the result and the summary screen asserted from
            game state, plus audio, frame pacing and memory (scripts/scenario_suite.py)
+  versus   a One on One between two emulated pads: both join, pick fighters, walk and
+           land damaging hits (the second pad through the USB model)
+  two-matches  (--only) a One on One and a Free For All played to their results in
+           one launch, each judged on its own events (about 12 minutes)
+  ffa-result  (--only) a four-fighter match played to its result: every fighter but
+           the winner put out once
   replay   one step-timed, seed-pinned fight: the first thirty seconds of game state
            must hash to tests/golden/fight-stream.json (how the fight plays)
+  visual   (--only) crib and Learn Moves against the locally approved images in
+           <data folder>/test-baselines/story-tour-v1; blocked when there are none
   repeat   (--only) the same step-timed, seed-pinned fight twice: the first thirty
            seconds of game state must be identical record for record, and match
            the recorded hash in tests/golden/fight-stream.json
@@ -53,11 +61,11 @@ evidence = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(evidence)
 REPO = harness.REPO
 
-ORDER = ["unit", "m2", "m3", "m4a", "fight", "ffa", "fight-terrordome", "ffa-terrordome", "combat", "replay", "repeat",
+ORDER = ["unit", "m2", "m3", "m4a", "fight", "ffa", "fight-terrordome", "ffa-terrordome", "combat", "versus", "ffa-result", "two-matches", "replay", "repeat", "visual",
          "intro", "crib", "gym", "soak"]
 # Opt-in (--only): the One on One at the Terrordome, which the Free For All covers, and
 # the repeatability check, which is two more fights.
-DEFAULT = [n for n in ORDER if n not in ("fight-terrordome", "repeat")]   # replay is in
+DEFAULT = [n for n in ORDER if n not in ("fight-terrordome", "ffa-result", "two-matches", "repeat", "visual")]
 QUICK = ["unit", "m2", "m3", "m4a", "fight"]
 
 # A 2 s line of a 60 Hz title holds 120 presents. Loading screens run at 30, so the
@@ -166,7 +174,8 @@ def check_ffa(a):
     return check_fight(a, route="ffa")
 
 
-def check_combat(a):
+def scenario_check(a, route, label, needed):
+    """Run one scenario with the combat check required and summarise its report."""
     spec = importlib.util.spec_from_file_location("scenario_suite", os.path.join(HERE, "scenario_suite.py"))
     suite = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(suite)
@@ -174,8 +183,8 @@ def check_combat(a):
         fixture = a.fixture or str(suite.default_fixture())
     except (OSError, ValueError) as ex:
         return False, "no fixture: %s" % ex
-    folder = os.path.join(REPO, "logs", "scenarios", "regress-combat-" + time.strftime("%Y%m%d-%H%M%S"))
-    code = suite.main(["run", "fight-result", "--fixture", fixture, "--require-combat",
+    folder = os.path.join(REPO, "logs", "scenarios", "regress-%s-%s" % (label, time.strftime("%Y%m%d-%H%M%S")))
+    code = suite.main(["run", route, "--fixture", fixture, "--require-combat",
                        "--preset", a.preset, "--output", folder])
     try:
         with open(os.path.join(folder, "report.json"), encoding="utf-8") as f:
@@ -183,11 +192,59 @@ def check_combat(a):
     except (OSError, ValueError, KeyError) as ex:
         return False, "no scenario report: %s" % ex
     bad = [c["name"] for c in checks if c["status"] != "pass"]
+    names = {c["name"] for c in checks}
+    missing = sorted(set(needed) - names)
     combat = [c for c in checks if c["name"].startswith("combat.")]
     detail = "%d of %d assertions (%d combat)" % (len(checks) - len(bad), len(checks), len(combat))
     if bad:
         detail += "; failed: " + ", ".join(bad[:6])
-    return code == 0 and not bad and len(combat) >= 7, detail + "  " + os.path.relpath(folder, REPO)
+    if missing:
+        detail += "; not evaluated: " + ", ".join(missing)
+    return code == 0 and not bad and not missing, detail + "  " + os.path.relpath(folder, REPO)
+
+
+def check_combat(a):
+    return scenario_check(a, "fight-result", "combat", ("combat.result", "combat.results_screen", "combat.damage"))
+
+
+def check_versus(a):
+    return scenario_check(a, "versus", "versus", ("combat.two_players",))
+
+
+def check_two_matches(a):
+    return scenario_check(a, "two-matches", "two-matches",
+                          ("combat.result.match1", "combat.result.match2", "combat.eliminations.match2"))
+
+
+def check_ffa_result(a):
+    return scenario_check(a, "ffa-result", "ffa-result", ("combat.eliminations", "combat.result"))
+
+
+def check_visual(a):
+    spec = importlib.util.spec_from_file_location("scenario_suite", os.path.join(HERE, "scenario_suite.py"))
+    suite = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(suite)
+    manifest = os.path.join(harness.data_dir(), "test-baselines", "story-tour-v1", "manifest.json")
+    if not os.path.isfile(manifest):
+        # Baselines are the game's artwork and are made and approved on each machine.
+        return False, "blocked: no approved baselines at %s (docs/09-testing-harness.md, Visual baselines)" % manifest
+    try:
+        fixture = a.fixture or str(suite.default_fixture())
+    except (OSError, ValueError) as ex:
+        return False, "no fixture: %s" % ex
+    folder = os.path.join(REPO, "logs", "scenarios", "regress-visual-" + time.strftime("%Y%m%d-%H%M%S"))
+    code = suite.main(["run", "story-tour", "--fixture", fixture, "--baselines", manifest,
+                       "--preset", a.preset, "--output", folder])
+    try:
+        with open(os.path.join(folder, "report.json"), encoding="utf-8") as f:
+            checks = [c for c in json.load(f)["assertions"] if c["name"].startswith("visual.")]
+    except (OSError, ValueError, KeyError) as ex:
+        return False, "no scenario report: %s" % ex
+    bad = [c["name"] for c in checks if c["status"] != "pass"]
+    detail = "%d of %d image comparisons" % (len(checks) - len(bad), len(checks))
+    if bad:
+        detail += "; failed: " + ", ".join(bad)
+    return code == 0 and bool(checks) and not bad, detail + "  " + os.path.relpath(folder, REPO)
 
 
 def check_replay(a):
@@ -309,7 +366,7 @@ def check_soak(a):
 CHECKS = {"unit": check_unit, "m2": check_m2, "m3": check_m3, "m4a": check_m4a, "fight": check_fight, "ffa": check_ffa,
           "fight-terrordome": lambda a: check_fight(a, 'fight-terrordome'),
           "ffa-terrordome": lambda a: check_fight(a, 'ffa-terrordome'),
-          "combat": check_combat, "replay": check_replay, "repeat": check_repeat, "intro": check_intro, "crib": check_crib, "gym": check_gym, "soak": check_soak}
+          "combat": check_combat, "versus": check_versus, "ffa-result": check_ffa_result, "two-matches": check_two_matches, "replay": check_replay, "visual": check_visual, "repeat": check_repeat, "intro": check_intro, "crib": check_crib, "gym": check_gym, "soak": check_soak}
 
 
 def main(argv=None):

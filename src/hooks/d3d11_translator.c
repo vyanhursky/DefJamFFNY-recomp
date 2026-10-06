@@ -380,7 +380,24 @@ static void capture_backbuffer(IDirect3DDevice8 *dev)
     static char want_base[16][64];
     static int by_secs;
     double now_secs = 0.0;
+    long step_shot = 0;
 
+    /* A capture asked for at a fight step (RECOMP_TEST_SHOT, test_telemetry.c):
+     * with step-timed input and pinned seeds the game's state at a step is the
+     * same every run, so this frame can be compared with a baseline. It takes
+     * precedence over, and does not consume, the frame and time lists below. */
+    {
+        extern long defjam_test_shot_due(void);
+        const char *stem = getenv("RECOMP_TEST_SHOT");
+        step_shot = (stem && *stem) ? defjam_test_shot_due() : 0;
+        if (step_shot) {
+            const char *dot = strrchr(stem, '.');
+            int n = dot ? (int)(dot - stem) : (int)strlen(stem);
+            snprintf(named, sizeof(named), "%.*s-step%ld%s", n, stem, step_shot, dot ? dot : "");
+            path = named;
+        }
+    }
+    if (!step_shot) {
     if (!path || !*path)
         return;
     if (nwant < 0) {
@@ -439,6 +456,7 @@ static void capture_backbuffer(IDirect3DDevice8 *dev)
                      dot ? dot : "");
         path = named;
     }
+    }   /* !step_shot */
     if (FAILED(dev->lpVtbl->GetBackBuffer(dev, 0, 0, &surf)) || !surf)
         return;
     memset(&lr, 0, sizeof(lr));
@@ -503,7 +521,7 @@ static void capture_backbuffer(IDirect3DDevice8 *dev)
             extern void nv2a_pb_request_dump_next(void);
             nv2a_pb_request_dump_next();
         }
-        if (++next >= nwant)
+        if (!step_shot && ++next >= nwant)
             _putenv_s("RECOMP_TRANS_SHOT", "");   /* every requested frame taken */
     }
     surf->lpVtbl->UnlockRect(surf);

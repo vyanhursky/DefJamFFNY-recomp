@@ -190,6 +190,39 @@ FFA_SETUP = [
 # On the venue map the Terrordome is one step right of the Foundation.
 TERRORDOME = "getscreeninfo(battle/chsvenue=right@6;a@9+4x4"
 
+def raw_stages(stages):
+    """Stages in the runtime's own pad-script syntax, to follow a repeating tail.
+
+    A route's `tail` is appended to the script as written, and an anchor in it
+    ends the repeating entries before it. That is how a second match is driven
+    after the first one's scripted fighter: `anchor#N` waits for the Nth call."""
+    out = []
+    for stage in stages:
+        anchor, keys = stage.split("=", 1)
+        out.append("@" + anchor)
+        out += expand_presses(keys)
+    return ",".join(out)
+
+
+# After a One on One: through the summary, rewards and save back to the match-type
+# menu, then a four-fighter Free For All. Counts are of calls since the launch: the
+# first match made one SetMatchType, one battleID screen and so on; each match asks
+# for the summary twice.
+SECOND_MATCH_FFA = raw_stages([
+    "game.getmatchsummary(=a@4+3x12",
+    "getscreeninfo(battle/cmtype#2=right@5;right@6.5;a@9",
+    "setmatchtype(#2=a@5+4x7",
+    "getscreeninfo(options/battleid#2=start@6+4x7",
+    "controllerbind(0#2=a@5+4x8",
+    "setbmcurrentuserindex(#2=a@5+5x6",
+    "getscreeninfo(battle/choosef4=a@6+3x5",
+    "controllersetup(0#2=right@3;a@5+3x4",
+    "controllersetup(1#2=right@3;right@4;a@6+3x4",
+    "controllersetup(2,=right@3;down@4;a@6+3x4",
+    "controllersetup(3,=back@9999",
+    "getscreeninfo(battle/chsvenue#2=a@8+4x4",
+])
+
 ROUTES = {
     "boot": {
         "help": "start-up to the main menu, nothing pressed there",
@@ -217,6 +250,38 @@ ROUTES = {
         "tail": FIGHT_TAIL,
         "until": "game.startgame(", "after": 150, "secs": 520,
         "shots": "@game.startgame(,60,140",
+    },
+    "two-matches": {
+        "help": "One on One to its result, back through the menus, then a Free For All to its result, in one launch",
+        "stages": ONE_ON_ONE_SETUP + ["controllersetup(1,=a@4+4x6"],
+        "tail": ",".join([FIGHT_TAIL, SECOND_MATCH_FFA, FIGHT_TAIL.replace("@game.startgame(", "@game.startgame(#2")]),
+        "until": "game.getmatchsummary(#3", "after": 6, "secs": 1800,
+        "shots": "@game.startgame(,60",
+    },
+    "versus": {
+        "help": "One on One between two pads: both press START, each picks a fighter, default venue",
+        "stages": [
+            "getscreeninfo(intmain/mainmenu=right@5;a@8",
+            "getscreeninfo(options/userid=down@4;a@7+4x3",
+            "getscreeninfo(battle/cmtype=a@5+4x7",
+            "setmatchtype(=a@5+4x7",
+            # Each pad joins with START and confirms its user ID with A.
+            "getscreeninfo(options/battleid=start@6;p2-start@10;a@14;p2-a@18;a@22;p2-a@26",
+            "getscreeninfo(battle/choosef2=right@4;a@7;p2-right@10;p2-right@11.5;p2-a@14;a@18;p2-a@20;a@24;p2-a@26",
+            "getscreeninfo(battle/chsvenue=a@8+4x4",
+        ],
+        "tail": FIGHT_TAIL + "," + FIGHT_TAIL.split(",", 1)[1].replace("right:", "p2-left:").replace(",x:", ",p2-x:")
+                .replace(",y:", ",p2-y:").replace(",a:", ",p2-a:").replace(",b:", ",p2-b:"),
+        "env": {"RECOMP_USB_PADS": "2"},
+        "until": "game.startgame(", "after": 120, "secs": 480,
+        "shots": "@game.startgame(,60,110",
+    },
+    "ffa-result": {
+        "help": "Free For All with four fighters at the default venue, played until the match summary",
+        "stages": FFA_SETUP + ["getscreeninfo(battle/chsvenue=a@8+4x4"],
+        "tail": FIGHT_TAIL,
+        "until": "game.getmatchsummary(", "after": 6, "secs": 1200,
+        "shots": "@game.startgame(,60",
     },
     "ffa-terrordome": {
         "help": "Free For All with four fighters at the Terrordome (venue 6), played for four minutes",
@@ -425,8 +490,8 @@ def summarise(text):
 
 def reached(summary, anchor):
     """Whether a `[FUNCCALL]` line contains the anchor, the way the runtime matches it."""
-    a = anchor.lower()
-    return any(a in c.lower() for c in summary["calls"])
+    a, _, nth = anchor.lower().partition("#")     # `anchor#N`: the Nth such call
+    return sum(a in c.lower() for c in summary["calls"]) >= (int(nth) if nth else 1)
 
 
 def presents_after(text, anchor):
@@ -475,8 +540,9 @@ class LogTail:
                 self.presents += 1
 
     def saw(self, anchor):
-        a = anchor.lower()
-        return any(a in c for c in self.calls)
+        """Has a call containing `anchor` been logged? `anchor#N` asks for the Nth such call."""
+        a, _, nth = anchor.lower().partition('#')
+        return sum(a in c for c in self.calls) >= (int(nth) if nth else 1)
 
 
 class Run:
@@ -661,6 +727,8 @@ def run_route(route, preset="win-x64-release", secs=None, shots=None, env=None, 
               to_end=False, **kw):
     r = ROUTES[route]
     stages = list(r["stages"]) + list(extra_stages)
+    if r.get("env"):
+        env = dict(r["env"], **(env or {}))     # what the route needs; the caller's values win
     run = run_game(route, stages=stages, tail=r.get("tail", ""),
                     shots=r.get("shots", "") if shots is None else shots,
                     secs=secs or r["secs"], preset=preset, env=env,

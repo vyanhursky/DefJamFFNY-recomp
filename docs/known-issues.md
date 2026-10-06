@@ -24,8 +24,8 @@ Fighters selection. They do not cover every mode or a full Story campaign.
 - **A dropped audio buffer at a knockout.** Both scripted fights that were played to a
   knockout dropped exactly one audio buffer in the slow motion after it, and none before.
   Not investigated; it has not been noticed by ear.
-- Two-player gameplay needs an end-to-end check; four-slot USB fixtures are not
-  a multiplayer gameplay test.
+- Two-pad play is covered by a scripted match (`versus`: both emulated pads join, pick fighters
+  and land hits). Real controllers, and three or four pads, have not been checked.
 - Long-session memory use over multiple fights remains to be measured.
 - Earlier builds had a rare silent boot and a rare crash at guest `sub_001A3310`.
   The clean rebase soak does not prove those are eliminated.
