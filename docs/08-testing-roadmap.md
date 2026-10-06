@@ -24,17 +24,24 @@ Hosted CI has no game dump and does not run the full game.
 
 ## Ordered implementation To-Do
 
+Status as of v0.2.2 (2026-10-05): `[x]` done, `[~]` partly done, `[ ]` open. How to run what exists: [09-testing-harness.md](09-testing-harness.md).
+
 ### 1. Repeatable setup and useful combat assertions
 
-- [ ] Define disposable, versioned local profile fixtures with hashes and required
+- [x] Define disposable, versioned local profile fixtures with hashes and required
   progression; select profiles explicitly instead of relying on list ordering.
-- [ ] Record settings and RNG seed where controllable; identify sources of timing
+  *Done: hashed fixtures run on a throw-away copy; the regression makes one from the saved profiles. Profiles are still chosen by list position.*
+- [~] Record settings and RNG seed where controllable; identify sources of timing
   variance. Keep log-anchored menu navigation; add simulation-frame timing for combat.
-- [ ] Add read-only state/event observations for fighter position, health, round
+  *Part: settings and the seed are recorded and the seed can be replaced; input is still timed in host seconds, so runs differ.*
+- [x] Add read-only state/event observations for fighter position, health, round
   state and result. Verify hooks are present in actual generated integration.
-- [ ] Add one scenario: fixed fighters/venue, move, block, attack, verify damage,
+  *Done: `src/hooks/test_telemetry.c`, confirmed against live fights (`research/combat-telemetry.md`).*
+- [~] Add one scenario: fixed fighters/venue, move, block, attack, verify damage,
   complete KO, reach results and return to menu. Bound each expected transition.
-- [ ] Prove a deliberately broken input/damage path fails the relevant assertion.
+  *Part: `fight-result` asserts movement, attack, damage, the result and the summary screen. Not asserted: a block, the fighters' identity, the return to the menu.*
+- [~] Prove a deliberately broken input/damage path fails the relevant assertion.
+  *Part: unit tests break each assertion with altered event streams; a live run with the pad disabled has not been made.*
 
 Exit: a fight that renders but ignores controls or never causes damage cannot pass.
 
@@ -42,8 +49,10 @@ Exit: a fight that renders but ignores controls or never causes damage cannot pa
 
 - [ ] Select fight and cutscene checkpoints anchored to game state or simulation
   frames, with warm-up and tolerances documented.
-- [ ] Compare local approved baselines using pixel/perceptual metrics and masks
+  *Open: captures are still taken at host-time offsets.*
+- [~] Compare local approved baselines using pixel/perceptual metrics and masks
   for legitimately variable regions. Produce baseline/current/difference images.
+  *Part: the comparison, masks, difference images and hash-locked approval exist; no baseline is approved and the tolerances are examples.*
 - [ ] Cover normal gamma, fighters, arena, lighting, transparency, effects and FMV.
 - [ ] Keep console-fidelity references distinct from last-known-good port images.
 - [ ] Prove representative missing textures/effects fail without making healthy
@@ -54,31 +63,40 @@ Any public media exception requires the existing owner review process.
 
 ### 3. Audio regression
 
-- [ ] Capture and distinguish generated PCM from accepted/output audio. Align
+- [~] Capture and distinguish generated PCM from accepted/output audio. Align
   observations to scenario events; do not infer wall-clock alignment from PCM length.
-- [ ] Gate unexpected silence, clipping, dropped buffers and dry queues with
+  *Part: generated PCM is captured and bounded by observed events; it is not the device's output and alignment is to the log polling interval.*
+- [x] Gate unexpected silence, clipping, dropped buffers and dry queues with
   separately defined startup/loading and active-game budgets.
+  *Done for fights, with the drop allowance calibrated on healthy runs. No separate loading budget.*
 - [ ] Add event-aligned music, announcer and hit-SFX checks; test channel balance,
   playback speed and audio/video timing where measurable.
+  *Open.*
 - [ ] Keep a short listening checklist for fidelity not covered by metrics.
 - [ ] Register appropriate synthetic mixer/decoder fixtures in CI after auditing
   their prerequisites and assertion behavior in optimized builds.
 
 ### 4. Coverage and performance
 
-- [ ] Add grapple/combo, two-player input, representative venues/fight modes,
+- [~] Add grapple/combo, two-player input, representative venues/fight modes,
   Story progression, save/load, cutscene natural/skip and unlock navigation scenarios.
-- [ ] Measure frame-time percentiles/hitches, memory growth over repeated matches,
+  *Part: One on One, four-fighter Free For All, the Terrordome, crib, gym, intro and unlock routes exist. Open: grapples, two pads, save and load, cutscene skipping.*
+- [~] Measure frame-time percentiles/hitches, memory growth over repeated matches,
   long sessions and simulation speed across supported FPS settings.
-- [ ] Keep fast PR checks separate from extended nightly/release checks.
+  *Part: frame pacing and memory growth are asserted for one fight. Open: repeated matches, long sessions, other frame rates.*
+- [x] Keep fast PR checks separate from extended nightly/release checks.
+  *Done: `regress.py --quick`, the full run, and `--only` for the rest.*
 
 ### 5. Reports and orchestration
 
-- [ ] Write JSON/JUnit results and a local HTML report with explicit pass/fail/skip,
+- [x] Write JSON/JUnit results and a local HTML report with explicit pass/fail/skip,
   prerequisite failures, assertions, logs, captures and comparison metrics.
-- [ ] Include game/toolkit source SHAs, upstream base/tag, generated-input/output
+  *Done.*
+- [~] Include game/toolkit source SHAs, upstream base/tag, generated-input/output
   hashes, executable hash, compiler, machine/GPU/driver, settings and fixture hash.
-- [ ] Preserve complete save restoration and fail closed on missing checkpoints.
+  *Part: source, toolkit pin, build and executable hashes, settings, fixture, OS and GPU driver. Open: compiler version, upstream base.*
+- [x] Preserve complete save restoration and fail closed on missing checkpoints.
+  *Done.*
 - [ ] Label historical failures and skips explicitly; compare candidate and baseline
   under the same environment and fixtures.
 

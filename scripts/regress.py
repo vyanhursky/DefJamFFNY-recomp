@@ -13,6 +13,10 @@ Checks, in order:
   m4a      the main menu's                             tests/golden/m4a-main-menu.json
   fight    a scripted One on One: reaches the fight, holds the frame rate, no crash
   ffa      a scripted four-fighter Free For All at the default venue, the same checks
+  ffa-terrordome  the same at the Terrordome for four minutes (the v0.2.1 crash)
+  combat   a One on One played to its result on a copy of the profiles: movement, a
+           player attack, damage, the result and the summary screen asserted from
+           game state, plus audio, frame pacing and memory (scripts/scenario_suite.py)
   intro    Story from a new ID: both cutscenes play to the creator, no truncated batch
   crib     Story with the first saved profile reaches the crib
   gym      Learn Moves opens and a move's preview movie is requested
@@ -27,6 +31,7 @@ logs/regress-<stamp>.txt.
 """
 import argparse
 import importlib.util
+import json
 import os
 import re
 import subprocess
@@ -37,9 +42,15 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 spec = importlib.util.spec_from_file_location("harness", os.path.join(HERE, "harness.py"))
 harness = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(harness)
+spec = importlib.util.spec_from_file_location('test_evidence', os.path.join(HERE, 'test_evidence.py'))
+evidence = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(evidence)
 REPO = harness.REPO
 
-ORDER = ["unit", "m2", "m3", "m4a", "fight", "ffa", "intro", "crib", "gym", "soak"]
+ORDER = ["unit", "m2", "m3", "m4a", "fight", "ffa", "fight-terrordome", "ffa-terrordome", "combat",
+         "intro", "crib", "gym", "soak"]
+# The One on One at the Terrordome stays opt-in (--only): the Free For All covers the venue.
+DEFAULT = [n for n in ORDER if n != "fight-terrordome"]
 QUICK = ["unit", "m2", "m3", "m4a", "fight"]
 
 # A 2 s line of a 60 Hz title holds 120 presents. Loading screens run at 30, so the
@@ -135,7 +146,7 @@ def check_fight(a, route="fight"):
     if not harness.reached(run.summary, "game.startgame("):
         faults.append("never reached the fight")
     p = harness.presents_after(run.text, "game.startgame(")
-    floor = (FFA_FPS_FLOOR if route == "ffa" else FPS_FLOOR).get(a.preset, 100)
+    floor = (FFA_FPS_FLOOR if route.startswith("ffa") else FPS_FLOOR).get(a.preset, 100)
     if p and median(p) < floor:
         faults.append("median %d presents per 2 s, floor %d" % (median(p), floor))
     if len(p) < 30:
@@ -146,6 +157,30 @@ def check_fight(a, route="fight"):
 
 def check_ffa(a):
     return check_fight(a, route="ffa")
+
+
+def check_combat(a):
+    spec = importlib.util.spec_from_file_location("scenario_suite", os.path.join(HERE, "scenario_suite.py"))
+    suite = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(suite)
+    try:
+        fixture = a.fixture or str(suite.default_fixture())
+    except (OSError, ValueError) as ex:
+        return False, "no fixture: %s" % ex
+    folder = os.path.join(REPO, "logs", "scenarios", "regress-combat-" + time.strftime("%Y%m%d-%H%M%S"))
+    code = suite.main(["run", "fight-result", "--fixture", fixture, "--require-combat",
+                       "--preset", a.preset, "--output", folder])
+    try:
+        with open(os.path.join(folder, "report.json"), encoding="utf-8") as f:
+            checks = json.load(f)["assertions"]
+    except (OSError, ValueError, KeyError) as ex:
+        return False, "no scenario report: %s" % ex
+    bad = [c["name"] for c in checks if c["status"] != "pass"]
+    combat = [c for c in checks if c["name"].startswith("combat.")]
+    detail = "%d of %d assertions (%d combat)" % (len(checks) - len(bad), len(checks), len(combat))
+    if bad:
+        detail += "; failed: " + ", ".join(bad[:6])
+    return code == 0 and not bad and len(combat) >= 7, detail + "  " + os.path.relpath(folder, REPO)
 
 
 def check_intro(a):
@@ -188,7 +223,9 @@ def check_soak(a):
 
 
 CHECKS = {"unit": check_unit, "m2": check_m2, "m3": check_m3, "m4a": check_m4a, "fight": check_fight, "ffa": check_ffa,
-          "intro": check_intro, "crib": check_crib, "gym": check_gym, "soak": check_soak}
+          "fight-terrordome": lambda a: check_fight(a, 'fight-terrordome'),
+          "ffa-terrordome": lambda a: check_fight(a, 'ffa-terrordome'),
+          "combat": check_combat, "intro": check_intro, "crib": check_crib, "gym": check_gym, "soak": check_soak}
 
 
 def main(argv=None):
@@ -197,9 +234,11 @@ def main(argv=None):
     ap.add_argument("--quick", action="store_true", help="unit, the golden frames and a fight")
     ap.add_argument("--only", help="comma-separated checks: " + ",".join(ORDER))
     ap.add_argument("--soak", type=int, default=3, help="boots in the soak check (default 3)")
+    ap.add_argument("--fixture", help="save fixture for the combat check (default: a fresh copy of the saved profiles)")
+    ap.add_argument("--shared-story", action="store_true", help="evaluate crib and gym from one story-tour launch")
     a = ap.parse_args(argv)
 
-    names = QUICK if a.quick else ORDER
+    names = QUICK if a.quick else DEFAULT
     if a.only:
         names = [n for n in ORDER if n in set(a.only.split(","))]
         unknown = set(a.only.split(",")) - set(ORDER)
@@ -207,11 +246,23 @@ def main(argv=None):
             ap.error("unknown check: " + ", ".join(sorted(unknown)))
 
     rows = []
+    shared_story = None
     t_all = time.time()
     for n in names:
         t0 = time.time()
         try:
-            ok, detail = CHECKS[n](a)
+            if a.shared_story and n in ('crib', 'gym'):
+                if shared_story is None:
+                    shared_story = harness.run_route('story-tour', preset=a.preset, quiet=True)
+                faults = common_faults(shared_story)
+                anchor = 'getscreeninfo(story/' + n
+                if not harness.reached(shared_story.summary, anchor):
+                    faults.append('never reached ' + n)
+                if n == 'gym' and not re.search(r'\[PATH\] .*blazin_\d+\.mad', shared_story.text):
+                    faults.append('no move preview movie requested')
+                ok, detail = verdict(faults, n + ' reached in shared Story launch')
+            else:
+                ok, detail = CHECKS[n](a)
         except SystemExit as ex:                 # not built, no dump: say so and stop
             ok, detail = False, str(ex)
         rows.append((n, ok, detail, time.time() - t0))
@@ -226,6 +277,13 @@ def main(argv=None):
     out = os.path.join(REPO, "logs", "regress-" + time.strftime("%Y%m%d-%H%M%S") + ".txt")
     with open(out, "w", encoding="utf-8") as f:
         f.write("\n".join(lines) + "\n")
+    report_dir = os.path.splitext(out)[0]
+    evidence.write_report(report_dir, {'schema': 1, 'name': 'regression',
+                          'seconds': time.time() - t_all,
+                          'identity': {'preset': a.preset, 'shared_story': a.shared_story,
+                                       'checks': names, 'text_log': out},
+                          'assertions': [dict(evidence.assertion(n, ok, d), seconds=dt)
+                                         for n, ok, d, dt in rows]})
     print(lines[-1] + "  (" + os.path.relpath(out, REPO) + ")")
     return 1 if failed else 0
 

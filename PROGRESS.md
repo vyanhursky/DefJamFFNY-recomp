@@ -29,7 +29,8 @@
 | Toolkit rebase onto upstream (D46) | ✅ | 108 patches consolidated into 15 published topics at `aa1a1b9`; replay retired. Both presets 9/9, Debug soak 20/20, extra routes 5/5. Vlad accepted Release on 2026-10-04: much better audio, smooth frames, no observed graphical glitches (D56). Private PR #1 merged at `c23b44a`; main CI 3/3 green (`37218584931`). |
 | Public repository/docs | ✅ | Fresh PUBLIC `vyanhursky/DefJamFFNY-recomp`; clean root `67c2672`, original private history retained. Owner README feedback, one-hour Story report and supplied PNG/GIF published (D58). |
 | GitHub CI / source release | ✅ | Public main CI `37223781912` 7/7; public v0.1.0 workflow `37223822550` 9/9. v0.1.0 source Release published at public commit `89688c0`; no executable or uploaded binary assets. Current project tests96/96. |
-| PC features (M6) | ⏳ | Plan `docs/07-m6-plan.md` (D63). **v0.2.0** (settings file and display options) and **v0.2.1** (Terrordome crash fix) released 2026-10-05. Next: input. |
+| Gameplay test harness | ⏳ | **v0.2.2 released 2026-10-06** (D67, D68): scenario reports on isolated save fixtures, a combat check read from game state, audio, frame-pacing and memory gates, a twelve-check regression. `docs/09-testing-harness.md`; open items in `docs/08-testing-roadmap.md`. |
+| PC features (M6) | ⏳ | Plan `docs/07-m6-plan.md` (D63). **v0.2.0** (settings file and display options) and **v0.2.1** (Terrordome crash fix) released 2026-10-05. Paused while the test harness is completed; next slice is input. |
 | Steam Deck (M5), macOS (M9) | ⬜ | After M6, in that order (D45). |
 
 ## 1. Decisions log
@@ -101,6 +102,8 @@
 | D64 | 2026-10-05 | No exclusive full screen. v0.2.0 uses a flip-model swap chain and a `vsync` setting that paces the game on the display when its refresh rate is a multiple of 60, and keeps the game's 60 Hz timer otherwise. | Exclusive mode gains nothing under Proton or with flip-model presentation; a plain vsync wait on top of the timer halved the frame rate. |
 | D65 | 2026-10-05 | The owner accepted the v0.2.0 play-test and its publication. The Terrordome crash he found is not a regression (v0.1.0 crashes in the same scripted match at the same guest function) and goes to a bug-fix release. | "The game plays great": smooth at render scale 3, full screen good, switching during a match works. |
 | D66 | 2026-10-05 | Fix the Terrordome crash by seeding the seven stubbed jump targets that are self-contained function exits and re-lifting; release as v0.2.1 on the Terrordome runs, without the full regression. The other stubbed targets stay for a lifter fix to function extents. | The owner asked for the fix and the release and chose to skip the regression once the Terrordome runs were clean. Seeding every decodable target was tried and created 51 new stubs. |
+| D67 | 2026-10-05 | Complete the gameplay test harness begun on a separate branch before more PC features: the whole testing roadmap, delivered in stages; the four-fighter Terrordome match joins the full regression; the first stage ships as v0.2.2, a tooling release. | The owner's instruction. |
+| D68 | 2026-10-06 | Release v0.2.2 with the Release regression green and Debug at eleven of twelve: the failure is a rare crash in the game's sound library found by the longer run, in code the test work does not touch. It is a known issue and the first research item for v0.2.3. | The release is tooling only and the probes are off by default. |
 
 ## 2. Environment inventory (2026-09-17)
 
@@ -176,8 +179,14 @@ defjam-recomp/
 - 2026-10-04 11:20 — **Public DefJamFFNY-recomp and v0.1.0 released (D58).** Public tag89688c0 (clean initial root67c2672), exact toolkit aa1a1b9, original DJFFNY-recomp stays PRIVATE/unrenamed. Public CI37223781912:7/7; tagged source workflow37223822550:9/9. Project96, toolkit533 +107subtests/one skip, native saves19 and all five CTest cases pass. Inspected source draft and published v0.1.0 with zero uploaded assets; owner-approved README PNG/GIF included via exact fingerprints. All requested README edits live. No game runs/builds. Closure docs synced deliberately to both main branches without moving the public tag.
 - 2026-10-05 17:30 — **v0.2.0: display settings and a settings file (D63-D65).** The executable starts by itself and reads `settings.ini`; Alt+Enter and F11 toggle borderless full screen on a flip-model swap chain; the window resizes with 4:3 bars or stretch; render scale, filter, gamma and display-paced vsync are settings. Toolkit pin `c7059bf` on fork branch `defjam/m6` (settings table, scaled presentation, vsync pacing). Release regression green with matching goldens, a scripted fight at 60 frames a second with vsync on and off; new four-fighter Free For All check. Owner play-test accepted. Known: matches at the Terrordome can crash, as they do on v0.1.0 (`docs/known-issues.md`).
 - 2026-10-05 20:30 — **v0.2.1: Terrordome crash fixed (D66).** A fighter state handler (`sub_001D83B0`) had been cut short by the lifter and its jumps to the shared exit `0x1D87AA` were an empty stub, so it returned with the stack 0x28 low and `esi` not restored; the loop over the fighter slots then ran off the fighter array. Seven such exits are now seeded (470 seeds; stubs 111 to 104, none new); `scripts/stub-targets.py` lists the rest, which need function extents in the lifter. Release build: scripted Free For All and One on One at the Terrordome three times each, four minutes, no crash. The full regression was not completed for this release.
+- 2026-10-06 00:40 — **v0.2.2: gameplay test harness, stage 1 (D67, D68).** `scripts/scenario_suite.py` runs a route on a throw-away copy of a hashed save fixture and writes JSON, JUnit and HTML reports. Read-only probes (`src/hooks/test_telemetry.c`) expose the fight's simulation step, fighter state, hits, damage and the result; the combat check asserts movement, a player attack, damage, one decisive result and the summary screen, and passed on a fight played to a knockout. Audio, frame-pacing and memory gates; twelve-check regression with the four-fighter Terrordome match. Release 12 of 12; Debug 11 of 12 (a rare sound-library crash at `sub_002626B5`, once in three runs); 157 unit tests. Not done: step-timed input, approved visual baselines, sounds tied to events, multi-match sessions.
 
 ## 7. Hand-off
+
+### v0.2.2 released, 2026-10-06
+A tooling release: the gameplay test harness (`docs/09-testing-harness.md`, notes in
+`docs/releases/v0.2.2.md`). Work continues on the open roadmap items for v0.2.3;
+`docs/research/testing-harness-handover.md` lists them in order.
 
 ### v0.2.0 and v0.2.1 released, 2026-10-05
 Source v0.2.0 adds the settings file and display options (`docs/releases/v0.2.0.md`);

@@ -10,7 +10,9 @@ try {
     $tk = if ($ToolkitDir) { (Resolve-Path $ToolkitDir).Path } else { Join-Path $repo "tools\xboxrecomp" }
     $runtimeOnly = $Preset -eq "ci-runtime-only"
     if (-not $runtimeOnly) {
-        Get-Process defjam_recomp -ErrorAction SilentlyContinue | Stop-Process -Force
+        $targetExe = [IO.Path]::GetFullPath((Join-Path $repo "build\$Preset\defjam_recomp.exe"))
+        Get-Process defjam_recomp -ErrorAction SilentlyContinue |
+            Where-Object { $_.Path -eq $targetExe } | Stop-Process -Force
         python (Join-Path $PSScriptRoot "pipeline-state.py") verify-lift --toolkit $tk
         if ($LASTEXITCODE) { throw "generated code freshness check failed" }
     }

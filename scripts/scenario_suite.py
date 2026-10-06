@@ -1,0 +1,365 @@
+#!/usr/bin/env python3
+"""Evaluate many assertions/captures in one existing harness route.
+
+python scripts/scenario_suite.py fixture --source C:/local/test-save --output logs/fixtures/story --profile VY3
+python scripts/scenario_suite.py run ffa-terrordome --fixture logs/fixtures/story --audio
+python scripts/scenario_suite.py run story-tour --fixture logs/fixtures/story
+
+Output is a new local directory containing JSON, JUnit and HTML. Fixtures and
+baselines are local only. Combat telemetry is explicitly unfinished.
+"""
+import argparse
+import importlib.util
+import json
+import os
+from pathlib import Path
+import platform
+import shutil
+import subprocess
+import sys
+import tempfile
+import time
+
+HERE = Path(__file__).resolve().parent
+
+
+def load(name):
+    spec = importlib.util.spec_from_file_location(name, HERE / (name + '.py'))
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+harness = load('harness')
+# Routes that play a fight until the game records its result.
+RESULT_ROUTES = ('fight-result',)
+evidence = load('test_evidence')
+session_driver = load('session_driver')
+
+
+def source_identity(repo):
+    repo = Path(repo).resolve()
+    def git(*args):
+        r = subprocess.run(['git', '-c', 'safe.directory=' + repo.as_posix(), '-C', str(repo), *args],
+                           capture_output=True, text=True)
+        return r.stdout.strip() if r.returncode == 0 else 'unavailable'
+    sources = [p for base in ('scripts', 'src/hooks') for p in (repo / base).rglob('*')
+               if p.is_file() and p.suffix in ('.py', '.c', '.h')]
+    return {'head': git('rev-parse', 'HEAD'), 'status': git('status', '--porcelain'),
+            'toolkit_gitlink': git('ls-tree', 'HEAD', 'tools/xboxrecomp'),
+            'test_and_hook_hashes': {p.relative_to(repo).as_posix(): evidence.digest(p) for p in sources},
+            'native_entry_hashes': {name: evidence.digest(repo / name) for name in ('src/main.c', 'src/recomp_manual.c', 'CMakeLists.txt')},
+            'host': platform.platform(), 'python': platform.python_version()}
+
+
+def create_fixture(source, output, profile):
+    source, output = Path(source).resolve(), Path(output).resolve()
+    files = evidence.tree_manifest(source)
+    if source == output or source in output.parents:
+        raise ValueError('fixture output cannot be inside source saves')
+    output.mkdir(parents=True, exist_ok=False)
+    shutil.copytree(source, output / 'save')
+    metadata = []
+    for path in sorted(source.rglob('SaveMeta.xbx')):
+        raw = path.read_bytes()
+        text = raw.decode('utf-16', errors='replace') if raw.startswith((b'\xff\xfe', b'\xfe\xff')) else raw.decode('utf-8', errors='replace')
+        name = next((line[5:] for line in text.splitlines() if line.startswith('Name=')), None)
+        metadata.append({'path': path.relative_to(source).as_posix(), 'name': name})
+    meta = {'schema': 1, 'profile': profile, 'files': files, 'save_metadata': metadata,
+            'selection': 'caller-prepared save root; route must be calibrated for this exact profile list',
+            'rng_seed': None, 'rng_status': 'not controlled', 'input_clock': 'anchored wall seconds'}
+    (output / 'fixture.json').write_text(json.dumps(meta, indent=2), encoding='utf-8')
+    return evidence.fixture_identity(output)
+
+
+def default_fixture(data_root=None):
+    """A fixture made from the player's own profiles, for runs that were not given one.
+
+    Copies only `save/UserData` (profiles and options, a few hundred kilobytes) from
+    the data folder into a new local fixture; the caches and partition images, which
+    are gigabytes and which the game recreates, are left out. The source is read,
+    never written.
+    """
+    data_root = Path(data_root or harness.data_dir())
+    profiles = data_root / 'save' / 'UserData'
+    if not profiles.is_dir():
+        raise ValueError('no saved profiles to make a fixture from: ' + str(profiles))
+    output = Path(harness.REPO) / 'logs' / 'fixtures' / ('auto-' + time.strftime('%Y%m%d-%H%M%S'))
+    with tempfile.TemporaryDirectory(prefix='fixture-source-', dir=output.parent if output.parent.is_dir() else None) as staging:
+        shutil.copytree(profiles, Path(staging) / 'UserData')
+        create_fixture(staging, output, "the player's profiles as found; not a curated profile list")
+    return output
+
+
+def baseline_candidates(report_path, output):
+    """Package retained captures for human review; approval stays false."""
+    report_path, output = Path(report_path).resolve(), Path(output).resolve()
+    report = json.loads(report_path.read_text(encoding='utf-8'))
+    captures = report_path.parent / 'captures'
+    shots = sorted(captures.glob('*.bmp'))
+    if not shots:
+        raise ValueError('report has no retained BMP captures')
+    output.mkdir(parents=True, exist_ok=False)
+    items = []
+    for shot in shots:
+        retained = output / shot.name
+        shutil.copyfile(shot, retained)
+        items.append({'capture': shot.name, 'baseline': shot.name, 'approved': False,
+                      'sha256': evidence.digest(retained), 'max_mae': 3.0,
+                      'max_changed_fraction': .02, 'pixel_threshold': 16, 'masks': []})
+    manifest = {'schema': 1, 'source_report_sha256': evidence.digest(report_path),
+                'source_identity': report['identity'], 'source_assertions': report['assertions'],
+                'review': 'Human review required; captures from failed runs are not validated baselines.',
+                'routes': {report['name']: items}}
+    path = output / 'manifest.json'
+    path.write_text(json.dumps(manifest, indent=2), encoding='utf-8')
+    return path
+
+
+def bootstrap_stages(route):
+    stages = list(harness.ROUTES[route]['stages'])
+    if route.startswith(('fight', 'ffa')):
+        # The final venue setup contains fallback A presses. Close that stage
+        # when the match starts so live combat input has sole ownership.
+        stages.append('game.startgame(=back@9999')
+    return stages
+
+
+def scenario_settings(path=None):
+    settings = {'render_scale': 2, 'gamma': True, 'vsync': True}
+    if path:
+        supplied = json.loads(Path(path).read_text(encoding='utf-8'))
+        if set(supplied) - set(settings):
+            raise ValueError('unknown scenario display setting')
+        settings.update(supplied)
+    if type(settings['render_scale']) is not int or not 1 <= settings['render_scale'] <= 4:
+        raise ValueError('render_scale must be an integer from 1 to 4')
+    if any(type(settings[k]) is not bool for k in ('gamma', 'vsync')):
+        raise ValueError('gamma/vsync must be booleans')
+    env = {'RECOMP_RENDER_SCALE': str(settings['render_scale']),
+           'RECOMP_GAMMA': str(int(settings['gamma'])), 'RECOMP_PRESENT_VSYNC': str(int(settings['vsync']))}
+    return settings, env
+
+
+def route_assertions(route, run, preset):
+    checks = [evidence.assertion('runtime.faults', not harness.run_faults(run),
+                                '; '.join(harness.run_faults(run)) or 'no detected runtime faults'),
+              evidence.assertion('save.restoration', run.save_ok is True, 'complete disposable save-root restoration')]
+    anchors = {'story-tour': ['getscreeninfo(story/crib', 'getscreeninfo(story/gym'],
+               'intro': ['game.startstorymode(', 'getscreeninfo(story/chardec'],
+               'crib': ['getscreeninfo(story/crib'], 'gym': ['getscreeninfo(story/gym']}
+    fight = route.startswith('fight') or route.startswith('ffa')
+    for anchor in (['game.startgame('] if fight else anchors.get(route, [])):
+        checks.append(evidence.assertion('route.' + anchor, harness.reached(run.summary, anchor), 'expected FUNCCALL'))
+    if route in ('gym', 'story-tour'):
+        hit = run.text.lower().find('getscreeninfo(story/gym')
+        count = run.text[hit:].lower().count('blazin_') if hit >= 0 else 0
+        checks.append(evidence.assertion('gym.preview_request', count > 0, 'preview path requested; not decode/render proof', requests=count))
+    if fight:
+        contexts = evidence.fight_contexts(run.text)
+        context = contexts[0] if contexts else {}
+        slots = context.get('slots', {})
+        expected_venue = 6 if 'terrordome' in route else 1
+        checks += [evidence.assertion('setup.venue_request', context.get('venue') == expected_venue,
+                                      'front-end venue request before StartGame', context=context, expected=expected_venue),
+                   evidence.assertion('setup.fighter_requests', len(slots) == (4 if route.startswith('ffa') else 2),
+                                      'front-end selected fighter slots before StartGame', slots=slots)]
+        p = harness.presents_after(run.text, 'game.startgame(')
+        median = sorted(p)[len(p) // 2] if p else 0
+        floor = 110 if preset == 'win-x64-release' else (80 if route.startswith('ffa') else 100)
+        checks += [evidence.assertion('fight.presentation_duration', len(p) >= 30, 'two-second reporting intervals', seconds=2 * len(p)),
+                   evidence.assertion('fight.presentation_rate', bool(p) and median >= floor,
+                                      'median presents per two seconds', median=median, floor=floor, minimum=min(p) if p else 0)]
+    return checks
+
+
+def visual_assertions(manifest_path, route, run, folder):
+    manifest_path = Path(manifest_path).resolve()
+    manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
+    items = manifest['routes'].get(route, [])
+    if not items:
+        return [evidence.assertion('visual.baselines', False, 'no approved checkpoints for route')]
+    checks = []
+    for i, item in enumerate(items):
+        base = (manifest_path.parent / item['baseline']).resolve()
+        current = Path(run.shots_dir) / item['capture']
+        # Hash locks approval to the actual baseline bytes; never auto-bless captures.
+        if not item.get('approved') or not base.is_file() or evidence.digest(base) != item.get('sha256'):
+            checks.append(evidence.assertion('visual.baseline.' + str(i), False, 'missing, unapproved or changed baseline'))
+            continue
+        if not current.is_file():
+            checks.append(evidence.assertion('visual.capture.' + str(i), False, 'required checkpoint capture missing'))
+            continue
+        check = evidence.visual_check(current, base, folder / ('diff-%d.png' % i), harness,
+                                      max_mae=item.get('max_mae', 3),
+                                      max_changed_fraction=item.get('max_changed_fraction', .02),
+                                      pixel_threshold=item.get('pixel_threshold', 16), masks=item.get('masks', []))
+        checks.append(check)
+    return checks
+
+
+def execute(args):
+    started = time.monotonic()
+    folder = Path(args.output or (Path(harness.REPO) / 'logs/scenarios' / (args.route + '-' + time.strftime('%Y%m%d-%H%M%S')))).resolve()
+    folder.mkdir(parents=True, exist_ok=False)
+    fight_route = args.route.startswith(('fight', 'ffa'))
+    audio = args.audio if args.audio is not None else fight_route
+    report = {'schema': 1, 'name': args.route, 'identity': source_identity(harness.REPO),
+              'scope': {'audio_health_required': audio, 'approved_visual_required': bool(args.baselines),
+                        'combat_required': args.require_combat,
+                        'combat_result_required': args.require_combat and args.route in RESULT_ROUTES,
+                        'full_gameplay_acceptance': False},
+              'assertions': [], 'images': [], 'seconds': 0}
+    try:
+        fixture = evidence.fixture_identity(args.fixture)
+        settings, display_env = scenario_settings(args.settings)
+        report['identity']['fixture'] = fixture
+        report['identity']['environment'] = evidence.environment_identity()
+        report['identity']['scenario_settings'] = settings
+        if args.settings:
+            report['identity']['settings_sha256'] = evidence.digest(args.settings)
+        report['identity']['evidence_limits'] = ['inputs use anchored wall seconds',
+                                                'RNG seed is the game\'s own unless --rng-seed is given',
+                                                'generated PCM precedes device submission']
+        report['identity']['rng_seed_override'] = args.rng_seed
+        # Fail before copying a potentially large save/cache tree when no
+        # certified game build exists in this isolated worktree.
+        harness.pipeline_state.verify_build(Path(harness.REPO), args.preset)
+        with tempfile.TemporaryDirectory(prefix='runtime-', dir=folder) as disposable:
+            shutil.copytree(Path(args.fixture) / 'save', Path(disposable) / 'save')
+            env = {'DEFJAM_DATA': disposable, 'RECOMP_SETTINGS': 'none',
+                   'RECOMP_PAD_HOST': '0', 'RECOMP_PRESENT_PACING': '1'}
+            env.update(display_env)
+            if args.observe_combat or args.require_combat:
+                env['RECOMP_TEST_OBSERVATIONS'] = '1'
+            if args.rng_seed is not None:
+                env['RECOMP_TEST_RNG_SEED'] = str(args.rng_seed)
+            if audio:
+                env.update(RECOMP_APU_LEVEL='1', RECOMP_APU_PCM=str(folder / 'audio.pcm'))
+            controller = None
+            if args.session_plan:
+                plan = json.loads(Path(args.session_plan).read_text(encoding='utf-8'))
+                expected_fixture = plan.get('fixture_manifest_sha256')
+                if expected_fixture and expected_fixture != fixture['manifest_sha256']:
+                    raise ValueError('session recipe requires a different fixture manifest')
+                controller = session_driver.SessionDriver(plan, folder / 'live-pad.txt')
+                report['identity']['session_plan'] = plan
+                report['identity']['session_plan_sha256'] = evidence.digest(args.session_plan)
+                env['RECOMP_PAD_LIVE'] = str(controller.live_path)
+                bootstrap = plan.get('bootstrap_route', 'boot')
+                if bootstrap not in harness.ROUTES:
+                    raise ValueError('unknown session bootstrap route: ' + str(bootstrap))
+                # Reuse a calibrated front-end setup, then let the live driver
+                # own fight/return/next-mode input. No repeating static tail.
+                run = harness.run_game(args.route, stages=bootstrap_stages(bootstrap),
+                                       secs=plan.get('timeout_seconds', 900), shots=plan.get('shots', ''),
+                                       preset=args.preset, env=env, quiet=True, controller=controller, inherit_recomp=False)
+            else:
+                run = harness.run_route(args.route, preset=args.preset, env=env, quiet=True, inherit_recomp=False)
+            report['identity']['run'] = run.identity
+            report['run_seconds'] = run.elapsed
+            report['event_timeline'] = run.timeline
+            report['pcm_boundaries'] = run.pcm_boundaries
+            shutil.copyfile(run.log, folder / 'game.log.err')
+            report['identity']['log'] = str(folder / 'game.log.err')
+            report['assertions'] += route_assertions(args.route, run, args.preset)
+            if controller is not None:
+                report['assertions'] += controller.assertions()
+            report['assertions'].append(evidence.assertion('fixture.unchanged', evidence.fixture_identity(args.fixture) == fixture,
+                                                           'fixture source identity after run'))
+            captures = folder / 'captures'
+            captures.mkdir()
+            report['captures'] = []
+            for shot in run.shots():
+                retained = captures / Path(shot).name
+                shutil.copyfile(shot, retained)
+                report['captures'].append({'path': 'captures/' + retained.name,
+                                           'sha256': evidence.digest(retained), 'bytes': retained.stat().st_size})
+                report['images'].append(harness.bmp_to_png(str(retained)))
+            if audio:
+                audio_anchor = 'game.startgame(' if args.route.startswith(('fight', 'ffa')) else (
+                    'game.startstorymode(' if args.route == 'intro' else 'getscreeninfo(story/crib')
+                end_anchor = 'game.getmatchsummary(' if args.route.startswith(('fight', 'ffa')) else (
+                    'getscreeninfo(story/chardec' if args.route == 'intro' else None)
+                window = evidence.pcm_window(run.pcm_boundaries, audio_anchor, end_anchor)
+                report['assertions'].append(evidence.assertion('audio.anchor_offset', window is not None,
+                    'PCM offset sampled after host observes scenario anchor; uncertainty is the log polling interval', window=window))
+                report['assertions'] += evidence.audio_checks(folder / 'audio.pcm', run.text,
+                                                              anchor=audio_anchor,
+                                                              end_anchor=end_anchor,
+                                                              start_byte=window['start_byte'] if window else None,
+                                                              end_byte=window['end_byte'] if window else None,
+                                                              max_silent_seconds=args.max_silent_seconds)
+                pcm = folder / 'audio.pcm'
+                if pcm.is_file() and pcm.stat().st_size % 4 == 0 and window:
+                    report['audio_preview'] = evidence.audio_preview(pcm, folder / 'audio-preview.wav',
+                        start_byte=window['start_byte'], end_byte=window['end_byte'])
+                    report['audio'] = [str(folder / 'audio-preview.wav')]
+            if fight_route:
+                start = next((e['observed_seconds'] for e in run.timeline
+                              if 'game.startgame(' in e['call'].lower()), None)
+                report['memory'] = run.memory
+                report['assertions'] += evidence.pacing_checks(run.text, end_anchor='game.getmatchsummary(')
+                report['assertions'] += evidence.memory_checks(run.memory, (start or 0) + 20)
+            if args.baselines:
+                report['assertions'] += visual_assertions(args.baselines, args.route, run, folder)
+                report['images'] += [str(p) for p in folder.glob('diff-*.png')]
+            if args.require_combat:
+                report['assertions'] += evidence.combat_checks(
+                    run.text, fighters=4 if args.route.startswith('ffa') else 2,
+                    require_result=args.route in RESULT_ROUTES)
+            if args.observe_combat:
+                report['observations'] = evidence.health_observations(run.text)
+                linked = report['observations']['linked_health_decreases']
+                report['assertions'].append(evidence.assertion('probe.hit_linked_health_decrease', bool(linked),
+                    'diagnostic hit-resolution followed by defender health decrease; no player-input causality or KO proof', count=len(linked)))
+                report['identity']['evidence_limits'].append('health observations use routine-entry counts, not simulation frames')
+    except (SystemExit, OSError, ValueError, KeyError) as ex:
+        report['assertions'].append(evidence.assertion('prerequisites_or_evaluation', False, str(ex)))
+    finally:
+        harness.kill_stray()
+        report['seconds'] = time.monotonic() - started
+        ok = evidence.write_report(folder, report)
+    print(('SELECTED GATES PASS' if ok else 'FAIL/BLOCKED') + ': ' + str(folder / 'index.html'))
+    return 0 if ok else 1
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    sub = parser.add_subparsers(dest='action', required=True)
+    fixture = sub.add_parser('fixture')
+    fixture.add_argument('--source', required=True, help='caller-prepared save root, copied without changes')
+    fixture.add_argument('--output', required=True, help='new ignored/local directory')
+    fixture.add_argument('--profile', required=True, help='explicit identity and progression description')
+    candidates = sub.add_parser('baseline-candidates', help='copy report captures into a new local review folder, unapproved')
+    candidates.add_argument('--report', required=True, help='retained report.json')
+    candidates.add_argument('--output', required=True, help='new local folder; keep under ignored logs')
+    run = sub.add_parser('run')
+    run.add_argument('route', choices=sorted(harness.ROUTES))
+    run.add_argument('--fixture', required=True)
+    run.add_argument('--output')
+    run.add_argument('--preset', default='win-x64-release')
+    run.add_argument('--settings', help='optional JSON render_scale/gamma/vsync; inherited RECOMP diagnostics are suppressed')
+    audio_group = run.add_mutually_exclusive_group()
+    audio_group.add_argument('--audio', action='store_true', default=None, help='strict health gates (default for fights)')
+    audio_group.add_argument('--no-audio', dest='audio', action='store_false', help='explicit runtime-only smoke run; omit audio gates')
+    run.add_argument('--observe-combat', action='store_true', help='experimental read-only hit/health observations; does not satisfy --require-combat')
+    run.add_argument('--max-silent-seconds', type=float, default=5)
+    run.add_argument('--rng-seed', type=int,
+                     help="replace the seed of the match's random number generator (changes CPU behaviour; for repeatable runs)")
+    run.add_argument('--baselines', help='local approved-baseline manifest')
+    run.add_argument('--session-plan', help='experimental ordered-screen recipe using live pad input')
+    run.add_argument('--require-combat', action='store_true',
+                     help='assert movement, a player attack, damage and (on routes that play to the end) the result from game state')
+    args = parser.parse_args(argv)
+    if args.action == 'fixture':
+        print(json.dumps(create_fixture(args.source, args.output, args.profile), indent=2))
+        return 0
+    if args.action == 'baseline-candidates':
+        print(baseline_candidates(args.report, args.output))
+        return 0
+    return execute(args)
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())

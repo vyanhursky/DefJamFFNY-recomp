@@ -135,12 +135,18 @@ python scripts/harness.py run intro --png           # Story from a new ID: the c
 python scripts/harness.py run gym --stage "getscreeninfo(story/gym=down@4;down@6;a@9;x@16"
 python scripts/harness.py soak --boots 20           # stops at a boot that stops presenting and dumps its state
 python scripts/regress.py [--quick] [--only fight,intro]
+python scripts/scenario_suite.py run fight-result --fixture logs/fixtures/NAME --require-combat
 ```
 
 - Every harness route and soak boot uses a complete-save-root guard, including profiles and caches.
   The run fails unless restoration is byte-identical. Keep only three successful backups; retain every
   failed backup. For rebase tests use the preserved disposable `runtime-data` root, never the original save.
 - Captures land in `logs/shots/<route>/` and remain local. Only the two owner-approved README visuals (D58) may be committed, with exact CI fingerprints.
+- `scripts/scenario_suite.py` runs one route on a throw-away copy of a hashed save fixture and writes a
+  JSON/JUnit/HTML report under `logs/scenarios/`. `--require-combat` asserts movement, a player attack,
+  damage and the match result from game state (`src/hooks/test_telemetry.c`, on with
+  `RECOMP_TEST_OBSERVATIONS=1`). The full `regress.py` runs it as the `combat` check, with the
+  four-fighter Terrordome match. Guide: `docs/09-testing-harness.md`.
 - A new screen to reach: run the nearest route with extra `--stage`s and `--shots`, look at the captures
   (`harness.py montage`), and add the stage to `ROUTES` once it is right.
 - Scripts written for one investigation belong in the session's scratch directory. Anything used twice

@@ -1,5 +1,12 @@
 # Test plan
 
+The gameplay test harness is described in [09-testing-harness.md](09-testing-harness.md).
+Since v0.2.2 the full regression run includes a combat check that asserts movement, a
+player attack, damage and the match result from the game's own state, a four-fighter
+Terrordome match, and audio, frame-pacing and memory gates. Input timed in simulation
+steps, approved visual baselines and sound-to-event checks are not done. The milestone
+exit criteria below are unchanged.
+
 For current hosted CI coverage, see [Release process](releasing.md#ci-coverage).
 The milestone gates below include planned checks as well as completed ones;
 [PROGRESS.md](../PROGRESS.md) and the [rebase acceptance](research/toolkit-rebase-acceptance.md)

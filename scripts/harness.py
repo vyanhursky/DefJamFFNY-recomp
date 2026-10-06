@@ -28,8 +28,10 @@ retains the backup and fails the run.
 Standard library only, so it runs wherever the repo does.
 """
 import argparse
+from datetime import datetime, timezone
 import filecmp
 import importlib.util
+import math
 import os
 import re
 import shutil
@@ -77,6 +79,23 @@ def guarded_data_root(value):
 
 def exe_path(preset):
     return os.path.join(REPO, "build", preset, EXE_NAME)
+
+
+def validate_shots(spec):
+    """The native writer names files by seconds only; prevent overwrites."""
+    labels = set()
+    for token in spec.split(',') if spec else []:
+        if token.startswith('@'):
+            continue
+        seconds = float(token)
+        if not math.isfinite(seconds) or seconds < 0:
+            raise ValueError('invalid screenshot time')
+        label = format(seconds, 'g')
+        if label in labels:
+            raise ValueError('duplicate screenshot time label would overwrite a checkpoint: ' + label)
+        labels.add(label)
+    if len(labels) > 16:
+        raise ValueError('native screenshot limit is 16 checkpoints per launch')
 
 
 # ---------------------------------------------------------------------------
@@ -185,6 +204,13 @@ ROUTES = {
         "until": "game.startgame(", "after": 120, "secs": 420,
         "shots": "@game.startgame(,60,110",
     },
+    "fight-result": {
+        "help": "One on One at the default venue, played until the game shows the match summary",
+        "stages": ONE_ON_ONE_SETUP + ["controllersetup(1,=a@4+4x6"],
+        "tail": FIGHT_TAIL,
+        "until": "game.getmatchsummary(", "after": 6, "secs": 900,
+        "shots": "@game.startgame(,60",
+    },
     "ffa": {
         "help": "Battle -> Free For All with four fighters at the default venue, then a scripted fighter",
         "stages": FFA_SETUP + ["getscreeninfo(battle/chsvenue=a@8+4x4"],
@@ -197,14 +223,14 @@ ROUTES = {
         "stages": FFA_SETUP + [TERRORDOME],
         "tail": FIGHT_TAIL,
         "until": "game.startgame(", "after": 240, "secs": 620,
-        "shots": "@game.startgame(,60,230",
+        "shots": "@game.startgame(,15,60,230",
     },
     "fight-terrordome": {
         "help": "One on One at the Terrordome (venue 6), played for four minutes",
         "stages": ONE_ON_ONE_SETUP + ["controllersetup(1,=back@9999", TERRORDOME],
         "tail": FIGHT_TAIL,
         "until": "game.startgame(", "after": 240, "secs": 620,
-        "shots": "@game.startgame(,60,230",
+        "shots": "@game.startgame(,15,60,230",
     },
     "crib": {
         "help": "Story with the first profile in the list, into the crib (NO to the messages prompt)",
@@ -253,6 +279,11 @@ ROUTES = {
         "story": True,
     },
 }
+
+# One process already traverses the crib on the way to the gym. Capture and
+# evaluate both rather than rebooting once per checkpoint.
+ROUTES['story-tour'] = dict(ROUTES['gym'], help='Story profile -> crib -> gym in one launch',
+                           shots='@getscreeninfo(story/crib,9,@getscreeninfo(story/gym,13,23')
 
 
 # ---------------------------------------------------------------------------
@@ -351,11 +382,16 @@ class SaveGuard:
 # Running
 # ---------------------------------------------------------------------------
 
+_OWNED_PROCESSES = set()
+
+
 def kill_stray():
-    """A leftover process holds the exe (the next link fails) and the save files."""
-    if os.name == "nt":
-        subprocess.run(["taskkill", "/F", "/IM", EXE_NAME], capture_output=True)
-        time.sleep(1.0)
+    """Reap only this harness's children; other worktrees may be running games."""
+    for process in list(_OWNED_PROCESSES):
+        if process.poll() is None:
+            process.kill()
+        process.wait(timeout=15)
+        _OWNED_PROCESSES.discard(process)
 
 
 def read_log(path):
@@ -418,8 +454,9 @@ class LogTail:
         self.rest = b""
         self.presents = 0
         self.calls = []
+        self.timeline = []
 
-    def poll(self):
+    def poll(self, elapsed=None):
         try:
             with open(self.path, "rb") as f:
                 f.seek(self.pos)
@@ -431,7 +468,9 @@ class LogTail:
         self.rest = lines.pop()
         for raw in lines:
             if raw.startswith(b"[FUNCCALL] "):
-                self.calls.append(raw[11:].decode("utf-8", "replace").strip().lower())
+                call = raw[11:].decode("utf-8", "replace").strip().lower()
+                self.calls.append(call)
+                self.timeline.append({'call': call, 'observed_seconds': elapsed})
             elif b"[D3D] 2.0s:" in raw:
                 self.presents += 1
 
@@ -452,6 +491,11 @@ class Run:
         self.exit_code = None
         self.unexpected_exit = False
         self.missing_anchor = None
+        self.identity = {}
+        self.elapsed = 0.0
+        self.timeline = []
+        self.pcm_boundaries = []
+        self.memory = []                # private bytes sampled every five seconds
 
     def shots(self):
         if not os.path.isdir(self.shots_dir):
@@ -460,9 +504,41 @@ class Run:
                       if f.lower().endswith(".bmp"))
 
 
+def process_memory(pid):
+    """(private bytes, working set) of a process, or None. Windows only, no dependency."""
+    if os.name != "nt":
+        return None
+    import ctypes
+    from ctypes import wintypes
+
+    class Counters(ctypes.Structure):
+        _fields_ = [("cb", wintypes.DWORD), ("PageFaultCount", wintypes.DWORD),
+                    ("PeakWorkingSetSize", ctypes.c_size_t), ("WorkingSetSize", ctypes.c_size_t),
+                    ("QuotaPeakPagedPoolUsage", ctypes.c_size_t), ("QuotaPagedPoolUsage", ctypes.c_size_t),
+                    ("QuotaPeakNonPagedPoolUsage", ctypes.c_size_t), ("QuotaNonPagedPoolUsage", ctypes.c_size_t),
+                    ("PagefileUsage", ctypes.c_size_t), ("PeakPagefileUsage", ctypes.c_size_t),
+                    ("PrivateUsage", ctypes.c_size_t)]
+    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel32.OpenProcess.restype = wintypes.HANDLE
+    kernel32.OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
+    kernel32.K32GetProcessMemoryInfo.argtypes = [wintypes.HANDLE, ctypes.c_void_p, wintypes.DWORD]
+    kernel32.CloseHandle.argtypes = [wintypes.HANDLE]
+    handle = kernel32.OpenProcess(0x1000 | 0x0010, False, pid)   # QUERY_LIMITED_INFORMATION | VM_READ
+    if not handle:
+        return None
+    try:
+        counters = Counters()
+        counters.cb = ctypes.sizeof(counters)
+        if not kernel32.K32GetProcessMemoryInfo(handle, ctypes.byref(counters), counters.cb):
+            return None
+        return counters.PrivateUsage, counters.WorkingSetSize
+    finally:
+        kernel32.CloseHandle(handle)
+
+
 def run_game(name, stages=(), tail="", shots="", secs=240, preset="win-x64-release", env=None,
              until=None, after=0, story=False, scripted=True, stall_secs=0, on_stall=None, quiet=False,
-             until_file=None):
+             until_file=None, controller=None, inherit_recomp=True):
     """Run the game once. Returns a Run.
 
     until/after: stop `after` seconds after the first `[FUNCCALL]` containing
@@ -473,10 +549,11 @@ def run_game(name, stages=(), tail="", shots="", secs=240, preset="win-x64-relea
     until_file: stop a few seconds after this file exists (a capture that is all
     the run is for)."""
     exe = exe_path(preset)
+    validate_shots(shots)
     if not os.path.isfile(exe):
         raise SystemExit("not built: %s (scripts/build.ps1 -Preset %s)" % (exe, preset))
     try:
-        pipeline_state.verify_build(Path(REPO), preset)
+        build_state = pipeline_state.verify_build(Path(REPO), preset)
     except (OSError, ValueError, KeyError) as ex:
         raise SystemExit(str(ex)) from ex
     if not os.path.exists(os.path.join(REPO, "game", "default.xbe")):
@@ -492,7 +569,7 @@ def run_game(name, stages=(), tail="", shots="", secs=240, preset="win-x64-relea
     stamp = time.strftime("%Y%m%d-%H%M%S")
     log = os.path.join(logs, "run-%s.log" % stamp)
 
-    e = dict(os.environ)
+    e = {k: v for k, v in os.environ.items() if inherit_recomp or not k.upper().startswith('RECOMP_')}
     e.update(BASE_ENV)
     e["DEFJAM_DATA"] = data_dir()
     if scripted:
@@ -505,18 +582,46 @@ def run_game(name, stages=(), tail="", shots="", secs=240, preset="win-x64-relea
     e['DEFJAM_DATA'] = guarded_data_root(e['DEFJAM_DATA'])
 
     run = Run(name, log + ".err", shots_dir)
+    run.identity = {'preset': preset, 'executable': exe, 'build_state': build_state,
+                    'environment': {k: v for k, v in e.items() if k.startswith('RECOMP_')},
+                    'data_root': e['DEFJAM_DATA'], 'started_utc': datetime.now(timezone.utc).isoformat(),
+                    'inherits_recomp_environment': inherit_recomp,
+                    'input_schedule': {'stages': list(stages), 'tail': tail, 'shots': shots,
+                                       'clock': 'anchor-relative host seconds', 'timeout_seconds': secs},
+                    'log_observation_interval_seconds': 0.05 if controller is not None else 2.0}
     guard = SaveGuard(e['DEFJAM_DATA'])
     guard.__enter__()
     try:
         with open(log, "wb") as out, open(log + ".err", "wb") as err:
             p = subprocess.Popen([exe], cwd=REPO, stdout=out, stderr=err, env=e)
+            _OWNED_PROCESSES.add(p)
             t0 = time.time()
             hit = None
             last_presents, last_change = -1, time.time()
             tail_log = LogTail(run.log)
+            memory_at = 0.0
             while p.poll() is None and time.time() - t0 < secs:
-                time.sleep(2.0)
-                tail_log.poll()
+                # Live recipes can contain adjacent menu presses. A two-second
+                # monitor poll merges them into one held button report.
+                time.sleep(0.05 if controller is not None else 2.0)
+                tail_log.poll(time.time() - t0)
+                if time.time() - memory_at >= 5.0:
+                    # The game's private bytes over the run, for a growth check.
+                    memory_at = time.time()
+                    sample = process_memory(p.pid)
+                    if sample:
+                        run.memory.append({'seconds': round(memory_at - t0, 1),
+                                           'private_bytes': sample[0], 'working_set': sample[1]})
+                pcm = e.get('RECOMP_APU_PCM')
+                if pcm and os.path.isfile(pcm):
+                    # File offsets observed by the host, after log delivery.
+                    # This excludes startup PCM from coarse scenario health
+                    # gates; it is not sample-accurate speech/hit alignment.
+                    offset = os.path.getsize(pcm)
+                    run.pcm_boundaries.extend(dict(event, pcm_bytes=offset)
+                        for event in tail_log.timeline[len(run.pcm_boundaries):])
+                if controller is not None and controller.poll(tail_log, time.time() - t0):
+                    break
                 if until and hit is None and tail_log.saw(until):
                     hit = time.time()
                 if hit is not None and time.time() - hit >= after:
@@ -539,6 +644,9 @@ def run_game(name, stages=(), tail="", shots="", secs=240, preset="win-x64-relea
             else:
                 run.unexpected_exit = True
             run.exit_code = p.returncode
+            run.elapsed = time.time() - t0
+            tail_log.poll(run.elapsed)
+            run.timeline = tail_log.timeline
     finally:
         guard.__exit__(None, None, None)
         run.save_ok = guard.restored_equal

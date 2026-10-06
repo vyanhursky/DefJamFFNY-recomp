@@ -30,6 +30,37 @@
  * override would read zeroes for every register. */
 #include "recomp/gen/recomp_types.h"
 #include "hooks/save_compat.h"
+#include "hooks/test_observations.h"
+
+/* Read-only probes use the lifter's universal entry hooks. They do not alter
+ * guest registers, stack, memory or the generated body. Off in normal play. */
+void sub_001A4A30_enter(void) { defjam_test_update(); }
+void sub_001A5DD0_enter(void)
+{
+    if (defjam_test_observations_enabled())
+        defjam_test_hit(MEM32(g_esp + 4), MEM32(g_esp + 8), MEM32(g_esp));
+}
+void sub_001A50B0_enter(void)
+{
+    if (defjam_test_observations_enabled())
+        defjam_test_health_begin(MEM32(g_esp + 4), MEM32(g_esp));
+}
+void sub_001A6870_enter(void)
+{
+    if (defjam_test_observations_enabled())
+        defjam_test_health_notify(MEM32(g_esp + 4), MEM32(g_esp + 8));
+}
+/* Match telemetry (src/hooks/test_telemetry.c): the fight's simulation step,
+ * match set-up, the result recorder and the random number generator's seeding.
+ * Read-only, except that RECOMP_TEST_RNG_SEED replaces the seed argument. */
+void sub_00087700_enter(void) { defjam_test_step(); }
+void sub_001A4D90_enter(void) { defjam_test_match_start(); }
+void sub_001BC690_enter(void) { defjam_test_rng(g_esp); }
+void sub_001A6A80_enter(void)
+{
+    if (defjam_test_observations_enabled())
+        defjam_test_result(MEM32(g_esp + 4), MEM32(g_esp + 8), MEM32(g_esp + 12));
+}
 
 /* â”€â”€ ICALL trace ring buffer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
