@@ -6,10 +6,11 @@ Fighters selection. They do not cover every mode or a full Story campaign.
 
 ## Remaining investigations
 
-- **Terrordome crashes.** Matches at the Terrordome can freeze and close: a scripted
-  four-fighter Free For All crashes within a few minutes on both v0.1.0 and v0.2.0, at
-  guest `sub_001B54D0`; a One on One there crashed once at `sub_001A3310` and ran four
-  minutes clean in another run. `python scripts/harness.py run ffa-terrordome` reproduces it.
+- **Unresolved jump targets.** The translated code has about a hundred placeholders for
+  jump targets the translator could not resolve; reaching one skips real code. v0.2.1
+  replaced the seven that are simple function exits, one of which caused the Terrordome
+  crash. Roughly seventy more decode as real code and need the translator's function
+  extents fixed. `python scripts/stub-targets.py` lists them. None is known to be reached.
 - Two-player gameplay needs an end-to-end check; four-slot USB fixtures are not
   a multiplayer gameplay test.
 - Long-session memory use over multiple fights remains to be measured.

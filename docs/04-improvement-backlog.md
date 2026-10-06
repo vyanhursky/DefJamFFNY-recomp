@@ -17,6 +17,14 @@ Ordered by value, not by effort.
 
 ## 1. Explicit jump-table and function-extent configuration
 
+**2026-10-05: this caused a shipped crash.** A function cut short left a jump to its own
+shared exit as an empty stub, and Terrordome matches crashed on v0.1.0 and v0.2.0 (fixed in
+v0.2.1 by seeding seven self-contained exits). `scripts/stub-targets.py` reports about
+seventy further stubbed targets that decode as real code and cannot be seeded: a seed ends
+the containing function at the seed, so a fragment that branches back into its parent only
+multiplies the stubs. They need function extents in the lifter. Do this before more
+gameplay coverage is added.
+
 **Why.** The mature recompilation toolchains treat jump tables as declared data, not as something to
 infer: the Xbox 360 toolchain runs a separate analysis pass that emits a configuration file listing every
 switch table before the recompiler runs. Our toolkit infers them, and gets it wrong in seventeen places.

@@ -20,6 +20,7 @@ the next slice does not start until he has tested the previous one.
 | Release | Slice | What lands |
 |---|---|---|
 | v0.2.0 | Display and settings file (**released 2026-10-05**) | Settings core and `settings.ini`; direct executable launch; borderless full screen with Alt+Enter and F11 on a flip-model swap chain; resizable window with correct 4:3 pillarboxing; window size and render-scale choice; vsync that paces on the display at multiples of 60 Hz |
+| v0.2.1 | Bug fix (**released 2026-10-05**) | Terrordome crash: seven stubbed function exits translated as code |
 | v0.3.0 | Input | SDL3 gamepad input (DualSense, Switch Pro, DirectInput pads); keyboard gameplay with rebindable keys; pad remapping and deadzones; rumble to the host pad; 2-4 pad local multiplayer checked in a real match |
 | v0.4.0 | Overlay and launcher | Pad-friendly in-game overlay; pre-boot launcher; mouse in both; live apply |
 | v0.5.0 | True 16:9 widescreen | Wider 3D view in fights with the HUD placed correctly; menus and FMV stay 4:3 unless cheap |
