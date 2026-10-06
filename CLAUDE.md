@@ -146,7 +146,10 @@ python scripts/scenario_suite.py run fight-result --fixture logs/fixtures/NAME -
   JSON/JUnit/HTML report under `logs/scenarios/`. `--require-combat` asserts movement, a player attack,
   damage and the match result from game state (`src/hooks/test_telemetry.c`, on with
   `RECOMP_TEST_OBSERVATIONS=1`). The full `regress.py` runs it as the `combat` check, with the
-  four-fighter Terrordome match. Guide: `docs/09-testing-harness.md`.
+  four-fighter Terrordome match. `--step-input default --rng-seed N` makes a fight repeat; the `replay`
+  check compares thirty seconds of game state with `tests/golden/fight-stream.json` and fails when a
+  change alters the simulation (`--only repeat --update-golden` if that is intended).
+  Guide: `docs/09-testing-harness.md`.
 - A new screen to reach: run the nearest route with extra `--stage`s and `--shots`, look at the captures
   (`harness.py montage`), and add the stage to `ROUTES` once it is right.
 - Scripts written for one investigation belong in the session's scratch directory. Anything used twice

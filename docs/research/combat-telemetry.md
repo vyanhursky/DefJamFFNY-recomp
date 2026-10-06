@@ -82,3 +82,49 @@ Foundation, two played to a knockout) and `fight-20261005-214201`.
 - A hit by a human fighter is tied to the most recent action press by step count
   only. Which move it was, and that the damage came from that hit rather than
   another in the same step, are not established.
+
+## Added for v0.2.3 (2026-10-06)
+
+### The pad table
+
+With `RECOMP_TEST_PAD_DUMP=1` the samples carry the raw 0x20-byte entry at
+`0x3B8F48 + slot*0x20` that a fighter reads. In a scripted fight its first word
+matched the record's held-buttons word at every sample (`0x8` right; `0x10`,
+`0x20`, `0x40`, `0x80` the face buttons); the other seven words stayed zero with
+d-pad input. A CPU fighter's entry showed direction values 1, 2, 4, 6, 8, 9 and
+10, consistent with 1 and 2 being the vertical pair and 4 and 8 the horizontal.
+
+### Step-timed input
+
+`RECOMP_TEST_INPUT=<file>` replaces the first word of a scripted slot's entry on
+every fight step, from a hook at the entry of the per-fighter reader
+`sub_001BAA00`. The combat check passes with it, and a live negative control with
+an input file that never presses anything failed `combat.movement`,
+`combat.attack` and `combat.damage` while the rest of the run passed.
+
+### Why two runs differed, and what now repeats
+
+- Step-timed input alone did not make fights repeat: with the player idle and the
+  match generator's seed identical, the CPU fighter's pad word differed by step 31.
+- The match generator was not the cause. Its state word `0x3C1404` held
+  `0x464CCEB5` at every sample for the first 79 steps in both runs.
+- A code read (`fight-determinism.md`) found four per-fighter AI generators at
+  `0x3BFC70 + slot*0x88`, all seeded by `sub_001AD220` from one word that the game
+  takes from the time-stamp counter at every match start. `RECOMP_TEST_RNG_SEED`
+  now replaces that word too (event `ai_seed`).
+- With step-timed input and both seeds pinned:
+  - a pair of fights played to a knockout matched for 3,120 steps (52 s; 39
+    events and 105 samples) and then parted when the CPU fighter chose a
+    different action;
+  - a pair of two-minute fights sampled every six steps matched for all 1,047
+    samples (about 6,280 steps);
+  - a recorded thirty-second stream (1,800 steps, 80 records) was reproduced
+    exactly by three further runs.
+- So the first thirty seconds repeat reliably and longer stretches usually do.
+  What made the one pair part at step 3,121 is not known. The general-purpose
+  generator at `0x39C160` was ruled out for the second pair (it never changed).
+  That pair ran without audio capture and the first with it; whether that matters
+  has not been tested.
+- The first match of a process always has the same match-generator seed, because
+  the game's set-up writes constants; later matches take it from the time-stamp
+  counter, so a second match needs the seed pinned as well.

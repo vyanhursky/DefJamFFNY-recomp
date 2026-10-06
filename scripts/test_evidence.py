@@ -371,6 +371,62 @@ def combat_checks(log, fighters=2, match=None, require_result=True, results_anch
     return checks
 
 
+def state_stream(log, max_step=1800, match=None):
+    """The game-state telemetry of one match up to a fight step, in a comparable form.
+
+    Every `[TEST-STATE]` and `[TEST-EVENT]` record of the match with `step` at
+    most `max_step`, in log order, with the host clock removed and the fields
+    sorted. Two runs of a fight whose input is step-timed and whose seeds are
+    pinned should produce the same stream; the first record that differs says at
+    which step the fight stopped being the same fight.
+    """
+    records = []
+    for line in log.splitlines():
+        for tag in ('[TEST-STATE] ', '[TEST-EVENT] '):
+            if tag in line:
+                try:
+                    record = json.loads(line.split(tag, 1)[1])
+                except ValueError:
+                    continue
+                record['tag'] = tag[1:-2]
+                records.append(record)
+    starts = sorted({r['match'] for r in records if r.get('event') == 'match_start' and isinstance(r.get('match'), int)})
+    chosen = match if match is not None else (starts[0] if starts else None)
+    out = []
+    for record in records:
+        if record.get('match') != chosen or not isinstance(record.get('step'), int) or record['step'] > max_step:
+            continue
+        if record.get('event') in ('input_loaded', 'input_error'):
+            continue
+        record.pop('host_ms', None)
+        out.append(json.dumps(record, sort_keys=True, separators=(',', ':')))
+    return out
+
+
+def stream_checks(log, expected_lines, max_step=1800, match=None):
+    """Compare this run's state stream with a recorded one, record by record."""
+    actual = state_stream(log, max_step, match)
+    expected = [line for line in expected_lines if line.strip()]
+    if not expected:
+        return [assertion('determinism.reference', False, 'the recorded stream is empty')]
+    if not actual:
+        return [dict(name='determinism.stream', status='blocked',
+                     detail='no telemetry in this run to compare', metrics={})]
+    for index, (mine, theirs) in enumerate(zip(actual, expected)):
+        if mine != theirs:
+            a, b = json.loads(mine), json.loads(theirs)
+            fields = sorted(k for k in set(a) | set(b) if a.get(k) != b.get(k))
+            return [assertion('determinism.stream', False, 'state stream differs from the recorded run',
+                              first_difference_record=index, step=a.get('step'), recorded_step=b.get('step'),
+                              event=a.get('event'), differing_fields=fields, records=len(actual), recorded=len(expected))]
+    same_length = len(actual) == len(expected)
+    return [assertion('determinism.stream', same_length,
+                      'state stream identical to the recorded run' if same_length else
+                      'streams agree but one is shorter: the runs covered different step ranges',
+                      records=len(actual), recorded=len(expected), max_step=max_step,
+                      sha256=hashlib.sha256('\n'.join(actual).encode()).hexdigest())]
+
+
 PACING = re.compile(r'\[PACING\] (\d+) presents, interval ([\d.]+) / ([\d.]+) / ([\d.]+) ms \(min/mean/max\), '
                     r'median ([\d.]+), (\d+) late, sync interval (-?\d+)')
 

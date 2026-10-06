@@ -43,6 +43,20 @@ recompilation. This removes a whole class of silent corruption rather than fixin
 **Interim.** The scan that finds the remaining sixteen is described in `docs/03-workflows.md`. Each one can
 be neutralised today by hand-writing that function into `src/recomp_manual.c`.
 
+## 1b. The audio chip model's trap handling (to do, D70)
+
+**Why.** The rare sound-library crash guarded in v0.2.3 comes from the toolkit's audio chip model: its
+frame thread raises an idle-voice trap and keeps walking the voice list, the interrupt routine runs about
+a millisecond later, and a later method can overwrite the trapped voice number. On a console the trap is
+serviced at once and names one voice (`docs/research/dsound-voice-list-crash.md`).
+
+**What to do.** In `src/apu/` of the toolkit: latch the first trapped method and voice until the trap is
+acknowledged, stop the frame's voice walk at a trap, and consider queueing guest register writes while
+trapped. Then remove or keep the guard in `src/recomp_manual.c` (`sub_0025FB7C`) as a safety net.
+
+**When.** Not scheduled. It changes the audio path the owner accepted by ear after the rebase, so it needs
+his listening test afterwards, and it is a candidate for upstream.
+
 ## 2. Validate the lifter automatically
 
 **Why.** We are finding instruction-level translation bugs by playing the game, which is the most expensive

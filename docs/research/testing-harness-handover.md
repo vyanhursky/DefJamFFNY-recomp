@@ -1,7 +1,7 @@
 # Gameplay test harness: state and what is left
 
 Updated 2026-10-05 by the Claude chat that took the work over from the Codex agent
-(D67). The first stage is merged and released as v0.2.2. The testing roadmap
+(D67). The first stage was released as v0.2.2; v0.2.3 adds repeatable fights. The testing roadmap
 (`docs/08-testing-roadmap.md`) is **not** complete; its checklist carries the
 status of every item. How to run what exists is in `docs/09-testing-harness.md`.
 
@@ -41,43 +41,53 @@ status of every item. How to run what exists is in `docs/09-testing-harness.md`.
 - Debug has not been run with the probes.
 - The frame-pacing and memory assertions have run in one fight each; their limits
   are first guesses from healthy runs.
-- `--rng-seed` is implemented and unit-tested; no live run has used it.
+- Repeatability is shown for thirty seconds of One on One at the Foundation only.
 - Only One on One has reached the result path. The result code's meaning beyond
   "decisive" is not mapped.
 - The session recipes and the visual-baseline workflow have never been used in a
   real run.
 
+## Added in v0.2.3
+
+- Step-timed input (`RECOMP_TEST_INPUT`, `--step-input`), pinned seeds for the match
+  generator and the per-fighter AI generators (`--rng-seed`), and a recorded state
+  stream a later run must reproduce (`--stream-out`, `--stream-expect`,
+  `regress.py --only repeat`). Three replays reproduced thirty seconds exactly.
+- A live negative control: an input file that never presses anything fails the
+  movement, attack and damage assertions.
+- A guard for the rare sound-library crash (`sub_0025FB7C` hand-written in
+  `src/recomp_manual.c`); cause in `dsound-voice-list-crash.md`.
+- Research: `fight-determinism.md`, `dsound-voice-list-crash.md`, and the v0.2.3
+  section of `combat-telemetry.md`.
+
 ## Next, in order of value
 
-1. **Repeatable fights.** Scripted input is timed in host seconds
-   (`xbox_ScriptSeconds` in the toolkit's `kernel_path.c`, used by
-   `usb_gamepad.c`), so the same script plays a different fight each time. Give
-   the pad script a clock the host can supply and drive it from the fight step
-   (`step` in the telemetry, 60 a second). That is a toolkit change on
-   `defjam/m6`. Then check whether two runs with the same seed and the same
-   step-timed input produce the same event stream; the seed was already identical
-   across three runs.
-2. **A live negative control.** Run `fight-result` with the player's input removed
-   and confirm `combat.movement` and `combat.attack` fail. Unit tests cover this
-   with altered event streams only.
-3. **Several matches in one launch.** After the summary the scripted presses
-   reach the match-type menu again (`Game.Quit()` then `battle/cmtype`). Use the
-   session driver to play One on One, return, then a Free For All, and assert
-   each match by its `match` ordinal (`combat_checks(match=N)`).
-4. **Visual baselines for still screens.** Crib, gym, menus: generate candidates,
-   review, approve, and measure run-to-run differences to set tolerances. Fights
-   need step-anchored captures first.
+1. **The audio chip model's trap handling** (toolkit, `src/apu/`): latch the first
+   trapped method and voice, stop the frame's voice walk at a trap. This is the
+   real fix for the sound-library crash; the guard only keeps the game alive.
+   Audio is what Vlad praised after the rebase, so it needs his ear afterwards.
+2. **Why a pinned fight can still part after about fifty seconds.** One pair did at
+   step 3,121. Candidates not yet tested: audio capture being on, asynchronous
+   loading, a generator not yet found. Sample every step around the divergence.
+3. **Step-anchored captures**, then visual baselines for fights: with a repeatable
+   fight a capture at a fixed step is comparable between runs. Still screens
+   (crib, gym, menus) can be done now.
+4. **Several matches in one launch.** After the summary the scripted presses reach
+   the match-type menu again (`Game.Quit()` then `battle/cmtype`). Later matches
+   take the match seed from the time-stamp counter, so pin it. Assert each match by
+   its ordinal (`combat_checks(match=N)`).
 5. **Sounds tied to events.** Needs a sample counter from the audio output so a
    damage event can be matched to a rise in level. Toolkit change.
-6. **More coverage.** Four-fighter result, a human win, time-up, grapples, two
-   pads, save and load, cutscene skipping, long sessions and repeated matches.
+6. **More coverage.** Four-fighter result, a human win (needs a better scripted
+   fighter than button cycling), time-up, grapples, two pads, save and load,
+   cutscene skipping, long sessions and repeated matches.
 7. **The three-game upstream-release matrix** in the roadmap's second half is
    untouched and concerns other repositories.
 
 ## Working notes
 
-- The worktree `C:\Users\Vlad\code\defjam-test-harness` was the branch's home; after
-  the merge the work continues in the main checkout.
+- The worktree `C:\Users\Vlad\code\defjam-test-harness` was the branch's home; since the
+  v0.2.2 merge the work is in the main checkout.
 - Adding or removing a probe point (`sub_XXXXXXXX_enter`) needs `recomp.ps1` and a
   build; changing what a probe does needs only a build.
 - A telemetry line must be written with one call: stderr is shared with every

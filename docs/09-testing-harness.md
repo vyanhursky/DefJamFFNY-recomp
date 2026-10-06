@@ -14,16 +14,16 @@ game's artwork and stay under `logs/`, which git ignores.
 | Command | Time | What it is for |
 |---|---|---|
 | `python scripts/regress.py --quick` | about 10 min | after every change: unit tests, three golden frames, one fight |
-| `python scripts/regress.py` | about 50 min | before a commit that touches the runtime, renderer or generated code |
+| `python scripts/regress.py` | about 55 min | before a commit that touches the runtime, renderer or generated code |
 | `python scripts/scenario_suite.py run <route> ...` | one launch | one scenario with all its evidence and a browsable report |
 
 Never run two of these at once: they share the save area, the window and the
 frame-rate measurements.
 
 The full regression is the quick one plus a four-fighter Free For All, the same
-at the Terrordome for four minutes, the **combat check**, the Story intro, crib,
-gym and a boot soak. `--only a,b` picks checks; `fight-terrordome` is selectable
-that way only.
+at the Terrordome for four minutes, the **combat check**, the **replay check**, the
+Story intro, crib, gym and a boot soak. `--only a,b` picks checks; `fight-terrordome`
+and `repeat` are selectable that way only.
 
 ## The combat check
 
@@ -71,9 +71,48 @@ Options:
 - `--observe-combat` record the telemetry without requiring it.
 - `--no-audio` / `--audio` fight routes check audio by default.
 - `--baselines <manifest>` compare captures with locally approved images.
-- `--rng-seed N` replace the seed of the match's random number generator.
+- `--step-input`, `--rng-seed`, `--stream-out`, `--stream-expect` repeatable fights (below).
 - `--settings file.json` render scale, gamma and vsync for the run.
 - `--session-plan file.json` experimental: live input driven by screen events.
+
+## Repeatable fights
+
+By default the scripted fighter's input is timed on the host's clock and the CPU
+fighters seed their random numbers from the time-stamp counter, so the same script
+plays a different fight every run. Two options change that:
+
+- `--step-input default` (or a file) drives the player's pad from a table indexed
+  by the game's simulation step for the whole match. The host-timed script still
+  works the menus.
+- `--rng-seed N` pins the seed of the match's random number generator and of the
+  CPU fighters' own generators.
+
+With both, the game's state is the same from run to run: three replays reproduced a
+recorded thirty-second stream exactly. `--stream-out FILE` records that stream
+(positions, health, buttons, events for the first `--stream-steps` steps, 1,800 by
+default) and `--stream-expect FILE` requires a run to reproduce it, naming the step
+and the fields where it first differs.
+
+The stream came out identical on the Release and Debug builds and on two different
+save fixtures, so its hash is kept in `tests/golden/fight-stream.json` as a record
+of how the fight plays. The full regression's `replay` check plays the pinned fight
+once and compares with that hash: a change to the translator or the runtime that
+alters the simulation fails it even if the picture still looks right.
+
+```powershell
+python scripts/regress.py --only replay            # one fight against the golden hash
+python scripts/regress.py --only repeat            # two fights against each other, then the hash
+python scripts/regress.py --only repeat --update-golden
+```
+
+`repeat` tells a change in play from a disturbed run; use `--update-golden` when a
+change is meant to alter play. Longer stretches usually repeat too, but
+one pair of fights parted after 52 seconds for a reason not yet found, so the
+default comparison stops at thirty. A recorded stream is tied to the build and the
+fixture; record a new one after a change that is meant to alter play.
+
+Both options write to the game's memory (the pad table and two seed arguments).
+They are test controls, off unless asked for.
 
 ## Save fixtures
 
@@ -130,10 +169,11 @@ play leaves the probes off. Adding or removing a probe point needs a re-lift.
 
 ## Not done
 
-- Input is scheduled in host seconds, not simulation steps, so two runs of the same
-  script play different fights.
-- The random number generator can be seeded but repeatability has not been shown.
-- No visual baseline is approved; tolerances are examples.
+- Menus are still driven on the host's clock; only the fight's input is step-timed.
+- Repeatability is established for thirty seconds; the cause of a later divergence
+  seen once is unknown.
+- No visual baseline is approved; tolerances are examples. Fight captures are still
+  taken at host-time offsets, so they are not comparable between runs.
 - Sounds are not tied to events (hit effects, the announcer).
 - Only One on One has been played to a result. Four-fighter results, a human win,
   time-up, several matches in one launch, two pads, save and load, and cutscene

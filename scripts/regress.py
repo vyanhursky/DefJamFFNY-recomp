@@ -17,6 +17,11 @@ Checks, in order:
   combat   a One on One played to its result on a copy of the profiles: movement, a
            player attack, damage, the result and the summary screen asserted from
            game state, plus audio, frame pacing and memory (scripts/scenario_suite.py)
+  replay   one step-timed, seed-pinned fight: the first thirty seconds of game state
+           must hash to tests/golden/fight-stream.json (how the fight plays)
+  repeat   (--only) the same step-timed, seed-pinned fight twice: the first thirty
+           seconds of game state must be identical record for record, and match
+           the recorded hash in tests/golden/fight-stream.json
   intro    Story from a new ID: both cutscenes play to the creator, no truncated batch
   crib     Story with the first saved profile reaches the crib
   gym      Learn Moves opens and a move's preview movie is requested
@@ -30,6 +35,7 @@ Exit code 0 only if every check that ran passed. The table is also written to
 logs/regress-<stamp>.txt.
 """
 import argparse
+import hashlib
 import importlib.util
 import json
 import os
@@ -47,10 +53,11 @@ evidence = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(evidence)
 REPO = harness.REPO
 
-ORDER = ["unit", "m2", "m3", "m4a", "fight", "ffa", "fight-terrordome", "ffa-terrordome", "combat",
+ORDER = ["unit", "m2", "m3", "m4a", "fight", "ffa", "fight-terrordome", "ffa-terrordome", "combat", "replay", "repeat",
          "intro", "crib", "gym", "soak"]
-# The One on One at the Terrordome stays opt-in (--only): the Free For All covers the venue.
-DEFAULT = [n for n in ORDER if n != "fight-terrordome"]
+# Opt-in (--only): the One on One at the Terrordome, which the Free For All covers, and
+# the repeatability check, which is two more fights.
+DEFAULT = [n for n in ORDER if n not in ("fight-terrordome", "repeat")]   # replay is in
 QUICK = ["unit", "m2", "m3", "m4a", "fight"]
 
 # A 2 s line of a 60 Hz title holds 120 presents. Loading screens run at 30, so the
@@ -183,6 +190,83 @@ def check_combat(a):
     return code == 0 and not bad and len(combat) >= 7, detail + "  " + os.path.relpath(folder, REPO)
 
 
+def check_replay(a):
+    spec = importlib.util.spec_from_file_location("scenario_suite", os.path.join(HERE, "scenario_suite.py"))
+    suite = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(suite)
+    try:
+        fixture = a.fixture or str(suite.default_fixture())
+    except (OSError, ValueError) as ex:
+        return False, "no fixture: %s" % ex
+    stamp = time.strftime("%Y%m%d-%H%M%S")
+    folder = os.path.join(REPO, "logs", "scenarios", "regress-replay-" + stamp)
+    stream = os.path.join(REPO, "logs", "scenarios", "regress-replay-%s.stream" % stamp)
+    code = suite.main(["run", "fight", "--fixture", fixture, "--no-audio", "--observe-combat", "--step-input", "default",
+                       "--rng-seed", "20261006", "--preset", a.preset, "--stream-out", stream, "--output", folder])
+    try:
+        with open(stream, encoding="utf-8") as f:
+            lines = [line for line in f.read().splitlines() if line]
+        with open(os.path.join(REPO, "tests", "golden", "fight-stream.json"), encoding="utf-8") as f:
+            golden = json.load(f)
+    except (OSError, ValueError) as ex:
+        return False, "no stream: %s" % ex
+    actual = hashlib.sha256("\n".join(lines).encode()).hexdigest()
+    same = actual == golden["sha256"] and len(lines) == golden["records"]
+    detail = ("%d records over %d steps match the golden hash" % (len(lines), golden["max_step"]) if same else
+              "the fight no longer plays as recorded (%d records, golden %d; hash %s...): a change altered the "
+              "simulation, or the run was disturbed; `--only repeat` tells which"
+              % (len(lines), golden["records"], actual[:12]))
+    return code == 0 and same, detail + "  " + os.path.relpath(folder, REPO)
+
+
+def check_repeat(a):
+    spec = importlib.util.spec_from_file_location("scenario_suite", os.path.join(HERE, "scenario_suite.py"))
+    suite = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(suite)
+    try:
+        fixture = a.fixture or str(suite.default_fixture())
+    except (OSError, ValueError) as ex:
+        return False, "no fixture: %s" % ex
+    stamp = time.strftime("%Y%m%d-%H%M%S")
+    first = os.path.join(REPO, "logs", "scenarios", "regress-repeat-a-" + stamp)
+    second = os.path.join(REPO, "logs", "scenarios", "regress-repeat-b-" + stamp)
+    stream = os.path.join(REPO, "logs", "scenarios", "regress-repeat-%s.stream" % stamp)
+    common = ["run", "fight", "--fixture", fixture, "--no-audio", "--observe-combat", "--step-input", "default",
+              "--rng-seed", "20261006", "--preset", a.preset]
+    if suite.main(common + ["--stream-out", stream, "--output", first]) != 0:
+        return False, "the recording run failed  " + os.path.relpath(first, REPO)
+    code = suite.main(common + ["--stream-expect", stream, "--output", second])
+    try:
+        with open(os.path.join(second, "report.json"), encoding="utf-8") as f:
+            check = next(c for c in json.load(f)["assertions"] if c["name"] == "determinism.stream")
+    except (OSError, ValueError, KeyError, StopIteration) as ex:
+        return False, "no comparison: %s" % ex
+    metrics = check.get("metrics", {})
+    golden_ok = True
+    if check["status"] == "pass":
+        detail = "%d records identical over %d steps" % (metrics.get("records", 0), metrics.get("max_step", 0))
+        # The stream was the same on Release and Debug and on two fixtures, so its
+        # hash is a reference for how the fight plays, not just for this machine.
+        path = os.path.join(REPO, "tests", "golden", "fight-stream.json")
+        with open(path, encoding="utf-8") as f:
+            golden = json.load(f)
+        if a.update_golden:
+            golden.update(sha256=metrics["sha256"], records=metrics["records"],
+                          recorded=time.strftime("%Y-%m-%d") + ", " + a.preset)
+            with open(path, "w", encoding="utf-8", newline="\n") as f:
+                f.write(json.dumps(golden, indent=1) + "\n")
+            detail += "; golden updated"
+        elif metrics.get("sha256") != golden["sha256"]:
+            golden_ok = False
+            detail += "; but the fight no longer plays as recorded in tests/golden/fight-stream.json" \
+                      " (if the change is meant to alter play, rerun with --update-golden)"
+        else:
+            detail += ", matching the golden hash"
+    else:
+        detail = "%s at step %s (%s)" % (check["detail"], metrics.get("step"), ", ".join(metrics.get("differing_fields", [])[:4]))
+    return code == 0 and check["status"] == "pass" and golden_ok, detail + "  " + os.path.relpath(second, REPO)
+
+
 def check_intro(a):
     run = harness.run_route("intro", preset=a.preset, quiet=True)
     faults = common_faults(run)
@@ -225,7 +309,7 @@ def check_soak(a):
 CHECKS = {"unit": check_unit, "m2": check_m2, "m3": check_m3, "m4a": check_m4a, "fight": check_fight, "ffa": check_ffa,
           "fight-terrordome": lambda a: check_fight(a, 'fight-terrordome'),
           "ffa-terrordome": lambda a: check_fight(a, 'ffa-terrordome'),
-          "combat": check_combat, "intro": check_intro, "crib": check_crib, "gym": check_gym, "soak": check_soak}
+          "combat": check_combat, "replay": check_replay, "repeat": check_repeat, "intro": check_intro, "crib": check_crib, "gym": check_gym, "soak": check_soak}
 
 
 def main(argv=None):
@@ -235,6 +319,8 @@ def main(argv=None):
     ap.add_argument("--only", help="comma-separated checks: " + ",".join(ORDER))
     ap.add_argument("--soak", type=int, default=3, help="boots in the soak check (default 3)")
     ap.add_argument("--fixture", help="save fixture for the combat check (default: a fresh copy of the saved profiles)")
+    ap.add_argument("--update-golden", action="store_true",
+                    help="repeat check: record the new state-stream hash instead of comparing with it")
     ap.add_argument("--shared-story", action="store_true", help="evaluate crib and gym from one story-tour launch")
     a = ap.parse_args(argv)
 

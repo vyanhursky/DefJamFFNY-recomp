@@ -16,10 +16,11 @@
  * by one simulation step. It restarts at each match start. It is not a count of
  * presented frames: the game runs zero to four steps per frame.
  *
- * The probes read guest memory and never write it, with one opt-in exception:
- * RECOMP_TEST_RNG_SEED=<n> replaces the seed argument of the match's random
- * number generator, which the game otherwise takes from the time-stamp counter.
- * That changes what the CPU fighters do; it exists so a scenario can be repeated.
+ * The probes read guest memory and never write it, with two opt-in exceptions
+ * that exist so a scenario can be repeated:
+ *   RECOMP_TEST_RNG_SEED=<n>  replaces the seed argument of the match's random
+ *     number generator, which the game otherwise takes from the time-stamp counter;
+ *   RECOMP_TEST_INPUT=<file>  replaces a fighter's pad input, step by step (below).
  */
 #include <windows.h>
 #include <stdarg.h>
@@ -43,6 +44,8 @@
 #define G_CLOCK_SEC   0x003B9034u
 #define G_MATCH_TYPE  0x003B9084u
 #define G_TIME_SCALE  0x003B8F2Cu
+#define G_RNG_UTIL    0x0039C160u   /* a general-purpose generator also drawn outside the fight step */
+#define G_RNG_STATE   0x003C1404u   /* the match random number generator's state word */
 
 /* Fighter record fields (fighter-record-fields.md). */
 #define F_SLOT        0x28u         /* 0xFFFFFFFF when the slot is unused */
@@ -73,6 +76,7 @@ static float s_hold_x[SLOTS], s_hold_z[SLOTS], s_path[SLOTS];
 static LONG64 s_press_step[SLOTS];
 static uint32_t s_press_bits[SLOTS];
 static LONG s_budget = 20000;       /* lines; a runaway must not fill the disk */
+static int s_dump_pad;              /* RECOMP_TEST_PAD_DUMP=1: raw pad entries in the samples */
 
 /* Each line is built whole and written with one call: stderr is shared with
  * every other thread's log, and a line assembled from several writes had other
@@ -145,6 +149,15 @@ static void put_fighters(void)
             (double)f32(r + F_FACING), (double)f32(r + F_HEALTH), (double)f32(r + F_HEALTH_MAX),
             MEM32(r + F_HELD), MEM32(r + F_PRESSED),
             (double)f32(r + F_STICK_X), (double)f32(r + F_STICK_Y));
+        if (s_dump_pad) {
+            /* Calibration only: the raw pad-table entry the fighter reads. */
+            int i;
+            s_len--;                                   /* reopen the object */
+            put(",\"pad\":\"");
+            for (i = 0; i < 8; i++)
+                put("%08x", MEM32(0x003B8F48u + (uint32_t)slot * 0x20u + 4u * (uint32_t)i));
+            put("\"}");
+        }
         first = 0;
     }
     put("]");
@@ -173,6 +186,7 @@ void defjam_test_match_start(void)
 {
     if (!defjam_test_observations_enabled()) return;
     InterlockedIncrement(&s_match);
+    s_dump_pad = getenv("RECOMP_TEST_PAD_DUMP") != NULL;
     s_step = 0;
     s_in_match = 1;
     s_setup_due = 1;
@@ -276,10 +290,11 @@ void defjam_test_step(void)
         }
     }
 
-    if (s_step % STATE_PERIOD == 1 && budget()) {
+    if (s_step % (s_dump_pad ? 6 : STATE_PERIOD) == 1 && budget()) {
         begin_line("TEST-STATE", "sample");
-        put(",\"flags\":%u,\"phase\":%u,\"clock\":[%u,%u],\"time_scale\":%.4g",
-            MEM32(G_FLAGS), MEM32(G_PHASE), MEM32(G_CLOCK_MIN), MEM32(G_CLOCK_SEC), (double)f32(G_TIME_SCALE));
+        put(",\"flags\":%u,\"phase\":%u,\"clock\":[%u,%u],\"time_scale\":%.4g,\"rng\":%u,\"rng_util\":%u",
+            MEM32(G_FLAGS), MEM32(G_PHASE), MEM32(G_CLOCK_MIN), MEM32(G_CLOCK_SEC), (double)f32(G_TIME_SCALE),
+            MEM32(G_RNG_STATE), MEM32(G_RNG_UTIL));
         put_fighters();
         end_line();
     }
@@ -318,5 +333,102 @@ void defjam_test_result(uint32_t winners, uint32_t losers, uint32_t code)
     put_slot_list("losers", losers);
     put(",\"clock\":[%u,%u]", MEM32(G_CLOCK_MIN), MEM32(G_CLOCK_SEC));
     put_fighters();
+    end_line();
+}
+
+/* ---- Step-timed input (RECOMP_TEST_INPUT=<file>) ------------------------------
+ *
+ * Scripted pad input normally arrives through the emulated USB pad on the host's
+ * clock, so the same script meets the game at a different simulation step every
+ * run and no two fights are alike. With RECOMP_TEST_INPUT the pad-table entry a
+ * fighter is about to read is replaced, for the whole match, by what the file
+ * says for the current fight step. That is a write to guest memory, and it is
+ * the point: the fight's input becomes a function of the step alone.
+ *
+ * File: one interval per line, `<slot> <first step> <last step> <hex buttons>`,
+ * steps counted from the match start, `#` starts a comment. Buttons are the bits
+ * of the pad-table word (0x1 0x2 0x4 0x8 directions with 0x8 = right; 0x10 0x20
+ * 0x40 0x80 the four face buttons). A slot with no interval at a step gets 0.
+ * Only slots named in the file are touched. The table is at PAD_TABLE, 0x20
+ * bytes a slot; only its first word (the buttons) is written.
+ */
+#define PAD_TABLE     0x003B8F48u
+#define INPUT_MAX     16384
+
+typedef struct { int slot; LONG64 first, last; uint32_t buttons; } InputSpan;
+static InputSpan s_input[INPUT_MAX];
+static int s_input_count = -1;      /* -1: not loaded */
+static int s_input_slots;           /* bit n: slot n is scripted */
+
+static void input_load(void)
+{
+    const char *path = getenv("RECOMP_TEST_INPUT");
+    char line[256];
+    FILE *f;
+    s_input_count = 0;
+    s_input_slots = 0;
+    if (!path || !*path) return;
+    f = fopen(path, "r");
+    if (!f) {
+        fprintf(stderr, "[TEST-EVENT] {\"event\":\"input_error\",\"detail\":\"cannot open the step-input file\"}\n");
+        return;
+    }
+    while (fgets(line, sizeof(line), f) && s_input_count < INPUT_MAX) {
+        InputSpan span;
+        long long first, last;
+        unsigned buttons;
+        char *hash = strchr(line, '#');
+        if (hash) *hash = 0;
+        if (sscanf(line, "%d %lld %lld %x", &span.slot, &first, &last, &buttons) != 4) continue;
+        if (span.slot < 0 || span.slot >= SLOTS || first < 1 || last < first) continue;
+        span.first = first;
+        span.last = last;
+        span.buttons = buttons;
+        s_input[s_input_count++] = span;
+        s_input_slots |= 1 << span.slot;
+    }
+    fclose(f);
+    fprintf(stderr, "[TEST-EVENT] {\"event\":\"input_loaded\",\"intervals\":%d,\"slots\":%d}\n",
+            s_input_count, s_input_slots);
+}
+
+/* sub_001BAA00(record): a fighter is about to read its pad-table entry. */
+void defjam_test_input(uint32_t actor)
+{
+    int slot, i;
+    uint32_t buttons = 0;
+    if (!defjam_test_observations_enabled()) return;
+    if (s_input_count < 0) input_load();
+    if (!s_input_slots || !s_in_match) return;
+    if (actor < ACTORS || actor >= ACTORS + SLOTS * STRIDE || (actor - ACTORS) % STRIDE) return;
+    slot = (int)((actor - ACTORS) / STRIDE);
+    if (!(s_input_slots & (1 << slot))) return;
+    for (i = 0; i < s_input_count; i++)
+        if (s_input[i].slot == slot && s_step >= s_input[i].first && s_step <= s_input[i].last)
+            buttons |= s_input[i].buttons;
+    MEM32(PAD_TABLE + (uint32_t)slot * 0x20u) = buttons;      /* the deliberate write; see above */
+}
+
+/* sub_001AD220(seed): the four per-fighter AI generators (0x3BFC70, 0x88 apart)
+ * are seeded, each from this one word, which the game takes from the time-stamp
+ * counter at every match start. That is what made two runs of the same fight
+ * differ from the first half second (docs/research/fight-determinism.md).
+ * RECOMP_TEST_RNG_SEED replaces it, as it does the match generator's seed. */
+void defjam_test_ai_seed(uint32_t stack)
+{
+    const char *want;
+    uint32_t seed;
+    int forced = 0;
+    if (!defjam_test_observations_enabled()) return;
+    seed = MEM32(stack + 4);
+    want = getenv("RECOMP_TEST_RNG_SEED");
+    if (want && *want) {
+        seed = (uint32_t)strtoul(want, NULL, 0);
+        MEM32(stack + 4) = seed;        /* deliberate, opt-in; see the header */
+        forced = 1;
+    }
+    if (!budget()) return;
+    begin_line("TEST-EVENT", "ai_seed");
+    put(",\"seed\":%u,\"forced\":%s", seed, forced ? "true" : "false");
     end_line();
 }

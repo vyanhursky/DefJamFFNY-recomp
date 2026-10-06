@@ -56,6 +56,9 @@ void sub_001A6870_enter(void)
 void sub_00087700_enter(void) { defjam_test_step(); }
 void sub_001A4D90_enter(void) { defjam_test_match_start(); }
 void sub_001BC690_enter(void) { defjam_test_rng(g_esp); }
+void sub_001AD220_enter(void) { defjam_test_ai_seed(g_esp); }
+/* The per-fighter pad reader: RECOMP_TEST_INPUT replaces what it is about to read. */
+void sub_001BAA00_enter(void) { defjam_test_input(MEM32(g_esp + 4)); }
 void sub_001A6A80_enter(void)
 {
     if (defjam_test_observations_enabled())
@@ -174,6 +177,66 @@ void sub_002016B0(void)
 
     g_eax = dst;
     g_esp += 4;          /* cdecl: consume the return address, caller pops args */
+}
+
+/* DirectSound's idle-voice lookup, XDK DSOUND section, guest 0x0025FB7C.
+ *
+ * When the audio chip traps to say a hardware voice has gone idle, the
+ * interrupt routine calls this with the voice's id (thiscall: ecx = the voice
+ * manager, one stack argument, `ret 4`). It looks the voice's client up in the
+ * manager's 256-entry table at +0x88 and, if the client still owns that voice
+ * and is on a list, has sub_002626B5 take it off the hardware voice list.
+ *
+ * The original does not test the table entry for null: on a console a trapped
+ * voice always has a client, because the trap is serviced within microseconds.
+ * Here the chip model's frame thread raises the trap and the routine runs about
+ * a millisecond later, and the model lets a later method overwrite the trapped
+ * voice id, so the entry can be empty by then. With a null client and voice id
+ * 0 every test below passes on zero-page reads and sub_002626B5 is called with
+ * this == NULL: the read fault at 0xFFFFFFBE seen once in three Debug runs of
+ * the four-fighter Terrordome match (docs/research/dsound-voice-list-crash.md).
+ *
+ * This is the original's logic with that one test added. An empty entry means
+ * there is no client to take off any list, so returning is what the original
+ * does for every other "nothing to do" case. The chip model's trap handling is
+ * the real fault and is still to be fixed; the count below says how often the
+ * guard is what saved a run. */
+extern void sub_002626B5(void);
+void sub_0025FB7C(void)
+{
+    uint32_t voice = MEM32(g_esp + 4);
+    uint32_t manager = g_ecx;
+
+    g_eax = voice;
+    if (voice < 0x100u && MEM32(manager + 0x84) == 0) {
+        uint32_t voices = MEM32(0x27CCB0);
+        g_edx = voice << 7;
+        if (!(MEM32(g_edx + voices + 4) & 0x800000u)) {
+            uint32_t client = MEM32(manager + voice * 4 + 0x88);
+            g_ecx = client;
+            if (!client) {
+                static volatile LONG empty;
+                LONG n = InterlockedIncrement(&empty);
+                if (n <= 8 || (n & (n - 1)) == 0) {
+                    fprintf(stderr, "[DSOUND] idle trap for voice %u with no client; skipped (%ld so far)\n",
+                            voice, (long)n);
+                    fflush(stderr);
+                }
+            } else {
+                g_edx = MEM8(client + 0x64);
+                g_edx = MEM16(client + g_edx * 2 + 0xA);
+                if (voice == g_edx) {
+                    g_eax = client + 0x4C;
+                    if (MEM32(g_eax) != g_eax) {
+                        PUSH32(g_esp, 1);
+                        PUSH32(g_esp, 0x0025FBC9u);
+                        sub_002626B5();
+                    }
+                }
+            }
+        }
+    }
+    g_esp += 8;          /* ret 4: the return address and the argument */
 }
 
 /* DirectSound's GP DSP mailbox, XDK DSOUND section, guest 0x0025F530.

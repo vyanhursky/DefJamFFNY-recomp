@@ -11,11 +11,16 @@ Fighters selection. They do not cover every mode or a full Story campaign.
   replaced the seven that are simple function exits, one of which caused the Terrordome
   crash. Roughly seventy more decode as real code and need the translator's function
   extents fixed. `python scripts/stub-targets.py` lists them. None is known to be reached.
-- **A rare crash in the sound library.** One of three Debug runs of the scripted four-fighter
-  Terrordome match crashed about three and a half minutes in, in the game's DirectSound code
-  (`sub_002626B5`, on the audio interrupt's thread): it followed an empty entry in a voice list
-  read from the emulated audio chip's registers. Not seen on Release (five runs of that match since the v0.2.1 fix).
-  This is not the Terrordome crash fixed in v0.2.1. Not investigated.
+- **A rare crash in the sound library (guarded since v0.2.3).** One of three Debug runs of the
+  scripted four-fighter Terrordome match crashed in the game's DirectSound code
+  (`sub_002626B5`, on the audio interrupt's thread). The interrupt routine looks up the client
+  of a hardware voice the audio chip reported idle and does not expect to find none; the chip
+  model services that trap about a millisecond late and lets a later event overwrite the voice
+  number, so the entry can be empty. The lookup (`sub_0025FB7C`) is now hand-written with the
+  missing test and logs `[DSOUND] idle trap ... with no client` when it fires. It has not
+  fired in the six Debug and Release runs since, so the guard is unproven against the real
+  event; the model's trap handling is the underlying fault and is unchanged
+  (`docs/research/dsound-voice-list-crash.md`).
 - **A dropped audio buffer at a knockout.** Both scripted fights that were played to a
   knockout dropped exactly one audio buffer in the slow motion after it, and none before.
   Not investigated; it has not been noticed by ear.

@@ -61,3 +61,11 @@ opens the user-ID screen and sometimes its keyboard, and each B backs out one le
 `python scripts/regress.py --only m2,m3,m4a` runs the game three times and checks each signature. The
 loading screen (M2) has no front-end call to anchor a capture on, and which frame it is on depends on how
 fast the build starts, so that check captures several frames and passes if one of them is the screen.
+
+## fight-stream.json
+
+The SHA-256 of the game-state stream of the first 1,800 simulation steps of a One on One whose
+input is step-timed and whose random seeds are pinned (`scripts/regress.py --only replay`). It was
+identical on the Release and Debug builds and on two save fixtures. It is a hash of derived state;
+no game data is stored. Update it with `--only repeat --update-golden` when a change is meant to
+alter how the fight plays, and say so in the commit.

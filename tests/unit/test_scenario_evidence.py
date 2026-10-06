@@ -1,6 +1,7 @@
 """Behavioral negative controls for reports, captures, fixtures and ownership."""
 import importlib.util
 import json
+import re
 from pathlib import Path
 import struct
 import xml.etree.ElementTree as ET
@@ -308,6 +309,8 @@ def test_full_regression_has_the_terrordome_match_and_the_combat_check():
     # the One on One there stays selectable only, and neither is in the quick run.
     assert 'ffa-terrordome' in regress.DEFAULT and 'combat' in regress.DEFAULT
     assert 'fight-terrordome' in regress.CHECKS and 'fight-terrordome' not in regress.DEFAULT
+    assert 'repeat' in regress.CHECKS and 'repeat' not in regress.DEFAULT
+    assert 'replay' in regress.DEFAULT and 'replay' not in regress.QUICK
     assert not {'ffa-terrordome', 'fight-terrordome', 'combat'} & set(regress.QUICK)
     assert set(regress.ORDER) == set(regress.CHECKS)
     assert harness.ROUTES['story-tour']['until'] == harness.ROUTES['gym']['until']
@@ -508,3 +511,70 @@ def test_default_fixture_copies_only_profiles_and_leaves_the_source_alone(tmp_pa
     assert not list((tmp_path / 'repo/logs/fixtures').glob('fixture-source-*'))
     with pytest.raises(ValueError, match='no saved profiles'):
         suite.default_fixture(tmp_path / 'empty')
+
+
+def stream_log(health=(100, 90), steps=(1, 31, 61), match=1, extra=''):
+    lines = ['[TEST-EVENT] ' + json.dumps(dict(event='match_start', match=match, step=1, host_ms=5, fighters=[]))]
+    for index, step in enumerate(steps):
+        lines.append('[TEST-STATE] ' + json.dumps(dict(event='sample', match=match, step=step, host_ms=1000 + index,
+                                                       rng=7, fighters=[dict(slot=0, health=health[0]), dict(slot=1, health=health[1])])))
+    return '\n'.join(lines) + extra
+
+
+def test_state_stream_ignores_the_host_clock_and_stops_at_the_step_limit():
+    one = ev.state_stream(stream_log())
+    other = ev.state_stream(stream_log().replace('"host_ms": 1001', '"host_ms": 999999'))
+    assert one == other and len(one) == 4 and all('host_ms' not in line for line in one)
+    assert len(ev.state_stream(stream_log(), max_step=31)) == 3
+    # Another match in the same log, and a line cut short by a crash, are left out.
+    mixed = stream_log() + '\n' + stream_log(match=2, health=(5, 5)) + '\n[TEST-STATE] {"event":"sample","match":1,"st'
+    assert ev.state_stream(mixed) == one
+    assert ev.state_stream(mixed, match=2) != one
+
+
+def test_stream_checks_name_the_step_where_two_runs_part():
+    recorded = ev.state_stream(stream_log())
+    assert ev.stream_checks(stream_log(), recorded)[0]['status'] == 'pass'
+    changed = ev.stream_checks(stream_log(health=(100, 89)), recorded)[0]
+    assert changed['status'] == 'fail' and changed['metrics']['step'] == 1
+    assert changed['metrics']['differing_fields'] == ['fighters']
+    later = stream_log().replace('"step": 61, "host_ms": 1002, "rng": 7', '"step": 61, "host_ms": 1002, "rng": 8')
+    parted = ev.stream_checks(later, recorded)[0]
+    assert parted['status'] == 'fail' and parted['metrics']['step'] == 61 and parted['metrics']['differing_fields'] == ['rng']
+    # A run that ended early agrees as far as it goes but is not a pass; no telemetry is blocked.
+    assert ev.stream_checks(stream_log(steps=(1, 31)), recorded)[0]['status'] == 'fail'
+    assert ev.stream_checks('nothing', recorded)[0]['status'] == 'blocked'
+    assert ev.stream_checks(stream_log(), [])[0]['status'] == 'fail'
+
+
+def test_stream_options_need_step_input_and_a_seed(tmp_path):
+    with pytest.raises(SystemExit):
+        suite.main(['run', 'fight', '--fixture', str(tmp_path), '--stream-out', str(tmp_path / 's.txt')])
+    with pytest.raises(SystemExit):
+        suite.main(['run', 'fight', '--fixture', str(tmp_path), '--stream-expect', str(tmp_path / 's.txt'),
+                    '--step-input', 'default'])
+
+
+def test_generated_step_input_is_well_formed(tmp_path):
+    path = suite.step_input(tmp_path / 'input.txt', seconds=60)
+    rows = [line.split() for line in path.read_text().splitlines() if not line.startswith('#')]
+    assert rows and all(len(r) == 4 and r[0] == '0' and 600 <= int(r[1]) <= int(r[2]) < 3600 + 80 for r in rows)
+    assert {r[3] for r in rows} == {'8', '10', '20', '40', '80'}
+    # No two face buttons are down on the same step.
+    held = {}
+    for slot, first, last, buttons in rows:
+        if buttons != '8':
+            for step in range(int(first), int(last) + 1):
+                assert held.setdefault(step, buttons) == buttons
+
+
+def test_fight_stream_golden_is_a_hash_and_matches_the_repeat_check():
+    golden = json.loads((ROOT / 'tests/golden/fight-stream.json').read_text(encoding='utf-8'))
+    assert re.fullmatch(r'[0-9a-f]{64}', golden['sha256']) and golden['records'] > 0
+    # The parameters the hash depends on are the ones the repeat check uses.
+    source = (ROOT / 'scripts/regress.py').read_text(encoding='utf-8')
+    assert '"--rng-seed", "%d"' % golden['rng_seed'] in source and golden['route'] == 'fight'
+    assert golden['max_step'] == 1800 and '--stream-steps' not in source
+    # Nothing but identifiers and numbers: no game state is stored, only its hash.
+    assert set(golden) == {'schema', 'what', 'route', 'rng_seed', 'step_input', 'max_step', 'records', 'sha256',
+                           'recorded', 'note'}

@@ -24,24 +24,24 @@ Hosted CI has no game dump and does not run the full game.
 
 ## Ordered implementation To-Do
 
-Status as of v0.2.2 (2026-10-05): `[x]` done, `[~]` partly done, `[ ]` open. How to run what exists: [09-testing-harness.md](09-testing-harness.md).
+Status as of v0.2.3 (2026-10-06): `[x]` done, `[~]` partly done, `[ ]` open. How to run what exists: [09-testing-harness.md](09-testing-harness.md).
 
 ### 1. Repeatable setup and useful combat assertions
 
 - [x] Define disposable, versioned local profile fixtures with hashes and required
   progression; select profiles explicitly instead of relying on list ordering.
   *Done: hashed fixtures run on a throw-away copy; the regression makes one from the saved profiles. Profiles are still chosen by list position.*
-- [~] Record settings and RNG seed where controllable; identify sources of timing
+- [x] Record settings and RNG seed where controllable; identify sources of timing
   variance. Keep log-anchored menu navigation; add simulation-frame timing for combat.
-  *Part: settings and the seed are recorded and the seed can be replaced; input is still timed in host seconds, so runs differ.*
+  *Done for the fight: step-timed input and pinned seeds (the match generator and the CPU fighters' own) reproduce thirty seconds of game state exactly; one longer pair parted after 52 seconds, cause unknown. Menus are still on the host's clock.*
 - [x] Add read-only state/event observations for fighter position, health, round
   state and result. Verify hooks are present in actual generated integration.
   *Done: `src/hooks/test_telemetry.c`, confirmed against live fights (`research/combat-telemetry.md`).*
 - [~] Add one scenario: fixed fighters/venue, move, block, attack, verify damage,
   complete KO, reach results and return to menu. Bound each expected transition.
   *Part: `fight-result` asserts movement, attack, damage, the result and the summary screen. Not asserted: a block, the fighters' identity, the return to the menu.*
-- [~] Prove a deliberately broken input/damage path fails the relevant assertion.
-  *Part: unit tests break each assertion with altered event streams; a live run with the pad disabled has not been made.*
+- [x] Prove a deliberately broken input/damage path fails the relevant assertion.
+  *Done: a live run whose input file never presses anything failed movement, attack and damage; unit tests break each assertion with altered event streams.*
 
 Exit: a fight that renders but ignores controls or never causes damage cannot pass.
 
