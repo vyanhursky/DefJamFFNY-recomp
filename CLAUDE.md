@@ -74,7 +74,8 @@ Game data lives outside the repo at `C:\Users\Vlad\code\defjam` (`$env:DEFJAM_DA
    The working checkout `defjam-recomp` retains private `origin` (`DJFFNY-recomp`); the clean public checkout is `DJFFNY-public-preview` with its own `origin` (`DefJamFFNY-recomp`). Never push private history to the public remote. Then push to `origin main` (the private repo): Vlad gave standing permission on 2026-09-23. Write the
    message to a file and use `git commit -F <file>`; PowerShell 5.1 cannot pipe a here-string, and its
    `Set-Content -Encoding utf8` adds a BOM to the subject.
-7. Toolkit changes live on `vyanhursky/xboxrecomp`, branch `defjam/rebase-2026-10`.
+7. Toolkit changes live on `vyanhursky/xboxrecomp`, branch `defjam/m6` (D63; started at the accepted
+   `defjam/rebase-2026-10` tip `aa1a1b9`; worktree `logs/m6-work/toolkit`).
    Use an isolated toolkit worktree, preserve upstream behavior, and commit one logical topic with source-only
    staging and tests. Publish the reviewed commit before committing its gitlink in the parent; a fresh clone
    builds the exact fork commit from `git submodule update --init --recursive`, with no patch replay.

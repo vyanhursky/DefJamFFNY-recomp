@@ -66,7 +66,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        fixture: [kernel_bridge, kernel_directory, usb_transfer, nv2a_vsh]
+        fixture: [kernel_bridge, kernel_directory, usb_transfer, nv2a_vsh, settings, d3d8_present_fit]
     steps:
       - uses: actions/checkout@v4
         with: { submodules: recursive }

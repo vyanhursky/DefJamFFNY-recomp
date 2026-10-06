@@ -12,6 +12,7 @@ Checks, in order:
   m3       the title screen's                          tests/golden/m3-title-screen.json
   m4a      the main menu's                             tests/golden/m4a-main-menu.json
   fight    a scripted One on One: reaches the fight, holds the frame rate, no crash
+  ffa      a scripted four-fighter Free For All at the default venue, the same checks
   intro    Story from a new ID: both cutscenes play to the creator, no truncated batch
   crib     Story with the first saved profile reaches the crib
   gym      Learn Moves opens and a move's preview movie is requested
@@ -38,12 +39,15 @@ harness = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(harness)
 REPO = harness.REPO
 
-ORDER = ["unit", "m2", "m3", "m4a", "fight", "intro", "crib", "gym", "soak"]
+ORDER = ["unit", "m2", "m3", "m4a", "fight", "ffa", "intro", "crib", "gym", "soak"]
 QUICK = ["unit", "m2", "m3", "m4a", "fight"]
 
 # A 2 s line of a 60 Hz title holds 120 presents. Loading screens run at 30, so the
 # floor is on the median, and lower for the debug build.
 FPS_FLOOR = {"win-x64-release": 110, "win-x64-debug": 100}
+# Four fighters cost the unoptimised build its 60 frames a second (median 95 presents
+# per 2 s measured 2026-10-05); the check there is for crashes and a playable rate.
+FFA_FPS_FLOOR = {"win-x64-release": 110, "win-x64-debug": 80}
 
 def median(xs):
     return sorted(xs)[len(xs) // 2] if xs else 0
@@ -125,19 +129,23 @@ def check_m4a(a):
                    "RECOMP_TRANS_SHOT_SECS": "50", "RECOMP_PAD_SCRIPT": pad}, 200)
 
 
-def check_fight(a):
-    run = harness.run_route("fight", preset=a.preset, quiet=True)
+def check_fight(a, route="fight"):
+    run = harness.run_route(route, preset=a.preset, quiet=True)
     faults = common_faults(run)
     if not harness.reached(run.summary, "game.startgame("):
         faults.append("never reached the fight")
     p = harness.presents_after(run.text, "game.startgame(")
-    floor = FPS_FLOOR.get(a.preset, 100)
+    floor = (FFA_FPS_FLOOR if route == "ffa" else FPS_FLOOR).get(a.preset, 100)
     if p and median(p) < floor:
         faults.append("median %d presents per 2 s, floor %d" % (median(p), floor))
     if len(p) < 30:
         faults.append("only %d s of fight" % (2 * len(p)))
     return verdict(faults, "%d s of fight, median %d presents per 2 s, minimum %d"
                    % (2 * len(p), median(p), min(p) if p else 0))
+
+
+def check_ffa(a):
+    return check_fight(a, route="ffa")
 
 
 def check_intro(a):
@@ -179,7 +187,7 @@ def check_soak(a):
     return (ok == a.soak and hung == 0 and failed == 0), "%d of %d boots reached the main menu" % (ok, a.soak)
 
 
-CHECKS = {"unit": check_unit, "m2": check_m2, "m3": check_m3, "m4a": check_m4a, "fight": check_fight,
+CHECKS = {"unit": check_unit, "m2": check_m2, "m3": check_m3, "m4a": check_m4a, "fight": check_fight, "ffa": check_ffa,
           "intro": check_intro, "crib": check_crib, "gym": check_gym, "soak": check_soak}
 
 

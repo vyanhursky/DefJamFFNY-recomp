@@ -10,6 +10,7 @@ history; their conclusions and old commands may have been superseded.
 | [Contributing](../CONTRIBUTING.md) | Change boundaries, tests and reporting |
 | [Workflows](03-workflows.md) | Maintainer pipeline, troubleshooting and diagnostics |
 | [Runtime reference](05-reference.md) | Rendering architecture and investigation tools |
+| [M6 plan](07-m6-plan.md) | PC features: slices, releases and where the code goes |
 | [Test plan](02-test-plan.md) | Milestone gates and regression discipline |
 | [Release process](releasing.md) | Source releases, tag checks and GitHub CI |
 | [v0.1.0 notes](releases/v0.1.0.md) | Scope of the first public version |

@@ -86,9 +86,37 @@ From the repository root, with the same `DEFJAM_DATA` selected:
 .\scripts\run.ps1 -Preset win-x64-release
 ```
 
-The launcher supplies graphics, vblank and USB settings. Use an XInput pad;
-keyboard gameplay controls are not implemented. Closing the game returns control
-to the terminal and prints the log path.
+Or start `build/win-x64-release/defjam_recomp.exe` directly (double-click it or
+make a shortcut): it finds the `game` folder in the repository root, supplies the
+runtime switches itself and writes its log to `logs/`. `run.ps1` additionally
+checks that the build is current and prints the log path when the game closes.
+
+Use an XInput pad; keyboard gameplay controls are not implemented.
+
+## Display settings
+
+Press **Alt+Enter** or **F11** to switch between a window and borderless full
+screen. The window can be resized freely; the picture keeps the console's 4:3
+shape with black bars.
+
+Settings live in `settings.ini` in your data folder (`DEFJAM_DATA`, beside
+`extracted` and `save`). The game writes the file with comments on first start;
+edit it while the game is closed.
+
+| `[display]` key | Default | Meaning |
+|---|---|---|
+| `fullscreen` | `false` | Start in borderless full screen. The hotkeys update it. |
+| `window_width`, `window_height` | `1280`, `960` | Window size. Resizing the window updates them. |
+| `aspect` | `4:3` | `4:3` keeps the picture shape; `stretch` fills the window. |
+| `render_scale` | `2` | Internal resolution, 1-4 times 640x480. Try `3` or `4` on a 1440p or 4K display. |
+| `filter` | `smooth` | `smooth` or `sharp` scaling to the window. |
+| `vsync` | `true` | Pace frames on the display for even motion. Used on 60, 120, 180 and 240 Hz displays; others use the game's own 60 fps timer. |
+| `gamma` | `true` | The game's own brightness curve, as on the console. |
+
+`render_scale` and `gamma` take effect at the next start. A `RECOMP_*`
+environment variable, where one exists, overrides the file for that run.
+`RECOMP_SETTINGS=<path>` selects another file and `RECOMP_SETTINGS=none` ignores
+the file, which is what the automated tests do.
 
 Profiles and caches live under `DEFJAM_DATA/save`. Manual play writes normally,
 without rollback. Back up this whole directory before trying another build.
@@ -102,7 +130,11 @@ the complete save root after testing.
 - Missing `game/default.xbe`: check the junction and extraction.
 - Freshness error: rerun the named analysis/lift/build step.
 - Missing compiler: check the C++ workload and bundled CMake/Ninja tools.
-- Use `run.ps1`: a direct EXE launch lacks its working-directory and runtime setup.
+- "The game files were not found": the executable looks for `game/default.xbe` in the
+  current folder, beside itself and up to four folders above; check the junction.
+- Saves missing after a direct launch: the data folder is found from `DEFJAM_DATA`, or
+  from the `game` junction when it points at a folder named `extracted`. The first
+  lines of `logs/run-*.log.err` say which folder and settings file were used.
 
 Report your version/commit and reproduction steps. Review logs for personal
 paths; do not upload game data, saves, generated source or memory dumps.

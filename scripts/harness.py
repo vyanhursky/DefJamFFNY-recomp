@@ -55,6 +55,8 @@ BASE_ENV = {
     "RECOMP_PB_EXEC": "1",
     "RECOMP_PB_D3D11": "1",
     "RECOMP_USB": "1",
+    # A player's settings.ini must never change a test run: defaults only, nothing written.
+    "RECOMP_SETTINGS": "none",
 }
 
 # The front end's flow file loads twice; the second load is the title screen.
@@ -136,6 +138,39 @@ FIGHT_TAIL = ("@game.startgame(,right:8:1200:4:1.2,x:10:1200:0.8:0.15,y:10.2:120
 # Typing "AAA" on the user-ID screen and taking DONE.
 NEW_ID_KEYS = "a@5;a@7;a@8;a@9;down@11+0.6x9;right@17.5;a@19;a@23+3x6"
 
+# Battle mode up to the second fighter being chosen; the venue screen follows.
+ONE_ON_ONE_SETUP = [
+    "getscreeninfo(intmain/mainmenu=right@5;a@8",
+    # With more than one user ID in the save area Battle asks for one first.
+    "getscreeninfo(options/userid=down@4;a@7+4x3",
+    "getscreeninfo(battle/cmtype=a@5+4x7",
+    "setmatchtype(=a@5+4x7",
+    "getscreeninfo(options/battleid=start@6+4x7",
+    "controllerbind(0=a@5+4x8",
+    "setbmcurrentuserindex(=a@5+5x6",
+    "controllersetup(0,0=right@4;a@6;right@10;a@12;a@16;a@20;a@24;a@28",
+]
+
+# Free For All (the third match type) up to the fourth fighter being chosen. A
+# fighter can be picked once, so each CPU slot moves off the ones before it.
+FFA_SETUP = [
+    "getscreeninfo(intmain/mainmenu=right@5;a@8",
+    "getscreeninfo(options/userid=down@4;a@7+4x3",
+    "getscreeninfo(battle/cmtype=right@5;right@6.5;a@9",
+    "setmatchtype(=a@5+4x7",
+    "getscreeninfo(options/battleid=start@6+4x7",
+    "controllerbind(0=a@5+4x8",
+    "setbmcurrentuserindex(=a@5+5x6",
+    "getscreeninfo(battle/choosef4=a@6+3x5",
+    "controllersetup(0,0=right@3;a@5+3x4",
+    "controllersetup(1,=right@3;right@4;a@6+3x4",
+    "controllersetup(2,=right@3;down@4;a@6+3x4",
+    "controllersetup(3,=back@9999",
+]
+
+# On the venue map the Terrordome is one step right of the Foundation.
+TERRORDOME = "getscreeninfo(battle/chsvenue=right@6;a@9+4x4"
+
 ROUTES = {
     "boot": {
         "help": "start-up to the main menu, nothing pressed there",
@@ -145,21 +180,31 @@ ROUTES = {
     },
     "fight": {
         "help": "Battle -> One on One, defaults all the way, then a scripted fighter",
-        "stages": [
-            "getscreeninfo(intmain/mainmenu=right@5;a@8",
-            # With more than one user ID in the save area Battle asks for one first.
-            "getscreeninfo(options/userid=down@4;a@7+4x3",
-            "getscreeninfo(battle/cmtype=a@5+4x7",
-            "setmatchtype(=a@5+4x7",
-            "getscreeninfo(options/battleid=start@6+4x7",
-            "controllerbind(0=a@5+4x8",
-            "setbmcurrentuserindex(=a@5+5x6",
-            "controllersetup(0,0=right@4;a@6;right@10;a@12;a@16;a@20;a@24;a@28",
-            "controllersetup(1,=a@4+4x6",
-        ],
+        "stages": ONE_ON_ONE_SETUP + ["controllersetup(1,=a@4+4x6"],
         "tail": FIGHT_TAIL,
         "until": "game.startgame(", "after": 120, "secs": 420,
         "shots": "@game.startgame(,60,110",
+    },
+    "ffa": {
+        "help": "Battle -> Free For All with four fighters at the default venue, then a scripted fighter",
+        "stages": FFA_SETUP + ["getscreeninfo(battle/chsvenue=a@8+4x4"],
+        "tail": FIGHT_TAIL,
+        "until": "game.startgame(", "after": 150, "secs": 520,
+        "shots": "@game.startgame(,60,140",
+    },
+    "ffa-terrordome": {
+        "help": "Free For All with four fighters at the Terrordome (venue 6), played for four minutes",
+        "stages": FFA_SETUP + [TERRORDOME],
+        "tail": FIGHT_TAIL,
+        "until": "game.startgame(", "after": 240, "secs": 620,
+        "shots": "@game.startgame(,60,230",
+    },
+    "fight-terrordome": {
+        "help": "One on One at the Terrordome (venue 6), played for four minutes",
+        "stages": ONE_ON_ONE_SETUP + ["controllersetup(1,=back@9999", TERRORDOME],
+        "tail": FIGHT_TAIL,
+        "until": "game.startgame(", "after": 240, "secs": 620,
+        "shots": "@game.startgame(,60,230",
     },
     "crib": {
         "help": "Story with the first profile in the list, into the crib (NO to the messages prompt)",

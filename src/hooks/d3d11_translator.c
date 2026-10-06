@@ -32,6 +32,7 @@
 
 #include "d3d8_xbox.h"
 #include "nv2a_pgraph_d3d11.h"
+#include "pc_settings.h"
 
 /* The title sets a 640x480 mode. Matching it keeps the translator's screen
  * space and ours the same, so a vertex the title placed at 320,240 lands in
@@ -47,8 +48,97 @@ static int   s_ready;
 void d3d11_translator_pump(void);
 void d3d11_translator_report(void);
 
+/* Borderless full screen: the window loses its frame and covers the monitor
+ * it is on. No display-mode change, so Alt-Tab is instant and the swap chain
+ * simply follows the window's new size (the toolkit's d3d8_present.c).
+ *
+ * Everything here runs on the window's own thread. A change that starts
+ * anywhere else -- the settings file's owner, later an overlay -- is posted to
+ * it as WM_APP_FULLSCREEN. */
+#define WM_APP_FULLSCREEN  (WM_APP + 1)
+
+static int s_fullscreen;
+static WINDOWPLACEMENT s_windowed_placement = { sizeof(WINDOWPLACEMENT) };
+
+static void set_fullscreen(HWND h, int on)
+{
+    if (!!on == s_fullscreen)
+        return;
+    if (on) {
+        MONITORINFO mi;
+        mi.cbSize = sizeof(mi);
+        if (!GetWindowPlacement(h, &s_windowed_placement) ||
+            !GetMonitorInfoW(MonitorFromWindow(h, MONITOR_DEFAULTTONEAREST), &mi))
+            return;
+        s_fullscreen = 1;
+        SetWindowLongPtrW(h, GWL_STYLE, WS_POPUP | WS_VISIBLE);
+        SetWindowPos(h, HWND_TOP, mi.rcMonitor.left, mi.rcMonitor.top,
+                     mi.rcMonitor.right - mi.rcMonitor.left,
+                     mi.rcMonitor.bottom - mi.rcMonitor.top,
+                     SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+    } else {
+        s_fullscreen = 0;
+        SetWindowLongPtrW(h, GWL_STYLE, WS_OVERLAPPEDWINDOW | WS_VISIBLE);
+        SetWindowPlacement(h, &s_windowed_placement);
+        SetWindowPos(h, NULL, 0, 0, 0, 0,
+                     SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+    }
+    fprintf(stderr, "[TRANS] %s\n", on ? "full screen" : "windowed");
+    fflush(stderr);
+}
+
+/* Remember the size the player dragged the window to. */
+static void remember_window_size(HWND h)
+{
+    RECT r;
+    if (s_fullscreen || IsZoomed(h) || IsIconic(h) || !GetClientRect(h, &r))
+        return;
+    if (r.right > 0 && r.bottom > 0) {
+        pc_display_set("window_width", (int)r.right);
+        pc_display_set("window_height", (int)r.bottom);
+    }
+}
+
 static LRESULT CALLBACK translator_wndproc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
 {
+    switch (msg) {
+    case WM_SYSKEYDOWN:
+        /* Alt+Enter. Bit 30 is set on auto-repeat: one toggle per press. */
+        if (wp == VK_RETURN && (lp & (1 << 29)) && !(lp & (1 << 30))) {
+            pc_display_set("fullscreen", !s_fullscreen);
+            return 0;
+        }
+        break;
+    case WM_SYSCHAR:
+        if (wp == VK_RETURN)
+            return 0;   /* no beep for the Alt+Enter just handled */
+        break;
+    case WM_KEYDOWN:
+        if (wp == VK_F11 && !(lp & (1 << 30))) {
+            pc_display_set("fullscreen", !s_fullscreen);
+            return 0;
+        }
+        break;
+    case WM_APP_FULLSCREEN:
+        set_fullscreen(h, (int)wp);
+        return 0;
+    case WM_EXITSIZEMOVE:
+        remember_window_size(h);
+        break;
+    case WM_SETCURSOR:
+        /* No pointer over the picture in full screen. */
+        if (s_fullscreen && LOWORD(lp) == HTCLIENT) {
+            SetCursor(NULL);
+            return TRUE;
+        }
+        break;
+    case WM_GETMINMAXINFO:
+        ((MINMAXINFO *)lp)->ptMinTrackSize.x = 320;
+        ((MINMAXINFO *)lp)->ptMinTrackSize.y = 240;
+        return 0;
+    case WM_ERASEBKGND:
+        return 1;       /* the renderer paints every pixel, bars included */
+    }
     /* Closing the window ends the run. Left to DefWindowProc it would destroy
      * the window and leave the title running with nothing to draw into; the
      * log line keeps a deliberate close from reading like a crash. */
@@ -64,7 +154,8 @@ static LRESULT CALLBACK translator_wndproc(HWND h, UINT msg, WPARAM wp, LPARAM l
 static HWND make_window(void)
 {
     WNDCLASSEXW wc;
-    RECT r;
+    RECT r, work;
+    int x, y, w, h;
 
     memset(&wc, 0, sizeof(wc));
     wc.cbSize        = sizeof(wc);
@@ -74,14 +165,34 @@ static HWND make_window(void)
     wc.lpszClassName = L"DefJamRecompTranslator";
     RegisterClassExW(&wc);
 
-    r.left = 0; r.top = 0; r.right = TRANSLATOR_WIDTH; r.bottom = TRANSLATOR_HEIGHT;
+    /* The window is the size the settings ask for, no larger than the desktop
+     * allows, and centred. The title still renders 640x480 units into its own
+     * target; the picture is scaled into whatever this turns out to be. */
+    r.left = 0; r.top = 0;
+    r.right = pc_display("window_width", TRANSLATOR_WIDTH * 2);
+    r.bottom = pc_display("window_height", TRANSLATOR_HEIGHT * 2);
     AdjustWindowRect(&r, WS_OVERLAPPEDWINDOW, FALSE);
+    w = r.right - r.left;
+    h = r.bottom - r.top;
+    x = y = CW_USEDEFAULT;
+    if (SystemParametersInfoW(SPI_GETWORKAREA, 0, &work, 0)) {
+        if (w > work.right - work.left) w = work.right - work.left;
+        if (h > work.bottom - work.top) h = work.bottom - work.top;
+        x = work.left + (work.right - work.left - w) / 2;
+        y = work.top + (work.bottom - work.top - h) / 2;
+    }
 
     return CreateWindowExW(0, L"DefJamRecompTranslator",
                            L"Def Jam: Fight for NY", WS_OVERLAPPEDWINDOW,
-                           CW_USEDEFAULT, CW_USEDEFAULT,
-                           r.right - r.left, r.bottom - r.top,
+                           x, y, w, h,
                            NULL, NULL, GetModuleHandleW(NULL), NULL);
+}
+
+/* display.fullscreen changed, on whichever thread changed it. */
+static void fullscreen_setting_changed(int fullscreen)
+{
+    if (s_window)
+        PostMessageW(s_window, WM_APP_FULLSCREEN, (WPARAM)fullscreen, 0);
 }
 
 /* The window lives on a thread of its own, which creates it and then does
@@ -102,9 +213,25 @@ static DWORD WINAPI window_thread(LPVOID unused)
 {
     MSG msg;
     (void)unused;
+    /* Real pixels on a scaled desktop: without this Windows renders the
+     * window small and stretches it, which blurs the picture and makes "full
+     * screen" less than the display's resolution. Windows 10 1703 and later;
+     * absent, the window is merely scaled. */
+    {
+        typedef BOOL (WINAPI *SetDpiContext)(HANDLE);
+        HMODULE user32 = GetModuleHandleW(L"user32.dll");
+        SetDpiContext set = user32
+            ? (SetDpiContext)(void *)GetProcAddress(user32, "SetProcessDpiAwarenessContext") : NULL;
+        if (set)
+            set((HANDLE)(INT_PTR)-4);   /* PER_MONITOR_AWARE_V2 */
+    }
     s_window = make_window();
-    if (s_window)
+    if (s_window) {
         ShowWindow(s_window, SW_SHOW);
+        pc_settings_on_fullscreen(fullscreen_setting_changed);
+        if (pc_display("fullscreen", 0))
+            set_fullscreen(s_window, 1);
+    }
     SetEvent(s_window_ready);
     if (!s_window)
         return 1;
@@ -169,9 +296,10 @@ int d3d11_translator_init(void)
 
     pgraph_d3d11_init();
     s_ready = 1;
-    fprintf(stderr, "[TRANS] D3D11 translator ready: %ux%u window, "
+    fprintf(stderr, "[TRANS] D3D11 translator ready: %ux%u picture in a %dx%d window, "
                     "push-buffer methods will be forwarded\n",
-            TRANSLATOR_WIDTH, TRANSLATOR_HEIGHT);
+            TRANSLATOR_WIDTH, TRANSLATOR_HEIGHT,
+            pc_display("window_width", 0), pc_display("window_height", 0));
     fflush(stderr);
     return 1;
 }
@@ -194,6 +322,16 @@ void d3d11_translator_frame_end(void)
     if (dev) {
         capture_backbuffer(dev);
         dev->lpVtbl->Present(dev, NULL, NULL, NULL, NULL);
+        /* While the display paces the presents (display.vsync on a 60, 120,
+         * 180 or 240 Hz display) it is the frame clock, and the executor's
+         * 60 Hz flip timer would drift against it. Loosen the timer to a
+         * ceiling just above 60 instead of removing it: a minimised or covered
+         * window presents at once, and the title must not run away then. */
+        {
+            extern int d3d8_present_display_paced(void);
+            extern void xbox_Nv2aSetFlipHz(int hz);
+            xbox_Nv2aSetFlipHz(d3d8_present_display_paced() ? 63 : 0);
+        }
     }
     d3d11_translator_pump();
     d3d11_translator_report();

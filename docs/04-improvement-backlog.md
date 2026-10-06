@@ -1,5 +1,14 @@
 # Improvement backlog
 
+## Gameplay regression and cross-title upgrade testing — planned 2026-10-05
+
+Owner-requested future To-Do: [testing roadmap](08-testing-roadmap.md). Extend
+the existing harness with repeatable fixtures, combat outcome assertions, visual
+and audio comparisons, performance coverage and structured reports. Also define
+per-game adapters for testing new upstream xboxrecomp releases against Def Jam,
+TimeSplitters 2 and Mercenaries, accounting for their different toolkit integrations.
+This is deferred planning; existing milestone gates and dependency pins are unchanged.
+
 Work that is deliberately deferred until M2 and the Direct3D interception experiment are settled.
 Nothing here blocks the current milestone. Revisit this file when M2 closes, and again whenever the
 rendering approach is decided, because several items depend on that outcome.

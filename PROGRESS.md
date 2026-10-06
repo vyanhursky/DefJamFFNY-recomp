@@ -29,7 +29,7 @@
 | Toolkit rebase onto upstream (D46) | ✅ | 108 patches consolidated into 15 published topics at `aa1a1b9`; replay retired. Both presets 9/9, Debug soak 20/20, extra routes 5/5. Vlad accepted Release on 2026-10-04: much better audio, smooth frames, no observed graphical glitches (D56). Private PR #1 merged at `c23b44a`; main CI 3/3 green (`37218584931`). |
 | Public repository/docs | ✅ | Fresh PUBLIC `vyanhursky/DefJamFFNY-recomp`; clean root `67c2672`, original private history retained. Owner README feedback, one-hour Story report and supplied PNG/GIF published (D58). |
 | GitHub CI / source release | ✅ | Public main CI `37223781912` 7/7; public v0.1.0 workflow `37223822550` 9/9. v0.1.0 source Release published at public commit `89688c0`; no executable or uploaded binary assets. Current project tests96/96. |
-| PC features (M6) | ⬜ | Next (D45). Already in: 2x render scale (D42, `RECOMP_RENDER_SCALE`). |
+| PC features (M6) | ⏳ | Plan `docs/07-m6-plan.md` (D63). **v0.2.0 released 2026-10-05**: settings file, direct launch, borderless full screen, aspect-correct window, display-paced vsync. Next: the Terrordome crash fix, then input. |
 | Steam Deck (M5), macOS (M9) | ⬜ | After M6, in that order (D45). |
 
 ## 1. Decisions log
@@ -97,6 +97,9 @@
 
 | D57 | 2026-10-04 | Prepare public-facing DJFFNY documentation, stronger Release CI and a source-only v0.1.0 release before upstream PRs. Preserve the private development history; propose a clean public snapshot rather than making the old repository public. | Vlad requests public README/docs modeled on Mercenaries/Burnout 3 and working CI/Releases; selects v0.1.0. History audit finds copied guest bodies/disassembly in Markdown, despite no tracked game asset/binary paths. Redacted 132 mapped excerpts in 21 current docs, retaining findings; old blobs remain private. Rename/new-public-repository transition needs separate owner approval. Existing optimized game preset and toolkit pin unchanged. |
 | D58 | 2026-10-04 | Publish a fresh public `DefJamFFNY-recomp`, retaining original `DJFFNY-recomp` privately; include exactly two owner-approved README visuals with CI fingerprints. Intro says playable and FUN; owner reports over one hour of Story Mode without additional graphical glitches. | Vlad explicitly requested the new public name and supplied screenshot/recording. Different name removes any need to rename the private repository. Media exception is narrow; no game executable/data/lifted-source publication. |
+| D63 | 2026-10-05 | M6 scope and order: one settings core with three front ends (file plus hotkeys, in-game overlay, launcher), shipped as incremental source releases v0.2.0 display and settings file, v0.3.0 input, v0.4.0 overlay and launcher, v0.5.0 true 16:9, v0.6.0 texture packs. Music replacement and frame rates above 60 are deferred. Plan: `docs/07-m6-plan.md`. D59-D62 concern upstream contribution planning and are recorded in the maintainer's private notes. | The owner's choices; he play-tests each release before the next slice starts. |
+| D64 | 2026-10-05 | No exclusive full screen. v0.2.0 uses a flip-model swap chain and a `vsync` setting that paces the game on the display when its refresh rate is a multiple of 60, and keeps the game's 60 Hz timer otherwise. | Exclusive mode gains nothing under Proton or with flip-model presentation; a plain vsync wait on top of the timer halved the frame rate. |
+| D65 | 2026-10-05 | The owner accepted the v0.2.0 play-test and its publication. The Terrordome crash he found is not a regression (v0.1.0 crashes in the same scripted match at the same guest function) and goes to a bug-fix release. | "The game plays great": smooth at render scale 3, full screen good, switching during a match works. |
 
 ## 2. Environment inventory (2026-09-17)
 
@@ -170,8 +173,15 @@ defjam-recomp/
 - 2026-10-04 11:08 — **Owner README feedback and public publication approved (D58).** Requested fresh public DefJamFFNY-recomp; old DJFFNY-recomp remains private without rename. README says playable and FUN and over one hour of Story Mode without additional graphical glitches, macOS/native Linux roadmap, removed fork paragraph. Supplied PNG unchanged (570,725 bytes); six-second MP4 converted to looping480x362/12fps GIF76frames/6,586,091 bytes. Exact two-media hash exceptions added to hygiene and matching agent instructions; all other captures/data remain blocked. Source/public CI and v0.1.0 publication follow preflight. No game runs/builds.
 - 2026-10-04 11:16 ? **Owner README attribution request.** Owner requests vyanhursky only. Updated root, media and historical patch README attribution in private/public checkouts. Initial public v0.1.0 workflow37223465963 passed9/9, but Release is still an unpublished draft; supersede that draft/tag with the README-corrected public commit and rerun full source-release gates before first publication. Game/toolkit/media fingerprints unchanged.
 - 2026-10-04 11:20 — **Public DefJamFFNY-recomp and v0.1.0 released (D58).** Public tag89688c0 (clean initial root67c2672), exact toolkit aa1a1b9, original DJFFNY-recomp stays PRIVATE/unrenamed. Public CI37223781912:7/7; tagged source workflow37223822550:9/9. Project96, toolkit533 +107subtests/one skip, native saves19 and all five CTest cases pass. Inspected source draft and published v0.1.0 with zero uploaded assets; owner-approved README PNG/GIF included via exact fingerprints. All requested README edits live. No game runs/builds. Closure docs synced deliberately to both main branches without moving the public tag.
+- 2026-10-05 17:30 — **v0.2.0: display settings and a settings file (D63-D65).** The executable starts by itself and reads `settings.ini`; Alt+Enter and F11 toggle borderless full screen on a flip-model swap chain; the window resizes with 4:3 bars or stretch; render scale, filter, gamma and display-paced vsync are settings. Toolkit pin `c7059bf` on fork branch `defjam/m6` (settings table, scaled presentation, vsync pacing). Release regression green with matching goldens, a scripted fight at 60 frames a second with vsync on and off; new four-fighter Free For All check. Owner play-test accepted. Known: matches at the Terrordome can crash, as they do on v0.1.0 (`docs/known-issues.md`).
 
 ## 7. Hand-off
+
+### v0.2.0 released, 2026-10-05
+Source v0.2.0 adds the settings file and display options (`docs/releases/v0.2.0.md`).
+M6 continues with a Terrordome crash fix, then input, an in-game settings menu and launcher,
+true 16:9 and texture packs (`docs/07-m6-plan.md`). The section below describes the v0.1.0
+publication and is kept for reference.
 
 ### Public repository and v0.1.0 complete, 2026-10-04
 Public: https://github.com/vyanhursky/DefJamFFNY-recomp

@@ -15,7 +15,7 @@ cmake_minimum_required(VERSION 3.20)
 # (a junction/symlink is fine) and run scripts/verify-dump.py first.
 # ============================================================================
 
-project(defjam_recomp VERSION 0.1.0 LANGUAGES C)
+project(defjam_recomp VERSION 0.2.0 LANGUAGES C)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -68,7 +68,7 @@ if(DEFJAM_BUILD_GAME)
         ${PATCH_SOURCES}
         ${RECOMP_GEN_SOURCES}
     )
-    target_link_libraries(${PROJECT_NAME} PRIVATE xboxrecomp d3d11 dxgi dxguid xinput winmm dbghelp)
+    target_link_libraries(${PROJECT_NAME} PRIVATE xboxrecomp recomp_settings d3d11 dxgi dxguid xinput winmm dbghelp)
     target_include_directories(${PROJECT_NAME} PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
         ${CMAKE_CURRENT_SOURCE_DIR}/src/recomp

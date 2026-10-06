@@ -1,0 +1,264 @@
+/*
+ * The port's player-facing settings and start-up paths.
+ *
+ * Until M6 the program only ran correctly from scripts/run.ps1: it needed four
+ * environment variables, the repository root as its working directory and
+ * DEFJAM_DATA for the saves. This file makes the executable start by itself,
+ * and gives a player one file to edit instead of environment variables.
+ *
+ *   settings.ini   in the data folder (beside `extracted` and `save`), or
+ *                  beside the executable when there is no data folder.
+ *                  RECOMP_SETTINGS=<path> names another file;
+ *                  RECOMP_SETTINGS=none uses the defaults and writes nothing,
+ *                  which is what the test harness does so a player's choices
+ *                  never change a regression run.
+ *
+ * Precedence is the settings library's: default, then the file, then the
+ * setting's environment variable. Every RECOMP_* variable still works.
+ */
+
+#define _CRT_SECURE_NO_WARNINGS
+#include <windows.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+
+#include "recomp_settings.h"
+#include "d3d8_present.h"
+#include "pc_settings.h"
+
+static const char *const k_aspect[] = { "4:3", "stretch", NULL };
+static const char *const k_filter[] = { "smooth", "sharp", NULL };
+
+static RecompSetting g_settings[] = {
+    { "display", "fullscreen", RECOMP_SETTING_BOOL, 0, 0, 0, NULL, NULL, 0,
+      "Borderless full screen. Alt+Enter or F11 switches while playing." },
+    { "display", "window_width", RECOMP_SETTING_INT, 1280, 320, 16384, NULL, NULL, 0,
+      "Window size when not full screen. Resizing the window updates these." },
+    { "display", "window_height", RECOMP_SETTING_INT, 960, 240, 16384, NULL, NULL, 0, NULL },
+    { "display", "aspect", RECOMP_SETTING_ENUM, 0, 0, 0, k_aspect, NULL, 0,
+      "4:3 keeps the console's picture shape with black bars; stretch fills the window." },
+    { "display", "render_scale", RECOMP_SETTING_INT, 2, 1, 4, NULL, "RECOMP_RENDER_SCALE",
+      RECOMP_SETTING_RESTART,
+      "Internal resolution as a multiple of the console's 640x480. Higher is sharper and costs GPU time." },
+    { "display", "filter", RECOMP_SETTING_ENUM, 0, 0, 0, k_filter, NULL, 0,
+      "How the picture is scaled to the window." },
+    { "display", "vsync", RECOMP_SETTING_BOOL, 1, 0, 0, NULL, "RECOMP_PRESENT_VSYNC", 0,
+      "Pace frames on the display for even motion. Used when the refresh rate is a multiple of 60 (60, 120, 180, 240 Hz); other displays use the game's own 60 fps timer." },
+    { "display", "gamma", RECOMP_SETTING_BOOL, 1, 0, 0, NULL, "RECOMP_GAMMA",
+      RECOMP_SETTING_RESTART,
+      "Apply the game's own brightness curve, as the console does." },
+};
+#define SETTING_COUNT (sizeof(g_settings) / sizeof(g_settings[0]))
+
+static char g_path[MAX_PATH * 2];   /* empty: do not load or save */
+static void (*g_fullscreen_notify)(int fullscreen);
+
+static void settings_log(const char *message)
+{
+    fprintf(stderr, "[SETTINGS] %s\n", message);
+}
+
+static int file_exists(const char *path)
+{
+    DWORD a = GetFileAttributesA(path);
+    return a != INVALID_FILE_ATTRIBUTES && !(a & FILE_ATTRIBUTE_DIRECTORY);
+}
+
+static void strip_last(char *path)
+{
+    char *slash = strrchr(path, '\\');
+    if (slash) *slash = 0;
+}
+
+/* Find the folder that holds `game\default.xbe` and make it current: here,
+ * else beside the executable, else up to four levels above it (the build tree
+ * is build\<preset>\ under the repository root). */
+static int find_game_root(void)
+{
+    char dir[MAX_PATH], probe[MAX_PATH + 32];
+    int up;
+
+    if (file_exists("game\\default.xbe"))
+        return 1;
+    if (!GetModuleFileNameA(NULL, dir, sizeof(dir)))
+        return 0;
+    strip_last(dir);
+    for (up = 0; up <= 4 && strchr(dir, '\\'); up++) {
+        snprintf(probe, sizeof(probe), "%s\\game\\default.xbe", dir);
+        if (file_exists(probe))
+            return SetCurrentDirectoryA(dir) != 0;
+        strip_last(dir);
+    }
+    return 0;
+}
+
+/* The data folder: DEFJAM_DATA, or the parent of the dump when the dump is a
+ * folder named `extracted` (the layout docs/build-and-play.md sets up). Sets
+ * DEFJAM_DATA when it was derived, so the save path in main.c follows. */
+static int find_data_root(char *root, size_t size)
+{
+    const char *env = getenv("DEFJAM_DATA");
+    char real[MAX_PATH];
+    HANDLE h;
+    DWORD n;
+    const char *p;
+    char *name;
+
+    if (env && *env) {
+        snprintf(root, size, "%s", env);
+        return 1;
+    }
+    /* `game` is usually a junction; ask where it really is. */
+    h = CreateFileA("game", 0, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, NULL,
+                    OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
+    if (h == INVALID_HANDLE_VALUE)
+        return 0;
+    n = GetFinalPathNameByHandleA(h, real, sizeof(real), FILE_NAME_NORMALIZED);
+    CloseHandle(h);
+    if (!n || n >= sizeof(real))
+        return 0;
+    p = strncmp(real, "\\\\?\\", 4) == 0 ? real + 4 : real;
+    snprintf(root, size, "%s", p);
+    name = strrchr(root, '\\');
+    if (!name || _stricmp(name + 1, "extracted") != 0)
+        return 0;
+    *name = 0;
+    _putenv_s("DEFJAM_DATA", root);
+    return 1;
+}
+
+/* Started by a double click there is nothing to print to: keep a log, as
+ * scripts/run.ps1 does. A caller that redirected the output keeps its own. */
+static void open_log_if_needed(void)
+{
+    HANDLE out = GetStdHandle(STD_ERROR_HANDLE);
+    char name[MAX_PATH];
+    time_t now = time(NULL);
+    struct tm *t = localtime(&now);
+
+    if (out && out != INVALID_HANDLE_VALUE && GetFileType(out) != FILE_TYPE_UNKNOWN)
+        return;
+    CreateDirectoryA("logs", NULL);
+    strftime(name, sizeof(name), "logs\\run-%Y%m%d-%H%M%S.log", t);
+    freopen(name, "w", stdout);
+    strcat(name, ".err");
+    freopen(name, "w", stderr);
+    /* Buffered, as main.c sets the streams it was given. */
+    setvbuf(stdout, NULL, _IOFBF, 1 << 16);
+    setvbuf(stderr, NULL, _IOFBF, 1 << 16);
+}
+
+/* What scripts/run.ps1 and the harness have always set: the vertical-blank
+ * interrupt, the push-buffer executor, its Direct3D 11 output and the USB
+ * model. Each is "on if set", so a diagnostic run that needs one off sets
+ * RECOMP_NO_DEFAULTS=1 and names the ones it wants. */
+static void supply_runtime_defaults(void)
+{
+    static const char *const names[] = {
+        "RECOMP_VBLANK", "RECOMP_PB_EXEC", "RECOMP_PB_D3D11", "RECOMP_USB" };
+    size_t i;
+    if (getenv("RECOMP_NO_DEFAULTS"))
+        return;
+    for (i = 0; i < sizeof(names) / sizeof(names[0]); i++)
+        if (!getenv(names[i]))
+            _putenv_s(names[i], "1");
+}
+
+int pc_display(const char *key, int fallback)
+{
+    return recomp_settings_get("display", key, fallback);
+}
+
+void pc_settings_apply_display(void)
+{
+    d3d8_present_set_aspect(pc_display("aspect", 0) == 0, 4, 3);
+    d3d8_present_set_linear_filter(pc_display("filter", 0) == 0);
+    d3d8_present_set_vsync(pc_display("vsync", 1));
+}
+
+static void setting_changed(const RecompSetting *s, void *user)
+{
+    (void)user;
+    pc_settings_apply_display();
+    if (!strcmp(s->key, "fullscreen") && g_fullscreen_notify)
+        g_fullscreen_notify(s->value);
+}
+
+void pc_settings_on_fullscreen(void (*notify)(int fullscreen))
+{
+    g_fullscreen_notify = notify;
+}
+
+void pc_display_set(const char *key, int value)
+{
+    if (recomp_settings_set("display", key, value) > 0 && g_path[0]) {
+        if (recomp_settings_save(g_path))
+            fprintf(stderr, "[SETTINGS] could not write %s\n", g_path);
+    }
+}
+
+int pc_settings_init(void)
+{
+    char root[MAX_PATH];
+    const char *env = getenv("RECOMP_SETTINGS");
+    int have_game = find_game_root();
+    int have_root, read;
+
+    if (have_game)
+        open_log_if_needed();
+    if (!have_game) {
+        MessageBoxA(NULL,
+            "The game files were not found.\n\n"
+            "Create a folder or junction named 'game' beside this program (or in the\n"
+            "repository root) that holds your own extracted dump, with default.xbe in it.\n"
+            "See docs/build-and-play.md.",
+            "Def Jam: Fight for NY", MB_ICONERROR);
+        return 0;
+    }
+    supply_runtime_defaults();
+    have_root = find_data_root(root, sizeof(root));
+
+    if (env && !_stricmp(env, "none")) {
+        g_path[0] = 0;
+    } else if (env && *env) {
+        snprintf(g_path, sizeof(g_path), "%s", env);
+    } else if (have_root) {
+        snprintf(g_path, sizeof(g_path), "%s\\settings.ini", root);
+    } else {
+        GetModuleFileNameA(NULL, g_path, MAX_PATH);
+        strip_last(g_path);
+        strcat(g_path, "\\settings.ini");
+    }
+
+    recomp_settings_register(g_settings, SETTING_COUNT);
+    recomp_settings_set_log(settings_log);
+    read = g_path[0] ? recomp_settings_load(g_path) : 0;
+    if (!g_path[0])
+        fprintf(stderr, "[SETTINGS] defaults only (RECOMP_SETTINGS=none)\n");
+    else if (read < 0)
+        fprintf(stderr, "[SETTINGS] could not read %s; using defaults\n", g_path);
+    else {
+        fprintf(stderr, "[SETTINGS] %s (%d value(s) read)\n", g_path, read);
+        /* Write it out on first run, and after an upgrade adds a setting, so
+         * there is always a complete, commented file to edit. */
+        if (read < (int)SETTING_COUNT && recomp_settings_save(g_path))
+            fprintf(stderr, "[SETTINGS] could not write %s\n", g_path);
+    }
+    if (have_root)
+        fprintf(stderr, "[SETTINGS] data folder %s\n", root);
+    else
+        fprintf(stderr, "[SETTINGS] no data folder found; saves use the runtime's default location\n");
+
+    /* Settings read once at start-up by code that looks at the environment. */
+    if (!getenv("RECOMP_GAMMA") && !pc_display("gamma", 1))
+        _putenv_s("RECOMP_GAMMA", "0");
+
+    d3d8_present_enable_scaling(1);
+    d3d8_present_set_render_scale((unsigned)pc_display("render_scale", 2));
+    pc_settings_apply_display();
+    recomp_settings_on_change(setting_changed, NULL);
+    fflush(stderr);
+    return 1;
+}

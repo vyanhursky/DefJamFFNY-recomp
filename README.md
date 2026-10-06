@@ -84,8 +84,9 @@ There is no prebuilt player package in this release.
 
 ## What comes next
 
-PC features are next: player-facing settings, resolution/aspect options and
-texture/music overrides. Steam Deck via Proton follows, then macOS. Native Linux
+PC features are in progress, one release at a time: display settings and a settings
+file first, then more controllers and keyboard play, an in-game settings menu, true
+16:9 and texture packs. Steam Deck via Proton follows, then macOS. Native Linux
 and deeper gameplay decompilation remain stretch goals. See the
 [roadmap](docs/01-plan-review.md#corrected-roadmap-milestones-with-exit-criteria)
 and [development status](PROGRESS.md).
@@ -109,8 +110,8 @@ are related projects that helped shape the public documentation.
 
 This repository's maintained code is [MIT licensed](LICENSE). Toolkit components
 retain their own licenses, including LGPL-2.1-or-later components; see its
-[NOTICE](https://github.com/vyanhursky/xboxrecomp/blob/aa1a1b91dea9fd266acb3a3fe51dfcec3b2e6bbc/NOTICE)
-and [license texts](https://github.com/vyanhursky/xboxrecomp/tree/aa1a1b91dea9fd266acb3a3fe51dfcec3b2e6bbc/LICENSES).
+[NOTICE](https://github.com/vyanhursky/xboxrecomp/blob/c7059bf26856660e669c7991559a649fd508a17a/NOTICE)
+and [license texts](https://github.com/vyanhursky/xboxrecomp/tree/c7059bf26856660e669c7991559a649fd508a17a/LICENSES).
 The license does not grant rights to the game or its assets.
 
 This is an unofficial fan project, unaffiliated with Electronic Arts, AKI or
