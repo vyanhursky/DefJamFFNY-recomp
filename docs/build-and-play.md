@@ -11,7 +11,8 @@ Windows 11 is the tested environment.
 - Visual Studio Build Tools with **Desktop development with C++**, an x64 MSVC
   toolset, a Windows SDK and the CMake/Ninja tools. VS 2019 built the tested game;
   hosted CI uses the Windows runner's toolchain.
-- PowerShell 5.1 or newer, a Direct3D 11 GPU and an XInput controller.
+- PowerShell 5.1 or newer, a Direct3D 11 GPU, and a gamepad or a keyboard. The first configure downloads
+  SDL3 (see [Controllers, keyboard and mouse](10-input.md)), so it needs network access once.
 - Your own **USA Xbox Def Jam: Fight for NY** dump.
 - [extract-xiso](https://github.com/XboxDev/extract-xiso/releases) for ISO extraction;
   7-Zip is optional for an image inside an archive.
@@ -91,9 +92,13 @@ make a shortcut): it finds the `game` folder in the repository root, supplies th
 runtime switches itself and writes its log to `logs/`. `run.ps1` additionally
 checks that the build is current and prints the log path when the game closes.
 
-Use an XInput pad; keyboard gameplay controls are not implemented.
+Play with a gamepad (Xbox, DualSense, Switch Pro and most others), the keyboard and mouse, or both:
+the keyboard is its own player. [Controllers, keyboard and mouse](10-input.md) has the default keys and
+the `[input]`, `[gamepad]` and `[keyboard]` settings for remapping, deadzones and rumble.
 
 ## Display settings
+
+Every setting, including these, is listed in [settings.ini and keybinds](settings-reference.md).
 
 Press **Alt+Enter** or **F11** to switch between a window and borderless full
 screen. The window can be resized freely; the picture keeps the console's 4:3

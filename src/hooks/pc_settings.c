@@ -27,11 +27,12 @@
 #include "recomp_settings.h"
 #include "d3d8_present.h"
 #include "pc_settings.h"
+#include "pc_input.h"
 
 static const char *const k_aspect[] = { "4:3", "stretch", NULL };
 static const char *const k_filter[] = { "smooth", "sharp", NULL };
 
-static RecompSetting g_settings[] = {
+static RecompSetting g_display_settings[] = {
     { "display", "fullscreen", RECOMP_SETTING_BOOL, 0, 0, 0, NULL, NULL, 0,
       "Borderless full screen. Alt+Enter or F11 switches while playing." },
     { "display", "window_width", RECOMP_SETTING_INT, 1280, 320, 16384, NULL, NULL, 0,
@@ -50,7 +51,12 @@ static RecompSetting g_settings[] = {
       RECOMP_SETTING_RESTART,
       "Apply the game's own brightness curve, as the console does." },
 };
-#define SETTING_COUNT (sizeof(g_settings) / sizeof(g_settings[0]))
+#define DISPLAY_SETTING_COUNT (sizeof(g_display_settings) / sizeof(g_display_settings[0]))
+
+/* The display table followed by the input tables (pc_input.c): one array, one
+ * registration, one file. */
+static RecompSetting g_settings[DISPLAY_SETTING_COUNT + 64];
+static size_t g_setting_count;
 
 static char g_path[MAX_PATH * 2];   /* empty: do not load or save */
 static void (*g_fullscreen_notify)(int fullscreen);
@@ -182,6 +188,7 @@ static void setting_changed(const RecompSetting *s, void *user)
 {
     (void)user;
     pc_settings_apply_display();
+    pc_input_apply();
     if (!strcmp(s->key, "fullscreen") && g_fullscreen_notify)
         g_fullscreen_notify(s->value);
 }
@@ -232,7 +239,10 @@ int pc_settings_init(void)
         strcat(g_path, "\\settings.ini");
     }
 
-    recomp_settings_register(g_settings, SETTING_COUNT);
+    memcpy(g_settings, g_display_settings, sizeof(g_display_settings));
+    g_setting_count = DISPLAY_SETTING_COUNT +
+        pc_input_settings(g_settings + DISPLAY_SETTING_COUNT, 64);
+    recomp_settings_register(g_settings, g_setting_count);
     recomp_settings_set_log(settings_log);
     read = g_path[0] ? recomp_settings_load(g_path) : 0;
     if (!g_path[0])
@@ -243,7 +253,7 @@ int pc_settings_init(void)
         fprintf(stderr, "[SETTINGS] %s (%d value(s) read)\n", g_path, read);
         /* Write it out on first run, and after an upgrade adds a setting, so
          * there is always a complete, commented file to edit. */
-        if (read < (int)SETTING_COUNT && recomp_settings_save(g_path))
+        if (read < (int)g_setting_count && recomp_settings_save(g_path))
             fprintf(stderr, "[SETTINGS] could not write %s\n", g_path);
     }
     if (have_root)
@@ -254,6 +264,8 @@ int pc_settings_init(void)
     /* Settings read once at start-up by code that looks at the environment. */
     if (!getenv("RECOMP_GAMMA") && !pc_display("gamma", 1))
         _putenv_s("RECOMP_GAMMA", "0");
+
+    pc_input_start();
 
     d3d8_present_enable_scaling(1);
     d3d8_present_set_render_scale((unsigned)pc_display("render_scale", 2));

@@ -33,6 +33,8 @@
 #include "d3d8_xbox.h"
 #include "nv2a_pgraph_d3d11.h"
 #include "pc_settings.h"
+#include "pc_input.h"
+#include "recomp_settings.h"
 
 /* The title sets a 640x480 mode. Matching it keeps the translator's screen
  * space and ours the same, so a vertex the title placed at 320,240 lands in
@@ -87,6 +89,57 @@ static void set_fullscreen(HWND h, int on)
     fflush(stderr);
 }
 
+/* The pointer. It hides over the game when it has been still for two seconds
+ * (always, in full screen), and in full screen it cannot leave the window, so
+ * a click aimed at the game never lands on another monitor and takes the focus
+ * away. [input] hide_cursor and confine_cursor turn each off. */
+#define CURSOR_TIMER      1
+#define CURSOR_IDLE_MS    2000
+
+static ULONGLONG s_mouse_moved;
+static int s_cursor_hidden;
+static int s_clipped;
+
+static int cursor_hide_wanted(void)
+{
+    return recomp_settings_get("input", "hide_cursor", 1);
+}
+
+static void update_cursor(HWND h)
+{
+    POINT p;
+    RECT client;
+    int focused = GetForegroundWindow() == h && !IsIconic(h);
+    int clip = focused && s_fullscreen && recomp_settings_get("input", "confine_cursor", 1);
+
+    if (clip != s_clipped) {
+        if (clip) {
+            RECT r;
+            POINT tl;
+            tl.x = tl.y = 0;
+            if (GetClientRect(h, &r) && ClientToScreen(h, &tl)) {
+                r.left += tl.x; r.right += tl.x; r.top += tl.y; r.bottom += tl.y;
+                ClipCursor(&r);
+            }
+        } else {
+            ClipCursor(NULL);
+        }
+        s_clipped = clip;
+        fprintf(stderr, "[TRANS] pointer %s\n", clip ? "confined to the window" : "released");
+        fflush(stderr);
+    }
+    if (!cursor_hide_wanted()) {
+        s_cursor_hidden = 0;
+        return;
+    }
+    if (!s_cursor_hidden && focused && GetCursorPos(&p) && ScreenToClient(h, &p) &&
+        GetClientRect(h, &client) && PtInRect(&client, p) &&
+        GetTickCount64() - s_mouse_moved > CURSOR_IDLE_MS) {
+        s_cursor_hidden = 1;
+        SetCursor(NULL);
+    }
+}
+
 /* Remember the size the player dragged the window to. */
 static void remember_window_size(HWND h)
 {
@@ -101,6 +154,9 @@ static void remember_window_size(HWND h)
 
 static LRESULT CALLBACK translator_wndproc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
 {
+    /* Keys, mouse buttons, the wheel and focus go to the input layer first; it
+     * only watches, so the cases below handle them as before. */
+    pc_input_window_message(h, msg, wp, lp);
     switch (msg) {
     case WM_SYSKEYDOWN:
         /* Alt+Enter. Bit 30 is set on auto-repeat: one toggle per press. */
@@ -125,9 +181,34 @@ static LRESULT CALLBACK translator_wndproc(HWND h, UINT msg, WPARAM wp, LPARAM l
     case WM_EXITSIZEMOVE:
         remember_window_size(h);
         break;
+    case WM_MOUSEMOVE:
+        s_mouse_moved = GetTickCount64();
+        if (s_cursor_hidden) {
+            s_cursor_hidden = 0;
+            SetCursor(LoadCursorW(NULL, IDC_ARROW));
+        }
+        break;
+    case WM_TIMER:
+        if (wp == CURSOR_TIMER) {
+            update_cursor(h);
+            return 0;
+        }
+        break;
+    case WM_SIZE: case WM_MOVE:
+        /* The confinement rectangle follows the window. */
+        if (s_clipped) {
+            ClipCursor(NULL);
+            s_clipped = 0;
+        }
+        update_cursor(h);
+        break;
+    case WM_SETFOCUS: case WM_KILLFOCUS:
+        update_cursor(h);
+        break;
     case WM_SETCURSOR:
-        /* No pointer over the picture in full screen. */
-        if (s_fullscreen && LOWORD(lp) == HTCLIENT) {
+        /* No pointer over the picture in full screen, or once it has been
+         * still for a while. */
+        if (LOWORD(lp) == HTCLIENT && cursor_hide_wanted() && (s_fullscreen || s_cursor_hidden)) {
             SetCursor(NULL);
             return TRUE;
         }
@@ -143,6 +224,7 @@ static LRESULT CALLBACK translator_wndproc(HWND h, UINT msg, WPARAM wp, LPARAM l
      * the window and leave the title running with nothing to draw into; the
      * log line keeps a deliberate close from reading like a crash. */
     if (msg == WM_CLOSE) {
+        pc_input_stop();        /* a pad must not be left vibrating */
         fprintf(stderr, "[TRANS] window closed by the user; exiting\n");
         fflush(stderr);
         fflush(stdout);
@@ -228,6 +310,9 @@ static DWORD WINAPI window_thread(LPVOID unused)
     s_window = make_window();
     if (s_window) {
         ShowWindow(s_window, SW_SHOW);
+        s_mouse_moved = GetTickCount64();
+        SetTimer(s_window, CURSOR_TIMER, 250, NULL);
+        pc_input_set_focus(GetFocus() == s_window);
         pc_settings_on_fullscreen(fullscreen_setting_changed);
         if (pc_display("fullscreen", 0))
             set_fullscreen(s_window, 1);

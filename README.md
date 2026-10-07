@@ -42,7 +42,7 @@ Gameplay captured by the maintainer. The GIF is a short, silent preview.
 | Story | Intro/cutscenes, character creator, saved-profile crib and gym routes verified |
 | Graphics | GPU vertex programs and Direct3D 11 rendering; 2× render scale available |
 | Audio | Music, speech and effects; owner listening test accepted |
-| Controller | XInput controller support; two-player gameplay still needs validation |
+| Input | Gamepads (Xbox, DualSense, Switch Pro and most others), keyboard and mouse as a player of their own, rumble and remapping; see [Controllers, keyboard and mouse](docs/10-input.md) |
 | Saves | Local profiles, with compatibility for earlier project builds |
 | Steam Deck / Proton | Planned after PC features; not yet validated |
 | macOS / native Linux | Future roadmap; not yet supported |
@@ -55,7 +55,7 @@ and [known issues](docs/known-issues.md).
 ## Getting started
 
 You need Windows x64, Git, Python, Visual Studio C++ Build Tools, a Direct3D 11
-GPU and an XInput controller. Only the **USA Xbox version** matching the
+GPU and a gamepad or a keyboard. Only the **USA Xbox version** matching the
 [dump manifest](config/dump-manifest.json) is supported. PS2 and GameCube copies
 cannot be used as build inputs.
 
@@ -76,7 +76,7 @@ extract and verify your disc, then analyze, recompile and build:
 
 The first build produces the game executable on your machine. The Release preset
 is optimized `RelWithDebInfo`: symbols are retained for crash diagnosis.
-The launcher enables graphics, display timing and controller support automatically.
+The executable enables graphics, display timing and input support automatically.
 
 GitHub's source ZIP omits the toolkit submodule. A recursive Git clone is the
 supported setup path; release notes give the command for the exact version.
@@ -84,9 +84,9 @@ There is no prebuilt player package in this release.
 
 ## What comes next
 
-PC features are in progress, one release at a time: display settings and a settings
-file first, then more controllers and keyboard play, an in-game settings menu, true
-16:9 and texture packs. Steam Deck via Proton follows, then macOS. Native Linux
+PC features are in progress, one release at a time: display settings, a settings file,
+gamepads and keyboard play are in; an in-game settings menu, true 16:9 and texture
+packs follow. Steam Deck via Proton follows, then macOS. Native Linux
 and deeper gameplay decompilation remain stretch goals. See the
 [roadmap](docs/01-plan-review.md#corrected-roadmap-milestones-with-exit-criteria)
 and [development status](PROGRESS.md).

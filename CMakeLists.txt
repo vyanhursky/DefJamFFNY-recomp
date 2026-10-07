@@ -15,7 +15,7 @@ cmake_minimum_required(VERSION 3.20)
 # (a junction/symlink is fine) and run scripts/verify-dump.py first.
 # ============================================================================
 
-project(defjam_recomp VERSION 0.2.4 LANGUAGES C)
+project(defjam_recomp VERSION 0.3.0 LANGUAGES C)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -44,6 +44,13 @@ option(DEFJAM_ABI_CHECK "Check callee-saved registers across every lifted call" 
 if(DEFJAM_ABI_CHECK)
     add_compile_definitions(RECOMP_ABI_CHECK=1)
 endif()
+
+# Gamepads through SDL3 (DualSense, Switch Pro, DirectInput and XInput pads
+# under one set of names; zlib licence). The toolkit fetches a pinned release
+# and builds it statically, so configuring needs network access once. Turn it
+# off to read pads through XInput only.
+option(DEFJAM_SDL3 "Read gamepads through SDL3" ON)
+set(XBOXRECOMP_SDL3 ${DEFJAM_SDL3} CACHE BOOL "Read gamepads through SDL3 (fetched and built statically)" FORCE)
 
 # Builds all runtime libraries and provides the 'xboxrecomp' umbrella target.
 add_subdirectory(${XBOXRECOMP_DIR} ${CMAKE_BINARY_DIR}/xboxrecomp)

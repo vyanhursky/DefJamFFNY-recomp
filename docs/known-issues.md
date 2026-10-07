@@ -24,8 +24,14 @@ Fighters selection. They do not cover every mode or a full Story campaign.
 - **A dropped audio buffer at a knockout.** Both scripted fights that were played to a
   knockout dropped exactly one audio buffer in the slow motion after it, and none before.
   Not investigated; it has not been noticed by ear.
-- Two-pad play is covered by a scripted match (`versus`: both emulated pads join, pick fighters
-  and land hits). Real controllers, and three or four pads, have not been checked.
+- Input (v0.3.0): scripted matches cover the keyboard as player 1, as player 2 beside a scripted pad,
+  and two pads (`versus`); SDL's virtual gamepads cover slot assignment, hot-plug, remapping, focus and
+  rumble in a unit test. Real DualSense and Xbox pads, three or four pads, rumble feel, and the mouse
+  buttons and wheel have been checked only by the owner's play-test (see the v0.3.0 notes), not by
+  script. Pointer-driven menus are not offered. A pad plugged in after the game starts is added as a new controller
+  (checked in the game with a virtual pad plugged in twenty seconds after launch); the keyboard counts as one
+  controller. The game's own rumble pulses are brief and faint, so strength and length are raised by
+  default (`rumble_floor`, `rumble_min_ms`); how that feels on a real pad is the owner's call.
 - Long-session memory use over multiple fights remains to be measured.
 - Earlier builds had a rare silent boot and a rare crash at guest `sub_001A3310`.
   The clean rebase soak does not prove those are eliminated.
@@ -46,8 +52,7 @@ fixture; it does not establish Clang or native Linux correctness.
 A settings file, borderless full screen, a resizable window and render-scale choice
 arrive in v0.2.0. Exclusive full screen is not offered; the flip-model borderless window replaces it. Vsync
 paces the game only on displays whose refresh rate is a multiple of 60. Changing `render_scale` needs
-a restart. Other controllers, keyboard gameplay controls, an in-game settings menu,
-true 16:9 and texture packs are planned for later M6 releases ([plan](07-m6-plan.md));
+a restart. An in-game settings menu, true 16:9 and texture packs are planned for later M6 releases ([plan](07-m6-plan.md));
 music replacement and frame rates above 60 are not planned for M6. Proton, Steam Deck, macOS
 and native Linux are unvalidated platforms. Network play is not supported.
 
