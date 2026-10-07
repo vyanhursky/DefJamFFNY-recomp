@@ -13,8 +13,23 @@ with its default; a line the game does not know is kept.
 - An environment variable named in the tables below overrides the file for one run and is never saved.
 - "Restart" means the setting is read at start-up only.
 
-For how the pieces work and what to do when something misbehaves, see
-[Controllers, keyboard and mouse](10-input.md).
+You do not have to edit the file by hand: the launcher (shown before the game starts) and the in-game overlay (F1)
+change the same settings and save as you go. See [Launcher and overlay](launcher-and-overlay.md). For how input works
+and what to do when something misbehaves, see [Controllers, keyboard and mouse](10-input.md).
+
+## [launcher]
+
+| Key | Default | Meaning |
+|---|---|---|
+| `skip` | `false` | Skip the launcher and start the game at once. The launcher shows on every launch unless this is on. Hold **Shift** while the game starts, or start it with `--launcher`, to see it anyway; turn this off in the overlay's General page or the launcher's own checkbox. Env `RECOMP_NO_LAUNCHER=1` skips it for one run. |
+
+## [ui]
+
+| Key | Default | Meaning |
+|---|---|---|
+| `overlay_key` | `F1` | The key that opens and closes the in-game overlay: one key name from the list below. |
+| `overlay_pad` | `guide, left_stick_click+right_stick_click` | Pad buttons that open and close the overlay, any pad. Alternatives are separated by commas; buttons joined with `+` must all be held for half a second. Button names are the physical names used in `[gamepad]`. Empty for none. |
+| `scale` | `100` | Size of the launcher's and overlay's text and controls in percent, 60-250, on top of your display's scaling (full screen on a large monitor is scaled up automatically). |
 
 ## [display]
 

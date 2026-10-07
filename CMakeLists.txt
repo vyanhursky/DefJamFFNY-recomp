@@ -15,7 +15,7 @@ cmake_minimum_required(VERSION 3.20)
 # (a junction/symlink is fine) and run scripts/verify-dump.py first.
 # ============================================================================
 
-project(defjam_recomp VERSION 0.3.0 LANGUAGES C)
+project(defjam_recomp VERSION 0.4.0 LANGUAGES C CXX)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -57,7 +57,7 @@ add_subdirectory(${XBOXRECOMP_DIR} ${CMAKE_BINARY_DIR}/xboxrecomp)
 
 # ── Game executable (only when lifted code is present) ──────────────────
 file(GLOB RECOMP_GEN_SOURCES CONFIGURE_DEPENDS "src/recomp/gen/*.c")
-file(GLOB HOOK_SOURCES       CONFIGURE_DEPENDS "src/hooks/*.c")
+file(GLOB HOOK_SOURCES       CONFIGURE_DEPENDS "src/hooks/*.c" "src/hooks/*.cpp")
 file(GLOB PATCH_SOURCES      CONFIGURE_DEPENDS "src/patches/*.c")
 
 option(DEFJAM_BUILD_GAME "Build the game executable (requires src/recomp/gen from scripts/recomp.ps1)" ON)
@@ -68,6 +68,9 @@ if(DEFJAM_BUILD_GAME AND NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/recomp/gen/
 endif()
 
 if(DEFJAM_BUILD_GAME)
+    # Dear ImGui (MIT): the launcher and the in-game overlay. Fetched at a pinned hash.
+    list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+    include(imgui)
     add_executable(${PROJECT_NAME} WIN32
         src/main.c
         src/recomp_manual.c
@@ -75,7 +78,8 @@ if(DEFJAM_BUILD_GAME)
         ${PATCH_SOURCES}
         ${RECOMP_GEN_SOURCES}
     )
-    target_link_libraries(${PROJECT_NAME} PRIVATE xboxrecomp recomp_settings d3d11 dxgi dxguid xinput winmm dbghelp)
+    target_link_libraries(${PROJECT_NAME} PRIVATE xboxrecomp recomp_settings defjam_imgui d3d11 dxgi dxguid xinput winmm dbghelp shell32)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE DEFJAM_VERSION=\"${PROJECT_VERSION}\")
     target_include_directories(${PROJECT_NAME} PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
         ${CMAKE_CURRENT_SOURCE_DIR}/src/recomp

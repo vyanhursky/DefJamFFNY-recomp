@@ -297,11 +297,13 @@ ROUTES = {
         "until": "game.startgame(", "after": 240, "secs": 620,
         "shots": "@game.startgame(,15,60,230",
     },
+    # The Story routes pick the THIRD user ID (down twice): the save area has four profiles since 2026-10-06 and the
+    # second one no longer has a Story save. If profiles are added or removed, this is the number to revisit.
     "crib": {
         "help": "Story with the first profile in the list, into the crib (NO to the messages prompt)",
         "stages": [
             "getscreeninfo(intmain/mainmenu=a@6",
-            "getscreeninfo(options/userid=down@4;a@7",
+            "getscreeninfo(options/userid=down@4;down@6;a@9",
             "getscreeninfo(story/crib=down@4;a@6",
         ],
         "until": "getscreeninfo(story/crib", "after": 12, "secs": 260,
@@ -312,7 +314,7 @@ ROUTES = {
         "help": "crib -> Map -> Shop District -> Stapleton Athletics -> Learn Moves, preview the first move",
         "stages": [
             "getscreeninfo(intmain/mainmenu=a@6",
-            "getscreeninfo(options/userid=down@4;a@7",
+            "getscreeninfo(options/userid=down@4;down@6;a@9",
             "getscreeninfo(story/crib=down@4;a@6;a@10;a@16;down@24;a@29",
             "getscreeninfo(story/gym=down@4;down@6;a@9;x@16",
         ],
@@ -324,7 +326,7 @@ ROUTES = {
         "help": "Unlock Rewards -> Unlock Fighters, moving the selector around the grid (nothing is bought)",
         "stages": [
             "getscreeninfo(intmain/mainmenu=right@5;right@6.5;a@8",
-            "getscreeninfo(options/userid=down@4;a@7",
+            "getscreeninfo(options/userid=down@4;down@6;a@9",
             "getscreeninfo(battle/buyrewards=a@6",
             "getscreeninfo(battle/unlockchar=right@8;right@10;right@12;down@15;down@17;left@20",
         ],

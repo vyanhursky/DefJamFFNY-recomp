@@ -127,6 +127,7 @@ size_t pc_input_settings(RecompSetting *out, size_t max)
 /* ---- the running layer --------------------------------------------------------- */
 
 static int g_started;
+static int g_usb_env_ours;      /* RECOMP_USB_PADS was set here, not by the caller */
 
 static int env_on(const char *name)
 {
@@ -161,6 +162,7 @@ static void build_config(InputHostConfig *cfg)
     cfg->no_pads = env_on("RECOMP_INPUT_NO_PADS");
     cfg->virtual_pads = getenv("RECOMP_INPUT_VIRTUAL_PADS") ? atoi(getenv("RECOMP_INPUT_VIRTUAL_PADS")) : 0;
     cfg->virtual_late_ms = getenv("RECOMP_INPUT_VIRTUAL_LATE_MS") ? atoi(getenv("RECOMP_INPUT_VIRTUAL_LATE_MS")) : 0;
+    cfg->virtual_chord_ms = getenv("RECOMP_INPUT_VIRTUAL_CHORD_MS") ? atoi(getenv("RECOMP_INPUT_VIRTUAL_CHORD_MS")) : 0;
     cfg->ignore_focus = env_on("RECOMP_INPUT_IGNORE_FOCUS");
 
     cfg->padmap.deadzone_left = (uint8_t)geti("gamepad", "left_deadzone", 15);
@@ -222,8 +224,10 @@ void pc_input_start(void)
     g_started = 1;
     atexit(pc_input_stop);
     snprintf(count, sizeof(count), "%d", xbox_HostInputPlayerCount());
-    if (!usb_pads || !*usb_pads)
+    if (!usb_pads || !*usb_pads) {
         _putenv_s("RECOMP_USB_PADS", count);
+        g_usb_env_ours = 1;
+    }
     fprintf(stderr, "[INPUT] %d pad(s), %s controller(s) on the hub\n", found, count);
     fflush(stderr);
 }
@@ -233,6 +237,24 @@ void pc_input_stop(void)
     if (!g_started) return;
     g_started = 0;
     xbox_HostInputStop();
+}
+
+void pc_input_restart(void)
+{
+    if (!g_started) return;
+    pc_input_stop();
+    if (g_usb_env_ours) {
+        _putenv_s("RECOMP_USB_PADS", "");
+        g_usb_env_ours = 0;
+    }
+    pc_input_start();
+}
+
+void pc_input_current_padmap(InputPadMap *map)
+{
+    InputHostConfig cfg;
+    build_config(&cfg);
+    *map = cfg.padmap;
 }
 
 void pc_input_apply(void)
@@ -264,6 +286,16 @@ static void modifier_event(int generic, int index, int right, int down)
     g_side[right][index] = (uint8_t)down;
     key_event(right ? right_vk[index] : left_vk[index], down);
     key_event(generic, g_side[0][index] || g_side[1][index]);
+}
+
+int pc_input_vk_from_message(WPARAM wp, LPARAM lp)
+{
+    int vk = (int)wp;
+    if (vk == VK_SHIFT)
+        return MapVirtualKeyW((UINT)((lp >> 16) & 0xFF), MAPVK_VSC_TO_VK_EX) == VK_RSHIFT ? VK_RSHIFT : VK_LSHIFT;
+    if (vk == VK_CONTROL) return ((lp >> 24) & 1) ? VK_RCONTROL : VK_LCONTROL;
+    if (vk == VK_MENU) return ((lp >> 24) & 1) ? VK_RMENU : VK_LMENU;
+    return vk;
 }
 
 static void keyboard_message(UINT msg, WPARAM wp, LPARAM lp)

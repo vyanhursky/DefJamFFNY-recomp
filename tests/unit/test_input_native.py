@@ -13,10 +13,11 @@ DRIVER = r'''
 #include <stdio.h>
 #include <string.h>
 #include "pc_input.h"
+#include "pc_ui.h"
 #include "input_map.h"
 #include "recomp_settings.h"
 
-static RecompSetting table[64];
+static RecompSetting table[96];
 
 /* The USB model's hook, which pc_input.c hands the host layer; not under test here. */
 void xbox_UsbSetPadCount(int n) { (void)n; }
@@ -25,6 +26,7 @@ int main(int argc, char **argv)
 {
     const char *ini = argv[1];
     size_t n = pc_input_settings(table, 64), i, j;
+    n += pc_ui_settings(table + n, 16);
     char text[RECOMP_SETTING_TEXT_MAX];
     int bad = 0;
     int owner[INPUT_KEY_COUNT];
@@ -75,6 +77,18 @@ int main(int argc, char **argv)
     printf("a=%s\n", recomp_settings_get_text("keyboard", "a", text, sizeof(text), "?"));
     printf("source_a=%d\n", input_source_from_name(recomp_settings_get_text("gamepad", "a", text, sizeof(text), "")));
     printf("source_b=%d\n", input_source_from_name(recomp_settings_get_text("gamepad", "b", text, sizeof(text), "")));
+    /* The launcher shows on every launch unless skipped; flags and a held Shift override the setting; a test run never shows it. */
+    printf("decision %d %d %d %d %d %d %d\n",
+           pc_launcher_wanted(0, 0, 0, 0, 0), pc_launcher_wanted(1, 0, 0, 0, 0), pc_launcher_wanted(1, 0, 0, 1, 0),
+           pc_launcher_wanted(1, 1, 0, 0, 0), pc_launcher_wanted(0, 0, 1, 0, 0), pc_launcher_wanted(0, 1, 0, 1, 1),
+           pc_launcher_wanted(0, 1, 1, 0, 0));
+    {
+        char key[RECOMP_SETTING_TEXT_MAX], pad[RECOMP_SETTING_TEXT_MAX];
+        recomp_settings_get_text("ui", "overlay_key", key, sizeof(key), "?");
+        recomp_settings_get_text("ui", "overlay_pad", pad, sizeof(pad), "?");
+        printf("ui %s|%s|%d|%d\n", key, pad, recomp_settings_get("ui", "scale", -1),
+               recomp_settings_get("launcher", "skip", -1));
+    }
     printf("save %d\n", recomp_settings_save(ini));
     return 0;
 }
@@ -104,7 +118,7 @@ def tool(tmp_path_factory):
     driver = folder / 'driver.c'
     driver.write_text(DRIVER, encoding='utf-8')
     exe = folder / 'input.exe'
-    sources = [driver, ROOT / 'src/hooks/pc_input.c', TOOLKIT / 'src/input/input_map.c',
+    sources = [driver, ROOT / 'src/hooks/pc_input.c', ROOT / 'src/hooks/pc_ui_settings.c', TOOLKIT / 'src/input/input_map.c',
                TOOLKIT / 'src/input/input_host.c', TOOLKIT / 'src/settings/recomp_settings.c']
     cmd = [compiler, '/nologo', '/O2', '/TC', '/I' + str(ROOT / 'src/hooks'), '/I' + str(TOOLKIT / 'src/input'),
            '/I' + str(TOOLKIT / 'src/settings'), '/I' + str(TOOLKIT / 'src')] + [str(s) for s in sources] + [
@@ -128,7 +142,9 @@ def run(tool, ini_text):
 
 def test_defaults_are_valid_and_complete(tool):
     out, ini = run(tool, None)
-    assert out['count'] == 'count 55'
+    assert out['count'] == 'count 59'
+    assert out['decision'] == 'decision 1 0 1 1 0 0 0'
+    assert out['ui'] == 'ui F1|guide, left_stick_click+right_stick_click|100|0'
     assert out['duplicate_keys'] == 'duplicate_keys 0'
     assert out['keyboard'] == 'keyboard rejected 0 empty 0 shared 0'
     assert out['padmap_differs'] == 'padmap_differs 0'

@@ -34,6 +34,7 @@
 #include "nv2a_pgraph_d3d11.h"
 #include "pc_settings.h"
 #include "pc_input.h"
+#include "pc_ui.h"
 #include "recomp_settings.h"
 
 /* The title sets a 640x480 mode. Matching it keeps the translator's screen
@@ -58,6 +59,7 @@ void d3d11_translator_report(void);
  * anywhere else -- the settings file's owner, later an overlay -- is posted to
  * it as WM_APP_FULLSCREEN. */
 #define WM_APP_FULLSCREEN  (WM_APP + 1)
+#define WM_APP_RESIZE      (WM_APP + 2)     /* wParam, lParam: the client size to give the window */
 
 static int s_fullscreen;
 static WINDOWPLACEMENT s_windowed_placement = { sizeof(WINDOWPLACEMENT) };
@@ -102,7 +104,8 @@ static int s_clipped;
 
 static int cursor_hide_wanted(void)
 {
-    return recomp_settings_get("input", "hide_cursor", 1);
+    /* Never while the overlay is open: it is a menu, and the pointer is how you use it. */
+    return recomp_settings_get("input", "hide_cursor", 1) && !pc_ui_overlay_open();
 }
 
 static void update_cursor(HWND h)
@@ -156,6 +159,8 @@ static LRESULT CALLBACK translator_wndproc(HWND h, UINT msg, WPARAM wp, LPARAM l
 {
     /* Keys, mouse buttons, the wheel and focus go to the input layer first; it
      * only watches, so the cases below handle them as before. */
+    if (pc_ui_window_message(h, msg, wp, lp))
+        return 0;
     pc_input_window_message(h, msg, wp, lp);
     switch (msg) {
     case WM_SYSKEYDOWN:
@@ -178,6 +183,21 @@ static LRESULT CALLBACK translator_wndproc(HWND h, UINT msg, WPARAM wp, LPARAM l
     case WM_APP_FULLSCREEN:
         set_fullscreen(h, (int)wp);
         return 0;
+    case WM_APP_RESIZE: {
+        /* The window-size setting changed (from the overlay): give a windowed, unmaximised window that size. */
+        RECT now, want;
+        if (s_fullscreen || IsZoomed(h) || IsIconic(h) || !GetClientRect(h, &now))
+            return 0;
+        if (now.right == (LONG)wp && now.bottom == (LONG)lp)
+            return 0;
+        want.left = want.top = 0;
+        want.right = (LONG)wp;
+        want.bottom = (LONG)lp;
+        AdjustWindowRect(&want, WS_OVERLAPPEDWINDOW, FALSE);
+        SetWindowPos(h, NULL, 0, 0, want.right - want.left, want.bottom - want.top,
+                     SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
+        return 0;
+    }
     case WM_EXITSIZEMOVE:
         remember_window_size(h);
         break;
@@ -270,6 +290,13 @@ static HWND make_window(void)
                            NULL, NULL, GetModuleHandleW(NULL), NULL);
 }
 
+/* display.window_width or window_height changed, on whichever thread changed it. */
+static void window_size_setting_changed(int width, int height)
+{
+    if (s_window)
+        PostMessageW(s_window, WM_APP_RESIZE, (WPARAM)width, (LPARAM)height);
+}
+
 /* display.fullscreen changed, on whichever thread changed it. */
 static void fullscreen_setting_changed(int fullscreen)
 {
@@ -314,6 +341,8 @@ static DWORD WINAPI window_thread(LPVOID unused)
         SetTimer(s_window, CURSOR_TIMER, 250, NULL);
         pc_input_set_focus(GetFocus() == s_window);
         pc_settings_on_fullscreen(fullscreen_setting_changed);
+        pc_settings_on_window_size(window_size_setting_changed);
+        pc_ui_set_window(s_window);
         if (pc_display("fullscreen", 0))
             set_fullscreen(s_window, 1);
     }

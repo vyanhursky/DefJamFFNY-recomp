@@ -28,6 +28,7 @@
 #include "d3d8_present.h"
 #include "pc_settings.h"
 #include "pc_input.h"
+#include "pc_ui.h"
 
 static const char *const k_aspect[] = { "4:3", "stretch", NULL };
 static const char *const k_filter[] = { "smooth", "sharp", NULL };
@@ -55,11 +56,12 @@ static RecompSetting g_display_settings[] = {
 
 /* The display table followed by the input tables (pc_input.c): one array, one
  * registration, one file. */
-static RecompSetting g_settings[DISPLAY_SETTING_COUNT + 64];
+static RecompSetting g_settings[DISPLAY_SETTING_COUNT + 64 + 16];
 static size_t g_setting_count;
 
 static char g_path[MAX_PATH * 2];   /* empty: do not load or save */
 static void (*g_fullscreen_notify)(int fullscreen);
+static void (*g_window_size_notify)(int width, int height);
 
 static void settings_log(const char *message)
 {
@@ -189,13 +191,30 @@ static void setting_changed(const RecompSetting *s, void *user)
     (void)user;
     pc_settings_apply_display();
     pc_input_apply();
-    if (!strcmp(s->key, "fullscreen") && g_fullscreen_notify)
+    pc_ui_apply_settings();
+    if (!strcmp(s->section, "display") && !strcmp(s->key, "fullscreen") && g_fullscreen_notify)
         g_fullscreen_notify(s->value);
+    if (!strcmp(s->section, "display") && (!strcmp(s->key, "window_width") || !strcmp(s->key, "window_height")) &&
+        g_window_size_notify)
+        g_window_size_notify(pc_display("window_width", 1280), pc_display("window_height", 960));
 }
 
 void pc_settings_on_fullscreen(void (*notify)(int fullscreen))
 {
     g_fullscreen_notify = notify;
+}
+
+void pc_settings_on_window_size(void (*notify)(int width, int height))
+{
+    g_window_size_notify = notify;
+}
+
+const char *pc_settings_path(void) { return g_path; }
+
+void pc_settings_save(void)
+{
+    if (g_path[0] && recomp_settings_save(g_path))
+        fprintf(stderr, "[SETTINGS] could not write %s\n", g_path);
 }
 
 void pc_display_set(const char *key, int value)
@@ -204,6 +223,29 @@ void pc_display_set(const char *key, int value)
         if (recomp_settings_save(g_path))
             fprintf(stderr, "[SETTINGS] could not write %s\n", g_path);
     }
+}
+
+/* The launcher shows on every launch unless the player turned it off (docs/launcher in
+ * pc_ui.h has the exact rule). It edits the settings, so the input layer is started again
+ * afterwards and anything read once at start-up is read after it. */
+static void run_launcher_if_wanted(void)
+{
+    const char *settings = getenv("RECOMP_SETTINGS");
+    const char *cmd = GetCommandLineA();
+    int test_run = (settings && !_stricmp(settings, "none")) ||
+                   (getenv("RECOMP_PAD_SCRIPT") && !getenv("RECOMP_PAD_HOST"));
+    int force = cmd && strstr(cmd, "--launcher") != NULL;
+    int no = cmd && strstr(cmd, "--no-launcher") != NULL;
+    int shift = (GetAsyncKeyState(VK_SHIFT) & 0x8000) != 0;
+
+    if (!pc_launcher_wanted(recomp_settings_get("launcher", "skip", 0), force && !no, no, shift, test_run))
+        return;
+    if (!pc_launcher_run()) {
+        fprintf(stderr, "[UI] the launcher was closed; not starting the game\n");
+        fflush(stderr);
+        ExitProcess(0);
+    }
+    pc_input_restart();
 }
 
 int pc_settings_init(void)
@@ -242,6 +284,7 @@ int pc_settings_init(void)
     memcpy(g_settings, g_display_settings, sizeof(g_display_settings));
     g_setting_count = DISPLAY_SETTING_COUNT +
         pc_input_settings(g_settings + DISPLAY_SETTING_COUNT, 64);
+    g_setting_count += pc_ui_settings(g_settings + g_setting_count, 16);
     recomp_settings_register(g_settings, g_setting_count);
     recomp_settings_set_log(settings_log);
     read = g_path[0] ? recomp_settings_load(g_path) : 0;
@@ -261,13 +304,16 @@ int pc_settings_init(void)
     else
         fprintf(stderr, "[SETTINGS] no data folder found; saves use the runtime's default location\n");
 
-    /* Settings read once at start-up by code that looks at the environment. */
+    pc_input_start();
+    run_launcher_if_wanted();
+
+    /* Settings read once at start-up by code that looks at the environment (after the launcher,
+     * which may have changed them). */
     if (!getenv("RECOMP_GAMMA") && !pc_display("gamma", 1))
         _putenv_s("RECOMP_GAMMA", "0");
 
-    pc_input_start();
-
     d3d8_present_enable_scaling(1);
+    d3d8_present_set_overlay(pc_ui_overlay, NULL);
     d3d8_present_set_render_scale((unsigned)pc_display("render_scale", 2));
     pc_settings_apply_display();
     recomp_settings_on_change(setting_changed, NULL);

@@ -42,6 +42,15 @@ Fighters selection. They do not cover every mode or a full Story campaign.
 - Audio counters do not prove fidelity of every track/effect; owner listening
   accepted the experience.
 
+## Launcher and overlay (v0.4.0)
+
+The launcher and overlay are checked by clicking through them in the real game and by scripted runs
+(a virtual pad opens and closes the overlay during a fight); the regression harness never shows the
+launcher. The overlay does not pause the game: it keeps running while the menu is open, with every
+input held at rest. `render_scale` and the brightness curve still take effect at the next start (marked
+in the screens). Not covered: very small windows (the overlay's panel fills the window), displays below
+1280x720, and a pad that SDL does not know as a gamepad (it cannot navigate the menus).
+
 ## Future features
 
 MSVC is the supported compiler. Clang is not a validated build path: expanded CI

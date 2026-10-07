@@ -6,6 +6,11 @@
 #include <stddef.h>
 #include <windows.h>
 #include "recomp_settings.h"
+#include "input_map.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* Fill `out` with the [input], [gamepad] and [keyboard] settings (the caller
  * registers them with the display ones, in one table). Returns the count. */
@@ -34,5 +39,21 @@ void pc_input_window_message(HWND window, UINT msg, WPARAM wp, LPARAM lp);
 
 /* Tell the layer whether the window has the focus right now (at creation). */
 void pc_input_set_focus(int focused);
+
+/* The virtual-key code a key message is for, with Shift, Ctrl and Alt resolved to the
+ * side that was pressed (VK_LSHIFT and so on). Used to learn a key for a binding. */
+int pc_input_vk_from_message(WPARAM wp, LPARAM lp);
+
+/* The pad map the settings describe, for a screen that shows what the game sees. */
+void pc_input_current_padmap(InputPadMap *map);
+
+/* Stop and start the host input layer again from the settings, so changes that are read
+ * only at start (who plays, how many controllers, the backend) take effect. Used after
+ * the launcher. */
+void pc_input_restart(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

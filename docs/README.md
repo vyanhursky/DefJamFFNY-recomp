@@ -11,6 +11,7 @@ history; their conclusions and old commands may have been superseded.
 | [Workflows](03-workflows.md) | Maintainer pipeline, troubleshooting and diagnostics |
 | [Runtime reference](05-reference.md) | Rendering architecture and investigation tools |
 | [M6 plan](07-m6-plan.md) | PC features: slices, releases and where the code goes |
+| [Launcher and overlay](launcher-and-overlay.md) | The start-up window and the in-game settings screen (F1) |
 | [settings.ini and keybinds](settings-reference.md) | Every setting, the default keys and key names, with examples |
 | [Controllers, keyboard and mouse](10-input.md) | Gamepads, the keyboard player, default keys, remapping, rumble and settings |
 | [Gameplay test harness](09-testing-harness.md) | Scripted gameplay checks, what each proves, reports and fixtures |

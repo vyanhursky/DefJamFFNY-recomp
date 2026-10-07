@@ -42,6 +42,7 @@ Gameplay captured by the maintainer. The GIF is a short, silent preview.
 | Story | Intro/cutscenes, character creator, saved-profile crib and gym routes verified |
 | Graphics | GPU vertex programs and Direct3D 11 rendering; 2× render scale available |
 | Audio | Music, speech and effects; owner listening test accepted |
+| Launcher and overlay | A start-up window and an in-game overlay (F1) for display, controller and key settings, usable with mouse, keyboard or pad; see [Launcher and overlay](docs/launcher-and-overlay.md) |
 | Input | Gamepads (Xbox, DualSense, Switch Pro and most others), keyboard and mouse as a player of their own, rumble and remapping; see [Controllers, keyboard and mouse](docs/10-input.md) |
 | Saves | Local profiles, with compatibility for earlier project builds |
 | Steam Deck / Proton | Planned after PC features; not yet validated |
@@ -76,7 +77,9 @@ extract and verify your disc, then analyze, recompile and build:
 
 The first build produces the game executable on your machine. The Release preset
 is optimized `RelWithDebInfo`: symbols are retained for crash diagnosis.
-The executable enables graphics, display timing and input support automatically.
+The executable enables graphics, display timing and input support automatically. It opens a
+launcher window first (settings and a Play button; it can be skipped) and the settings are also
+available in the game with F1: see [Launcher and overlay](docs/launcher-and-overlay.md).
 
 GitHub's source ZIP omits the toolkit submodule. A recursive Git clone is the
 supported setup path; release notes give the command for the exact version.
@@ -85,8 +88,8 @@ There is no prebuilt player package in this release.
 ## What comes next
 
 PC features are in progress, one release at a time: display settings, a settings file,
-gamepads and keyboard play are in; an in-game settings menu, true 16:9 and texture
-packs follow. Steam Deck via Proton follows, then macOS. Native Linux
+gamepads and keyboard play, a launcher and an in-game settings overlay are in; true 16:9 and
+texture packs follow. Steam Deck via Proton follows, then macOS. Native Linux
 and deeper gameplay decompilation remain stretch goals. See the
 [roadmap](docs/01-plan-review.md#corrected-roadmap-milestones-with-exit-criteria)
 and [development status](PROGRESS.md).

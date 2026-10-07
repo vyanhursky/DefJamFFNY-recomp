@@ -59,6 +59,7 @@ These are for unattended runs and are not player settings:
 | `RECOMP_INPUT_NO_PADS=1` | Open no pad, whatever is plugged in. |
 | `RECOMP_INPUT_IGNORE_FOCUS=1` | Read devices without the window's focus. |
 | `RECOMP_PAD_SCRIPT_KEYS=1` | The scripted presses of the player the keyboard plays as press that player's first bound key instead, so a scripted match drives the whole keyboard path. |
+| `RECOMP_INPUT_VIRTUAL_PADS=n` with `RECOMP_PAD_SCRIPT_VIRTUAL=1` | Attach `n` SDL virtual gamepads and send the scripted presses of that player to the pad's buttons, so a scripted match goes through the real SDL path. `RECOMP_INPUT_VIRTUAL_LATE_MS=t` plugs one more in `t` ms after start (hot-plug); `RECOMP_INPUT_VIRTUAL_CHORD_MS=t` makes virtual pad 1 hold both stick clicks 1.8 s at `t` ms and then press B (opens and closes the overlay). |
 | `RECOMP_RUMBLE_LOG=1` | Log the rumble values the game sends, when they change. |
 | `RECOMP_USB_PADS=n` | Number of controllers on the hub. Set by the game from the settings unless already set. |
 

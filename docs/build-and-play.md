@@ -100,6 +100,10 @@ the `[input]`, `[gamepad]` and `[keyboard]` settings for remapping, deadzones an
 
 Every setting, including these, is listed in [settings.ini and keybinds](settings-reference.md).
 
+The first thing you see is the launcher: the settings and a **Play** button (see
+[Launcher and overlay](launcher-and-overlay.md); tick *Skip the launcher* to go straight to the game). In the game, **F1**
+opens the same settings as an overlay.
+
 Press **Alt+Enter** or **F11** to switch between a window and borderless full
 screen. The window can be resized freely; the picture keeps the console's 4:3
 shape with black bars.
