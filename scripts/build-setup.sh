@@ -11,8 +11,15 @@ VERSION=$(sed -n 's/^project(defjam_recomp VERSION \([0-9.]*\).*/\1/p' CMakeList
 OUT="$ROOT/build/setup-macos"
 rm -rf "$OUT"
 mkdir -p "$OUT"
-export PATH="/usr/bin:/bin:/usr/sbin:/sbin:${PATH}"
-PYTHON="${PYTHON:-python3}"
+# Python 3.11 or newer (the system's python3 is older): $PYTHON, or the first one found.
+if [ -z "${PYTHON:-}" ]; then
+    for candidate in python3.14 python3.13 python3.12 python3.11 python3; do
+        if command -v "$candidate" > /dev/null && "$candidate" -c 'import sys; sys.exit(sys.version_info < (3, 11))'; then
+            PYTHON="$candidate"; break
+        fi
+    done
+fi
+[ -n "${PYTHON:-}" ] || { echo "Python 3.11 or newer is required" >&2; exit 1; }
 
 # 1. The launcher app that setup copies next to the game.
 LAUNCHER="$OUT/launcher/Def Jam Recompiled.app"

@@ -168,7 +168,7 @@ def test_activation_publishes_hd_with_receipts_or_preserves_previous_bytes(tmp_p
     (obj.payload/'DefJamLauncher.exe').write_bytes(b'synthetic launcher')
     if not engine.IS_WINDOWS:
         template=obj.payload/'launcher'/engine.LAUNCHER_BUNDLE
-        (template/'Contents/MacOS').mkdir(parents=True);(template/'Contents/Resources').mkdir()
+        (template/'Contents/MacOS').mkdir(parents=True)
         monkeypatch.setenv('HOME',str(tmp_path/'home'));(tmp_path/'home/Desktop').mkdir(parents=True)
     previous=dict(hd_packs=['faithful-hd-'+'d'*12+'-opacity'],version='0.5.1')
     (obj.install/'installed.json').write_text(json.dumps(previous))

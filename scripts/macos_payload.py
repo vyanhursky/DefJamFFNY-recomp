@@ -311,7 +311,9 @@ def main(argv=None):
     args.cache.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='macos-tools-', dir=args.cache) as scratch:
         _, tools = stage_tools(Path(scratch), args.cache)
-        print(json.dumps(build_runtime_prefix(args.cache, args.output, tools), indent=2))
+        provenance = build_runtime_prefix(args.cache, args.output, tools)
+        (args.output / 'provenance.json').write_text(json.dumps(provenance, indent=2), encoding='utf-8')
+        print(json.dumps(provenance, indent=2))
     return 0
 
 

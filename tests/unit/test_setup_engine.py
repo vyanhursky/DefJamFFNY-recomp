@@ -364,7 +364,6 @@ def test_uninstall_preserves_data_and_unrelated_install_files(tmp_path, monkeypa
 def synthetic_launcher_template(payload):
     template = payload / 'launcher' / engine.LAUNCHER_BUNDLE
     (template / 'Contents/MacOS').mkdir(parents=True)
-    (template / 'Contents/Resources').mkdir()
     (template / 'Contents/MacOS/DefJamLauncher').write_bytes(b'synthetic launcher')
     return template
 

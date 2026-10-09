@@ -616,6 +616,8 @@ class Engine:
         pending = destination.with_name(destination.name + '.new')
         shutil.rmtree(pending, ignore_errors=True)
         shutil.copytree(self.payload / 'launcher' / LAUNCHER_BUNDLE, pending, symlinks=True)
+        # The payload inventories files only, so an empty Resources folder is not in it.
+        (pending / 'Contents/Resources').mkdir(parents=True, exist_ok=True)
         (pending / 'Contents/Resources/install-root.txt').write_text(str(root), encoding='utf-8')
         self.run(['/usr/bin/codesign', '--force', '--sign', '-', pending])
         if destination.is_dir() and not destination.is_symlink():
