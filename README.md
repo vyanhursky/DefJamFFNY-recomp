@@ -61,9 +61,11 @@ and [known issues](docs/known-issues.md).
 Windows source releases can include a **game-free setup installer** that builds
 your own dump locally. See [Windows setup](docs/setup-installer.md) for the wizard,
 custom install/data folders, optional desktop shortcut and HD texture generation, silent mode and launch
-instructions. macOS/Linux installers remain to-dos.
+instructions. Since v0.6.1 a macOS (Apple Silicon) setup exists too; the Linux installer
+remains a to-do.
 
-On macOS (Apple Silicon) or Linux, follow
+On macOS (Apple Silicon), use the [macOS setup](docs/setup-installer.md#macos-setup-apple-silicon).
+To build by hand on macOS, or on Linux, follow
 [Build on macOS and Linux](docs/build-macos-linux.md) instead of the rest of this section;
 it lists what works there and what does not yet.
 

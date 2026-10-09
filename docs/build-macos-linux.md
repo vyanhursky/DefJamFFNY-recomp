@@ -1,8 +1,9 @@
 # Build on macOS and Linux
 
-The setup installer currently targets Windows; see [Windows setup](setup-installer.md).
-Native macOS and Linux/Steam Deck installer artifacts remain to-dos. Follow this
-guide for their manual source builds.
+On an Apple Silicon Mac you do not need this page: the
+[macOS setup](setup-installer.md#macos-setup-apple-silicon) builds and installs the game
+from your own dump without Terminal. Follow this guide to build from source yourself,
+or for Linux, where an installer is still a to-do.
 
 The Windows guide is [build-and-play.md](build-and-play.md). This page is the
 same pipeline off Windows, since v0.5.0.
