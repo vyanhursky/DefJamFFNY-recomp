@@ -335,6 +335,11 @@ int host_posix_run(int (*game_main)(void))
     if (getenv("RECOMP_HEADLESS") || !SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS)) {
         if (!getenv("RECOMP_HEADLESS"))
             fprintf(stderr, "[HOST] no display (%s); running without a window\n", SDL_GetError());
+        /* The pads and sound still start SDL, which would turn SIGINT and
+         * SIGTERM into a quit event -- and with no window nothing reads
+         * events, so the process could not be stopped short of SIGKILL.
+         * Leave the signals their default action. */
+        SDL_SetHint(SDL_HINT_NO_SIGNAL_HANDLERS, "1");
         return game_main();
     }
     s_have_video = 1;
