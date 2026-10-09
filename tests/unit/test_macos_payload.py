@@ -33,6 +33,7 @@ def test_every_pin_is_complete_and_checksummed():
     assert all('arm64' in name or name.endswith('py3-none-any.whl') for name in pins['wheels'])
 
 
+@pytest.mark.skipif(not (ROOT / 'tools/xboxrecomp/cmake/xbox_sdl3.cmake').is_file(), reason='requires recursive checkout')
 def test_sdl3_comes_from_the_toolkits_own_pin():
     version, sha = payload.toolkit_pin('sdl3')
     assert re.fullmatch(r'\d+\.\d+\.\d+', version) and re.fullmatch('[0-9a-f]{64}', sha)
