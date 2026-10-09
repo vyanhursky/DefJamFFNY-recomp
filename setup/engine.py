@@ -74,10 +74,10 @@ def safe_relative(name):
     return Path(*path.parts)
 
 
-def verify_payload(payload):
+def verify_payload(payload, platform=None):
     payload = Path(payload).resolve()
     manifest = json.loads((payload / 'manifest.json').read_text(encoding='utf-8'))
-    if manifest.get('schema') != 1 or manifest.get('platform') != HOST_PLATFORM:
+    if manifest.get('schema') != 1 or manifest.get('platform') != (platform or HOST_PLATFORM):
         raise SetupError('Unsupported setup payload', 2)
     if not re.fullmatch(r'\d+\.\d+\.\d+', manifest.get('version', '')):
         raise SetupError('Invalid release version', 2)
