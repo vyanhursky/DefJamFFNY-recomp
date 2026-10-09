@@ -30,7 +30,7 @@ IS_MACOS = sys.platform == 'darwin'
 # another one is refused before anything in it runs.
 HOST_PLATFORM = 'windows-x64' if IS_WINDOWS else 'macos-arm64' if IS_MACOS else 'linux-x64'
 PRESET = 'win-x64-release' if IS_WINDOWS else 'posix-release'
-HD_SUPPORTED = IS_WINDOWS  # the replacement textures are drawn by the Direct3D 11 renderer only
+HD_SUPPORTED = IS_WINDOWS or IS_MACOS  # drawn by the Direct3D 11 renderer and, since v0.6.1, the macOS Vulkan one
 LAUNCHER_BUNDLE = 'Def Jam Recompiled.app'
 RUNTIME_FOLDERS = ('source/', 'python/') if IS_WINDOWS else ('source/', 'python/', 'tools/', 'deps/')
 APPLE_COMMAND_LINE_TOOLS_URL = 'https://developer.apple.com/documentation/xcode/installing-the-command-line-tools/'

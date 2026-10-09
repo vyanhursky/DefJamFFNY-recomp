@@ -33,7 +33,7 @@ game assets, disc images, translated game code or game executable.
 - **Higher resolution.** Renders at up to 4× the console's resolution, in a
   resizable window or borderless full screen.
 - **Optional HD textures.** 4× texture packs generated on your machine from
-  your own dump (Windows).
+  your own dump (Windows and macOS).
 - **An installer that builds the game for you.** Point the Windows setup wizard
   at your dump; it checks it, then translates and compiles the game locally.
 - **Launcher and in-game settings.** A start-up window and an overlay (F1) for
@@ -55,7 +55,7 @@ Gameplay captured by the maintainer. The GIF is a short, silent preview.
 | Area | Status |
 |---|---|
 | Windows x64 | Playable; tested on Windows 11 |
-| macOS (Apple Silicon) | Playable through Vulkan since v0.5.0, without the launcher, overlay or HD textures; see [Build on macOS and Linux](docs/build-macos-linux.md) |
+| macOS (Apple Silicon) | Playable through Vulkan since v0.5.0, with a setup installer and optional HD textures since v0.6.1, still without the launcher and overlay (v0.6.2); see [macOS setup](docs/setup-installer.md#macos-setup-apple-silicon) |
 | Linux | The runtime and its test fixtures build in CI; the game is not yet built or run there |
 | Steam Deck / Proton | Planned; not yet tested |
 | Menus and fights | Menus, match setup, fights and the return to the menus work |
@@ -190,10 +190,10 @@ there upstream where they help other games.
 
 Released so far: display settings and a settings file, gamepad and keyboard
 input, the launcher and overlay, a native macOS build, the Windows installer and
-optional HD textures. Still planned:
+optional HD textures (Windows, then macOS). Still planned:
 
 - true 16:9 widescreen in fights;
-- the launcher, overlay and HD textures on macOS;
+- the launcher and overlay on macOS (v0.6.2);
 - Steam Deck through Proton, then a native Linux game build;
 - deeper gameplay decompilation, as a stretch goal.
 

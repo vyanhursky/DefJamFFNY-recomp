@@ -136,8 +136,10 @@ separate **Install location** and **Data location** (defaults under
 `~/Library/Application Support/DefJamRecompiled`), a desktop-shortcut choice,
 **Install / Repair**, **Open logs**, **Play** and **Cancel**. Rules for the folders,
 the dump copy, resuming after cancel and refusing a changed dump are the Windows ones.
-The Windows-only extras are absent: there is no "install build tools" checkbox, and
-HD textures are not offered on macOS yet.
+There is no "install build tools" checkbox (see Command Line Tools above). The
+**Apply HD texture upscale during install** option is the Windows one: unchecked by
+default, about 6.2 GB of generated textures plus 15 GiB of working headroom, no GPU needed
+([HD textures](hd-textures.md)).
 
 Setup writes **Def Jam Recompiled.app** into the install folder, a copy in
 `~/Applications` and, unless you clear the choice, an alias on the Desktop. Open any of
@@ -157,7 +159,7 @@ Setup logs are in `~/Library/Logs/DefJamSetup`; **Open logs** opens the current 
   --install-dir "$HOME/Games/DefJamApp" --data-dir "$HOME/Games/DefJamData" --log "$HOME/DefJamSetup.log"
 ```
 
-`--no-shortcuts` creates neither the `~/Applications` copy nor the Desktop alias;
+`--hd-textures` generates and enables the HD packs. `--no-shortcuts` creates neither the `~/Applications` copy nor the Desktop alias;
 `--no-desktop-shortcut` skips only the alias. `--silent --uninstall --install-dir PATH`
 removes the app, the versions and the shortcuts it made, and keeps the dump copy, saves,
 settings and logs. Exit codes: 0 success; 2 invalid input; 3 prerequisites missing (Command

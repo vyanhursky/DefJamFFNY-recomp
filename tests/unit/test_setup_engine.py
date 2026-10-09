@@ -469,3 +469,17 @@ def test_cancellation_stops_the_whole_process_tree(tmp_path):
     with pytest.raises(ProcessLookupError):
         import os
         os.kill(pid, 0)
+
+
+def test_hd_textures_are_refused_on_a_host_whose_renderer_cannot_draw_them(tmp_path, monkeypatch):
+    monkeypatch.setattr(engine, 'HD_SUPPORTED', False)
+    setup = installer(tmp_path)
+    setup.args.hd_textures = True
+    with pytest.raises(engine.SetupError, match='not supported') as refused:
+        setup.execute()
+    assert refused.value.code == 2
+    assert not (setup.install / 'installed.json').exists()
+
+
+def test_hd_textures_are_supported_on_windows_and_macos():
+    assert engine.HD_SUPPORTED == (engine.IS_WINDOWS or engine.IS_MACOS)

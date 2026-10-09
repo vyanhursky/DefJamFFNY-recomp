@@ -130,7 +130,11 @@ The redirection keeps a log of the session; the game prints a great deal, and
 
 ## Known limits
 
-- No launcher or overlay (see above).
+- No launcher or overlay (see above); they come in v0.6.2.
+- HD textures work since v0.6.1 through the same `[textures]` settings as on Windows
+  ([guide](hd-textures.md)); the packs are made by the macOS setup's HD option or by
+  `scripts/build-hd-pack.py`. They use more memory (`cache_mb`, 512 MiB by default) and
+  add a short hitch the first time a texture is shown.
 - No persistent shader cache: the first time an effect appears, the frame can
   hitch while its shader is compiled.
 - macOS cannot pin threads to a core, and the game relies on its console's
