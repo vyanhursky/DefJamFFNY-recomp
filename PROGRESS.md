@@ -235,7 +235,7 @@ Next, in order:
 3. The Windows setup and game, once, for the shared code this lane touched: `setup/engine.py`, `scripts/package-setup.py`, `scripts/check-setup-assets.py`, `scripts/hd_corpus.py` and the Windows paths of `texture_pack.c` (moved, not rewritten).
 4. Tag `v0.6.1` from main (the release workflow attaches the Windows exe and the macOS dmg, each with SHA-256 and provenance); notes are in `docs/releases/v0.6.1.md`.
 5. v0.6.2: launcher and overlay on macOS (ImGui on SDL3 and Vulkan, overlay hook in the Vulkan present path, pad chord).
-Known, not blocking: `docs/media/social-preview.png` is tracked but not fingerprinted in `scripts/check-source-tree.py` (the hygiene job fails on main until Vlad decides); the README wizard screenshot is the Windows one; pack names change whenever the HD scripts change, so each release leaves the previous ~6 GB packs on disk.
+Known, not blocking: the README wizard screenshot is the Windows one (a macOS one needs a fingerprint approval in `scripts/check-source-tree.py`); pack names change whenever the HD scripts change, so each release leaves the previous ~6 GB packs on disk.
 
 ### Native macOS and Linux port, merged and released as v0.5.0 (D82), 2026-10-08
 Open after the release (the first two are written up in `docs/04-improvement-backlog.md` at Vlad's request): the launcher and overlay off Windows; saves for the Story routes without copying them by hand; the one unresolved indirect call in `versus` (work log 2026-10-08); the Linux game build and a Steam Deck run; the Windows regression on these sources; the upstream candidates in `docs/research/upstream-macos-linux-candidates.md`.
