@@ -191,6 +191,39 @@ void host_posix_overlay_changed(int open)
     SDL_PushEvent(&ev);
 }
 
+/* display.window_width or window_height changed (the overlay's boxes, or the window itself being
+ * resized, which writes them): give a windowed, unmaximised window that size. */
+static void window_size_main(int w, int h)
+{
+    int cw = 0, ch = 0;
+
+    if (!s_window || s_fullscreen || w <= 0 || h <= 0)
+        return;
+    if (SDL_GetWindowFlags(s_window) & (SDL_WINDOW_MAXIMIZED | SDL_WINDOW_MINIMIZED))
+        return;
+    SDL_GetWindowSize(s_window, &cw, &ch);
+    if (cw == w && ch == h)
+        return;
+    SDL_SetWindowSize(s_window, w, h);
+    refresh_drawable();
+    fprintf(stderr, "[TRANS] window size set to %dx%d (the setting changed)\n", w, h);
+    fflush(stderr);
+}
+
+/* The size settings changed, on whichever thread changed them. */
+static void window_size_setting_changed(int width, int height)
+{
+    SDL_Event ev;
+
+    if (!s_have_video || !s_window)
+        return;
+    SDL_zero(ev);
+    ev.type = s_call_event + 4;
+    ev.user.code = width;
+    ev.user.data1 = (void *)(intptr_t)height;
+    SDL_PushEvent(&ev);
+}
+
 static void overlay_changed_main(int open)
 {
     if (!s_window)
@@ -229,6 +262,7 @@ int host_posix_open_window(int width, int height, const char *title)
     host.drawable_size = drawable_size;
     d3d8_vk_set_host(&host);
     pc_settings_on_fullscreen(fullscreen_setting_changed);
+    pc_settings_on_window_size(window_size_setting_changed);
     if (pc_display("fullscreen", 0))
         fullscreen_setting_changed(1);
     return 1;
@@ -323,6 +357,10 @@ static void handle_event(const SDL_Event *ev)
     }
     if (ev->type == s_call_event + 3) {
         overlay_changed_main(ev->user.code);
+        return;
+    }
+    if (ev->type == s_call_event + 4) {
+        window_size_main(ev->user.code, (int)(intptr_t)ev->user.data1);
         return;
     }
     /* The overlay's own key, a key being learned for a binding, and (while it is up) the
@@ -519,7 +557,7 @@ int host_posix_run(int (*game_main)(void))
         return game_main();
     }
     s_have_video = 1;
-    s_call_event = SDL_RegisterEvents(4);
+    s_call_event = SDL_RegisterEvents(5);
     s_game_main = game_main;
 
     /* The title's main thread: the stack the first thread would have had. */

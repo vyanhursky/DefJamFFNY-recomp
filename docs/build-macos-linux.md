@@ -130,8 +130,9 @@ The redirection keeps a log of the session; the game prints a great deal, and
 
 ## Known limits
 
-- The overlay's text is drawn at the picture's resolution: the game's window is made at a
-  pixel density of 1 (1280x960 for the default size), so on a Retina display it is soft, like the picture.
+- The window follows the display's pixel density (2560x1920 pixels for the default 1280x960 window on a Retina
+  display, as `[HOST] window ...` in the log says), and the overlay is drawn at that resolution. Window width and
+  height changed in the overlay resize the window at once.
 - HD textures work since v0.6.1 through the same `[textures]` settings as on Windows
   ([guide](hd-textures.md)); the packs are made by the macOS setup's HD option or by
   `scripts/build-hd-pack.py`. They use more memory (`cache_mb`, 512 MiB by default) and
