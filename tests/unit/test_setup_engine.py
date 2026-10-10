@@ -368,7 +368,7 @@ def synthetic_launcher_template(payload):
     return template
 
 
-@pytest.mark.skipif(not engine.IS_MACOS, reason='macOS launcher bundle')
+@pytest.mark.skipif(engine.IS_WINDOWS, reason='macOS launcher bundle')
 @pytest.mark.parametrize('desktop', [True, False])
 def test_macos_launcher_bundle_shortcuts_follow_the_choices_and_stay_in_the_home_folder(
         tmp_path, monkeypatch, capsys, desktop):
@@ -394,7 +394,7 @@ def test_macos_launcher_bundle_shortcuts_follow_the_choices_and_stay_in_the_home
     assert not (setup.install / 'installed.ini').exists()
 
 
-@pytest.mark.skipif(not engine.IS_MACOS, reason='macOS launcher bundle')
+@pytest.mark.skipif(engine.IS_WINDOWS, reason='macOS launcher bundle')
 def test_macos_no_shortcuts_leaves_the_home_folder_alone(tmp_path, monkeypatch):
     setup = installer(tmp_path)
     home = tmp_path / 'home'
@@ -407,7 +407,7 @@ def test_macos_no_shortcuts_leaves_the_home_folder_alone(tmp_path, monkeypatch):
     assert list(home.iterdir()) == []
 
 
-@pytest.mark.skipif(not engine.IS_MACOS, reason='macOS launcher bundle')
+@pytest.mark.skipif(engine.IS_WINDOWS, reason='macOS launcher bundle')
 def test_macos_uninstall_removes_only_recorded_shortcuts_that_still_name_this_install(tmp_path, monkeypatch):
     setup = installer(tmp_path)
     home = tmp_path / 'home'
@@ -469,3 +469,17 @@ def test_cancellation_stops_the_whole_process_tree(tmp_path):
     with pytest.raises(ProcessLookupError):
         import os
         os.kill(pid, 0)
+
+
+def test_hd_textures_are_refused_on_a_host_whose_renderer_cannot_draw_them(tmp_path, monkeypatch):
+    monkeypatch.setattr(engine, 'HD_SUPPORTED', False)
+    setup = installer(tmp_path)
+    setup.args.hd_textures = True
+    with pytest.raises(engine.SetupError, match='not supported') as refused:
+        setup.execute()
+    assert refused.value.code == 2
+    assert not (setup.install / 'installed.json').exists()
+
+
+def test_hd_textures_are_supported_on_windows_and_macos():
+    assert engine.HD_SUPPORTED == (engine.IS_WINDOWS or engine.IS_MACOS)

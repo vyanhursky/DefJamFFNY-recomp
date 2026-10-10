@@ -1,9 +1,9 @@
 # Build on macOS and Linux
 
-On an Apple Silicon Mac or on x86-64 Linux, including the Steam Deck, you do not need
-this page: the [macOS setup](setup-installer.md#macos-setup-apple-silicon) and the
-[Linux setup](setup-installer.md#linux-setup) build and install the game from your own
-dump. Follow this guide to build from source yourself.
+On an Apple Silicon Mac you do not need this page: the
+[macOS setup](setup-installer.md#macos-setup-apple-silicon) builds and installs the game
+from your own dump without Terminal. Follow this guide to build from source yourself,
+or for Linux, where an installer is still a to-do.
 
 The Windows guide is [build-and-play.md](build-and-play.md). This page is the
 same pipeline off Windows, since v0.5.0.
@@ -154,7 +154,11 @@ The redirection keeps a log of the session; the game prints a great deal, and
 
 ## Known limits
 
-- No launcher or overlay (see above).
+- No launcher or overlay (see above); they come in v0.6.2.
+- HD textures work since v0.6.1 through the same `[textures]` settings as on Windows
+  ([guide](hd-textures.md)); the packs are made by the macOS setup's HD option or by
+  `scripts/build-hd-pack.py`. They use more memory (`cache_mb`, 512 MiB by default) and
+  add a short hitch the first time a texture is shown.
 - No persistent shader cache: the first time an effect appears, the frame can
   hitch while its shader is compiled.
 - Vsync (`settings.ini` `vsync`) is only used on a display refreshing at a

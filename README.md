@@ -8,7 +8,7 @@ A native PC port of **Def Jam: Fight for NY**, built from the original Xbox
 version with [xboxrecomp](https://github.com/sp00nznet/xboxrecomp). The Xbox
 executable is translated into C and compiled ahead of time. The game's own
 gameplay, menus and cutscenes run on an Xbox compatibility runtime, drawn through
-Direct3D 11 on Windows and Vulkan on macOS, with sound and controllers supplied
+Direct3D 11 on Windows and Vulkan on macOS and Linux, with sound and controllers supplied
 by the host.
 
 **The Windows build is playable.** Menus, Story mode and fights run at 60 fps
@@ -24,16 +24,15 @@ game assets, disc images, translated game code or game executable.
 
 ## Features
 
-- **Native on Windows and macOS.** Direct3D 11 on Windows x64, Vulkan on Apple
-  Silicon Macs. Linux is in progress: the runtime builds, the game does not run
-  there yet.
+- **Native on Windows, macOS and Linux.** Direct3D 11 on Windows x64, Vulkan on
+  Apple Silicon Macs and on x86-64 Linux, including the Steam Deck.
 - **Controllers, keyboard and mouse.** Xbox (XInput), DualSense, Switch Pro and
   most other gamepads, with rumble, hot-plug and remapping. The keyboard and
   mouse play as a player of their own. Up to four players locally.
 - **Higher resolution.** Renders at up to 4× the console's resolution, in a
   resizable window or borderless full screen.
 - **Optional HD textures.** 4× texture packs generated on your machine from
-  your own dump (Windows).
+  your own dump (Windows and macOS).
 - **An installer that builds the game for you.** Point the Windows setup wizard
   at your dump; it checks it, then translates and compiles the game locally.
 - **Launcher and in-game settings.** A start-up window and an overlay (F1) for
@@ -55,9 +54,9 @@ Gameplay captured by the maintainer. The GIF is a short, silent preview.
 | Area | Status |
 |---|---|
 | Windows x64 | Playable; tested on Windows 11 |
-| macOS (Apple Silicon) | Playable through Vulkan since v0.5.0, without the launcher, overlay or HD textures; see [Build on macOS and Linux](docs/build-macos-linux.md) |
-| Linux (x86-64) | Builds and runs natively through Vulkan, without the launcher, overlay or HD textures; [Linux setup](docs/setup-installer.md#linux-setup) or [Build on macOS and Linux](docs/build-macos-linux.md) |
-| Steam Deck | Native (Vulkan, PipeWire sound, the Deck's controls as a pad), installed by the Linux setup with an optional Steam shortcut for Gaming Mode; owner play-test pending. Proton not tried |
+| macOS (Apple Silicon) | Playable through Vulkan since v0.5.0, with a setup installer and optional HD textures since v0.6.1, still without the launcher and overlay (v0.6.2); see [macOS setup](docs/setup-installer.md#macos-setup-apple-silicon) |
+| Linux (x86-64) | Builds and runs natively through Vulkan, without the launcher and overlay; see [Build on macOS and Linux](docs/build-macos-linux.md) |
+| Steam Deck | Native (Vulkan, PipeWire sound, the Deck's controls as a pad); automated regression on the Deck, owner play-test pending. Proton not tried. See [Steam Deck](docs/build-macos-linux.md#steam-deck) |
 | Menus and fights | Menus, match setup, fights and the return to the menus work |
 | Story | Intro and cutscenes, character creator, crib and gym work; a full playthrough has not been verified |
 | Graphics | Direct3D 11 at up to 4× the console resolution; 4:3 picture (true 16:9 is planned) |
@@ -190,11 +189,11 @@ there upstream where they help other games.
 
 Released so far: display settings and a settings file, gamepad and keyboard
 input, the launcher and overlay, a native macOS build, the Windows installer and
-optional HD textures. Still planned:
+optional HD textures (Windows, then macOS). Still planned:
 
 - true 16:9 widescreen in fights;
-- the launcher, overlay and HD textures on macOS;
-- Steam Deck through Proton, then a native Linux game build;
+- the launcher and overlay on macOS (v0.6.2);
+- a Linux and Steam Deck installer, and the launcher and overlay on Linux;
 - deeper gameplay decompilation, as a stretch goal.
 
 See the [roadmap](docs/01-plan-review.md#corrected-roadmap-milestones-with-exit-criteria),

@@ -61,14 +61,14 @@ fixture; it does not establish Clang or native Linux correctness.
 A settings file, borderless full screen, a resizable window and render-scale choice
 arrived in v0.2.0. Exclusive full screen is not offered; the flip-model borderless window replaces it. Vsync
 paces the game only on displays whose refresh rate is a multiple of 60. Changing `render_scale` needs
-a restart. The launcher and in-game settings are available, and v0.6.0 added optional
-Windows HD texture packs ([guide](hd-textures.md)). True 16:9 remains planned ([plan](07-m6-plan.md));
+a restart. The launcher and in-game settings are available on Windows, and v0.6.0 added optional
+HD texture packs, on macOS too since v0.6.1 ([guide](hd-textures.md)). True 16:9 remains planned ([plan](07-m6-plan.md));
 music replacement and frame rates above 60 are not planned for M6. macOS on Apple Silicon is
-playable since v0.5.0 without the launcher, overlay or HD textures
+playable since v0.5.0 without the launcher or overlay, which come in v0.6.2
 ([guide](build-macos-linux.md)). Native Linux, including the Steam Deck, builds with Clang
-and passes most of the automated regression, without the launcher, overlay or HD textures;
-Proton is untried. On the Steam Deck the audio device can run dry a few times in five minutes
-of fighting (the regression's `audio.dry_queue` check), which may be heard as an occasional
+and passes most of the automated regression, without the launcher or overlay; Proton is
+untried. On the Steam Deck the audio device can run dry a few times in five minutes of
+fighting (the regression's `audio.dry_queue` check), which may be heard as an occasional
 click. A game started from inside a build container (distrobox) has no sound, because the
 container has no PipeWire library; start it from the host. Network play is not supported.
 

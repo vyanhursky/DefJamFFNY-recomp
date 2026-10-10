@@ -89,7 +89,7 @@ final class Session {
 
 func helpText() -> String {
     "Silent setup:\n  DefJamSetup --silent --dump PATH --install-dir PATH --data-dir PATH "
-    + "[--no-shortcuts] [--no-desktop-shortcut] [--log PATH]\n"
+    + "[--no-shortcuts] [--no-desktop-shortcut] [--hd-textures] [--log PATH]\n"
     + "Remove the app (keeps your dump, saves and settings):\n  DefJamSetup --silent --uninstall --install-dir PATH\n\n"
     + "Exit codes: 0 success, 2 invalid input, 3 prerequisites missing (Xcode Command Line Tools), 4 failure, "
     + "5 busy, 6 cancelled."
@@ -125,6 +125,7 @@ final class Wizard: NSObject, NSApplicationDelegate, NSWindowDelegate {
     let dumpField = NSTextField(string: "")
     let installField = NSTextField(string: "")
     let dataField = NSTextField(string: "")
+    let hdUpscale = NSButton(checkboxWithTitle: "Apply HD texture upscale during install (increases install time)", target: nil, action: nil)
     let desktopShortcut = NSButton(checkboxWithTitle: "Create a desktop shortcut", target: nil, action: nil)
     let status = NSTextField(wrappingLabelWithString: "Choose your dump and destinations, then select Install / Repair.")
     let launchInfo = NSTextField(wrappingLabelWithString: "After setup, open Def Jam Recompiled from your install folder, Applications or the Desktop.")
@@ -170,6 +171,7 @@ final class Wizard: NSObject, NSApplicationDelegate, NSWindowDelegate {
         installField.stringValue = support.appendingPathComponent("app").path
         dataField.stringValue = support.appendingPathComponent("data").path
         desktopShortcut.state = .on
+        hdUpscale.state = .off
         launchInfo.isSelectable = true
 
         let heading = label("Build and play from your own USA Xbox dump")
@@ -191,7 +193,10 @@ final class Wizard: NSObject, NSApplicationDelegate, NSWindowDelegate {
         logsButton.target = self; logsButton.action = #selector(openLogs)
         playButton.target = self; playButton.action = #selector(play); playButton.isEnabled = false
         closeButton.target = self; closeButton.action = #selector(closePressed)
-        controls = [dumpField, installField, dataField, imageButton, folderButton, installBrowse, dataBrowse, desktopShortcut, installButton]
+        controls = [dumpField, installField, dataField, imageButton, folderButton, installBrowse, dataBrowse, hdUpscale, desktopShortcut, installButton]
+        let hdNote = label("Adds about 6.2 GB; needs extra working space. No GPU needed.")
+        hdNote.textColor = .secondaryLabelColor
+        hdNote.font = .systemFont(ofSize: 11)
 
         let buttons = NSStackView(views: [installButton, logsButton, playButton, NSView(), closeButton])
         buttons.orientation = .horizontal
@@ -201,7 +206,7 @@ final class Wizard: NSObject, NSApplicationDelegate, NSWindowDelegate {
             label("Your ISO/XISO or extracted dump"), row(dumpField, [imageButton, folderButton]),
             label("Install location"), row(installField, [installBrowse]),
             label("Data location (dump copy, saves and settings; preserved across updates)"), row(dataField, [dataBrowse]),
-            desktopShortcut, status, launchInfo, buttons])
+            hdUpscale, hdNote, desktopShortcut, status, launchInfo, buttons])
         stack.orientation = .vertical
         stack.alignment = .leading
         stack.spacing = 10
@@ -293,6 +298,7 @@ final class Wizard: NSObject, NSApplicationDelegate, NSWindowDelegate {
         var arguments = ["--dump", dump, "--install-dir", installField.stringValue, "--data-dir", dataField.stringValue,
                          "--status-file", session.status.path, "--cancel-file", session.cancel.path]
         if desktopShortcut.state != .on { arguments.append("--no-desktop-shortcut") }
+        if hdUpscale.state == .on { arguments.append("--hd-textures") }
         setBusy(true)
         ticks = 0
         status.stringValue = "Preparing setup files\u{2026} You can move the window or cancel."
@@ -401,8 +407,8 @@ final class Wizard: NSObject, NSApplicationDelegate, NSWindowDelegate {
     /// wizard needed no Python, compiler or payload extraction merely to open.
     func uiSmoke() -> Int32 {
         let valid = window.title == wizardTitle && !installField.stringValue.isEmpty && !dataField.stringValue.isEmpty
-            && desktopShortcut.state == .on && installButton.isEnabled && dumpField.stringValue.isEmpty
-            && !playButton.isEnabled && controls.count == 9
+            && desktopShortcut.state == .on && hdUpscale.state == .off && installButton.isEnabled
+            && dumpField.stringValue.isEmpty && !playButton.isEnabled && controls.count == 10
         return valid ? 0 : 4
     }
 }
