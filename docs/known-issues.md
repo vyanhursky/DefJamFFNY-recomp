@@ -65,8 +65,12 @@ a restart. The launcher and in-game settings are available on Windows, and v0.6.
 HD texture packs, on macOS too since v0.6.1 ([guide](hd-textures.md)). True 16:9 remains planned ([plan](07-m6-plan.md));
 music replacement and frame rates above 60 are not planned for M6. macOS on Apple Silicon is
 playable since v0.5.0 without the launcher or overlay, which come in v0.6.2
-([guide](build-macos-linux.md)). Proton, Steam Deck and a native Linux game build are
-unvalidated. Network play is not supported.
+([guide](build-macos-linux.md)). Native Linux, including the Steam Deck, builds with Clang
+and passes most of the automated regression, without the launcher or overlay; Proton is
+untried. On the Steam Deck the audio device can run dry a few times in five minutes of
+fighting (the regression's `audio.dry_queue` check), which may be heard as an occasional
+click. A game started from inside a build container (distrobox) has no sound, because the
+container has no PipeWire library; start it from the host. Network play is not supported.
 
 See the [improvement backlog](04-improvement-backlog.md) and
 [rebase acceptance](research/toolkit-rebase-acceptance.md) for details.
