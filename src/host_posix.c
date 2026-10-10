@@ -33,6 +33,7 @@ static SDL_Window *s_window;
 static int         s_have_video;
 static int         s_fullscreen;
 static volatile int s_drawable_w, s_drawable_h;
+static volatile unsigned s_refresh_hz;   /* the window's display, 0 if unknown */
 static Uint32      s_call_event;
 static const char *const *s_extensions;
 static Uint32      s_extension_count;
@@ -73,10 +74,21 @@ static void call_on_main(void (*fn)(void *), void *arg)
 static void refresh_drawable(void)
 {
     int w = 0, h = 0;
-    if (s_window)
+    unsigned hz = 0;
+    if (s_window) {
+        const SDL_DisplayMode *mode;
         SDL_GetWindowSizeInPixels(s_window, &w, &h);
+        mode = SDL_GetCurrentDisplayMode(SDL_GetDisplayForWindow(s_window));
+        if (mode && mode->refresh_rate > 0.0f)
+            hz = (unsigned)(mode->refresh_rate + 0.5f);
+    }
     s_drawable_w = w;
     s_drawable_h = h;
+    if (hz != s_refresh_hz) {
+        fprintf(stderr, "[HOST] display refresh %u Hz\n", hz);
+        fflush(stderr);
+    }
+    s_refresh_hz = hz;
 }
 
 /* ── The window ────────────────────────────────────────────────────────── */
@@ -132,6 +144,14 @@ static void drawable_size(int *w, int *h, void *user)
     *h = s_drawable_h;
 }
 
+/* Read on the first thread with the size (refresh_drawable); the Vulkan
+ * device only uses vsync on a display refreshing at a multiple of 60. */
+static unsigned refresh_hz(void *user)
+{
+    (void)user;
+    return s_refresh_hz;
+}
+
 static void set_fullscreen_main(void *arg)
 {
     int on = arg != NULL;
@@ -175,6 +195,7 @@ int host_posix_open_window(int width, int height, const char *title)
     host.instance_extension_count = s_extension_count;
     host.create_surface = create_surface;
     host.drawable_size = drawable_size;
+    host.refresh_hz = refresh_hz;
     d3d8_vk_set_host(&host);
     pc_settings_on_fullscreen(fullscreen_setting_changed);
     if (pc_display("fullscreen", 0))
@@ -274,6 +295,7 @@ static void handle_event(const SDL_Event *ev)
         fflush(stdout);
         pc_input_stop();                    /* no pad left vibrating */
         _Exit(0);
+    case SDL_EVENT_WINDOW_DISPLAY_CHANGED:
     case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
     case SDL_EVENT_WINDOW_RESIZED:
         refresh_drawable();
