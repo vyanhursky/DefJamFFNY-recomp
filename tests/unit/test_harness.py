@@ -375,3 +375,34 @@ def test_worklog_moves_the_oldest_to_their_own_months():
 def test_worklog_leaves_a_short_log_alone():
     out, moved = worklog.add_and_trim(PROGRESS, "", 20, "unused")
     assert out == PROGRESS and not moved
+
+
+def _bmp32(path, width, height, pixels):
+    """A top-down 32-bit BMP of (r, g, b) pixels, as the toolkit's RECOMP_WINDOW_SHOT writes it."""
+    import struct
+    data = b"".join(struct.pack("<BBBB", b, g, r, 255) for r, g, b in pixels)
+    head = b"BM" + struct.pack("<IHHI", 54 + len(data), 0, 0, 54)
+    head += struct.pack("<IiiHHIIiiII", 40, width, -height, 1, 32, 0, len(data), 2835, 2835, 0, 0)
+    path.write_bytes(head + data)
+
+
+def test_ui_check_counts_the_pixels_it_is_looking_for(tmp_path):
+    tab, play, other = regress.UI_TAB, regress.UI_PLAY, (10, 20, 30)
+    near_tab = (tab[0] + 2, tab[1] - 2, tab[2])
+    pixels = [tab] * 5 + [near_tab] * 2 + [play] * 3 + [other] * 6
+    path = tmp_path / "frame.bmp"
+    _bmp32(path, 4, 4, pixels)
+    assert regress.bmp_color_count(str(path), [tab, play]) == (4, 4, [7, 3])
+    assert regress.bmp_color_count(str(path), [tab], tolerance=0) == (4, 4, [5])
+
+
+def test_ui_check_refuses_a_picture_it_cannot_read(tmp_path):
+    (tmp_path / "x.bmp").write_bytes(b"not a bitmap at all, nothing like one")
+    with pytest.raises(ValueError):
+        regress.bmp_color_count(str(tmp_path / "x.bmp"), [(0, 0, 0)])
+
+
+def test_the_ui_checks_are_not_in_the_quick_run_and_are_selectable():
+    assert "launcher" in regress.ORDER and "overlay" in regress.ORDER
+    assert "launcher" not in regress.QUICK and "overlay" not in regress.QUICK
+    assert set(["launcher", "overlay"]) <= set(regress.CHECKS)
