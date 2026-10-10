@@ -56,7 +56,7 @@ Gameplay captured by the maintainer. The GIF is a short, silent preview.
 | Windows x64 | Playable; tested on Windows 11 |
 | macOS (Apple Silicon) | Playable through Vulkan since v0.5.0, with a setup installer and optional HD textures since v0.6.1, still without the launcher and overlay (v0.6.2); see [macOS setup](docs/setup-installer.md#macos-setup-apple-silicon) |
 | Linux (x86-64) | Builds and runs natively through Vulkan, without the launcher and overlay; see [Build on macOS and Linux](docs/build-macos-linux.md) |
-| Steam Deck | Native (Vulkan, PipeWire sound, the Deck's controls as a pad); automated regression on the Deck, owner play-test pending. Proton not tried. See [Steam Deck](docs/build-macos-linux.md#steam-deck) |
+| Steam Deck | Native (Vulkan, PipeWire sound, the Deck's controls as a pad); automated regression and owner play-test on the Deck; a little audio distortion remains ([#11](https://github.com/vyanhursky/DefJamFFNY-recomp/issues/11)). Proton not tried. See [Steam Deck](docs/build-macos-linux.md#steam-deck) |
 | Menus and fights | Menus, match setup, fights and the return to the menus work |
 | Story | Intro and cutscenes, character creator, crib and gym work; a full playthrough has not been verified |
 | Graphics | Direct3D 11 at up to 4× the console resolution; 4:3 picture (true 16:9 is planned) |
