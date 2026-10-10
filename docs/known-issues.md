@@ -63,8 +63,13 @@ arrive in v0.2.0. Exclusive full screen is not offered; the flip-model borderles
 paces the game only on displays whose refresh rate is a multiple of 60. Changing `render_scale` needs
 a restart. The launcher and in-game settings are available; the v0.6.0 candidate
 adds optional Windows HD packs. True 16:9 remains planned ([plan](07-m6-plan.md));
-music replacement and frame rates above 60 are not planned for M6. Proton, Steam Deck, macOS
-and native Linux are unvalidated platforms. Network play is not supported.
+music replacement and frame rates above 60 are not planned for M6. Native macOS and
+native Linux (including the Steam Deck) build with Clang and pass most of the automated
+regression, but have no launcher or overlay yet and less play-testing than Windows; Proton is
+untried. On the Steam Deck the audio device can run dry a few times in five minutes of fighting
+(the regression's `audio.dry_queue` check), which may be heard as an occasional click.
+On Linux, a game started from inside a build container (distrobox) has no sound, because the
+container has no PipeWire library; start it from the host. Network play is not supported.
 
 See the [improvement backlog](04-improvement-backlog.md) and
 [rebase acceptance](research/toolkit-rebase-acceptance.md) for details.

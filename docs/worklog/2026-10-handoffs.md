@@ -1,3 +1,97 @@
+## Archived 2026-10-09 20:00 — superseded by the Linux / Steam Deck hand-off
+
+### Native macOS and Linux port, merged and released as v0.5.0 (D82), 2026-10-08
+Open after the release (the first two are written up in `docs/04-improvement-backlog.md` at Vlad's request): the launcher and overlay off Windows; saves for the Story routes without copying them by hand; the one unresolved indirect call in `versus` (work log 2026-10-08); the Linux game build and a Steam Deck run; the Windows regression on these sources; the upstream candidates in `docs/research/upstream-macos-linux-candidates.md`.
+
+Work happens on a Mac (`/Users/vlad/Code/DefJamFFNY-recomp`, arm64, macOS 26, Homebrew cmake/ninja/
+pkg-config/sdl2/libepoxy/openssl). Toolkit work is on fork branch `defjam/macos-linux`, published, and
+the parent gitlink on this branch points at its tip.
+Build: `cmake --preset ci-runtime-only && cmake --build --preset ci-runtime-only`. Trap fixture:
+`cmake -S tools/xboxrecomp/tests/mmio_trap_posix -B build/mmio_trap_posix -G Ninja && cmake --build
+build/mmio_trap_posix && ctest --test-dir build/mmio_trap_posix`.
+Data root on the Mac: `DEFJAM_DATA=/Users/vlad/Code/defjam-data`; `game` is a symlink to its `extracted`.
+Pipeline: `uv run --no-project --with pyxbe --with capstone python scripts/pipeline.py analyze`, then `recomp`.
+Next, in order:
+1. Done: `xbox_kernel` compiles off Windows. Left behind on purpose: the AC97 write trap and the
+   `RECOMP_WATCH` page are Windows-only (they single-step with the trace flag); move them onto `mmio_trap`.
+2. Done (D81, toolkit `db0e78a`): one guest CPU on macOS as a token in `win32_compat.c`; the lifted
+   sources are force-included `src/recomp/guest_section.h` so `main.c` can give the runtime their
+   range. `[KERNEL] guest CPU: N preemptions, M requests, longest wait W ms` every 2 s shows it working
+   (about 1,100 preemptions a second in a fight; W is how long a woken or time-critical thread
+   waited, 1-3 ms as a rule, 9 at worst in a four-minute match, 23 seen once), and `guest CPU kept
+   N ms in host code` names a host function that sat on it (`atos -o build/posix-release/defjam_recomp
+   -l <load address> <pc>`). A blocking call added to the runtime that is not one of the
+   `win32_compat.c` primitives holds the guest CPU while it blocks: route it through them.
+   Its functions are `guest_turn_*` since the rebase onto toolkit v0.13: upstream now has its own
+   opt-in `guest_cpu_join`/`guest_cpu_part` lock (`RECOMP_GUEST_LOCK=1`, cooperative, off by default,
+   and by its own note deadlocks on a thread spinning without a kernel call, which is this title's
+   case); the two are independent and only the token is on here.
+   Fixture: `tools/xboxrecomp/tests/guest_cpu_posix`. To take a frozen process's stacks on the Mac:
+   `sample <pid> 3 -file logs/x.txt` (the main thread spinning in `sub_001E7D80` is this race).
+3. Done: NV2A register pages, APU, OHCI and AC97 go through the trap layer from `fault_handler` in
+   `src/main.c`. arm64 decodes A64 loads and stores; x86-64 reuses `mmio_decode.h`'s decoder on a copy
+   of the ucontext (toolkit `8ca91ad`; fixture checked under Rosetta, the game itself only on arm64).
+4. Done: `src/main.c` and `src/hooks/*` build off Windows through `src/host.h`. `src/host_posix.c`
+   stands in for `d3d11_translator.c` (no window) and `watchpoint.c`.
+   Run: `DEFJAM_DATA=/Users/vlad/Code/defjam-data RECOMP_SETTINGS=none RECOMP_WATCHDOG_SECS=30
+   ./build/posix-release/defjam_recomp > logs/x.log 2> logs/x.log.err` from the repository root.
+   The POSIX halves of `kernel_path.c` and `kernel_file.c` are upstream's and lag the Windows halves;
+   partition images, the first-run copy and `[PATH]` are ported, the rest is unaudited.
+5. Done: Vulkan device `tools/xboxrecomp/src/d3d/d3d8_vk.c`, and the gamma ramp on screen (toolkit
+   `2290ecc`). Left: vsync pacing, a persistent shader cache, movies through the title's own decoder only.
+6. Port `scripts/*.ps1` (extract, analyze, recomp, build, run) to Python or shell, then lift and boot.
+7. Done: quick and full regression on the Mac (work log). Next there: one uninterrupted full run on
+   the final build, then the `--only` checks (`visual` needs baselines approved on this machine).
+8. On Windows: build this branch and run `regress.py --quick`; the Windows game build is untested here.
+   Listen to a fight there too: toolkit `ca45955` changes the shared APU frame thread (it waits out a
+   stopped front end instead of playing the rest of the period as silence, and catches up to four
+   periods). Measure with `--env RECOMP_APU_LEVEL=1 --env RECOMP_APU_PCM=<file>` on the `fight` route:
+   the capture should have no run of zeros between loud samples, and `[APU] front-end stops waited
+   out` says how many were bridged.
+9. The Story routes of `regress.py` depend on the layout of the save area. Since v0.4.x `crib` and
+   `gym` take the SECOND profile in the list (two downs from "new ID"; `scripts/harness.py` says
+   third, counting that entry) and `intro` needs no profile named AAA. The owner's Mac save lists
+   AAA, ABC, VY2, VY1/VY3: the second is the empty ABC and AAA exists, so all three fail on it. Run
+   them with `DEFJAM_DATA` pointing at a copy (`extracted` symlinked, `save` copied) that has ABC,
+   VY2 and VY1/VY3 for `crib`/`gym`, and no AAA for `intro`; or ask before changing the save.
+10. Owner play-test on the Mac of the three fixes of 2026-10-07 (brightness, the freeze, the audio).
+   Launch: `t=$(date +%Y%m%d-%H%M%S); ./build/posix-release/defjam_recomp > logs/playtest-$t.log 2>
+   logs/playtest-$t.log.err`. A headless process ignores SIGTERM (SDL takes it as a quit request and
+   nothing reads the queue); the harness kills it, by hand use `kill -KILL`.
+Unchecked: whether any game hook assumes a host pointer equals a guest address.
+
+### v0.4.1 release integration authorized; live candidate accepted
+
+Vlad accepted the candidate on 2026-10-08: "It plays great. I am good to release this" (D79).
+All scheduled local gates passed; full details and dataset caveats are in
+docs/research/toolkit-v0.13.0-execution.md and the archived previous handoff.
+Candidate C:/Users/Vlad/code/defjam-upstream013, migration/xboxrecomp-v0.13.
+Six tested integration topics committed after 22 retained replay topics on exact
+upstream v0.13.0 b3700e1d. Published fork branch defjam/upstream-v0.13 matches
+c979c091ca43bb285d95a78aaa4e6aad3237e4bb. Toolkit working tree clean.
+Hosted fixture correction explicitly disables GPU preemption only for the
+synthetic 16 MB kernel-regressions buffer (same as prior local runner).
+No upstream PR submitted. The five focused upstream candidates remain deferred
+until current merge/release (D78).
+
+Parent release version v0.4.1; AC97 startup fix/new fixture and expanded native CI
+matrix committed and published in private PR #10. Slow counter-wrap enabled explicitly in CI.
+Preserve original main ba43570 and original uncommitted research/worklogs;
+candidate incorporates its setup-backlog documentation. Never publish private
+history to public DefJamFFNY-recomp. Existing public snapshot checkout is
+C:/Users/Vlad/code/DJFFNY-public-preview; update reviewed source only.
+
+Remaining: sync documentation/source-only parent commits, private PR and CI,
+fresh recursive clone of published pin with analysis/lift/build verification,
+merge private integration, update clean-history public source snapshot, hosted
+CI and source release gates, publish v0.4.1. No executable/game bytes/lifted C/
+saves/logs/captures published. Keep accepted build and saves for rollback.
+Executable tests remain serial and use disposable runtime-data. No need to
+repeat completed gameplay matrix without behavior changes or new failures.
+Read-only monitor def-jam-migration-test-updates stays narrow; stop it after
+final migration/release completion. Scratch/logs under original
+logs/upstream-013-work; candidate-game-exit.json/final-local-exit.json all pass.
+
 ## Archived 2026-10-08 10:20 — live acceptance and release integration
 
 ## 7. Hand-off

@@ -47,9 +47,9 @@ Gameplay captured by the maintainer. The GIF is a short, silent preview.
 | Launcher and overlay | A start-up window and an in-game overlay (F1) for display, controller and key settings, usable with mouse, keyboard or pad; see [Launcher and overlay](docs/launcher-and-overlay.md) |
 | Input | Gamepads (Xbox, DualSense, Switch Pro and most others), keyboard and mouse as a player of their own, rumble and remapping; see [Controllers, keyboard and mouse](docs/10-input.md) |
 | Saves | Local profiles, with compatibility for earlier project builds |
-| Steam Deck / Proton | Planned after PC features; not yet validated |
+| Steam Deck | Builds and runs natively (Vulkan, PipeWire sound, the Deck's controls as a pad), without the launcher and overlay; automated regression on the Deck, owner play-test pending. Proton not tried. See [Build on macOS and Linux](docs/build-macos-linux.md#steam-deck) |
 | macOS (Apple Silicon) | Playable natively through Vulkan since v0.5.0, without the launcher and overlay; see [Build on macOS and Linux](docs/build-macos-linux.md) |
-| Native Linux | The runtime and its fixtures build in CI; the game is not yet built or run there |
+| Native Linux (x86-64) | Builds and runs natively through Vulkan, without the launcher and overlay; see [Build on macOS and Linux](docs/build-macos-linux.md) |
 
 The latest rebase passed the full nine-check game regression on Debug and Release,
 a 20-boot Debug soak, and five additional capture routes. These tests do not cover
@@ -101,8 +101,9 @@ The Windows setup includes its pinned toolkit and compiles the game on your mach
 
 PC features are in progress, one release at a time: display settings, a settings file,
 gamepads and keyboard play, a launcher and an in-game settings overlay are in;
-the v0.6.0 candidate adds HD texture packs. True 16:9 remains planned. A native macOS build arrived in v0.5.0. Steam Deck and a native
-Linux game build follow; deeper gameplay decompilation remains a stretch goal. See the
+the v0.6.0 candidate adds HD texture packs. True 16:9 remains planned. A native macOS build arrived in v0.5.0, and the
+game now builds and runs natively on Linux and the Steam Deck too; a Linux installer, and the launcher
+and overlay off Windows, follow. Deeper gameplay decompilation remains a stretch goal. See the
 [roadmap](docs/01-plan-review.md#corrected-roadmap-milestones-with-exit-criteria)
 and [development status](PROGRESS.md).
 

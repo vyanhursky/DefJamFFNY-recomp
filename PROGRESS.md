@@ -33,8 +33,8 @@
 | Upstream contributions | ✅ first five merged | #167–171 included in v0.13.0. Current upstream v0.13.1 `193e2995`; refreshed next wave prioritizes FPREM, double comparisons, MSVC fixtures, parity readers and event multiwait. Existing input/settings/graphics foundations remain candidates. Recommendations only; isolated PR proofs/submission pending. `docs/research/upstream-next-wave-2026-10-07.md`. |
 | Gameplay test harness | ⏳ | D67-D71. **v0.2.2, v0.2.3 and v0.2.4 released.** Status of every item in `docs/08-testing-roadmap.md`; next steps in `docs/research/testing-harness-handover.md`. |
 | PC features (M6) | ⏳ | D63-D66, D72, plan `docs/07-m6-plan.md`. v0.2.0 (display and settings file) and v0.2.1 (Terrordome crash fix) released 2026-10-05. **v0.3.0 input accepted by Vlad 2026-10-07 and released** (D73, `docs/10-input.md`). **v0.4.0 launcher and overlay accepted by Vlad 2026-10-07 and released** (D74, D75, `docs/launcher-and-overlay.md`). Next: v0.5.0 true 16:9; hand-over in `docs/research/m6-handover.md`. |
-| Steam Deck (M5), macOS (M9) | ⬜ | After M6, in that order (D45). |
-| Native macOS arm64 and Linux x86-64 (M9, M7) | ✅ macOS / ⏳ Linux | Released as v0.5.0 (D82). arm64 macOS: Vulkan renderer, SDL3 window, sound and pads, one guest CPU by token (D81); full `regress.py` 14 of 14 (two with caveats, work log 2026-10-08) and the owner's play-tests on Mac and Windows. Not on macOS: the launcher and overlay. Linux: runtime, fixtures and the Vulkan device build in CI; the game has not been built or run there. Guide: `docs/build-macos-linux.md`. |
+| Steam Deck (M5), macOS (M9) | ⏳ Deck | Native, not Proton (D94): the game runs on the Deck; owner play-test and a Linux installer (separate branch `feat/linux-setup`) pending. |
+| Native macOS arm64 and Linux x86-64 (M9, M7) | ✅ macOS / ✅ Linux (owner play-test pending) | Released as v0.5.0 (D82). arm64 macOS: Vulkan renderer, SDL3 window, sound and pads, one guest CPU by token (D81); full `regress.py` 14 of 14 (two with caveats, work log 2026-10-08) and the owner's play-tests on Mac and Windows. Not on macOS: the launcher and overlay. Linux (D94, 2026-10-09): built with Clang 20 and run natively on a Steam Deck (SteamOS 3.8, RADV), PipeWire sound, the Deck's controls as a pad; eight Linux fixes; quick regression 5/5, boot soak 10/10, full regression 12 of 14 checks (`logs/regress-20261010-082035.txt` and reruns `regress-20261010-084419`, `-092011`, `-093159`): unit 210, the three goldens, fight, FFA, Terrordome FFA, replay (golden hash), intro, crib, gym and the boot soak pass; combat and versus pass every assertion but `audio.dry_queue` (2 and 7 isolated device underruns, no dropped buffers, the same through PipeWire on SteamOS). Not on Linux: launcher and overlay. Guide: `docs/build-macos-linux.md`. |
 
 ## 1. Decisions log
 
@@ -139,6 +139,7 @@
 | D81 | 2026-10-07 | On a host that cannot pin threads (Apple Silicon macOS) the one-guest-CPU rule of D28 is a token: a thread that runs guest code runs only while it holds it, gives it up in every blocking call, and is preempted by a signal from a thread that has waited a millisecond, has just woken, or is the interrupt thread. It is preempted only while its program counter is in the lifted code, which the macOS build puts in its own section (`__TEXT,__guest`); in host code it hands over at the next kernel call's return. Windows and Linux keep affinity. | The D28 race froze two runs in one afternoon on the Mac (the owner's at a style movie, a headless one at the main menu), the main thread in `sub_001E7D80`'s chunk walk both times. Fixing that one reader by hand would leave every other single-core assumption in the title. Preempting anywhere was tried first and deadlocked within a minute: a thread stopped inside `getenv` held the C library's lock, and the next holder blocked on it in a fault handler. Cooperative hand-over alone cannot work: the reader spins without a kernel call. |
 
 | D82 | 2026-10-08 | Merge the port and release it as v0.5.0. A minor version because it adds a platform; the toolkit pin moves to the port tip and the fork branch `defjam/upstream-v0.13` named in `.gitmodules` is fast-forwarded to it. | Vlad, after playing both builds of the rebased branch: "I tested windows and I think it plays great. Mac playtest is good too. I think you can merge and release." The Windows game regression was not rerun on these sources; his play-test and hosted CI stand for Windows. |
+| D94 | 2026-10-09 | Linux and the Steam Deck run the native POSIX build, not the Windows build under Proton (superseding D7 for the Deck). On SteamOS, which has no compiler, the game is built in a container and run on the host against SteamOS's own SDL3, Vulkan loader and shaderc. `RECOMP_TITLE_KEVENTS` stays opt-in on every platform. (D83-D92 are taken on other branches; D93 is the macOS setup.) | The native build ran first time once seven Linux bugs were fixed, all in shared POSIX code or the toolkit. Proton would add a translation layer to a port that already has a native Vulkan path. KEVENTS removed a stale-stack wild call at boot (XInput's capability query: a stack URB whose completion event was found still set from the previous transfer, target 0x80003344) but hung fighter select in the FFA route on Linux (main thread in an infinite title-event wait); the skipped call is harmless and the hang is not. |
 
 ## 2. Environment inventory (2026-09-17)
 
@@ -186,6 +187,8 @@ defjam-recomp/
 
 ## 5. Open questions for Vlad
 
+- **(2026-10-09) Linux / Steam Deck (D94).** (1) Owner play-test on the Deck, including Gaming Mode through the Steam shortcut the Linux setup makes. (2) The toolkit commits on `defjam/linux` touch shared files: run the Windows and macOS regressions before merging, or say which to skip. (3) Whether to chase the KEVENTS fighter-select hang (to make the stale-stack fix safe) or leave KEVENTS opt-in. (4) The Linux setup branch sits on the unmerged `feat/macos-setup`: merge order. (5) Accept `audio.dry_queue` on the Deck as a known issue for now, or tune the SDL output ring first.
+
 - **(2026-10-08) Upstream candidates from the macOS and Linux port.** Seven, ranked, in `docs/research/upstream-macos-linux-candidates.md`; the APU dropout fix and the POSIX trap layer first, the Vulkan device last and only after a Linux run. Vlad asked for the write-up and to come back to it; nothing is prepared or submitted, and each PR needs his approval.
 
 - **Remaining upstream contribution scope (D59/D61).** Candidates1–5 are submitted as #167–171. Other14 candidates and held topics still require discussion/named approval. This chat maintains PRs on request; another agent owns milestones (D62). No additional owner input is currently needed for first five; disclose unavailable cross-title checks and compiler limitations in their descriptions.
@@ -206,10 +209,9 @@ defjam-recomp/
 
 ## 6. Work log
 
-> Recent entries only. Everything before 2026-10-07 18:12 is in `docs/worklog/` (one file a month); when this
+> Recent entries only. Everything before 2026-10-07 18:17 is in `docs/worklog/` (one file a month); when this
 > section passes about eight entries, move the oldest there.
 
-- 2026-10-07 18:12 — Corrected repeat passes80identicalrecords/1800steps and unchanged golden (repeat-b-20261007-175445). Current-profile visual4/4 (180444); corrected baseline6/7, sole failure firstcombat startupAC97. Verified/copy-froze approved olderVY2 visual fixture607fefd5 and three approved image hashes; reference visual independently4/4 (180808). D77 records per-gate frozen datasets with unchanged thresholds/goldens. Originalcombat rerun181126 active; then AC97 source proof/negativecontrol and both rebuilds3509; candidate19137 waits. Original saves/artifacts unchanged.
 - 2026-10-07 18:17 — Original corrected combat retry27/27 inclaudio passes (regress-combat-20261007-181124); all seven corrected scenarios have passing runs, first intermittent AC97 crash retained. Candidate AC97 forced-interleaving/read/rollback fixture passes; original-source negativecontrol compiles/fails6checks. Parent173 pass; both candidate builds refreshed/certified after AC97. CandidateM2 unchanged frame40 golden passes (regress181708), serial full/opt-in/Debug/host matrix19137 active. Publication/live acceptance pending.
 - 2026-10-07 20:07 — Candidate Release full14/14 passes in74min (regress-20261007-193201), including unchanged three goldens/replay80records/1800steps and10/10 soak boots with0hangs/failures. Opt-ins Terrordome fight passes436s, FFA-result28/28 (193918), two-matches35/35 (194759); repeatA passes, repeatB200632 active. Visual/Debug9+5boots/four host checks remain queued serially19137. Topic ledger accounts26 original topics:22replays+4upstream equivalents; publication/reproducibility/live pending.
 - 2026-10-07 20:16 — Read-only next-upstream-wave review refreshes main193e2995/v0.13.1 and merged#167–175 status; only#162/#176 open, current reviews/files read. Recommended independent FPREM/doublelane/MSVCfixtures/parity/eventmultiwait, older inputmap/settings/VSHstate/storage/texture/DMA; source/isolated-proof limits documented upstream-next-wave-2026-10-07.md. No submissions/source changes/new tests. Candidate all5Releaseopt-ins nowpass inclrepeat80unchangedgolden and visual4/4(201131); Debug9+5boots19137 active, host follows. Archived priorhandoff; original artifacts preserved.
@@ -217,97 +219,50 @@ defjam-recomp/
 - 2026-10-07 23:59 — Status audit confirms all scheduled local candidate gates complete/pass: Release14/14+fiveopt-ins,Debug9/9+5boots,host4/4,extraDebugversus26/26,quick5/5. Preservation verifies original22save/24generated/10build files and15/6fixture files unchanged. candidate-game-exit.json/final-local-exit.json all0/complete. Updated stale PROGRESS/handoff; no new executable tests/source edits. Source integration still uncommitted/unpublished; fresh-clone/CI/live acceptance/merge/release pending. Originalmain separately advancedba43570 docs; preserve it.
 - 2026-10-08 10:20 — D79: owner candidate playtest accepted ("It plays great") and release authorized as v0.4.1. Six tested toolkit integration topics committed source-only and published b8754f85 to fork defjam/upstream-v0.13, remote SHA verified. Preparing parent source integration, fresh clone, CI and source release; no binaries/data published.
 - 2026-10-08 12:20 — **Port branch rebased onto v0.4.1 and the v0.13 toolkit (D80, D81).** Toolkit `defjam/macos-linux`: the 12 port commits replayed onto `defjam/upstream-v0.13` `c979c09` (three conflicts: a header, `NtClose`, the input layer's pad loop) plus `e5e59f6`. Upstream v0.13 has its own opt-in `guest_cpu_join` lock (`RECOMP_GUEST_LOCK=1`, cooperative), which collided at link time with the token's; the token is `guest_turn_*` now and upstream's stays off. Game branch: squashed to one commit first (the eleven are on `backup/macos-linux-port-pre-v041`), then rebased; the port's decisions are D80 and D81 because main took D73-D79. The v0.4.0 launcher and overlay are Direct3D 11 and Win32, so the Mac build leaves `pc_ui.cpp` and `pc_launcher.cpp` out and starts the game at once. Re-lifted with the v0.13 lifter (17,882 functions). `regress.py --quick` 5 of 5 (`regress-20261008-104907`). Full run 12 of 14 (`regress-20261008-114624`): `gym` failed because main's Story routes now take the second profile and the scratch save had the Story profile first; `crib` and `gym` pass with it second (`regress-20261008-121353`). `versus` failed `runtime.faults` on one `[ICALL] Failed to resolve VA 0x001E3C14`, called from `sub_001E39F0` at `0x001E3A65` through `[esi+0x1C]`: that address is a return address inside the same function, so a stream request's callback slot held stale data. Not seen in any earlier log; `versus` passed 26 of 26 on the rerun (`regress-versus-20261008-114721`). Open: whether it is the title's own race showing through the token's preemption, or new with v0.13. Upstream candidates from the port written up in `docs/research/upstream-macos-linux-candidates.md`. Not run: Windows build of the branch.
+- 2026-10-09 20:00 — **First Linux build and run, on a Steam Deck (D94).** Lift 17,882 functions; Clang 20 build in distrobox, run on SteamOS. Eight fixes in order of discovery: `dladdr` (compile), guest window arena (every boot faulted on the contiguous window), MMIO ALU decode (OHCI ISR), case-insensitive paths (missing D:\GCONFIG.XML etc. -> 300 MB calloc fail -> thunk table zeroed -> calls through null), POSIX clock overflow + APU deadline, Vulkan staging read-back (movies 10 -> 30 fps), headless SIGTERM, vsync only at multiples of 60 Hz (90 Hz OLED panel and 144 Hz monitor ran ~40 fps windowed). Quick 5/5 (`regress-20261009-123014`), soak 0/10 -> 10/10. KEVENTS default tried and withdrawn: hung FFA fighter select (gdb: main thread in an infinite title-event wait). Full regression 12 of 14 checks (`logs/regress-20261010-082035.txt` and reruns `regress-20261010-084419`, `-092011`, `-093159`): unit 210, the three goldens, fight, FFA, Terrordome FFA, replay (golden hash), intro, crib, gym and the boot soak pass; combat and versus pass every assertion but `audio.dry_queue` (2 and 7 isolated device underruns, no dropped buffers, the same through PipeWire on SteamOS).
 
 ## 7. Hand-off
 
-### Native macOS and Linux port, merged and released as v0.5.0 (D82), 2026-10-08
-Open after the release (the first two are written up in `docs/04-improvement-backlog.md` at Vlad's request): the launcher and overlay off Windows; saves for the Story routes without copying them by hand; the one unresolved indirect call in `versus` (work log 2026-10-08); the Linux game build and a Steam Deck run; the Windows regression on these sources; the upstream candidates in `docs/research/upstream-macos-linux-candidates.md`.
+### Native Linux and the Steam Deck (D94), 2026-10-09
+Branch `feat/linux-steam-deck` (from `main`); toolkit fork branch `defjam/linux` (published), atop the
+previous pin `4bff257`. Separate branch `feat/linux-setup` (on `feat/macos-setup`) adds the Linux setup,
+with toolkit branch `defjam/linux-setup` (the same commits atop `dff3985`).
 
-Work happens on a Mac (`/Users/vlad/Code/DefJamFFNY-recomp`, arm64, macOS 26, Homebrew cmake/ninja/
-pkg-config/sdl2/libepoxy/openssl). Toolkit work is on fork branch `defjam/macos-linux`, published, and
-the parent gitlink on this branch points at its tip.
-Build: `cmake --preset ci-runtime-only && cmake --build --preset ci-runtime-only`. Trap fixture:
-`cmake -S tools/xboxrecomp/tests/mmio_trap_posix -B build/mmio_trap_posix -G Ninja && cmake --build
-build/mmio_trap_posix && ctest --test-dir build/mmio_trap_posix`.
-Data root on the Mac: `DEFJAM_DATA=/Users/vlad/Code/defjam-data`; `game` is a symlink to its `extracted`.
-Pipeline: `uv run --no-project --with pyxbe --with capstone python scripts/pipeline.py analyze`, then `recomp`.
-Next, in order:
-1. Done: `xbox_kernel` compiles off Windows. Left behind on purpose: the AC97 write trap and the
-   `RECOMP_WATCH` page are Windows-only (they single-step with the trace flag); move them onto `mmio_trap`.
-2. Done (D81, toolkit `db0e78a`): one guest CPU on macOS as a token in `win32_compat.c`; the lifted
-   sources are force-included `src/recomp/guest_section.h` so `main.c` can give the runtime their
-   range. `[KERNEL] guest CPU: N preemptions, M requests, longest wait W ms` every 2 s shows it working
-   (about 1,100 preemptions a second in a fight; W is how long a woken or time-critical thread
-   waited, 1-3 ms as a rule, 9 at worst in a four-minute match, 23 seen once), and `guest CPU kept
-   N ms in host code` names a host function that sat on it (`atos -o build/posix-release/defjam_recomp
-   -l <load address> <pc>`). A blocking call added to the runtime that is not one of the
-   `win32_compat.c` primitives holds the guest CPU while it blocks: route it through them.
-   Its functions are `guest_turn_*` since the rebase onto toolkit v0.13: upstream now has its own
-   opt-in `guest_cpu_join`/`guest_cpu_part` lock (`RECOMP_GUEST_LOCK=1`, cooperative, off by default,
-   and by its own note deadlocks on a thread spinning without a kernel call, which is this title's
-   case); the two are independent and only the token is on here.
-   Fixture: `tools/xboxrecomp/tests/guest_cpu_posix`. To take a frozen process's stacks on the Mac:
-   `sample <pid> 3 -file logs/x.txt` (the main thread spinning in `sub_001E7D80` is this race).
-3. Done: NV2A register pages, APU, OHCI and AC97 go through the trap layer from `fault_handler` in
-   `src/main.c`. arm64 decodes A64 loads and stores; x86-64 reuses `mmio_decode.h`'s decoder on a copy
-   of the ucontext (toolkit `8ca91ad`; fixture checked under Rosetta, the game itself only on arm64).
-4. Done: `src/main.c` and `src/hooks/*` build off Windows through `src/host.h`. `src/host_posix.c`
-   stands in for `d3d11_translator.c` (no window) and `watchpoint.c`.
-   Run: `DEFJAM_DATA=/Users/vlad/Code/defjam-data RECOMP_SETTINGS=none RECOMP_WATCHDOG_SECS=30
-   ./build/posix-release/defjam_recomp > logs/x.log 2> logs/x.log.err` from the repository root.
-   The POSIX halves of `kernel_path.c` and `kernel_file.c` are upstream's and lag the Windows halves;
-   partition images, the first-run copy and `[PATH]` are ported, the rest is unaudited.
-5. Done: Vulkan device `tools/xboxrecomp/src/d3d/d3d8_vk.c`, and the gamma ramp on screen (toolkit
-   `2290ecc`). Left: vsync pacing, a persistent shader cache, movies through the title's own decoder only.
-6. Port `scripts/*.ps1` (extract, analyze, recomp, build, run) to Python or shell, then lift and boot.
-7. Done: quick and full regression on the Mac (work log). Next there: one uninterrupted full run on
-   the final build, then the `--only` checks (`visual` needs baselines approved on this machine).
-8. On Windows: build this branch and run `regress.py --quick`; the Windows game build is untested here.
-   Listen to a fight there too: toolkit `ca45955` changes the shared APU frame thread (it waits out a
-   stopped front end instead of playing the rest of the period as silence, and catches up to four
-   periods). Measure with `--env RECOMP_APU_LEVEL=1 --env RECOMP_APU_PCM=<file>` on the `fight` route:
-   the capture should have no run of zeros between loud samples, and `[APU] front-end stops waited
-   out` says how many were bridged.
-9. The Story routes of `regress.py` depend on the layout of the save area. Since v0.4.x `crib` and
-   `gym` take the SECOND profile in the list (two downs from "new ID"; `scripts/harness.py` says
-   third, counting that entry) and `intro` needs no profile named AAA. The owner's Mac save lists
-   AAA, ABC, VY2, VY1/VY3: the second is the empty ABC and AAA exists, so all three fail on it. Run
-   them with `DEFJAM_DATA` pointing at a copy (`extracted` symlinked, `save` copied) that has ABC,
-   VY2 and VY1/VY3 for `crib`/`gym`, and no AAA for `intro`; or ask before changing the save.
-10. Owner play-test on the Mac of the three fixes of 2026-10-07 (brightness, the freeze, the audio).
-   Launch: `t=$(date +%Y%m%d-%H%M%S); ./build/posix-release/defjam_recomp > logs/playtest-$t.log 2>
-   logs/playtest-$t.log.err`. A headless process ignores SIGTERM (SDL takes it as a quit request and
-   nothing reads the queue); the harness kills it, by hand use `kill -KILL`.
-Unchecked: whether any game hook assumes a host pointer equals a guest address.
+Machine: Steam Deck, SteamOS 3.8 (no compiler, read-only system). Build environment: distrobox `djbuild`
+(Arch, `cmake ninja clang pkgconf sdl3 shaderc vulkan-headers vulkan-icd-loader openssl python uv gdb
+github-cli`); `gh` is logged in there and git pushes run from inside it. Data root
+`DEFJAM_DATA=/home/deck/Games/DJFFNY-data` (the owner's real save in `save/UserData`); `game` links to
+its `extracted`. Build: `distrobox enter djbuild`, `export CC=clang CXX=clang++`, then
+`uv run --no-project --with pyxbe --with capstone --with pytest python scripts/pipeline.py analyze|recomp|build`.
+Run on SteamOS itself, not in the container (the container has no PipeWire library, so no sound there):
+the binary needs at most GLIBC_2.38 and resolves against SteamOS's SDL3 3.2.18, Vulkan and shaderc
+(`ldd -r` is clean). Analysis 1 min, lift 2 min, Clang build 2 min on the Deck.
 
-### v0.4.1 release integration authorized; live candidate accepted
+Fixed (game): `_GNU_SOURCE` for `dladdr`; headless runs keep SIGINT/SIGTERM (SDL swallowed them with
+no event loop). Fixed (toolkit): guest window reserved whole on Linux (arena in `win32_compat.c`); MMIO
+decoder ALU forms; case-insensitive guest paths; POSIX clock overflow (`qemu_clock_get_ns/us`, PTIMER and
+`NV_PAPU_XGSCNT` wrapped every 18 s) and the APU deadline running ahead during a pause; Vulkan texture
+conversion out of write-combined staging memory (movies 10 -> 30 fps, soak 0/10 -> 10/10); vsync only on
+displays at a multiple of 60 Hz, as on Windows (the Deck OLED's 90 Hz panel and a 144 Hz monitor held
+the title to ~40 fps with FIFO; new `D3D8VkHost.refresh_hz`, filled by `src/host_posix.c`).
 
-Vlad accepted the candidate on 2026-10-08: "It plays great. I am good to release this" (D79).
-All scheduled local gates passed; full details and dataset caveats are in
-docs/research/toolkit-v0.13.0-execution.md and the archived previous handoff.
-Candidate C:/Users/Vlad/code/defjam-upstream013, migration/xboxrecomp-v0.13.
-Six tested integration topics committed after 22 retained replay topics on exact
-upstream v0.13.0 b3700e1d. Published fork branch defjam/upstream-v0.13 matches
-c979c091ca43bb285d95a78aaa4e6aad3237e4bb. Toolkit working tree clean.
-Hosted fixture correction explicitly disables GPU preemption only for the
-synthetic 16 MB kernel-regressions buffer (same as prior local runner).
-No upstream PR submitted. The five focused upstream candidates remain deferred
-until current merge/release (D78).
+Results: quick 5/5 (`logs/regress-20261009-123014.txt`), soak 10/10, full 12 of 14 checks (`logs/regress-20261010-082035.txt` and reruns `regress-20261010-084419`, `-092011`, `-093159`): unit 210, the three goldens, fight, FFA, Terrordome FFA, replay (golden hash), intro, crib, gym and the boot soak pass; combat and versus pass every assertion but `audio.dry_queue` (2 and 7 isolated device underruns, no dropped buffers, the same through PipeWire on SteamOS).
 
-Parent release version v0.4.1; AC97 startup fix/new fixture and expanded native CI
-matrix committed and published in private PR #10. Slow counter-wrap enabled explicitly in CI.
-Preserve original main ba43570 and original uncommitted research/worklogs;
-candidate incorporates its setup-backlog documentation. Never publish private
-history to public DefJamFFNY-recomp. Existing public snapshot checkout is
-C:/Users/Vlad/code/DJFFNY-public-preview; update reviewed source only.
-
-Remaining: sync documentation/source-only parent commits, private PR and CI,
-fresh recursive clone of published pin with analysis/lift/build verification,
-merge private integration, update clean-history public source snapshot, hosted
-CI and source release gates, publish v0.4.1. No executable/game bytes/lifted C/
-saves/logs/captures published. Keep accepted build and saves for rollback.
-Executable tests remain serial and use disposable runtime-data. No need to
-repeat completed gameplay matrix without behavior changes or new failures.
-Read-only monitor def-jam-migration-test-updates stays narrow; stop it after
-final migration/release completion. Scratch/logs under original
-logs/upstream-013-work; candidate-game-exit.json/final-local-exit.json all pass.
+Next:
+1. Owner play-test on the Deck (desktop and Gaming Mode).
+2. Windows and macOS regressions on these sources before merging (shared toolkit files).
+3. KEVENTS: find who sets the event the FFA fighter select waits on with `RECOMP_TITLE_KEVENTS=1`
+   (main thread in `bridge_KeWaitForSingleObject` -> `ke_guest_event` path, infinite wait). Suspects:
+   setters that signal the host handle without writing guest `SignalState` (`KeSetEventBoostPriority`
+   does; the title's ordinal summary did not show it). With that fixed, KEVENTS removes the stale-stack
+   call through 0x80003344 at boot (from 0x0027EC6E, every Linux boot without it).
+4. The Windows hang tools (`sample-threads.py`, `guest-stack.py`, `native-stacks.py`, `hang-peek.py`)
+   have no POSIX path; `gdb -p` as root (or `kernel.yama.ptrace_scope=0`) did their work here. A soak hang
+   dump on Linux is three Python tracebacks.
+5. Menu routes calibrated for one profile list fail on the owner's real save (fighter select, gym);
+   use a fixture save for gate runs (`docs/09-testing-harness.md`).
+6. `audio.dry_queue` fails combat and versus on the Deck: 2-7 single underruns per run, no dropped
+   buffers, in the container (PulseAudio) and natively (PipeWire) alike. SDL output ring in
+   `apu_xaudio2.c` (preroll 2 x 1024 frames, cap 4 x); PipeWire's default quantum is 1024. Measure
+   with `RECOMP_APU_LEVEL=1` before tuning. The harness's scenarios ignore `RECOMP_HEADLESS` (they
+   strip inherited `RECOMP_` variables) and open a real window: on a Deck, keep the screen on.
