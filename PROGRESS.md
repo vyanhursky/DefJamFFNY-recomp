@@ -34,9 +34,9 @@
 | Upstream contributions | ✅ first five merged | #167–171 included in v0.13.0. Current upstream v0.13.1 `193e2995`; refreshed next wave prioritizes FPREM, double comparisons, MSVC fixtures, parity readers and event multiwait. Existing input/settings/graphics foundations remain candidates. Recommendations only; isolated PR proofs/submission pending. `docs/research/upstream-next-wave-2026-10-07.md`. |
 | Gameplay test harness | ⏳ | D67-D71. **v0.2.2, v0.2.3 and v0.2.4 released.** Status of every item in `docs/08-testing-roadmap.md`; next steps in `docs/research/testing-harness-handover.md`. |
 | PC features (M6) | ⏳ | D63-D66, D72, plan `docs/07-m6-plan.md`. v0.2.0 (display and settings file) and v0.2.1 (Terrordome crash fix) released 2026-10-05. **v0.3.0 input accepted by Vlad 2026-10-07 and released** (D73, `docs/10-input.md`). **v0.4.0 launcher and overlay accepted by Vlad 2026-10-07 and released** (D74, D75, `docs/launcher-and-overlay.md`). Next: v0.5.0 true 16:9; hand-over in `docs/research/m6-handover.md`. |
-| Steam Deck (M5), macOS (M9) | ⏳ Deck | Native, not Proton (D94): the game runs on the Deck; owner play-test and a Linux installer (separate branch `feat/linux-setup`) pending. |
+| Steam Deck (M5), macOS (M9) | ✅ Deck | Native, not Proton (D94). Vlad's play-test on the Deck 2026-10-10: "looks good", with a little audio clipping or distortion (to-do, issue #11). Installed by the Linux setup (PR #10). |
 | macOS setup and HD textures (v0.6.1) | ⏳ release candidate | D93. Native AppKit setup (dmg, unsigned) around the shared engine, bundled Python/CMake/Ninja/SDL3/shaderc/MoltenVK, local launcher app; HD packs drawn through Vulkan (mip chains, mip filter, per-level upload). Verified on arm64 macOS 26 with Homebrew blocked: silent install from the XISO incl. HD (5 min 44 s), launcher, lock refusal, shortcuts and uninstall, quick regression 4/4 with packs on and off (fight median 120). Open: macOS CI on a hosted runner, clean-Mac and older-macOS runs, Gatekeeper first-open, Windows re-run of the shared code. Launcher and overlay on macOS: v0.6.2. |
-| Native macOS arm64 and Linux x86-64 (M9, M7) | ✅ macOS / ✅ Linux (owner play-test pending) | Released as v0.5.0 (D82). arm64 macOS: Vulkan renderer, SDL3 window, sound and pads, one guest CPU by token (D81); full `regress.py` 14 of 14 (two with caveats, work log 2026-10-08) and the owner's play-tests on Mac and Windows. Not on macOS: the launcher and overlay. Linux (D94, 2026-10-09): built with Clang 20 and run natively on a Steam Deck (SteamOS 3.8, RADV), PipeWire sound, the Deck's controls as a pad; eight Linux fixes; quick regression 5/5, boot soak 10/10, full regression 12 of 14 (combat and versus fail only `audio.dry_queue`). Not on Linux: launcher and overlay. Guide: `docs/build-macos-linux.md`. |
+| Native macOS arm64 and Linux x86-64 (M9, M7) | ✅ macOS / ✅ Linux (owner play-test 2026-10-10 good) | Released as v0.5.0 (D82). arm64 macOS: Vulkan renderer, SDL3 window, sound and pads, one guest CPU by token (D81); full `regress.py` 14 of 14 (two with caveats, work log 2026-10-08) and the owner's play-tests on Mac and Windows. Not on macOS: the launcher and overlay. Linux (D94, 2026-10-09): built with Clang 20 and run natively on a Steam Deck (SteamOS 3.8, RADV), PipeWire sound, the Deck's controls as a pad; eight Linux fixes; quick regression 5/5, boot soak 10/10, full regression 12 of 14 (combat and versus fail only `audio.dry_queue`). Not on Linux: launcher and overlay. Guide: `docs/build-macos-linux.md`. |
 
 ## 1. Decisions log
 
@@ -190,7 +190,7 @@ defjam-recomp/
 
 ## 5. Open questions for Vlad
 
-- **(2026-10-09) Linux / Steam Deck (D94).** (1) Owner play-test on the Deck, including Gaming Mode through the Steam shortcut the Linux setup makes. (2) The toolkit commits on `defjam/linux` touch shared files: run the Windows and macOS regressions before merging, or say which to skip. (3) Whether to chase the KEVENTS fighter-select hang (to make the stale-stack fix safe) or leave KEVENTS opt-in. (5) Accept `audio.dry_queue` on the Deck as a known issue for now, or tune the SDL output ring first.
+- **(2026-10-09) Linux / Steam Deck (D94).** ~~(1) Owner play-test~~ done 2026-10-10: good, a little audio clipping/distortion (issue #11). (2) The toolkit commits on `defjam/linux` touch shared files: run the Windows and macOS regressions before merging, or say which to skip. (3) Whether to chase the KEVENTS fighter-select hang (to make the stale-stack fix safe) or leave KEVENTS opt-in. ~~(5)~~ Vlad: the audio is a to-do (issue #11).
 
 - **(2026-10-08) Upstream candidates from the macOS and Linux port.** Seven, ranked, in `docs/research/upstream-macos-linux-candidates.md`; the APU dropout fix and the POSIX trap layer first, the Vulkan device last and only after a Linux run. Vlad asked for the write-up and to come back to it; nothing is prepared or submitted, and each PR needs his approval.
 
@@ -255,7 +255,7 @@ the title to ~40 fps with FIFO; new `D3D8VkHost.refresh_hz`, filled by `src/host
 Results: quick 5/5 (`logs/regress-20261009-123014.txt`), soak 10/10, full 12 of 14 checks (`logs/regress-20261010-082035.txt` and reruns `regress-20261010-084419`, `-092011`, `-093159`): unit 210, the three goldens, fight, FFA, Terrordome FFA, replay (golden hash), intro, crib, gym and the boot soak pass; combat and versus pass every assertion but `audio.dry_queue` (2 and 7 isolated device underruns, no dropped buffers, the same through PipeWire on SteamOS).
 
 Next:
-1. Owner play-test on the Deck (desktop and Gaming Mode).
+1. Done 2026-10-10: Vlad's play-test on the Deck looks good; a little audio clipping or distortion is to-do issue #11.
 2. Windows and macOS regressions on these sources before merging (shared toolkit files).
 3. KEVENTS: find who sets the event the FFA fighter select waits on with `RECOMP_TITLE_KEVENTS=1`
    (main thread in `bridge_KeWaitForSingleObject` -> `ke_guest_event` path, infinite wait). Suspects:
@@ -267,7 +267,7 @@ Next:
    dump on Linux is three Python tracebacks.
 5. Menu routes calibrated for one profile list fail on the owner's real save (fighter select, gym);
    use a fixture save for gate runs (`docs/09-testing-harness.md`).
-6. `audio.dry_queue` fails combat and versus on the Deck: 2-7 single underruns per run, no dropped
+6. Issue #11 (audio clipping/distortion heard in the play-test). `audio.dry_queue` fails combat and versus on the Deck: 2-7 single underruns per run, no dropped
    buffers, in the container (PulseAudio) and natively (PipeWire) alike. SDL output ring in
    `apu_xaudio2.c` (preroll 2 x 1024 frames, cap 4 x); PipeWire's default quantum is 1024. Measure
    with `RECOMP_APU_LEVEL=1` before tuning. The harness's scenarios ignore `RECOMP_HEADLESS` (they
