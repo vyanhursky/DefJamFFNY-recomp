@@ -54,7 +54,7 @@ def native_pick(kind, start):
     return answer.stdout.strip() if answer.returncode == 0 else ''
 
 
-def wizard(payload):
+def wizard(payload, smoke=False):
     import tkinter as tk
     from tkinter import filedialog, messagebox, ttk
 
@@ -209,6 +209,8 @@ def wizard(payload):
     install.trace_add('write', lambda *_: refresh_play())
     refresh_play()
     root.protocol('WM_DELETE_WINDOW', closing)
+    if smoke:
+        root.after(500, root.destroy)   # --ui-smoke: build the window, show it, close it
     root.mainloop()
     return 0
 
@@ -223,7 +225,7 @@ def main(argv):
     if not os.environ.get('DISPLAY') and not os.environ.get('WAYLAND_DISPLAY'):
         print('No display: run with --silent (see READ ME FIRST.txt).', file=sys.stderr)
         return 2
-    return wizard(payload)
+    return wizard(payload, smoke='--ui-smoke' in argv)
 
 
 if __name__ == '__main__':
