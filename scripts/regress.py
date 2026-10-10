@@ -44,8 +44,9 @@ The golden frames were taken without the title's gamma ramp, so those three runs
 set RECOMP_GAMMA=0. Every run uses the harness's complete-save-root guard and
 fails if the save area is not byte-identical afterwards.
 
-Exit code 0 only if every check that ran passed. The table is also written to
-logs/regress-<stamp>.txt.
+A check that does not apply on this host (the launcher and overlay checks on Windows) reports SKIP:
+it is counted as skipped, never as passed. Exit code 0 only if every check that ran passed. The
+table is also written to logs/regress-<stamp>.txt.
 """
 import argparse
 import hashlib
@@ -91,6 +92,11 @@ def common_faults(run):
 
 def verdict(faults, detail):
     return (not faults), ("; ".join(faults) if faults else detail)
+
+
+def not_applicable(why):
+    """What a check returns when it cannot be run on this host: neither a pass nor a failure."""
+    return None, "not run: " + why
 
 
 # --- checks ----------------------------------------------------------------
@@ -203,7 +209,7 @@ def ui_settings_file(name, text=""):
 
 def check_launcher(a):
     if sys.platform == "win32":
-        return True, "not run: this check is for the SDL launcher (macOS, Linux); the Windows one is Direct3D 11"
+        return not_applicable("this check is for the SDL launcher (macOS, Linux); the Windows one is Direct3D 11")
     shot = os.path.join(REPO, "logs", "shots", "ui-launcher", "launcher.bmp")
     os.makedirs(os.path.dirname(shot), exist_ok=True)
     if os.path.exists(shot):
@@ -236,7 +242,7 @@ def check_launcher(a):
 
 def check_overlay(a):
     if sys.platform == "win32":
-        return True, "not run: this check is for the Vulkan overlay (macOS, Linux); the Windows one is Direct3D 11"
+        return not_applicable("this check is for the Vulkan overlay (macOS, Linux); the Windows one is Direct3D 11")
     shot = os.path.join(REPO, "logs", "shots", "ui-overlay", "overlay.bmp")
     os.makedirs(os.path.dirname(shot), exist_ok=True)
     if os.path.exists(shot):
@@ -476,6 +482,10 @@ CHECKS = {"unit": check_unit, "m2": check_m2, "m3": check_m3, "m4a": check_m4a, 
           "combat": check_combat, "versus": check_versus, "ffa-result": check_ffa_result, "two-matches": check_two_matches, "replay": check_replay, "visual": check_visual, "repeat": check_repeat, "intro": check_intro, "crib": check_crib, "gym": check_gym, "soak": check_soak}
 
 
+def status_word(ok):
+    return "SKIP" if ok is None else "ok" if ok else "FAIL"
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--preset", default=os.environ.get("RECOMP_PRESET", harness.RELEASE_PRESET))
@@ -516,13 +526,17 @@ def main(argv=None):
         except SystemExit as ex:                 # not built, no dump: say so and stop
             ok, detail = False, str(ex)
         rows.append((n, ok, detail, time.time() - t0))
-        print("%-6s %-4s %4d s  %s" % (n, "ok" if ok else "FAIL", rows[-1][3], detail), flush=True)
+        print("%-6s %-4s %4d s  %s" % (n, status_word(ok), rows[-1][3], detail), flush=True)
     harness.kill_stray()
 
-    failed = [r for r in rows if not r[1]]
+    failed = [r for r in rows if r[1] is not None and not r[1]]
+    skipped = [r for r in rows if r[1] is None]
+    ran = len(rows) - len(skipped)
     lines = ["regress %s  preset %s" % (time.strftime("%Y-%m-%d %H:%M"), a.preset)]
-    lines += ["%-6s %-4s %4d s  %s" % (n, "ok" if ok else "FAIL", dt, d) for n, ok, d, dt in rows]
-    lines.append("%d of %d passed in %d min" % (len(rows) - len(failed), len(rows), (time.time() - t_all) / 60))
+    lines += ["%-6s %-4s %4d s  %s" % (n, status_word(ok), dt, d) for n, ok, d, dt in rows]
+    lines.append("%d of %d passed%s in %d min" % (ran - len(failed), ran,
+                 (", %d skipped (%s)" % (len(skipped), ", ".join(r[0] for r in skipped))) if skipped else "",
+                 (time.time() - t_all) / 60))
     os.makedirs(os.path.join(REPO, "logs"), exist_ok=True)
     out = os.path.join(REPO, "logs", "regress-" + time.strftime("%Y%m%d-%H%M%S") + ".txt")
     with open(out, "w", encoding="utf-8") as f:

@@ -406,3 +406,24 @@ def test_the_ui_checks_are_not_in_the_quick_run_and_are_selectable():
     assert "launcher" in regress.ORDER and "overlay" in regress.ORDER
     assert "launcher" not in regress.QUICK and "overlay" not in regress.QUICK
     assert set(["launcher", "overlay"]) <= set(regress.CHECKS)
+
+
+def test_a_check_that_does_not_apply_is_skipped_never_passed(monkeypatch, tmp_path):
+    """The launcher and overlay checks cannot run on Windows (their Direct3D 11 versions are not
+    these): they say so with None, which the table and the report show as SKIP, not as a pass."""
+    monkeypatch.setattr(regress.sys, "platform", "win32")
+    for check in (regress.check_launcher, regress.check_overlay):
+        ok, detail = check(None)
+        assert ok is None and detail.startswith("not run: ")
+    assert regress.status_word(None) == "SKIP"
+    assert regress.status_word(True) == "ok" and regress.status_word(False) == "FAIL"
+
+    evidence = regress.evidence
+    skipped = evidence.assertion("launcher", None, "not run: Windows")
+    passed = evidence.assertion("m2", True, "matches")
+    assert skipped["status"] == "skip" and passed["status"] == "pass"
+    ok = evidence.write_report(str(tmp_path), {"schema": 1, "name": "regression", "seconds": 1,
+                                               "assertions": [passed, skipped]})
+    assert ok is False                                   # a skip does not make the run "all passed"
+    junit = (tmp_path / "junit.xml").read_text(encoding="utf-8")
+    assert 'skipped="1"' in junit and 'failures="0"' in junit and "<skipped" in junit
