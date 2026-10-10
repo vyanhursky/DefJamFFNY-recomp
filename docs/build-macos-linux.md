@@ -12,8 +12,8 @@ same pipeline off Windows, since v0.5.0.
 |---|---|
 | macOS on Apple Silicon (arm64) | Playable. Built, regression-tested and play-tested on macOS 26 with a DualSense. |
 | macOS on Intel | Not tried. |
-| Linux x86-64 | The runtime, its fixtures and the Vulkan renderer build and pass in CI. **The game has not been built or run on Linux**; the steps below are the intended ones and may need fixing. Reports are welcome. |
-| Steam Deck | Not tried, natively or through Proton. |
+| Linux x86-64 | Builds and runs natively (D94). Built with Clang 20 and run on a Steam Deck; 12 of the 14 regression checks pass on the Deck; combat and versus fail only on a few audio-queue underruns. Not yet play-tested at length by the owner. |
+| Steam Deck | Native, through Vulkan on the Deck's GPU, with PipeWire sound and the Deck's own controls as a pad. SteamOS has no compiler: build in a container (below) and run the game on SteamOS itself. Proton not tried. |
 
 What is different from Windows:
 
@@ -54,9 +54,33 @@ Linux (Debian or Ubuntu names):
 sudo apt-get install cmake ninja-build pkg-config clang libsdl3-dev libssl-dev libvulkan-dev libshaderc-dev
 ```
 
+Arch Linux, or an Arch container (`sudo pacman -S cmake ninja clang pkgconf sdl3 shaderc
+vulkan-headers vulkan-icd-loader openssl`).
+
 The game needs SDL **3** for its window, sound and pads. Distributions that do
 not package it yet (Ubuntu 24.04 among them) need SDL3 built from source first.
-CMake 3.20 or newer.
+CMake 3.20 or newer. Build with Clang (`export CC=clang CXX=clang++` before the
+first build), the compiler the port is tested with; GCC also builds it.
+
+### Steam Deck
+
+SteamOS has no compiler and a read-only system, but it has podman and
+distrobox, and it ships the libraries the game needs at run time (SDL3, the
+Vulkan loader, shaderc). Build in a container and run the game on SteamOS:
+
+```bash
+distrobox create --name djbuild --image docker.io/library/archlinux:latest
+distrobox enter djbuild -- sudo pacman -Syu --noconfirm --needed base-devel cmake ninja clang \
+    pkgconf sdl3 shaderc vulkan-headers vulkan-icd-loader openssl python uv
+distrobox enter djbuild          # the rest of this page, from inside the container
+```
+
+The container shares your home folder, so the repository and the data folder
+are the same paths inside and out. Build there, then start the game from a
+SteamOS terminal (Desktop Mode), not from inside the container: the container
+has no PipeWire library, so sound only works outside it. A binary built
+against libraries newer than SteamOS's will refuse to start there;
+`ldd -r build/posix-release/defjam_recomp` lists anything missing.
 
 Python 3.12 or newer with `pyxbe`, `capstone` and `pytest`. With
 [uv](https://docs.astral.sh/uv/) (`brew install uv`) nothing else has to be
@@ -133,6 +157,10 @@ The redirection keeps a log of the session; the game prints a great deal, and
 - No launcher or overlay (see above).
 - No persistent shader cache: the first time an effect appears, the frame can
   hitch while its shader is compiled.
+- Vsync (`settings.ini` `vsync`) is only used on a display refreshing at a
+  multiple of 60 Hz, as on Windows; elsewhere the game paces itself. The Steam
+  Deck OLED's panel runs at 90 Hz, so it plays without vsync there; the log's
+  `[HOST] display refresh` line says what was found.
 - macOS cannot pin threads to a core, and the game relies on its console's
   single core, so game threads take turns instead. A thread that has just woken
   can wait a few milliseconds for its turn. `RECOMP_GUEST_CORES=all` turns the
@@ -151,7 +179,11 @@ The redirection keeps a log of the session; the game prints a great deal, and
   a `[D3D8-VK]` line near the top of the log names the device it found.
 - The game stops responding but sound continues: keep the log, and if you can,
   take the thread stacks before quitting with
-  `sample $(pgrep -f posix-release/defjam_recomp) 3 -file logs/sample.txt`.
+  `sample $(pgrep -f posix-release/defjam_recomp) 3 -file logs/sample.txt` on macOS,
+  or `gdb -p $(pgrep -x defjam_recomp) -batch -ex "thread apply all bt 12" > logs/stacks.txt`
+  on Linux (as root, or with `kernel.yama.ptrace_scope` at 0). The hang tools in
+  `scripts/` (`sample-threads.py`, `guest-stack.py`, `native-stacks.py`) are
+  Windows-only.
 - No sound: the log has an `[XA2]` line naming the audio driver and device.
 
 When reporting a problem, give the version or commit, the machine and OS, the
@@ -169,4 +201,5 @@ RECOMP_HEADLESS=1 djpy scripts/regress.py --quick
 The regression drives the game with scripted input and needs a save area with
 particular profiles in it; without one, the fight routes run and the
 saved-profile Story routes fail. [The testing harness](09-testing-harness.md)
-has the details. The full `regress.py` takes about an hour on an M-series Mac.
+has the details. The full `regress.py` takes about an hour on an M-series Mac
+and about 70 minutes on a Steam Deck.

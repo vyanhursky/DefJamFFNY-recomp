@@ -56,8 +56,8 @@ Gameplay captured by the maintainer. The GIF is a short, silent preview.
 |---|---|
 | Windows x64 | Playable; tested on Windows 11 |
 | macOS (Apple Silicon) | Playable through Vulkan since v0.5.0, without the launcher, overlay or HD textures; see [Build on macOS and Linux](docs/build-macos-linux.md) |
-| Linux | The runtime and its test fixtures build in CI; the game is not yet built or run there |
-| Steam Deck / Proton | Planned; not yet tested |
+| Linux (x86-64) | Builds and runs natively through Vulkan, without the launcher, overlay or HD textures; [Linux setup](docs/setup-installer.md#linux-setup) or [Build on macOS and Linux](docs/build-macos-linux.md) |
+| Steam Deck | Native (Vulkan, PipeWire sound, the Deck's controls as a pad), installed by the Linux setup with an optional Steam shortcut for Gaming Mode; owner play-test pending. Proton not tried |
 | Menus and fights | Menus, match setup, fights and the return to the menus work |
 | Story | Intro and cutscenes, character creator, crib and gym work; a full playthrough has not been verified |
 | Graphics | Direct3D 11 at up to 4× the console resolution; 4:3 picture (true 16:9 is planned) |
