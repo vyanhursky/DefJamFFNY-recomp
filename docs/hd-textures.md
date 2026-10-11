@@ -2,17 +2,19 @@
 
 v0.6.0 added optional Windows Direct3D 11 texture packs and local
 Lanczos 4x generation; v0.6.1 draws the same packs through Vulkan on macOS
-(Apple Silicon). Linux, widescreen, vector fonts and HD movies remain follow-ups. See
-`research/hd-textures-notes.md` for evidence and gaps.
+(Apple Silicon), and v0.7.2 offers them in the Linux setup (the Steam Deck included),
+whose Vulkan renderer is the macOS one. Widescreen, vector fonts and HD movies remain
+follow-ups. See `research/hd-textures-notes.md` for evidence and gaps.
 
 A pack is named by the contents of the original texture, not by the renderer, so the
-packs Setup makes on a Mac are the same files (18,971 images, 6,212,168,677 bytes) as on
-Windows, and a pack made on one can be used on the other.
+packs Setup makes on a Mac or on Linux are the same files (18,971 images, 6,212,168,677
+bytes) as on Windows, and a pack made on one can be used on the others.
 
 ## Generate the faithful pack with Setup
 
-Run the Windows setup (`DefJamSetup-<version>-windows-x64.exe`) or the macOS setup
-(`DefJamSetup-<version>-macos-arm64.dmg`, v0.6.1 or newer) with your supported USA Xbox
+Run the Windows setup (`DefJamSetup-<version>-windows-x64.exe`), the macOS setup
+(`DefJamSetup-<version>-macos-arm64.dmg`, v0.6.1 or newer) or the Linux setup
+(`DefJamSetup-<version>-linux-x64.tar.gz`, v0.7.2 or newer) with your supported USA Xbox
 dump and select **Apply HD texture upscale during install (increases install time)**.
 The option starts unchecked. Setup generates the textures on your CPU after
 building the game, then enables the generated packs for the first launch.
@@ -25,7 +27,7 @@ covering work files and filesystems that cannot hard-link the generated PNGs.
 Generation took about four minutes on the development PC; game compilation and
 texture verification add time, and other CPUs may take longer.
 
-In the launcher or F1 overlay (Windows, and macOS since v0.6.2), open **Textures** to disable HD
+In the launcher or F1 overlay (Windows, macOS since v0.6.2, Linux since v0.7.0), open **Textures** to disable HD
 packs, change the pack list or adjust the cache. Restart after changes. Or edit `[textures]` in
 `settings.ini` in your data folder (`enabled=0` turns the packs off, `enabled=1` on; `packs` and
 `cache_mb` are the pack list and memory budget; the [settings reference](settings-reference.md) lists

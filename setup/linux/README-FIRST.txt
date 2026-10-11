@@ -13,8 +13,9 @@ data location, then Install / Repair. The first install takes a while.
 
 "Apply HD texture upscale during install" (off by default) also makes 4x
 textures from your game files on the CPU after the build: about 6.2 GB more,
-15 GB of extra free space while it works, and some extra minutes (longer on
-the Steam Deck). Turn the packs off or on later on the launcher's Textures page.
+15 GB of extra free space while it works, and extra time: on the Steam Deck
+the whole install takes about 15 minutes with it. Turn the packs off or on
+later on the launcher's Textures page.
 
 What it needs
 -------------
