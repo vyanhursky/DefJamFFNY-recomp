@@ -55,9 +55,30 @@ def source_allowed(name, toolkit=False):
     return True
 
 
-def copy_sources(root, destination, toolkit=False):
+# The part of branding/ each platform's setup uses at install time: the Windows game build embeds the
+# .ico, the POSIX game build the window icon, and the Linux setup also installs the 256 px icon, shows
+# the 128 px one in its wizard and places the Steam artwork. The rest (masters, macOS icons, previews)
+# is for the repository, and a payload that carried it would be megabytes larger.
+BRANDING_FOR = {
+    'windows-x64': ('branding/icon/defjam.ico',),
+    'macos-arm64': ('branding/icon/window/window-128-macos.rgba',),
+    'linux-x64': ('branding/icon/window/window-128.rgba', 'branding/icon/png/defjam-128.png',
+                  'branding/icon/png/defjam-256.png', 'branding/steam/', 'branding/fan/steam/'),
+}
+
+
+def payload_wants(name, platform):
+    """Whether `name` (a tracked path in the parent repository) belongs in `platform`'s payload."""
+    if not name.startswith('branding/'):
+        return True
+    return any(name == want or (want.endswith('/') and name.startswith(want)) for want in BRANDING_FOR[platform])
+
+
+def copy_sources(root, destination, toolkit=False, platform=None):
     for name in git(root, 'ls-files').splitlines():
         path = root / name
+        if platform and not payload_wants(name, platform):
+            continue
         if source_allowed(name, toolkit) and path.is_file() and not path.is_symlink():
             target = destination / name
             target.parent.mkdir(parents=True, exist_ok=True)
@@ -234,7 +255,7 @@ def main(argv=None):
         staging = Path(temporary)
         source = staging / 'source'
         source.mkdir()
-        copy_sources(ROOT, source)
+        copy_sources(ROOT, source, platform=args.platform)
         copy_sources(toolkit, source / 'tools/xboxrecomp', True)
         for name in HD_SOURCES:
             if not (source / name).is_file():

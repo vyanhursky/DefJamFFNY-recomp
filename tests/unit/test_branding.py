@@ -136,3 +136,27 @@ def test_the_generator_rebuilds_the_whole_set_from_the_masters(tmp_path):
     assert png_size(out / 'steam/portrait.png') == (600, 900)
     assert png_size(out / 'steam/hero.png') == (1920, 620)
     assert png_size(out / 'fan/steam/portrait.png') == (600, 900) and png_size(out / 'fan/steam/wide.png') == (920, 430)
+
+
+def test_each_platforms_payload_carries_only_the_branding_it_uses():
+    package = load('branding_package', ROOT / 'scripts/package-setup.py')
+    tracked = sorted(p.relative_to(ROOT).as_posix() for p in BRANDING.rglob('*') if p.is_file())
+
+    def wanted(platform):
+        return [n for n in tracked if package.payload_wants(n, platform)]
+
+    # What each build and setup reads at install time is there...
+    assert 'branding/icon/defjam.ico' in wanted('windows-x64')
+    assert 'branding/icon/window/window-128-macos.rgba' in wanted('macos-arm64')
+    linux = wanted('linux-x64')
+    for name in ('branding/icon/window/window-128.rgba', 'branding/icon/png/defjam-128.png',
+                 'branding/icon/png/defjam-256.png', 'branding/steam/hero.png', 'branding/steam/icon.png',
+                 'branding/fan/steam/portrait.png', 'branding/fan/steam/wide.png', 'branding/fan/steam/logo.png'):
+        assert name in linux
+    # ...the repository-only files are not, and a payload outside branding/ is unfiltered.
+    for platform in ('windows-x64', 'macos-arm64', 'linux-x64'):
+        assert not [n for n in wanted(platform) if '/masters/' in n or 'social-preview' in n or 'macos/' in n]
+        assert package.payload_wants('setup/engine.py', platform)
+    # The macOS payload was 7.6 MB heavier with all of branding/ and hdiutil ran out of room.
+    assert sum((ROOT / n).stat().st_size for n in wanted('macos-arm64')) < 200_000
+    assert sum((ROOT / n).stat().st_size for n in wanted('windows-x64')) < 300_000
