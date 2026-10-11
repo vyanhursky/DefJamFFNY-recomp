@@ -12,15 +12,16 @@ same pipeline off Windows, since v0.5.0.
 |---|---|
 | macOS on Apple Silicon (arm64) | Playable. Built, regression-tested and play-tested on macOS 26 with a DualSense. |
 | macOS on Intel | Not tried. |
-| Linux x86-64 | Builds and runs natively (D94). Built with Clang 20 and run on a Steam Deck; 12 of the 14 regression checks pass on the Deck; combat and versus fail only on a few audio-queue underruns. Not yet play-tested at length by the owner. |
+| Linux x86-64 | Builds and runs natively (D95). Built with Clang 20 and run on a Steam Deck; 12 of the 14 regression checks pass on the Deck; combat and versus fail only on a few audio-queue underruns ([#11](https://github.com/vyanhursky/DefJamFFNY-recomp/issues/11)). Play-tested by the owner on the Deck. |
 | Steam Deck | Native, through Vulkan on the Deck's GPU, with PipeWire sound and the Deck's own controls as a pad. SteamOS has no compiler: build in a container (below) and run the game on SteamOS itself. Proton not tried. |
 
 What is different from Windows:
 
 - The picture is drawn through Vulkan (MoltenVK on macOS) instead of Direct3D 11.
-- There is **no launcher and no in-game overlay** yet. The game starts at once;
-  settings are changed by editing `settings.ini`
-  ([settings reference](settings-reference.md)).
+- The launcher (a window before the game starts) and the in-game overlay (F1) are there since v0.6.2, as
+  on Windows ([guide](launcher-and-overlay.md)); `settings.ini` still works too
+  ([settings reference](settings-reference.md)). Hold Shift while the game starts to see
+  the launcher when it is skipped.
 - The game does not write its own log file; redirect it yourself (see Run).
 
 The source contains no game executable or assets. You need your own **USA Xbox
@@ -66,21 +67,40 @@ first build), the compiler the port is tested with; GCC also builds it.
 
 SteamOS has no compiler and a read-only system, but it has podman and
 distrobox, and it ships the libraries the game needs at run time (SDL3, the
-Vulkan loader, shaderc). Build in a container and run the game on SteamOS:
+Vulkan loader, shaderc). Build in a container and run the game on SteamOS.
+
+The game must be built against libraries no newer than SteamOS's own, or it
+will not start there (a current Arch Linux container links Dear ImGui's maths
+against a glibc SteamOS does not have). So the build container is Arch Linux as
+of an archive date whose glibc, SDL3, shaderc and Vulkan loader match SteamOS
+3.8, the same pins the Linux setup uses. Use podman directly: distrobox would
+upgrade the container to today's packages on its first start.
 
 ```bash
-distrobox create --name djbuild --image docker.io/library/archlinux:latest
-distrobox enter djbuild -- sudo pacman -Syu --noconfirm --needed base-devel cmake ninja clang \
-    pkgconf sdl3 shaderc vulkan-headers vulkan-icd-loader openssl python uv
-distrobox enter djbuild          # the rest of this page, from inside the container
+mkdir -p ~/defjam-build-image && cd ~/defjam-build-image
+cat > Containerfile <<'EOF'
+FROM docker.io/library/archlinux@sha256:af82cf8d6d8e461701c28e339bb39de2f22376f06382c205fe22f86175889f4d
+RUN echo 'Server = https://archive.archlinux.org/repos/2025/07/27/$repo/os/$arch' > /etc/pacman.d/mirrorlist \
+ && echo 'faked-system-time 20250727T120000' >> /etc/pacman.d/gnupg/gpg.conf \
+ && pacman -Syy --noconfirm --needed cmake ninja clang pkgconf sdl3 shaderc vulkan-headers \
+        vulkan-icd-loader openssl python git \
+ && sed -i '/^faked-system-time/d' /etc/pacman.d/gnupg/gpg.conf && pacman -Scc --noconfirm \
+ && python -m venv /opt/djpy && /opt/djpy/bin/pip install -q pyxbe capstone pytest
+ENV CC=clang CXX=clang++
+EOF
+podman build -t localhost/defjam-dev .
+alias djc='podman run --rm -it --userns=keep-id --security-opt label=disable -v "$HOME:$HOME" -w "$PWD" -e DEFJAM_DATA localhost/defjam-dev'
+alias djpy='djc /opt/djpy/bin/python'   # instead of the uv alias below
 ```
 
-The container shares your home folder, so the repository and the data folder
-are the same paths inside and out. Build there, then start the game from a
-SteamOS terminal (Desktop Mode), not from inside the container: the container
-has no PipeWire library, so sound only works outside it. A binary built
-against libraries newer than SteamOS's will refuse to start there;
-`ldd -r build/posix-release/defjam_recomp` lists anything missing.
+The `faked-system-time` line lets pacman check the archive's signatures as of
+that date: some packagers' keys have expired since. The container sees your
+home folder at the same path, so the repository and the data folder are the
+same inside and out. Use this `djpy` for the pipeline steps below (and `djc` in
+front of any other build command), and start the game itself on SteamOS, from a
+Desktop Mode terminal:
+`ldd -r build/posix-release/defjam_recomp` there lists anything the build
+needs that SteamOS lacks.
 
 Python 3.12 or newer with `pyxbe`, `capstone` and `pytest`. With
 [uv](https://docs.astral.sh/uv/) (`brew install uv`) nothing else has to be
@@ -146,15 +166,16 @@ The redirection keeps a log of the session; the game prints a great deal, and
   [Controllers, keyboard and mouse](10-input.md).
 - F11 or Alt+Enter switches full screen. Cmd+Q (macOS) or closing the window
   quits.
-- Display settings (window size, render scale, gamma) are in `settings.ini`;
-  see the [settings reference](settings-reference.md). There is no launcher or
-  overlay to change them from.
+- Display settings (window size, render scale, gamma) are in the launcher, the F1
+  overlay and `settings.ini`; see the [settings reference](settings-reference.md).
 - `RECOMP_HEADLESS=1` runs without a window or sound device: frames are drawn
   off screen. The tests use it.
 
 ## Known limits
 
-- No launcher or overlay (see above); they come in v0.6.2.
+- The window follows the display's pixel density (2560x1920 pixels for the default 1280x960 window on a Retina
+  display, as `[HOST] window ...` in the log says), and the overlay is drawn at that resolution. Window width and
+  height changed in the overlay resize the window at once.
 - HD textures work since v0.6.1 through the same `[textures]` settings as on Windows
   ([guide](hd-textures.md)); the packs are made by the macOS setup's HD option or by
   `scripts/build-hd-pack.py`. They use more memory (`cache_mb`, 512 MiB by default) and

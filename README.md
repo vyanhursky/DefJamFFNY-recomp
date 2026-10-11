@@ -37,7 +37,7 @@ game assets, disc images, translated game code or game executable.
   at your dump; it checks it, then translates and compiles the game locally.
 - **Launcher and in-game settings.** A start-up window and an overlay (F1) for
   display, texture, controller and key settings, usable with mouse, keyboard or
-  pad (Windows).
+  pad (Windows and macOS).
 - **Your saves stay local.** Profiles live in your data folder and survive
   updates and repairs.
 
@@ -54,8 +54,8 @@ Gameplay captured by the maintainer. The GIF is a short, silent preview.
 | Area | Status |
 |---|---|
 | Windows x64 | Playable; tested on Windows 11 |
-| macOS (Apple Silicon) | Playable through Vulkan since v0.5.0, with a setup installer and optional HD textures since v0.6.1, still without the launcher and overlay (v0.6.2); see [macOS setup](docs/setup-installer.md#macos-setup-apple-silicon) |
-| Linux (x86-64) | Builds and runs natively through Vulkan, without the launcher and overlay; see [Build on macOS and Linux](docs/build-macos-linux.md) |
+| macOS (Apple Silicon) | Playable through Vulkan since v0.5.0, with a setup installer and optional HD textures since v0.6.1 and the launcher and overlay since v0.6.2; see [macOS setup](docs/setup-installer.md#macos-setup-apple-silicon) |
+| Linux (x86-64) | Builds and runs natively through Vulkan, with the launcher and overlay of v0.6.2; see [Build on macOS and Linux](docs/build-macos-linux.md) |
 | Steam Deck | Native (Vulkan, PipeWire sound, the Deck's controls as a pad), installed by the [Linux setup](docs/setup-installer.md#linux-setup) with an optional Steam shortcut for Gaming Mode; automated regression and owner play-test on the Deck; a little audio distortion remains ([#11](https://github.com/vyanhursky/DefJamFFNY-recomp/issues/11)). Proton not tried. See [Steam Deck](docs/build-macos-linux.md#steam-deck) |
 | Menus and fights | Menus, match setup, fights and the return to the menus work |
 | Story | Intro and cutscenes, character creator, crib and gym work; a full playthrough has not been verified |
@@ -63,7 +63,7 @@ Gameplay captured by the maintainer. The GIF is a short, silent preview.
 | HD textures | Optional 4× texture packs, generated locally from your own dump; on Windows and (since v0.6.1) macOS; see [HD textures](docs/hd-textures.md) |
 | Audio | Music, speech and effects |
 | Input | Gamepads (Xbox, DualSense, Switch Pro and most others), keyboard and mouse, rumble and remapping; see [Controllers, keyboard and mouse](docs/10-input.md) |
-| Launcher and overlay | A start-up window and an in-game settings overlay (F1) on Windows; see [Launcher and overlay](docs/launcher-and-overlay.md) |
+| Launcher and overlay | A start-up window and an in-game settings overlay (F1) on Windows and (since v0.6.2) macOS; see [Launcher and overlay](docs/launcher-and-overlay.md) |
 | Saves | Local profiles in your data folder |
 
 ## Install
@@ -198,12 +198,10 @@ there upstream where they help other games.
 ## Roadmap
 
 Released so far: display settings and a settings file, gamepad and keyboard
-input, the launcher and overlay, a native macOS build, the Windows installer and
-optional HD textures (Windows, then macOS). Still planned:
+input, the launcher and overlay (Windows, then macOS), a native macOS build, the Windows
+and macOS installers and optional HD textures. Still planned:
 
 - true 16:9 widescreen in fights;
-- the launcher and overlay on macOS (v0.6.2);
-- the launcher and overlay on Linux;
 - deeper gameplay decompilation, as a stretch goal.
 
 See the [roadmap](docs/01-plan-review.md#corrected-roadmap-milestones-with-exit-criteria),
