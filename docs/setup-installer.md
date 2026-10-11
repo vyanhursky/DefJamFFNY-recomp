@@ -311,4 +311,5 @@ previous install, its Steam shortcut and folders removed, then a silent install 
 images, 6.57 GB, both packs enabled in `settings.ini`, the Steam shortcut and its artwork placed).
 With the packs on, the fight and Free For All regression checks pass (median 60 and 56.5 frames a
 second) after the v0.7.2 toolkit change; the main menu takes about 3 s to respond the first time
-it is shown while its HD art loads.
+it is shown while its HD art loads. Running setup again with **Add to Steam** keeps the one shortcut (v0.7.2; before, a repair
+added a second).

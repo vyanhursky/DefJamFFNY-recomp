@@ -850,12 +850,16 @@ class Engine:
             self.event('Steam is not running; add ' + str(launcher) + ' to Steam with "Add a Non-Steam Game"')
             return
         try:
-            if helper:
+            if find_steam_shortcut(launcher)[0] is not None:
+                # A repair or update: Steam would add a second entry for the same launcher.
+                self.event('The game is already in your Steam library')
+            elif helper:
                 self.run([helper, launcher])
+                self.event('Asked Steam to add the game to your library')
             else:
                 Path('/tmp/addnonsteamgamefile').touch()
                 self.run([steam, 'steam://addnonsteamgame/' + urllib.parse.quote(str(launcher), safe='')])
-            self.event('Asked Steam to add the game to your library')
+                self.event('Asked Steam to add the game to your library')
             previous = self.install / 'installed.json'
             owned = json.loads(previous.read_text(encoding='utf-8')).get('steam_art', []) if previous.is_file() else []
             receipt['steam_art'] = place_steam_art(self.source, launcher, owned, self.event)

@@ -380,3 +380,23 @@ def test_setup_installs_the_icon_and_uninstall_removes_it_and_the_steam_art(tmp_
     assert len(receipt['steam_art']) == 4 and all(Path(p).is_file() for p in receipt['steam_art'])
     engine.uninstall(setup.install)
     assert not icon.exists() and not any(Path(p).exists() for p in receipt['steam_art'])
+
+
+@linux_only
+def test_a_repair_does_not_add_a_second_steam_shortcut(tmp_path, monkeypatch):
+    fake_home(tmp_path, monkeypatch)
+    setup = installer(tmp_path)
+    launcher = setup.install / engine.LINUX_LAUNCHER
+    user = steam_user(tmp_path, (0xC0FFEE01, 'Other game', '/usr/bin/other'))
+    monkeypatch.setattr(engine, 'steam_userdata_folders', lambda: [user])
+    monkeypatch.setattr(engine, 'place_steam_art', lambda *a, **k: [])
+    monkeypatch.setattr(engine.shutil, 'which', lambda name: '/usr/bin/true' if name == 'steamos-add-to-steam' else None)
+    monkeypatch.setattr(engine.subprocess, 'run', lambda *a, **k: subprocess.CompletedProcess(a, 0))
+    asked = []
+    monkeypatch.setattr(setup, 'run', lambda argv, **k: asked.append(argv) or '')
+    setup.add_to_steam(launcher, {})
+    assert asked == [['/usr/bin/true', launcher]]                     # not in Steam yet: asked once
+    (user / 'config/shortcuts.vdf').write_bytes(shortcuts_vdf((0xC0FFEE01, 'Other game', '/usr/bin/other'),
+                                                              (0x9A8B7C6D, 'Def Jam Recompiled', str(launcher))))
+    setup.add_to_steam(launcher, {})
+    assert len(asked) == 1                                            # already there: not asked again
