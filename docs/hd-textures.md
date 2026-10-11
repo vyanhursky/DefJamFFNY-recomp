@@ -25,7 +25,13 @@ The supported static corpus contains **18,971 unique images**. Its HD PNGs total
 Setup requires **15 GiB additional free space** when this option is selected,
 covering work files and filesystems that cannot hard-link the generated PNGs.
 Generation took about four minutes on the development PC; game compilation and
-texture verification add time, and other CPUs may take longer.
+texture verification add time, and other CPUs may take longer. On a Steam Deck the upscale
+takes about ten minutes, and the whole install with it about 15.
+
+The first time a screen is drawn with the packs, its HD textures are decoded and uploaded
+(the main menu's are 2048x2048), so it can take a moment to respond: about 3 s for the main
+menu on a Steam Deck. On the Deck a one-on-one fight runs at 60 frames a second with the packs
+and a four-fighter Free For All at about 56 (both 60 without them).
 
 In the launcher or F1 overlay (Windows, macOS since v0.6.2, Linux since v0.7.0), open **Textures** to disable HD
 packs, change the pack list or adjust the cache. Restart after changes. Or edit `[textures]` in

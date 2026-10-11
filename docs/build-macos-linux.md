@@ -178,8 +178,9 @@ The redirection keeps a log of the session; the game prints a great deal, and
   height changed in the overlay resize the window at once.
 - HD textures work through the same `[textures]` settings as on Windows (macOS since
   v0.6.1, Linux since v0.7.2; [guide](hd-textures.md)); the packs are made by the macOS
-  or Linux setup's HD option or by `scripts/build-hd-pack.py`. They use more memory (`cache_mb`, 512 MiB by default) and
-  add a short hitch the first time a texture is shown.
+  or Linux setup's HD option or by `scripts/build-hd-pack.py`. They use more memory
+  (`cache_mb`, 512 MiB by default) and add a short hitch the first time a texture is shown
+  (about 3 s for the main menu on a Steam Deck).
 - No persistent shader cache: the first time an effect appears, the frame can
   hitch while its shader is compiled.
 - Vsync (`settings.ini` `vsync`) is only used on a display refreshing at a

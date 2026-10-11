@@ -304,3 +304,11 @@ both entries and kept the data folder (exit 0). Also checked: the wizard opens a
 on the Deck. Not yet checked: the wizard driven by hand from start to finish, the Steam shortcut
 started from Gaming Mode, and a desktop
 Linux distribution with its own toolchain (`--toolchain host`).
+
+The HD option (v0.7.2) was checked on the same Deck from the v0.7.2 development archive: the
+previous install, its Steam shortcut and folders removed, then a silent install from the XISO with
+`--hd-textures --steam-shortcut` took 14 min 48 s, about 9 min 40 s of it the upscale (18,971
+images, 6.57 GB, both packs enabled in `settings.ini`, the Steam shortcut and its artwork placed).
+With the packs on, the fight and Free For All regression checks pass (median 60 and 56.5 frames a
+second) after the v0.7.2 toolkit change; the main menu takes about 3 s to respond the first time
+it is shown while its HD art loads.
