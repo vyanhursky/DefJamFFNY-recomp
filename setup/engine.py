@@ -681,6 +681,14 @@ class Engine:
         self.run(['powershell.exe', '-NoProfile', '-Command',
                   "New-Item -ItemType Junction -Path $env:DEFJAM_SETUP_LINK -Target $env:DEFJAM_SETUP_TARGET -ErrorAction Stop | Out-Null"])
 
+    def imgui_override(self):
+        """Dear ImGui (the launcher and overlay) built from the payload's inventoried source."""
+        deps = json.loads((self.payload / 'dependencies.json').read_text())
+        imgui = [d for d in deps if '/imgui/' in d.get('source_dir', '').replace('\\', '/') + '/']
+        if len(imgui) != 1:
+            raise SetupError('The setup payload has no Dear ImGui source', 2)
+        return f'-DFETCHCONTENT_SOURCE_DIR_IMGUI={self.source / imgui[0]["source_dir"]}'
+
     def pipeline(self):
         state = load_module('setup_pipeline_state', self.source / 'scripts/pipeline-state.py')
         tk = self.source / 'tools/xboxrecomp'
@@ -704,8 +712,9 @@ class Engine:
                 self.run([self.python, self.source / 'scripts/pipeline-state.py', 'begin-build',
                           '--preset', PRESET], cwd=self.source)
                 if IS_LINUX:
-                    # The system's (or the build container's) SDL3, Vulkan and shaderc.
-                    overrides = []
+                    # The system's (or the build container's) SDL3, Vulkan and shaderc; Dear
+                    # ImGui from the payload, since the container builds without a network.
+                    overrides = [self.imgui_override()]
                 elif IS_WINDOWS:
                     deps = json.loads((self.payload / 'dependencies.json').read_text())
                     overrides = [f'-DFETCHCONTENT_SOURCE_DIR_{name.upper()}={self.source / item["source_dir"]}'
@@ -714,12 +723,7 @@ class Engine:
                     # SDL3, MoltenVK and shaderc come prebuilt with the setup; nothing is
                     # looked for in /opt/homebrew, /usr/local or any other prefix.
                     prefix = self.version_root / 'deps'
-                    # Dear ImGui (the launcher and overlay) is built from the inventoried source.
-                    deps = json.loads((self.payload / 'dependencies.json').read_text())
-                    imgui = [d for d in deps if '/imgui/' in d.get('source_dir', '').replace('\\', '/') + '/']
-                    if len(imgui) != 1:
-                        raise SetupError('The setup payload has no Dear ImGui source', 2)
-                    overrides = [f'-DFETCHCONTENT_SOURCE_DIR_IMGUI={self.source / imgui[0]["source_dir"]}',
+                    overrides = [self.imgui_override(),
                                  f'-DCMAKE_PREFIX_PATH={prefix}', f'-DVulkan_LIBRARY={prefix}/lib/libMoltenVK.dylib',
                                  f'-DVulkan_INCLUDE_DIR={prefix}/include', '-DCMAKE_FIND_USE_CMAKE_SYSTEM_PATH=OFF',
                                  '-DCMAKE_OSX_ARCHITECTURES=arm64']

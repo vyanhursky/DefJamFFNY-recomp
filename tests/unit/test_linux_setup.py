@@ -5,7 +5,7 @@ import importlib.util
 import io
 import json
 import os
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import re
 import shlex
 import subprocess
@@ -190,7 +190,8 @@ def test_uninstall_removes_only_entries_that_still_name_this_install(tmp_path, m
 
 
 def test_desktop_exec_quotes_what_the_spec_requires():
-    entry = engine.desktop_entry(Path('/games/a "b" $c`d\\e/Def Jam Recompiled'), Path('/games'))
+    # A POSIX path on every host: on Windows a Path would read the backslash as a separator.
+    entry = engine.desktop_entry(PurePosixPath('/games/a "b" $c`d\\e/Def Jam Recompiled'), PurePosixPath('/games'))
     assert 'Exec="/games/a \\"b\\" \\$c\\`d\\\\e/Def Jam Recompiled"\n' in entry
 
 
@@ -249,3 +250,17 @@ def test_asset_check_matches_the_tarball_to_the_inspected_payload(tmp_path):
         assets.verify_embedded_payload_linux(tmp_path / 'extra.tar.gz', archive)
     assets.validate_asset_names('0.6.1', ['DefJamSetup-0.6.1-linux-x64.tar.gz', 'DefJamSetup-0.6.1-linux-x64.sha256',
                                           'DefJamSetup-0.6.1-linux-x64.provenance.json'], 'linux-x64')
+
+
+@linux_only
+def test_the_offline_build_takes_dear_imgui_from_the_payload(tmp_path):
+    setup = installer(tmp_path)
+    deps = [{'url': 'https://example.invalid/imgui.tar.gz', 'sha256': '0' * 64,
+             'source_dir': 'setup-deps/imgui/imgui-1.92.9b'}]
+    (setup.payload / 'dependencies.json').write_text(json.dumps(deps))
+    assert setup.imgui_override() == '-DFETCHCONTENT_SOURCE_DIR_IMGUI=' + str(
+        setup.source / 'setup-deps/imgui/imgui-1.92.9b')
+    (setup.payload / 'dependencies.json').write_text('[]')
+    with pytest.raises(engine.SetupError) as error:
+        setup.imgui_override()
+    assert error.value.code == 2

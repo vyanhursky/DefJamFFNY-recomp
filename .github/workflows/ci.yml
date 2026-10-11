@@ -20,7 +20,7 @@ jobs:
         with: { python-version: '3.13' }
       - run: python -m pip install pytest Pillow==12.3.0 numpy==2.5.2
       - name: Installer recovery and input boundaries
-        run: python -m pytest -q tests/unit/test_setup_engine.py tests/unit/test_hd_assets.py tests/unit/test_hd_corpus.py tests/unit/test_hd_setup.py
+        run: python -m pytest -q tests/unit/test_setup_engine.py tests/unit/test_linux_setup.py tests/unit/test_hd_assets.py tests/unit/test_hd_corpus.py tests/unit/test_hd_setup.py
       - name: Build and inventory standalone setup (no dump)
         shell: pwsh
         run: ./scripts/build-setup.ps1

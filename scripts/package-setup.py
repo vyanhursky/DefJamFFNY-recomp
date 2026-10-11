@@ -156,6 +156,9 @@ def stage_linux(args, staging, source, toolkit):
     cache = args.cache / 'linux'
     cache.mkdir(parents=True, exist_ok=True)
     provenance = linux.stage(staging, cache)
+    # The launcher and overlay are drawn with Dear ImGui, built from this source with the game:
+    # the build container has no network.
+    provenance.append(stage_imgui_source(args, source))
     (staging / 'licenses').mkdir(exist_ok=True)
     notice = staging / 'python/lib' / next(p.name for p in (staging / 'python/lib').iterdir()
                                           if re.fullmatch(r'python3\.\d+', p.name)) / 'LICENSE.txt'
