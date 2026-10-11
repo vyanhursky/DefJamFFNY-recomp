@@ -39,6 +39,8 @@ def digest(path):
 def source_allowed(name, toolkit=False):
     """Conservative source inventory; binaries and generated data cannot sneak in."""
     path = PurePosixPath(name)
+    if not toolkit and path.parts[0] == 'branding':
+        return True  # the approved icons and Steam artwork; check-source-tree.py pins every file (D96)
     if path.suffix.lower() in {'.xbe', '.iso', '.viv', '.mad', '.xsh', '.exe', '.dll', '.obj', '.pdb',
                               '.lib', '.a', '.so', '.pcm', '.wav', '.wma', '.png', '.gif', '.zip', '.7z', '.bmp', '.log'}:
         return False

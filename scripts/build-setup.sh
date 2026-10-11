@@ -25,6 +25,7 @@ fi
 LAUNCHER="$OUT/launcher/Def Jam Recompiled.app"
 mkdir -p "$LAUNCHER/Contents/MacOS" "$LAUNCHER/Contents/Resources"
 sed "s/@VERSION@/$VERSION/g" setup/macos/Launcher/Info.plist > "$LAUNCHER/Contents/Info.plist"
+cp branding/icon/macos/defjam.icns "$LAUNCHER/Contents/Resources/defjam.icns"
 swiftc -O -target arm64-apple-macos11.0 setup/macos/Launcher/main.swift -o "$LAUNCHER/Contents/MacOS/DefJamLauncher"
 codesign --force --sign - "$LAUNCHER"
 
@@ -41,6 +42,7 @@ swiftc -O -target arm64-apple-macos11.0 setup/macos/Setup/main.swift "$OUT/Paylo
     -o "$APP/Contents/MacOS/DefJamSetup"
 cp "$OUT/setup-payload.zip" "$APP/Contents/Resources/payload.zip"
 sed "s/@VERSION@/$VERSION/g" setup/macos/Setup/Info.plist > "$APP/Contents/Info.plist"
+cp branding/icon/macos/defjam.icns "$APP/Contents/Resources/defjam.icns"
 codesign --force --sign - "$APP"
 
 # 4. The disk image: the app, the first-run notes and the third-party licenses.
@@ -49,6 +51,9 @@ mkdir "$OUT/image/Licenses"
 unzip -q -o "$OUT/setup-payload.zip" 'licenses/*' -d "$OUT/licenses-unpacked"
 cp "$OUT"/licenses-unpacked/licenses/* "$OUT/image/Licenses/"
 cp LICENSE "$OUT/image/Licenses/Def-Jam-Recompiled-MIT.txt"
+# The mounted disk image shows the shield too (needs the custom-icon flag, which only SetFile sets).
+cp branding/icon/macos/defjam.icns "$OUT/image/.VolumeIcon.icns"
+command -v SetFile > /dev/null && SetFile -a C "$OUT/image" || true
 hdiutil create -volname "Def Jam Recompiled Setup" -srcfolder "$OUT/image" -ov -format UDZO "$OUT/DefJamSetup.dmg" > /dev/null
 
 # 5. Inventory, checksum and provenance of exactly what a release would attach.
