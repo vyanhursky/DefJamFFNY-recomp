@@ -37,7 +37,7 @@ game assets, disc images, translated game code or game executable.
   at your dump; it checks it, then translates and compiles the game locally.
 - **Launcher and in-game settings.** A start-up window and an overlay (F1) for
   display, texture, controller and key settings, usable with mouse, keyboard or
-  pad (Windows and macOS).
+  pad (Windows, macOS and Linux).
 - **Your saves stay local.** Profiles live in your data folder and survive
   updates and repairs.
 
@@ -63,7 +63,7 @@ Gameplay captured by the maintainer. The GIF is a short, silent preview.
 | HD textures | Optional 4× texture packs, generated locally from your own dump; on Windows and (since v0.6.1) macOS; see [HD textures](docs/hd-textures.md) |
 | Audio | Music, speech and effects |
 | Input | Gamepads (Xbox, DualSense, Switch Pro and most others), keyboard and mouse, rumble and remapping; see [Controllers, keyboard and mouse](docs/10-input.md) |
-| Launcher and overlay | A start-up window and an in-game settings overlay (F1) on Windows and (since v0.6.2) macOS; see [Launcher and overlay](docs/launcher-and-overlay.md) |
+| Launcher and overlay | A start-up window and an in-game settings overlay (F1) on Windows and (since v0.6.2) macOS and Linux; see [Launcher and overlay](docs/launcher-and-overlay.md) |
 | Saves | Local profiles in your data folder |
 
 ## Install
