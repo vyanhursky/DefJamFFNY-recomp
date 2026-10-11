@@ -83,9 +83,9 @@ jobs:
         with: { submodules: recursive }
       - uses: actions/setup-python@v5
         with: { python-version: '3.13' }
-      - run: python -m pip install pytest pyxbe capstone
+      - run: python -m pip install pytest pyxbe capstone Pillow==12.3.0 numpy==2.5.2
       - name: Installer recovery, input boundaries, launcher and payload checks
-        run: python -m pytest -q tests/unit/test_setup_engine.py tests/unit/test_linux_setup.py
+        run: python -m pytest -q tests/unit/test_setup_engine.py tests/unit/test_linux_setup.py tests/unit/test_hd_setup.py
       - uses: actions/cache@v4
         with:
           path: build/setup-downloads/linux

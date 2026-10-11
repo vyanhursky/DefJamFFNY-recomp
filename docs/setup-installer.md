@@ -222,8 +222,9 @@ that the game's libraries are all present on this computer and says which are no
 an application-menu entry, a desktop shortcut unless you clear the choice, and asks
 Steam for its shortcut if you chose it. The launcher takes the play lock (an update
 refuses to run while the game does), supplies the data folder and working directory
-and keeps the ten newest play logs in `~/.local/state/DefJamRecompiled/logs`. The
-launcher and in-game overlay are not on Linux yet; settings are in `settings.ini`
+and keeps the ten newest play logs in `~/.local/state/DefJamRecompiled/logs`. The game
+opens its launcher window first and has the F1 overlay, as on the other platforms
+([guide](launcher-and-overlay.md)); settings are also in `settings.ini`
 ([reference](settings-reference.md)). Setup logs are in `~/.local/state/DefJamSetup/logs`.
 
 **Silent mode and removal.**
@@ -240,7 +241,8 @@ missing (no toolchain and no podman, the container could not be fetched, or the
 game's libraries are missing); 4 failed stage; 5 another setup or the game is
 running; 6 cancelled. Uninstalling removes the application, the launcher and the menu
 and desktop entries it made, and keeps the dump copy, saves, settings and logs. A
-Steam shortcut stays in Steam until you remove it there, and the build container stays
+Steam shortcut stays in Steam until you remove it there (in the Library, the game's
+**Manage** menu, *Remove non-Steam game from your library*), and the build container stays
 in podman's store (`podman rmi $(podman images -q localhost/defjam-recompiled-build)`).
 
 ### What the Linux payload carries
@@ -262,6 +264,10 @@ host library check; the launcher started the game with the install's data folder
 sound, the Deck's controls as player 1 and Vulkan at 60 frames a second, and kept its play log;
 the application-menu entry, the desktop shortcut and (with `--steam-shortcut`, Steam running)
 the Steam shortcut were made. A repair with the same folders reused every verified stage and
-took 13 seconds. Also checked: the wizard opens and closes (`--ui-smoke`), and a silent run
-with a missing dump exits 2. Not yet checked: the wizard driven by hand, Gaming Mode, a desktop
-Linux distribution with its own toolchain (`--toolchain host`), and uninstalling.
+took 13 seconds. An update from v0.6.1 to v0.6.2 built Dear ImGui offline in the container, and the
+installed game opened its launcher. `--uninstall` removed the application, the launcher and
+both entries and kept the data folder (exit 0). Also checked: the wizard opens and closes
+(`--ui-smoke`), and a silent run with a missing dump exits 2. Vlad played the installed game
+on the Deck. Not yet checked: the wizard driven by hand from start to finish, the Steam shortcut
+started from Gaming Mode, and a desktop
+Linux distribution with its own toolchain (`--toolchain host`).

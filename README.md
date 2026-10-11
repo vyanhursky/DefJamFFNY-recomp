@@ -198,8 +198,8 @@ there upstream where they help other games.
 ## Roadmap
 
 Released so far: display settings and a settings file, gamepad and keyboard
-input, the launcher and overlay (Windows, then macOS), a native macOS build, the Windows
-and macOS installers and optional HD textures. Still planned:
+input, the launcher and overlay (Windows, then macOS and Linux), native macOS and Linux builds
+(the Steam Deck included), the Windows, macOS and Linux installers and optional HD textures. Still planned:
 
 - true 16:9 widescreen in fights;
 - deeper gameplay decompilation, as a stretch goal.
