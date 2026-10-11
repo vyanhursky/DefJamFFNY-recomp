@@ -31,7 +31,7 @@ APPROVED_README_MEDIA = {
 # branding/ and is written by scripts/make-branding.py. Changing any file therefore needs the
 # owner to approve a new pin here.
 BRANDING_SUMS = 'branding/SHA256SUMS'
-BRANDING_SUMS_SHA256 = '474c86e120a67af23ce9c886f1c1b4f3a2b846ff02ee1ffb0ee1663195304a84'
+BRANDING_SUMS_SHA256 = 'c8d6048985f1bda2f167f008ec0c278713b6da43eb1f7c46e9560af8f21a1af7'
 
 
 def approved_branding(repo):

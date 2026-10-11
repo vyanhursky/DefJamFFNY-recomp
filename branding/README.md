@@ -17,7 +17,8 @@ a new approval.
 | `icon/window/*.rgba` | Raw 128x128 RGBA, compiled into the macOS and Linux game as the SDL window icon (`cmake/app_icon.cmake`). |
 | `steam/portrait.png` 600x900 (the cover), `wide.png` 920x430, `hero.png` 1920x620, `logo.png` 1280 wide (transparent), `icon.png` 256 | The Steam library artwork. The Linux setup copies the first four into the Steam shortcut's `grid` folder (`<appid>p.png`, `<appid>.png`, `<appid>_hero.png`, `<appid>_logo.png`). |
 | `github/social-preview-1280x640.jpg` | The repository's social preview image (upload it under Settings, Social preview). |
-| `masters/` | The source images everything else is rendered from. |
+| `fan/` | The same logo, wide and portrait capsules and social preview with **FAN RECOMP** under the title, so the port reads as a fan project. `fan/steam/` is what the Linux setup places for Steam (its hero and icon are the plain set's); the plain files above are kept as the editable originals. |
+| `masters/` | The source images everything else is rendered from, including `fan-tag.png`, the FAN RECOMP tag drawn once in Impact (distressed with the plate's speckle and scratches, outlined in its ink) so rendering does not need the font. |
 | `SHA256SUMS` | The fingerprint of every file above. |
 
 ## Where the masters come from
@@ -41,6 +42,7 @@ backdrop is graded (lifted, vignetted, grain) rather than invented.
 ```
 python scripts/make-branding.py render                         # everything from masters/ (Pillow, NumPy)
 python scripts/make-branding.py masters --corpus <corpus dir>  # masters from your own dump's corpus, then render
+python scripts/make-branding.py fan-tag --font <font.ttf>      # redraw the FAN RECOMP tag master, then render
 ```
 
 Rendering is not byte-for-byte reproducible across Pillow versions, so a regeneration produces a

@@ -124,7 +124,9 @@ Linux. The Start-menu and desktop shortcuts, the wizard windows and the game win
 too, and on macOS and Linux the SDL game window sets it as the Dock and taskbar icon.
 
 On Linux, **Add to Steam** also gives the shortcut library artwork: a portrait and a wide
-capsule, a hero and a logo, from [`branding/steam`](../branding/README.md). Steam writes the
+capsule, a hero and a logo, from [`branding/fan/steam`](../branding/README.md) -- the title
+with **FAN RECOMP** under it, so the port reads as a fan project (the hero is the plain set's, as
+it carries no title) -- and the plain set in `branding/steam` for anything the fan set lacks. Steam writes the
 shortcut's id into `userdata/<id>/config/shortcuts.vdf`; setup reads it back from there and
 copies the four images into `config/grid` under that id (`<id>p.png`, `<id>.png`,
 `<id>_hero.png`, `<id>_logo.png`). It never replaces artwork you chose yourself, and

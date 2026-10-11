@@ -330,6 +330,19 @@ def test_steam_artwork_is_named_by_the_shortcuts_appid_and_the_players_own_art_i
     assert (grid / '2592832621_hero.png').read_bytes() == b'png hero.png'
 
 
+def test_the_fan_set_is_placed_by_default_and_the_plain_set_fills_the_gaps(tmp_path):
+    user = steam_user(tmp_path, (0x9A8B7C6D, 'Def Jam Recompiled', '/games/Def Jam Recompiled'))
+    source = art_source(tmp_path)                                   # the plain set: all four
+    (source / 'branding/fan/steam').mkdir(parents=True)
+    for name in ('portrait.png', 'wide.png', 'logo.png'):           # the fan set has no hero
+        (source / 'branding/fan/steam' / name).write_bytes(b'fan ' + name.encode())
+    engine.place_steam_art(source, PurePosixPath('/games/Def Jam Recompiled'), event=lambda m: None, folders=[user])
+    grid = user / 'config/grid'
+    assert (grid / '2592832621p.png').read_bytes() == b'fan portrait.png'
+    assert (grid / '2592832621_logo.png').read_bytes() == b'fan logo.png'
+    assert (grid / '2592832621_hero.png').read_bytes() == b'png hero.png'      # from the plain set
+
+
 def test_no_shortcut_yet_places_nothing_and_says_how_to_finish(tmp_path):
     user = steam_user(tmp_path)
     messages = []

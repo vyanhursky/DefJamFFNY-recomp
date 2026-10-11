@@ -112,6 +112,11 @@ def test_the_png_icons_the_steam_art_and_the_window_icons_have_the_sizes_their_r
     assert png_size(steam / 'hero.png') == (1920, 620)
     assert png_size(steam / 'logo.png')[0] == 1280 and png_size(steam / 'logo.png')[1] <= 720
     assert png_size(steam / 'icon.png') == (256, 256)
+    fan = BRANDING / 'fan'
+    assert png_size(fan / 'steam/portrait.png') == (600, 900)
+    assert png_size(fan / 'steam/wide.png') == (920, 430)
+    assert png_size(fan / 'steam/logo.png')[0] == 1280
+    assert png_size(BRANDING / 'masters/fan-tag.png')[0] > 500
     for name in ('window-128.rgba', 'window-128-macos.rgba'):
         assert (BRANDING / 'icon/window' / name).stat().st_size == 128 * 128 * 4
 
@@ -130,3 +135,4 @@ def test_the_generator_rebuilds_the_whole_set_from_the_masters(tmp_path):
                        if p.is_file() and p.name != 'README.md'}
     assert png_size(out / 'steam/portrait.png') == (600, 900)
     assert png_size(out / 'steam/hero.png') == (1920, 620)
+    assert png_size(out / 'fan/steam/portrait.png') == (600, 900) and png_size(out / 'fan/steam/wide.png') == (920, 430)

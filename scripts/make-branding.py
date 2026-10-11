@@ -3,12 +3,18 @@
 
     python scripts/make-branding.py render [--out branding]
     python scripts/make-branding.py masters --corpus <decoded-texture-corpus> [--out branding]
+    python scripts/make-branding.py fan-tag [--font impact.ttf] [--out branding]
 
 `render` needs only Pillow and NumPy and rebuilds everything under `branding/` from
 `branding/masters/` (the shield, the title wordmark, the title-screen scene and its skyline,
 and `cover.jpg`, the official cover scan, when present). `masters` rebuilds those four masters from the decoded
 textures of a dump: the corpus is the one `scripts/hd_corpus.py` writes (`corpus.json` plus
 `originals/`), and the source of every master is recorded in `branding/README.md`.
+
+`render` also makes the "FAN RECOMP" set under `branding/fan/` (the wordmark with a tag under it, on the
+logo, the wide and portrait capsules and the social preview) from `masters/fan-tag.png`, which `fan-tag`
+draws once from a heavy condensed font so that rendering does not need the font. The Steam installer
+prefers `fan/steam/` and falls back to `steam/`; the plain set is kept for future editing.
 
 The artwork is the game's own and stays the property of its rights holders; Vlad approved
 committing exactly these files (D96). `scripts/check-source-tree.py` pins them by the SHA-256
@@ -24,7 +30,7 @@ from io import BytesIO
 from pathlib import Path
 
 import numpy as np
-from PIL import Image, ImageDraw, ImageFilter, ImageOps
+from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageOps
 
 # Decoded textures (ids in the corpus of the user's own dump). See branding/README.md.
 SOURCES = {
@@ -126,6 +132,59 @@ def master_scene(corpus):
 
 def master_skyline(corpus):
     return load_texture(corpus, 'sky').crop((0, 131, 640, 317)).convert('RGB')
+
+
+def master_fan_tag(font_path, text='FAN RECOMP', cap=152, tracking=24, seed=5):
+    """Distressed silver letters with a dark outline, in the wordmark's own style: rough edge, speckle
+    and scratches like its plate, a grainy silver face, and the plate's ink as the outline."""
+    font = ImageFont.truetype(str(font_path), round(cap * 1.38))
+    widths = [font.getlength(c) for c in text]
+    w = round(sum(widths) + tracking * (len(text) - 1)) + 80
+    h = round(cap * 1.8)
+    mask = Image.new('L', (w, h), 0)
+    draw = ImageDraw.Draw(mask)
+    x = 40
+    for c, cw in zip(text, widths):
+        draw.text((x, h * 0.5), c, font=font, fill=255, anchor='lm')
+        x += cw + tracking
+    rng = np.random.default_rng(seed)
+
+    def noise(sigma, shape=(h, w)):
+        raw = Image.fromarray((rng.random(shape) * 255).astype(np.uint8))
+        if shape != (h, w):
+            raw = raw.resize((w, h), Image.BICUBIC)
+        return np.asarray(raw.filter(ImageFilter.GaussianBlur(sigma)), np.float32) / 255
+
+    base = np.asarray(mask.filter(ImageFilter.GaussianBlur(1.6)), np.float32) / 255
+    rough = base + (noise(2.2) - 0.5) * 1.1                       # roughen the edge
+    letters = smooth(rough, 0.45, 0.58)
+    speck = noise(1.0)
+    letters *= 1 - (speck > speck.mean() + 2.6 * speck.std())     # speckle holes
+    scratch = Image.new('L', (w, h), 0)
+    sd = ImageDraw.Draw(scratch)
+    for _ in range(9):
+        x0, y0 = rng.integers(40, w - 40), rng.integers(10, h - 10)
+        length = rng.integers(90, 320)
+        angle = np.radians(rng.normal(-6, 9))
+        sd.line((x0, y0, x0 + length * np.cos(angle), y0 + length * np.sin(angle)), fill=255, width=int(rng.integers(1, 3)))
+    letters *= 1 - np.asarray(scratch.filter(ImageFilter.GaussianBlur(0.5)), np.float32) / 255 * 0.9
+    lum = 206 + (noise(0.9) - 0.5) * 70 + (noise(0, (h // 8 + 1, w // 8 + 1)) - 0.5) * 50
+    face = Image.fromarray(np.stack([lum, lum, lum - 3], axis=2).clip(0, 255).astype(np.uint8)).convert('RGBA')
+    alpha = Image.fromarray((letters * 255).astype(np.uint8))
+    face.putalpha(alpha)
+    outline = alpha.filter(ImageFilter.MaxFilter(11)).filter(ImageFilter.GaussianBlur(1.2))
+    ink = Image.new('RGBA', (w, h), INK + (255,))
+    ink.putalpha(outline)
+    tag = Image.alpha_composite(ink, face)
+    return tag.crop(tag.getchannel('A').getbbox())
+
+
+def with_fan_tag(wordmark, tag, gap=-10):
+    """The wordmark with the tag under it, right-aligned to the plate."""
+    canvas = Image.new('RGBA', (wordmark.width, wordmark.height + gap + tag.height), (0, 0, 0, 0))
+    canvas.alpha_composite(wordmark, (0, 0))
+    canvas.alpha_composite(tag, (wordmark.width - tag.width - 24, wordmark.height + gap))
+    return canvas
 
 
 # ---------------------------------------------------------------- icons
@@ -354,6 +413,21 @@ def render(out):
     base.save(out / 'steam/portrait.png', optimize=True)
     save_jpeg(wide(scene, wordmark, (1280, 640), wordmark_width=0.7, y_center=0.5, crop_top=40), out / 'github/social-preview-1280x640.jpg')
 
+    tag_file = masters / 'fan-tag.png'
+    if tag_file.exists():
+        fan = with_fan_tag(wordmark, Image.open(tag_file).convert('RGBA'))
+        for sub in ('fan/steam', 'fan/github'):
+            (out / sub).mkdir(parents=True, exist_ok=True)
+        steam_logo(fan).save(out / 'fan/steam/logo.png', optimize=True)
+        wide(scene, fan, (1840, 860)).resize((920, 430), Image.LANCZOS).save(out / 'fan/steam/wide.png', optimize=True)
+        if cover.exists():
+            fan_base = portrait_from_cover(Image.open(cover).convert('RGB'), fan)
+        else:
+            fan_base = portrait(scene, fan, shield).resize((600, 900), Image.LANCZOS)
+        fan_base.save(out / 'fan/steam/portrait.png', optimize=True)
+        save_jpeg(wide(scene, fan, (1280, 640), wordmark_width=0.7, y_center=0.5, crop_top=40),
+                  out / 'fan/github/social-preview-1280x640.jpg')
+
 
 def write_sums(out):
     lines = []
@@ -365,9 +439,11 @@ def write_sums(out):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('command', choices=('render', 'masters'))
+    parser.add_argument('command', choices=('render', 'masters', 'fan-tag'))
     parser.add_argument('--out', type=Path, default=Path(__file__).resolve().parents[1] / 'branding')
     parser.add_argument('--corpus', type=Path)
+    parser.add_argument('--font', type=Path, default=Path(r'C:\Windows\Fonts\impact.ttf'),
+                        help='fan-tag: a heavy condensed font for the FAN RECOMP tag (default: Impact on Windows)')
     args = parser.parse_args()
     if args.command == 'masters':
         if not args.corpus:
@@ -378,6 +454,9 @@ def main():
         master_wordmark(load_texture(args.corpus, 'wordmark')).save(masters / 'wordmark.png', optimize=True)
         master_scene(args.corpus).save(masters / 'scene.png', optimize=True)
         master_skyline(args.corpus).save(masters / 'skyline.png', optimize=True)
+    if args.command == 'fan-tag':
+        (args.out / 'masters').mkdir(parents=True, exist_ok=True)
+        master_fan_tag(args.font).save(args.out / 'masters/fan-tag.png', optimize=True)
     render(args.out)
     write_sums(args.out)
     return 0

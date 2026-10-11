@@ -41,7 +41,8 @@ RUNTIME_FOLDERS = ('source/', 'python/') if IS_WINDOWS or IS_LINUX else ('source
 LINUX_LAUNCHER = 'Def Jam Recompiled'
 LINUX_DESKTOP_ID = 'defjam-recompiled'
 LINUX_MARKER = 'X-DefJamRecompiled-Install'
-# Steam artwork for the non-Steam shortcut: grid file suffix -> file in branding/steam.
+# Steam artwork for the non-Steam shortcut: grid file suffix -> file name. The "Fan Recomp" set in
+# branding/fan/steam comes first; whatever it lacks (hero) comes from branding/steam.
 STEAM_ART = {'p': 'portrait.png', '': 'wide.png', '_hero': 'hero.png', '_logo': 'logo.png'}
 APPLE_COMMAND_LINE_TOOLS_URL = 'https://developer.apple.com/documentation/xcode/installing-the-command-line-tools/'
 
@@ -1080,7 +1081,7 @@ def place_steam_art(source, launcher, owned=(), event=print, timeout=20.0, folde
     """Copy the portrait and wide capsules, the hero and the logo into the shortcut's grid folder,
     named by its appid. Waits for Steam to write the shortcut; never overwrites art the player chose.
     Returns the files placed (or already ours)."""
-    art = Path(source) / 'branding/steam'
+    art_folders = [Path(source) / 'branding/fan/steam', Path(source) / 'branding/steam']
     deadline = time.monotonic() + timeout
     while True:
         appid, folder = find_steam_shortcut(launcher, folders)
@@ -1095,9 +1096,9 @@ def place_steam_art(source, launcher, owned=(), event=print, timeout=20.0, folde
     grid.mkdir(parents=True, exist_ok=True)
     placed = []
     for suffix, name in STEAM_ART.items():
-        origin = art / name
+        origin = next((f / name for f in art_folders if (f / name).is_file()), None)
         target = grid / (str(appid) + suffix + '.png')
-        if not origin.is_file():
+        if origin is None:
             continue
         if target.exists() and str(target) not in owned and digest(target) != digest(origin):
             event('Left ' + str(target) + ' alone: it is your own artwork')
