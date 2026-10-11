@@ -15,9 +15,9 @@ a new approval.
 | `icon/macos/defjam.icns` | macOS: `Def Jam Setup.app`, `Def Jam Recompiled.app`, the Dock and the disk image. Inset on a transparent canvas with a soft shadow, as macOS expects. |
 | `icon/png/defjam-N.png` | Linux: the application-menu and desktop entries (256), the setup wizard (128) and any other size a desktop asks for. |
 | `icon/window/*.rgba` | Raw 128x128 RGBA, compiled into the macOS and Linux game as the SDL window icon (`cmake/app_icon.cmake`). |
-| `steam/portrait.png` 600x900, `wide.png` 920x430, `hero.png` 1920x620, `logo.png` 1280 wide (transparent), `icon.png` 256 | The Steam library artwork. The Linux setup copies the first four into the Steam shortcut's `grid` folder (`<appid>p.png`, `<appid>.png`, `<appid>_hero.png`, `<appid>_logo.png`). |
+| `steam/portrait.png` 600x900 (the cover), `wide.png` 920x430, `hero.png` 1920x620, `logo.png` 1280 wide (transparent), `icon.png` 256 | The Steam library artwork. The Linux setup copies the first four into the Steam shortcut's `grid` folder (`<appid>p.png`, `<appid>.png`, `<appid>_hero.png`, `<appid>_logo.png`). |
 | `github/social-preview-1280x640.jpg` | The repository's social preview image (upload it under Settings, Social preview). |
-| `masters/` | The four source images everything else is rendered from. |
+| `masters/` | The source images everything else is rendered from. |
 | `SHA256SUMS` | The fingerprint of every file above. |
 
 ## Where the masters come from
@@ -31,6 +31,7 @@ writes):
 | `wordmark.png` | `misc.viv::nis_logo.xsh`, `7454dcc2...` (512x128), 4x on premultiplied channels; the letters, transparent in the texture, are filled with ink so it reads on any backdrop |
 | `scene.png` | the title screen's three layers, `demoStrt.xsh` `f3bcc263...` (sky), `e2c11109...` (rooftops), `35be3a12...` (water tower), composited at their native 640x480 |
 | `skyline.png` | the skyline strip of the sky layer, used to extend the hero past the scene |
+| `cover.jpg` | the official cover art without its logo, 660x930, byte for byte as downloaded on 2026-10-10 (SHA-256 `b6f5263e73557a80b479bf0d0fe2b28bab4fff59ab2837fb473f779555720c47`) from a community upload on SteamGridDB (`grid/fead4e29f9507390899f8e198518a262.jpg`, "No Logo", by Peipara) with the owner's approval. The portrait capsule is this cover cropped to 2:3 with the wordmark master drawn over it. It is not from the dump. |
 
 The textures are 640x480-era artwork: the renders are as sharp as the sources allow, and the
 backdrop is graded (lifted, vignetted, grain) rather than invented.

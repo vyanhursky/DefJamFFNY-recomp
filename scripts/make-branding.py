@@ -6,7 +6,7 @@
 
 `render` needs only Pillow and NumPy and rebuilds everything under `branding/` from
 `branding/masters/` (the shield, the title wordmark, the title-screen scene and its skyline,
-and the cover when one was supplied). `masters` rebuilds those four masters from the decoded
+and `cover.jpg`, the official cover scan, when present). `masters` rebuilds those four masters from the decoded
 textures of a dump: the corpus is the one `scripts/hd_corpus.py` writes (`corpus.json` plus
 `originals/`), and the source of every master is recorded in `branding/README.md`.
 
@@ -294,6 +294,24 @@ def portrait(scene, wordmark, shield, size=(1200, 1800)):
     return base.convert('RGB')
 
 
+def portrait_from_cover(cover, wordmark, size=(600, 900)):
+    """The official cover (the scan without its logo), cropped to 2:3, with the wordmark re-drawn
+    crisply on top: the scan's own logo is a 660x930 raster, the master is 4x."""
+    w, h = size
+    keep = round(cover.height * w / h)
+    left = (cover.width - keep) // 2
+    base = cover.crop((left, 0, left + keep, cover.height)).resize(size, Image.LANCZOS).convert('RGBA')
+    mark = wordmark.resize((round(w * 0.9), round(w * 0.9 * wordmark.height / wordmark.width)), Image.LANCZOS)
+    x, y = (w - mark.width) // 2, round(h * 0.075)
+    shade = Image.new('RGBA', mark.size, (0, 0, 0, 255))
+    shade.putalpha(mark.getchannel('A').point(lambda v: int(v * 0.7)))
+    halo = Image.new('RGBA', base.size, (0, 0, 0, 0))
+    halo.paste(shade, (x, y + 4))
+    base.alpha_composite(halo.filter(ImageFilter.GaussianBlur(7)))
+    base.alpha_composite(mark, (x, y))
+    return base.convert('RGB')
+
+
 def steam_logo(wordmark):
     return wordmark.resize((1280, round(1280 * wordmark.height / wordmark.width)), Image.LANCZOS)
 
@@ -328,12 +346,11 @@ def render(out):
     frames[256].save(out / 'steam/icon.png', optimize=True)
     big_wide = wide(scene, wordmark, (1840, 860))
     big_wide.resize((920, 430), Image.LANCZOS).save(out / 'steam/wide.png', optimize=True)
-    cover = masters / 'cover.png'
+    cover = masters / 'cover.jpg'  # the official cover scan, optional; without it the portrait is built from the scene
     if cover.exists():
-        base = Image.open(cover).convert('RGB')
+        base = portrait_from_cover(Image.open(cover).convert('RGB'), wordmark)
     else:
-        base = portrait(scene, wordmark, shield)
-    base = base.resize((600, 900), Image.LANCZOS)
+        base = portrait(scene, wordmark, shield).resize((600, 900), Image.LANCZOS)
     base.save(out / 'steam/portrait.png', optimize=True)
     save_jpeg(wide(scene, wordmark, (1280, 640), wordmark_width=0.7, y_center=0.5, crop_top=40), out / 'github/social-preview-1280x640.jpg')
 
