@@ -238,7 +238,11 @@ Branch `feat/linux-steam-deck` (PR #9, `main` merged in after v0.6.1); toolkit f
 
 Machine: Steam Deck, SteamOS 3.8 (no compiler, read-only system). Build environment: distrobox `djbuild`
 (Arch, `cmake ninja clang pkgconf sdl3 shaderc vulkan-headers vulkan-icd-loader openssl python uv gdb
-github-cli`); `gh` is logged in there and git pushes run from inside it. Data root
+github-cli`); `gh` is logged in there and git pushes run from inside it. That container is rolling Arch:
+since v0.6.2 (Dear ImGui's `atan2f`/`acosf`/`sqrtf`) its builds need GLIBC_2.43 and no longer start on
+SteamOS (2.41). Build anything meant to run on SteamOS in the pinned image instead (the Linux setup's
+`localhost/defjam-recompiled-build:*`, or `localhost/defjam-dev` from the Containerfile in
+`docs/build-macos-linux.md#steam-deck`). Data root
 `DEFJAM_DATA=/home/deck/Games/DJFFNY-data` (the owner's real save in `save/UserData`); `game` links to
 its `extracted`. Build: `distrobox enter djbuild`, `export CC=clang CXX=clang++`, then
 `uv run --no-project --with pyxbe --with capstone --with pytest python scripts/pipeline.py analyze|recomp|build`.

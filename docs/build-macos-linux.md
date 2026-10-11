@@ -67,21 +67,40 @@ first build), the compiler the port is tested with; GCC also builds it.
 
 SteamOS has no compiler and a read-only system, but it has podman and
 distrobox, and it ships the libraries the game needs at run time (SDL3, the
-Vulkan loader, shaderc). Build in a container and run the game on SteamOS:
+Vulkan loader, shaderc). Build in a container and run the game on SteamOS.
+
+The game must be built against libraries no newer than SteamOS's own, or it
+will not start there (a current Arch Linux container links Dear ImGui's maths
+against a glibc SteamOS does not have). So the build container is Arch Linux as
+of an archive date whose glibc, SDL3, shaderc and Vulkan loader match SteamOS
+3.8, the same pins the Linux setup uses. Use podman directly: distrobox would
+upgrade the container to today's packages on its first start.
 
 ```bash
-distrobox create --name djbuild --image docker.io/library/archlinux:latest
-distrobox enter djbuild -- sudo pacman -Syu --noconfirm --needed base-devel cmake ninja clang \
-    pkgconf sdl3 shaderc vulkan-headers vulkan-icd-loader openssl python uv
-distrobox enter djbuild          # the rest of this page, from inside the container
+mkdir -p ~/defjam-build-image && cd ~/defjam-build-image
+cat > Containerfile <<'EOF'
+FROM docker.io/library/archlinux@sha256:af82cf8d6d8e461701c28e339bb39de2f22376f06382c205fe22f86175889f4d
+RUN echo 'Server = https://archive.archlinux.org/repos/2025/07/27/$repo/os/$arch' > /etc/pacman.d/mirrorlist \
+ && echo 'faked-system-time 20250727T120000' >> /etc/pacman.d/gnupg/gpg.conf \
+ && pacman -Syy --noconfirm --needed cmake ninja clang pkgconf sdl3 shaderc vulkan-headers \
+        vulkan-icd-loader openssl python git \
+ && sed -i '/^faked-system-time/d' /etc/pacman.d/gnupg/gpg.conf && pacman -Scc --noconfirm \
+ && python -m venv /opt/djpy && /opt/djpy/bin/pip install -q pyxbe capstone pytest
+ENV CC=clang CXX=clang++
+EOF
+podman build -t localhost/defjam-dev .
+alias djc='podman run --rm -it --userns=keep-id --security-opt label=disable -v "$HOME:$HOME" -w "$PWD" -e DEFJAM_DATA localhost/defjam-dev'
+alias djpy='djc /opt/djpy/bin/python'   # instead of the uv alias below
 ```
 
-The container shares your home folder, so the repository and the data folder
-are the same paths inside and out. Build there, then start the game from a
-SteamOS terminal (Desktop Mode), not from inside the container: the container
-has no PipeWire library, so sound only works outside it. A binary built
-against libraries newer than SteamOS's will refuse to start there;
-`ldd -r build/posix-release/defjam_recomp` lists anything missing.
+The `faked-system-time` line lets pacman check the archive's signatures as of
+that date: some packagers' keys have expired since. The container sees your
+home folder at the same path, so the repository and the data folder are the
+same inside and out. Use this `djpy` for the pipeline steps below (and `djc` in
+front of any other build command), and start the game itself on SteamOS, from a
+Desktop Mode terminal:
+`ldd -r build/posix-release/defjam_recomp` there lists anything the build
+needs that SteamOS lacks.
 
 Python 3.12 or newer with `pyxbe`, `capstone` and `pytest`. With
 [uv](https://docs.astral.sh/uv/) (`brew install uv`) nothing else has to be

@@ -76,7 +76,7 @@ and passes most of the automated regression; Proton is untried. On the Steam Dec
 little audio clipping or distortion: the audio device can run dry a few times in five minutes
 of fighting (the regression's `audio.dry_queue` check); tracked in
 [#11](https://github.com/vyanhursky/DefJamFFNY-recomp/issues/11). A game started from inside
-a build container (distrobox) has no sound, because the container has no PipeWire library;
+a build container (podman or distrobox) has no sound, because the container has no PipeWire library;
 start it from the host. On macOS and Linux, vsync is only used on a display refreshing at a
 multiple of 60 Hz (60, 120, 180, 240), as on Windows: on a 75, 90, 100 or 144 Hz display the
 game paces itself and the picture can tear. Network play is not supported.
