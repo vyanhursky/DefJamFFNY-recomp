@@ -38,6 +38,8 @@ def test_linux_pins_are_complete_and_the_container_is_pinned_by_digest():
     assert re.fullmatch('[0-9a-f]{64}', pins['python']['sha256'])
     assert pins['wheels'] and all(re.fullmatch('[0-9a-f]{64}', sha) for sha in pins['wheels'].values())
     assert all('manylinux' in name or name.endswith('py3-none-any.whl') for name in pins['wheels'])
+    # The optional HD upscale (build-hd-pack.py) runs on the payload's Python too.
+    assert {name.split('-')[0] for name in pins['wheels']} >= {'pyxbe', 'capstone', 'pillow', 'numpy'}
     container = pins['container']
     assert re.fullmatch(r'docker\.io/library/archlinux@sha256:[0-9a-f]{64}', container['image'])
     assert re.fullmatch(r'\d{4}/\d{2}/\d{2}', container['archive_date'])

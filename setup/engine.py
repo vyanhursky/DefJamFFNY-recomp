@@ -33,7 +33,7 @@ IS_LINUX = sys.platform.startswith('linux')
 # another one is refused before anything in it runs.
 HOST_PLATFORM = 'windows-x64' if IS_WINDOWS else 'macos-arm64' if IS_MACOS else 'linux-x64'
 PRESET = 'win-x64-release' if IS_WINDOWS else 'posix-release'
-HD_SUPPORTED = IS_WINDOWS or IS_MACOS  # drawn by the Direct3D 11 renderer and, since v0.6.1, the macOS Vulkan one
+HD_SUPPORTED = IS_WINDOWS or IS_MACOS or IS_LINUX  # Direct3D 11 on Windows; Vulkan on macOS (v0.6.1) and Linux (v0.7.2)
 LAUNCHER_BUNDLE = 'Def Jam Recompiled.app'
 RUNTIME_FOLDERS = ('source/', 'python/') if IS_WINDOWS or IS_LINUX else ('source/', 'python/', 'tools/', 'deps/')
 # Linux: the launcher script setup writes into the install folder, and the
