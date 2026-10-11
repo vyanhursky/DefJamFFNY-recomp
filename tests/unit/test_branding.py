@@ -1,4 +1,4 @@
-"""The application icons and Steam artwork (D96): the approved set is exactly what is tracked, the
+"""The application icons and Steam artwork (D98): the approved set is exactly what is tracked, the
 files have the structure the platforms read, and the generator rebuilds all of it from the masters."""
 import hashlib
 import importlib.util

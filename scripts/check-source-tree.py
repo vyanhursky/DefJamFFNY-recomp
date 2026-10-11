@@ -25,7 +25,7 @@ APPROVED_README_MEDIA = {
     'docs/media/setup-wizard.png': '14133e1592e34308aceeffa35366cf9ed6515c82346e8e4a7b85d2dd11d74bb1',
     'docs/media/launcher.png': 'ffb73dfd833f6bbe4b059b57ed0969eaaad74d2b4e5a3aa7070253a44b2a5dc8',
 }
-# D96 (2026-10-10): the owner approved committing the application icons and the Steam artwork
+# D98 (2026-10-10): the owner approved committing the application icons and the Steam artwork
 # rendered from the game's own textures (the shield, the title wordmark, the title-screen scene).
 # The whole set is pinned by the SHA-256 of branding/SHA256SUMS, which lists every other file in
 # branding/ and is written by scripts/make-branding.py. Changing any file therefore needs the

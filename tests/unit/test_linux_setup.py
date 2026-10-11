@@ -268,7 +268,7 @@ def test_the_offline_build_takes_dear_imgui_from_the_payload(tmp_path):
     assert error.value.code == 2
 
 
-# ---- icons and Steam artwork (D96) ----------------------------------------------------------
+# ---- icons and Steam artwork (D98) ----------------------------------------------------------
 
 def shortcuts_vdf(*entries):
     """A shortcuts.vdf as Steam writes it: (appid, name, exe) -> binary map."""

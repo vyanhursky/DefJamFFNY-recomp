@@ -35,7 +35,7 @@
 | Gameplay test harness | ⏳ | D67-D71. **v0.2.2, v0.2.3 and v0.2.4 released.** Status of every item in `docs/08-testing-roadmap.md`; next steps in `docs/research/testing-harness-handover.md`. |
 | PC features (M6) | ⏳ | D63-D66, D72, plan `docs/07-m6-plan.md`. v0.2.0 (display and settings file) and v0.2.1 (Terrordome crash fix) released 2026-10-05. **v0.3.0 input accepted by Vlad 2026-10-07 and released** (D73, `docs/10-input.md`). **v0.4.0 launcher and overlay accepted by Vlad 2026-10-07 and released** (D74, D75, `docs/launcher-and-overlay.md`). Next: v0.5.0 true 16:9; hand-over in `docs/research/m6-handover.md`. |
 | Steam Deck (M5), macOS (M9) | ✅ Deck, released (v0.7.0) | Native, not Proton (D95). Vlad's play-test on the Deck 2026-10-10: "looks good", with a little audio clipping or distortion (to-do, issue #11). Installed by the Linux setup (PR #10). Released as v0.7.0 (D97). |
-| Icons and Steam artwork (v0.7.1) | ⏳ prepared | D98. Shield icons on the Windows exes (game, launcher, setup, shortcuts, windows), the macOS bundles and disk image, the Linux entries and the POSIX game window; Steam capsules, hero and logo (the FAN RECOMP set by default, the plain set kept for editing) placed for the Linux setup's shortcut. `branding/`, `scripts/make-branding.py`, `docs/setup-installer.md#icons-and-artwork`. Not yet checked on macOS, a Steam Deck or in Steam itself. |
+| Icons and Steam artwork (v0.7.1) | ✅ released (v0.7.1) | D98. Shield icons on the Windows exes (game, launcher, setup, shortcuts, windows), the macOS bundles and disk image, the Linux entries and the POSIX game window; Steam capsules, hero and logo (the FAN RECOMP set by default, the plain set kept for editing) placed for the Linux setup's shortcut. `branding/`, `scripts/make-branding.py`, `docs/setup-installer.md#icons-and-artwork`. Not yet seen on macOS, a Steam Deck or in Steam itself. |
 | macOS setup and HD textures (v0.6.1) | ✅ released (v0.6.1) | D93. Native AppKit setup (dmg, unsigned) around the shared engine, bundled Python/CMake/Ninja/SDL3/shaderc/MoltenVK, local launcher app; HD packs drawn through Vulkan (mip chains, mip filter, per-level upload). Verified on arm64 macOS 26 with Homebrew blocked: silent install from the XISO incl. HD (5 min 44 s), launcher, lock refusal, shortcuts and uninstall, quick regression 4/4 with packs on and off (fight median 120). Open: macOS CI on a hosted runner, clean-Mac and older-macOS runs, Gatekeeper first-open, Windows re-run of the shared code. Launcher and overlay on macOS: v0.6.2 (next row). |
 | Launcher and overlay on macOS (v0.6.2) | ✅ released (v0.6.2) | D94. SDL/Metal launcher window and Vulkan overlay, same screen as Windows; scripted checks (rendered frames read back, real event paths, virtual pad) and `regress.py` pass; not driven by hand (screen locked), Windows not rebuilt. Release record in the work log. |
 | Native macOS arm64 and Linux x86-64 (M9, M7) | ✅ macOS / ✅ Linux (owner play-test 2026-10-10 good) | Released as v0.5.0 (D82). arm64 macOS: Vulkan renderer, SDL3 window, sound and pads, one guest CPU by token (D81); full `regress.py` 14 of 14 (two with caveats, work log 2026-10-08) and the owner's play-tests on Mac and Windows. Not on macOS: the launcher and overlay. Linux (D95, 2026-10-09): built with Clang 20 and run natively on a Steam Deck (SteamOS 3.8, RADV), PipeWire sound, the Deck's controls as a pad; eight Linux fixes; quick regression 5/5, boot soak 10/10, full regression 12 of 14 (combat and versus fail only `audio.dry_queue`). Not on Linux: launcher and overlay. Guide: `docs/build-macos-linux.md`. |
@@ -237,17 +237,15 @@ defjam-recomp/
 
 ## 7. Hand-off
 
-### Icons and Steam artwork (D98, v0.7.1), 2026-10-10
-Branch `feat/icons-and-steam-art` (two commits on `feat/linux-setup`, not pushed; no PR yet). Release
-v0.7.1 follows the Linux release v0.7.0, so merge PRs #9 and #10 first (they predate v0.6.2 on `main`:
-expect merge conflicts in `CMakeLists.txt` (version), `PROGRESS.md` and the setup docs). `branding/` holds
-the approved artwork; changing any file means re-running `python scripts/make-branding.py render`
-(Pillow, NumPy), putting the new `SHA256SUMS` hash in `BRANDING_SUMS_SHA256` and getting Vlad's approval.
-Before releasing: run the Linux setup on the Deck with Add to Steam and confirm the four grid files
-appear under `userdata/<id>/config/grid` named by the appid in `shortcuts.vdf`, and that Steam shows them
-after a restart; on a Mac check the three bundle icons and the Dock icon; upload
-`branding/github/social-preview-1280x640.jpg` under the repository's Settings, Social preview (no API for it).
-Local test install: `code/defjam-icons-test` (delete it when done; about 4 GB).
+### v0.7.1 released: icons and Steam artwork (D98), 2026-10-11
+PR from `feat/icons-and-steam-art` (five commits rebased onto v0.7.0 main), merged and tagged `v0.7.1`
+(notes `docs/releases/v0.7.1.md`). `branding/` holds the owner-approved artwork: the plain set and a
+`fan/` set with a FAN RECOMP tag under the title; the Linux setup places the fan set for its Steam shortcut
+(`place_steam_art`, hero from the plain set). Changing any file means `python scripts/make-branding.py render`
+(Pillow, NumPy; `fan-tag` redraws the tag from a font), the new `SHA256SUMS` hash in `BRANDING_SUMS_SHA256`
+and Vlad's approval. Not yet seen working: a Steam Deck with Add to Steam (the four `grid` files named by the
+appid read from `shortcuts.vdf`, shown after a Steam restart), the three macOS bundle icons and the Dock icon.
+Vlad uploads `branding/fan/github/social-preview-1280x640.jpg` as the repository social preview (no API).
 
 ### v0.7.0 released: Linux and the Steam Deck (D95-D97), 2026-10-10
 #9 and #10 merged into main and tagged `v0.7.0` (notes `docs/releases/v0.7.0.md`); the release carries

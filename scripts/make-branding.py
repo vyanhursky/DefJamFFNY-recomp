@@ -17,7 +17,7 @@ draws once from a heavy condensed font so that rendering does not need the font.
 prefers `fan/steam/` and falls back to `steam/`; the plain set is kept for future editing.
 
 The artwork is the game's own and stays the property of its rights holders; Vlad approved
-committing exactly these files (D96). `scripts/check-source-tree.py` pins them by the SHA-256
+committing exactly these files (D98). `scripts/check-source-tree.py` pins them by the SHA-256
 of `branding/SHA256SUMS`, which this script writes last.
 """
 import argparse

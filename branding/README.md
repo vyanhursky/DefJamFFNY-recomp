@@ -3,7 +3,7 @@
 The shield icon, the title wordmark and the title-screen backdrop used for the application
 icons and the Steam Deck / Linux library artwork. **This is the game's own artwork, rendered
 from its textures. It remains the property of its rights holders; the project's MIT licence
-does not cover it.** The owner approved committing exactly these files (D96, 2026-10-10);
+does not cover it.** The owner approved committing exactly these files (D98, 2026-10-10);
 `scripts/check-source-tree.py` pins them by the SHA-256 of `SHA256SUMS`, so any change needs
 a new approval.
 
