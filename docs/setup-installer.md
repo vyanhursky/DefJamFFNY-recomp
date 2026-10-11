@@ -119,7 +119,7 @@ gameplay acceptance remain to be validated; CI is not a substitute.
 
 Every executable, bundle and launcher carries the shield from the game's menus (v0.7.1):
 `DefJamSetup.exe`, `DefJamLauncher.exe` and the game on Windows (with file properties), both
-`.app` bundles and the disk image on macOS, and the application-menu and desktop entries on
+`.app` bundles on macOS, and the application-menu and desktop entries on
 Linux. The Start-menu and desktop shortcuts, the wizard windows and the game window use it
 too, and on macOS and Linux the SDL game window sets it as the Dock and taskbar icon.
 

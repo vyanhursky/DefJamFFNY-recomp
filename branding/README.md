@@ -12,7 +12,7 @@ a new approval.
 | Path | Use |
 |---|---|
 | `icon/defjam.ico` | Windows: the game, launcher and setup executables (`cmake/app.rc.in`) and the Start menu and desktop shortcuts. Sizes 16 to 256. |
-| `icon/macos/defjam.icns` | macOS: `Def Jam Setup.app`, `Def Jam Recompiled.app`, the Dock and the disk image. Inset on a transparent canvas with a soft shadow, as macOS expects. |
+| `icon/macos/defjam.icns` | macOS: `Def Jam Setup.app`, `Def Jam Recompiled.app`, and the Dock. Inset on a transparent canvas with a soft shadow, as macOS expects. |
 | `icon/png/defjam-N.png` | Linux: the application-menu and desktop entries (256), the setup wizard (128) and any other size a desktop asks for. |
 | `icon/window/*.rgba` | Raw 128x128 RGBA, compiled into the macOS and Linux game as the SDL window icon (`cmake/app_icon.cmake`). |
 | `steam/portrait.png` 600x900 (the cover), `wide.png` 920x430, `hero.png` 1920x620, `logo.png` 1280 wide (transparent), `icon.png` 256 | The Steam library artwork. The Linux setup copies the first four into the Steam shortcut's `grid` folder (`<appid>p.png`, `<appid>.png`, `<appid>_hero.png`, `<appid>_logo.png`). |

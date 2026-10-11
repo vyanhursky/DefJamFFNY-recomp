@@ -51,9 +51,6 @@ mkdir "$OUT/image/Licenses"
 unzip -q -o "$OUT/setup-payload.zip" 'licenses/*' -d "$OUT/licenses-unpacked"
 cp "$OUT"/licenses-unpacked/licenses/* "$OUT/image/Licenses/"
 cp LICENSE "$OUT/image/Licenses/Def-Jam-Recompiled-MIT.txt"
-# The mounted disk image shows the shield too (needs the custom-icon flag, which only SetFile sets).
-cp branding/icon/macos/defjam.icns "$OUT/image/.VolumeIcon.icns"
-command -v SetFile > /dev/null && SetFile -a C "$OUT/image" || true
 hdiutil create -volname "Def Jam Recompiled Setup" -srcfolder "$OUT/image" -ov -format UDZO "$OUT/DefJamSetup.dmg" > /dev/null
 
 # 5. Inventory, checksum and provenance of exactly what a release would attach.
