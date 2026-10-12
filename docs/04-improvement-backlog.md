@@ -253,7 +253,7 @@ level. The game's data is in EA archive containers, so entry-level replacement i
 Do not grow this organically out of debugging hooks.
 
 A proposal that also covers a curated, remotely updated mod list is in
-[research/mod-system-design.md](research/mod-system-design.md) (D100, 2026-10-11).
+[research/mod-system-design.md](research/mod-system-design.md) (D101, 2026-10-11).
 
 ## 5. Move to Clang before any native Linux work
 
