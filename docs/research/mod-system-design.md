@@ -1,6 +1,6 @@
 # Mod system: design proposal
 
-2026-10-11. **Status: proposal, not scheduled** (D101). Nothing here is built. It takes the backlog's
+2026-10-11. **Status: proposal, not scheduled** (D104). Nothing here is built. It takes the backlog's
 [item 4](../04-improvement-backlog.md) ("design the mod and asset-override system deliberately") and adds a
 curated, remotely updated mod list that players manage from the launcher. Come back to the open questions in
 section 12 before starting.
