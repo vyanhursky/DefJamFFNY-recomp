@@ -51,6 +51,10 @@ cite other development notes, logs and captures that are not published.
 - [Acceptance, storage and release packaging](hd-texture-release-packaging.md)
 - [v0.6.0 validation](hd-v060-release-validation.md)
 
+## Modding
+
+- [Mod system design proposal](mod-system-design.md): curated mod index, helper, recipes (2026-10-11, not scheduled)
+
 ## Toolkit and platforms
 
 - [Toolkit rebase acceptance](toolkit-rebase-acceptance.md)
