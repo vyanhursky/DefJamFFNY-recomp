@@ -1,5 +1,8 @@
 # README gameplay visuals
 
+For the next capture session, see the [current-release media plan](capture-plan.md).
+It lists the priority shots, export settings, provenance and publication steps.
+
 vyanhursky supplied and explicitly approved these visuals for the public README on
 October 4, 2026 (D58):
 
