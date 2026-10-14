@@ -39,7 +39,8 @@ put additional examples in the [media index](media/README.md) or feature guides.
 | Capture provenance | [Media index](media/README.md) | Platform and texture context in captions |
 
 Keep essential qualifiers beside the feature: up to four **local** players;
-the released picture is **4:3**; the supported frame-rate target is **60 fps**.
+**4:3** remains available and **widescreen is beta** on all three platforms;
+the supported frame-rate target is **60 fps**.
 Do not confuse 120-Hz display support with 120-fps gameplay. The Windows present
 interval is display Hz divided by 60, and the default flip timer is 60 Hz.
 Fully unlocked frame rates remain future work because game timing must be

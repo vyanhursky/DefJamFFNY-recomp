@@ -1,9 +1,27 @@
 # Current-release media capture plan
 
-Capture the released port's gameplay and PC features with a small, readable
-gallery. Existing approved images remain in place until replacements are
-captured and reviewed. The [README](../../README.md) already labels the early
-Windows footage; its 12-fps GIF export is not a game-performance measurement.
+The [gallery](README.md) now contains reviewed Mac gameplay, original/HD and
+4:3/16:9 comparisons, plus the v0.9.0 launcher and F1 overlay. The README uses
+one grapple still and one compact 20-fps GIF (about 4 MB together); videos are
+linked downloads. Gameplay came from the PR #12 candidate and is labelled as
+such. Widescreen beta is now released on all three platforms in v0.9.0.
+
+## Remaining captures
+
+- **Current setup wizard:** none in the supplied new set. Replace the historical
+  v0.6.0 Windows example with neutral paths and current install/update controls;
+  add Mac and Deck examples where their workflow differs.
+- **Steam Deck Gaming Mode:** a clean 16:10 game view and optionally its Steam
+  library entry. Mac captures cannot establish this platform's appearance.
+- **More varied gameplay:** a bright second venue and a short human-controlled
+  sequence would complement the dark Basement clip. An audio demonstration
+  needs a new recording; all supplied published clips are silent.
+- **Story and four-fighter examples:** current review contact sheets have debug
+  labels/empty panels or obscure the action. Capture one polished creator/crib
+  view and a clean four-fighter frame. Four fighters alone do not prove four
+  human inputs; verify those before calling it local multiplayer footage.
+- **Exact release gameplay:** recapture from the tagged v0.9.0 installer when
+  convenient; keep the existing candidate provenance until then.
 
 ## Pick up on another machine
 
@@ -12,7 +30,7 @@ Windows footage; its 12-fps GIF export is not a game-performance measurement.
 2. Build/install the current release from your own supported dump using the
    [setup guide](../setup-installer.md) or [source build guide](../build-and-play.md).
    Initialize the pinned toolkit submodule for a source build. Record the exact
-   tag and commit used; the initial plan was reviewed against v0.7.3.
+   tag and commit used; the current release is v0.9.0; the original plan was reviewed against v0.7.3.
 3. Use disposable saves for scripted captures. Keep raw PNGs and recordings
    local, under the ignored `logs/` folder or outside the repository.
 4. Capture the priority-one items below, select exports and review the actual
@@ -33,7 +51,7 @@ Windows footage; its 12-fps GIF export is not a game-performance measurement.
 | 2 | Current launcher and setup | Current display/texture/remap controls and setup with neutral example paths. | Settings/install guides |
 | 2 | Four-fighter/local-player match | Local multiplayer in a distinctive venue; verify multiple-player input before claiming it in a caption. | Gallery |
 | 2 | Story creator or crib/gym | Story customization beyond versus combat, without spoilers. | Gallery |
-| Later | Widescreen comparison | Matching original/wider framing and correctly placed HUD. | Clearly marked beta gallery until released |
+| 1 (covered) | Widescreen comparison | Matching original/wider framing and correctly placed HUD. | Gallery; released widescreen remains beta |
 | Later | Mod manager and working mod | Implemented functionality rather than a mockup of a future feature. | Add when shipped |
 
 Static settings suit screenshots; reserve animation for movement or interaction.
@@ -44,8 +62,9 @@ or demonstration when a still cannot provide evidence of the feature.
 
 - Use actual game pixels from the release being shown. Record platform,
   hardware, tag/commit, date and settings. Keep experimental-branch media separate.
-- Preserve the released game's 4:3 framing. A wide monitor or the Deck's
-  1280×800 display does not establish widescreen gameplay support.
+- Use 4:3 for original/HD comparisons and matched 4:3 versus 16:9 or 16:10
+  for widescreen. Record the selected picture shape; a wide display alone
+  does not establish a wider 3D view. Widescreen is beta in v0.9.0.
 - For desktop gameplay stills, use render scale 2 or 4 and keep the native PNG
   master at 1280×960 or 2560×1920. A roughly 960-pixel-wide README export is a
   useful starting point; link a full-resolution view when useful.

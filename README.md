@@ -1,3 +1,5 @@
+<p align="center"><img src="branding/fan/github/social-preview-1280x640.jpg" width="960" alt="Def Jam: Fight for NY — Fan Recomp"></p>
+
 # Def Jam: Fight for NY — Recompiled
 
 [![CI](https://github.com/vyanhursky/DefJamFFNY-recomp/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/vyanhursky/DefJamFFNY-recomp/actions/workflows/ci.yml)
@@ -24,15 +26,17 @@ the game on your machine. PS2 and GameCube copies cannot be used.
 
 ## Gameplay
 
-<!-- Replace these early Windows captures with reviewed current-release media.
-     Keep a still and one short loop here; place the full gallery in docs/media/README.md. -->
+![Blaze and Doc grappling in the native Mac port, with faithful HD textures and a wider 16:9 view](docs/media/gameplay-hero.png)
 
-![Banner and Blaze in a fight in the Windows port](docs/media/fight-screenshot.png)
+Native macOS rendering at 2× scale with faithful HD textures. Captured from the
+PR #12 widescreen candidate; widescreen beta is now available in v0.9.0.
 
-![A short fight preview from the Windows port](docs/media/fight-gameplay.gif)
+![Three-second fight preview showing strikes and a knockdown](docs/media/gameplay-preview-compact.gif)
 
-Early Windows gameplay captured by the maintainer. The silent preview is encoded
-at 12 fps; it does not show the game's full frame rate or the latest HD textures.
+Silent three-second preview exported at 20 fps; its cadence is not a game
+performance measurement. [Download the longer 60-fps MP4](docs/media/hd-16x9-gameplay.mp4).
+
+**[Compare 4:3 and widescreen, original and HD textures, and see the launcher and overlay](docs/media/README.md)**
 
 ## Features
 
@@ -41,7 +45,8 @@ at 12 fps; it does not show the game's full frame rate or the latest HD textures
 - **60-fps gameplay.** The port targets 60 frames per second, with performance
   depending on your hardware, chosen settings and the scene.
 - **Sharper rendering.** Choose 1×–4× internal resolution, a resizable window
-  or borderless full screen. The released game retains its original 4:3 picture.
+  or borderless full screen. Keep the original 4:3 picture or try **widescreen beta**
+  at 16:9 or 16:10; the 3D view widens while the HUD and menus keep their shape.
 - **Optional HD textures.** Setup can generate faithful 4× texture packs locally
   from your dump on Windows, macOS and Linux. Original textures remain available.
 - **Controllers and keyboard play.** Xbox, DualSense, Switch Pro and other
@@ -112,7 +117,7 @@ easier to play and customize on modern computers.
 | Engine optimizations | Improve performance on low-spec machines, stay up to date with [xboxrecomp](https://github.com/sp00nznet/xboxrecomp), and contribute improvements upstream. |
 | Port accuracy | Keep the visuals, tone and gameplay feel faithful to the original Xbox game. |
 | Fully unlocked frame rates | Support frame rates above 60 fps while preserving game speed, timing and gameplay feel. Future work; not supported by the current release. |
-| True widescreen | [Windows beta under review](https://github.com/vyanhursky/DefJamFFNY-recomp/pull/12); not in the released build. macOS/Linux widescreen remains future work. |
+| Widescreen refinement | Beta released in [v0.9.0](https://github.com/vyanhursky/DefJamFFNY-recomp/releases/tag/v0.9.0) on Windows, macOS and Linux/Steam Deck. Improve edge cases and broader aspect/venue coverage; 21:9 and 32:9 remain experimental. |
 | Broader mod support | Enable modified game modes, difficulty changes and restored cut content. The [mod-system design proposal](https://github.com/vyanhursky/DefJamFFNY-recomp/pull/17) is not scheduled; texture packs work today. |
 | Build and release automation | Improve automation and the gameplay test harness so shipping builds have reliable, repeatable validation. |
 | Deeper gameplay decompilation | Long-term stretch goal. |
