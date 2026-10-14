@@ -178,6 +178,8 @@
 
 | D110 | 2026-10-14 | At Vlad's request, select and publish nine exact exports from his supplied Mac capture folder in PR22: grapple hero, compact GIF, texture/widescreen stills, launcher, overlay and three silent MP4s. | Keep the initial README around 4 MB for gameplay, put comparisons/UI/videos in the gallery, pin exact SHA-256 values, distinguish PR12 candidate gameplay from v0.9.0-matching UI. Current setup/Deck/varied scenes remain capture work. No broad asset exception or runtime change. |
 
+| D111 | 2026-10-14 | Owner rejected the selected battle capture and requested alternatives; do not choose its replacement until he selects an option. Remove merged PR12 from README player copy and state released widescreen availability directly. | Offer existing HD battle frames at steps900,1200,2100; keep technical build provenance in the gallery. No new media is published by this wording update. |
+
 ## 2. Environment inventory (2026-09-17)
 
 - OS: Windows 11 Pro 10.0.26200
@@ -224,6 +226,8 @@ defjam-recomp/
 
 ## 5. Open questions for Vlad
 
+- **2026-10-14 — PR22 battle still:** owner rejected the current capture. Choose A (step900, strike/recoil), B (step1200, face-off) or C (step2100, clinch) from the supplied battle. Same-frame HD4:3 masters exist for an updated widescreen pair. Selection remains pending.
+
 - **(2026-10-12) Interactive Mac updater acceptance.** Desktop access resolved on retry. Live release picker, historical refusal, local future GUI update/downgrade, Repair, cancellation/late completion and Play verified; UI status fixes implemented. Broader Mac OS/quarantine/HD/external-volume/reboot and native Windows/Deck acceptance remain pending; no new policy input needed.
 
 - **(2026-10-11) HD textures on Linux (D99).** (1) ~~Windows regressions~~ all green (Vlad, 2026-10-11); still to do: the Mac regressions with v0.7.2 (the texture-pack re-check is shared code; released with macOS untested). (2) Run `python scripts/hd-pack-digest.py <data>/mods/faithful-hd-*` on a Windows or Mac install and compare the pixel digest with the Deck's `14d09aa313ef713940f620abfc663ab078a181a0a5c750c70c4eaa6c85a9de7e`. (3) Whether to move HD texture decoding off the GPU thread (the ~3 s first-show stall on the Deck).
@@ -254,7 +258,6 @@ defjam-recomp/
 
 > Recent entries only; older entries remain unchanged in the local `docs/worklog/` archive.
 
-- 2026-10-13 19:51 — Additional Mac checks pass: 16:9 HD four-fighter fight (two native captures, all four HUD corners, median120presents/2s), Story intro at16:9 and16:10 (four captures each, creator reached). Authored cutscene picture fills16:9 and has864 nonblack rows in960 at16:10 (`media/cutscenes-review.png`). Stream continuation/wait/callback generated functions are byte-identical to accepted baseline; no cause/fix inferred from static reads alone. HD Story subviews and real-settings fullscreen/overlay/launcher remain in progress.
 - 2026-10-13 20:11 — Owner chose v0.9.0 (D106). Focused seeded audio repeat24/25 passes; only existing underrun gate fails (2 dry events,0 dropped buffers), versus accepted baseline5 dry/290post-anchor reports. Explicit16:10 repeat has no faults, restored saves and80 golden records. Found/fixed Mac auto notch geometry (D107) in isolated source: AppKit safe-area helper and Objective-C build-input certification; focused32tests pass. Bundled-dependency rebuild109steps and build certificate pass (`fix-build.txt`); required full regression running (`fix-full.txt`), then corrected real-settings fullscreen/overlay check queued.
 - 2026-10-13 20:23 — Mac auto fix native build109steps/certificate pass; complete source suite352pass/30skip (`fix-all-unit.txt`). Full runtime regression remains active: title/menu goldens, launcher, overlay and fight pass so far; bundled interpreter lacks pytest, independently resolved by the complete UV source-suite run. Compact actual-gameplay GIF3.45MB plus two60fps comparison clips exported locally with hashes; not published.
 - 2026-10-13 21:07 — Fixed-source full regression completes11/16 in56min (`logs/widescreen-macos/fix-full.txt`, integration `logs/regress-20261013-210713.txt`): fight/FFA/Terrordome/replay/intro/gym and soak3/3 pass; combat26/27 and versus25/26, each onlyaudio.dry_queue3events/0drops. Other failed checks: bundled Python lacks pytest (independent352-source-tests pass), known startup callback in m2, historicalstream callback0x001E3C14 during crib boot (crib reached/saves restored). Targeted fullscreen and unit/m2/crib repeats queued serially; raw failures retained.
@@ -262,26 +265,21 @@ defjam-recomp/
 - 2026-10-13 21:15 — Mac validation complete: corrected auto-fullscreenHD resolves1.6000/FOV35.65/swapchain3600x2260, reachescombat, actualF1overlay opens/closes, nofaults/savesrestored (`fix-auto.json`); launcher renders/exits0. Targeted source+loading2/2 (352tests/30skip, goldenframe100), crib1/1 clean; rawfull11/16 retained with twoexistingaudio gates stillfailed. Whole isolatedsave root15files byte-identical to prepared baseline. Localmedia reviewZIP27.8MB with original/HD/widescreen PNG+60fpsMP4, compactGIF, overlay/launcher and provenance; no new media published. Source commits/push/CI/merge/release next.
 - 2026-10-13 21:34 — PR12 source7e95ebe accepted by CI38495079579 (25/25), Macreport commented and PRmerged c4bcda69b3dc839a3705bfb443fc774d7828f33a. Exactmerge taggedv0.9.0; source release38495648349 passes27/27 and mergeCI38495640368 green. Publishedlatestv0.9.0 with9 game-free setup/checksum/provenance assets; allthree platformdigests/source/toolkit identities verified, MacDMG and payloadhash locallychecked and correctedsource bytesmatch nativevalidation. Existingv0.8.0 untouched; no gamebinary/data/generatedsource/newmedia published. Localmedia review ZIP27.8MB ready for ownerselection; savebaseline15/15 unchanged.
 - 2026-10-14 08:30 — PR22 curated media refresh: reviewed six hero poses, original/HD and widescreen pairs, launcher/overlay, Story/FFA sheets and three videos sampled at4fps throughout. Nine selected exports exact-pinned; hero+GIF4.03MB, longer clips linked from gallery. Synced v0.9.0 and corrected released-beta wording; candidate provenance retained. Unit suite356passed/34skipped; link/hygiene results in logs/media-review/verification.txt. No game/runtime changes or original saves touched.
+- 2026-10-14 08:40 — Owner rejected the battle still; reviewed existing step900 strike,1200 face-off and2100 clinch options, replacement selection pending. README removes PR12 caption and directly states all-platform widescreen beta sincev0.9.0. Technical provenance retained in gallery; no new media or runtime changes. Source/whitespace checks pass.
 
 ## 7. Hand-off
 
-### README and curated media PR22, 2026-10-14
+### README media PR22 — battle replacement pending, 2026-10-14
 
-Owner requested selection and inclusion from the supplied Mac capture folder.
-Worktree: `/Users/vlad/.codex/worktrees/readme-media-review/DefJamFFNY-recomp`.
-PR22 branch `docs/readme-intro-refresh` synced with public v0.9.0 main. Nine
-exact-pinned exports: hero, compact GIF, original/HD and widescreen stills,
-launcher/F1 overlay and three silent MP4 downloads. Existing setup image is
-labelled historical v0.6.0; no current setup image was supplied. Capture
-provenance and remaining shots: `docs/media/{README,capture-plan}.md`.
-Checks: 356 unit tests pass/34 skipped (toolkit/build absent); docs/source
-checks recorded in PR. No game regression needed for media/docs only.
-Next: owner visual review of PR22, then merge when desired; no merge/release
-authorized here. New setup, Deck Gaming Mode, brighter venue, clean Story and
-verified multiplayer scenes remain optional capture work. Original checkout's
-unrelated edits and game data are preserved. Local HTML preview and review
-artifacts are under `logs/media-review/`; archives stay untracked.
-
+Worktree `/Users/vlad/.codex/worktrees/readme-media-review/DefJamFFNY-recomp`,
+public branch `docs/readme-intro-refresh`. Widescreen wording now states
+availability since v0.9.0 on Windows/macOS/Linux/Deck, without PR12 references
+in README. Exact technical capture provenance stays in the media gallery.
+Owner rejected the prior still; offer existing `hd-16x9-fight-step{900,1200,2100}.png`
+from the `8ca5` capture worktree's `logs/widescreen-macos/media/`. Wait for his
+choice before replacing hero/comparison exports and their fingerprints.
+No new capture or runtime change. Current setup/Deck/varied-scene gaps remain
+in `docs/media/capture-plan.md`. PR22 not merged; original unrelated edits preserved.
 
 ### Widescreen v0.9.0 — released; PR #22 media ready locally
 

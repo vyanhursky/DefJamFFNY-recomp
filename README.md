@@ -28,8 +28,7 @@ the game on your machine. PS2 and GameCube copies cannot be used.
 
 ![Blaze and Doc grappling in the native Mac port, with faithful HD textures and a wider 16:9 view](docs/media/gameplay-hero.png)
 
-Native macOS rendering at 2× scale with faithful HD textures. Captured from the
-PR #12 widescreen candidate; widescreen beta is now available in v0.9.0.
+Native macOS rendering at 2× scale with faithful HD textures and a 16:9 view.
 
 ![Three-second fight preview showing strikes and a knockdown](docs/media/gameplay-preview-compact.gif)
 
@@ -45,8 +44,10 @@ performance measurement. [Download the longer 60-fps MP4](docs/media/hd-16x9-gam
 - **60-fps gameplay.** The port targets 60 frames per second, with performance
   depending on your hardware, chosen settings and the scene.
 - **Sharper rendering.** Choose 1×–4× internal resolution, a resizable window
-  or borderless full screen. Keep the original 4:3 picture or try **widescreen beta**
-  at 16:9 or 16:10; the 3D view widens while the HUD and menus keep their shape.
+  or borderless full screen.
+- **Widescreen (beta), available now.** Since v0.9.0, Windows, macOS and
+  Linux/Steam Deck support wider 16:9 and 16:10 views. The 3D view widens while
+  the HUD and menus keep their shape; original 4:3 remains available.
 - **Optional HD textures.** Setup can generate faithful 4× texture packs locally
   from your dump on Windows, macOS and Linux. Original textures remain available.
 - **Controllers and keyboard play.** Xbox, DualSense, Switch Pro and other
