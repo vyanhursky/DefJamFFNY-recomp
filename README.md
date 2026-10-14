@@ -26,9 +26,11 @@ the game on your machine. PS2 and GameCube copies cannot be used.
 
 ## Gameplay
 
-![Blaze and Doc grappling in the native Mac port, with faithful HD textures and a wider 16:9 view](docs/media/gameplay-hero.png)
+![Blaze and Doc face-off: original 4:3 framing versus wider 16:9, with faithful HD textures on both sides](docs/media/widescreen-comparison.png)
 
-Native macOS rendering at 2× scale with faithful HD textures and a 16:9 view.
+**4:3 versus 16:9 widescreen:** the same fight moment, with faithful HD textures
+and native macOS rendering at 2× scale. The wider view reveals more of the arena
+while keeping the fighters and HUD in proportion.
 
 ![Three-second fight preview showing strikes and a knockdown](docs/media/gameplay-preview-compact.gif)
 

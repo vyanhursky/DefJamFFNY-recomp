@@ -12,10 +12,10 @@ Gaming Mode or Windows-specific rendering.
 
 ## Fight preview
 
-![Blaze and Doc grappling with HD textures at 16:9](gameplay-hero.png)
+![Blaze and Doc facing off with HD textures at 16:9](gameplay-hero.png)
 
-The close grapple at simulation step 1500 shows both fighters, a readable HUD
-and the wider arena. The README uses a compact three-second, 480×270 GIF.
+The owner-selected face-off at simulation step 1200 shows both fighters,
+a readable HUD and clothing detail. The README uses a compact three-second, 480×270 GIF.
 [Download the longer fight clip](hd-16x9-gameplay.mp4) (silent MP4, 60-fps export).
 MP4 links open GitHub's file page for download; they are not inline video players.
 
@@ -23,7 +23,8 @@ MP4 links open GitHub's file page for download; they are not inline video player
 
 ![Matching 4:3 and 16:9 fight views, both with faithful HD textures](widescreen-comparison.png)
 
-Same seeded fight, simulation step 1500, scale and HD packs on both sides.
+Owner-selected face-off: same seeded fight, simulation step 1200, scale and
+HD packs on both sides.
 The 16:9 view reveals more of the arena horizontally while preserving vertical
 framing and moving the health bars toward the edges. The 4:3 image is fitted
 inside the left panel without stretching.
@@ -69,7 +70,9 @@ new update controls. A fresh setup capture is still needed; see the
 
 The owner requested review, selection and inclusion of this supplied capture
 set in PR #22 on October 13, 2026. Only the selected exports below are published,
-with exact fingerprints in `scripts/check-source-tree.py`; raw recordings,
+with exact fingerprints in `scripts/check-source-tree.py`. On October 14 the
+owner selected option B, the step-1200 face-off, for the hero and widescreen
+comparison; these replace the earlier step-1500 exports. Raw recordings,
 simulation streams, native masters and diagnostic contact sheets stay local.
 
 Gameplay stills, GIF and videos: PR #12 source `a7dc1b7`, CI merge `d319a802`,
@@ -96,10 +99,10 @@ and `ac3583188a87e46dc7f183969f2b51dd0300cf3d6bd05ca3ecf40513c61f4d2f`.
 
 | Export | Dimensions / cadence | Size | SHA-256 |
 |---|---|---|---|
-| `gameplay-hero.png` | 960×540 | 0.58 MB | `ad82ca70103cfb9c1e23ee0dc5f8783d7ce99e1ac8021d7d0c9ad8a10390e1a5` |
+| `gameplay-hero.png` | 960×540 | 0.60 MB | `f0f9f8524913594e7b0d676bbe241c5733f6f4fd4eba2206c4f593638e0814e4` |
 | `gameplay-preview-compact.gif` | 480×270, 3 s / 20 fps | 3.45 MB | `88b8c8747d6b3936203191aca261ed0ca85108e2ae4bb914f0b0773495f641ec` |
 | `textures-comparison.png` | 1932×764 | 1.59 MB | `bfb4bfdd75b28268cf2cea5638f1fe6962e9ac2e30f2b275dc800c13a8fd9e8a` |
-| `widescreen-comparison.png` | 1932×584 | 1.01 MB | `0b74c5f904ecc3567c32d06e2036444a3bd481e560aa982a49ded8675060aab9` |
+| `widescreen-comparison.png` | 1932×584 | 1.08 MB | `dd8b23a051e8ef98516ea6aa349ef450f441e58669efc67a56fb2273dfbeaf67` |
 | `launcher.png` | 1200×864 | 0.26 MB | `0c9704f81d05abc61a1ed8255683036541ee7f9dff11f0e6fad37c050fcba7c0` |
 | `overlay.png` | 1800×1130 | 0.59 MB | `a137a13fa65cbbfc765897aa9d51d3ef84523e5cabd0fe934f6e477f446ca09b` |
 | `hd-16x9-gameplay.mp4` | 1280×720, silent 60-fps CFR | 5.57 MB | `385b041f57b7ddd61feb99e0ce726f6e4a5856f1e9936c416aca81949ee428f0` |

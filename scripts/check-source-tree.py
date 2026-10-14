@@ -25,10 +25,10 @@ APPROVED_README_MEDIA = {
     'docs/media/setup-wizard.png': '14133e1592e34308aceeffa35366cf9ed6515c82346e8e4a7b85d2dd11d74bb1',
 
     # 2026-10-13: owner requested curated PR22 media from the Mac capture set.
-    'docs/media/gameplay-hero.png': 'ad82ca70103cfb9c1e23ee0dc5f8783d7ce99e1ac8021d7d0c9ad8a10390e1a5',
+    'docs/media/gameplay-hero.png': 'f0f9f8524913594e7b0d676bbe241c5733f6f4fd4eba2206c4f593638e0814e4',
     'docs/media/gameplay-preview-compact.gif': '88b8c8747d6b3936203191aca261ed0ca85108e2ae4bb914f0b0773495f641ec',
     'docs/media/textures-comparison.png': 'bfb4bfdd75b28268cf2cea5638f1fe6962e9ac2e30f2b275dc800c13a8fd9e8a',
-    'docs/media/widescreen-comparison.png': '0b74c5f904ecc3567c32d06e2036444a3bd481e560aa982a49ded8675060aab9',
+    'docs/media/widescreen-comparison.png': 'dd8b23a051e8ef98516ea6aa349ef450f441e58669efc67a56fb2273dfbeaf67',
     'docs/media/launcher.png': '0c9704f81d05abc61a1ed8255683036541ee7f9dff11f0e6fad37c050fcba7c0',
     'docs/media/overlay.png': 'a137a13fa65cbbfc765897aa9d51d3ef84523e5cabd0fe934f6e477f446ca09b',
     'docs/media/hd-16x9-gameplay.mp4': '385b041f57b7ddd61feb99e0ce726f6e4a5856f1e9936c416aca81949ee428f0',

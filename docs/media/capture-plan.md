@@ -2,7 +2,8 @@
 
 The [gallery](README.md) now contains reviewed Mac gameplay, original/HD and
 4:3/16:9 comparisons, plus the v0.9.0 launcher and F1 overlay. The README uses
-one grapple still and one compact 20-fps GIF (about 4 MB together); videos are
+one owner-selected face-off 4:3/16:9 comparison and one compact 20-fps GIF
+(about 4.53 MB together); videos are
 linked downloads. Gameplay came from the PR #12 candidate and is labelled as
 such. Widescreen beta is now released on all three platforms in v0.9.0.
 
