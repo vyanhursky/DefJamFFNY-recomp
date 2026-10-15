@@ -6,6 +6,10 @@
  *                        sub_000B4CE0(1), a setter for the byte at 0x0039C1DA. sub_000B5AD0
  *                        reads it every frame and, in a fight, draws a debug label
  *                        (for example "N4007 A") under each fighter's health bar.
+ *   RECOMP_START_FIGHTERS=a,b[,c,d]  the fighter ids (fighter.xml <ID>) a match starts with, by slot
+ *   RECOMP_START_VENUE=n             the venue, as the script id Game.ChooseVenue carries
+ *   RECOMP_START_LOG=1               log what Game.StartGame is about to be given
+ *                        The last three act at Game.StartGame (the end of this file).
  *
  * Developer unlock (RECOMP_UNLOCK_ALL=1): every fighter and venue, 10,000 points.
  *
@@ -104,4 +108,59 @@ void defjam_unlock_all_on_funccall(const char *text)
         MEM8(DEBUG_FLAG) = 1;
     if (unlock && strncmp(text, "Control.GetScreenInfo(", 22) == 0)
         run_unlock();
+}
+
+
+/* ---- Game.StartGame, with the match set-up under control --------------------------------
+ *
+ * Game.StartGame is the script method at guest 0x00046E40. It is registered by name and reached
+ * through a function pointer, so recomp_lookup_manual() can hand back a wrapper. The wrapper
+ * logs, and optionally overrides, what the match is about to be made from.
+ */
+extern recomp_func_t recomp_lookup(uint32_t xbox_va);
+
+#define GAMEDATA_SLOT 0x18u
+#define MANAGERS      0x002FB148u
+
+static int s_start_log = -1;
+
+static void start_game_wrapper(void)
+{
+    uint32_t game = g_ecx;                                     /* the Game script object */
+    uint32_t gd = MEM32(MANAGERS + GAMEDATA_SLOT * 4);         /* the game-data object */
+    recomp_func_t real = recomp_lookup(0x00046E40u);
+    const char *v = getenv("RECOMP_START_VENUE");
+    const char *f = getenv("RECOMP_START_FIGHTERS");
+    unsigned i;
+
+    /* The venue: the script id Game.ChooseVenue stored (0x2DD978 maps it to the venue). */
+    if (v && *v)
+        MEM32(game + 0xCA4) = (uint32_t)strtol(v, NULL, 0);
+    /* The fighters: the id of each slot, in the per-slot records at gd+0x1AA9 (five bytes
+     * a slot; the id is the second byte, what Controller.ControllerSetup stores). */
+    for (i = 0; f && *f && i < 4; i++) {
+        char *end;
+        long id = strtol(f, &end, 0);
+        if (end == f)
+            break;
+        MEM8(gd + 0x1AAAu + i * 5) = (uint8_t)id;
+        f = (*end == ',') ? end + 1 : end;
+    }
+    fprintf(stderr, "[START] venue(script)=%d fighters(gd+1aaa step 5):", (int)MEM32(game + 0xCA4));
+    for (i = 0; i < 4; i++)
+        fprintf(stderr, " %d", (int)(int8_t)MEM8(gd + 0x1AAAu + i * 5));
+    fprintf(stderr, "\n");
+    fflush(stderr);
+    if (real)
+        real();
+}
+
+recomp_func_t defjam_start_game_hook(void)
+{
+    if (s_start_log < 0) {
+        const char *a = getenv("RECOMP_START_LOG"), *b = getenv("RECOMP_START_VENUE"),
+                   *c = getenv("RECOMP_START_FIGHTERS");
+        s_start_log = (a && *a && strcmp(a, "0")) || (b && *b) || (c && *c);
+    }
+    return s_start_log ? start_game_wrapper : (recomp_func_t)0;
 }

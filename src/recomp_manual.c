@@ -648,6 +648,12 @@ recomp_func_t recomp_lookup_manual(uint32_t xbox_va)
         return trace_sleep_caller;
     if (xbox_va == 0x00068BA0u)
         return funccall_hook;
+    if (xbox_va == 0x00046E40u) {   /* Game.StartGame, src/patches/dev_unlock.c */
+        extern recomp_func_t defjam_start_game_hook(void);
+        recomp_func_t w = defjam_start_game_hook();
+        if (w)
+            return w;
+    }
 
     if (s_trace_count < 0)
         trace_parse();
