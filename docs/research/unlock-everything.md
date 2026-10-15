@@ -214,6 +214,12 @@ switch makes one unnecessary for tests. It also means nothing is shared (saves a
 
 ## Not covered
 
+- **The pinned fight stream.** With the unlock on, the `replay` fight produces 95 records where the golden
+  has 80, repeatably, so the unlock changes how that fight plays (why was not looked into). `replay` and
+  `repeat` therefore run without it (`scenario_suite.py --no-unlock`).
+- **Two failures that are not this change.** On this Mac, pristine `origin/main` also fails the `combat`
+  check's `audio.dry_queue`, and one `replay` run on it logged an indirect call to non-code; the launcher
+  check failed once and passed on a re-run.
 - **Story progress and cutscenes.** Story chapter state is in the profile and `sub_000158F0` does
   not touch it. The Story routes (`intro`, `crib`, `gym`) still need their profile, as the backlog
   item on golden saves says.

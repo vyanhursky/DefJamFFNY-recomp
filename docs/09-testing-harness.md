@@ -152,7 +152,10 @@ the saves when the run ends.
 ### Every fighter and venue, on any profile
 
 The harness (and so `regress.py` and the scenario suite) turns `RECOMP_UNLOCK_ALL` on for every
-run it starts; `--env RECOMP_UNLOCK_ALL=0` turns it off for one. For a game you start yourself the
+run it starts; `--env RECOMP_UNLOCK_ALL=0` turns it off for one (the scenario suite drops inherited `RECOMP_*`
+variables, so it takes `--no-unlock`). The `replay` and `repeat` checks use `--no-unlock`: with the unlock
+on, the pinned fight plays differently (95 records against the golden 80; the cause is not known), and
+the golden was recorded without it. For a game you start yourself the
 switch is the `[debug] unlock_all` setting (the General page of the launcher and overlay), or the
 variable. `RECOMP_UNLOCK_ALL=1` runs the developers' own unlock routine (guest `0x000158F0`, still in the
 retail image) on each screen change once the main menu has started: all 74 fighters and every

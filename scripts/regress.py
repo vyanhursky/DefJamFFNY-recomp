@@ -416,7 +416,7 @@ def check_replay(a):
     folder = os.path.join(REPO, "logs", "scenarios", "regress-replay-" + stamp)
     stream = os.path.join(REPO, "logs", "scenarios", "regress-replay-%s.stream" % stamp)
     code = suite.main(["run", "fight", "--fixture", fixture, "--no-audio", "--observe-combat", "--step-input", "default",
-                       "--rng-seed", "20261006", "--preset", a.preset, "--stream-out", stream, "--output", folder])
+                       "--rng-seed", "20261006", "--no-unlock", "--preset", a.preset, "--stream-out", stream, "--output", folder])
     try:
         with open(stream, encoding="utf-8") as f:
             lines = [line for line in f.read().splitlines() if line]
@@ -446,7 +446,7 @@ def check_repeat(a):
     second = os.path.join(REPO, "logs", "scenarios", "regress-repeat-b-" + stamp)
     stream = os.path.join(REPO, "logs", "scenarios", "regress-repeat-%s.stream" % stamp)
     common = ["run", "fight", "--fixture", fixture, "--no-audio", "--observe-combat", "--step-input", "default",
-              "--rng-seed", "20261006", "--preset", a.preset]
+              "--rng-seed", "20261006", "--no-unlock", "--preset", a.preset]
     if suite.main(common + ["--stream-out", stream, "--output", first]) != 0:
         return False, "the recording run failed  " + os.path.relpath(first, REPO)
     code = suite.main(common + ["--stream-expect", stream, "--output", second])
