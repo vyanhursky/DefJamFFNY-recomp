@@ -1,6 +1,6 @@
 # Unlocking everything for playtests and regression runs
 
-2026-10-15, branch `research/unlock-all-profile`. A dated record: the source is authoritative.
+2026-10-15, branch `feat/unlock-all-dev-switches`. A dated record: the source is authoritative.
 Everything below was read from the user's own USA dump (`default.xbe`, `gconfig.xml`) and
 confirmed in live runs of the macOS build against a throw-away copy of the save area.
 
