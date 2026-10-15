@@ -149,6 +149,23 @@ The other regression checks still use the whole save folder with the copy-aside
 guard, which is why they are slower. Do not stop one mid-run: the guard restores
 the saves when the run ends.
 
+### Every fighter and venue, on any profile
+
+`RECOMP_UNLOCK_ALL=1` runs the developers' own unlock routine (guest `0x000158F0`, still in the
+retail image) on each screen change once the main menu has started: all 74 fighters and every
+venue are available, whatever the profile holds, a new one included. It is runtime-only and off
+unless asked for:
+
+```bash
+python scripts/harness.py run unlock --env RECOMP_UNLOCK_ALL=1     # Unlock Fighters: 74 / 74
+python scripts/harness.py run fight --env RECOMP_UNLOCK_ALL=1 --env RECOMP_DEV_DEBUG=1
+```
+
+`RECOMP_DEV_DEBUG=1` adds the in-fight debug overlay. To keep the save area as a run left it
+(the guard still restores the original afterwards) set `DEFJAM_HARNESS_SNAPSHOT_SAVE=<dir>`.
+It does not unlock Story progress, songs or items. How it was found, and what was checked:
+[unlocking everything](research/unlock-everything.md).
+
 ## Audio, pacing and memory
 
 - **Audio.** The generated PCM must be long enough, not clipped and not silent,

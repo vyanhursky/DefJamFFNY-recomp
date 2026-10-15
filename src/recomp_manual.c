@@ -487,6 +487,7 @@ static void trace_sleep_caller(void)
  */
 extern void sub_00068BA0(void);
 extern void xbox_NoteAnchorEvent(const char *text);
+extern void defjam_unlock_all_on_funccall(const char *text);
 
 static void funccall_hook(void)
 {
@@ -505,6 +506,7 @@ static void funccall_hook(void)
     if (printed++ < 4000)
         fprintf(stderr, "[FUNCCALL] %s\n", text);
     xbox_NoteAnchorEvent(text);
+    defjam_unlock_all_on_funccall(text);   /* RECOMP_UNLOCK_ALL, src/patches/dev_unlock.c */
     sub_00068BA0();
 }
 

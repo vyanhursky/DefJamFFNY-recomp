@@ -432,6 +432,12 @@ class SaveGuard:
         if not self.copy:
             return False
         kill_stray()
+        # DEFJAM_HARNESS_SNAPSHOT_SAVE=<dir>: keep what the run wrote, before the restore
+        # puts the original back (a profile the game itself produced, e.g. with RECOMP_UNLOCK_ALL).
+        snapshot = os.environ.get("DEFJAM_HARNESS_SNAPSHOT_SAVE")
+        if snapshot and os.path.isdir(self.src):
+            shutil.rmtree(snapshot, ignore_errors=True)
+            shutil.copytree(self.src, snapshot)
         for attempt in range(5):
             try:
                 if os.path.isdir(self.src):
