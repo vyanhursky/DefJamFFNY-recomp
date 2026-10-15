@@ -142,6 +142,12 @@ def test_save_guard_restores_userdata_caches_and_original_absence(tmp_path, monk
     assert guard.restored_equal and not (absent / 'save').exists()
 
 
+def test_runs_unlock_everything_unless_told_otherwise():
+    assert harness.unlock_default({})["RECOMP_UNLOCK_ALL"] == "1"
+    assert harness.unlock_default({"RECOMP_UNLOCK_ALL": "0"})["RECOMP_UNLOCK_ALL"] == "0"
+    assert "RECOMP_UNLOCK_ALL" not in harness.unlock_default({"RECOMP_UNLOCK_ALL": ""})
+
+
 def test_save_guard_can_keep_what_the_run_wrote(tmp_path, monkeypatch):
     monkeypatch.setattr(harness, 'kill_stray', lambda: None)
     keep = tmp_path / 'kept'

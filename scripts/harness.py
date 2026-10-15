@@ -69,6 +69,18 @@ BASE_ENV = {
 TITLE_ANCHOR = "feflow.xml#2"
 
 
+def unlock_default(e):
+    """Test runs have every fighter and venue, whatever the save holds (src/patches/dev_unlock.c).
+
+    A caller, or the shell, can say otherwise: RECOMP_UNLOCK_ALL=0 turns it off, and an empty value
+    leaves it unset, so the settings file's own [debug] unlock_all applies."""
+    if "RECOMP_UNLOCK_ALL" not in e:
+        e["RECOMP_UNLOCK_ALL"] = "1"
+    elif e["RECOMP_UNLOCK_ALL"] == "":
+        del e["RECOMP_UNLOCK_ALL"]
+    return e
+
+
 def data_dir():
     """The game data root (dump, analysis, save area), outside the repo."""
     return os.environ.get("DEFJAM_DATA") or os.path.join(os.path.dirname(REPO), "defjam")
@@ -680,6 +692,7 @@ def run_game(name, stages=(), tail="", shots="", secs=240, preset=RELEASE_PRESET
         e["RECOMP_TRANS_SHOT"] = os.path.join(shots_dir, name + ".bmp")
         e["RECOMP_TRANS_SHOT_SECS"] = shots
     e.update(env or {})
+    unlock_default(e)
     e['DEFJAM_DATA'] = guarded_data_root(e['DEFJAM_DATA'])
 
     run = Run(name, log + ".err", shots_dir)

@@ -93,6 +93,9 @@ the flag are zeroed; nothing visible depended on them in the runs tried).
 | File | Change |
 |---|---|
 | `src/patches/dev_unlock.c` | `RECOMP_UNLOCK_ALL=1`: from the front end's call stream, once `Game.StartMainMenu` has been seen, run `sub_000158F0` on every `Control.GetScreenInfo(...)`. `RECOMP_DEV_DEBUG=1`: hold the debug flag at 1. Both off by default. |
+| `src/hooks/pc_ui_settings.c`, `pc_settings.c`, `pc_ui.cpp` | `[debug] unlock_all` (off by default, restart): a checkbox "Debug - Unlock all Fighters and Venues (Requires Restart)" on the General page of the launcher and the overlay, exported to `RECOMP_UNLOCK_ALL` at start-up. |
+| `scripts/harness.py` | every run it starts has `RECOMP_UNLOCK_ALL=1` (so `regress.py` and the scenario suite do too); `=0` turns it off, an empty value leaves it to the settings file. |
+| `scripts/regress.py` | check `unlockopt`: the launcher checkbox saves the setting, and the game started from that file alone runs the unlock (and does not without it). |
 | `src/recomp_manual.c` | one call to `defjam_unlock_all_on_funccall(text)` in the existing `funccall_hook`. |
 | `scripts/harness.py` | `DEFJAM_HARNESS_SNAPSHOT_SAVE=<dir>` keeps the save area as the run left it, before the guard restores the original. |
 | `tests/unit/test_harness.py` | covers the snapshot. |
@@ -226,4 +229,3 @@ switch makes one unnecessary for tests. It also means nothing is shared (saves a
    done at `Game.StartGame` instead (below). Left: a route that uses `RECOMP_START_*` and asserts the
    fighters from `[TEST-STATE]`; the venue is checked by eye only.
 3. Decide whether Story checkpoints should be produced by a route (backlog item, option 2), now that characters and venues no longer depend on them.
-4. A setting in `settings.ini` and the overlay instead of an environment variable, if testers need it outside the harness.
