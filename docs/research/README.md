@@ -54,6 +54,7 @@ cite other development notes, logs and captures that are not published.
 - [Skyline cloud-join audit](menu-ui-seam-audit-2026-10-17.md): structural mismatch at original bounds, final-composite prompting and inner/outer seam checks
 - [Approved skyline and next background drafts](menu-ui-second-batch-results-2026-10-17.md): pinned art acceptance, reproducible recipe, remaining title/mode layers and five-aspect studies
 - [Menu art approvals and next screens](menu-ui-next-scope-2026-10-17.md): approved tower, conditional Mode Select lighting check, inspected Options/Jukebox/Battle recommendations
+- [Menu/UI source-shaped playtest pack](menu-ui-playtest-pack-2026-10-19.md): 47-ID sparse export, Mac runtime hits, retained Faithful HD layers and gaps
 - [Title logo and eight emblem trials](menu-logo-emblem-results-2026-10-17.md): city approval, exact source shapes, nine built-in trials and source-protected comparisons
 - [Branding transparency source probes](menu-branding-transparency-audit-2026-10-18.md): clear holes, partial ink and opaque distress
 - [Branding transparency repair](menu-branding-transparency-results-2026-10-18.md): nine alpha-only revisions, unchanged RGB, registered source coverage and retained retry evidence

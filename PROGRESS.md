@@ -61,7 +61,7 @@
 | Picture options and setup progress fix (D136-D138; issues #40, #44, #47) | ✅ released v0.10.3 (latest, 2026-10-19) | PR #54 (setup progress-file contention, WinError 5) merged `c37bf34`; PR #55 (`[display] brightness`, `vignette`, `vignette_strength`, launcher/overlay Display → Picture, live; `docs/research/picture-options.md`) merged `1b04982`. Beta pre-release, owner's Deck play-test: brightness and vignette "work perfectly"; promoted to latest (D138). Windows not play-tested. Subtitles (#44) not started. |
 | Mac setup quarantine fix (D139; issue #59) | ✅ released v0.10.4 (latest, 2026-10-19) | PR #60 merged `1d4e13d`: the macOS setup unpacks its digest-checked payload with `ditto --noqtn` plus `xattr -d -r com.apple.quarantine`, so a browser-downloaded setup no longer stops on *"python3" Not Opened*. Owner confirmed with a quarantined test DMG. Tag `v0.10.4` on release PR #63 merge `110d50e`; game and toolkit identical to v0.10.3. |
 
-| Menu/UI restoration | ⏸ owner pause / artwork approved | D157/UI.71sourceIDs covered(63approved+8conditionalMode),226pinned outputs.101imagegen calls;no newgeneration. Modpackhandover docs/menu-ui-modpack-handover.md;source-only publication,art local;native/widescreen engineering stillpending. |
+| Menu/UI restoration | ⏸ art paused / ⏳ playtest pack built (D158/UI) | 71 source IDs approved (63 + 8 conditional Mode), 226 pins, no new generation (D157/UI). Source-shaped playtest packs exported locally: 39 approved + 8 Mode IDs, 29 proven loaded on Mac Vulkan; logo/emblems (22) and skyline (2) stay Faithful HD; true widescreen scenery not started. `docs/research/menu-ui-playtest-pack-2026-10-19.md`. Awaiting owner playtest. |
 
 ## 1. Decisions log
 
@@ -269,6 +269,7 @@
 | D155/UI | 2026-10-19 | Restore rematch,1–4player results and reward-earned papers as source-shaped UI,not widened scenery. |6layouts/18tiles mapped;6built-in calls/101total. Sourcealpha/printedgraphics/UVpadding/edgeguards exact;boundedpaperLdetail only.30transparent-margin aspectstudies preservecenter/scale;rawgeometry excluded. |
 | D156/UI | 2026-10-19 | Vlad approves all six result/rematch/reward-earned paper layouts;freeze current artwork and audit remaining Menu/UI work by unique source ID. |60currentfiles/18tiles pinned.71sources covered(63approved+8conditionalMode);1,252registered-flow sources notcustomrestored,23confirmednext-artshortlist,not a complete background/job count. ExistingFaithfulHD covers broaderlibrary;nativeacceptance remains separate. |
 | D157/UI | 2026-10-19 | Vlad pauses texture restoration until more credits; requests a standalone modpack/playtest handover and publication of all non-art work. | No further imagegen/repainting. Preserve complete private artwork snapshot,226file approval catalogue,71source mappings,source-only recipes/prompts/research. Engineering next: native-shaped sparse pack,then explicit wide-layer support;art assets/captures remain local. Publish topic branches without changing runtime or releasing binaries. |
+| D158/UI | 2026-10-19 | First menu playtest delivery: export the approved art as two sparse source-shaped 4× components (`menu-ui-restored-test-v1`, 39 IDs; `menu-ui-mode-conditional-test-v1`, 8 IDs) on top of the existing Faithful HD packs, in an isolated playtest data folder, without changing the loader or any install. Keep the title logo/21 emblem tiles and the skyline on Faithful HD; widescreen scenery stays a separate stage. | Owner asked for a Mac build to playtest the menus with the new textures before more art. The handover puts source-shaped first; logo/emblems need native registration and the skyline has no approved tile export, so substituting them would ship unapproved derivatives. Mode is its own component because its approval is conditional and the owner should be able to turn it off alone. An isolated data folder leaves the release install, the PR19+20 install and the dev save untouched. |
 
 ## 2. Environment inventory (2026-09-17)
 
@@ -359,8 +360,6 @@ defjam-recomp/
 
 > Recent entries only; older entries remain unchanged in the local `docs/worklog/` archive.
 
-- 2026-10-18 22:35 — v0.10.2 prepared on chore/release-v0.10.2 (D135), not tagged: CMake 0.10.2, docs/releases/v0.10.2.md, known-issues scene-performance limits. Candidate build verified (binary reports 0.10.2), quick 5/5 logs/regress-20261018-222254.txt (units 507/30 skip), check-source-tree 410/0, check-release version+notes ok (tag and main-ancestry parts run at tagging). Waiting for Vlad's go-ahead to merge, tag and publish.
-- 2026-10-18 22:50 — v0.10.2 published/latest at 22:44 ET from PR51 merge c17dffb (CI 28/28 on main 39190415641; check-release verified 411 files); Source release 39190861886 green 30/30. Nine game-free assets downloaded and verified: SHA files and GitHub digests match, provenance source c17dffb/toolkit 32aab4d, production payloads; against v0.10.1 only the new scene-perf/hitch-probe scripts and shader-cache sources added. Evidence logs/release-v0.10.2/verification.json.
 - 2026-10-19 00:20 — Issues #40, #44 (brightness only), #47 (D136). **#40:** setup `write_status` best effort (5 tries, ≤150 ms, keeps the old label, never raises), repeated progress labels dropped, wizard reads `status.txt` with `FILE_SHARE_DELETE`; `tests/unit/test_setup_status.py` (6 portable, fail on old code; 2 Windows-only with real handles) — PR #54, CI 28/28, all 8 status tests passed on windows-latest. **#44/#47:** `[display] brightness`/`vignette`/`vignette_strength` (`src/patches/picture.c`, hooks `sub_000D9AF0_enter`, `sub_00028460_enter`; re-lift + build 90 s on the Mac), launcher/overlay Display → Picture, live. Measured from five repeatable fights (`logs/scenarios/picture-*`): off lifts vignetted edges 28.8→42.7 with centre unchanged, strength 50 median error 0 vs predicted, brightness 150 lifts mid-tones; window read-back confirms brightness after the gamma pass. New `regress.py --only picture`. Full regression 18/18 `logs/regress-20261019-001613.txt` (goldens and replay hash unchanged). Branch `feature/brightness-vignette`.
 - 2026-10-19 10:20 — v0.10.3 published as a GitHub **pre-release** (D137) from PR #56 merge `d8c8ad2` (CI 28/28; `check-release.py` verified 416 files; quick 5/5 `logs/regress-20261019-100411.txt`). Source release run 39266562051 green. Nine game-free assets downloaded and verified (`logs/release-v0.10.3/assets`): each `.sha256` and GitHub digest match, provenance names source `d8c8ad2` and toolkit `32aab4d`; the Linux payload carries `src/patches/picture.c` and the fixed `setup/engine.py`. `/releases/latest` and setup's live catalog still show v0.10.2.
 - 2026-10-19 14:45 — Owner play-tested the v0.10.3 beta on the Steam Deck via the Linux setup: brightness and both vignette options "work perfectly". v0.10.3 promoted from pre-release to latest (D138), same tag `d8c8ad2` and the nine verified assets; release notes and `docs/known-issues.md` updated (beta wording dropped, Deck test recorded). Windows play-test added to the §5 to-do.
@@ -368,6 +367,7 @@ defjam-recomp/
 - 2026-10-19 15:10 — Issue #59 (macOS setup blocker): a browser-downloaded setup stopped at "Preparing setup files" with *"python3" Not Opened*. Cause: `Setup.unpack()` used plain `ditto -x -k`, which copied the DMG's quarantine onto all 5365 payload files; Gatekeeper then refused the ad-hoc-signed, unnotarized bundled python3 (not a bad Python build; local builds were never quarantined, so it was never seen). Fix on `fix/macos-setup-quarantine`: `ditto --noqtn` plus `xattr -d -r com.apple.quarantine` on the digest-checked payload. Two tests in `tests/unit/test_macos_payload.py` (run the Swift's own ditto/xattr calls on a quarantined zip; both fail with the fix reverted). End to end: fixed Setup with the real v0.10.2 payload, quarantined, unpacked 0/4912 quarantined files and the engine ran (exit 2, no dump given). Units 515/32 skip; check-source-tree 416/0. Known-issues workaround for v0.10.3 and earlier. Not pushed.
 - 2026-10-19 15:30 — Owner confirmed the #59 fix with a quarantined test DMG of PR #60 ("This has fixed the issue") and asked for a hotfix. PR #60 merged `1d4e13d` (CI 28/28); #59 closed by it. v0.10.4 prepared on `chore/release-v0.10.4` (D139): CMake 0.10.4, `docs/releases/v0.10.4.md`, known-issues entry now "fixed in v0.10.4" with the `xattr` workaround for older setups. Since v0.10.3 only `setup/macos/Setup/main.swift`, its tests and docs changed (game sources and toolkit `32aab4d` identical), so no game regression was run.
 - 2026-10-19 15:25 — v0.10.4 published/latest at 15:21 ET (D139): release PR #63 merged `110d50e`, tag `v0.10.4`, Source release run 39309194188 green 30/30. Nine game-free assets downloaded and verified: each `.sha256` and GitHub digest match; provenance names source `110d50e`, toolkit `32aab4d`, production payloads. Released Mac DMG run with a quarantined payload: setup 0.10.4 unpacked 0/4914 files quarantined and the bundled engine ran (exit 2, no dump given). Issue #59 commented with the release and the workaround for older setups.
+- 2026-10-19 16:05 — **Menu/UI playtest pack (D158/UI).** Merged main (v0.10.4, `110d50e`) into `codex/menu-ui-modpack-handoff`; Mac build in the worktree (analyze `--no-archive`, lift 17890/17896, build ok). 226 art pins verified, 0 failures. `scripts/export-menu-ui-pack.py` + `config/menu-ui-source-shaped-exports.json` exported `menu-ui-restored-test-v1` (39 IDs, 56 MB) and `menu-ui-mode-conditional-test-v1` (8 IDs) into the isolated `<data>/playtest-menu-ui/mods`, all exactly 4× and within RGB MAD 3.2 / alpha 0.02 of Faithful HD at 1×. Harness with `RECOMP_TEXTURE_TRACE=1`: `unlock` pass, `two-matches` ends clean but flags one boot-time `[ICALL] 0x80003344` (line 859, `logs/run-20261019-153015.log.err`; another game run was active); 29 of 47 IDs uploaded (`logs/run-20261019-154012.log.err`). Unit tests 11/11 for the menu art scripts. Logo/emblems and skyline stay Faithful HD; no widescreen scenery yet.
 
 ## 7. Hand-off
 
@@ -377,30 +377,15 @@ https://github.com/vyanhursky/DefJamFFNY-recomp/releases/tag/v0.10.4. Tag on rel
 stops on *"python3" Not Opened* (fix PR #60). Game and toolkit are as in v0.10.3, so Windows, Linux and existing Mac
 installs need no update. #59 is closed with the release noted; v0.10.3's known-issues entry keeps the `xattr` workaround.
 
-### Menu/UI restoration paused; implement approved-art playtest pack — 2026-10-19
+### Menu/UI playtest pack built; waiting for owner playtest — 2026-10-19
 
-Read `docs/menu-ui-modpack-handover.md` first. D157/UI: no further imagegen,
-restoration or deferredartqueue until Vlad resumes. Nextagent builds the local
-sparse source-shaped pack,then opt-in full-width background geometry/UV/scissor,
-keeping liveUI/4:3 and5aspecttests. No menu-art modpack installed/gameverified yet.
-Public hashcatalogue config/menu-ui-approved-artwork.json:71sources(63approved+
-8conditionalMode),226filepins/12scopes;verify via scripts/verify-menu-ui-artwork.py.
-Complete immutable private snapshot `<data>/scratch/menu-ui-restoration-paused-
-20261019/session/pilot-v1`;226pins andsnapshotmanifest checked. Originalreview
-51738/pilot-v1 remains;8768fighterwriter/17candidates/Trejo untouched. Localart,
-raws,alphafields,allprompts/recipes/history remain;source-only recipes published
-in DefJam-Modding-Tools/research/menu-ui-pilot-20261017. Currentmainc4922e9 and
-v0.10.3features retained;oldruntimeaudit4a6c88e mustbe rechecked. Independently
-numbered menu decisions D123..D157 are qualified /UI;mainrelease decisions retained.
-Crucialexportgaps: approvedbrandingv2rawcanvas needsnative-shape registration;
-source-safeoldbranding alternate is unapproved. Title/Mode compositeneedssplits/
-layer mapping,notflattenedPNGs. Battle setupv5LEFTlighting accepted,v4RIGHTreverted.
-Rewards wideperipheralfade relocation intentional;nativealpha/4:3 retained.
-Papers originalscale/positions;Sm4bottomrighty255overlap. ConditionalMode right
-lighting/Optionsscroll/nativeall5aspectchecks pending. Noartassets/gamebytes or
-capturespublished;no newart/install/game/build/runtimeedit. Seehandoverforpaths,
-selectedversions,aliascorrelation,packpriority,rollback andacceptance checklist.
-Published drafts: gamePR62 (initial sourcecommit a130cfe),authoringPR1 (3b0a0a2).
-Remoteheads verified equal local commits;bothsource workingtrees clean afterpush.
-14focusedtests,226privateartpins,451game/319toolssourcechecks pass.
-Othermainmilestones/status/decisions retained;previousmainhandoff archivedlocally.
+Branch `codex/menu-ui-modpack-handoff` (draft PR #62) now has v0.10.4 merged in, the export table
+`config/menu-ui-source-shaped-exports.json`, `scripts/export-menu-ui-pack.py` and its test. Results and
+gaps: `docs/research/menu-ui-playtest-pack-2026-10-19.md` (D158/UI). Mac build in the worktree
+`/Users/vlad/.codex/worktrees/01c5/DefJamFFNY-recomp` (`build/posix-release/defjam_recomp`); playtest data
+`/Users/vlad/Code/defjam-data/playtest-menu-ui` (`play.sh [menu|nomode|faithful|original]`). 29 of 47 IDs
+proven loaded; Options, Jukebox, High Scores, 3-fighter select, 1/3-player results and reward earned not
+visited by a route. Next, after Vlad's playtest notes: fix what he reports; register the approved logo/emblem
+canvases to native atlases (or ask him to accept a derivative); then the opt-in widescreen layer work in the
+handover. Restoration stays paused (D157/UI): no imagegen. One `[ICALL] 0x80003344 is not code` during boot in
+`two-matches` (line 859, before menus) while another game run was active; not re-run.
