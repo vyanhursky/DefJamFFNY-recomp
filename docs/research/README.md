@@ -49,6 +49,37 @@ cite other development notes, logs and captures that are not published.
 
 ## HD textures
 
+- [Menu/UI inventory and restoration pilot](menu-ui-restoration-plan-2026-10-17.md): fresh static census, comparison-tool check, imagegen/widescreen plan and owner questions
+- [First menu/UI artwork trials](menu-ui-pilot-results-2026-10-17.md): original-color constraints, live workshop revisions and skyline previews through32:9
+- [Skyline cloud-join audit](menu-ui-seam-audit-2026-10-17.md): structural mismatch at original bounds, final-composite prompting and inner/outer seam checks
+- [Approved skyline and next background drafts](menu-ui-second-batch-results-2026-10-17.md): pinned art acceptance, reproducible recipe, remaining title/mode layers and five-aspect studies
+- [Menu art approvals and next screens](menu-ui-next-scope-2026-10-17.md): approved tower, conditional Mode Select lighting check, inspected Options/Jukebox/Battle recommendations
+- [Title logo and eight emblem trials](menu-logo-emblem-results-2026-10-17.md): city approval, exact source shapes, nine built-in trials and source-protected comparisons
+- [Branding transparency source probes](menu-branding-transparency-audit-2026-10-18.md): clear holes, partial ink and opaque distress
+- [Branding transparency repair](menu-branding-transparency-results-2026-10-18.md): nine alpha-only revisions, unchanged RGB, registered source coverage and retained retry evidence
+- [Logo and Start-sticker geometry](menu-logo-shape-audit-2026-10-17.md): source UVs, real alpha/color, variant joins and vector-source check
+- [Eight selected-mode emblem shapes](menu-emblem-shape-audit-2026-10-17.md): 21fragments, active joins, support-icon distinction and alpha
+- [Options/Jukebox geometry](menu-options-jukebox-shape-audit-2026-10-17.md): Xbox platform variant, independent scrolling wall, masks and background joins
+- [Remaining Menu/UI inventory](menu-ui-remaining-inventory-2026-10-19.md): six paper layouts approved,71 source IDs covered,1,252 registered-flow sources untouched by custom restoration and23 confirmed next priorities
+- [Result and rematch paper drafts](menu-result-rematch-panels-2026-10-19.md): High Scores approval, six source-protected panels/18 tiles, alpha and five aspect placement studies
+- [High Scores draft and remaining UI queue](menu-hiscores-background-results-2026-10-19.md): Rewardswallapproval, protected score board, five ratios and inspected result/paper/phone candidates
+- [Rewards/Unlock wall and Battle approval](menu-rewards-unlock-backgrounds-2026-10-19.md): approved setupv5, shared3screen wall draft, exactsource alpha and explicit wide-vignette policy
+- [Battle upper-left lighting v5](menu-battle-left-lighting-v5-2026-10-19.md): corrected side, retained brick detail and exact restoration of pre-v4 right artwork
+- [Battle upper-right lighting v4](menu-battle-right-lighting-v4-2026-10-19.md): localized illumination correction with v3 brickwork and native center preserved
+- [Battle left material v3](menu-battle-left-material-v3-2026-10-19.md): full-left source-only outpaint, native sampling/edge material calibration and retained failed studies
+- [Battle setup refinement and fighter approvals](menu-battle-setup-refinement-2026-10-19.md): approved2/3/4fighter backgrounds, source-brick material repair and ceiling alignment
+- [Battle background drafts](menu-battle-background-results-2026-10-18.md): four source-protected restorations, five ratios, both-join repairs and original comparisons
+- [Battle background geometry](menu-battle-background-shape-audit-2026-10-17.md): match type and2/3/4fighter backgrounds, distinct IDs, padding and protected materials
+- [Remaining title-layer geometry](menu-title-remaining-layers-2026-10-17.md): alpha, active UV heights, opaque padding and settled placement
+- [Options softness v4](menu-options-softness-v4-2026-10-18.md): slight right defocus on existing pixels, preserved geometry/colors and versioned review
+- [Jukebox approved / Options reference door v3](menu-options-door-v3-2026-10-18.md): narrow reference geometry, worn panel texture, exact Jukebox pins and preserved Options left/center
+- [Options door and Jukebox join revision](menu-options-jukebox-joins-2026-10-18.md): complete right architecture, course-guided regeneration, preserved left/centers and versioned comparisons
+- [Options and Jukebox background drafts](menu-options-jukebox-results-2026-10-18.md): nine branding approvals, source layers, five aspects, prompts and remaining join/scroll limitations
+- [Remaining mode-layer geometry](menu-mode-remaining-layers-2026-10-17.md): lit/dark alignment, shutter/surround UVs, alpha doorway and existing offstage scenery
+- [Pilot tile UV/layout proof](menu-pilot-uv-layout-2026-10-17.md): tile order, authored overlap/padding and settled title placement
+- [Menu layer/texture mapping](menu-asset-mapping-2026-10-17.md): retail title and all 120 mode-select fragments
+- [UI authoring-tool audit](ui-texture-tooling-audit-2026-10-17.md): standalone workshop capabilities and aspect/import boundaries
+- [UI widescreen runtime audit](ui-widescreen-audit-2026-10-17.md): exact-pin placement, loader restrictions and integration requirements
 - [Feature notes](hd-textures-notes.md)
 - [Representative audition](hd-representative-review.md)
 - [In-game Lanczos pilot](hd-lanczos-game-pilot.md)
@@ -79,3 +110,7 @@ The plan built from these is in [docs/widescreen](../widescreen/README.md), whic
 
 - [Story scene performance on macOS, 2026-10-18](scene-perf-macos-2026-10-18.md): all 38 scenes at 16:9 and render scale 3, random game-side stalls, load freezes, shader compiles, and the baseline for the Deck run
 - [Story scene performance on the Steam Deck, 2026-10-18](scene-perf-deck-2026-10-18.md): the same tour on a Deck OLED with and without the shader cache, and a retest by render scale and refresh rate
+
+## Menu/UI artwork restoration and modpack handover
+
+- [Start here: approved-art modpack implementation](../menu-ui-modpack-handover.md)

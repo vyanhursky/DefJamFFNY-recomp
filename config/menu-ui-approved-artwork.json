@@ -1,0 +1,2063 @@
+{
+  "schema": 1,
+  "art_root_policy": "Relative to the PRIVATE pilot-v1 directory. No PNG/game bytes are stored here. This is an integrity catalogue,not a runtime mod manifest.",
+  "decision_namespace": "D123..D157 in this menu session are qualified /UI where they collide with other main-branch decisions.",
+  "restoration_status": "PAUSED at owner request;do not generate or repaint before owner resumes.",
+  "pilot_imagegen_calls": 101,
+  "source_counts": {
+    "covered_by_artwork_review": 71,
+    "unconditionally_approved_source_ids": 63,
+    "conditionally_reviewed_mode_source_ids": 8,
+    "registered_flows": {
+      "total": 1323,
+      "covered": 71,
+      "not_custom_restored": 1252
+    },
+    "core_families": {
+      "total": 1834,
+      "covered": 71,
+      "not_custom_restored": 1763
+    },
+    "broad_ui_category": {
+      "total": 11261,
+      "covered": 71,
+      "not_custom_restored": 11190
+    },
+    "confirmed_priority_shortlist": 23
+  },
+  "reviewed_sources": [
+    {
+      "source_id": "427424b7b670739f1a493dff7e53725299f72c718c7680aca3314b76247ca5ad",
+      "family": "title-scenery",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/intMain/prestart.big::prestart.xsh",
+          "name": "11",
+          "index": 2,
+          "width": 512,
+          "height": 512
+        }
+      ]
+    },
+    {
+      "source_id": "627117d2e69e0a56279f40cadd4397ffcb32192b8c110d40e2c54052e26ae168",
+      "family": "title-scenery",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/intMain/prestart.big::prestart.xsh",
+          "name": "2",
+          "index": 5,
+          "width": 512,
+          "height": 512
+        }
+      ]
+    },
+    {
+      "source_id": "fdc3666e5aec15824bd2cb3fb8598f2f7047980c696c494035d019e7036680ba",
+      "family": "title-scenery",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/intMain/prestart.big::prestart.xsh",
+          "name": "6",
+          "index": 14,
+          "width": 512,
+          "height": 512
+        }
+      ]
+    },
+    {
+      "source_id": "919550631f96c060cf70102059d3d185ac79b83e0d3f9d37949d731cc11c5bfd",
+      "family": "title-scenery",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/intMain/prestart.big::prestart.xsh",
+          "name": "1",
+          "index": 0,
+          "width": 128,
+          "height": 512
+        }
+      ]
+    },
+    {
+      "source_id": "682f298f59c1680b2bc7118a4768d685fa41dd16eb684b67cbfbf9077036c4e4",
+      "family": "title-scenery",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/intMain/prestart.big::prestart.xsh",
+          "name": "10",
+          "index": 1,
+          "width": 128,
+          "height": 512
+        }
+      ]
+    },
+    {
+      "source_id": "99aa2410ae53d3edc92c89fbecf01d1adf5eab12b2d613338de66f0f03a92a33",
+      "family": "title-scenery",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/intMain/prestart.big::prestart.xsh",
+          "name": "5",
+          "index": 13,
+          "width": 128,
+          "height": 512
+        }
+      ]
+    },
+    {
+      "source_id": "d543121c2fd1cada431cf25345d9d8efa1f25a02992f19cf49b49fa66f15fee6",
+      "family": "mode-scenery",
+      "status": "conditional-artwork-native-lighting-check",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/intMain/mainMenu.big::mainMenu.xsh",
+          "name": "53",
+          "index": 95,
+          "width": 512,
+          "height": 512
+        }
+      ]
+    },
+    {
+      "source_id": "44ac477e5bbedc831511b189da8e581c4beb01646ea12f119719fceb02482693",
+      "family": "mode-scenery",
+      "status": "conditional-artwork-native-lighting-check",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/intMain/mainMenu.big::mainMenu.xsh",
+          "name": "14",
+          "index": 23,
+          "width": 256,
+          "height": 512
+        }
+      ]
+    },
+    {
+      "source_id": "5b657a938f0808856b46cea8d42ee2548da7a5c15597f4704a1dfdf1f5947c24",
+      "family": "mode-scenery",
+      "status": "conditional-artwork-native-lighting-check",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/intMain/mainMenu.big::mainMenu.xsh",
+          "name": "5",
+          "index": 93,
+          "width": 256,
+          "height": 512
+        }
+      ]
+    },
+    {
+      "source_id": "5e6f2fec0b51311c14bea415934548dd946081c270abdfb4834746ffe633abff",
+      "family": "mode-scenery",
+      "status": "conditional-artwork-native-lighting-check",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/intMain/mainMenu.big::mainMenu.xsh",
+          "name": "18",
+          "index": 47,
+          "width": 256,
+          "height": 256
+        }
+      ]
+    },
+    {
+      "source_id": "2fca375e9466d772de13fa5cc53013e90d063ba8aa87c20d16a052b437aeccbb",
+      "family": "mode-scenery",
+      "status": "conditional-artwork-native-lighting-check",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/intMain/mainMenu.big::mainMenu.xsh",
+          "name": "13",
+          "index": 16,
+          "width": 64,
+          "height": 512
+        }
+      ]
+    },
+    {
+      "source_id": "de1deb64a25f6ae1821fa0837bf2dd452b4dc27fd0a51bcadcaa28d3ea214260",
+      "family": "mode-scenery",
+      "status": "conditional-artwork-native-lighting-check",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/intMain/mainMenu.big::mainMenu.xsh",
+          "name": "17",
+          "index": 40,
+          "width": 256,
+          "height": 128
+        }
+      ]
+    },
+    {
+      "source_id": "a3ef5488f84a7fd179fc0a610d7fdc1434afdf398a684df1b74637b9af3fcb1b",
+      "family": "mode-scenery",
+      "status": "conditional-artwork-native-lighting-check",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/intMain/mainMenu.big::mainMenu.xsh",
+          "name": "4",
+          "index": 85,
+          "width": 64,
+          "height": 512
+        }
+      ]
+    },
+    {
+      "source_id": "832e9d0b1495f399e2d53408d3292b603a591ec6c927abd4b0bb1c9a00e07be4",
+      "family": "mode-scenery",
+      "status": "conditional-artwork-native-lighting-check",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/intMain/mainMenu.big::mainMenu.xsh",
+          "name": "52",
+          "index": 94,
+          "width": 64,
+          "height": 512
+        }
+      ]
+    },
+    {
+      "source_id": "c194328377ad8dd75b4c3fadfd8886b5bc2af468a92e362519651a7942adea39",
+      "family": "title-logo-menu-emblems",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/intMain/prestart.big::prestart.xsh",
+          "name": "19",
+          "index": 4,
+          "width": 512,
+          "height": 128
+        }
+      ]
+    },
+    {
+      "source_id": "2e48cf151ce7b3ca9f823b35e8f3150bd53315a7cd585803736bbe1ce2194d5e",
+      "family": "title-logo-menu-emblems",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/intMain/mainMenu.big::mainMenu.xsh",
+          "name": "21",
+          "index": 65,
+          "width": 128,
+          "height": 32
+        }
+      ]
+    },
+    {
+      "source_id": "757992057df3bbff89048d7a35b26f6f7ff1b04f5e6bfa3d50024e49d9b50b06",
+      "family": "title-logo-menu-emblems",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/intMain/mainMenu.big::mainMenu.xsh",
+          "name": "22",
+          "index": 70,
+          "width": 64,
+          "height": 128
+        }
+      ]
+    },
+    {
+      "source_id": "239f61c152ea697c63b155252140b508c21eae8f56c38228ba6c7170a4c1f7d9",
+      "family": "title-logo-menu-emblems",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/intMain/mainMenu.big::mainMenu.xsh",
+          "name": "23",
+          "index": 73,
+          "width": 128,
+          "height": 128
+        }
+      ]
+    },
+    {
+      "source_id": "f41bba879fc1c3727062193d98645e679bd912b9f46a577c4223c67f814755c5",
+      "family": "title-logo-menu-emblems",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/intMain/mainMenu.big::mainMenu.xsh",
+          "name": "25",
+          "index": 74,
+          "width": 128,
+          "height": 64
+        }
+      ]
+    },
+    {
+      "source_id": "bfb188f53f66c66381dbbba8ebaed410f9a0587a38da92909a5b7cc68236ad0a",
+      "family": "title-logo-menu-emblems",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/intMain/mainMenu.big::mainMenu.xsh",
+          "name": "26",
+          "index": 75,
+          "width": 64,
+          "height": 128
+        }
+      ]
+    },
+    {
+      "source_id": "b36b549df15bf97f7ad34479574b7a1a84edf6d00bfb7c92b674c7dddada4fd6",
+      "family": "title-logo-menu-emblems",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/intMain/mainMenu.big::mainMenu.xsh",
+          "name": "27",
+          "index": 76,
+          "width": 128,
+          "height": 128
+        }
+      ]
+    },
+    {
+      "source_id": "ff8471670aa8691939cd5ec7d8dac4487dc9fa84de8d1412f3d94408e415e759",
+      "family": "title-logo-menu-emblems",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/intMain/mainMenu.big::mainMenu.xsh",
+          "name": "29",
+          "index": 77,
+          "width": 128,
+          "height": 16
+        }
+      ]
+    },
+    {
+      "source_id": "79b05c160853bce7c8b30ed9d897fe578a784002f307fc1f0d83e1b2c87cff9a",
+      "family": "title-logo-menu-emblems",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/intMain/mainMenu.big::mainMenu.xsh",
+          "name": "30",
+          "index": 78,
+          "width": 16,
+          "height": 128
+        }
+      ]
+    },
+    {
+      "source_id": "c70864f7a3debb225a7ea175d149297a1ff6456813bab9d90ad7c852477284bd",
+      "family": "title-logo-menu-emblems",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/intMain/mainMenu.big::mainMenu.xsh",
+          "name": "31",
+          "index": 79,
+          "width": 128,
+          "height": 128
+        }
+      ]
+    },
+    {
+      "source_id": "2170eb15025e4297ee65c5e1f6cc050a98ee847d653c6f7a9e1f661fe8ebb9e4",
+      "family": "title-logo-menu-emblems",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/intMain/mainMenu.big::mainMenu.xsh",
+          "name": "33",
+          "index": 80,
+          "width": 128,
+          "height": 32
+        }
+      ]
+    },
+    {
+      "source_id": "a85e9d316451d205a6e6acf5b81b040aaa40c16d567619d4611844c255929ec7",
+      "family": "title-logo-menu-emblems",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/intMain/mainMenu.big::mainMenu.xsh",
+          "name": "34",
+          "index": 81,
+          "width": 128,
+          "height": 128
+        }
+      ]
+    },
+    {
+      "source_id": "cd4ffadac63f15e80456576a960cb9dc064ac535148ced0e965ef36fb4a57194",
+      "family": "title-logo-menu-emblems",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/intMain/mainMenu.big::mainMenu.xsh",
+          "name": "36",
+          "index": 82,
+          "width": 64,
+          "height": 128
+        }
+      ]
+    },
+    {
+      "source_id": "58dbd292b7616d0e5dd0f6c22d4eb747c0dff57b0e57522287b2cabe3fdf52ea",
+      "family": "title-logo-menu-emblems",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/intMain/mainMenu.big::mainMenu.xsh",
+          "name": "37",
+          "index": 83,
+          "width": 128,
+          "height": 128
+        }
+      ]
+    },
+    {
+      "source_id": "baebf3aee4330aca6c98c1115dcc63a22fcb7c1d81fe4392b8c1d44d0557298d",
+      "family": "title-logo-menu-emblems",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/intMain/mainMenu.big::mainMenu.xsh",
+          "name": "39",
+          "index": 84,
+          "width": 128,
+          "height": 64
+        }
+      ]
+    },
+    {
+      "source_id": "18db0581724a46595c410f452412214e43adf5d37bc98c03e45c457a222f1e70",
+      "family": "title-logo-menu-emblems",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/intMain/mainMenu.big::mainMenu.xsh",
+          "name": "40",
+          "index": 86,
+          "width": 128,
+          "height": 128
+        }
+      ]
+    },
+    {
+      "source_id": "f3bd86237ccbbaa215d1f2e4974c7af6920a1805a674339626e91f0201054dda",
+      "family": "title-logo-menu-emblems",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/intMain/mainMenu.big::mainMenu.xsh",
+          "name": "42",
+          "index": 87,
+          "width": 128,
+          "height": 32
+        }
+      ]
+    },
+    {
+      "source_id": "f3c9018cb3ee4da4eafdefdf36ec8a1568411bac8a1eec021d4a41608a8831cc",
+      "family": "title-logo-menu-emblems",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/intMain/mainMenu.big::mainMenu.xsh",
+          "name": "43",
+          "index": 88,
+          "width": 32,
+          "height": 128
+        }
+      ]
+    },
+    {
+      "source_id": "c4c26c3dbdae1eae64cc4b95a73a0706432b74f39fe9b810d35a8df9154be7d3",
+      "family": "title-logo-menu-emblems",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/intMain/mainMenu.big::mainMenu.xsh",
+          "name": "44",
+          "index": 89,
+          "width": 128,
+          "height": 128
+        }
+      ]
+    },
+    {
+      "source_id": "c8115cdb70a77ad7f2f05ab9b66937372f1c44fdc29e84ecc41700d0b50b538f",
+      "family": "title-logo-menu-emblems",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/intMain/mainMenu.big::mainMenu.xsh",
+          "name": "46",
+          "index": 90,
+          "width": 128,
+          "height": 64
+        }
+      ]
+    },
+    {
+      "source_id": "d55c90a43955e5654457320a479363c8f7c72564b86ec8b3978d23523514a46a",
+      "family": "title-logo-menu-emblems",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/intMain/mainMenu.big::mainMenu.xsh",
+          "name": "47",
+          "index": 91,
+          "width": 32,
+          "height": 128
+        }
+      ]
+    },
+    {
+      "source_id": "b6ad4739ea5209d6e1a8bf8a1180b57d69c886c667c2fab8f51c7a3adc13f75f",
+      "family": "title-logo-menu-emblems",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/intMain/mainMenu.big::mainMenu.xsh",
+          "name": "48",
+          "index": 92,
+          "width": 128,
+          "height": 128
+        }
+      ]
+    },
+    {
+      "source_id": "1806fe21639ed68aa1647dcc4d5e78bad6b03cb0369df3c1c25bb4a9f7a732e5",
+      "family": "options-jukebox",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/options/options.big::options.xsh",
+          "name": "71",
+          "index": 9,
+          "width": 512,
+          "height": 512
+        }
+      ]
+    },
+    {
+      "source_id": "1c2de449c28536a5491ef5828f81d171544917f2238a18c8a1474ea8685edbae",
+      "family": "options-jukebox",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/options/cribOptions.big::cribOptions.xsh",
+          "name": "4",
+          "index": 6,
+          "width": 256,
+          "height": 512
+        },
+        {
+          "source": "screens/screens.viv::screens/options/options.big::options.xsh",
+          "name": "4",
+          "index": 5,
+          "width": 256,
+          "height": 512
+        }
+      ]
+    },
+    {
+      "source_id": "8a8ca1c700e03288620aed2bb229d592521e518af2e7a9b9d3b698a9703f7d05",
+      "family": "options-jukebox",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/options/options.big::options.xsh",
+          "name": "70",
+          "index": 8,
+          "width": 64,
+          "height": 512
+        }
+      ]
+    },
+    {
+      "source_id": "cc11d92079b1a81132faae6e64053f82e397ba78f4e097be11d409fb8f9c5d64",
+      "family": "options-jukebox",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/jukebox/beatbox.big::beatbox.xsh",
+          "name": "20",
+          "index": 3,
+          "width": 512,
+          "height": 512
+        }
+      ]
+    },
+    {
+      "source_id": "f8e71b8bc56f4d3a502fd09ccc526d33a6173173570b1595bf880185ffeacc6b",
+      "family": "options-jukebox",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/jukebox/beatbox.big::beatbox.xsh",
+          "name": "19",
+          "index": 2,
+          "width": 128,
+          "height": 512
+        }
+      ]
+    },
+    {
+      "source_id": "06830e776d6cc6bb56c52925f42cf6ca19c72444049477f1d594cfedac4d7edd",
+      "family": "battle-backgrounds",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/battle/cmtype.big::cmtype.xsh",
+          "name": "2",
+          "index": 59,
+          "width": 512,
+          "height": 512
+        }
+      ]
+    },
+    {
+      "source_id": "d0e7ae35466ded72d9b99139b6684bfbd83e2967fdfd2139b224ca8f694ed524",
+      "family": "battle-backgrounds",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/battle/cmtype.big::cmtype.xsh",
+          "name": "1",
+          "index": 0,
+          "width": 128,
+          "height": 512
+        }
+      ]
+    },
+    {
+      "source_id": "c49727c8650aaf13bb5d1a0aee11b3fc466d607a657b77a35b86bda6b99aa9e7",
+      "family": "battle-backgrounds",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/battle/chooseF2.big::chooseF2.xsh",
+          "name": "338",
+          "index": 122,
+          "width": 512,
+          "height": 512
+        }
+      ]
+    },
+    {
+      "source_id": "39406336dd035b74ae57e953a386c49500392da9f566bb6ed8c5fab56c8010c4",
+      "family": "battle-backgrounds",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/battle/chooseF2.big::chooseF2.xsh",
+          "name": "337",
+          "index": 121,
+          "width": 128,
+          "height": 512
+        }
+      ]
+    },
+    {
+      "source_id": "d628474a2f54474db0057e938f1c6b6aeb89d6003da7d1c6c79f76410d3725f1",
+      "family": "battle-backgrounds",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/battle/chooseF3.big::chooseF3.xsh",
+          "name": "343",
+          "index": 123,
+          "width": 512,
+          "height": 512
+        }
+      ]
+    },
+    {
+      "source_id": "96e7606df178d45d402e060a32e9d6f9033cc247cf86c02bc336aea7db0f3571",
+      "family": "battle-backgrounds",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/battle/chooseF3.big::chooseF3.xsh",
+          "name": "342",
+          "index": 122,
+          "width": 128,
+          "height": 512
+        }
+      ]
+    },
+    {
+      "source_id": "82ec4995c69b506a022b461def716702ac593e21887a8a6ce853a91ffcc80dfb",
+      "family": "battle-backgrounds",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/battle/chooseF4.big::chooseF4.xsh",
+          "name": "344",
+          "index": 122,
+          "width": 512,
+          "height": 512
+        }
+      ]
+    },
+    {
+      "source_id": "02f7125c71c22c6db9425f25763ef553904bad5a9a6f1e49d7a477f8da6ad119",
+      "family": "battle-backgrounds",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/battle/chooseF4.big::chooseF4.xsh",
+          "name": "343",
+          "index": 121,
+          "width": 128,
+          "height": 512
+        }
+      ]
+    },
+    {
+      "source_id": "fc7e7ea76a80243a701f35d9bfdb914e93a85549224e1a0557c65897cb35a33c",
+      "family": "rewards-shared-wall",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/battle/buyrewards.big::buyrewards.xsh",
+          "name": "2",
+          "index": 5,
+          "width": 512,
+          "height": 512
+        },
+        {
+          "source": "screens/screens.viv::screens/battle/unlockchar.big::unlockchar.xsh",
+          "name": "11",
+          "index": 3,
+          "width": 512,
+          "height": 512
+        },
+        {
+          "source": "screens/screens.viv::screens/battle/unlockven.big::unlockven.xsh",
+          "name": "11",
+          "index": 1,
+          "width": 512,
+          "height": 512
+        }
+      ]
+    },
+    {
+      "source_id": "6cd17deca34561c5990503898d85bcb47ad9c20e40dca641eea8962e5378cca8",
+      "family": "rewards-shared-wall",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/battle/buyrewards.big::buyrewards.xsh",
+          "name": "1",
+          "index": 0,
+          "width": 256,
+          "height": 512
+        },
+        {
+          "source": "screens/screens.viv::screens/battle/unlockchar.big::unlockchar.xsh",
+          "name": "10",
+          "index": 0,
+          "width": 256,
+          "height": 512
+        },
+        {
+          "source": "screens/screens.viv::screens/battle/unlockven.big::unlockven.xsh",
+          "name": "10",
+          "index": 0,
+          "width": 256,
+          "height": 512
+        }
+      ]
+    },
+    {
+      "source_id": "bc0317c0ade0f0b0f2cd60f9ebf56e9301aa61960cf4ee95643dcc7fc4261728",
+      "family": "high-scores",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/hiScores/hiScores.big::hiScores.xsh",
+          "name": "2",
+          "index": 24,
+          "width": 512,
+          "height": 512
+        }
+      ]
+    },
+    {
+      "source_id": "553692a37819cf5d205bdfa6faa9229f4eefc742c418654c0ceeff688d0cb475",
+      "family": "high-scores",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/hiScores/hiScores.big::hiScores.xsh",
+          "name": "1",
+          "index": 0,
+          "width": 128,
+          "height": 512
+        }
+      ]
+    },
+    {
+      "source_id": "d3c334fa79ef7e76522ca90ac78a2034da9a76225e1e80a287fc393bb0864d68",
+      "family": "result-papers",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/battle/rematch.big::rematch.xsh",
+          "name": "1",
+          "index": 0,
+          "width": 512,
+          "height": 256
+        }
+      ]
+    },
+    {
+      "source_id": "386f604f3a51d0c1ece3c264ebf1c42a0b64052abebe522beaa5c1f084a78471",
+      "family": "result-papers",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/battle/matchSm1.big::matchSm1.xsh",
+          "name": "9",
+          "index": 8,
+          "width": 256,
+          "height": 128
+        }
+      ]
+    },
+    {
+      "source_id": "aa11e92a08308b2c40780530b03f8ac0eced5cca4e85dbb0bce61787f640ac33",
+      "family": "result-papers",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/battle/matchSm1.big::matchSm1.xsh",
+          "name": "8",
+          "index": 7,
+          "width": 16,
+          "height": 128
+        }
+      ]
+    },
+    {
+      "source_id": "edc3c82749e8d0508f97c561e33a29364efbe6fc0160f8d9072c610c2a1d4147",
+      "family": "result-papers",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/battle/matchSm1.big::matchSm1.xsh",
+          "name": "11",
+          "index": 1,
+          "width": 256,
+          "height": 256
+        }
+      ]
+    },
+    {
+      "source_id": "0d45174e4859eb9733273b65c52dac6dc07032ee5c015a045261eefa3a6cec8b",
+      "family": "result-papers",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/battle/matchSm1.big::matchSm1.xsh",
+          "name": "10",
+          "index": 0,
+          "width": 16,
+          "height": 256
+        }
+      ]
+    },
+    {
+      "source_id": "a926b19ddf65cbecf9dae294ff8701a7fa243ab52b4c28ac5dafa76919d9d241",
+      "family": "result-papers",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/battle/matchSm2.big::matchSm2.xsh",
+          "name": "19",
+          "index": 3,
+          "width": 32,
+          "height": 128
+        }
+      ]
+    },
+    {
+      "source_id": "e692c2ce27084a0aa5e9a650e140bc1c75e8997852d6d861ec1d9aa7afb4196f",
+      "family": "result-papers",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/battle/matchSm2.big::matchSm2.xsh",
+          "name": "18",
+          "index": 2,
+          "width": 512,
+          "height": 256
+        }
+      ]
+    },
+    {
+      "source_id": "4acf8a4e5f30b06671b3e654739e12de3f0352ac3455df69e716badcb9e33444",
+      "family": "result-papers",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/battle/matchSm2.big::matchSm2.xsh",
+          "name": "16",
+          "index": 0,
+          "width": 512,
+          "height": 128
+        }
+      ]
+    },
+    {
+      "source_id": "b8223904337292ef721238b5cca3d59313ed8c74deb495ebde40728e9d647c2f",
+      "family": "result-papers",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/battle/matchSm2.big::matchSm2.xsh",
+          "name": "17",
+          "index": 1,
+          "width": 32,
+          "height": 256
+        }
+      ]
+    },
+    {
+      "source_id": "251bd45d0911accf4ffd053af54007d46f3164be7ec6f15853e7fbdba7ef2990",
+      "family": "result-papers",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/battle/matchSm3.big::matchSm3.xsh",
+          "name": "19",
+          "index": 2,
+          "width": 64,
+          "height": 256
+        }
+      ]
+    },
+    {
+      "source_id": "6b321e718552fda75dbcfec60438b4f30766e0b3304219416aaf204ebeb3bd1e",
+      "family": "result-papers",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/battle/matchSm3.big::matchSm3.xsh",
+          "name": "20",
+          "index": 4,
+          "width": 64,
+          "height": 128
+        }
+      ]
+    },
+    {
+      "source_id": "0cde4bd38a9f475481b7dea88b61acd4224d6f5c6b381281c60f1b656b618849",
+      "family": "result-papers",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/battle/matchSm3.big::matchSm3.xsh",
+          "name": "21",
+          "index": 5,
+          "width": 512,
+          "height": 256
+        }
+      ]
+    },
+    {
+      "source_id": "70aa1175d3cffcef4409ee067aa8e6f8d755bb59a31f895a63bb0c6a29c7102e",
+      "family": "result-papers",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/battle/matchSm3.big::matchSm3.xsh",
+          "name": "18",
+          "index": 1,
+          "width": 512,
+          "height": 128
+        }
+      ]
+    },
+    {
+      "source_id": "982f62a0de74d880a86a78983dd4e9bcf41fabd9cd4b8415955cf639ef1dc437",
+      "family": "result-papers",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/battle/matchSm4.big::matchSm4.xsh",
+          "name": "16",
+          "index": 4,
+          "width": 64,
+          "height": 128
+        }
+      ]
+    },
+    {
+      "source_id": "47833e402cfbe60adf5e175b842162b5cbe782bea4a46b4b97a6a571678ec055",
+      "family": "result-papers",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/battle/matchSm4.big::matchSm4.xsh",
+          "name": "15",
+          "index": 3,
+          "width": 512,
+          "height": 256
+        }
+      ]
+    },
+    {
+      "source_id": "f8fc3d8390906ded4f445a9e3ad529a715aa9ae84e009fed363aa38bcec2f0fc",
+      "family": "result-papers",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/battle/matchSm4.big::matchSm4.xsh",
+          "name": "14",
+          "index": 2,
+          "width": 64,
+          "height": 256
+        }
+      ]
+    },
+    {
+      "source_id": "21ae42111b8b8f30fd2d813cf72a710e01a1aadd3859f8a23aaeb8102ef5c269",
+      "family": "result-papers",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/battle/matchSm4.big::matchSm4.xsh",
+          "name": "13",
+          "index": 1,
+          "width": 512,
+          "height": 128
+        }
+      ]
+    },
+    {
+      "source_id": "8f3eb5b34841c18723f8177ba5ae01d4d837a9a0cd3518297c7af840977da01a",
+      "family": "result-papers",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/battle/rewardun.big::rewardun.xsh",
+          "name": "1",
+          "index": 0,
+          "width": 512,
+          "height": 512
+        }
+      ]
+    }
+  ],
+  "approval_records": [
+    {
+      "record": "skyline-approval.json",
+      "decision": "D128/UI",
+      "status": "owner-approved artwork",
+      "scope": "Exact isolated skyline master and derived aspect crops; no whole title/runtime acceptance or approval of separate restoration trials",
+      "files": [
+        {
+          "path": "seam-v3/title-skyline-wide-master-v3.png",
+          "sha256": "683e5481d3bef12a27be00a1eda0afbbcfcefdbc3583be862f00ee21b809f2f0"
+        },
+        {
+          "path": "seam-v3/title-skyline-4x3-v3.png",
+          "sha256": "5380d94c869fbb19f8ec064715a234489022144b11c254c99a3cf96723ce42f2"
+        },
+        {
+          "path": "seam-v3/title-skyline-16x10-v3.png",
+          "sha256": "ad902bfd78fe0809a6b2ae6d4aeaff4a0033ec787d6f4514681085520b71aaf5"
+        },
+        {
+          "path": "seam-v3/title-skyline-16x9-v3.png",
+          "sha256": "cdc0d534ab1accec225128fb7b7f01107c5ef3438d650b05ccea7127747d3b6f"
+        },
+        {
+          "path": "seam-v3/title-skyline-21x9-v3.png",
+          "sha256": "d826b328a24fc1454bc25dc7eb78bc225d526745b8b5f8a153db23459f0229e0"
+        },
+        {
+          "path": "seam-v3/title-skyline-32x9-v3.png",
+          "sha256": "7f8de926a4d5c05b5ca13dce4d36d7e063b44299bc8601fac60190a063affe3e"
+        }
+      ]
+    },
+    {
+      "record": "approvals-v1/approval.json#water_tower",
+      "decision": "D131/UI",
+      "status": "owner-approved artwork",
+      "scope": "Current restrained water-tower/roof layer and wide extension, with five displayed tower-over-approved-skyline crops. Excludes city layer, raw/earlier generations, whole title and runtime acceptance.",
+      "files": [
+        {
+          "path": "batch2/title-tower-restrained.png",
+          "sha256": "1b84b12ed182c29d495539135aa6f52c97c5503240b166f75a990edc772a3829"
+        },
+        {
+          "path": "batch2/title-tower-wide-draft.png",
+          "sha256": "68f26d57832975dec08e6e2c428430b15792d53a8d10e5ad6083bf9157b68e78"
+        },
+        {
+          "path": "batch2/title-tower-4x3-preview.png",
+          "sha256": "07c131de991c808e21e1b8db1f6554fb5112c256a64e36c3c81d27829ccc5802"
+        },
+        {
+          "path": "batch2/title-tower-16x10-preview.png",
+          "sha256": "d5b3c20ce7bb4c6da9d852b0c97683cf26451b9a92990a7d2d6b040bc9c58ff5"
+        },
+        {
+          "path": "batch2/title-tower-16x9-preview.png",
+          "sha256": "c1b942420ae493197d9befe204d608fdfb225a654c7d784a9b66c7303cb77d99"
+        },
+        {
+          "path": "batch2/title-tower-21x9-preview.png",
+          "sha256": "d62c98d3e36c38a7f25dc88fbe9962d491fa49b1553310e39cc7f85a82364604"
+        },
+        {
+          "path": "batch2/title-tower-32x9-preview.png",
+          "sha256": "de4fc82ab33bd366f4377a3f1ecff8ab5321c76e70c73a71546b156461a2c481"
+        }
+      ]
+    },
+    {
+      "record": "approvals-v1/approval.json#mode_select",
+      "decision": "D132/UI",
+      "status": "conditionally approved artwork; in-game validation required",
+      "scope": "Current dark/lit mode-environment review compositions and their exact source-shaped inputs; preserve current pixels pending running-game review. This records the scene-level art decision, not separate workshop revision selections.",
+      "files": [
+        {
+          "path": "batch2/mode-environment-wide-draft.png",
+          "sha256": "bdb4edf5933bf7222de268fbf6cc137d058ed39795e176129d775faa642cb618"
+        },
+        {
+          "path": "batch2/mode-environment-lit-wide-draft.png",
+          "sha256": "f2e11bc318ab68f0f068ac4ea4c3a1c8cc94e17cbb91f7676d17cbfc7810009c"
+        },
+        {
+          "path": "batch2/mode-environment-4x3-preview.png",
+          "sha256": "854cce01919250a8a09704ae29639b58e50a711d0f2cf1b7b9739f89ee4cce9b"
+        },
+        {
+          "path": "batch2/mode-environment-16x10-preview.png",
+          "sha256": "ccad3733e3d603ae1da9974c81edb31a7e1fc96b65ded1f18388f4c7fb29eb0e"
+        },
+        {
+          "path": "batch2/mode-environment-16x9-preview.png",
+          "sha256": "4efab13098dd6b2acbaf1914033cf7d715eb46529b029cba1caaf2c4c337a77c"
+        },
+        {
+          "path": "batch2/mode-environment-21x9-preview.png",
+          "sha256": "3716afb53d77372c38e7936dc108a4aed8abe8bccdbc28da8d817a891d1b199c"
+        },
+        {
+          "path": "batch2/mode-environment-32x9-preview.png",
+          "sha256": "0ce1ad8ea61e0d5dd6d1f6cc7c4e6af600dcc3457cb85386f659b747d531a3a7"
+        },
+        {
+          "path": "batch2/mode-environment-lit-4x3-preview.png",
+          "sha256": "ef234600c0105917a6fbec5d7e12aba799af1c3faa12c3642a7670d6cfc33e78"
+        },
+        {
+          "path": "batch2/mode-environment-lit-16x10-preview.png",
+          "sha256": "cb6566cb9666808abb1ed808d711adc68bb57b2511c91794b4757c912662daf9"
+        },
+        {
+          "path": "batch2/mode-environment-lit-16x9-preview.png",
+          "sha256": "9ed9fda45bd087f2215f37f22154eb0d46c9436414420234c6dd366cfb7a93be"
+        },
+        {
+          "path": "batch2/mode-environment-lit-21x9-preview.png",
+          "sha256": "d688f89608594f5213d9d56fe9f9f184115ce68f9eaab7c623104965c0ba9427"
+        },
+        {
+          "path": "batch2/mode-environment-lit-32x9-preview.png",
+          "sha256": "fdee20b48bd5c2668cc59637d9a48d9af03c5d39e3acf7d5bfcfc0a1aca69831"
+        },
+        {
+          "path": "batch2/mode-wall-lit-restrained.png",
+          "sha256": "543a7bae7a8d71545d6d88b6c0229d0b019ff194e0d9a5758770fe7468a3c786"
+        },
+        {
+          "path": "batch2/mode-shutter-restrained.png",
+          "sha256": "9aab586d2fdbd9d5aa34551d50bb785148b54b7bb906894dabc88e84d9af65b9"
+        },
+        {
+          "path": "batch2/mode-surround-restrained.png",
+          "sha256": "a816ace390f75bbdede50d305b9e827f977b2e05c174ea6ec65a694bb0cd2b6c"
+        },
+        {
+          "path": "mode-wall-dark-palette-constrained-trial.png",
+          "sha256": "27162f2c0dccc0b72d563d48963f1a00b6340beb3f9eb781ae45538c5553b84a"
+        }
+      ]
+    },
+    {
+      "record": "branding-v1/city-approval.json",
+      "decision": "D133/UI",
+      "status": "owner-approved artwork",
+      "scope": "Current city/middle restrained layer, wide extension and five city-over-approved-skyline previews. All three existing title scenery layers are now approved; pin the five combined scenery studies as well. No logo/emblem/raw-generation/runtime approval.",
+      "files": [
+        {
+          "path": "batch2/title-middle-restrained.png",
+          "sha256": "9f6563003fbe7592b000fb5dccebe4c7d4f2475b06a72add14fe8dc3340d4a1d"
+        },
+        {
+          "path": "batch2/title-middle-wide-draft.png",
+          "sha256": "d69edf8c8e5df99c8d81b6c476a4c0b2778fa9345037189a0f721fd7fd4306c2"
+        },
+        {
+          "path": "batch2/title-middle-4x3-preview.png",
+          "sha256": "9f112c41ab0b47b5ba96b84952ddfd0d8dc412adf0865f1403a7d74ec74f5f64"
+        },
+        {
+          "path": "batch2/title-middle-16x10-preview.png",
+          "sha256": "57225b06d67fb4b9a48354ab2119f4cfab2ee8eb57ce4aafbc1bdb05e07bb506"
+        },
+        {
+          "path": "batch2/title-middle-16x9-preview.png",
+          "sha256": "1d12beff9ca9d15421ca888b6f698da14a3ea439baa16fc17d8828d61ba9c615"
+        },
+        {
+          "path": "batch2/title-middle-21x9-preview.png",
+          "sha256": "f7b12596d31d14ddfc6dd51bd0da493455f652c10fdceccd3b838aa44abe895e"
+        },
+        {
+          "path": "batch2/title-middle-32x9-preview.png",
+          "sha256": "6f89144ee7fe83ad066b5839a8984a0bedaf995d172033eb5fd3a9f117633dd3"
+        },
+        {
+          "path": "batch2/title-layers-4x3-preview.png",
+          "sha256": "debe82c61c584d9f28889cc305c63b3118979fec9b9b86933b2859299f6da14b"
+        },
+        {
+          "path": "batch2/title-layers-16x10-preview.png",
+          "sha256": "f90ff1553d570ae990e584eb586ebabd222d9a28c4cab546e19a2b98ec6862df"
+        },
+        {
+          "path": "batch2/title-layers-16x9-preview.png",
+          "sha256": "4553d3e32742d172c7108ec447d333cc6217fac371c409234d03224785a834a4"
+        },
+        {
+          "path": "batch2/title-layers-21x9-preview.png",
+          "sha256": "f685b48a2e363a67c2cabbe04d2c20055f73646c13f41eb5d87b27e124f79364"
+        },
+        {
+          "path": "batch2/title-layers-32x9-preview.png",
+          "sha256": "309e03f2d5b38869fe514b7639c07bfef40db966a069757a91e892566673218f"
+        }
+      ]
+    },
+    {
+      "record": "branding-approval-20261018.json",
+      "decision": "D137/UI",
+      "status": "owner-approved artwork",
+      "scope": "Exactly the nine transparency-v2 repaired title/emblem PNGs; no raw retry, source-safe alternate or runtime acceptance implied.",
+      "files": [
+        {
+          "path": "transparency-v2/title-logo-repaired.png",
+          "sha256": "c01bc7599a47fdb829793a44a63751f75f480311a569ed3de33723767ce336a5"
+        },
+        {
+          "path": "transparency-v2/emblem-story-repaired.png",
+          "sha256": "ec98d81fbf6ca7e20b8aee4812c7077b61fdf0d2e2b36b4b3fd4092559da2ca0"
+        },
+        {
+          "path": "transparency-v2/emblem-battle-repaired.png",
+          "sha256": "13cfcaa9e4ccdc72a5cdc72de08955861d0f424795b7f83897c51f798de0eec4"
+        },
+        {
+          "path": "transparency-v2/emblem-options-repaired.png",
+          "sha256": "898ae29f219745006aa2814286ef7ddc387facc4ced58e064025d7ce9fe8b123"
+        },
+        {
+          "path": "transparency-v2/emblem-jukebox-repaired.png",
+          "sha256": "cc74a92023d1eefcbf1017af21ee1b81776842bacc033e4271b6b4d4147e3fce"
+        },
+        {
+          "path": "transparency-v2/emblem-extras-repaired.png",
+          "sha256": "11270255f871856846105388c75cd2585b65ee6ce09fe1ed41bc0e6943406d91"
+        },
+        {
+          "path": "transparency-v2/emblem-high-scores-repaired.png",
+          "sha256": "c941e7f77ab62b1df404c3941ac56a1d07798c61695bb920934e7fade043a37f"
+        },
+        {
+          "path": "transparency-v2/emblem-rewards-repaired.png",
+          "sha256": "284da30a19d806fa1b88573bc08ff9a798551db3a718ac14b89de3304e38ffe4"
+        },
+        {
+          "path": "transparency-v2/emblem-credits-repaired.png",
+          "sha256": "bf6148b451798f67e7f648c156787064c5785ed8c3e6fd5680703fbb2358b35c"
+        }
+      ]
+    },
+    {
+      "record": "options-approval-20261018.json",
+      "decision": "D143/UI",
+      "status": "owner-approved artwork",
+      "scope": "Current Options v4 top-state backdrop artwork, separate source restorations/splits, master, five aspect crops and join/door proofs. Native scrolling, UV mapping, lighting, transitions and in-game acceptance remain pending.",
+      "files": [
+        {
+          "path": "options-softness-v4/options-wide-v4.png",
+          "sha256": "b80f8484468ee9eab3f501cb329986ba9391f7df91cc23fc18b2fe39e36a9ef6"
+        },
+        {
+          "path": "options-softness-v4/options-4x3-v4.png",
+          "sha256": "8d08b61ce7c98e2d6e3d87f359b7aabe05c3d7294aa3a91ffdb2fafd83b9723a"
+        },
+        {
+          "path": "options-softness-v4/options-16x10-v4.png",
+          "sha256": "6f6ee52a2c2178bfbf80c48cfe982c5fccc627c6c8250991f3e7f5befbe0016f"
+        },
+        {
+          "path": "options-softness-v4/options-16x9-v4.png",
+          "sha256": "8c69d5252fc07f2b9d366e5ec7402c9433e547fb73f4718aceaa679e9e672f04"
+        },
+        {
+          "path": "options-softness-v4/options-21x9-v4.png",
+          "sha256": "659d1e8d0d8005d5db92cc824f743b0335ce12f2186200e00d82a4adea663cde"
+        },
+        {
+          "path": "options-softness-v4/options-32x9-v4.png",
+          "sha256": "b80f8484468ee9eab3f501cb329986ba9391f7df91cc23fc18b2fe39e36a9ef6"
+        },
+        {
+          "path": "options-softness-v4/options-left-join.png",
+          "sha256": "72178c4042ce159c165df17ffe79dc7d8b5bf37c63f61293b4fd6966c6d4014a"
+        },
+        {
+          "path": "options-softness-v4/options-right-join.png",
+          "sha256": "6829897a6ff457777c8be4fee5a8b92c5d5e6dd3e5dc4e7a1168372fe2215936"
+        },
+        {
+          "path": "options-softness-v4/options-door-complete.png",
+          "sha256": "3e8222310ee95174e9f167e18aeec292c14464bf4ffe760660dbb7ed46cfdabd"
+        },
+        {
+          "path": "menus-v1/options-panel-restrained.png",
+          "sha256": "2962f72c6d783f0003bbe5c8a7f8b12dab5037ca2da70b2d0283eeee73174b9b"
+        },
+        {
+          "path": "menus-v1/options-wall-restrained.png",
+          "sha256": "f63cdf04c51583920e5c37b83a72eabc8752ffd9e1edeaea045e7756a220bcbc"
+        },
+        {
+          "path": "menus-v1/options-71-restrained.png",
+          "sha256": "3459840d15c4e91ca3539a06bb5811d1c1da63f8e79d427445445931d81f5943"
+        },
+        {
+          "path": "menus-v1/options-70-restrained.png",
+          "sha256": "8831ef063957ed15fa2a9aed63fbd9adedf20428f4cdc056ac48774a2e8d90f8"
+        }
+      ]
+    },
+    {
+      "record": "jukebox-approval-20261018.json",
+      "decision": "D140/UI",
+      "status": "owner-approved artwork",
+      "scope": "Current Jukebox v2 backdrop artwork,center restoration/splits and five aspect crops; no live strip/mask/lighting/runtime acceptance.",
+      "files": [
+        {
+          "path": "menus-seams-v2/jukebox-wide-v2.png",
+          "sha256": "0175c502abe8a5b4a4e071263a333353aeb5f0961f6cd46edf328c3dc70a08ea"
+        },
+        {
+          "path": "menus-seams-v2/jukebox-4x3-v2.png",
+          "sha256": "c969421f0d2f3ac746075c04b1b427c7471c05e3f00f67021f84c1e93a70ba3e"
+        },
+        {
+          "path": "menus-seams-v2/jukebox-16x10-v2.png",
+          "sha256": "3e939fd64d5f98b5278ba1f2d805b9e75c45431bb3f79fd1372c29a0949dab02"
+        },
+        {
+          "path": "menus-seams-v2/jukebox-16x9-v2.png",
+          "sha256": "47353f8dd6798fc2898aaf2e371895f81705004b0ab97b6eb1cfe473b1b1537a"
+        },
+        {
+          "path": "menus-seams-v2/jukebox-21x9-v2.png",
+          "sha256": "0c60b10e24af104e08be710ed34d56eeca9d8cb254311692c9684978c0253885"
+        },
+        {
+          "path": "menus-seams-v2/jukebox-32x9-v2.png",
+          "sha256": "0175c502abe8a5b4a4e071263a333353aeb5f0961f6cd46edf328c3dc70a08ea"
+        },
+        {
+          "path": "menus-seams-v2/jukebox-left-join.png",
+          "sha256": "2c65e7aaa3dd6743970f45df18f03114f8403eb369a323aeff3c425966f5358b"
+        },
+        {
+          "path": "menus-seams-v2/jukebox-right-join.png",
+          "sha256": "b4f27b0f965b9150c68b2cdc008ae0262d32734ea7888d165577b27ee22e4d38"
+        },
+        {
+          "path": "menus-v1/jukebox-background-restrained.png",
+          "sha256": "a7bdad5f5371d591e2a5e26dea45bf38493d46ab5cbfa516d02c41691decf479"
+        },
+        {
+          "path": "menus-v1/beatbox-20-restrained.png",
+          "sha256": "a2066fffc6d3f7e1db1442c27c0d4cc40d4651cb75ca3e45911de0cdc053c0ee"
+        },
+        {
+          "path": "menus-v1/beatbox-19-restrained.png",
+          "sha256": "8312e74d1766834c732dbd24e5ff0ff534deabeb43ff33c6abfff540c056c7d4"
+        }
+      ]
+    },
+    {
+      "record": "battle-fighter-approval-20261019.json",
+      "decision": "D145/UI",
+      "status": "owner-approved artwork",
+      "scope": "Exactly the current2/3/4fighter background restorations,source-shaped splits,wide masters,five aspect crops,joinproofs and separateextensions. Excludes Battle match setup and native/game acceptance.",
+      "files": [
+        {
+          "path": "battle-v1/chooseF2-wide-draft.png",
+          "sha256": "6db3ececdea689fcb0419310f79200a7b022de7433104911f1e8e475bd72c927"
+        },
+        {
+          "path": "battle-v1/chooseF2-4x3-draft.png",
+          "sha256": "b53a35d59214e0fb195d1cfa80ac62e375ba23ab81dc1f5850a752825744756f"
+        },
+        {
+          "path": "battle-v1/chooseF2-16x10-draft.png",
+          "sha256": "6d332055e6ad4d10e8df28b0ce264f35f10202e3ce13bb9dc750898324014c73"
+        },
+        {
+          "path": "battle-v1/chooseF2-16x9-draft.png",
+          "sha256": "29cf05dfeb241fb21df63a45c6257df78f5441108bbdcc0fa1bcc85286da7941"
+        },
+        {
+          "path": "battle-v1/chooseF2-21x9-draft.png",
+          "sha256": "9e07cd93213618334f413a264ec12f442c739b03e70b3027f3ac7112cf3dd86e"
+        },
+        {
+          "path": "battle-v1/chooseF2-32x9-draft.png",
+          "sha256": "6db3ececdea689fcb0419310f79200a7b022de7433104911f1e8e475bd72c927"
+        },
+        {
+          "path": "battle-v1/chooseF2-left-join.png",
+          "sha256": "e7858ec86defb2b8b9908088296191183f0d333727f7605149112fb8e18051cb"
+        },
+        {
+          "path": "battle-v1/chooseF2-right-join.png",
+          "sha256": "1eae40793c82f646e17947a6be34ba18b0de6683deae89c0113c8a24ee6053b8"
+        },
+        {
+          "path": "battle-v1/chooseF2-left-extension.png",
+          "sha256": "09c649602469fdd4234db00929f471cf53271cc9b60d7e7a92a26353d0a676d8"
+        },
+        {
+          "path": "battle-v1/chooseF2-right-extension.png",
+          "sha256": "6df0bd01f35a5bac1de58ed3eb67655f7622a33c21279bbb0383d3d6fb956701"
+        },
+        {
+          "path": "battle-v1/chooseF2-restrained.png",
+          "sha256": "4af0277696567e76a0afc8f0d992022d1a6d46dd1784b2bb0f5a768e6bd84b88"
+        },
+        {
+          "path": "battle-v1/chooseF2-338-restrained.png",
+          "sha256": "888e52fa13fe4621e11bbaf2c0002dae35fd99b8c9f61ad94b945e49eac4af0b"
+        },
+        {
+          "path": "battle-v1/chooseF2-337-restrained.png",
+          "sha256": "157c4737b5557519322c3874d2ffbdd460c496c28789b488189d9db4477dc948"
+        },
+        {
+          "path": "battle-v1/chooseF3-wide-draft.png",
+          "sha256": "ac77d78ec5f5ba8c2a6747c6df881e4f25a28d30d3cf94d7b5001d5a2f806235"
+        },
+        {
+          "path": "battle-v1/chooseF3-4x3-draft.png",
+          "sha256": "939d3dd12d17b7f8d69a765643bebcd63e5cb16c312cfaf650bb1dd4ad23458f"
+        },
+        {
+          "path": "battle-v1/chooseF3-16x10-draft.png",
+          "sha256": "8e26a381237f7267bf6f7de1775df590dfff58694dabcb6f8af6ae10193e92bb"
+        },
+        {
+          "path": "battle-v1/chooseF3-16x9-draft.png",
+          "sha256": "4c5bb9ec32c106ccdac83b1e7c423cbd5cd313d0bdf26b5476c20296a07cb800"
+        },
+        {
+          "path": "battle-v1/chooseF3-21x9-draft.png",
+          "sha256": "5d47b4918d1f46819a90eb17dfc9334511462cddafa274a7b0896764c48057ce"
+        },
+        {
+          "path": "battle-v1/chooseF3-32x9-draft.png",
+          "sha256": "ac77d78ec5f5ba8c2a6747c6df881e4f25a28d30d3cf94d7b5001d5a2f806235"
+        },
+        {
+          "path": "battle-v1/chooseF3-left-join.png",
+          "sha256": "41f1edccf3113adcf5a6dd913ab8bff473f1622f5daaa8b30bd48ce684316534"
+        },
+        {
+          "path": "battle-v1/chooseF3-right-join.png",
+          "sha256": "484f1a7db6869c1160b01e41d0b87c0a20ba24d1d1281b050fdb9161fedcdc7f"
+        },
+        {
+          "path": "battle-v1/chooseF3-left-extension.png",
+          "sha256": "e697b44d0dbbb1423bba13faefb6b1ae0aec1da9a2d8d106b88b9b7075ab0320"
+        },
+        {
+          "path": "battle-v1/chooseF3-right-extension.png",
+          "sha256": "d077941a4eaa7b0298f05061c46c63fcf6ebf52201663da0613be36f14dcb7d2"
+        },
+        {
+          "path": "battle-v1/chooseF3-restrained.png",
+          "sha256": "3a049cfca39ca0abb9bd5f37fc63d639bbd2f5422f670c05644a0ac480de3511"
+        },
+        {
+          "path": "battle-v1/chooseF3-343-restrained.png",
+          "sha256": "398405036adc68659e5207bc159698fffee945ef7ccfe7b93e83f9d039f624a9"
+        },
+        {
+          "path": "battle-v1/chooseF3-342-restrained.png",
+          "sha256": "1f809c491200cc91023d41560295d7cb72e27307575542faccfdbd6ecf46b727"
+        },
+        {
+          "path": "battle-v1/chooseF4-wide-draft.png",
+          "sha256": "6734cc0bdac6f582de8fcf32d23524bf561b4f6bc3696764bb781c2507257ad8"
+        },
+        {
+          "path": "battle-v1/chooseF4-4x3-draft.png",
+          "sha256": "24bc6423d0acd80a51943c99ce5ceb08ccb6cccd1808870a3b3465c6ee2ed450"
+        },
+        {
+          "path": "battle-v1/chooseF4-16x10-draft.png",
+          "sha256": "b130afdd68f33bbee0a0fda83b1bb7d05a47468cece032c03b38e970e3382142"
+        },
+        {
+          "path": "battle-v1/chooseF4-16x9-draft.png",
+          "sha256": "76babf78400e4ec45d52e047bee68eafb5f3fc853a324efb9014f1a09a050da3"
+        },
+        {
+          "path": "battle-v1/chooseF4-21x9-draft.png",
+          "sha256": "446c67f9a60a069d8276549630369e8678c2419f29cea8b9a8a4d288b1247203"
+        },
+        {
+          "path": "battle-v1/chooseF4-32x9-draft.png",
+          "sha256": "6734cc0bdac6f582de8fcf32d23524bf561b4f6bc3696764bb781c2507257ad8"
+        },
+        {
+          "path": "battle-v1/chooseF4-left-join.png",
+          "sha256": "a76ca9f450a3c0d54b5834af7ae405874796e375624bc546a83577162425f036"
+        },
+        {
+          "path": "battle-v1/chooseF4-right-join.png",
+          "sha256": "b4cf0fb6248e1b29b46f0e2c33bf31694165fc6dbc0ddc89be95dff21a40b2d1"
+        },
+        {
+          "path": "battle-v1/chooseF4-left-extension.png",
+          "sha256": "5043de3a52008203422e1aa97177fc44437f3d602c7fbd187d33442373885da6"
+        },
+        {
+          "path": "battle-v1/chooseF4-right-extension.png",
+          "sha256": "586feb9bf93a2de07604c37e36df15056b95458d6a71045c36213637255b9bbd"
+        },
+        {
+          "path": "battle-v1/chooseF4-restrained.png",
+          "sha256": "2ed751c69e6af673089d68da6de1f0c54a857332c78213d0bbaff2da2daf08bf"
+        },
+        {
+          "path": "battle-v1/chooseF4-344-restrained.png",
+          "sha256": "675d929dee654b71dc7edc2b7fce9368bcf082837d7ddfd61e8879efe6071d1f"
+        },
+        {
+          "path": "battle-v1/chooseF4-343-restrained.png",
+          "sha256": "7f2417bae6cf5bbbf83197522180081f505b69e607e261fecc32e54cec9bc2e2"
+        }
+      ]
+    },
+    {
+      "record": "battle-setup-approval-20261019.json",
+      "decision": "D150/UI",
+      "status": "owner-approved artwork",
+      "scope": "Current Battle setup v5 master/five crops/joins/extensions and unchanged source-shaped restoration tiles. Excludes older drafts/model raws/game integration.",
+      "files": [
+        {
+          "path": "battle-left-light-v5/cmtype-wide-v5.png",
+          "sha256": "a638f7c268091180ba225f3aedd94f3b11fc6f48581aca219eafa87fd132c980"
+        },
+        {
+          "path": "battle-left-light-v5/cmtype-4x3-v5.png",
+          "sha256": "b2df7f95157c96b9b629021ceb5d12b6af066733aea152aef8a2239c8f11a5fb"
+        },
+        {
+          "path": "battle-left-light-v5/cmtype-16x10-v5.png",
+          "sha256": "32a5dce801f9626f55ef3ae049d5628b85aa16e4cd803ed078cc28eb9a0c304b"
+        },
+        {
+          "path": "battle-left-light-v5/cmtype-16x9-v5.png",
+          "sha256": "b742637cb60e6e21404bec4e48c3fc7c12f0d10c864e1b2523fba697f0f119d9"
+        },
+        {
+          "path": "battle-left-light-v5/cmtype-21x9-v5.png",
+          "sha256": "43389eca44e419b909c1949d5923bc658c3dba218d831ed8ed464436f0129c0f"
+        },
+        {
+          "path": "battle-left-light-v5/cmtype-32x9-v5.png",
+          "sha256": "a638f7c268091180ba225f3aedd94f3b11fc6f48581aca219eafa87fd132c980"
+        },
+        {
+          "path": "battle-left-light-v5/cmtype-left-join.png",
+          "sha256": "ace51781146079dc53efcd47757d17f979ceed26016fd78168c2d4cc61a535a0"
+        },
+        {
+          "path": "battle-left-light-v5/cmtype-right-join.png",
+          "sha256": "c661d46dde172b342fac9d0a73a10190b37099c3f1aaa937dd0cf89dab23bae9"
+        },
+        {
+          "path": "battle-left-light-v5/cmtype-left-extension-v5.png",
+          "sha256": "692e7426ea214e67e354ba15988dc204e3305138402d4db71fea6dbe68280d6e"
+        },
+        {
+          "path": "battle-left-light-v5/cmtype-right-extension-v5.png",
+          "sha256": "1950dad2892b7d4a0abaf4096d3cb5feca2ee3f024c72ee5fea36c7de0306e44"
+        },
+        {
+          "path": "battle-v1/cmtype-restrained.png",
+          "sha256": "231ed5207ae8688ceaa9585ae5263cace703d4213843cc911da60d8e0b6883e1"
+        },
+        {
+          "path": "battle-v1/cmtype-2-restrained.png",
+          "sha256": "d3a029d8ee932ec403a4e2a4beaaa97ef197f313ac3ce29928e3a9c579df52c4"
+        },
+        {
+          "path": "battle-v1/cmtype-1-restrained.png",
+          "sha256": "833f691be1293c1b6417265af05624cf86ad3bbab0a819612ab3a6259f749a19"
+        }
+      ]
+    },
+    {
+      "record": "rewards-approval-20261019.json",
+      "decision": "D152/UI",
+      "status": "owner-approved artwork",
+      "scope": "Current sharedRewards/Unlock wall,3layoutlabels/5ratios/source-shapedrestorations/extensions/joins,including reviewed widevignette policy. Excludes raw/rejected generations and game integration.",
+      "files": [
+        {
+          "path": "rewards-v1/rewards-shared-world-v1.png",
+          "sha256": "6b5c3251100eae25c73ab25c5b7e3018af7ff0c57fd05c1cda01ee3446222dda"
+        },
+        {
+          "path": "rewards-v1/buyrewards-4x3-draft.png",
+          "sha256": "760e33e5a9aa5a790e1f2b4ccb852a2dd9671147ef87ae1cd7241b29d4e85b28"
+        },
+        {
+          "path": "rewards-v1/buyrewards-16x10-draft.png",
+          "sha256": "fc96767d433a4c00749d66e61c25a4f9dbad24608aa936cd7bbc041d6f2d30c6"
+        },
+        {
+          "path": "rewards-v1/buyrewards-16x9-draft.png",
+          "sha256": "ebce691e469ad9921d3a609f6448a6eb1685cbb6d8ca4221000c0baa2336f85a"
+        },
+        {
+          "path": "rewards-v1/buyrewards-21x9-draft.png",
+          "sha256": "4f227101054c8704bfca4411cc48aa15c9bb065f117ab1826df59ab011f17376"
+        },
+        {
+          "path": "rewards-v1/buyrewards-32x9-draft.png",
+          "sha256": "37a1748c6378cf4170d4832a3fab72fd1f9d484661611dbd9452a8207219bdb3"
+        },
+        {
+          "path": "rewards-v1/unlockchar-4x3-draft.png",
+          "sha256": "24b7649c84eae513fbde4655456dbe90e6502f564dbf05605b3500698a390411"
+        },
+        {
+          "path": "rewards-v1/unlockchar-16x10-draft.png",
+          "sha256": "3fc4f82e1c800a7e9818cc56f20c2299048280978060ce38129fc289becf33c7"
+        },
+        {
+          "path": "rewards-v1/unlockchar-16x9-draft.png",
+          "sha256": "d0e03cffb03e14a7c7a6fe6370b146990fcfc1eba076f7fa3b29f98ab2cc1937"
+        },
+        {
+          "path": "rewards-v1/unlockchar-21x9-draft.png",
+          "sha256": "c28b8458cd7c6df1a2b473b866ff8f662545c176b9e12243d067bcdcae5b67fd"
+        },
+        {
+          "path": "rewards-v1/unlockchar-32x9-draft.png",
+          "sha256": "e0e3d06fc8bc2f6fb3f99a6dd1ab4d8650a327f3b7523c6cba18628e3e4b536f"
+        },
+        {
+          "path": "rewards-v1/unlockven-4x3-draft.png",
+          "sha256": "24b7649c84eae513fbde4655456dbe90e6502f564dbf05605b3500698a390411"
+        },
+        {
+          "path": "rewards-v1/unlockven-16x10-draft.png",
+          "sha256": "3fc4f82e1c800a7e9818cc56f20c2299048280978060ce38129fc289becf33c7"
+        },
+        {
+          "path": "rewards-v1/unlockven-16x9-draft.png",
+          "sha256": "d0e03cffb03e14a7c7a6fe6370b146990fcfc1eba076f7fa3b29f98ab2cc1937"
+        },
+        {
+          "path": "rewards-v1/unlockven-21x9-draft.png",
+          "sha256": "c28b8458cd7c6df1a2b473b866ff8f662545c176b9e12243d067bcdcae5b67fd"
+        },
+        {
+          "path": "rewards-v1/unlockven-32x9-draft.png",
+          "sha256": "e0e3d06fc8bc2f6fb3f99a6dd1ab4d8650a327f3b7523c6cba18628e3e4b536f"
+        },
+        {
+          "path": "rewards-v1/buyrewards-left-join.png",
+          "sha256": "06878db1d22054426b111cacd231ad1aa251755a693c608dd0b440e38c0a4f08"
+        },
+        {
+          "path": "rewards-v1/buyrewards-right-join.png",
+          "sha256": "c162832b4bc1788cf93b1c91a053dedd874503027a7e74597ba30b3d027a2e5c"
+        },
+        {
+          "path": "rewards-v1/unlockchar-left-join.png",
+          "sha256": "06878db1d22054426b111cacd231ad1aa251755a693c608dd0b440e38c0a4f08"
+        },
+        {
+          "path": "rewards-v1/unlockchar-right-join.png",
+          "sha256": "c162832b4bc1788cf93b1c91a053dedd874503027a7e74597ba30b3d027a2e5c"
+        },
+        {
+          "path": "rewards-v1/unlockven-left-join.png",
+          "sha256": "06878db1d22054426b111cacd231ad1aa251755a693c608dd0b440e38c0a4f08"
+        },
+        {
+          "path": "rewards-v1/unlockven-right-join.png",
+          "sha256": "c162832b4bc1788cf93b1c91a053dedd874503027a7e74597ba30b3d027a2e5c"
+        },
+        {
+          "path": "rewards-v1/rewards-left-extension.png",
+          "sha256": "3c49c1a1973baf2d704c89ef286cf71f73fdda3024c0782954df382e4c02a4e5"
+        },
+        {
+          "path": "rewards-v1/rewards-right-extension.png",
+          "sha256": "d6a41aa4cff8e81dc793d1cce6093aeebf532a4cd3171a930b26b689e5077546"
+        },
+        {
+          "path": "rewards-v1/wall-restrained.png",
+          "sha256": "a2d9319994824eb38f0f5a94e7adcd3fe7551cc56a3c0bf65b2b19ebcb3bf5ba"
+        },
+        {
+          "path": "rewards-v1/wall-0-restrained.png",
+          "sha256": "5b767c3de984d747789edb7793a235335668f896b6764c522694868ab1548b7a"
+        },
+        {
+          "path": "rewards-v1/wall-1-restrained.png",
+          "sha256": "46e6181d19c7d863172802a298bbad7c32d83c6436a9a5df72cae2997adcf2c5"
+        }
+      ]
+    },
+    {
+      "record": "hiscores-approval-20261019.json",
+      "decision": "D154/UI",
+      "status": "owner-approved artwork",
+      "scope": "Current HighScoreswall+boardrestoration,master/5ratios/joins/extensions/source-shaped2tiles;not rawgenerations/olderdrafts/gameintegration.",
+      "files": [
+        {
+          "path": "hiscores-v1/hiscores-wide-v1.png",
+          "sha256": "4a09171a0d49365d83e4dee010786838b061014b92098955f6cda79a241e8383"
+        },
+        {
+          "path": "hiscores-v1/hiscores-4x3-draft.png",
+          "sha256": "7b0ec5be1439bdf92cfbe910218710bd2115e081660a00cb77779c2cee0842df"
+        },
+        {
+          "path": "hiscores-v1/hiscores-16x10-draft.png",
+          "sha256": "b346874be5b7a4715b022f48aaf804b78e084f15e9697aeea7176176bd971a8a"
+        },
+        {
+          "path": "hiscores-v1/hiscores-16x9-draft.png",
+          "sha256": "0ce752ff58cec6c424053efb701c5f20d6318c6e092884ea612beb0b80d3e57c"
+        },
+        {
+          "path": "hiscores-v1/hiscores-21x9-draft.png",
+          "sha256": "de06b32681ee9741f07cf5ab94cbcbeda4b70fe4f8a96876f622a17e91236831"
+        },
+        {
+          "path": "hiscores-v1/hiscores-32x9-draft.png",
+          "sha256": "4a09171a0d49365d83e4dee010786838b061014b92098955f6cda79a241e8383"
+        },
+        {
+          "path": "hiscores-v1/hiscores-left-join.png",
+          "sha256": "9adac51e8704c8dc531ec7b5c4d7f3810782a41e5ee1e992f93fa707a4260b6f"
+        },
+        {
+          "path": "hiscores-v1/hiscores-right-join.png",
+          "sha256": "f4c29fa157fddf3eb40cb0aba11100451cda005da533d38634162a8999d9eded"
+        },
+        {
+          "path": "hiscores-v1/hiscores-left-extension.png",
+          "sha256": "3b5c720673d8761729f32e9eb8a3cf0bcdda8bc2e553cc248da6e1614bb70a98"
+        },
+        {
+          "path": "hiscores-v1/hiscores-right-extension.png",
+          "sha256": "3d0398213b5e4b8a2db2e0951f956695bb87ace80f6e86e520efbd460135c6b2"
+        },
+        {
+          "path": "hiscores-v1/hiscores-restrained.png",
+          "sha256": "f7e2c088b210f1847485b8572c767ebb28b16d359b24e4301fc31006991c978b"
+        },
+        {
+          "path": "hiscores-v1/part-0-restrained.png",
+          "sha256": "150c2b03a538eece89034e26a33b9a25be76687defb1d295bd2a2c27d84ce3cc"
+        },
+        {
+          "path": "hiscores-v1/part-1-restrained.png",
+          "sha256": "5008d7700f6f559da7acf18caadf4a31c7fe56ce97f441ff6846b955d4a86011"
+        }
+      ]
+    },
+    {
+      "record": "results-approval-20261019.json",
+      "decision": "D156/UI",
+      "status": "owner-approved artwork",
+      "scope": "All6result/rematch/reward-earned panel layouts,18source-shaped tiles,6alpha proofs and30aspect-placement drafts. Excludes raw proposals,originals,masks and native game integration/acceptance.",
+      "files": [
+        {
+          "path": "results-v1/rematch-restrained.png",
+          "sha256": "a7175137592caedc08c8aad9a24de42e201924393b796082861ce90095bcb16c"
+        },
+        {
+          "path": "results-v1/rematch-restrained-alpha.png",
+          "sha256": "4bbf14b09f04d5f6cb064f9df489537eda89bd03411dc9fe4506f2a957fee622"
+        },
+        {
+          "path": "results-v1/rematch-1-restrained.png",
+          "sha256": "c4f7ef680966fc1edb5c764b8b19a887b1b6c9c8a537563e766f2c68f819541e"
+        },
+        {
+          "path": "results-v1/rematch-4x3-draft.png",
+          "sha256": "0fbfd4917ba18ca5550e29f20d80471378ae0568ef473efcca1c85911633d6b5"
+        },
+        {
+          "path": "results-v1/rematch-16x10-draft.png",
+          "sha256": "a0b1e96964b0826dc8119ec07f769ae79882b12ad715d2a85fb467e4411156a2"
+        },
+        {
+          "path": "results-v1/rematch-16x9-draft.png",
+          "sha256": "b4dafb44691098090aacd0734abe5ff0576c1dd1a66d12b503dbaac275b68ffb"
+        },
+        {
+          "path": "results-v1/rematch-21x9-draft.png",
+          "sha256": "aae81191e70c23aba468a7a828c8541075bbec959afa9f93beb185592a5ea60f"
+        },
+        {
+          "path": "results-v1/rematch-32x9-draft.png",
+          "sha256": "e8cc31ad4b5c121ac71e40cda3bc601f8bca05bbed78ea8c88e8dc945e842518"
+        },
+        {
+          "path": "results-v1/matchSm1-restrained.png",
+          "sha256": "16164cd1e01184542075ee74d69a8f93e82205b7442cb879337f30978f9481f0"
+        },
+        {
+          "path": "results-v1/matchSm1-restrained-alpha.png",
+          "sha256": "0b4b1ab361f8062c71c46056ddf497039732925d8ef6f0576a2084db66c2dbae"
+        },
+        {
+          "path": "results-v1/matchSm1-9-restrained.png",
+          "sha256": "4539765fe2de30526d54e87e838833832247ee0c518dae596179d1dbd6a69e26"
+        },
+        {
+          "path": "results-v1/matchSm1-8-restrained.png",
+          "sha256": "42933022868d655d4a23738044a9a0171dd80eb3574220beb62b1d1f36410975"
+        },
+        {
+          "path": "results-v1/matchSm1-11-restrained.png",
+          "sha256": "1db33ec31d197855ff543af073893203f108f2405a0e6c1f79cb156f58c97e04"
+        },
+        {
+          "path": "results-v1/matchSm1-10-restrained.png",
+          "sha256": "9a1943b5f3502e41a974761d2e963e3e6c409d822e59ca7f278b443025d972da"
+        },
+        {
+          "path": "results-v1/matchSm1-4x3-draft.png",
+          "sha256": "0c2d166e324092e2f90543845fbb704bbb1b50940b6a35c208a51478f387b98b"
+        },
+        {
+          "path": "results-v1/matchSm1-16x10-draft.png",
+          "sha256": "428f034679c06d533d4f762959a3ee40ee97a30807337d3a99182785e8dcdbe3"
+        },
+        {
+          "path": "results-v1/matchSm1-16x9-draft.png",
+          "sha256": "91bfd11c6d3f03fb18f588168f0542eb5ba1cba70d0e3432c8b33a64e656bafa"
+        },
+        {
+          "path": "results-v1/matchSm1-21x9-draft.png",
+          "sha256": "aaa6eb40e1a2a266e715a5abe306a6d4cd54da6094f9f3fd014a8b5ac15a8669"
+        },
+        {
+          "path": "results-v1/matchSm1-32x9-draft.png",
+          "sha256": "acdc0b38588b396256f180ebeb340e28c233c41172733ed72286fad7d22e5fc2"
+        },
+        {
+          "path": "results-v1/matchSm2-restrained.png",
+          "sha256": "81671a73dac88d271a12419bfeec92af5f42342d505fe09101264ba855f1bc30"
+        },
+        {
+          "path": "results-v1/matchSm2-restrained-alpha.png",
+          "sha256": "4f6cd6a9eda5711f5f0d0e8b736320ddc1e5784f0431989b9a6e48d78e9971b6"
+        },
+        {
+          "path": "results-v1/matchSm2-19-restrained.png",
+          "sha256": "c7eb5d8bd385f1b29b211a54fa727e6617235da33132c6aad2ca091796776b41"
+        },
+        {
+          "path": "results-v1/matchSm2-18-restrained.png",
+          "sha256": "143b8ebbcb50e3f32f8e9eb96a52ee7f13caaeb7995028ab5ef48b866ec530f0"
+        },
+        {
+          "path": "results-v1/matchSm2-16-restrained.png",
+          "sha256": "80e26ce500fa6c35f47404be0c70d2484a452ff7615b03d12324c9d5f2665505"
+        },
+        {
+          "path": "results-v1/matchSm2-17-restrained.png",
+          "sha256": "3d3831775d11c04e4fc77e2e279046e0ed5db36a7f9950028a3b833d814e715e"
+        },
+        {
+          "path": "results-v1/matchSm2-4x3-draft.png",
+          "sha256": "f3ce0d4f01be0f0c2c92e1ca972b4d4f6db374a9842b5940c1666a102d95cc6a"
+        },
+        {
+          "path": "results-v1/matchSm2-16x10-draft.png",
+          "sha256": "3598d07d65542d6d71c796405a75a30a060f34051fca6a465af301420ec1d775"
+        },
+        {
+          "path": "results-v1/matchSm2-16x9-draft.png",
+          "sha256": "c76f6f6decc148195bb4510b98a5615488e5f8845f6ea7889ce91f9b393a37a9"
+        },
+        {
+          "path": "results-v1/matchSm2-21x9-draft.png",
+          "sha256": "c8355f458bd336165f82ebbc7dd5d460009d67569ca41447f90aaa8363fda030"
+        },
+        {
+          "path": "results-v1/matchSm2-32x9-draft.png",
+          "sha256": "8bae361d24c710212636ef56b85d378bb33923bd23ee0534fe4c5621fddcff3a"
+        },
+        {
+          "path": "results-v1/matchSm3-restrained.png",
+          "sha256": "85bd96f456dbc2ca4826ba9a5a2778d37cdca318fc2c27a055bca6847706d240"
+        },
+        {
+          "path": "results-v1/matchSm3-restrained-alpha.png",
+          "sha256": "28bc4695951c3da34275f08bff2467e49c8ca4db43cf95d381510f96bbc8e512"
+        },
+        {
+          "path": "results-v1/matchSm3-19-restrained.png",
+          "sha256": "fcc72a7b42fbdf406b37746f6e3a74f62b10ac3c098e401827cb70e8419a6ac0"
+        },
+        {
+          "path": "results-v1/matchSm3-20-restrained.png",
+          "sha256": "f5ed804823fc9dcb19258582070d451258aedc3893154cf78a7ccee8d49efde3"
+        },
+        {
+          "path": "results-v1/matchSm3-21-restrained.png",
+          "sha256": "7ac353d0532c30d0745dfa4361211928e9771f352d566b3dafa9b22c1524fcba"
+        },
+        {
+          "path": "results-v1/matchSm3-18-restrained.png",
+          "sha256": "2d1507320abb9a15addc7380b9a1d19e85aa11e71ac7ba741a900a7b7a0ef78d"
+        },
+        {
+          "path": "results-v1/matchSm3-4x3-draft.png",
+          "sha256": "e4738661bdb383ef362036228b02b681d41001d87037f18885ff3f0d89804988"
+        },
+        {
+          "path": "results-v1/matchSm3-16x10-draft.png",
+          "sha256": "8c80d5feb9be404a4927325be3a5f0ad08414138f496fb854a774ffdd21eaff4"
+        },
+        {
+          "path": "results-v1/matchSm3-16x9-draft.png",
+          "sha256": "3fe647cd698ac37b24c15a76e08da94356e3280ad92a87d6c5e1332a12e98b33"
+        },
+        {
+          "path": "results-v1/matchSm3-21x9-draft.png",
+          "sha256": "fe9f967c30e486052080bcd460567bdbe550edc2f79a45278fa0f4b85e4605a6"
+        },
+        {
+          "path": "results-v1/matchSm3-32x9-draft.png",
+          "sha256": "bc11494c9293f6e714bafa4a853149b4667ed0b27cd0257fd27ed4255984b566"
+        },
+        {
+          "path": "results-v1/matchSm4-restrained.png",
+          "sha256": "589ed65cb0c76b1b7c97e53e0852d4f6e69a6f4ac671f32b7e137bb8d80deaa2"
+        },
+        {
+          "path": "results-v1/matchSm4-restrained-alpha.png",
+          "sha256": "d1f62a2d59475f5a6a07324e4e9b1add6a618f7d071f8d94fcb3d65f19bd9b12"
+        },
+        {
+          "path": "results-v1/matchSm4-16-restrained.png",
+          "sha256": "a2f5f51e9605fc65f54e7298fc03ec4bdf969e655eaaa485a9dc5c30b6da06de"
+        },
+        {
+          "path": "results-v1/matchSm4-15-restrained.png",
+          "sha256": "92487601efdcd34bb3ed91f87cb65283a6b5a88a03a52b105717011969908183"
+        },
+        {
+          "path": "results-v1/matchSm4-14-restrained.png",
+          "sha256": "e06df4034d2cdf2a7b0546d6d50adf8acfab51156b61f38f9b5a4bf63dec403a"
+        },
+        {
+          "path": "results-v1/matchSm4-13-restrained.png",
+          "sha256": "a8c2972046fe674c4942aaa5735fdfb5dd53a79abef59f619d80229ceb92d72e"
+        },
+        {
+          "path": "results-v1/matchSm4-4x3-draft.png",
+          "sha256": "a00dcc9e21a62f240d73cbac40cff993d842454d22a10404c54f99f98d066c09"
+        },
+        {
+          "path": "results-v1/matchSm4-16x10-draft.png",
+          "sha256": "4b68e2aaa6c3c214c68219b0eef09c9505d84bf4e4fcf8f82fd2d907c0cb8ddc"
+        },
+        {
+          "path": "results-v1/matchSm4-16x9-draft.png",
+          "sha256": "d3fc7e73447ce51623d3b20544cdff238c6816b42a57155035a0682d1eeb1361"
+        },
+        {
+          "path": "results-v1/matchSm4-21x9-draft.png",
+          "sha256": "452c03396bf51f4f1dba51305da8dab3557364360191cbeccb90ff42a5fecd13"
+        },
+        {
+          "path": "results-v1/matchSm4-32x9-draft.png",
+          "sha256": "54a3d316f42df5afbd144388afd4c5511fdd157ee330b7dd0375e2887ea17990"
+        },
+        {
+          "path": "results-v1/rewardun-restrained.png",
+          "sha256": "46fab5f7de3b4699a887de81936489d9c90feea42c774e7d5d93d6c821503f6b"
+        },
+        {
+          "path": "results-v1/rewardun-restrained-alpha.png",
+          "sha256": "d82d337408fdcda7790efc799d3f0c9eb0dafeed839e941f477a8884be196355"
+        },
+        {
+          "path": "results-v1/rewardun-1-restrained.png",
+          "sha256": "265e7dec6fbd726d331874e11483aca963829f8d0a952320d2e54d67cc695e74"
+        },
+        {
+          "path": "results-v1/rewardun-4x3-draft.png",
+          "sha256": "f274ef72f3c9996fc06e91a316794ef3726ea7fca2aa0a8e5e4b36326502a9db"
+        },
+        {
+          "path": "results-v1/rewardun-16x10-draft.png",
+          "sha256": "4733c140a06b4de39164ec767bf922799ee20477f55d8169f20faa0707e2651b"
+        },
+        {
+          "path": "results-v1/rewardun-16x9-draft.png",
+          "sha256": "25e216d8054831e6080f00110035d567ff8d609f81d92adda5faa7c470084de8"
+        },
+        {
+          "path": "results-v1/rewardun-21x9-draft.png",
+          "sha256": "715fd3b57b54568f27ccb10fa69276458205b55161d8e3ec746a2dec8ca372b2"
+        },
+        {
+          "path": "results-v1/rewardun-32x9-draft.png",
+          "sha256": "9a207e87d60a17b4793ea7a3a0cf31af6a17ae069749f73cb36ae7dbefd8a251"
+        }
+      ]
+    }
+  ],
+  "unique_pinned_files": 226,
+  "runtime_status": "No menu-art modpack installed or game-validated by this session. Runtime identities/exports/wide draw mapping still required."
+}
