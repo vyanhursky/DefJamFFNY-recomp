@@ -82,6 +82,18 @@ Fighters selection. They do not cover every mode or a full Story campaign.
 - Audio counters do not prove fidelity of every track/effect; owner listening
   accepted the experience.
 
+## Mac setup: "python3" Not Opened (fixed in v0.10.4)
+
+A v0.10.3 or earlier Mac setup downloaded with a browser stops at "Preparing setup files" with
+*"python3" Not Opened*, even after **Open Anyway** for Def Jam Setup. Setup unpacked its payload
+with the download's quarantine still attached, so Gatekeeper refused the bundled Python, which is
+signed ad hoc, not notarized
+([#59](https://github.com/vyanhursky/DefJamFFNY-recomp/issues/59)). The v0.10.4 setup unpacks
+without the quarantine; use it. Workaround for an older setup: choose **Done**, drag Def Jam
+Setup to Applications, run
+`xattr -dr com.apple.quarantine "/Applications/Def Jam Setup.app"` in Terminal, then open it
+from Applications.
+
 ## Mac diagnostics retained in v0.9.0 validation
 
 At v0.9.0 the strict audio underrun check (`audio.dry_queue`) failed on the Mac, as in the
