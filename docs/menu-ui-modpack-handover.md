@@ -1,5 +1,15 @@
 # Menu/UI modpack implementation handover
 
+**Current update — 2026-10-20:** Vlad has resumed restoration (D161/UI). The
+HD/widescreen menus are implemented and owner-playtested on PR62, with PR73
+merged into its branch (combined toolkit `dd63e17`). New Extras drafts are
+review-only; the fire-escape pan still needs restoration and wide registration.
+Read [the resumed-work report](research/menu-extras-restoration-2026-10-20.md)
+and current PROGRESS.md §7 first. The original handover below records the
+October19 pause and engineering plan; its pause is superseded.
+
+---
+
 Owner: Vlad. Handover: 2026-10-19. **Texture restoration is PAUSED at Vlad's
 request until he has more image-generation credits. Do not generate, repaint or
 advance the remaining-art queue.** The next task is engineering: take the

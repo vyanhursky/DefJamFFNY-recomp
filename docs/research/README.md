@@ -49,6 +49,9 @@ cite other development notes, logs and captures that are not published.
 
 ## HD textures
 
+- [Resumed Extras paper drafts](menu-extras-restoration-2026-10-20.md): nine source tiles, original-color/alpha/graphics protection, six reviews and current PR62/73 baseline
+- [Press Start fire-escape transition mapping](menu-fire-escape-transition-mapping-2026-10-20.md): ten-tile continuous scene, pan measurement and widescreen registration still required
+
 - [Menu/UI inventory and restoration pilot](menu-ui-restoration-plan-2026-10-17.md): fresh static census, comparison-tool check, imagegen/widescreen plan and owner questions
 - [First menu/UI artwork trials](menu-ui-pilot-results-2026-10-17.md): original-color constraints, live workshop revisions and skyline previews through32:9
 - [Skyline cloud-join audit](menu-ui-seam-audit-2026-10-17.md): structural mismatch at original bounds, final-composite prompting and inner/outer seam checks

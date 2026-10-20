@@ -61,7 +61,7 @@
 | Picture options and setup progress fix (D136-D138; issues #40, #44, #47) | ✅ released v0.10.3 (latest, 2026-10-19) | PR #54 (setup progress-file contention, WinError 5) merged `c37bf34`; PR #55 (`[display] brightness`, `vignette`, `vignette_strength`, launcher/overlay Display → Picture, live; `docs/research/picture-options.md`) merged `1b04982`. Beta pre-release, owner's Deck play-test: brightness and vignette "work perfectly"; promoted to latest (D138). Windows not play-tested. Subtitles (#44) not started. |
 | Mac setup quarantine fix (D139; issue #59) | ✅ released v0.10.4 (latest, 2026-10-19) | PR #60 merged `1d4e13d`: the macOS setup unpacks its digest-checked payload with `ditto --noqtn` plus `xattr -d -r com.apple.quarantine`, so a browser-downloaded setup no longer stops on *"python3" Not Opened*. Owner confirmed with a quarantined test DMG. Tag `v0.10.4` on release PR #63 merge `110d50e`; game and toolkit identical to v0.10.3. |
 
-| Menu/UI restoration | ⏸ art paused / ⏳ HD + widescreen playtest build (D158/UI–D160/UI) | All 71 approved source IDs in game on the Mac except the skyline 4:3 tiles (wide master used for its sides): 39 restored + 8 Mode + logo/21 emblems registered to native atlases; true widescreen backgrounds on 14 layers via toolkit `defjam/menu-wide` `[wide]` slabs, inner slabs and 16 stretch overlays, checked 4:3–32:9. `docs/research/menu-ui-playtest-pack-2026-10-19.md`. Awaiting owner playtest; Windows/Deck not run. |
+| Menu/UI restoration | ⏳ resumed / Extras drafts in review | D161/UI–D162/UI. Existing HD + wide menus owner-playtested on Mac; PR62 contains PR73 settings fix, toolkit `dd63e17`. Six new Extras studies / nine source tiles are unapproved at51738. 71 previously approved/conditional sources unchanged. Ten-tile fire-escape transition mapped; wide pan still pending. Windows/Deck not run. |
 
 ## 1. Decisions log
 
@@ -276,6 +276,9 @@
 | D159/UI | 2026-10-19 | Unblock the title logo and 21 emblem tiles without new art: push each approved transparency-v2 canvas through its saved guide placement and registration field onto the 4x native atlas (forward splatting), keep native Faithful alpha and stored padding exactly, blend to Faithful where the approved art has no material. Ship as its own component with review sheets for Vlad's sign-off. | Owner: "I need the Title logo and the 21 menu-emblem tiles working too ... if you can unblock it properly or if I need to go back to ChatGPT". The registration data the art session saved makes an exact geometric inverse possible; an inverse iteration failed to converge where the field folds (film strip), splatting does not. Native alpha keeps silhouettes, holes and partial alpha original, which the handover requires. |
 | D160/UI | 2026-10-19 | Widescreen menu backgrounds by replaying the background layer's own draw with side slabs cut from the approved wide masters (`[wide]` in texture packs, toolkit branch `defjam/menu-wide`), clipped to the side areas; `inner:` slabs replace an anchor whose 4:3 edges were made for the wide view (Rewards); listed full-width overlays (vignettes, the header band) stretch instead of centring. Not a static side plate and no global change to 2D placement. | Owner asked for working widescreen textures. Replaying the layer keeps parallax, scroll, pan and fades in the sides, which the handover asks for; generic pieces live in the toolkit, the per-screen table in the parent. Owner screenshots showed centred vignettes and the header band marking the seams; stretching them by identity (only at full width) fixed every screen; a corpus scan listed all 15 black vignettes so unvisited screens are covered. Mode Select sides use the dark composite only. |
 
+| D161/UI | 2026-10-20 | Vlad explicitly resumes remaining Menu/UI restoration and authorizes necessary game checks after the other agent's working HD/wide menus; inspect PR62 and PR73 and include the reported 4:3 Press Start fire-escape transition in the work. | Supersedes D157/UI's pause. Keep original colors, restrained cleanup, centered scenery through32:9, exact alpha and both full-height joins. Current combined toolkit dd63e17 already includes PR73; no duplicate settings change. |
+| D162/UI | 2026-10-20 | Prepare Extras as six review-only studies over nine tiles: five source-protected paper generations and one Faithful-only ribbon. Preserve all prior artwork and keep new drafts separate from the tested packs. Map trans/t1's ten tiles as a continuous scene before restoration/side extension. | Tiny fine brightness only; source alpha, graphics, folds, UV padding and tile guards remain authoritative. 1,314 previous PNGs/226 approved pins exact; 24 browser texture cases/30 placement pairs checked. First guarded game capture missed the actual pan; further serial probes await availability while a launcher-redesign game is active. No transition fix or automatic art approval. |
+
 ## 2. Environment inventory (2026-09-17)
 
 - Current test host (2026-10-17): macOS26.5.2 arm64, Apple Clang21.0.0, CMake4.4.4, Ninja and Python3.14.6 through `uv`. Build `posix-release`; data via the existing `game` symlink. Startup-skip tests use only disposable roots under `logs/startup-skip/`. Original Windows inventory below is retained for that machine.
@@ -360,13 +363,12 @@ defjam-recomp/
 
 - **2026-10-13 — Widescreen version:** v0.8.0 is already published for the setup updater (D104). Vlad chose v0.9.0; never replace the existing release.
 
-- **2026-10-19 — Menu/UI restoration PAUSED (D157/UI).** Owner will resume when credits are available. All6paperlayouts approved(D156/UI);ModeSelect8sources conditional on rightborder lighting in game. Noartworkquestions currently block modpack engineering.23future artpriorities remain deferred. Handover `docs/menu-ui-modpack-handover.md`;noautomaticresumption.
+- **2026-10-20 — Menu/UI resumed (D161/UI).** Extras six new studies await owner art feedback at51738. Mode Select's specific right-border condition and branding derivative sign-off remain separate from the broad successful playtest. A launcher-redesign checkout's game is active; asked in chat whether it may be closed for guarded serial menu/transition probes. Leave it untouched until answered or it exits. Transition restoration/geometry validation remains pending; no other art-direction questions block preparation.
 
 ## 6. Work log
 
 > Recent entries only; older entries remain unchanged in the local `docs/worklog/` archive.
 
-- 2026-10-19 16:05 — Issue #65 (owner report): with `skip_intro` on, Press Start and menu transition sound effects are silent (v0.10.1 to v0.10.4). Reproduced on the Mac with `RECOMP_APU_PCM` on the `boot` route (skip boot silent at the Audio.Play events; normal boot has the bursts), while the log shows identical `Audio.Play` calls. Temporary `[AUD]` entry logging in the lifted code (not kept, `src/recomp/gen` restored byte for byte) showed a normal boot calls `sub_0003DE20(0)` then, after the movies, `sub_0003DE20(1)`; skip only does the first. D140: `skip_intro.c` calls `sub_0003DE20(1)`. Fixed skip boot has the same bursts as a normal boot; `fight` route 101 present lines, median 120, no crash, save identical; `regress.py --only skipintro` passes 110 s (`logs/regress-20261019-155827.txt`), fails without the fix (`logs/regress-20261019-160026.txt`); native fixture passes. Another `defjam_recomp` from `~/.codex/worktrees/01c5` was running during these runs and one startup crash coincided with it (not reproduced).
 - 2026-10-19 16:20 — Pushed `fix/skip-intro-menu-audio` and opened PR #66 for issue #65 (D140). Prepared v0.10.5 on `chore/release-v0.10.5` (D141): CMake 0.10.5, `docs/releases/v0.10.5.md`; not merged, tagged or published.
 - 2026-10-19 19:58 — v0.10.5 published as latest (D141) from PR #68 merge `cb10747` (PR #66 merged `f2b7c6f`, #65 closed; both PRs CI 28/28). Source release run 39344036207 green 30/30; `check-release.py` verified 418 files; nine assets, installer SHA-256 files match GitHub digests. Not listened to on Windows or Linux.
 - 2026-10-19 23:00 — **Menu/UI logo/emblems + widescreen (D159/UI, D160/UI).** `scripts/register-menu-branding.py`: approved logo + 8 emblem canvases splatted onto 22 native 4x tiles through the saved registration fields, native alpha kept (approved coverage 0.76–0.97). Toolkit `defjam/menu-wide` `20e7ba7` (fork, pushed 2026-10-20): `[wide]` slabs replayed per background draw and clipped to the sides, `inner:` slabs, `stretch` overlays, full-width untextured fills stretch; fixture 3/3. `scripts/export-menu-ui-wide.py` + `config/menu-ui-wide-layers.json`: 14 layers (anchors matched in masters at 0.995–1.000; geometry measured with `RECOMP_WS_WIDE_TRACE`, every layer 1 px/texel), 2 inner, 16 stretch (header band + 15 black vignettes from a corpus scan). Owner screenshots caught the centred title/Options/Jukebox vignettes and the header band; fixed and recaptured. 40+ probe launches 4:3–32:9, 0 crashes/watchdogs; quick 5/5 `logs/regress-20261019-225054.txt`. Found: settings.ini text limit 95 chars made the first playtest load no packs; `play.sh` now passes the list. Full regression not run (owner playtesting).
@@ -374,30 +376,50 @@ defjam-recomp/
 - 2026-10-20 07:40 — Merged main (v0.10.5, `50bf8f0`; skip-intro menu audio fix) into `codex/menu-ui-modpack-handoff` at the owner's request; only PROGRESS.md conflicted (work log and hand-off, both sides kept). Toolkit pin stays `20e7ba7` (`defjam/menu-wide`, on top of main's `32aab4d`). Rebuilt the playtest binary (reports 0.10.5); 21:9 title and Options probes with all menu packs clean (`logs/run-20261020-071958.log.err`, `-072056`); quick 5/5 `logs/regress-20261020-072919.txt`. Full regression still not run.
 - 2026-10-20 08:30 — Owner play-tested the HD + widescreen menus: "Overall it looks great and the ultrawide plays well." At his request, merged PR #73's branch (`fix/texture-packs-setting-length`, D142) into `codex/menu-ui-modpack-handoff` so one working branch carries both. Toolkit: `defjam/menu-wide` merged `defjam/settings-text-limit` as `dd63e17` (one conflict in `texture_pack.c`: `read_packs()` kept); texture-pack fixture 3/3 and settings fixture 1/1. Parent conflicts in PROGRESS.md and the gitlink only.
 - 2026-10-20 12:00 — Issue #72 (v0.10.5 installer build on Windows 11, 5080: "has stopped working" right after build, empty Log lines field). Cannot be diagnosed without the log. Reworded the bug report's Log lines field (`.github/ISSUE_TEMPLATE/bug_report.yml`) to say where `logs/run-*.log.err` is for the installer and source builds, and to fall back to a PowerShell launch plus the Event Viewer "Application Error" entry when no log exists. Not committed or pushed; comment on #72 drafted, not posted.
+- 2026-10-20 10:19 — Resumed Menu/UI at owner request (D161/UI–D162/UI), checked PR62/73 at65882a1/toolkitdd63e17. Five built-in generations (106 total), six Extras studies/nine tiles at51738: source alpha/graphics/UV/tile guards exact, 30 stage centers exact, 1,314 prior PNGs/226 art pins unchanged; browser24 reference/channel cases and30 stage pairs, zero warnings/errors. Mapped ten trans/t1 fire-escape tiles. One guarded32:9 baseline logs/run-20261020-100730.log.err: 13 captures, zero crash/watchdog/ICALL failures, save byte-identical; missed actual pan. Further probe refused because launcher-redesign game active; left untouched, owner question pending. New Extras art unapproved; existing packs/runtime unchanged. Private overlay185files/199,746,134bytes retained; 22 focused tests and226pins pass. Source-only authoring bundle preserved; see docs/research/menu-extras-restoration-2026-10-20.md.
 
 ## 7. Hand-off
 
-Texture pack lists longer than 95 characters (D142): fixed on `fix/texture-packs-setting-length` (PR #73, toolkit `72bec86`
-on fork branch `defjam/settings-text-limit`) and, at Vlad's request (2026-10-20), merged into the menu branch
-`codex/menu-ui-modpack-handoff` together with the widescreen toolkit: combined toolkit `dd63e17` on `defjam/menu-wide`
-(merge of `20e7ba7` and `72bec86`; `read_packs()` kept). PR #73 stays open for main; when it merges, merging main into the
-menu branch keeps `dd63e17` (it contains `72bec86`). Next: a release note line for players whose list an older build already
-rewrote to `faithful-hd` (§5). Verified on the Mac only; not run on Windows or Linux.
+### Resumed Menu/UI restoration — 2026-10-20 (D161/UI–D162/UI)
 
-Open: v0.10.5 Windows play-test of the picture options and the skip-on menu sounds (§5 Windows to-do, week of 2026-10-25);
-subtitles (#44, backlog). Earlier items stay: Deck follow-ups (render scale 1 on sc00/sc11/sc07b/sc06, Game Mode 60 Hz,
-`perf record` during sc00, F5 fence-hold wait), F2 scene-load freezes, the Windows to-do in §5. No game is running.
+Branch `codex/menu-ui-modpack-handoff`, draft PR62; combined toolkit `dd63e17`
+(`defjam/menu-wide`) already contains PR73's pack-list/settings fix. Preserve
+that pin. PR73 remains open for main; its Windows/Linux checks and release-note
+question are still in §5. Existing HD/wide menus were owner-playtested positively.
+No runtime/pack/default changes in this art iteration. Full regression before
+merging the runtime work remains pending.
 
-### Menu/UI HD + widescreen playtest build (on v0.10.5); owner playtest passed — 2026-10-20
+1. Read `docs/research/menu-extras-restoration-2026-10-20.md`. Review Extras first
+   at `http://127.0.0.1:51738/review.html`: six studies, nine tiles, UNAPPROVED.
+   Original/Faithful, alpha/checker, wipe and five aspect placements verified.
+   Working root `logs/ui-restoration-20261017/pilot-v1/extras-v1-20261020/`.
+   Immutable overlay `<data>/scratch/menu-ui-extras-v1-20261020/` is additive to
+   the unchanged paused full snapshot. Exact prompts/raws/recipes/UV metadata
+   stay with it; source-only copies live in the standalone authoring repo at
+   `research/menu-ui-extras-20261020/`. 106 historical calls. No art in Git.
+2. Read `docs/research/menu-fire-escape-transition-mapping-2026-10-20.md`.
+   Retail `screens/trans/t1.big::t1.xsh` Shape11 has ten tiles in one tall scene;
+   movie640×2000, inferred object641×2533. Measure the actual pan crop/per/x0,
+   restore a continuous master, extend both sides, then register explicit wide
+   anchors. There are no transition anchors in the current wide table.
+   Local `logs/ui-restoration-20261020/probe-transition-pan.py` is prepared;
+   first baseline `logs/run-20261020-100730.log.err` missed the pan (autosave
+   warning captured), though settled title/main worked and saves restored.
+3. Another checkout's game (`launcher-redesign/.../build/posix-release/defjam_recomp`)
+   was active during preparation. Owner was asked whether it may be closed.
+   Do not stop it without an answer; check fresh process ownership before any
+   run. Game probes must remain serial and use the complete-save guard.
+   `DEFJAM_DATA=/Users/vlad/Code/defjam-data/playtest-menu-ui`; explicit six-pack
+   list is in the probe. Existing playtest: `<data>/playtest-menu-ui/play.sh`
+   `[all|nowide|nomode|faithful|original]`, using this worktree's built binary.
+4. After owner feedback, pin only approved new art, export at source4x into a
+   separate sparse component, then verify live text/alpha/placement. Do not
+   flatten the whole Extras movie or stretch small panels. Nineteen IDs from
+   the old23-source shortlist remain (four Extras notes now drafted); five
+   extra list/ribbon sources were added. Story phone, venue frames, shield/
+   localized Start graphics follow. The transition's ten sources are additional.
 
-Vlad, 2026-10-20: "Overall it looks great and the ultrawide plays well." This branch is the working branch for further
-menu texture work; it also carries the settings fix (PR #73). Toolkit pin `dd63e17` (`defjam/menu-wide`).
-
-Branch `codex/menu-ui-modpack-handoff` (draft PR #62). Widescreen toolkit commit `20e7ba7`, merged with the settings fix
-as `dd63e17` on fork branch `vyanhursky/xboxrecomp` `defjam/menu-wide` (no upstream PR). Report: `docs/research/menu-ui-playtest-pack-2026-10-19.md`
-(D158/UI–D160/UI). Play: `/Users/vlad/Code/defjam-data/playtest-menu-ui/play.sh [all|nowide|nomode|faithful|original]`
-(worktree build `/Users/vlad/.codex/worktrees/01c5/DefJamFFNY-recomp/build/posix-release/defjam_recomp`). Review sheets:
-`<playtest-data>/review/` (widescreen 16:9/32:9, branding Faithful vs registered). Next: Vlad's playtest notes
-(logo/emblem derivative sign-off, Mode Select condition, any seams); full regression before merge;
-fix the 95-character `settings.ini` pack-list limit (separate change); Windows D3D11 and Deck runs.
-Restoration stays paused (D157/UI).
+Other project items remain: PR73 settings release note/upstream decision;
+v0.10.5 Windows picture/skip-audio checks in §5 (week of2026-10-25), subtitles
+issue44, Deck scale1/GameMode60Hz/perf/fence follow-ups and scene-load freezes.
+The launcher-redesign process may still be running; this session left it intact.
