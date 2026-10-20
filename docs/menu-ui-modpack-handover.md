@@ -1,14 +1,16 @@
 # Menu/UI modpack implementation handover
 
-**Current update — 2026-10-20:** Working HD/wide menus on PR62 were owner-playtested;
-PR73 included, toolkit `dd63e17`. Phone approved, separate2tile4xexport ready/
-uninstalled; Extras9tile export also ready/uninstalled. Catalogue343pins/92IDs
-unchanged(74approved+8Mode+10transitionconditional). Ladder nativepan acceptance
-pending. Vlad explicitly leaves prior16item/19source batch pending(D170/UI).
-New15item/22source popup/profile/autosave batch is UNAPPROVED at review51738,
-including original-core widened profile wall v3; tenpaper restorations and four
-Faithful stamp/effect studies. Read [the latest report](research/menu-popup-profile-restoration-2026-10-20.md)
-and PROGRESS.md §7. No new installation/runtime change. Leave active game alone.
+**Current update — 2026-10-20:** PR62 menus were owner-playtested; PR73/toolkit
+`dd63e17` included. Popup/profile15studies/22sources now approved D172/UI:
+473pins/114reviewed IDs (96unconditional+8Mode+10transitionconditional).
+Separate22tile source4xexport ready/uninstalled, alongside Extras/Phone exports.
+Profile widewall approved as artwork; runtime anchors remain unmeasured.
+Earlier16item/19source batch remains pending. New Gym/controls15studies/22sources
+await review: two restrained papers and thirteen Faithful choices. Review51738
+now supports synchronized mouse zoom/pan on every image. Read [the latest
+report](research/menu-controls-restoration-2026-10-20.md) and PROGRESS.md §7.
+Leave the active game untouched. Native transitionpan approval is pending.
+GitHub authentication remains invalid; latest source commits are local.
 Original October19pause/engineering plan below is historical.
 
 ---

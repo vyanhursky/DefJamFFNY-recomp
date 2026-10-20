@@ -61,7 +61,7 @@
 | Picture options and setup progress fix (D136-D138; issues #40, #44, #47) | ✅ released v0.10.3 (latest, 2026-10-19) | PR #54 (setup progress-file contention, WinError 5) merged `c37bf34`; PR #55 (`[display] brightness`, `vignette`, `vignette_strength`, launcher/overlay Display → Picture, live; `docs/research/picture-options.md`) merged `1b04982`. Beta pre-release, owner's Deck play-test: brightness and vignette "work perfectly"; promoted to latest (D138). Windows not play-tested. Subtitles (#44) not started. |
 | Mac setup quarantine fix (D139; issue #59) | ✅ released v0.10.4 (latest, 2026-10-19) | PR #60 merged `1d4e13d`: the macOS setup unpacks its digest-checked payload with `ditto --noqtn` plus `xattr -d -r com.apple.quarantine`, so a browser-downloaded setup no longer stops on *"python3" Not Opened*. Owner confirmed with a quarantined test DMG. Tag `v0.10.4` on release PR #63 merge `110d50e`; game and toolkit identical to v0.10.3. |
 
-| Menu/UI restoration | ⏳ Two batches pending review | D170–D171/UI. Prior16items/19sources staypending;new15items/22sources at51738:10papers+originalcorewideprofilewall+4Faithfulstamps/effects.15calls/142total,343pins/92reviewed unchanged. No installs/game activity. |
+| Menu/UI restoration | ⏳ New Gym/controls batch in review | D172–D174/UI. Popup15/22 approved:473pins/114IDs;22tile source4xexport ready/uninstalled. New15/22 Gym/controlstudies(2papers+13Faithful),2calls/144total. Prior16/19stillpending. Linkedmousezoom/pan on105images/46groups; game untouched. GitHub sign-in blocked. |
 
 ## 1. Decisions log
 
@@ -295,6 +295,12 @@
 
 | D171/UI | 2026-10-20 | Prepare15popup/profile/autosave studies over22newsource IDs;10paper restorations,1original-core widenedwall,4Faithfulstamps/effects. Preserve proven geometry/platform/language groupings; repair bothwalljoinbands and matchoriginalfineLcontrast. |15built-in calls/142total; nativewallproposalunused(zero safepixels), corefullyFaithful.343pins/2,044priorPNGs/22tilealpha-graphics-padding/75centers exact;60browserrefcases/75aspectpairs. Bothbatchesunapproved, no runtime/install/game changes. |
 
+| D172/UI | 2026-10-20 | Vlad approves the current fifteen popup/profile/autosave studies over22sourceIDs. Freeze current v3 wall, paper/Faithful studies and fullsource tiles; isolated22tile export only. | Adds130pins:473total/114reviewed IDs,96unconditional+18conditional. Prior16batch remains pending; native validation/activepacks untouched. |
+
+| D173/UI | 2026-10-20 | Vlad requests mouse zoom/pan on every review image with synchronized before/after framing, using fighter/model viewers as reference. | Cursor-anchored wheel, captured drag, normalized linked reference/draft/wipe, Fit/keys, source reset;105images/46groups. Preserve alpha/checkers/bounds/tallanimation; native mouse and legacy checks pass. |
+
+| D174/UI | 2026-10-20 | Continue larger batch:15Gym/control studies over22sources. Restore only two papers;13Faithful studies protect lettering, material softness and darkstrip marks. Include all narrow Gym companion tiles after fullshape audit. |2built-in calls/144total; sourcealpha/marks/UVguards/padding and473pins/2,439priorPNGs exact;75isolatedaspectpairs. All new art unapproved, no install/game activity. |
+
 ## 2. Environment inventory (2026-09-17)
 
 - Current test host (2026-10-17): macOS26.5.2 arm64, Apple Clang21.0.0, CMake4.4.4, Ninja and Python3.14.6 through `uv`. Build `posix-release`; data via the existing `game` symlink. Startup-skip tests use only disposable roots under `logs/startup-skip/`. Original Windows inventory below is retained for that machine.
@@ -379,13 +385,12 @@ defjam-recomp/
 
 - **2026-10-13 — Widescreen version:** v0.8.0 is already published for the setup updater (D104). Vlad chose v0.9.0; never replace the existing release.
 
-- **2026-10-20 — Menu/UI resumed (D161/UI).** Extras six studies are approved (D164/UI). Transition v4 is conditionally approved (D166/UI), pending native playtest; Story phone v1 approved (D168/UI); sixteen-item venue/title/support batch remains pending at owner request (D170/UI); new15-item popup/profile/autosave batch now also awaits review. Mode Select's specific right-border condition and branding derivative sign-off remain separate from the broad successful playtest. Vlad answered: leave the launcher-redesign game running and continue texture work. Do not close it or launch a competing scripted game. Transition restoration/geometry validation remains pending; no other art-direction questions block preparation.
+- **2026-10-20 — Menu/UI resumed (D161/UI).** Extras six studies are approved (D164/UI). Transition v4 is conditionally approved (D166/UI), pending native playtest; Story phone v1 approved (D168/UI); sixteen-item venue/title/support batch remains pending at owner request (D170/UI); popup/profile15-item batch is approved D172/UI; new15-item/22-source Gym/control batch awaits review D174/UI. Mode Select's specific right-border condition and branding derivative sign-off remain separate from the broad successful playtest. Vlad answered: leave the launcher-redesign game running and continue texture work. Do not close it or launch a competing scripted game. Transition restoration/geometry validation remains pending; no other art-direction questions block preparation.
 
 ## 6. Work log
 
 > Recent entries only; older entries remain unchanged in the local `docs/worklog/` archive.
 
-- 2026-10-20 07:40 — Merged main (v0.10.5, `50bf8f0`; skip-intro menu audio fix) into `codex/menu-ui-modpack-handoff` at the owner's request; only PROGRESS.md conflicted (work log and hand-off, both sides kept). Toolkit pin stays `20e7ba7` (`defjam/menu-wide`, on top of main's `32aab4d`). Rebuilt the playtest binary (reports 0.10.5); 21:9 title and Options probes with all menu packs clean (`logs/run-20261020-071958.log.err`, `-072056`); quick 5/5 `logs/regress-20261020-072919.txt`. Full regression still not run.
 - 2026-10-20 08:30 — Owner play-tested the HD + widescreen menus: "Overall it looks great and the ultrawide plays well." At his request, merged PR #73's branch (`fix/texture-packs-setting-length`, D142) into `codex/menu-ui-modpack-handoff` so one working branch carries both. Toolkit: `defjam/menu-wide` merged `defjam/settings-text-limit` as `dd63e17` (one conflict in `texture_pack.c`: `read_packs()` kept); texture-pack fixture 3/3 and settings fixture 1/1. Parent conflicts in PROGRESS.md and the gitlink only.
 - 2026-10-20 12:00 — Issue #72 (v0.10.5 installer build on Windows 11, 5080: "has stopped working" right after build, empty Log lines field). Cannot be diagnosed without the log. Reworded the bug report's Log lines field (`.github/ISSUE_TEMPLATE/bug_report.yml`) to say where `logs/run-*.log.err` is for the installer and source builds, and to fall back to a PowerShell launch plus the Event Viewer "Application Error" entry when no log exists. Not committed or pushed; comment on #72 drafted, not posted.
 - 2026-10-20 10:19 — Resumed Menu/UI at owner request (D161/UI–D162/UI), checked PR62/73 at65882a1/toolkitdd63e17. Five built-in generations (106 total), six Extras studies/nine tiles at51738: source alpha/graphics/UV/tile guards exact, 30 stage centers exact, 1,314 prior PNGs/226 art pins unchanged; browser24 reference/channel cases and30 stage pairs, zero warnings/errors. Mapped ten trans/t1 fire-escape tiles. One guarded32:9 baseline logs/run-20261020-100730.log.err: 13 captures, zero crash/watchdog/ICALL failures, save byte-identical; missed actual pan. Further probe refused because launcher-redesign game active; left untouched, owner question pending. New Extras art unapproved; existing packs/runtime unchanged. Private overlay185files/199,746,134bytes retained; 22 focused tests and226pins pass. Source-only authoring bundle preserved; see docs/research/menu-extras-restoration-2026-10-20.md.
@@ -393,70 +398,53 @@ defjam-recomp/
 - 2026-10-20 11:15 — D166/UI: ladderv4 conditionally approved,56frozen files/10IDs, full native pan acceptance pending;333pins/90IDs. D167/UI: Story phone two-tile casing draft,1built-in call/118total, source display/branding/keycaps/alpha/UV/padding exact; original dark RGBAprofile extended through32:9, device size fixed. 1,725priorPNGs/333pins/five stage centers exact. Review51738 phone first, four reference/channel cases/four backgrounds/three modes/five layouts,75%bounds,nooverflow/zeroerrors.22focused tests. Active game untouched; no installation/runtime changes. New additive private archive and source-only recipes/prompts; docs/research/menu-story-phone-restoration-2026-10-20.md.
 - 2026-10-20 11:54 — D168/UI: phone approved,10pins/2IDs,343totalpins/92reviewed(74unconditional+18conditional), separate2tile source4xexport exact/uninstalled. D169/UI: larger16item/19source venue/title/support batch at51738;3cards/4stickers restored,6icons/2shadows/radialeffect Faithful-only.9built-in calls/127historical incl.2rejected dotgrain proposals. Sourcealpha/graphics/UVguards/padding,343pins/1,751priorPNGs/80isolatedaspectcenters exact. Browser64reference-channel cases/80aspectpairs loaded,3BG/3modes,75%bounds,nooverflow/zeroerrors;22focused tests. Game/activepacks untouched, ladderconditionalstillpendingplaytest. Additiveprivatearchive/source-onlybundle; docs/research/menu-details-restoration-2026-10-20.md.
 - 2026-10-20 12:30 — D170/UI: prior16item/19sourcebatch looks good but explicitlyleftpending; no approval. D171/UI: next15item/22source popup/profile/autosave batch at51738,10paper restorations+originalcorewidewall+4Faithfulstamps/effects.15builtin calls/142historical incl.bothjoinbridge repairs;v3Lcontrastmatchmedian.625left/.885right. Nativewallproposalunused,Faithfulcore/sourcegraphics/alpha/UVguards/padding exact;343pins/2,044priorPNGs/75centers unchanged. Sharedpopup/profileautosave mappingcorrectsPS2French nesting/headerstretch/UVoffsets. Browser60ref/channel+75aspectpairs loadedafterrevisit,3BG/3modes/75%bounds/3wallversions/bothjoins,nooverflow/zeroerrors;22focusedtests. No game/build/runtime/activepack changes. Additivearchive/source-onlyrecipes; docs/research/menu-popup-profile-restoration-2026-10-20.md. Source commits saved locally; both pushes blocked by GitHub authentication (invalid token/keychain access); PR62 description not updated.
+- 2026-10-20 18:56 — D172/UI popup/profile15/22 approved,130newpins/473total/114IDs(96unconditional+18conditional),22tile4xexport exact/uninstalled. Prior16/19pending. D173/UI linkedmousewheel/drag/normalizedpan/fit on105reviewimages46groups; nativeinput/wipe/legacy11groups/transitionanimation pass,4Node tests. D174/UI next15Gym/controlstudies22sources:2restrainedpapers+13Faithful,2builtin calls/144historical. Fullshapes50/60/64 include3narrowcompanions;sourcealpha/marks/guards/padding,473pins/2,439priorPNGs/75aspectcenters exact,maxRGBdelta4. Browser60reference-channel+75aspectpairs loaded/nooverflow/errors;22gamefocusedtests pass. Game untouched. Prompts/recipes/history/privatearchive/sourcebundle saved; GitHubtokenstillinvalid, source commitslocal. Report docs/research/menu-controls-restoration-2026-10-20.md.
 
 ## 7. Hand-off
 
-### Two batches pending; popup/profile first — 2026-10-20
+### Popup/profile approved; Gym/controls review and linked navigation — 2026-10-20
 
-Read `docs/research/menu-popup-profile-restoration-2026-10-20.md`, plus the
-shared-popup and profile-autosave mapping reports. Branch:
-`codex/menu-ui-modpack-handoff` (PR62). Toolkit `dd63e17` already includes PR73.
-No runtime, defaults or active-pack changes were made.
+Read `docs/research/menu-controls-restoration-2026-10-20.md` and the next-batch
+mapping report. Branch `codex/menu-ui-modpack-handoff`, draftPR62. Toolkit
+`dd63e17` includes PR73. No runtime/default/active-pack changes.
 
-**Publication pending:** Both source-only commits are local. Pushes to the game
-and authoring branches failed: macOS Git credentials were inaccessible and
-`gh auth status` reported an invalid token. Renew GitHub sign-in with
-`gh auth login -h github.com`, then push both existing branches. PR62
-description still describes the prior batch; update it after authentication.
+1. Popup/profile15studies/22sources APPROVED D172/UI. Currentv3widewall and
+   native/Faithful/paper derivatives frozen130newfiles;473totalpins,114IDs
+   (96unconditional,8Modeconditional,10transitionconditional). Integrity passes.
+   Approval: `logs/ui-restoration-20261017/pilot-v1/popup-profile-approval-20261020.json`.
+   Separate22tile export at `logs/ui-restoration-20261020/approved-pack-exports/menu-ui-popup-profile-test-v1/`, exact/uninstalled. Wide wall still needs runtime mapping.
+2. Review51738 starts with15UNAPPROVED Gym/control studies over22sources in
+   `logs/ui-restoration-20261017/pilot-v1/controls-v1-20261020/`. Two papers
+   restrained;13Faithful (display/rail,8buttonemblems,3darkstrips).2newbuiltin
+   calls/144historical. Nativealpha/printedpaths/UVguards/padding exact,
+   maxRGBdelta4. Full Gym shapes50/60/64 include narrow companions; integer
+   mosaics retain fractional UVs separately. Standalonepopup consumer unknown.
+3. Earlier16item/19source venue/title/support batch remains PENDING D170/UI.
+   Do not silently approve it. Phone/Extras approved, exports ready/uninstalled.
+   Ladder v4 conditional pending full native pan; Mode specific right join still
+   conditional. Approved/priorart unchanged:473pins/2,439previousPNGs.
+4. Review now has cursor-anchored mousewheel zoom and captured drag on all105
+   images/46groups. Before/after/wipe share normalized framing. Fit/doubleclick/
+   Home/0 resets, keys available. Source changes reset. Checkers/alpha/bounds,
+   responsive pairs, old views and tall transition animation verified. Source:
+   authoring repo `src/defjam_tools/resources/review_navigation.{mjs,css}`;
+   exact serving copies at private pilot root.4Node tests/22game focused tests
+   pass; authoring67tests/12subtests pass (HTTPtests retried outside loopback sandbox);
+   60newreference/channelcases+75aspectpairs loaded, zero errors/overflow.
+5. Source-only bundle `DefJam-Modding-Tools/research/menu-ui-controls-20261020/`.
+   Private additive archive `<data>/scratch/menu-ui-controls-v1-popup-approved-20261020/`;
+   preserve previous popup-profile pending archive as base (and all older archives).
+   Raw proposals, exact prompts/args/references, masks, receipts, scripts and
+   rejected/partial survey history retained. No art in Git.
+6. Leave launcher-redesign game running; no stop/build/competing launch.
+   Preserve8768single writer,17workshop candidates/Trejo and existing packs.
+7. GitHub sign-in is still invalid. Both branches have local unpushed commits,
+   including previous f8ac596(game)/6898077(tools). Restore `gh auth login -h github.com`,
+   push existing game/authoring branches, then update PR62 body from latest report.
+   No merge/release/upstream request is authorized.
+8. Await feedback on new15/prior16; then classify remaining Story/widget/map UI
+   in bounded groups. Broad inventory counts do not equal remaining paintings.
+   Native integration checks: five aspects, alpha, live text, UV/clip/animation,
+   full fire-escape pan. Windows/Deck/full-runtime obligations remain separate.
 
-1. Review51738 starts with 15 UNAPPROVED studies over 22 source IDs: ten paper
-   restorations, a widened profile wall, and four Faithful stamps/effects.
-   Batch: `logs/ui-restoration-20261017/pilot-v1/popup-profile-v1-20261020/`.
-   Full source-shaped 4x tiles preserve alpha, graphics, UV guards and padding.
-   All prompts, raw proposals, masks and recipes are retained. Fifteen new
-   built-in calls bring the historical total to 142.
-2. Profile source87 uses the top-left 640×480 of 1024×512 storage. Its whole
-   original core stays Faithful: zero model pixels adopted. Wider wall v3
-   repairs both 128-native-pixel join bands and matches source fine L contrast
-   (median gains 0.625 left / 0.885 right). Original core and outer wall beyond
-   those bands are exact. V1/V2 remain history. Review five ratios and both
-   full-height joins. Other panel placements are isolated footprint studies.
-3. Respect the mapped shapes: shared paper is 256+151 by256 texels, not the
-   APT's310-pixel height. Header left256 UV texels span343 geometry pixels,
-   plus a77-pixel cap. Profile list is187×328; backing is256×372. PS2 bkg50
-   contains English Shape43 and French Shape48 language variants; GC bkg64
-   uses A/B Shape61; Xbox bkg70 uses Shape68. Preserve exact fractional UVs,
-   offsets, live text, clipping and platform/language selection from the audits.
-4. Vlad says the previous 16-item/19-source batch looks good but explicitly
-   leaves it FOR REVIEW (D170/UI). It stays unchanged and unapproved, with no
-   new pins/export. Both pending batches are disjoint from the92 reviewed IDs
-   and each other. Catalogue remains343 pins:74 unconditional source IDs,
-   8 conditional Mode and10 conditional transition IDs. Pin only accepted scopes.
-5. Approved phone source4x export (two tiles) is prepared and uninstalled:
-   `logs/ui-restoration-20261020/approved-pack-exports/menu-ui-phone-test-v1`.
-   Extras' nine-tile export is also ready/uninstalled. Ladder v4 remains
-   conditional:56 frozen files/10 IDs; full approval needs a native moving-pan
-   playtest. No transition registration exists; bitmap9 stays Faithful-only.
-   Do not change its geometry based on the texel-space art reconstruction.
-6. LEAVE the launcher-redesign game running (D163/UI). Do not launch a competing
-   game or stop/build over it. Later use complete-save guards and isolated
-   `DEFJAM_DATA=/Users/vlad/Code/defjam-data/playtest-menu-ui`.
-   `logs/ui-restoration-20261020/probe-transition-pan.py` is prepared; baseline
-   `logs/run-20261020-100730.log.err` missed the actual pan. Timing, transforms,
-   bitmap9, anchors, native phone/Extras/profile text and popup states still
-   need checks. The reported4:3 transition is not proven fixed in game.
-7. All343 pins and2,044 previous PNGs are exact. Twenty-two tile alpha/graphic/
-   padding checks and75 aspect centers pass. Browser60 reference/channel cases,
-   75 aspect pairs, three backgrounds/modes,75% bounds, three wall revisions
-   and both joins checked; all loaded after revisit, no overflow or errors.
-   Twenty-two focused tests pass. Proof is in the new batch.
-   Source-only authoring bundle: `research/menu-ui-popup-profile-20261020/`.
-   Private archive: `<data>/scratch/menu-ui-popup-profile-v1-pending-20261020/`.
-   Apply overlays to a COPY of prior complete/Extras/transition/phone/details
-   snapshots. Earlier archives stay immutable; all art/raws/captures/arrays
-   stay local. Preserve the8768 writer,17 candidates and Trejo.
-8. Await feedback, then classify remaining Story widgets, maps and thumbnails
-   in bounded groups. Broad UI texture counts are not counts of paintings.
-   Integrate only approved components, then validate five aspects, live text,
-   alpha, UVs, clips, animation, fades and joins. Other Windows/Deck/full-runtime
-   regression obligations remain unchanged.
+Decisions are read by number or keyword: `decision D<n>`, `decisions --grep TEXT`.

@@ -190,6 +190,233 @@
           ]
         }
       ]
+    },
+    "menu-ui-popup-profile-test-v1": {
+      "name": "Menu UI Popup Profile approved art test v1",
+      "png_mips": "opacity",
+      "status": "owner-approved artwork D172/UI; native game validation pending; wide wall not registered",
+      "entries": [
+        {
+          "source_id": "8665c0c50a69a7c334ad5ce6cbe53b026a60eb7b15a45477f37096020dae0ecb",
+          "label": "Popup/Profile 87",
+          "art": "popup-profile-v1-20261020/asset-8665c0c50a69-draft.png",
+          "crop": null,
+          "size": [
+            4096,
+            2048
+          ]
+        },
+        {
+          "source_id": "c01031c552e6e3d44288103060e2fe14272ba73106e758c61d09520bf9c6945f",
+          "label": "Popup/Profile 41",
+          "art": "popup-profile-v1-20261020/asset-c01031c552e6-draft.png",
+          "crop": null,
+          "size": [
+            2048,
+            1024
+          ]
+        },
+        {
+          "source_id": "5a3d8e51326626f4c2a147540235272fb9e7842e780e633757a3f639114e25f8",
+          "label": "Popup/Profile 42",
+          "art": "popup-profile-v1-20261020/asset-5a3d8e513266-draft.png",
+          "crop": null,
+          "size": [
+            2048,
+            1024
+          ]
+        },
+        {
+          "source_id": "efb020f18854bf4b72117d4e530e72c0b5eb17e27d77e08673e338074c6237e8",
+          "label": "Popup/Profile 46",
+          "art": "popup-profile-v1-20261020/asset-efb020f18854-draft.png",
+          "crop": null,
+          "size": [
+            2048,
+            1024
+          ]
+        },
+        {
+          "source_id": "6ddd1156e71d233b9928bb63e1290b009447943058a9a7d10556a236d6c5688a",
+          "label": "Popup/Profile 47",
+          "art": "popup-profile-v1-20261020/asset-6ddd1156e71d-draft.png",
+          "crop": null,
+          "size": [
+            2048,
+            1024
+          ]
+        },
+        {
+          "source_id": "ae557276c13b2fa7524b0b0248524e04058739dfdf440b5d9382a6a5318fd375",
+          "label": "Popup/Profile 60",
+          "art": "popup-profile-v1-20261020/asset-ae557276c13b-draft.png",
+          "crop": null,
+          "size": [
+            2048,
+            1024
+          ]
+        },
+        {
+          "source_id": "365c8f370ed80dd85e23919f0945a24b72570fc4f1bc8157d34132f1fa43f005",
+          "label": "Popup/Profile 67",
+          "art": "popup-profile-v1-20261020/asset-365c8f370ed8-draft.png",
+          "crop": null,
+          "size": [
+            2048,
+            1024
+          ]
+        },
+        {
+          "source_id": "1aff21d0cbba9f13a1dc50cba53f4a7bbf7cf8deb33ae1df9aac03f3480f1006",
+          "label": "Popup/Profile 59",
+          "art": "popup-profile-v1-20261020/asset-1aff21d0cbba-draft.png",
+          "crop": null,
+          "size": [
+            2048,
+            512
+          ]
+        },
+        {
+          "source_id": "b791ca1da12e6fda255d91d9cf02d774145707b9a07592d18d55f8622cf9a14f",
+          "label": "Popup/Profile 126",
+          "art": "popup-profile-v1-20261020/asset-b791ca1da12e-draft.png",
+          "crop": null,
+          "size": [
+            1024,
+            1024
+          ]
+        },
+        {
+          "source_id": "b4c0a0db45b63a646f10e58659f548b0fab579633811b431c645f0344d813d38",
+          "label": "Popup/Profile 127",
+          "art": "popup-profile-v1-20261020/asset-b4c0a0db45b6-draft.png",
+          "crop": null,
+          "size": [
+            1024,
+            1024
+          ]
+        },
+        {
+          "source_id": "d6a245737ba685f8d0bec38e1af419a9ca83c971fdb20908adf4ed3825264bd7",
+          "label": "Popup/Profile 150",
+          "art": "popup-profile-v1-20261020/asset-d6a245737ba6-draft.png",
+          "crop": null,
+          "size": [
+            1024,
+            1024
+          ]
+        },
+        {
+          "source_id": "46bf386a7c209c4e16713e5ac27ae16660a0c3df853838ce623bed6926ad1d7c",
+          "label": "Popup/Profile 127",
+          "art": "popup-profile-v1-20261020/asset-46bf386a7c20-draft.png",
+          "crop": null,
+          "size": [
+            1024,
+            1024
+          ]
+        },
+        {
+          "source_id": "51ea7afebe75920ce229b0f8feecb38a794ff60e09446bcc892a12881c1141dc",
+          "label": "Popup/Profile 91",
+          "art": "popup-profile-v1-20261020/asset-51ea7afebe75-draft.png",
+          "crop": null,
+          "size": [
+            1024,
+            1024
+          ]
+        },
+        {
+          "source_id": "807a290c7dec5edf4728faec4925c1112c4a069e788f79a1d15c936f51127769",
+          "label": "Popup/Profile 30",
+          "art": "popup-profile-v1-20261020/asset-807a290c7dec-draft.png",
+          "crop": null,
+          "size": [
+            1024,
+            512
+          ]
+        },
+        {
+          "source_id": "d318f085aa3ad74c19da979133c91117764eabbb503765bb3873c821c5ba9f40",
+          "label": "Popup/Profile 125",
+          "art": "popup-profile-v1-20261020/asset-d318f085aa3a-draft.png",
+          "crop": null,
+          "size": [
+            1024,
+            512
+          ]
+        },
+        {
+          "source_id": "436d0f5e4c1f3549755b801ba541b131398ed57e62c62533059bccad0536c4de",
+          "label": "Popup/Profile 2",
+          "art": "popup-profile-v1-20261020/asset-436d0f5e4c1f-draft.png",
+          "crop": null,
+          "size": [
+            1024,
+            512
+          ]
+        },
+        {
+          "source_id": "e56d6339c75c72074fd1e8590426a093cc0ebe34e16ecd8dc6dc43a4ce8cecd1",
+          "label": "Popup/Profile 6",
+          "art": "popup-profile-v1-20261020/asset-e56d6339c75c-draft.png",
+          "crop": null,
+          "size": [
+            1024,
+            512
+          ]
+        },
+        {
+          "source_id": "20cfe8c382af8a3e5e0577608ade27f0595e6a970dfed108296229deb7bffc30",
+          "label": "Popup/Profile 90",
+          "art": "popup-profile-v1-20261020/asset-20cfe8c382af-draft.png",
+          "crop": null,
+          "size": [
+            1024,
+            512
+          ]
+        },
+        {
+          "source_id": "b1cdc4d1ce950b939e320ab74b50426c47551b2471cc19d7b5a9418c3028373e",
+          "label": "Popup/Profile 220",
+          "art": "popup-profile-v1-20261020/asset-b1cdc4d1ce95-draft.png",
+          "crop": null,
+          "size": [
+            512,
+            512
+          ]
+        },
+        {
+          "source_id": "acf9559da275598298f9a0a1d52f2580b01eeb41823d68a027dd62b88c800980",
+          "label": "Popup/Profile 236",
+          "art": "popup-profile-v1-20261020/asset-acf9559da275-draft.png",
+          "crop": null,
+          "size": [
+            512,
+            512
+          ]
+        },
+        {
+          "source_id": "efdbaec32b07abd34f907688e17b907bed6731f5d3e27446a36fa04fd740a489",
+          "label": "Popup/Profile 244",
+          "art": "popup-profile-v1-20261020/asset-efdbaec32b07-draft.png",
+          "crop": null,
+          "size": [
+            512,
+            512
+          ]
+        },
+        {
+          "source_id": "4aebe3a6d599cbe5f176e545d4d8f28de10d632703c51be89ff127196408b037",
+          "label": "Popup/Profile 31",
+          "art": "popup-profile-v1-20261020/asset-4aebe3a6d599-draft.png",
+          "crop": null,
+          "size": [
+            512,
+            512
+          ]
+        }
+      ]
     }
   }
 }

@@ -127,4 +127,7 @@ The plan built from these is in [docs/widescreen](../widescreen/README.md), whic
 
 ## Menu/UI artwork restoration and modpack handover
 
+- [Gym/controls restoration and linked mouse review](menu-controls-restoration-2026-10-20.md) — fifteen studies,22sources; popup approval and review navigation.
+- [Gym and shared popup source mapping](menu-ui-next-batch-mapping-2026-10-20.md) — complete shapes50/60/64 and unknown popup consumers.
+
 - [Start here: approved-art modpack implementation](../menu-ui-modpack-handover.md)

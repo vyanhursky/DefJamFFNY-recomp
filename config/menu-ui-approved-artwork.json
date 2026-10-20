@@ -2,26 +2,26 @@
   "schema": 1,
   "art_root_policy": "Relative to the PRIVATE pilot-v1 directory. No PNG/game bytes are stored here. This is an integrity catalogue,not a runtime mod manifest.",
   "decision_namespace": "Menu-session decisions are qualified /UI where they collide with main-branch decisions; preserve historical identifiers.",
-  "restoration_status": "RESUMED;prior16item/19sourcebatchremainspendingD170/UI;new15item/22sourcepopup-profilebatch UNAPPROVEDinreviewD171/UI. Phoneapproved;transitionconditionalpendingnativepan.",
-  "pilot_imagegen_calls": 142,
+  "restoration_status": "RESUMED;15popup/profile studies22sources approved D172/UI. Earlier16item19sourcebatch pending D170/UI. New15Gym/control studies22sources pending D174/UI;linkedreviewnavigation D173/UI.",
+  "pilot_imagegen_calls": 144,
   "source_counts": {
-    "covered_by_artwork_review": 92,
-    "unconditionally_approved_source_ids": 74,
+    "covered_by_artwork_review": 114,
+    "unconditionally_approved_source_ids": 96,
     "conditionally_reviewed_mode_source_ids": 8,
     "registered_flows": {
       "total": 1323,
-      "covered": 92,
-      "not_custom_restored": 1231
+      "covered": 114,
+      "not_custom_restored": 1209
     },
     "core_families": {
       "total": 1834,
-      "covered": 92,
-      "not_custom_restored": 1742
+      "covered": 114,
+      "not_custom_restored": 1720
     },
     "broad_ui_category": {
       "total": 11261,
-      "covered": 92,
-      "not_custom_restored": 11169
+      "covered": 114,
+      "not_custom_restored": 11147
     },
     "confirmed_priority_shortlist": 17,
     "conditionally_reviewed_transition_source_ids": 10
@@ -1382,6 +1382,412 @@
           "index": 4,
           "width": 128,
           "height": 512
+        }
+      ]
+    },
+    {
+      "source_id": "8665c0c50a69a7c334ad5ce6cbe53b026a60eb7b15a45477f37096020dae0ecb",
+      "family": "popup-profile-autosave",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/options/userID.big::userID.xsh",
+          "name": "87",
+          "index": 36,
+          "width": 1024,
+          "height": 512
+        }
+      ]
+    },
+    {
+      "source_id": "c01031c552e6e3d44288103060e2fe14272ba73106e758c61d09520bf9c6945f",
+      "family": "popup-profile-autosave",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/memoryCard/autosaveMessage.big::autosaveMessage.xsh",
+          "name": "41",
+          "index": 13,
+          "width": 512,
+          "height": 256
+        }
+      ]
+    },
+    {
+      "source_id": "5a3d8e51326626f4c2a147540235272fb9e7842e780e633757a3f639114e25f8",
+      "family": "popup-profile-autosave",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/memoryCard/autosaveMessage.big::autosaveMessage.xsh",
+          "name": "42",
+          "index": 14,
+          "width": 512,
+          "height": 256
+        }
+      ]
+    },
+    {
+      "source_id": "efb020f18854bf4b72117d4e530e72c0b5eb17e27d77e08673e338074c6237e8",
+      "family": "popup-profile-autosave",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/memoryCard/autosaveMessage.big::autosaveMessage.xsh",
+          "name": "46",
+          "index": 15,
+          "width": 512,
+          "height": 256
+        }
+      ]
+    },
+    {
+      "source_id": "6ddd1156e71d233b9928bb63e1290b009447943058a9a7d10556a236d6c5688a",
+      "family": "popup-profile-autosave",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/memoryCard/autosaveMessage.big::autosaveMessage.xsh",
+          "name": "47",
+          "index": 16,
+          "width": 512,
+          "height": 256
+        }
+      ]
+    },
+    {
+      "source_id": "ae557276c13b2fa7524b0b0248524e04058739dfdf440b5d9382a6a5318fd375",
+      "family": "popup-profile-autosave",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/memoryCard/autosaveMessage.big::autosaveMessage.xsh",
+          "name": "60",
+          "index": 20,
+          "width": 512,
+          "height": 256
+        }
+      ]
+    },
+    {
+      "source_id": "365c8f370ed80dd85e23919f0945a24b72570fc4f1bc8157d34132f1fa43f005",
+      "family": "popup-profile-autosave",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/memoryCard/autosaveMessage.big::autosaveMessage.xsh",
+          "name": "67",
+          "index": 22,
+          "width": 512,
+          "height": 256
+        }
+      ]
+    },
+    {
+      "source_id": "1aff21d0cbba9f13a1dc50cba53f4a7bbf7cf8deb33ae1df9aac03f3480f1006",
+      "family": "popup-profile-autosave",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/memoryCard/autosaveMessage.big::autosaveMessage.xsh",
+          "name": "59",
+          "index": 19,
+          "width": 512,
+          "height": 128
+        }
+      ]
+    },
+    {
+      "source_id": "b791ca1da12e6fda255d91d9cf02d774145707b9a07592d18d55f8622cf9a14f",
+      "family": "popup-profile-autosave",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/beloader.big::beloader.xsh",
+          "name": "126",
+          "index": 3,
+          "width": 256,
+          "height": 256
+        },
+        {
+          "source": "screens/screens.viv::screens/beloader.big::beloader.xsh",
+          "name": "4",
+          "index": 60,
+          "width": 256,
+          "height": 256
+        },
+        {
+          "source": "screens/screens.viv::screens/feloader.big::feloader.xsh",
+          "name": "75",
+          "index": 39,
+          "width": 256,
+          "height": 256
+        },
+        {
+          "source": "screens/screens.viv::screens/intMain/message.big::message.xsh",
+          "name": "31",
+          "index": 7,
+          "width": 256,
+          "height": 256
+        }
+      ]
+    },
+    {
+      "source_id": "b4c0a0db45b63a646f10e58659f548b0fab579633811b431c645f0344d813d38",
+      "family": "popup-profile-autosave",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/beloader.big::beloader.xsh",
+          "name": "127",
+          "index": 4,
+          "width": 256,
+          "height": 256
+        },
+        {
+          "source": "screens/screens.viv::screens/beloader.big::beloader.xsh",
+          "name": "5",
+          "index": 65,
+          "width": 256,
+          "height": 256
+        },
+        {
+          "source": "screens/screens.viv::screens/feloader.big::feloader.xsh",
+          "name": "76",
+          "index": 40,
+          "width": 256,
+          "height": 256
+        },
+        {
+          "source": "screens/screens.viv::screens/intMain/message.big::message.xsh",
+          "name": "32",
+          "index": 8,
+          "width": 256,
+          "height": 256
+        }
+      ]
+    },
+    {
+      "source_id": "d6a245737ba685f8d0bec38e1af419a9ca83c971fdb20908adf4ed3825264bd7",
+      "family": "popup-profile-autosave",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/hiScores/hiScores.big::hiScores.xsh",
+          "name": "150",
+          "index": 21,
+          "width": 256,
+          "height": 256
+        },
+        {
+          "source": "screens/screens.viv::screens/options/battleID.big::battleID.xsh",
+          "name": "217",
+          "index": 34,
+          "width": 256,
+          "height": 256
+        },
+        {
+          "source": "screens/screens.viv::screens/options/userID.big::userID.xsh",
+          "name": "120",
+          "index": 3,
+          "width": 256,
+          "height": 256
+        }
+      ]
+    },
+    {
+      "source_id": "46bf386a7c209c4e16713e5ac27ae16660a0c3df853838ce623bed6926ad1d7c",
+      "family": "popup-profile-autosave",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/options/userID.big::userID.xsh",
+          "name": "127",
+          "index": 7,
+          "width": 256,
+          "height": 256
+        }
+      ]
+    },
+    {
+      "source_id": "51ea7afebe75920ce229b0f8feecb38a794ff60e09446bcc892a12881c1141dc",
+      "family": "popup-profile-autosave",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/options/userID.big::userID.xsh",
+          "name": "91",
+          "index": 38,
+          "width": 256,
+          "height": 256
+        }
+      ]
+    },
+    {
+      "source_id": "807a290c7dec5edf4728faec4925c1112c4a069e788f79a1d15c936f51127769",
+      "family": "popup-profile-autosave",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/feloader.big::feloader.xsh",
+          "name": "30",
+          "index": 21,
+          "width": 256,
+          "height": 128
+        }
+      ]
+    },
+    {
+      "source_id": "d318f085aa3ad74c19da979133c91117764eabbb503765bb3873c821c5ba9f40",
+      "family": "popup-profile-autosave",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/options/userID.big::userID.xsh",
+          "name": "125",
+          "index": 5,
+          "width": 256,
+          "height": 128
+        }
+      ]
+    },
+    {
+      "source_id": "436d0f5e4c1f3549755b801ba541b131398ed57e62c62533059bccad0536c4de",
+      "family": "popup-profile-autosave",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/options/userID.big::userID.xsh",
+          "name": "2",
+          "index": 10,
+          "width": 256,
+          "height": 128
+        }
+      ]
+    },
+    {
+      "source_id": "e56d6339c75c72074fd1e8590426a093cc0ebe34e16ecd8dc6dc43a4ce8cecd1",
+      "family": "popup-profile-autosave",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/options/userID.big::userID.xsh",
+          "name": "6",
+          "index": 27,
+          "width": 256,
+          "height": 128
+        }
+      ]
+    },
+    {
+      "source_id": "20cfe8c382af8a3e5e0577608ade27f0595e6a970dfed108296229deb7bffc30",
+      "family": "popup-profile-autosave",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/options/userID.big::userID.xsh",
+          "name": "90",
+          "index": 37,
+          "width": 256,
+          "height": 128
+        }
+      ]
+    },
+    {
+      "source_id": "b1cdc4d1ce950b939e320ab74b50426c47551b2471cc19d7b5a9418c3028373e",
+      "family": "popup-profile-autosave",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/beloader.big::beloader.xsh",
+          "name": "220",
+          "index": 39,
+          "width": 128,
+          "height": 128
+        },
+        {
+          "source": "screens/screens.viv::screens/feloader.big::feloader.xsh",
+          "name": "41",
+          "index": 24,
+          "width": 128,
+          "height": 128
+        },
+        {
+          "source": "screens/screens.viv::screens/memoryCard/memory.big::memory.xsh",
+          "name": "2",
+          "index": 5,
+          "width": 128,
+          "height": 128
+        }
+      ]
+    },
+    {
+      "source_id": "acf9559da275598298f9a0a1d52f2580b01eeb41823d68a027dd62b88c800980",
+      "family": "popup-profile-autosave",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/beloader.big::beloader.xsh",
+          "name": "236",
+          "index": 47,
+          "width": 128,
+          "height": 128
+        },
+        {
+          "source": "screens/screens.viv::screens/feloader.big::feloader.xsh",
+          "name": "57",
+          "index": 31,
+          "width": 128,
+          "height": 128
+        },
+        {
+          "source": "screens/screens.viv::screens/memoryCard/memory.big::memory.xsh",
+          "name": "18",
+          "index": 4,
+          "width": 128,
+          "height": 128
+        }
+      ]
+    },
+    {
+      "source_id": "efdbaec32b07abd34f907688e17b907bed6731f5d3e27446a36fa04fd740a489",
+      "family": "popup-profile-autosave",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/beloader.big::beloader.xsh",
+          "name": "244",
+          "index": 51,
+          "width": 128,
+          "height": 128
+        },
+        {
+          "source": "screens/screens.viv::screens/feloader.big::feloader.xsh",
+          "name": "65",
+          "index": 35,
+          "width": 128,
+          "height": 128
+        },
+        {
+          "source": "screens/screens.viv::screens/memoryCard/memory.big::memory.xsh",
+          "name": "26",
+          "index": 9,
+          "width": 128,
+          "height": 128
+        }
+      ]
+    },
+    {
+      "source_id": "4aebe3a6d599cbe5f176e545d4d8f28de10d632703c51be89ff127196408b037",
+      "family": "popup-profile-autosave",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/feloader.big::feloader.xsh",
+          "name": "31",
+          "index": 22,
+          "width": 128,
+          "height": 128
         }
       ]
     }
@@ -2878,8 +3284,536 @@
           "sha256": "d800e68025ba32773c5db53eda41551bacc9bffd228a3b49b0d431c088525695"
         }
       ]
+    },
+    {
+      "decision": "D172/UI",
+      "status": "owner-approved artwork",
+      "scope": "Current15popup/profile/autosave studies over22sourceIDs; fullsource4xtiles, sourceprotected papers, Faithful stamps/effects/nativewallcore, currentv3widewall and fiveaspectstudies. Raw/history, previous16itembatch and native runtime acceptance excluded.",
+      "record": "popup-profile-approval-20261020.json",
+      "files": [
+        {
+          "path": "popup-profile-v1-20261020/asset-1aff21d0cbba-draft.png",
+          "sha256": "7f49fe07219b841f1c2af6d6427d1d67999980f5d869c96128e825f6bb2bd8f1"
+        },
+        {
+          "path": "popup-profile-v1-20261020/asset-20cfe8c382af-draft.png",
+          "sha256": "4fcad45ee95eefc5464855ae7e32910f158bc79be2adf9edc5d54c0bbbd54ab9"
+        },
+        {
+          "path": "popup-profile-v1-20261020/asset-365c8f370ed8-draft.png",
+          "sha256": "a2dc3afd73244983aafb5564948e03eb5fab72cb87feff64b1b3f5441faffc78"
+        },
+        {
+          "path": "popup-profile-v1-20261020/asset-436d0f5e4c1f-draft.png",
+          "sha256": "52f66ad6adcb467f792564caf10ff52cdc91b58d0505d5382c7452bad0190e6c"
+        },
+        {
+          "path": "popup-profile-v1-20261020/asset-46bf386a7c20-draft.png",
+          "sha256": "5ea3246bba151b481daf253163d71d7d1ca63965858da92ff9f130a00f4216fe"
+        },
+        {
+          "path": "popup-profile-v1-20261020/asset-4aebe3a6d599-draft.png",
+          "sha256": "62e395bb120f681349813e41232e20e0a65272c298c37ffc4937c92bec4fbee5"
+        },
+        {
+          "path": "popup-profile-v1-20261020/asset-51ea7afebe75-draft.png",
+          "sha256": "dda2ca98e0d4e861432d212923fcd80c8eaf2d3d9245b785cd474e2fb8cceeaa"
+        },
+        {
+          "path": "popup-profile-v1-20261020/asset-5a3d8e513266-draft.png",
+          "sha256": "38ef1f68403b449cbd8cd2b41bff198b639da99cb3a6c44b48fa987ec07134bd"
+        },
+        {
+          "path": "popup-profile-v1-20261020/asset-6ddd1156e71d-draft.png",
+          "sha256": "7ad9ae1e8f9e48784e29aec453906b23cd82cbc160528f649340794ec949c4be"
+        },
+        {
+          "path": "popup-profile-v1-20261020/asset-807a290c7dec-draft.png",
+          "sha256": "f3980ed947d6b3ac13df879790dae06c817913cac2361b15a8c53f6b6e3415ff"
+        },
+        {
+          "path": "popup-profile-v1-20261020/asset-8665c0c50a69-draft.png",
+          "sha256": "fd35c1cc85241125d5c345e9d70c3721dd7fb5200ebf2cea0baaf6e8e6889670"
+        },
+        {
+          "path": "popup-profile-v1-20261020/asset-acf9559da275-draft.png",
+          "sha256": "a81726f635a9dee14094046d4b0364d46b6f2612d3a0b1653601dd41c948ca75"
+        },
+        {
+          "path": "popup-profile-v1-20261020/asset-ae557276c13b-draft.png",
+          "sha256": "f77feb2df2c3d6298f8db3f97ea72c5bf993a35b6d17ad80895655140526e45d"
+        },
+        {
+          "path": "popup-profile-v1-20261020/asset-b1cdc4d1ce95-draft.png",
+          "sha256": "801600ac4d9a894b3e8dff2aa12b76a88b9b56b00f9abaf3107356b17b5c6225"
+        },
+        {
+          "path": "popup-profile-v1-20261020/asset-b4c0a0db45b6-draft.png",
+          "sha256": "4b5c501370befdb7b342d4221c4fa1ee7f90e2e9dccb316aada25b2876a9aa68"
+        },
+        {
+          "path": "popup-profile-v1-20261020/asset-b791ca1da12e-draft.png",
+          "sha256": "ef8f3499522fd130f85d7942bc3358950f352a928b3eeb8d3ea7814dd97d3a3c"
+        },
+        {
+          "path": "popup-profile-v1-20261020/asset-c01031c552e6-draft.png",
+          "sha256": "e85f54fdd91764bdb93740bfea951a663287f6bfef591b0abb76c0ee2acf4d87"
+        },
+        {
+          "path": "popup-profile-v1-20261020/asset-d318f085aa3a-draft.png",
+          "sha256": "85415447aadd41b3a463be28a3375e6678bb39f3d8e9ff354f9756fc120e77bb"
+        },
+        {
+          "path": "popup-profile-v1-20261020/asset-d6a245737ba6-draft.png",
+          "sha256": "30a5be340f5e35e76969a5b1d717306b5fb9700231eea5c2d9660b038ba7e287"
+        },
+        {
+          "path": "popup-profile-v1-20261020/asset-e56d6339c75c-draft.png",
+          "sha256": "3c614094a5faad905772e270a645d5899b43341380b25e755dc51a07cebb8bb3"
+        },
+        {
+          "path": "popup-profile-v1-20261020/asset-efb020f18854-draft.png",
+          "sha256": "3d258fbcba34d26876a68cbd977594aa7b4306041f8a464724ed7932096d4038"
+        },
+        {
+          "path": "popup-profile-v1-20261020/asset-efdbaec32b07-draft.png",
+          "sha256": "d3661137e57705b5857ddd9d422b2908284a1cda9a0695195ff9a1c22be65d2f"
+        },
+        {
+          "path": "popup-profile-v1-20261020/autosave-gc-16x10-draft.png",
+          "sha256": "c1c393ec5da38db8dd3d54924f2e97e6d91a8fbf19bfe4a2604ea99e31282517"
+        },
+        {
+          "path": "popup-profile-v1-20261020/autosave-gc-16x9-draft.png",
+          "sha256": "dcadb47d07b811b4ba7bfeaa2318ea0b8078af9ee7886c363e33ec5182e52d62"
+        },
+        {
+          "path": "popup-profile-v1-20261020/autosave-gc-21x9-draft.png",
+          "sha256": "b52673344b98f247495f6ce82dbda23abe69dbf2315c39755d913bbb7b6515b2"
+        },
+        {
+          "path": "popup-profile-v1-20261020/autosave-gc-32x9-draft.png",
+          "sha256": "bd8fff59e1f1b455364515371c6c31536b2531118c92d905a555e76299d58313"
+        },
+        {
+          "path": "popup-profile-v1-20261020/autosave-gc-4x3-draft.png",
+          "sha256": "89074c29be66b75547319b2b2a3ae4f5121a1c8e3ad97d2f10e37533db54814c"
+        },
+        {
+          "path": "popup-profile-v1-20261020/autosave-gc-draft-alpha.png",
+          "sha256": "4b18c7622c06d249a100646550d1efbce7982c332dbf73784853a4260b65e8ed"
+        },
+        {
+          "path": "popup-profile-v1-20261020/autosave-gc-draft.png",
+          "sha256": "13f399e15f0db6cf86813153a9af4c491294da77fa756468ec44540f7b789982"
+        },
+        {
+          "path": "popup-profile-v1-20261020/autosave-ps2-en-16x10-draft.png",
+          "sha256": "b1444a80b44e3a73777a7f6a0a7e14faa24744f2ab7a2fdcbfccc0719c4d385d"
+        },
+        {
+          "path": "popup-profile-v1-20261020/autosave-ps2-en-16x9-draft.png",
+          "sha256": "dae0dab119653081523fe186a7b97c56494c1d36676a69aa83a35f9c6d064a3b"
+        },
+        {
+          "path": "popup-profile-v1-20261020/autosave-ps2-en-21x9-draft.png",
+          "sha256": "4704bc23d7306ee4c4a3e0278c99f959f95651e23bd298e7abb639d67525f189"
+        },
+        {
+          "path": "popup-profile-v1-20261020/autosave-ps2-en-32x9-draft.png",
+          "sha256": "4a1c91ffe608ff11320c16ee52f503683cb33a4a95e21cdc832e3c4f7c0da372"
+        },
+        {
+          "path": "popup-profile-v1-20261020/autosave-ps2-en-4x3-draft.png",
+          "sha256": "215d7fa41a3b8d59671755768097e5ee2f183f940c8f00c9dc343490a204e003"
+        },
+        {
+          "path": "popup-profile-v1-20261020/autosave-ps2-en-draft-alpha.png",
+          "sha256": "1435c59bef97414ea0472293065268e45cdf6f34e745c4c7e1aa2b1d5ee9aa95"
+        },
+        {
+          "path": "popup-profile-v1-20261020/autosave-ps2-en-draft.png",
+          "sha256": "5ed2013fb421939c9479bafe3efce50c457914dc167c0e69a9e464e3fb13c470"
+        },
+        {
+          "path": "popup-profile-v1-20261020/autosave-ps2-fr-16x10-draft.png",
+          "sha256": "20166f6c707ede40e72ba1284778570c6d8ee82d96e0e71c2f7e7d83ddf6e80f"
+        },
+        {
+          "path": "popup-profile-v1-20261020/autosave-ps2-fr-16x9-draft.png",
+          "sha256": "59f7297261303f9e378526a5ad816795c90af0a159aad4e00ffe7f61f581dd20"
+        },
+        {
+          "path": "popup-profile-v1-20261020/autosave-ps2-fr-21x9-draft.png",
+          "sha256": "83ec4784eee8089b894d042d32206c90ba839c48ea98f9d8ac051f94305d52b3"
+        },
+        {
+          "path": "popup-profile-v1-20261020/autosave-ps2-fr-32x9-draft.png",
+          "sha256": "8b6193a547599c0a3e3ad659872a2b9c96d4ae87562a2d47a09ba65bc010e4cc"
+        },
+        {
+          "path": "popup-profile-v1-20261020/autosave-ps2-fr-4x3-draft.png",
+          "sha256": "5de5ba975afb82bdafec2b99dfd388cb4a1eed9e9837e85ccb5ffc12a3c99790"
+        },
+        {
+          "path": "popup-profile-v1-20261020/autosave-ps2-fr-draft-alpha.png",
+          "sha256": "737938c674dc0643ce7ccd5b148736b9eee93d2c728495089c48b00c1980c865"
+        },
+        {
+          "path": "popup-profile-v1-20261020/autosave-ps2-fr-draft.png",
+          "sha256": "9fbf9e7d1c2df4978a0c86e25bc953fa6119f46221576fb6cba577b7a14fead4"
+        },
+        {
+          "path": "popup-profile-v1-20261020/autosave-xbox-16x10-draft.png",
+          "sha256": "6f516f80fa3cf0a7593e29655af00a353f506ba15e85b543444bbedbcbc5913b"
+        },
+        {
+          "path": "popup-profile-v1-20261020/autosave-xbox-16x9-draft.png",
+          "sha256": "d9045b651d8a41ece5729333df14d94b61cd17527db25842a318d35898ef7c8c"
+        },
+        {
+          "path": "popup-profile-v1-20261020/autosave-xbox-21x9-draft.png",
+          "sha256": "d6102cec61e7a8492b4e1f3a1cd3dfe5c7ab04049d60c3dbbf496e16ba1373f5"
+        },
+        {
+          "path": "popup-profile-v1-20261020/autosave-xbox-32x9-draft.png",
+          "sha256": "b31e61ca5d27e2ac6b0f2719115765f806a164f5604b43063ecbb03580913404"
+        },
+        {
+          "path": "popup-profile-v1-20261020/autosave-xbox-4x3-draft.png",
+          "sha256": "c869d7f57cf3982ea8338c412983896c7ea3539c8a9bf35cf74d3a45297e1a9d"
+        },
+        {
+          "path": "popup-profile-v1-20261020/autosave-xbox-draft-alpha.png",
+          "sha256": "4a8954bccf3897a80d8b8646f75b17305313b26ab6ef8dbf237d53d54796c947"
+        },
+        {
+          "path": "popup-profile-v1-20261020/autosave-xbox-draft.png",
+          "sha256": "830d4f7637e812ba9c01b7b502f874592aa41642e0a05722dcb78f07b5219079"
+        },
+        {
+          "path": "popup-profile-v1-20261020/platform-card-16x10-draft.png",
+          "sha256": "fd8d8368b22f3e40e9793ffd733d20246d31897aa8355a5608f8a91b1c8f54d2"
+        },
+        {
+          "path": "popup-profile-v1-20261020/platform-card-16x9-draft.png",
+          "sha256": "2df03e7ecd12f4fca9a3b9b5bd24c6d0fb23a467ce29c6392cc1a41c2a4327f2"
+        },
+        {
+          "path": "popup-profile-v1-20261020/platform-card-21x9-draft.png",
+          "sha256": "3b4d2706cff02976bc551322b1d126d218da7763635fc044d342fc89b2e3715d"
+        },
+        {
+          "path": "popup-profile-v1-20261020/platform-card-32x9-draft.png",
+          "sha256": "eab437719fdf087a66e0d8390d9113f445f9aa2ec7c372d1bfdb9898da0c8c48"
+        },
+        {
+          "path": "popup-profile-v1-20261020/platform-card-4x3-draft.png",
+          "sha256": "ec9f5a41ef3117d86e5f51a41a7e052c02d370fa08adabfefcadb217efb9fd73"
+        },
+        {
+          "path": "popup-profile-v1-20261020/platform-card-draft-alpha.png",
+          "sha256": "f2c99b924233e1f8bcd3cbf32aabf6f8a889766c31ecb58090b15404f9a322f6"
+        },
+        {
+          "path": "popup-profile-v1-20261020/platform-card-draft.png",
+          "sha256": "54fc236750aac31b21af363902f1799b13bcda5bafeef46db1dfcb62375495d4"
+        },
+        {
+          "path": "popup-profile-v1-20261020/platform-cube-16x10-draft.png",
+          "sha256": "e7dc343eedf9f0c22a4cf3a39d17d2bfb501dd13bd9f8b6ae15d07fc5aa12b27"
+        },
+        {
+          "path": "popup-profile-v1-20261020/platform-cube-16x9-draft.png",
+          "sha256": "0be2038f6124f85604e7ef666e63949d685b44c7001ae95e6f9029e73b9b8d2c"
+        },
+        {
+          "path": "popup-profile-v1-20261020/platform-cube-21x9-draft.png",
+          "sha256": "d6a4ae35685b528a5dfc94d080752a6492383edd89485bcc9f9c16576bfff1aa"
+        },
+        {
+          "path": "popup-profile-v1-20261020/platform-cube-32x9-draft.png",
+          "sha256": "3f30a9979c7cd8e8304c5ce803fbe8bb97dd214479898b63934a189d7b8bf823"
+        },
+        {
+          "path": "popup-profile-v1-20261020/platform-cube-4x3-draft.png",
+          "sha256": "91b9fff246cbcff8b1aaff89cb04e02980cba8a53d3c181876dc9179014a9522"
+        },
+        {
+          "path": "popup-profile-v1-20261020/platform-cube-draft-alpha.png",
+          "sha256": "41f05c53d2b19724d1cc8c8fcad408626e0c33c17b320f4c5e093697e23ddb57"
+        },
+        {
+          "path": "popup-profile-v1-20261020/platform-cube-draft.png",
+          "sha256": "8f514273ae5096b22326cac77cda1b4e479e32377d78c0d9daa701a995ed94df"
+        },
+        {
+          "path": "popup-profile-v1-20261020/platform-paper-16x10-draft.png",
+          "sha256": "08101b990c3d3c1778bc76c63d0e477e1886c85edad8e745faf3bab006ac1ec5"
+        },
+        {
+          "path": "popup-profile-v1-20261020/platform-paper-16x9-draft.png",
+          "sha256": "96d535c3912116d46381924faa64f96d79da083b2c91003f2b20957710c82522"
+        },
+        {
+          "path": "popup-profile-v1-20261020/platform-paper-21x9-draft.png",
+          "sha256": "64392902ca7b106c8c09c4ed4756df5c769bfc951989d0eaf1c508a0da01765f"
+        },
+        {
+          "path": "popup-profile-v1-20261020/platform-paper-32x9-draft.png",
+          "sha256": "a63d55c22d732830e8833b99a4eabaf9550c8b4f36288fe1446a33ad2a431c3c"
+        },
+        {
+          "path": "popup-profile-v1-20261020/platform-paper-4x3-draft.png",
+          "sha256": "d1a7c1564d246fa31d1f5d5615c8c91d00c1236b37891ef9159f36a152166166"
+        },
+        {
+          "path": "popup-profile-v1-20261020/platform-paper-draft-alpha.png",
+          "sha256": "10d4488418853fcfe2e9df6c80878802e61a93a08ab0a93136ce5f96427de577"
+        },
+        {
+          "path": "popup-profile-v1-20261020/platform-paper-draft.png",
+          "sha256": "765635609468cc8bb3fd876191138ab99035c625c7511a3f9a5896952c104c5e"
+        },
+        {
+          "path": "popup-profile-v1-20261020/profile-list-16x10-draft.png",
+          "sha256": "db1a7475e3ca385c6c35914723122908fb800050c6c8151f6d9213a307eadc4c"
+        },
+        {
+          "path": "popup-profile-v1-20261020/profile-list-16x9-draft.png",
+          "sha256": "c513decc4cd73dd0f7c90a00239864c180731bfe465820b7ce650baaf5fb34fb"
+        },
+        {
+          "path": "popup-profile-v1-20261020/profile-list-21x9-draft.png",
+          "sha256": "e497becede658ddaa99b52d637fb4ef733319d10bc0ceb9aed2e9143641b56cd"
+        },
+        {
+          "path": "popup-profile-v1-20261020/profile-list-32x9-draft.png",
+          "sha256": "11a94be1c21a31e217307eaceb359e1783b312cfea25d6092cbf2f52d346fc65"
+        },
+        {
+          "path": "popup-profile-v1-20261020/profile-list-4x3-draft.png",
+          "sha256": "907cdf2eb65f5a4c14e0ab8802d8697a4dce02eeeca0ef4c431e7d26d90ce565"
+        },
+        {
+          "path": "popup-profile-v1-20261020/profile-list-draft-alpha.png",
+          "sha256": "cf592ec3a85095acdde42ecad602868586da972158d333561aebde1299f0629d"
+        },
+        {
+          "path": "popup-profile-v1-20261020/profile-list-draft.png",
+          "sha256": "759d172dd0405ee9430d1738ab3e81fa45b0426ff785f2ccced301dfd0ea416c"
+        },
+        {
+          "path": "popup-profile-v1-20261020/profile-noids-en-16x10-draft.png",
+          "sha256": "591e8034cf1a0347a24e3cd5132419854c66355be107c68d854d78fee74bd857"
+        },
+        {
+          "path": "popup-profile-v1-20261020/profile-noids-en-16x9-draft.png",
+          "sha256": "162010d980b5c01d24dde25b3b006fd9f504cc82c706ebf9ef57bb4a50cfa63a"
+        },
+        {
+          "path": "popup-profile-v1-20261020/profile-noids-en-21x9-draft.png",
+          "sha256": "2a9d5cbf29051b88035d37b58896aa421010016f981ea22a507b1ab20351774d"
+        },
+        {
+          "path": "popup-profile-v1-20261020/profile-noids-en-32x9-draft.png",
+          "sha256": "aa81f81287bc4d6d393e36f5d4df3356f88eeb57bd6c2fc0eba432712eea28a5"
+        },
+        {
+          "path": "popup-profile-v1-20261020/profile-noids-en-4x3-draft.png",
+          "sha256": "b829c63480b32d7ed8a9613a45abc5d9b72ede54a3e9aa440ffa0f7a68eac473"
+        },
+        {
+          "path": "popup-profile-v1-20261020/profile-noids-en-draft-alpha.png",
+          "sha256": "a14c12a1e9765b74f6de606735087fabeb2a93b4b9bbb9a431f16f9bb364659c"
+        },
+        {
+          "path": "popup-profile-v1-20261020/profile-noids-en-draft.png",
+          "sha256": "c2c3a329c93338a360b02b3235f94c6d9a1794e9771c31811bf73f47f7954067"
+        },
+        {
+          "path": "popup-profile-v1-20261020/profile-noids-fr-16x10-draft.png",
+          "sha256": "567ec50d94ababfd18ec88ec69059abffa2369d7335886d0d89576e41ddfc2ac"
+        },
+        {
+          "path": "popup-profile-v1-20261020/profile-noids-fr-16x9-draft.png",
+          "sha256": "0c8e0d84c45151d6b7d8d3559209efbe0f5c6c72580819a47abde7228894a2db"
+        },
+        {
+          "path": "popup-profile-v1-20261020/profile-noids-fr-21x9-draft.png",
+          "sha256": "419949f7e63cac92abd72676ec02248001a8f819c70e0d7abc5c044e16905733"
+        },
+        {
+          "path": "popup-profile-v1-20261020/profile-noids-fr-32x9-draft.png",
+          "sha256": "eb0f5a312fa61687ab9859a4250f28ff5b987c88f1398effd6bbe541b3db3bbf"
+        },
+        {
+          "path": "popup-profile-v1-20261020/profile-noids-fr-4x3-draft.png",
+          "sha256": "49238aaea7e5256df038b3b974bee0181f5739af41483f5e99864605d059ad91"
+        },
+        {
+          "path": "popup-profile-v1-20261020/profile-noids-fr-draft-alpha.png",
+          "sha256": "ff67590359f02b94e94454b2d6c89a73e0c1f80793ed3999edfc30bdb5b6510d"
+        },
+        {
+          "path": "popup-profile-v1-20261020/profile-noids-fr-draft.png",
+          "sha256": "26a4d97813a805fb47c0d9720fae63cf1cb63cde8434db7f52a61bbe8a99f59e"
+        },
+        {
+          "path": "popup-profile-v1-20261020/profile-radial-16x10-draft.png",
+          "sha256": "bf41ac6ffe967ce3de5c4f45faab8c0e2d2b4be3b75465a3caf76104ab7f6f75"
+        },
+        {
+          "path": "popup-profile-v1-20261020/profile-radial-16x9-draft.png",
+          "sha256": "977cc2053a383374801c60195b9b8fb85e4d928a52574b9e07c3fc5515ec6e4d"
+        },
+        {
+          "path": "popup-profile-v1-20261020/profile-radial-21x9-draft.png",
+          "sha256": "4c2cba849fa7d9246a2ac9cff8e7fb77d2e05dcf0c817e5cbaabdb739b1aa650"
+        },
+        {
+          "path": "popup-profile-v1-20261020/profile-radial-32x9-draft.png",
+          "sha256": "8ade4c68c44d7494456bce68fe3e5600e3dd2aaba14438387efec3790cf306a3"
+        },
+        {
+          "path": "popup-profile-v1-20261020/profile-radial-4x3-draft.png",
+          "sha256": "48077d2860f76984f914266c41203825bc6a9b8a22037625514f8ec83963619c"
+        },
+        {
+          "path": "popup-profile-v1-20261020/profile-radial-draft-alpha.png",
+          "sha256": "84047853f480b12b1a68b4aca82cb7aeab13b2bdeab578aeff56acfc3e168470"
+        },
+        {
+          "path": "popup-profile-v1-20261020/profile-radial-draft.png",
+          "sha256": "30a5be340f5e35e76969a5b1d717306b5fb9700231eea5c2d9660b038ba7e287"
+        },
+        {
+          "path": "popup-profile-v1-20261020/profile-shadow-16x10-draft.png",
+          "sha256": "52a5e8431d8a8128e35587b9f7052076ac482aa12fa797604a1f8db91ea1d7ac"
+        },
+        {
+          "path": "popup-profile-v1-20261020/profile-shadow-16x9-draft.png",
+          "sha256": "134baa7e9bbbd75a37a94463940f583854c8e3b181600be941cab81dd4b0a074"
+        },
+        {
+          "path": "popup-profile-v1-20261020/profile-shadow-21x9-draft.png",
+          "sha256": "c599ee909c84f751e00fd6585be21bed276710888b598cd499118dbac8254320"
+        },
+        {
+          "path": "popup-profile-v1-20261020/profile-shadow-32x9-draft.png",
+          "sha256": "8cc00b16ff079bd4a9c1f196aebfc85cd6a7c0b3e42de40d94ba53a0c79fcdb3"
+        },
+        {
+          "path": "popup-profile-v1-20261020/profile-shadow-4x3-draft.png",
+          "sha256": "41387d4a4b4f064f68c321cff6445d8e1d581b71717387a2169950feeeafad90"
+        },
+        {
+          "path": "popup-profile-v1-20261020/profile-shadow-draft-alpha.png",
+          "sha256": "ded537c913664ed5523f86fe2ae4e9c1895a050d061bcc6b40aaecbe03913cc4"
+        },
+        {
+          "path": "popup-profile-v1-20261020/profile-shadow-draft.png",
+          "sha256": "97487d757f7d971ea397f4542292372d9422caeae2ed1117fbf9b8e83264e3f9"
+        },
+        {
+          "path": "popup-profile-v1-20261020/profile-wall-16x10-draft-v3.png",
+          "sha256": "717443ed0bd7eaa9b425ae3a3dc54dceafad7b3fa3be8d70948c80cb2aa0bc91"
+        },
+        {
+          "path": "popup-profile-v1-20261020/profile-wall-16x9-draft-v3.png",
+          "sha256": "6261f2ed33638e9a0ec06229fefeab37d517c50de48a4025f594e456a2fec03c"
+        },
+        {
+          "path": "popup-profile-v1-20261020/profile-wall-21x9-draft-v3.png",
+          "sha256": "d8201abb6b7235b3d22ef63c6765831fb27698418f48c04af3ab6d6047aedc18"
+        },
+        {
+          "path": "popup-profile-v1-20261020/profile-wall-32x9-draft-v3.png",
+          "sha256": "38bb36fc4c584390c9f5704c57e9f86b097c162eadc845831ea3baa9b54403d0"
+        },
+        {
+          "path": "popup-profile-v1-20261020/profile-wall-4x3-draft-v3.png",
+          "sha256": "930b955febdb5de088dd7b2ff7d41719c9327ff0685d4757d46ed52f0b2a30b5"
+        },
+        {
+          "path": "popup-profile-v1-20261020/profile-wall-draft-alpha.png",
+          "sha256": "33000cc8374dc5ba153ea04c6ee3d5f6ac73bc6050311f07e67c5ac3030effb6"
+        },
+        {
+          "path": "popup-profile-v1-20261020/profile-wall-draft.png",
+          "sha256": "f4e8daeafb65ef6ef399cd36e848749028895abe394bbf6a1c806ecf099745b5"
+        },
+        {
+          "path": "popup-profile-v1-20261020/profile-wall-left-join-v3.png",
+          "sha256": "6c54b24cfb65a74ad4ddee36ccbcf64e89c9bac71cc838f71478227e8f26c571"
+        },
+        {
+          "path": "popup-profile-v1-20261020/profile-wall-right-join-v3.png",
+          "sha256": "4a7d198dc75e33691a721fb3fb2bb845bd1371f15a1366eea1f70702ce14411c"
+        },
+        {
+          "path": "popup-profile-v1-20261020/profile-wall-wide-v3.png",
+          "sha256": "38bb36fc4c584390c9f5704c57e9f86b097c162eadc845831ea3baa9b54403d0"
+        },
+        {
+          "path": "popup-profile-v1-20261020/shared-header-16x10-draft.png",
+          "sha256": "1a408c649c407e6dcf4f0ae3fc7d1a5ddeb5cffc5aa4531c3ed2193efaeb4e8c"
+        },
+        {
+          "path": "popup-profile-v1-20261020/shared-header-16x9-draft.png",
+          "sha256": "e51b1e9e2688073e921d51850c40f30a77107a91d1d56b5df23b3b179d297f13"
+        },
+        {
+          "path": "popup-profile-v1-20261020/shared-header-21x9-draft.png",
+          "sha256": "c2d674371695fd5bb56ff5a2cb4efcfb5cba6a9aa9782c48937b5eb8c24f5d6a"
+        },
+        {
+          "path": "popup-profile-v1-20261020/shared-header-32x9-draft.png",
+          "sha256": "87153b88c8fd2bc05d489bb48621f912b0d2a71124c9e8ad54b5670d409d28bb"
+        },
+        {
+          "path": "popup-profile-v1-20261020/shared-header-4x3-draft.png",
+          "sha256": "c634c854328de0391ae9b80bce251a9e4987d5a3f5bf872cf57b326036b37da9"
+        },
+        {
+          "path": "popup-profile-v1-20261020/shared-header-draft-alpha.png",
+          "sha256": "ec0831cf1d31eab913431c6add40094993cbcfdd1796a20fd415b2d58f5a0661"
+        },
+        {
+          "path": "popup-profile-v1-20261020/shared-header-draft.png",
+          "sha256": "335034723681434a7a48bfcf5c479879518ba1a93929d1ff8036004db79225f2"
+        },
+        {
+          "path": "popup-profile-v1-20261020/shared-popup-16x10-draft.png",
+          "sha256": "06a67ddf98566ed5d42b95764a7e05064b7bc6c0199a72644bb1deb3ce0a2408"
+        },
+        {
+          "path": "popup-profile-v1-20261020/shared-popup-16x9-draft.png",
+          "sha256": "03f636b0ed9b8edd48c8681bacb9cbd074a4666e817692eac4caa8454be521d8"
+        },
+        {
+          "path": "popup-profile-v1-20261020/shared-popup-21x9-draft.png",
+          "sha256": "f0b6e48660c7ff9101af136148893debe1f6f51e0457c9c2e1f7927597212e00"
+        },
+        {
+          "path": "popup-profile-v1-20261020/shared-popup-32x9-draft.png",
+          "sha256": "b38e9e97d203888240cffcdcbe0bc83edc412b30176d410dfee5f2a20b39a59e"
+        },
+        {
+          "path": "popup-profile-v1-20261020/shared-popup-4x3-draft.png",
+          "sha256": "5e58f4c6f7d6931ec51061200cc7e9ff9c0857525ebeb8d75f71057bb3a0e916"
+        },
+        {
+          "path": "popup-profile-v1-20261020/shared-popup-draft-alpha.png",
+          "sha256": "a3780fb141519dd87a181aec29b509c051a14ee6ebefd821991ef09a72c6dc5c"
+        },
+        {
+          "path": "popup-profile-v1-20261020/shared-popup-draft.png",
+          "sha256": "1f4ead17ebae16f4c226c8f35dbeb15b69378c85fdd7ca89a2f75ba6f3038d2f"
+        }
+      ]
     }
   ],
-  "unique_pinned_files": 343,
-  "runtime_status": "EarlierHD/wide menus owner-playtested. Extras andPhone approvedart, isolated source4xexports prepared/uninstalled; transitionpan andnewcomponents nativevalidationpending."
+  "unique_pinned_files": 473,
+  "runtime_status": "Earlier HD/wide menus owner-playtested. Extras, Phone and Popup/Profile22tile approved source4xexports ready/uninstalled. New Gym/controls and prior16batch pending; transition native pan acceptance pending."
 }
