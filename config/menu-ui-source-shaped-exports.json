@@ -163,6 +163,33 @@
           ]
         }
       ]
+    },
+    "menu-ui-phone-test-v1": {
+      "name": "Menu UI Story phone approved art test v1",
+      "png_mips": "opacity",
+      "status": "owner-approved artwork D168/UI; native game validation pending",
+      "entries": [
+        {
+          "source_id": "54b10930f972c0d5ae001c813724eca77efa75a8aed86439b646a9b2723c70f8",
+          "label": "Storyphone #110",
+          "art": "story-phone-v1-20261020/image-110-restrained.png",
+          "crop": null,
+          "size": [
+            2048,
+            2048
+          ]
+        },
+        {
+          "source_id": "e54d2ed820d536230ff2f1d0eab2229755a6e99bad7d8e1ab8577d2582602274",
+          "label": "Storyphone #111",
+          "art": "story-phone-v1-20261020/image-111-restrained.png",
+          "crop": null,
+          "size": [
+            512,
+            2048
+          ]
+        }
+      ]
     }
   }
 }

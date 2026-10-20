@@ -61,7 +61,7 @@
 | Picture options and setup progress fix (D136-D138; issues #40, #44, #47) | ✅ released v0.10.3 (latest, 2026-10-19) | PR #54 (setup progress-file contention, WinError 5) merged `c37bf34`; PR #55 (`[display] brightness`, `vignette`, `vignette_strength`, launcher/overlay Display → Picture, live; `docs/research/picture-options.md`) merged `1b04982`. Beta pre-release, owner's Deck play-test: brightness and vignette "work perfectly"; promoted to latest (D138). Windows not play-tested. Subtitles (#44) not started. |
 | Mac setup quarantine fix (D139; issue #59) | ✅ released v0.10.4 (latest, 2026-10-19) | PR #60 merged `1d4e13d`: the macOS setup unpacks its digest-checked payload with `ditto --noqtn` plus `xattr -d -r com.apple.quarantine`, so a browser-downloaded setup no longer stops on *"python3" Not Opened*. Owner confirmed with a quarantined test DMG. Tag `v0.10.4` on release PR #63 merge `110d50e`; game and toolkit identical to v0.10.3. |
 
-| Menu/UI restoration | ⏳ Story phone in review / transition conditional | D166/UI. Ladder transition v4 looks good; full approval needs native pan playtest. Freeze56files/10IDs;333pins/90reviewed IDs(72approved+8Modeconditional+10transitionconditional). Extras approved/export ready. Story phone two-tile v1 unapproved at51738;1call/118total. Active game left untouched. |
+| Menu/UI restoration | ⏳ Larger batch in review / phone approved | D168–D169/UI.16items/19sources:7restrainedpapers+9Faithfulicons/effects;80isolatedaspectpairs. Phone frozen10pins/2IDs,343totalpins/92reviewed(74approved+18conditional),2tile4xexport ready/uninstalled. Ladder conditionalpendingplaytest; game untouched. |
 
 ## 1. Decisions log
 
@@ -287,6 +287,10 @@
 
 | D167/UI | 2026-10-20 | Restore Story phone casing only, protecting every display/branding/keycap/alpha/UV pixel; keep device native size and extend its identical left/right dark RGBA row profile for wide studies. | One built-in call/118total; model repaint excluded, tiny L-only casing detail. Two source4x tiles, five layouts;333pins/1,725priorPNGs exact. Phone remains unapproved/uninstalled; offstage part2 and live text/clipping await native validation. |
 
+| D168/UI | 2026-10-20 | Vlad approves phone v1 and requests larger batches for review. Freeze10files/2IDs, prepare separate source4xexport; next batch groups remaining venue/title/support artwork. | Catalogue343pins/92reviewed IDs(74unconditional+18conditional). No active-pack or game acceptance implied. Native alpha/marks and approved phone pixels frozen; leave running game untouched. |
+
+| D169/UI | 2026-10-20 | Review remaining venue/title/support as one16-item/19source batch:3cards,4stickers,6supporticons,2shadows,1radialeffect. Reject invented icon dotgrain; keep9items Faithful-only and restore7paper surfaces conservatively. | Nine built-in calls/127total; sourcealpha/ink/geometry/seams/padding exact. Proven sticker groupings and2venue companions included; isolated centered wide studies are not native placement. Allnewbatchart unapproved, no installed/runtime changes. |
+
 ## 2. Environment inventory (2026-09-17)
 
 - Current test host (2026-10-17): macOS26.5.2 arm64, Apple Clang21.0.0, CMake4.4.4, Ninja and Python3.14.6 through `uv`. Build `posix-release`; data via the existing `game` symlink. Startup-skip tests use only disposable roots under `logs/startup-skip/`. Original Windows inventory below is retained for that machine.
@@ -371,13 +375,12 @@ defjam-recomp/
 
 - **2026-10-13 — Widescreen version:** v0.8.0 is already published for the setup updater (D104). Vlad chose v0.9.0; never replace the existing release.
 
-- **2026-10-20 — Menu/UI resumed (D161/UI).** Extras six studies are approved (D164/UI). Transition v4 is conditionally approved (D166/UI), pending native playtest; Story phone v1 now awaits feedback at review51738. Mode Select's specific right-border condition and branding derivative sign-off remain separate from the broad successful playtest. Vlad answered: leave the launcher-redesign game running and continue texture work. Do not close it or launch a competing scripted game. Transition restoration/geometry validation remains pending; no other art-direction questions block preparation.
+- **2026-10-20 — Menu/UI resumed (D161/UI).** Extras six studies are approved (D164/UI). Transition v4 is conditionally approved (D166/UI), pending native playtest; Story phone v1 approved (D168/UI); sixteen-item venue/title/support batch now awaits feedback at review51738. Mode Select's specific right-border condition and branding derivative sign-off remain separate from the broad successful playtest. Vlad answered: leave the launcher-redesign game running and continue texture work. Do not close it or launch a competing scripted game. Transition restoration/geometry validation remains pending; no other art-direction questions block preparation.
 
 ## 6. Work log
 
 > Recent entries only; older entries remain unchanged in the local `docs/worklog/` archive.
 
-- 2026-10-19 23:00 — **Menu/UI logo/emblems + widescreen (D159/UI, D160/UI).** `scripts/register-menu-branding.py`: approved logo + 8 emblem canvases splatted onto 22 native 4x tiles through the saved registration fields, native alpha kept (approved coverage 0.76–0.97). Toolkit `defjam/menu-wide` `20e7ba7` (fork, pushed 2026-10-20): `[wide]` slabs replayed per background draw and clipped to the sides, `inner:` slabs, `stretch` overlays, full-width untextured fills stretch; fixture 3/3. `scripts/export-menu-ui-wide.py` + `config/menu-ui-wide-layers.json`: 14 layers (anchors matched in masters at 0.995–1.000; geometry measured with `RECOMP_WS_WIDE_TRACE`, every layer 1 px/texel), 2 inner, 16 stretch (header band + 15 black vignettes from a corpus scan). Owner screenshots caught the centred title/Options/Jukebox vignettes and the header band; fixed and recaptured. 40+ probe launches 4:3–32:9, 0 crashes/watchdogs; quick 5/5 `logs/regress-20261019-225054.txt`. Found: settings.ini text limit 95 chars made the first playtest load no packs; `play.sh` now passes the list. Full regression not run (owner playtesting).
 - 2026-10-20 07:20 — Texture pack lists over 95 characters (D142; branch `fix/texture-packs-setting-length`, toolkit `72bec86` local). Mac, isolated data folder with the play-test packs: a 243-character list of seven packs in settings.ini gives `[TEXPACK] schema=1 entries=19092` (the sum of the seven manifests) and the list survives the exit save; the same file on the v0.10.5 build gives `Pack manifest unavailable: .../mods/faithful-hd/manifest.ini` and the exit save rewrites it to `packs = faithful-hd`; a 1138-character list logs `[SETTINGS] ... packs is 1138 characters, more than the 1023 it holds; using the default` and the line is kept. Settings and texture-pack fixtures pass under ASan/UBSan; the new 230-character check fails on the old code. `pc_debug.c` sizes the settings JSON per value (128 bytes a setting, which a long list could overrun); setup cap 255 → 1023 bytes, pinned to the C constants by a unit test. Quick regression 5/5 `logs/regress-20261020-071243.txt`.
 - 2026-10-20 07:40 — Merged main (v0.10.5, `50bf8f0`; skip-intro menu audio fix) into `codex/menu-ui-modpack-handoff` at the owner's request; only PROGRESS.md conflicted (work log and hand-off, both sides kept). Toolkit pin stays `20e7ba7` (`defjam/menu-wide`, on top of main's `32aab4d`). Rebuilt the playtest binary (reports 0.10.5); 21:9 title and Options probes with all menu packs clean (`logs/run-20261020-071958.log.err`, `-072056`); quick 5/5 `logs/regress-20261020-072919.txt`. Full regression still not run.
 - 2026-10-20 08:30 — Owner play-tested the HD + widescreen menus: "Overall it looks great and the ultrawide plays well." At his request, merged PR #73's branch (`fix/texture-packs-setting-length`, D142) into `codex/menu-ui-modpack-handoff` so one working branch carries both. Toolkit: `defjam/menu-wide` merged `defjam/settings-text-limit` as `dd63e17` (one conflict in `texture_pack.c`: `read_packs()` kept); texture-pack fixture 3/3 and settings fixture 1/1. Parent conflicts in PROGRESS.md and the gitlink only.
@@ -385,53 +388,56 @@ defjam-recomp/
 - 2026-10-20 10:19 — Resumed Menu/UI at owner request (D161/UI–D162/UI), checked PR62/73 at65882a1/toolkitdd63e17. Five built-in generations (106 total), six Extras studies/nine tiles at51738: source alpha/graphics/UV/tile guards exact, 30 stage centers exact, 1,314 prior PNGs/226 art pins unchanged; browser24 reference/channel cases and30 stage pairs, zero warnings/errors. Mapped ten trans/t1 fire-escape tiles. One guarded32:9 baseline logs/run-20261020-100730.log.err: 13 captures, zero crash/watchdog/ICALL failures, save byte-identical; missed actual pan. Further probe refused because launcher-redesign game active; left untouched, owner question pending. New Extras art unapproved; existing packs/runtime unchanged. Private overlay185files/199,746,134bytes retained; 22 focused tests and226pins pass. Source-only authoring bundle preserved; see docs/research/menu-extras-restoration-2026-10-20.md.
 - 2026-10-20 10:56 — D163/UI: owner says leave launcher-redesign game running; no further launch/stop. D164/UI: approved all six Extras studies,51 new pins/nine tiles;277 pins/80 IDs(72 approved+8 conditional), separate4x export pixel-identical. D165/UI: trans/t1 ten-tile source reconstruction exposes bitmap9 placement exception; keep it Faithful-only. Eleven new built-in calls incl. rejected coarse material/upper framing;117 historical total. Transition v4 source-guided bridge/contrast draft at51738 with play/scrub through32:9; UNAPPROVED, no runtime registrations. 1,445 old PNGs/277 pins/core/tile guards/30 stage centers exact; browser30 pan/aspect states,3 join pairs, play/pause/wipe/bounds/nooverflow/zeroerrors. 22 focused tests pass. Private additive archive and source-only recipes/prompts prepared; docs/research/menu-fire-escape-artwork-2026-10-20.md.
 - 2026-10-20 11:15 — D166/UI: ladderv4 conditionally approved,56frozen files/10IDs, full native pan acceptance pending;333pins/90IDs. D167/UI: Story phone two-tile casing draft,1built-in call/118total, source display/branding/keycaps/alpha/UV/padding exact; original dark RGBAprofile extended through32:9, device size fixed. 1,725priorPNGs/333pins/five stage centers exact. Review51738 phone first, four reference/channel cases/four backgrounds/three modes/five layouts,75%bounds,nooverflow/zeroerrors.22focused tests. Active game untouched; no installation/runtime changes. New additive private archive and source-only recipes/prompts; docs/research/menu-story-phone-restoration-2026-10-20.md.
+- 2026-10-20 11:54 — D168/UI: phone approved,10pins/2IDs,343totalpins/92reviewed(74unconditional+18conditional), separate2tile source4xexport exact/uninstalled. D169/UI: larger16item/19source venue/title/support batch at51738;3cards/4stickers restored,6icons/2shadows/radialeffect Faithful-only.9built-in calls/127historical incl.2rejected dotgrain proposals. Sourcealpha/graphics/UVguards/padding,343pins/1,751priorPNGs/80isolatedaspectcenters exact. Browser64reference-channel cases/80aspectpairs loaded,3BG/3modes,75%bounds,nooverflow/zeroerrors;22focused tests. Game/activepacks untouched, ladderconditionalstillpendingplaytest. Additiveprivatearchive/source-onlybundle; docs/research/menu-details-restoration-2026-10-20.md.
 
 ## 7. Hand-off
 
-### Story phone v1 review; transition conditional — 2026-10-20
+### 16-item batch in review; phone approved — 2026-10-20
 
-Read `docs/research/menu-story-phone-restoration-2026-10-20.md` and its mapping.
-Branch `codex/menu-ui-modpack-handoff` (PR62), toolkit `dd63e17` includes PR73;
-keep that pin. No runtime code/default/installed-pack changes this iteration.
+Read `docs/research/menu-details-restoration-2026-10-20.md`, venue-frame and
+title-support mapping reports. Branch `codex/menu-ui-modpack-handoff` (PR62),
+toolkit `dd63e17` includes PR73. No runtime/default/installed-pack changes.
 
-1. Review51738 starts with unapproved Story phone: native/Faithful, RGBA/alpha,
-   gray/checker/dark/light, side/wipe/draft; expand five-aspect layout comparison.
-   Two source4x tiles in `logs/ui-restoration-20261017/pilot-v1/story-phone-v1-20261020/`.
-   Exact screen/branding/keycaps/alpha/UV guards/padding; tiny casing L detail only.
-   Wide studies extend identical native dark RGBA row profile; device size fixed.
-   1new built-in call/118historical; raw/prompt/recipes/masks retained. Phone is
-   NOT approved, catalogued, exported or enabled. Await feedback before pinning.
-2. Ladder v4 CONDITIONALLY approved (D166/UI):56files/10IDs frozen, private
-   `transition-conditional-approval-20261020.json`. Catalogue333pins/90reviewed
-   IDs(72unconditional+8Mode+10transition conditional). Keep pixels unchanged;
-   full approval requires native moving-pan playtest. No transition sparse/wide
-   registrations yet. Bitmap9 remains Faithful-only; decoded placement differs
-   from intended top-left texel reconstruction. Do not patch geometry from art.
-3. Extras APPROVED: six studies/nineIDs/51pins; separate source4x sparse export
-   `logs/ui-restoration-20261020/approved-pack-exports/menu-ui-extras-test-v1`.
-   Pixel-identical to approved tiles; not installed/enabled. Live validation later.
-4. Phone shape112's third part reuses110 outside640wide APT bounds. Preserve
-   matrices/fractional UVs and original alpha136..255 (black is not a key).
-   Foreground character128 stays live. Check offstage geometry/clipping/live
-   text in game before registering a wide backdrop. Reports and source IDs
-   are in the mapping, private references.json and phone-audit.txt.
-5. Vlad says LEAVE launcher-redesign game running (D163/UI). Do not launch
-   competing scripted games or stop it. Later use complete-save guards and
-   isolated `DEFJAM_DATA=/Users/vlad/Code/defjam-data/playtest-menu-ui`.
-   `logs/ui-restoration-20261020/probe-transition-pan.py` prepared; first baseline
-   `logs/run-20261020-100730.log.err` missed actual pan. Actual transition crop,
-   timing/transforms/bitmap9 and wide anchors remain unmeasured, not acceptance.
-6. Preservation333pins/1,725priorPNGs exact; phone alpha/marks/seams/padding and
-   five layout centers exact;22focused tests. Browser controls/zeroerrors and
-   no overflow at662px; proof in phone batch. Source-only prompt/recipe/review
-   bundle in authoring `research/menu-ui-story-phone-20261020/`. New additive
-   archive `<data>/scratch/menu-ui-story-phone-v1-transition-conditional-20261020/`;
-   apply to a COPY of prior full/Extras/transition snapshots. Earlier immutable
-   archives unchanged; all art/captures stay local. Preserve8768/17candidates/Trejo.
-7. After phone feedback: venue frames and remaining shield/Start/support art
-   after mapping. Historical19-ID shortlist includes2phoneIDs until approved;
-   it is not a count of all unfinished menu backgrounds. Integrate approved
-   components and test all5ratios/live text/alpha/joins/pan/fades later.
+1. Review51738 starts with16UNAPPROVED candidates over19source IDs:3venue
+   cards,4English/French Startstickers,6independent supporticons,2shadows,
+   1radialeffect. Seven tiny paper-brightness restorations, nine Faithful-only
+   recommendations. Two raw icon proposals invented dotgrain and were rejected;
+   no pixels adopted. Original/Faithful/alpha/3backgrounds/side-wipe/overview.
+   Working `logs/ui-restoration-20261017/pilot-v1/menu-details-v1-20261020/`.
+   Nine new built-in calls/127historical; exact prompts/raws/masks/recipes saved.
+2. Source19full4x tile candidates retain truealpha/graphicpaths/guards/padding.
+   Four sticker mosaics use proven shape29/32/36/38groupings; retain fractional
+   UVs and negative overhangs at runtime. Venue5pieces animate separately with
+   live photo clips. Supportlibrary has no paired APT/object; do not copy old
+   emblem placements. All80aspect pairs are isolated centered scale studies,
+   not native placement or assembled game screens. No new batch approval/export.
+3. Phone APPROVED(D168/UI):10files/2IDs frozen, catalogue343pins/92reviewed
+   IDs(74unconditional+8Mode+10transitionconditional). Source4x two-tile export
+   `logs/ui-restoration-20261020/approved-pack-exports/menu-ui-phone-test-v1`
+   pixel-identical/uninstalled. Phone offstagepart2/live text/widebackdrop checks
+   pending. Extras approved separate9tile export also ready/uninstalled.
+4. Ladder v4 remains CONDITIONALLY approved:56files/10IDs; full native moving
+   pan playtest required. No transition sparse/wide registrations. Bitmap9 is
+   Faithful-only and decoded runtime placement differs from texel reconstruction.
+   Do not repair geometry from the art study. Original4:3pan is not proven fixed.
+5. LEAVE launcher-redesign game running(D163/UI); no competing game launches
+   or stops. Later use complete-save guards and isolated data
+   `DEFJAM_DATA=/Users/vlad/Code/defjam-data/playtest-menu-ui`.
+   `logs/ui-restoration-20261020/probe-transition-pan.py` prepared; baseline
+   `logs/run-20261020-100730.log.err` missed brief pan. Native timing/crop/
+   transforms/bitmap9/anchors and phone/Extras/venue live behavior still pending.
+6.343pins/1,751priorPNGs exact;19tilealpha/graphics/seams/padding and80scale
+   pairs exact. Browser64reference/channel cases+80aspectpairs loaded,3BGs/
+   3modes,75%bounds,nooverflow/zeroerrors; proof in batch.22focused tests pass.
+   Source-only authoring bundle `research/menu-ui-details-20261020/`; additive
+   private archive `<data>/scratch/menu-ui-details-v1-phone-approved-20261020/`.
+   Apply overlays to a COPY; previous full/Extras/transition/phone archives
+   immutable. Art/captures/arrays stay local. Preserve8768/17candidates/Trejo.
+7. Await explicit batch feedback; pin only accepted scope. Historical17priority
+   IDs now all have candidates(plus2venuecompanions) but remain unapproved;
+   this is not all Menu/UI. After acceptance, classify remaining popups/Story/
+   shared widgets. Later integrate only approved components, check5ratios/live
+   text/alpha/UV/animation/fades/joins under saveguards before runtime approval.
 
-Other project items unchanged: PR73 Windows/Linux checks, full runtime regression
-before merging PR62, Windows picture/skip-audio, subtitles44, Deck performance.
+Other project work unchanged: PR73 Windows/Linux, full runtime regression before
+merging PR62, Windows picture/audio, subtitles44 and Deck performance followups.

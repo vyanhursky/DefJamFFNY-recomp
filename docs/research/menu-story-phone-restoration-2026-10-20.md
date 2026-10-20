@@ -1,5 +1,11 @@
 # Story message-center phone restoration — 2026-10-20
 
+**Later same-day update (D168/UI):** Vlad approves phone v1. Freeze10files/two
+source IDs; catalogue343pins/92reviewed IDs. Separate source4xexport prepared,
+uninstalled; native validation pending. [Larger batch](menu-details-restoration-2026-10-20.md)
+now first in review. Pre-approval production notes below remain historical.
+
+
 Vlad conditionally accepted the ladder transition v4: “The ladder transition
 looks good but needs to be playtested for a full approval. We can move on to
 the other textures for now” (D166/UI). Its56current files/10source IDs are

@@ -2,28 +2,28 @@
   "schema": 1,
   "art_root_policy": "Relative to the PRIVATE pilot-v1 directory. No PNG/game bytes are stored here. This is an integrity catalogue,not a runtime mod manifest.",
   "decision_namespace": "Menu-session decisions are qualified /UI where they collide with main-branch decisions; preserve historical identifiers.",
-  "restoration_status": "RESUMED; Extras approved D164/UI; transition v4 conditionally approved D166/UI pending native pan playtest; Story phone v1 unapproved in review D167/UI.",
-  "pilot_imagegen_calls": 118,
+  "restoration_status": "RESUMED; Phone approved D168/UI; menu-details-v1 sixteenitems/nineteensources UNAPPROVED inreview D169/UI. Transitionv4conditionalpendingnativepan.",
+  "pilot_imagegen_calls": 127,
   "source_counts": {
-    "covered_by_artwork_review": 90,
-    "unconditionally_approved_source_ids": 72,
+    "covered_by_artwork_review": 92,
+    "unconditionally_approved_source_ids": 74,
     "conditionally_reviewed_mode_source_ids": 8,
     "registered_flows": {
       "total": 1323,
-      "covered": 90,
-      "not_custom_restored": 1233
+      "covered": 92,
+      "not_custom_restored": 1231
     },
     "core_families": {
       "total": 1834,
-      "covered": 90,
-      "not_custom_restored": 1744
+      "covered": 92,
+      "not_custom_restored": 1742
     },
     "broad_ui_category": {
       "total": 11261,
-      "covered": 90,
-      "not_custom_restored": 11171
+      "covered": 92,
+      "not_custom_restored": 11169
     },
-    "confirmed_priority_shortlist": 19,
+    "confirmed_priority_shortlist": 17,
     "conditionally_reviewed_transition_source_ids": 10
   },
   "reviewed_sources": [
@@ -1353,6 +1353,34 @@
           "name": "1",
           "index": 0,
           "width": 256,
+          "height": 512
+        }
+      ]
+    },
+    {
+      "source_id": "54b10930f972c0d5ae001c813724eca77efa75a8aed86439b646a9b2723c70f8",
+      "family": "story-phone",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/story/msgCentr.big::msgCentr.xsh",
+          "name": "110",
+          "index": 3,
+          "width": 512,
+          "height": 512
+        }
+      ]
+    },
+    {
+      "source_id": "e54d2ed820d536230ff2f1d0eab2229755a6e99bad7d8e1ab8577d2582602274",
+      "family": "story-phone",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/story/msgCentr.big::msgCentr.xsh",
+          "name": "111",
+          "index": 4,
+          "width": 128,
           "height": 512
         }
       ]
@@ -2802,8 +2830,56 @@
           "sha256": "4a37d68a91e12d7f34662d9f6ceca34e85da880733ad235e3b06c3af60dfc4ce"
         }
       ]
+    },
+    {
+      "decision": "D168/UI",
+      "status": "owner-approved artwork",
+      "scope": "Phonev1source-protected casing,two4xnative tiles,composite/alpha,nativedarkrowmatte andfivecenteredwideartstudies. ExcludesrawAIproposal,nativeclipping/offstagepart2/livetext/gameacceptance.",
+      "record": "phone-approval-20261020.json",
+      "files": [
+        {
+          "path": "story-phone-v1-20261020/image-110-restrained.png",
+          "sha256": "1194b718e2b003094be45febf1500c2c0f6e674fdc54f7e7697fdf032f2800a5"
+        },
+        {
+          "path": "story-phone-v1-20261020/image-111-restrained.png",
+          "sha256": "adfcdd9f9ea6cff5a019095a311a429bd093e543d64c9a6c87f619c636cbf50f"
+        },
+        {
+          "path": "story-phone-v1-20261020/phone-restrained.png",
+          "sha256": "ead6459221424a4f572e31a4281c493adf41f0c525759c16e2624184975fff71"
+        },
+        {
+          "path": "story-phone-v1-20261020/phone-restrained-alpha.png",
+          "sha256": "9b22abc7ab40d2d0394638be1a811c652f0981bbdefcf7077ed2d07157927dc6"
+        },
+        {
+          "path": "story-phone-v1-20261020/phone-wide-matte-profile.png",
+          "sha256": "f7b7ce417d41f7b9b666bc607857f764d7793b8444b6c35dfafc1d71cd494fa8"
+        },
+        {
+          "path": "story-phone-v1-20261020/phone-4x3-draft.png",
+          "sha256": "cf4508724fbd60a52ee4c194abe8465d8a2fac1064976d9f2fa2d019a92a7c6b"
+        },
+        {
+          "path": "story-phone-v1-20261020/phone-16x10-draft.png",
+          "sha256": "50e07e5da16c31bb329a308dee13d947f90463323d4aaa8e132ee70f73ddde82"
+        },
+        {
+          "path": "story-phone-v1-20261020/phone-16x9-draft.png",
+          "sha256": "8bcde4e2e9694e8bc2862d510913c2252d1dc265f6226991f1c1b56cdfe75f40"
+        },
+        {
+          "path": "story-phone-v1-20261020/phone-21x9-draft.png",
+          "sha256": "9598247594bd4be011cab9c8475f91f7f70a466f0c99b8a8bedfde583f8b70e5"
+        },
+        {
+          "path": "story-phone-v1-20261020/phone-32x9-draft.png",
+          "sha256": "d800e68025ba32773c5db53eda41551bacc9bffd228a3b49b0d431c088525695"
+        }
+      ]
     }
   ],
-  "unique_pinned_files": 333,
-  "runtime_status": "Existingmenu pipeline owner-playtested;Extras9source4xexportpreparednotenabled;transition10sourceartconditional,actualpan/geometry/wideregistrationpending. Bitmap9remainsFaithful-only."
+  "unique_pinned_files": 343,
+  "runtime_status": "EarlierHD/wide menus owner-playtested. Extras andPhone approvedart, isolated source4xexports prepared/uninstalled; transitionpan andnewcomponents nativevalidationpending."
 }

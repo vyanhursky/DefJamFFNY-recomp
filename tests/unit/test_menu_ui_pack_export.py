@@ -48,7 +48,7 @@ def test_tracked_table_matches_tracked_catalogue():
     exports = json.loads((REPO/'config/menu-ui-source-shaped-exports.json').read_text())
     catalogue = json.loads((REPO/'config/menu-ui-approved-artwork.json').read_text())
     work = mod.plan(exports, catalogue)
-    assert {k: len(v) for k, v in work.items()} == {'menu-ui-restored-test-v1': 39, 'menu-ui-mode-conditional-test-v1': 8, 'menu-ui-extras-test-v1': 9}
+    assert {k: len(v) for k, v in work.items()} == {'menu-ui-restored-test-v1': 39, 'menu-ui-mode-conditional-test-v1': 8, 'menu-ui-extras-test-v1': 9, 'menu-ui-phone-test-v1': 2}
 
 
 def test_wide_layer_table_uses_pinned_masters_and_known_anchors():

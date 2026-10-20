@@ -1,16 +1,15 @@
 # Menu/UI modpack implementation handover
 
-**Current update — 2026-10-20:** Restoration resumed (D161/UI). Working HD/wide
-menus on PR62 were owner-playtested; PR73 is included, toolkit `dd63e17`.
-Extras is approved with a separate nine-tile sparse export ready but not enabled.
-Ladder transition v4 is CONDITIONALLY approved (D166/UI),56frozen files/10IDs,
-full acceptance pending native pan/placement checks and wide registration.
-Catalogue333pins/90reviewed IDs(72unconditional+8Mode+10transition conditional).
-Story phone v1 is UNAPPROVED, at review51738 with exact screen/graphics/alpha
-and five centered backdrop studies. Read [the current phone/approval report](research/menu-story-phone-restoration-2026-10-20.md)
-and PROGRESS.md §7 first. Leave the launcher-redesign game running (D163/UI).
-All new art remains local; source-only recipes/prompts are preserved. The
-October19pause and original engineering plan below are historical.
+**Current update — 2026-10-20:** Working HD/wide menus on PR62 were owner-playtested;
+PR73 included, toolkit `dd63e17`. Phone now APPROVED (D168/UI),10new pins/twoIDs,
+separate source4xexport ready/uninstalled. Catalogue343pins/92reviewed IDs:
+74unconditional+8Mode+10transitionconditional. Extras also ready/uninstalled;
+ladder v4 full approval still requires native moving-pan playtest. New16-item/
+19-source venue/title/support batch is UNAPPROVED at review51738: seven paper
+restorations and nine Faithful-only recommendations. Read [the batch report](research/menu-details-restoration-2026-10-20.md)
+and current PROGRESS.md §7 first. Leave the running game untouched (D163/UI).
+All artwork remains local; recipes/prompts published separately. Original
+October19pause and engineering plan below are historical.
 
 ---
 

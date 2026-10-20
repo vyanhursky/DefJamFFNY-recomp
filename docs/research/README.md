@@ -49,6 +49,9 @@ cite other development notes, logs and captures that are not published.
 
 ## HD textures
 
+- [Larger menu detail review batch](menu-details-restoration-2026-10-20.md): phone approved; sixteen candidates across nineteen venue/title/support source textures
+- [Venue card and shadow mapping](menu-venue-frame-mapping-2026-10-20.md): five independent animated layers with live photo content
+- [Title sticker/effect and support mapping](menu-title-support-mapping-2026-10-20.md): four proven sticker groups, soft radial effect and independent library icons
 - [Story phone restoration draft](menu-story-phone-restoration-2026-10-20.md): source-protected casing, exact partial alpha and centered five-aspect backdrop studies
 - [Story message-center native mapping](menu-story-phone-mapping-2026-10-20.md): two visible tiles, fractional UVs, offstage third part and live foreground caveat
 - [Fire-escape art studies and Extras approval](menu-fire-escape-artwork-2026-10-20.md): ten-tile source reconstruction, material/framing retries and separate native placement caveat
