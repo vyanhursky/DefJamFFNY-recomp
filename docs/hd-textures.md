@@ -63,7 +63,9 @@ Put the pack beneath the data folder, then use the launcher's or overlay's **Tex
 ```
 
 Turn **Use HD texture packs** on, enter `faithful-hd` under **Pack folders**, and restart the game.
-Multiple names use semicolons; the last listed pack wins. Turn packs off and restart to restore original
+Multiple names use semicolons; the last listed pack wins. The list holds up to 1023 characters; a longer
+one is reported in the log as a `[SETTINGS]` line and no pack loads until it is shortened. (Up to v0.10.5
+the limit was 95 characters, which a setup install with one added pack already passed.) Turn packs off and restart to restore original
 textures. A missing, unsupported or malformed replacement falls back to the original with a bounded log.
 Explicit `RECOMP_TEXTURE_PACKS=faithful-hd` enables that pack for a diagnostic run. `RECOMP_TEXTURE_ROOT`
 can override the default `<data>/mods` directory. Use packs with the game closed while rebuilding them.
