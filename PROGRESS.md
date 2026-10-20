@@ -61,6 +61,8 @@
 | Picture options and setup progress fix (D136-D138; issues #40, #44, #47) | ✅ released v0.10.3 (latest, 2026-10-19) | PR #54 (setup progress-file contention, WinError 5) merged `c37bf34`; PR #55 (`[display] brightness`, `vignette`, `vignette_strength`, launcher/overlay Display → Picture, live; `docs/research/picture-options.md`) merged `1b04982`. Beta pre-release, owner's Deck play-test: brightness and vignette "work perfectly"; promoted to latest (D138). Windows not play-tested. Subtitles (#44) not started. |
 | Mac setup quarantine fix (D139; issue #59) | ✅ released v0.10.4 (latest, 2026-10-19) | PR #60 merged `1d4e13d`: the macOS setup unpacks its digest-checked payload with `ditto --noqtn` plus `xattr -d -r com.apple.quarantine`, so a browser-downloaded setup no longer stops on *"python3" Not Opened*. Owner confirmed with a quarantined test DMG. Tag `v0.10.4` on release PR #63 merge `110d50e`; game and toolkit identical to v0.10.3. |
 | Issue #67 / four-fighter Pit performance | ⏳ captured owner reproduction needed | 2026-10-20, M1 Pro/v0.10.5, scale 2, VSync, windowed widescreen: four guarded 1v1/FFA runs. Ordinary combat 59.97–60.00 presents/s and 60 simulation steps/s, no sustained 25/30 Hz pose cadence. Blazin activation explains the 4.2 s fight-counter pauses. Larger window/host-input and per-frame GPU pictures checked; all saves restored identical. Temporary probes removed and normal build rebuilt. `docs/research/issue67-pit-performance-macos-2026-10-20.md`; owner roster/F9 bundle and reporter log/platform/display pending. |
+| Issue #72 / Windows startup crash | ⏳ local fix, Windows validation pending | D143. Reporter log now identifies incomplete translated guest layout: RAM at 0xBFFF0000; physical/device windows fail error 487; AC97 shadow copy reads missing guest 0xFEC00000. Transactional allocator in isolated toolkit branch defjam/issue72-memory-layout; game-free mapping/rollback fixture passes on Mac. Local toolkit e818066; both memory fixtures, units 478/44 skip and all 17 Mac game gates pass across two complementary runs. Native Windows/reporter retest and publication pending. docs/research/issue72-windows-startup-memory-layout.md. |
+
 
 ## 1. Decisions log
 
@@ -234,6 +236,8 @@
 | D139 | 2026-10-19 | Release the Mac setup quarantine fix (PR #60, #59) as **v0.10.4**, a normal (latest) hotfix release, from main. Game sources and toolkit `32aab4d` are unchanged from v0.10.3, so no game regression was run for it; CI and the release workflow rebuild and check all three setups. | Owner, after installing from a quarantined test DMG of PR #60: "This has fixed the issue. Please merge this PR and release 0.10.4 as a hotfix for the Mac setup." Every v0.10.3-and-earlier Mac setup downloaded with a browser is blocked, so a patch release is the only way to get the fix to players; a published release is never replaced. |
 | D140 | 2026-10-19 | `skip_intro` also replays the game's full audio initialization: after `ControllerBootup` it calls `sub_0003DE20(1)` once at the first screen selection (issue #65). Fix is game-specific, in `src/patches/skip_intro.c`; no toolkit or lifter change. | Owner found that with *Skip startup movies and legal screen* on, Press Start and the menu transition sounds were silent (v0.10.1 to v0.10.4). Traced with temporary entry logging: a normal boot runs `sub_0003DE20(0)` (minimal, sets `0x340374`) from the first state-0 entry, then `sub_0003DE20(1)` (shuts that down, loads the audio config and music tables, sets `0x340320`) when the movies end and the game re-enters state 0. The skip redirect never reaches the second entry. Calling `sub_0003DE20(1)` in the existing hook restores the same state; `regress.py --only skipintro` now requires `0x340320 == 1` and fails without the fix. Chosen over adding a `sub_0003DE20_enter` hook, which needs a full re-lift. |
 | D141 | 2026-10-19 | Release **v0.10.5** as a normal (latest) hotfix from main after PR #66 (the #65 audio fix, D140): version 0.10.5 and `docs/releases/v0.10.5.md` (PR #68, merge `cb10747`). Toolkit `32aab4d` unchanged. Published 2026-10-19 19:57 ET. | Owner asked to push the fix, open the PR and get ready to release. v0.10.1 to v0.10.4 players who use the skip option have no menu sound effects, and a published release is never replaced. |
+| D143 | 2026-10-20 | Issue #72: on Windows, select a free full guest span (at least 4 GB of virtual addresses), then place RAM, physical/tiled views, MMIO apertures and non-overlapping mirrors transactionally before copying the XBE or starting polling threads. Release an unsuccessful attempt and retry, or fail initialization; never proceed with missing required windows. Work in isolated toolkit branch `defjam/issue72-memory-layout`; retain published parent pin `32aab4d` until the fix is published. | The attached log shows RAM at `0xBFFF0000`, failed physical/device mappings (487), and an AC97 shadow-copy fault exactly at `0xFEC00000 + offset`. A free RAM view alone does not establish a usable layout. Full-span reserve/probe/release plus checked fixed mappings avoids partial Win32 frees and requires no newer placeholder APIs; rollback handles any placement race. Native Windows and reporter acceptance remain unverified. D142 already belongs to the concurrent texture-list fix and is not reused here. |
+
 
 ## 2. Environment inventory (2026-09-17)
 
@@ -324,7 +328,6 @@ defjam-recomp/
 
 > Recent entries only; older entries remain unchanged in the local `docs/worklog/` archive.
 
-- 2026-10-19 15:10 — Issue #59 (macOS setup blocker): a browser-downloaded setup stopped at "Preparing setup files" with *"python3" Not Opened*. Cause: `Setup.unpack()` used plain `ditto -x -k`, which copied the DMG's quarantine onto all 5365 payload files; Gatekeeper then refused the ad-hoc-signed, unnotarized bundled python3 (not a bad Python build; local builds were never quarantined, so it was never seen). Fix on `fix/macos-setup-quarantine`: `ditto --noqtn` plus `xattr -d -r com.apple.quarantine` on the digest-checked payload. Two tests in `tests/unit/test_macos_payload.py` (run the Swift's own ditto/xattr calls on a quarantined zip; both fail with the fix reverted). End to end: fixed Setup with the real v0.10.2 payload, quarantined, unpacked 0/4912 quarantined files and the engine ran (exit 2, no dump given). Units 515/32 skip; check-source-tree 416/0. Known-issues workaround for v0.10.3 and earlier. Not pushed.
 - 2026-10-19 15:30 — Owner confirmed the #59 fix with a quarantined test DMG of PR #60 ("This has fixed the issue") and asked for a hotfix. PR #60 merged `1d4e13d` (CI 28/28); #59 closed by it. v0.10.4 prepared on `chore/release-v0.10.4` (D139): CMake 0.10.4, `docs/releases/v0.10.4.md`, known-issues entry now "fixed in v0.10.4" with the `xattr` workaround for older setups. Since v0.10.3 only `setup/macos/Setup/main.swift`, its tests and docs changed (game sources and toolkit `32aab4d` identical), so no game regression was run.
 - 2026-10-19 15:25 — v0.10.4 published/latest at 15:21 ET (D139): release PR #63 merged `110d50e`, tag `v0.10.4`, Source release run 39309194188 green 30/30. Nine game-free assets downloaded and verified: each `.sha256` and GitHub digest match; provenance names source `110d50e`, toolkit `32aab4d`, production payloads. Released Mac DMG run with a quarantined payload: setup 0.10.4 unpacked 0/4914 files quarantined and the bundled engine ran (exit 2, no dump given). Issue #59 commented with the release and the workaround for older setups.
 - 2026-10-19 16:05 — Issue #65 (owner report): with `skip_intro` on, Press Start and menu transition sound effects are silent (v0.10.1 to v0.10.4). Reproduced on the Mac with `RECOMP_APU_PCM` on the `boot` route (skip boot silent at the Audio.Play events; normal boot has the bursts), while the log shows identical `Audio.Play` calls. Temporary `[AUD]` entry logging in the lifted code (not kept, `src/recomp/gen` restored byte for byte) showed a normal boot calls `sub_0003DE20(0)` then, after the movies, `sub_0003DE20(1)`; skip only does the first. D140: `skip_intro.c` calls `sub_0003DE20(1)`. Fixed skip boot has the same bursts as a normal boot; `fight` route 101 present lines, median 120, no crash, save identical; `regress.py --only skipintro` passes 110 s (`logs/regress-20261019-155827.txt`), fails without the fix (`logs/regress-20261019-160026.txt`); native fixture passes. Another `defjam_recomp` from `~/.codex/worktrees/01c5` was running during these runs and one startup crash coincided with it (not reproduced).
@@ -332,37 +335,59 @@ defjam-recomp/
 - 2026-10-19 19:58 — v0.10.5 published as latest (D141) from PR #68 merge `cb10747` (PR #66 merged `f2b7c6f`, #65 closed; both PRs CI 28/28). Source release run 39344036207 green 30/30; `check-release.py` verified 418 files; nine assets, installer SHA-256 files match GitHub digests. Not listened to on Windows or Linux.
 - 2026-10-20 12:00 — Issue #72 (v0.10.5 installer build on Windows 11, 5080: "has stopped working" right after build, empty Log lines field). Cannot be diagnosed without the log. Reworded the bug report's Log lines field (`.github/ISSUE_TEMPLATE/bug_report.yml`) to say where `logs/run-*.log.err` is for the installer and source builds, and to fall back to a PowerShell launch plus the Event Viewer "Application Error" entry when no log exists. Not committed or pushed; comment on #72 drafted, not posted.
 - 2026-10-20 12:45 — Issue #67 / owner's FFA sluggishness at The Pit: four serial guarded M1 Pro/v0.10.5 runs at scale 2/VSync/windowed widescreen, including larger 1800x1034 window and host-input path. Ordinary 30 s windows: 1v1 59.999/60.002 fps, FFA 60.001/59.966 fps, all ~60 fight steps/s; actor clocks/joint hashes show no sustained 25/30 Hz cadence. Two GPU video bundles (480 pictures each) identify the 4.2 s counter pause as Blazin activation; ordinary combat has 478 consecutive-frame pairs, zero exact duplicate pictures. Zero crash/watchdog/unresolved-call/debug-layer/truncated signatures; four save roots restored identical. Temporary pose/video probes removed and normal build rebuilt/verified. Logs run-20261020-122629, 122945, 123419, 123905; bundles under logs/sessions/20261020-123909; report docs/research/issue67-pit-performance-macos-2026-10-20.md. Exact owner roster/F9 bundle and issue reporter log/platform/settings remain needed; physical display/controller latency and Windows untested. No performance fix or public reply.
+- 2026-10-20 18:03 — Issue #72 root cause confirmed from attached run-20261020-193903.error.log: RAM/offset 0xBFFF0000 accepted despite physical/device mapping failures (Win32 487); AC97 shadow memcpy then reads missing guest 0xFEC00000, exactly host 0x1BEBF0000. D143 (D142 is the concurrent texture-list fix): complete Windows layout transaction, rollback/retry before XBE copy/threads, correct view/handle cleanup; local toolkit e81806613baf5a8c20e9b2a09e61cb103f7160fd on defjam/issue72-memory-layout in logs/issue72/toolkit (clean). Both game-free memory fixtures pass (34 rollback points/all 28 retail mirrors/128 MB/re-init); units 478 pass/44 skip/1 deselected. Mac release build fresh; all 17 game gates covered and pass: initial ten UI/golden/fight gates in logs/issue72/full-regression.txt; initial Python/data-root preconditions corrected, guard interruption restored original tree/absence; remaining seven pass in logs/regress-20261020-180044.txt, correct data root/mac-profiles fixture/uv. Combat 27/27, versus 26/26, replay 80 records/1800 steps unchanged, Story intro/crib/gym pass, soak 3/3; median fights 120 presents/2 s, minimum Terrordome 118. Full details docs/research/issue72-windows-startup-memory-layout.md. Native Windows/reporter retest pending; no game running, source-only local commits, no push/comment/release; parent pin stays published 32aab4d.
 
 ## 7. Hand-off
 
-Issue #67 and the owner's slightly sluggish FFA at The Pit were investigated on the M1 Pro in four
-serial v0.10.5 runs (scale 2, VSync on, windowed 16:9; the final FFA also uses the larger saved window
-and the normal host-input path). Sustained slowdown and 25/30 Hz animation were not reproduced:
-ordinary combat is ~60 presented frames and 60 fight steps/s; actor joint poses track animation
-clock changes. The ~4.2 s gaps in the fight-step counter are Blazin' activation, confirmed with a GPU
-picture bundle. Report: `docs/research/issue67-pit-performance-macos-2026-10-20.md`; static evidence:
-`docs/research/issue67-animation-timing-read.md`. Branch `investigate/issue67-macos` contains docs only,
-based on prior issue-72 docs commit `0c6c665`. No publication or issue comment was authorized or sent.
+Issue #72 is diagnosed and has a local toolkit fix (D143; D142 is already the concurrent
+texture-list-limit decision). The reporter's attachment is `logs/issue72/run-20261020-193903.error.log`.
+Windows accepted RAM at/offset `0xBFFF0000`, all physical/device windows failed with error 487,
+and the AC97 shadow copy then read unmapped guest `0xFEC00000` = host `0x1BEBF0000`.
+The native-stack block is also a scan: it does not identify the rejected ranges' occupants.
+Report: `docs/research/issue72-windows-startup-memory-layout.md`.
 
-Next: ask/receive the owner's exact four fighters and a **local** recorder bundle marked just after
-the sluggishness (Debug → Record play-tests, then fn+F9). The issue reporter's email log attachment is
-not visible on GitHub; obtain its actual log, platform, display/refresh/settings. Read the bundle with
-`python3 scripts/bug-bundle.py <path>` first, then reproduce that case. A rendered-frame/CPU counter
-is not physical panel timing; controller latency and Windows remain untested.
-Avoid averaging `sub_00087700` over CLogic state 7 as a fight-performance metric.
+Fix: clean isolated worktree `logs/issue72/toolkit`, branch `defjam/issue72-memory-layout`,
+local commit **e81806613baf5a8c20e9b2a09e61cb103f7160fd**, based on released `32aab4d`.
+`src/kernel/windows_guest_layout.h` selects a full free guest span, then places all required
+windows transactionally before XBE copy/device workers, rolling back and retrying collisions.
+Failure stops init before AC97. View/handle/kernel-page ownership and worker ordering are fixed.
+Parent `tools/xboxrecomp` remains clean at the published pin **32aab4d**. No push, issue comment,
+PR, release or executable distribution was authorized/performed.
 
-Evidence: `logs/run-20261020-122629.log.err`, `122945`, `123419`, `123905`; sessions `20261020-122633`,
-`122948`, `123422`, `123909`. Video bundles in the last session: `001-animation-motion-124122` and
-`002-logic-state-7-124151`. Local scripts, full environments, samples and the reversible diagnostic
-patch are in `logs/issue67/`. All four save guards restored byte-identically. Temporary changes to
-`pc_debug.c` and `test_telemetry.c` were reverse-applied; the normal posix-release build was rebuilt
-and its pipeline state verified. No game is running. No persistent runtime/lifter/renderer change,
-so no full game regression was needed.
+Validation: both game-free memory fixtures pass, units **478 pass / 44 skip / 1 deselected**,
+and all **17 game gates** in the full suite were covered and pass across two complementary runs.
+First ten goldens/UI/fights: `logs/issue72/full-regression.txt` (plain Python lacked pytest and
+the harness fallback data folder had no profiles; stopped through a verified save-guard restore).
+Remaining seven: **7/7** in `logs/regress-20261020-180044.txt`, console
+`logs/issue72/remaining-regression.txt`, with the established data folder and verified
+`mac-profiles` fixture. Combat 27/27, versus 26/26, replay 80 records/1800 steps unchanged,
+Story intro/crib/gym pass, boot soak 3/3. Fights median 120 presents/2 s, Terrordome minimum 118.
+Memory fixture evidence: `logs/issue72/windows-layout-fixture.txt` and
+`logs/issue72/memory-posix-fixture.txt`; units `logs/issue72/unit-tests.txt`.
+No game is running. The existing `posix-release` executable is rebuilt against the isolated
+toolkit and passes `python3 scripts/pipeline-state.py verify-build --preset posix-release`.
 
-v0.10.5 remains latest (D141), tag on PR #68 merge `cb10747`, toolkit `32aab4d`; it fixes skip-intro
-menu audio (#65/PR #66). Existing follow-ups remain: Windows play-test of picture settings and
-skip-on menu sounds in the week of 2026-10-25; subtitles #44; Deck render scale 1 on
-sc00/sc11/sc07b/sc06, Game Mode 60 Hz and `perf record` during sc00; F5 fence-hold wait; F2 scene-load
-freezes. The earlier release hand-off is archived locally in `docs/worklog/2026-10-handoffs.md`.
+Next: **native Windows compilation and reporter retest are still required**. From the toolkit
+root, configure/build/ctest `tests/windows_guest_layout` (README there), and run the existing
+`tests/memory_regressions` fixture plus the game regression on Windows. The Mac fixture tests
+the Windows allocator through POSIX primitives, not Windows loader/driver behavior.
+When Vlad authorizes publication, publish the reviewed toolkit commit before changing the
+parent gitlink and add `windows_guest_layout` to the CI fixture matrix. Preserve the separately
+published texture-list fix `72bec86` if the integration target includes it: apply this topic
+on the current fork tip rather than replacing that fix with the older base. No upstream PR
+without separate approval; no built game executable may be distributed.
+
+For local reruns use **DEFJAM_DATA=/Users/vlad/Code/defjam-data** and the documented Python:
+`uv run --no-project --with pyxbe --with capstone --with pytest python`.
+Do not use the empty default sibling `defjam` directory. The fixture is
+`/Users/vlad/Code/defjam-data/fixtures/mac-profiles`. Rebuild without a re-lift with
+`python3 scripts/pipeline.py --toolkit logs/issue72/toolkit build` (kill the game first).
+
+Issue #67 remains a separate follow-up: owner roster/F9 recorder bundle and reporter
+log/platform/display needed; Mac investigation found ~60 fps/steps and Blazin activation
+explained the 4.2 s counter pause. Reports `docs/research/issue67-pit-performance-macos-2026-10-20.md`
+and `issue67-animation-timing-read.md`; prior detailed hand-off archived in
+`docs/worklog/2026-10-handoffs.md`. v0.10.5 remains the stable release for this branch (D141).
+Windows picture/skip-audio owner playtest, subtitles #44, and prior Deck/F2/F5 follow-ups remain.
 
 Decisions are read by number or keyword: `decision D<n>`, `decisions --grep TEXT`.

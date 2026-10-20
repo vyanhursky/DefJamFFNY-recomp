@@ -72,6 +72,7 @@ The plan built from these is in [docs/widescreen](../widescreen/README.md), whic
 
 ## Toolkit and platforms
 
+- [Issue 72 Windows startup crash](issue72-windows-startup-memory-layout.md): incomplete translated guest memory layout, AC97 copy fault, transactional placement and validation
 - [Toolkit rebase acceptance](toolkit-rebase-acceptance.md)
 - [Toolkit rebase ledger](toolkit-rebase-ledger.md): maps the 108 retired patch numbers to fork commits
 - [macOS and Linux port survey](macos-linux-port-survey.md)
