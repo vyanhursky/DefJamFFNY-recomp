@@ -54,6 +54,33 @@ python3 scripts/triage.py logs/issue72/run-20261020-193903.error.log
 python3 scripts/triage.py logs/issue72/run-20261020-193903.error.log --lines 1:80
 ```
 
+## When it appeared
+
+This is an older, machine-dependent startup bug. It was reported on v0.10.5,
+but the same crash path was already shipped in **v0.1.0 on 2026-10-04**, the
+first public release. The reporter also says older builds fail on their PC.
+History does not establish when that PC first encountered the bad placement.
+
+| History evidence | What it establishes |
+|---|---|
+| Toolkit `7a71ed2`, 2026-03-10 | The initial memory-layout file already selects RAM independently and translates guest addresses with an offset |
+| Toolkit `75119d5`, 2026-09-16, “Add test cases” | Fixes iteration of the base-hint array so its NULL/OS-chosen fallback is actually tried; an arbitrary base such as `0xBFFF0000` becomes reachable when fixed hints fail |
+| Toolkit `9547d39`, 2026-09-27, “Stop leaking the RAM mirror span reservation on Windows” | Removes an ineffective POSIX-style partial-reservation attempt from Windows; its message says Windows already fell through to the fixed-base loop. It does not introduce the fallback |
+| Public tag `v0.1.0`, toolkit pin `aa1a1b91` | Already includes the fallback changes, required apertures that only warn on failure, the unguarded AC97 copy, and the call to it after layout initialization |
+| Public tag `v0.4.0`, 2026-10-07 | Adds the pre-game launcher before guest-memory initialization, which can change host address-space occupancy; an exposure hypothesis, not a proven trigger on this PC |
+| `v0.10.4` → `v0.10.5` | No change to the toolkit pin, `src/main.c` or `src/hooks/ac97_bm.c`; the startup memory-placement code was not changed by this release |
+
+Primary source links: [toolkit fallback change](https://github.com/vyanhursky/xboxrecomp/commit/75119d5),
+[Windows reservation cleanup](https://github.com/vyanhursky/xboxrecomp/commit/9547d39),
+[AC97 initialization in v0.1.0](https://github.com/vyanhursky/DefJamFFNY-recomp/blob/v0.1.0/src/hooks/ac97_bm.c#L134-L151).
+
+In plain language: the port found a place for Xbox RAM but did not check that
+the other memory areas needed by the emulated devices could fit around it.
+Windows refused those other allocations, and the port carried on into audio
+initialization anyway. Reading that missing memory caused the C-runtime crash.
+The chosen addresses can differ between PCs and runs, so the age of the code
+does not tell us the date it first failed on a particular computer.
+
 ## Fix
 
 Toolkit branch `defjam/issue72-memory-layout`, isolated worktree
@@ -129,10 +156,24 @@ Native Windows compilation, the allocator fixture on Windows, and the reporter's
 installed-game retest remain required. The Mac fixture verifies the allocator's
 algorithm and cleanup; it cannot establish Windows driver/ASLR behavior.
 
-No release, issue comment, push, or upstream PR was requested or performed.
-Keep the parent gitlink at the published `32aab4d` until the reviewed toolkit
-commit is published, then update it and add `windows_guest_layout` to the native
-fixture matrix. If the integration target already includes the separately
-published texture-list fix `72bec86`, apply this topic on that fork tip so the
-other fix is retained. Do not distribute a built game executable. Installer
-production and a reporter retest follow native Windows validation.
+The initial investigation did not publish source or post an issue comment.
+In the follow-up, Vlad requested a Windows test artifact and a comment linking
+it and asking the reporter to test. A branch-scoped Windows candidate workflow
+is prepared in `.github/workflows/windows-candidate.yml`. It gates the artifact
+on native Windows memory fixtures, game-side source compilation, installer
+tests, payload inventory and packaged smoke tests. It uploads only the game-free
+setup, SHA-256 and provenance, not a built game or translated code.
+
+The candidate keeps the v0.10.5 source baseline plus the memory fix, to avoid
+mixing the unrelated v0.10.6 launcher beta into this diagnostic test. Its Actions
+artifact name and provenance distinguish it from the normal v0.10.5 installer;
+no stable release is replaced. Publishing and starting the Windows runner are
+currently blocked by the expired GitHub CLI login (HTTP 401) and unavailable
+Git Keychain credential. The user has been asked to restore the CLI login.
+
+Keep the parent gitlink at published `32aab4d` until the reviewed toolkit
+commit is published, then update it for the candidate. If a later integration
+target includes the separately published texture-list fix `72bec86`, apply
+this topic on that fork tip so the other fix is retained. Native Windows build
+results, the actual artifact URL and the sent issue-comment URL must be recorded
+after publication. No built game executable may be distributed.
