@@ -49,6 +49,8 @@ cite other development notes, logs and captures that are not published.
 
 ## HD textures
 
+- [Fire-escape art studies and Extras approval](menu-fire-escape-artwork-2026-10-20.md): ten-tile source reconstruction, material/framing retries and separate native placement caveat
+
 - [Resumed Extras paper drafts](menu-extras-restoration-2026-10-20.md): nine source tiles, original-color/alpha/graphics protection, six reviews and current PR62/73 baseline
 - [Press Start fire-escape transition mapping](menu-fire-escape-transition-mapping-2026-10-20.md): ten-tile continuous scene, pan measurement and widescreen registration still required
 

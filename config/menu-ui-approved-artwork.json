@@ -1,29 +1,29 @@
 {
   "schema": 1,
   "art_root_policy": "Relative to the PRIVATE pilot-v1 directory. No PNG/game bytes are stored here. This is an integrity catalogue,not a runtime mod manifest.",
-  "decision_namespace": "D123..D157 in this menu session are qualified /UI where they collide with other main-branch decisions.",
-  "restoration_status": "PAUSED at owner request;do not generate or repaint before owner resumes.",
-  "pilot_imagegen_calls": 101,
+  "decision_namespace": "Menu-session decisions are qualified /UI where they collide with main-branch decisions; preserve historical identifiers.",
+  "restoration_status": "RESUMED by owner 2026-10-20 (D161/UI); Extras approved D164/UI; transition artwork work continues.",
+  "pilot_imagegen_calls": 117,
   "source_counts": {
-    "covered_by_artwork_review": 71,
-    "unconditionally_approved_source_ids": 63,
+    "covered_by_artwork_review": 80,
+    "unconditionally_approved_source_ids": 72,
     "conditionally_reviewed_mode_source_ids": 8,
     "registered_flows": {
       "total": 1323,
-      "covered": 71,
-      "not_custom_restored": 1252
+      "covered": 80,
+      "not_custom_restored": 1243
     },
     "core_families": {
       "total": 1834,
-      "covered": 71,
-      "not_custom_restored": 1763
+      "covered": 80,
+      "not_custom_restored": 1754
     },
     "broad_ui_category": {
       "total": 11261,
-      "covered": 71,
-      "not_custom_restored": 11190
+      "covered": 80,
+      "not_custom_restored": 11181
     },
-    "confirmed_priority_shortlist": 23
+    "confirmed_priority_shortlist": 19
   },
   "reviewed_sources": [
     {
@@ -1054,6 +1054,167 @@
           "height": 512
         }
       ]
+    },
+    {
+      "source_id": "0c2919237e16f1876e7588a787169ad17f6e82f15b552557ccb19e82e7576836",
+      "family": "extras-papers",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/extras/extras.big::extras.xsh",
+          "name": "35",
+          "index": 11,
+          "width": 128,
+          "height": 256
+        },
+        {
+          "source": "screens/screens.viv::screens/options/userID.big::userID.xsh",
+          "name": "83",
+          "index": 35,
+          "width": 128,
+          "height": 256
+        }
+      ]
+    },
+    {
+      "source_id": "8c09111da4e717cb8432335c60e0f4384524da75c23ebd0d722fdf051dcb5521",
+      "family": "extras-papers",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/extras/extras.big::extras.xsh",
+          "name": "34",
+          "index": 10,
+          "width": 32,
+          "height": 256
+        },
+        {
+          "source": "screens/screens.viv::screens/options/userID.big::userID.xsh",
+          "name": "82",
+          "index": 34,
+          "width": 32,
+          "height": 256
+        }
+      ]
+    },
+    {
+      "source_id": "b1c4be8a1c1f9e40b22b9d2c316d341e01ec02e3e43fd66c242889ab7ce0d887",
+      "family": "extras-papers",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/extras/extras.big::extras.xsh",
+          "name": "33",
+          "index": 9,
+          "width": 128,
+          "height": 128
+        },
+        {
+          "source": "screens/screens.viv::screens/options/userID.big::userID.xsh",
+          "name": "81",
+          "index": 33,
+          "width": 128,
+          "height": 128
+        }
+      ]
+    },
+    {
+      "source_id": "93b6753cd17a4dbd0a2f8400c190d9e16ab8ddf405bcb0573072614ad4ece993",
+      "family": "extras-papers",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/extras/extras.big::extras.xsh",
+          "name": "32",
+          "index": 8,
+          "width": 32,
+          "height": 128
+        },
+        {
+          "source": "screens/screens.viv::screens/options/userID.big::userID.xsh",
+          "name": "80",
+          "index": 32,
+          "width": 32,
+          "height": 128
+        }
+      ]
+    },
+    {
+      "source_id": "1b60b846487da1554dd4f0471d520cd0bbedb1b0e2af8edf8dd5ffcecc1eed14",
+      "family": "extras-papers",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/extras/extras.big::extras.xsh",
+          "name": "37",
+          "index": 12,
+          "width": 256,
+          "height": 256
+        }
+      ]
+    },
+    {
+      "source_id": "50f237f60c0100929d1c8ee086f89c92111cc582c4feacf402d703999087f9b8",
+      "family": "extras-papers",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/extras/extras.big::extras.xsh",
+          "name": "42",
+          "index": 13,
+          "width": 256,
+          "height": 256
+        }
+      ]
+    },
+    {
+      "source_id": "d00a7e7310f4a968761adea02dc384aec610cbc45e6b6c3d7e5ae7e2c24e8694",
+      "family": "extras-papers",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/extras/extras.big::extras.xsh",
+          "name": "48",
+          "index": 14,
+          "width": 256,
+          "height": 256
+        }
+      ]
+    },
+    {
+      "source_id": "bcb3263bd4f0784fbe0549459861ff99589aebfc966034224a8af3ecb3c47f06",
+      "family": "extras-papers",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/extras/extras.big::extras.xsh",
+          "name": "52",
+          "index": 16,
+          "width": 256,
+          "height": 256
+        }
+      ]
+    },
+    {
+      "source_id": "48bc259ac7067229816308a8783925f7702ab9f689c4d31bfeb13347e7b9781b",
+      "family": "extras-papers",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/extras/extras.big::extras.xsh",
+          "name": "58",
+          "index": 17,
+          "width": 256,
+          "height": 64
+        },
+        {
+          "source": "screens/screens.viv::screens/options/battleID.big::battleID.xsh",
+          "name": "1",
+          "index": 0,
+          "width": 256,
+          "height": 64
+        }
+      ]
     }
   ],
   "approval_records": [
@@ -2056,8 +2217,220 @@
           "sha256": "9a207e87d60a17b4793ea7a3a0cf31af6a17ae069749f73cb36ae7dbefd8a251"
         }
       ]
+    },
+    {
+      "decision": "D164/UI",
+      "status": "owner-approved artwork",
+      "scope": "SixExtrasstudies,nine source-shapedtiles,sixalphaproofs,30isolatedaspectplacements. Excludesrawproposals,masksandnativegameacceptance.",
+      "record": "extras-approval-20261020.json",
+      "files": [
+        {
+          "path": "extras-v1-20261020/list-paper-restrained.png",
+          "sha256": "ff3fd2aeb65dc0d80edbdd5aaea6a4074700715fb41599eac3b5b05baeb5c58e"
+        },
+        {
+          "path": "extras-v1-20261020/list-paper-restrained-alpha.png",
+          "sha256": "287483b8328a1c9e0e29232f12d0303542df84e058c1dd6480e16e0787c27a0f"
+        },
+        {
+          "path": "extras-v1-20261020/image-35-restrained.png",
+          "sha256": "58920b9ae4345b367e7f4175aaa287f6a0633ef16e286a9c82a1badaaa71ca54"
+        },
+        {
+          "path": "extras-v1-20261020/image-34-restrained.png",
+          "sha256": "09a038d362f39ed73031684fc67b951b98358e3800afed7e72ba5eb5206ddc9b"
+        },
+        {
+          "path": "extras-v1-20261020/image-33-restrained.png",
+          "sha256": "2f8f93f2b6ff85e667b11d5aee3a7182c955c0f72edc4d0d81678ed2cabdc8f4"
+        },
+        {
+          "path": "extras-v1-20261020/image-32-restrained.png",
+          "sha256": "493078227c194e93141cf5845266e7d3235e236a5e44c2755fcd0763850c84f4"
+        },
+        {
+          "path": "extras-v1-20261020/list-paper-4x3-draft.png",
+          "sha256": "5a879ec165fa58680ced95c5d2ec270eaef779af73ba3f9783e08e8b7dd64eaf"
+        },
+        {
+          "path": "extras-v1-20261020/list-paper-16x10-draft.png",
+          "sha256": "b39838f8ff1fae3aa4ff7b389f60a64f44d1000e444e098b2cca07808a940d8f"
+        },
+        {
+          "path": "extras-v1-20261020/list-paper-16x9-draft.png",
+          "sha256": "e52eafb9e3e7fb2d35ab74301f37fb04bb6364816498d901640dddd1fad111b2"
+        },
+        {
+          "path": "extras-v1-20261020/list-paper-21x9-draft.png",
+          "sha256": "323677d8b74c652cd12196cf615929182f7b6d12be0015a88b38566f98a3edc4"
+        },
+        {
+          "path": "extras-v1-20261020/list-paper-32x9-draft.png",
+          "sha256": "70c9f94c1e9ca9b6dff4b849d98e0af48c62eb8eb697234b976384e9fa4b01a7"
+        },
+        {
+          "path": "extras-v1-20261020/note-37-restrained.png",
+          "sha256": "9fdb0539a76acad67b5aa604fbc30e76771598f4eb09f9027b91251458203d94"
+        },
+        {
+          "path": "extras-v1-20261020/note-37-restrained-alpha.png",
+          "sha256": "bdd4862e7fb513b2429ffb0ba039e7858779de70749453ff5f5701a76e6457d9"
+        },
+        {
+          "path": "extras-v1-20261020/image-37-restrained.png",
+          "sha256": "3c21f1fa8133d8b950d45963fc34f37994c62d04d70a0163fd400ff54ddb8987"
+        },
+        {
+          "path": "extras-v1-20261020/note-37-4x3-draft.png",
+          "sha256": "229d392fea4253b6c8526ac00944bc12389282506630eed584ad8ddd0114e2c5"
+        },
+        {
+          "path": "extras-v1-20261020/note-37-16x10-draft.png",
+          "sha256": "3e0ab43614f338f55fd77aac0868c00683e58aa9bc79bdcd29e71472c47c8fa2"
+        },
+        {
+          "path": "extras-v1-20261020/note-37-16x9-draft.png",
+          "sha256": "e7a9f25c9ee199ef5a0e9ea7ee3df66b158090e7992491c797968bfebbe78c62"
+        },
+        {
+          "path": "extras-v1-20261020/note-37-21x9-draft.png",
+          "sha256": "e0e4009e9363b6e912a3b794e17bb3f33a435352165d197d86fd5517718476e7"
+        },
+        {
+          "path": "extras-v1-20261020/note-37-32x9-draft.png",
+          "sha256": "1f4efe4966d4d31bdae71a1688384d5145dcbe55828d8588686555c49d4ed798"
+        },
+        {
+          "path": "extras-v1-20261020/note-42-restrained.png",
+          "sha256": "d022bc83d988082dcbe22d83d88273b73f3d150e28ce74047451994a10cd7ba8"
+        },
+        {
+          "path": "extras-v1-20261020/note-42-restrained-alpha.png",
+          "sha256": "8ecdcc5a830a0729de203123e104893be94a3b05452f77660add7fde4f0f8840"
+        },
+        {
+          "path": "extras-v1-20261020/image-42-restrained.png",
+          "sha256": "382e34bae88402e6a701ea2dbb4ed57282db7bea6b3f72604868106c1ed452e9"
+        },
+        {
+          "path": "extras-v1-20261020/note-42-4x3-draft.png",
+          "sha256": "56a59c1865839144532f45dbf649b0428c2e4fc6e3f981a135198875bf8b3874"
+        },
+        {
+          "path": "extras-v1-20261020/note-42-16x10-draft.png",
+          "sha256": "6fa64aa172fb1ca1bbb6ed836cc74a8a0e65935d7386b40f7538685dfc350fb7"
+        },
+        {
+          "path": "extras-v1-20261020/note-42-16x9-draft.png",
+          "sha256": "fcd7d81543366f44638473d533b95c3178af65d0e401d6f2e276f30b94466349"
+        },
+        {
+          "path": "extras-v1-20261020/note-42-21x9-draft.png",
+          "sha256": "f2ed95ce7a9239825c087aa57165e9c07dc23a243427b16773e9086227e25703"
+        },
+        {
+          "path": "extras-v1-20261020/note-42-32x9-draft.png",
+          "sha256": "2b016e2ff2aae4739a011e0057b5d7082fc375cd30476e54c972739cd619d679"
+        },
+        {
+          "path": "extras-v1-20261020/note-48-restrained.png",
+          "sha256": "5e3319ae496f1c44609f722bb5cba7fabff60bffec0c5fcc4589be97941d26d8"
+        },
+        {
+          "path": "extras-v1-20261020/note-48-restrained-alpha.png",
+          "sha256": "2ed4806c07087fe287966fd88085f3c0bafc5c7a5a532a7978c4256d0c9d9853"
+        },
+        {
+          "path": "extras-v1-20261020/image-48-restrained.png",
+          "sha256": "6eeedf476f7fedea2a774dced59425bae818398bd5935bd35b34d95b490773be"
+        },
+        {
+          "path": "extras-v1-20261020/note-48-4x3-draft.png",
+          "sha256": "c542fd1d0827a715c75ddd4960e15e9bd64f005091d4736a16e98a5cd78cd323"
+        },
+        {
+          "path": "extras-v1-20261020/note-48-16x10-draft.png",
+          "sha256": "cb928f6f1ff570cd20e51c169cfb5ef6e518c2b1ffe283ee0663a40f2c14acc3"
+        },
+        {
+          "path": "extras-v1-20261020/note-48-16x9-draft.png",
+          "sha256": "35d280ac3bd5674a170d4a4763cbbb17eb5cdf3eff829847e6897d8ece4893c9"
+        },
+        {
+          "path": "extras-v1-20261020/note-48-21x9-draft.png",
+          "sha256": "2477fe1bcb3555a48e148177cbcada28cb58469069be45c480aff4577c2227a8"
+        },
+        {
+          "path": "extras-v1-20261020/note-48-32x9-draft.png",
+          "sha256": "ebdb196665181e868f97dbbadbd7e93ddd6daa1a88775897f4ba6033a0c54731"
+        },
+        {
+          "path": "extras-v1-20261020/note-52-restrained.png",
+          "sha256": "e6cdc8d6609956e0a011dcff9b037eba4efab8b5d15fb13d3209b49943e0fa0f"
+        },
+        {
+          "path": "extras-v1-20261020/note-52-restrained-alpha.png",
+          "sha256": "f45b3fa18b6aa76ce512b84789d1d894636ae6774263e21e00631c18ea785e56"
+        },
+        {
+          "path": "extras-v1-20261020/image-52-restrained.png",
+          "sha256": "e3df69d251f846592693e1ac5b0a9665efd7704e5792145c6d1441879d810168"
+        },
+        {
+          "path": "extras-v1-20261020/note-52-4x3-draft.png",
+          "sha256": "f1d7bb521c713c372e99ffbfec5bfc7489ad287dd29c4ef229de11799a668615"
+        },
+        {
+          "path": "extras-v1-20261020/note-52-16x10-draft.png",
+          "sha256": "cf32b58dc190dea3df69aeedfc682e6347593841f6df981596a9a96b0a4e3c11"
+        },
+        {
+          "path": "extras-v1-20261020/note-52-16x9-draft.png",
+          "sha256": "6d7ed4416ad296c234cbadcf838d02391fb25a1bdce7d392a74f14feb4b8a76d"
+        },
+        {
+          "path": "extras-v1-20261020/note-52-21x9-draft.png",
+          "sha256": "6c674e81cbbd95eb6fdc9e44cee14c44a3bc93ec5a8514f06631b618bb54929f"
+        },
+        {
+          "path": "extras-v1-20261020/note-52-32x9-draft.png",
+          "sha256": "7538fdf6c1ce27f74f9aa2fb9975c065789c4c4a640a46cbf677607509a99804"
+        },
+        {
+          "path": "extras-v1-20261020/ribbon-58-restrained.png",
+          "sha256": "a2cf8429bfcb25b4d8b3b6ffd7fc0413ffa1ea7ef01949d0ff0d37095a4e1153"
+        },
+        {
+          "path": "extras-v1-20261020/ribbon-58-restrained-alpha.png",
+          "sha256": "589597e3c344435c28464ed9d03ec1a983189c8d36df671f1843b4a242f160b2"
+        },
+        {
+          "path": "extras-v1-20261020/image-58-restrained.png",
+          "sha256": "a721c33b386db995c4eb23f03bf61482e880cf64cf1c08baa95cb73c616309af"
+        },
+        {
+          "path": "extras-v1-20261020/ribbon-58-4x3-draft.png",
+          "sha256": "6d20ff06afc01b8786be0bcb0898eef86590ca6e95ca5666d48fd2033fa24132"
+        },
+        {
+          "path": "extras-v1-20261020/ribbon-58-16x10-draft.png",
+          "sha256": "2c62b0740192726ba4ce2afae33f27619c0a11248a0c4a202f1eacd8ac8893e5"
+        },
+        {
+          "path": "extras-v1-20261020/ribbon-58-16x9-draft.png",
+          "sha256": "25a80a57fb59b22b67a9b853f6ed175c5e6656dfd152d7872b5b616ae64133a1"
+        },
+        {
+          "path": "extras-v1-20261020/ribbon-58-21x9-draft.png",
+          "sha256": "b7a82ca4f3fbf06294c5762e09d11adc027e97ebae754d4c305cc54f9f4e0c99"
+        },
+        {
+          "path": "extras-v1-20261020/ribbon-58-32x9-draft.png",
+          "sha256": "3855b8b670529035c17372eab7f6ab7df1726e3a4dec24dee9efe9c167e9e828"
+        }
+      ]
     }
   ],
-  "unique_pinned_files": 226,
-  "runtime_status": "No menu-art modpack installed or game-validated by this session. Runtime identities/exports/wide draw mapping still required."
+  "unique_pinned_files": 277,
+  "runtime_status": "Existing71-source artwork pipeline owner-playtested on Mac; skyline native tiles stillFaithful. New9Extras sources approved for art, isolated export prepared,gamevalidationpending. Transition pan stillneedswideart/registration."
 }

@@ -66,6 +66,103 @@
         {"source_id": "d543121c2fd1cada431cf25345d9d8efa1f25a02992f19cf49b49fa66f15fee6", "label": "mainMenu #53", "art": "batch2/mode-surround-restrained.png", "crop": [ 0, 0, 2048, 2048 ], "size": [ 2048, 2048 ]},
         {"source_id": "832e9d0b1495f399e2d53408d3292b603a591ec6c927abd4b0bb1c9a00e07be4", "label": "mainMenu #52", "art": "batch2/mode-surround-restrained.png", "crop": [ 2048, 0, 2304, 2048 ], "size": [ 256, 2048 ]}
       ]
+    },
+    "menu-ui-extras-test-v1": {
+      "name": "Menu UI Extras approved art test v1",
+      "png_mips": "opacity",
+      "status": "owner-approved artwork D164/UI; native game validation pending",
+      "entries": [
+        {
+          "source_id": "0c2919237e16f1876e7588a787169ad17f6e82f15b552557ccb19e82e7576836",
+          "label": "Extras list-paper #35",
+          "art": "extras-v1-20261020/image-35-restrained.png",
+          "crop": null,
+          "size": [
+            512,
+            1024
+          ]
+        },
+        {
+          "source_id": "8c09111da4e717cb8432335c60e0f4384524da75c23ebd0d722fdf051dcb5521",
+          "label": "Extras list-paper #34",
+          "art": "extras-v1-20261020/image-34-restrained.png",
+          "crop": null,
+          "size": [
+            128,
+            1024
+          ]
+        },
+        {
+          "source_id": "b1c4be8a1c1f9e40b22b9d2c316d341e01ec02e3e43fd66c242889ab7ce0d887",
+          "label": "Extras list-paper #33",
+          "art": "extras-v1-20261020/image-33-restrained.png",
+          "crop": null,
+          "size": [
+            512,
+            512
+          ]
+        },
+        {
+          "source_id": "93b6753cd17a4dbd0a2f8400c190d9e16ab8ddf405bcb0573072614ad4ece993",
+          "label": "Extras list-paper #32",
+          "art": "extras-v1-20261020/image-32-restrained.png",
+          "crop": null,
+          "size": [
+            128,
+            512
+          ]
+        },
+        {
+          "source_id": "1b60b846487da1554dd4f0471d520cd0bbedb1b0e2af8edf8dd5ffcecc1eed14",
+          "label": "Extras note-37 #37",
+          "art": "extras-v1-20261020/image-37-restrained.png",
+          "crop": null,
+          "size": [
+            1024,
+            1024
+          ]
+        },
+        {
+          "source_id": "50f237f60c0100929d1c8ee086f89c92111cc582c4feacf402d703999087f9b8",
+          "label": "Extras note-42 #42",
+          "art": "extras-v1-20261020/image-42-restrained.png",
+          "crop": null,
+          "size": [
+            1024,
+            1024
+          ]
+        },
+        {
+          "source_id": "d00a7e7310f4a968761adea02dc384aec610cbc45e6b6c3d7e5ae7e2c24e8694",
+          "label": "Extras note-48 #48",
+          "art": "extras-v1-20261020/image-48-restrained.png",
+          "crop": null,
+          "size": [
+            1024,
+            1024
+          ]
+        },
+        {
+          "source_id": "bcb3263bd4f0784fbe0549459861ff99589aebfc966034224a8af3ecb3c47f06",
+          "label": "Extras note-52 #52",
+          "art": "extras-v1-20261020/image-52-restrained.png",
+          "crop": null,
+          "size": [
+            1024,
+            1024
+          ]
+        },
+        {
+          "source_id": "48bc259ac7067229816308a8783925f7702ab9f689c4d31bfeb13347e7b9781b",
+          "label": "Extras ribbon-58 #58",
+          "art": "extras-v1-20261020/image-58-restrained.png",
+          "crop": null,
+          "size": [
+            1024,
+            256
+          ]
+        }
+      ]
     }
   }
 }

@@ -1,5 +1,12 @@
 # Extras menu restoration — 2026-10-20
 
+**Later same-day update (D164/UI):** Vlad approved all six studies.
+`extras-approval-20261020.json` pins51files; the catalogue now has277pins and
+80reviewed source IDs(72approved+8conditional). A separate nine-tile4x component
+`menu-ui-extras-test-v1` is mapped and exported locally; active packs and the
+running game were left unchanged. Native acceptance remains pending. Earlier
+draft findings below are retained as history.
+
 Vlad resumed Menu/UI restoration after accepting the working HD/widescreen
 menus. Original palette, restrained cleanup, centered scenery, 4:3 through
 32:9, exact transparency and continuous joins remain the art direction.

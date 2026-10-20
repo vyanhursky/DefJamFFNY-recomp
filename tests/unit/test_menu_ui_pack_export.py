@@ -48,7 +48,7 @@ def test_tracked_table_matches_tracked_catalogue():
     exports = json.loads((REPO/'config/menu-ui-source-shaped-exports.json').read_text())
     catalogue = json.loads((REPO/'config/menu-ui-approved-artwork.json').read_text())
     work = mod.plan(exports, catalogue)
-    assert {k: len(v) for k, v in work.items()} == {'menu-ui-restored-test-v1': 39, 'menu-ui-mode-conditional-test-v1': 8}
+    assert {k: len(v) for k, v in work.items()} == {'menu-ui-restored-test-v1': 39, 'menu-ui-mode-conditional-test-v1': 8, 'menu-ui-extras-test-v1': 9}
 
 
 def test_wide_layer_table_uses_pinned_masters_and_known_anchors():
@@ -65,6 +65,6 @@ def test_wide_layer_table_uses_pinned_masters_and_known_anchors():
         assert 0 <= ua < ub <= sources[layer['anchor']]
     stretch = [s['id'] for s in layers['stretch']]
     assert len(stretch) == len(set(stretch)) and all(len(s) == 64 and int(s, 16) >= 0 for s in stretch)
-    # Results papers are not scenery: none of their sources may carry side slabs.
-    papers = {s['source_id'] for s in catalogue['reviewed_sources'] if s['family'] == 'result-papers'}
+    # Paper panels are not scenery: none of their sources may carry side slabs.
+    papers = {s['source_id'] for s in catalogue['reviewed_sources'] if s['family'] in ('result-papers', 'extras-papers')}
     assert not papers & {layer['anchor'] for layer in layers['layers']}

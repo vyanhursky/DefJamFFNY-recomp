@@ -2,8 +2,9 @@
 
 **Current update — 2026-10-20:** Vlad has resumed restoration (D161/UI). The
 HD/widescreen menus are implemented and owner-playtested on PR62, with PR73
-merged into its branch (combined toolkit `dd63e17`). New Extras drafts are
-review-only; the fire-escape pan still needs restoration and wide registration.
+merged into its branch (combined toolkit `dd63e17`). Extras is now approved (nine source tiles,51 new pins;277 total). A separate
+sparse export is prepared. Fire-escape v4 is an unapproved artwork study;
+actual pan/placement checks and wide registration remain pending.
 Read [the resumed-work report](research/menu-extras-restoration-2026-10-20.md)
 and current PROGRESS.md §7 first. The original handover below records the
 October19 pause and engineering plan; its pause is superseded.
