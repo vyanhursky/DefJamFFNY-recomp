@@ -49,3 +49,22 @@ def test_tracked_table_matches_tracked_catalogue():
     catalogue = json.loads((REPO/'config/menu-ui-approved-artwork.json').read_text())
     work = mod.plan(exports, catalogue)
     assert {k: len(v) for k, v in work.items()} == {'menu-ui-restored-test-v1': 39, 'menu-ui-mode-conditional-test-v1': 8}
+
+
+def test_wide_layer_table_uses_pinned_masters_and_known_anchors():
+    layers = json.loads((REPO/'config/menu-ui-wide-layers.json').read_text())
+    catalogue = json.loads((REPO/'config/menu-ui-approved-artwork.json').read_text())
+    pins = {f['path'] for r in catalogue['approval_records'] for f in r['files']}
+    sources = {s['source_id']: s['aliases'][0]['width'] for s in catalogue['reviewed_sources']}
+    labels = [layer['label'] for layer in layers['layers']]
+    assert len(labels) == len(set(labels))
+    for layer in layers['layers']:
+        assert layer['anchor'] in sources and layer['master'] in pins, layer['label']
+        assert layer.get('sides', 'both') in ('left', 'right', 'both', 'none')
+        ua, ub = layer.get('u_range', [0, sources[layer['anchor']]])
+        assert 0 <= ua < ub <= sources[layer['anchor']]
+    stretch = [s['id'] for s in layers['stretch']]
+    assert len(stretch) == len(set(stretch)) and all(len(s) == 64 and int(s, 16) >= 0 for s in stretch)
+    # Results papers are not scenery: none of their sources may carry side slabs.
+    papers = {s['source_id'] for s in catalogue['reviewed_sources'] if s['family'] == 'result-papers'}
+    assert not papers & {layer['anchor'] for layer in layers['layers']}

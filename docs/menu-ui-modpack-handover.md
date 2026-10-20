@@ -5,8 +5,8 @@ request until he has more image-generation credits. Do not generate, repaint or
 advance the remaining-art queue.** The next task is engineering: take the
 already reviewed artwork, produce a local modpack, and let Vlad playtest it.
 This session has not installed a menu-art modpack or validated these images in game.
-**Update 2026-10-19 (D158/UI):** the first source-shaped playtest pack is built and partly
-runtime-verified on the Mac; see [its report](research/menu-ui-playtest-pack-2026-10-19.md).
+**Update 2026-10-19 (D158/UI–D160/UI):** source-shaped pack, logo/emblem registration and true
+widescreen backgrounds are built and checked on the Mac; see [the report](research/menu-ui-playtest-pack-2026-10-19.md).
 
 ## Start here
 
