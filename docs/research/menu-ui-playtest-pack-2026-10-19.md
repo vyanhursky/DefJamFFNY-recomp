@@ -87,10 +87,11 @@ choosing them in the launcher), 1920x1080 window. The script passes the pack lis
 
 ## Gaps and issues
 
-1. **settings.ini pack list limit (bug, not fixed here).** Text settings hold 95 characters
+1. **settings.ini pack list limit (fixed 2026-10-20, D142, PR #73, merged into this branch).** Text settings hold 95 characters
    (`RECOMP_SETTING_TEXT_MAX` 96). The two Faithful HD component names alone are 66; any longer list is
    rejected and the game falls back to `faithful-hd`, which a setup install does not have, so **no packs
-   load**. The first playtest of this branch hit it. `play.sh` passes the list in the environment.
+   load**. The first playtest of this branch hit it. Strings now hold 1023 characters (toolkit `72bec86`,
+   in this branch's pin `dd63e17`); `play.sh` still passes the list in the environment.
 2. Title→main-menu pan uses other city tiles (`90c3ba5f36d9`, `0d9299ca3f85`, `8327612c6a9f`,
    `8736c571e654`, `dd4feccde8c4`…) with no approved art: black sides for that second of transition.
 3. Not captured in widescreen: 3/4-fighter select, Unlock Venues, results/rematch/reward screens,
