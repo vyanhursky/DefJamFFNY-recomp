@@ -1,13 +1,16 @@
 # Menu/UI modpack implementation handover
 
-**Current update — 2026-10-20:** Vlad has resumed restoration (D161/UI). The
-HD/widescreen menus are implemented and owner-playtested on PR62, with PR73
-merged into its branch (combined toolkit `dd63e17`). Extras is now approved (nine source tiles,51 new pins;277 total). A separate
-sparse export is prepared. Fire-escape v4 is an unapproved artwork study;
-actual pan/placement checks and wide registration remain pending.
-Read [the resumed-work report](research/menu-extras-restoration-2026-10-20.md)
-and current PROGRESS.md §7 first. The original handover below records the
-October19 pause and engineering plan; its pause is superseded.
+**Current update — 2026-10-20:** Restoration resumed (D161/UI). Working HD/wide
+menus on PR62 were owner-playtested; PR73 is included, toolkit `dd63e17`.
+Extras is approved with a separate nine-tile sparse export ready but not enabled.
+Ladder transition v4 is CONDITIONALLY approved (D166/UI),56frozen files/10IDs,
+full acceptance pending native pan/placement checks and wide registration.
+Catalogue333pins/90reviewed IDs(72unconditional+8Mode+10transition conditional).
+Story phone v1 is UNAPPROVED, at review51738 with exact screen/graphics/alpha
+and five centered backdrop studies. Read [the current phone/approval report](research/menu-story-phone-restoration-2026-10-20.md)
+and PROGRESS.md §7 first. Leave the launcher-redesign game running (D163/UI).
+All new art remains local; source-only recipes/prompts are preserved. The
+October19pause and original engineering plan below are historical.
 
 ---
 

@@ -1,5 +1,14 @@
 # Fire-escape transition artwork — 2026-10-20
 
+**Later same-day update (D166/UI):** Vlad says the ladder transition looks good,
+with full approval pending a native playtest. Freeze v4's56current files/10IDs;
+private `transition-conditional-approval-20261020.json`, catalogue333pins/90IDs.
+No native/pan approval or geometry/registration fix is inferred. The report
+below records its pre-approval production history; older revisions stay
+unapproved. Move to [Story phone drafts](menu-story-phone-restoration-2026-10-20.md),
+now first in review, and leave the running game untouched.
+
+
 Vlad requested that the Press Start → Main Menu fire-escape pan receive the
 same restoration and widescreen treatment as the settled menus. He explicitly
 asked to leave the launcher-redesign game running and continue texture work

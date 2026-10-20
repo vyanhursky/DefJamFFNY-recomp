@@ -49,6 +49,8 @@ cite other development notes, logs and captures that are not published.
 
 ## HD textures
 
+- [Story phone restoration draft](menu-story-phone-restoration-2026-10-20.md): source-protected casing, exact partial alpha and centered five-aspect backdrop studies
+- [Story message-center native mapping](menu-story-phone-mapping-2026-10-20.md): two visible tiles, fractional UVs, offstage third part and live foreground caveat
 - [Fire-escape art studies and Extras approval](menu-fire-escape-artwork-2026-10-20.md): ten-tile source reconstruction, material/framing retries and separate native placement caveat
 
 - [Resumed Extras paper drafts](menu-extras-restoration-2026-10-20.md): nine source tiles, original-color/alpha/graphics protection, six reviews and current PR62/73 baseline

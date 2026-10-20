@@ -2,28 +2,29 @@
   "schema": 1,
   "art_root_policy": "Relative to the PRIVATE pilot-v1 directory. No PNG/game bytes are stored here. This is an integrity catalogue,not a runtime mod manifest.",
   "decision_namespace": "Menu-session decisions are qualified /UI where they collide with main-branch decisions; preserve historical identifiers.",
-  "restoration_status": "RESUMED by owner 2026-10-20 (D161/UI); Extras approved D164/UI; transition artwork work continues.",
-  "pilot_imagegen_calls": 117,
+  "restoration_status": "RESUMED; Extras approved D164/UI; transition v4 conditionally approved D166/UI pending native pan playtest; Story phone v1 unapproved in review D167/UI.",
+  "pilot_imagegen_calls": 118,
   "source_counts": {
-    "covered_by_artwork_review": 80,
+    "covered_by_artwork_review": 90,
     "unconditionally_approved_source_ids": 72,
     "conditionally_reviewed_mode_source_ids": 8,
     "registered_flows": {
       "total": 1323,
-      "covered": 80,
-      "not_custom_restored": 1243
+      "covered": 90,
+      "not_custom_restored": 1233
     },
     "core_families": {
       "total": 1834,
-      "covered": 80,
-      "not_custom_restored": 1754
+      "covered": 90,
+      "not_custom_restored": 1744
     },
     "broad_ui_category": {
       "total": 11261,
-      "covered": 80,
-      "not_custom_restored": 11181
+      "covered": 90,
+      "not_custom_restored": 11171
     },
-    "confirmed_priority_shortlist": 19
+    "confirmed_priority_shortlist": 19,
+    "conditionally_reviewed_transition_source_ids": 10
   },
   "reviewed_sources": [
     {
@@ -1213,6 +1214,146 @@
           "index": 0,
           "width": 256,
           "height": 64
+        }
+      ]
+    },
+    {
+      "source_id": "51ebe2dcf268b05f3ee49ced46d270f0607a766fa776d83e853d07e171f920de",
+      "family": "fire-escape-transition",
+      "status": "conditional-artwork-native-pan-playtest-required",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/trans/t1.big::t1.xsh",
+          "name": "9",
+          "index": 9,
+          "width": 512,
+          "height": 512
+        }
+      ]
+    },
+    {
+      "source_id": "dd4feccde8c4fa9dee63636252e21bcfbb1cc2efd74d03ac6cc40f5d25c39c1d",
+      "family": "fire-escape-transition",
+      "status": "conditional-artwork-native-pan-playtest-required",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/trans/t1.big::t1.xsh",
+          "name": "8",
+          "index": 8,
+          "width": 256,
+          "height": 512
+        }
+      ]
+    },
+    {
+      "source_id": "90c3ba5f36d98cb7f5f1d80d9f6f819fb9e32891aa0656f70fe296a96c37f253",
+      "family": "fire-escape-transition",
+      "status": "conditional-artwork-native-pan-playtest-required",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/trans/t1.big::t1.xsh",
+          "name": "10",
+          "index": 1,
+          "width": 512,
+          "height": 512
+        }
+      ]
+    },
+    {
+      "source_id": "b870dce8d1fd054e368f16d7da07bfecc886f99478f1e169820ac2c76633061b",
+      "family": "fire-escape-transition",
+      "status": "conditional-artwork-native-pan-playtest-required",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/trans/t1.big::t1.xsh",
+          "name": "7",
+          "index": 7,
+          "width": 256,
+          "height": 512
+        }
+      ]
+    },
+    {
+      "source_id": "0d9299ca3f85f11cc13a2d97119e20e113bb2a08572e039db217db6ca962cdd0",
+      "family": "fire-escape-transition",
+      "status": "conditional-artwork-native-pan-playtest-required",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/trans/t1.big::t1.xsh",
+          "name": "6",
+          "index": 6,
+          "width": 512,
+          "height": 512
+        }
+      ]
+    },
+    {
+      "source_id": "0a57126a98406d93fafe2a54aecb34b00c3a71fa16d54d36c6cc02bf1a8e4920",
+      "family": "fire-escape-transition",
+      "status": "conditional-artwork-native-pan-playtest-required",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/trans/t1.big::t1.xsh",
+          "name": "5",
+          "index": 5,
+          "width": 256,
+          "height": 512
+        }
+      ]
+    },
+    {
+      "source_id": "8327612c6a9f057fdea610860b7fb745b180543cd65c5978b157c83a439905cd",
+      "family": "fire-escape-transition",
+      "status": "conditional-artwork-native-pan-playtest-required",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/trans/t1.big::t1.xsh",
+          "name": "4",
+          "index": 4,
+          "width": 512,
+          "height": 512
+        }
+      ]
+    },
+    {
+      "source_id": "a4a02a3f44246c4bbc64bd8835522d29ce62be177314ae0aba6995ed6e4bafd1",
+      "family": "fire-escape-transition",
+      "status": "conditional-artwork-native-pan-playtest-required",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/trans/t1.big::t1.xsh",
+          "name": "3",
+          "index": 3,
+          "width": 256,
+          "height": 512
+        }
+      ]
+    },
+    {
+      "source_id": "8736c571e654cccc4f533a7677af8e59431b9b9529a86c2677def42f1b392d40",
+      "family": "fire-escape-transition",
+      "status": "conditional-artwork-native-pan-playtest-required",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/trans/t1.big::t1.xsh",
+          "name": "2",
+          "index": 2,
+          "width": 512,
+          "height": 512
+        }
+      ]
+    },
+    {
+      "source_id": "2f7823f2ca852076d94d4eb35a6f58f54706083e1bb2aadd1ec25c83f906b59c",
+      "family": "fire-escape-transition",
+      "status": "conditional-artwork-native-pan-playtest-required",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/trans/t1.big::t1.xsh",
+          "name": "1",
+          "index": 0,
+          "width": 256,
+          "height": 512
         }
       ]
     }
@@ -2429,8 +2570,240 @@
           "sha256": "3855b8b670529035c17372eab7f6ab7df1726e3a4dec24dee9efe9c167e9e828"
         }
       ]
+    },
+    {
+      "record": "transition-conditional-approval-20261020.json",
+      "decision": "D166/UI",
+      "status": "conditionally approved artwork; native pan playtest required for full approval",
+      "scope": "Transition v4 wide art and recorded source-shaped derivatives/phase/join views. Bitmap9Faithful-only. Excludes runtime geometry repair,wide registration,actual pan/crop/timing/fades acceptance and all old/raw variants.",
+      "files": [
+        {
+          "path": "transition-v1-20261020/image-9-restrained.png",
+          "sha256": "057c326fe3f19602502a1e65f7c98598cc1476b3149ac229f51b4365b18898b0"
+        },
+        {
+          "path": "transition-v1-20261020/image-8-restrained.png",
+          "sha256": "4209f30a8a2ed6e556f60a9a9d8e5a1d53679faedbdfa3fbf1e945876c692ddd"
+        },
+        {
+          "path": "transition-v1-20261020/image-10-restrained.png",
+          "sha256": "a5810360c01af281454733c707ee957b30f8c0e7970fce4ea07e642ccce5e633"
+        },
+        {
+          "path": "transition-v1-20261020/image-7-restrained.png",
+          "sha256": "7860022e3bf53f45b8d63f6bdb3b6d1b2c3c46716608c726e133052dd287b6f8"
+        },
+        {
+          "path": "transition-v1-20261020/image-6-restrained.png",
+          "sha256": "ad882ec437c03947738abb6fc107f2f45ef1c154131f53af913260b97df7032e"
+        },
+        {
+          "path": "transition-v1-20261020/image-5-restrained.png",
+          "sha256": "3c605d8d0280813febd3676c833092d5749a466c4a2985ba4df9522b70137890"
+        },
+        {
+          "path": "transition-v1-20261020/image-4-restrained.png",
+          "sha256": "2bd5046b7f3f2c93e5c2679550b587b2a99a500e84a4ba0ee9c2a7124a13aa47"
+        },
+        {
+          "path": "transition-v1-20261020/image-3-restrained.png",
+          "sha256": "ef9ab9904db77944878d2aee4793606e1f8902d9c82a75622ebda4904263acd7"
+        },
+        {
+          "path": "transition-v1-20261020/image-2-restrained.png",
+          "sha256": "d4cdf8944ddbd537be57de4e495e5103ba6b8d80dcc74ee4ebd8edea9a5a60da"
+        },
+        {
+          "path": "transition-v1-20261020/image-1-restrained.png",
+          "sha256": "04c60653c730a2170901ae1469f7a2ad85bbbf8c4bfda4d7040e52a573a598be"
+        },
+        {
+          "path": "transition-v1-20261020/scene-restrained.png",
+          "sha256": "075f75285e0d8588e1a304bf9d6f4520c9380702e0254d7108386e7e28c60cc5"
+        },
+        {
+          "path": "transition-v1-20261020/scene-restored-3x.png",
+          "sha256": "8cf25a0a59176a1babac04c8b27dbbc0cd44915f851a9a5b6dc8ac8620223933"
+        },
+        {
+          "path": "transition-v1-20261020/transition-wide-v4.png",
+          "sha256": "5cd9efbc5eff999a82a19598d3996da5a32855e43a39e9333e69e3449ae47b15"
+        },
+        {
+          "path": "transition-v1-20261020/full-height-v4.jpg",
+          "sha256": "7df29d5fd9465f61892cf8c8fa4d57970b831e75d3d814a533eac5743ad9417b"
+        },
+        {
+          "path": "transition-v1-20261020/phase-0-4x3-draft-v4.png",
+          "sha256": "bc1a2ca5e7e5a9c31336d4e563658252df6512a020c84768e57703e59eee873c"
+        },
+        {
+          "path": "transition-v1-20261020/phase-0-16x10-draft-v4.png",
+          "sha256": "0d4e96a645e5b82e9adc2f9f1984931859304beef4c8ffa65982b812b448e3ea"
+        },
+        {
+          "path": "transition-v1-20261020/phase-0-16x9-draft-v4.png",
+          "sha256": "f8c8330e5c7bcaaec20e7d3194cbb87826c9c09cf33ae06b4bb52f365bb3e9fb"
+        },
+        {
+          "path": "transition-v1-20261020/phase-0-21x9-draft-v4.png",
+          "sha256": "83774c6ebc860681447997d18b54c164411fd21c76db61d25d8cdba1cbc147d9"
+        },
+        {
+          "path": "transition-v1-20261020/phase-0-32x9-draft-v4.png",
+          "sha256": "002097172234c5d9ce3c251efd58d3665a762737f906e4b0e6077fc0ade8f25b"
+        },
+        {
+          "path": "transition-v1-20261020/phase-1-4x3-draft-v4.png",
+          "sha256": "83736463d40f6cff69c0e05adc9971256bf059013ffddcc030ed158c958ab32a"
+        },
+        {
+          "path": "transition-v1-20261020/phase-1-16x10-draft-v4.png",
+          "sha256": "b2f69636530a36be2d68ca0448aa43fd3008698d9433691f090ff356b3a7625f"
+        },
+        {
+          "path": "transition-v1-20261020/phase-1-16x9-draft-v4.png",
+          "sha256": "f29e872ab63f26e4593cdff0458b1a51f87f61a2f4f03e24006b7367f247f86b"
+        },
+        {
+          "path": "transition-v1-20261020/phase-1-21x9-draft-v4.png",
+          "sha256": "feca3e21ec710020861836d9b6b8dff25ebe5578183d3cab51074e51d34213b7"
+        },
+        {
+          "path": "transition-v1-20261020/phase-1-32x9-draft-v4.png",
+          "sha256": "a3d89a603f83b02b9a7fe8afedd1cc25239d7569d036955f4301da2c9cf28251"
+        },
+        {
+          "path": "transition-v1-20261020/phase-2-4x3-draft-v4.png",
+          "sha256": "a75f7429b1c49feb3c9e32dc0751c7dfa3cb6c8e597d4181aa2f46ce7e09e42b"
+        },
+        {
+          "path": "transition-v1-20261020/phase-2-16x10-draft-v4.png",
+          "sha256": "30c652de3a8723c61bb05d4a8f2fb1440051ca2fd159cbf5e70a09416852adc8"
+        },
+        {
+          "path": "transition-v1-20261020/phase-2-16x9-draft-v4.png",
+          "sha256": "5c2dd975f3e591c83b47ef207c1e74987f8e56175fbdd091fa6bf32152203e32"
+        },
+        {
+          "path": "transition-v1-20261020/phase-2-21x9-draft-v4.png",
+          "sha256": "c8532ebaa6315b1096a14c72704a1792ccf172dc0c5daf76cb46d28e5587e4fa"
+        },
+        {
+          "path": "transition-v1-20261020/phase-2-32x9-draft-v4.png",
+          "sha256": "6cdb5fdf5b4c6402064e75fea5c58ef1c95e83f9861f6561ff11f36547598c6e"
+        },
+        {
+          "path": "transition-v1-20261020/phase-3-4x3-draft-v4.png",
+          "sha256": "622aec641d230b04c2c7bbefecd87a93ef0d8947bfeda59672f1469bffd78259"
+        },
+        {
+          "path": "transition-v1-20261020/phase-3-16x10-draft-v4.png",
+          "sha256": "9da88169897d37ad09f08c08dc5ef2e1c143086fa60400d98836d14527a74db1"
+        },
+        {
+          "path": "transition-v1-20261020/phase-3-16x9-draft-v4.png",
+          "sha256": "a72d711c56b71a3589ebbabd63a012b79cafcfaab25eca93ae5cb97adfc75e53"
+        },
+        {
+          "path": "transition-v1-20261020/phase-3-21x9-draft-v4.png",
+          "sha256": "f1b77a3ec45b58e124c0a60329160cb08db6883144d3c78ffdb4fd97bbe41431"
+        },
+        {
+          "path": "transition-v1-20261020/phase-3-32x9-draft-v4.png",
+          "sha256": "e2b5217399262ca9b7478b47463847f2bad52193de5c66a9c87bf4757934c750"
+        },
+        {
+          "path": "transition-v1-20261020/phase-4-4x3-draft-v4.png",
+          "sha256": "5181d548b12feeccdf37e2b612a93ceb1cd7a8cc5f7ca7dc93485870566f14de"
+        },
+        {
+          "path": "transition-v1-20261020/phase-4-16x10-draft-v4.png",
+          "sha256": "1887a600647a84831345e57b523d6d98e9c0d591c9b94b4c0a53b174e3e645d9"
+        },
+        {
+          "path": "transition-v1-20261020/phase-4-16x9-draft-v4.png",
+          "sha256": "7818ef00493c54bb5288e936b2f84e6d8707c9b94c27da46611cfa00a5e65270"
+        },
+        {
+          "path": "transition-v1-20261020/phase-4-21x9-draft-v4.png",
+          "sha256": "db0938edb93d9e0a6cd0d9cf98a7d561f430a8f713a181504ca4f5024579f1ec"
+        },
+        {
+          "path": "transition-v1-20261020/phase-4-32x9-draft-v4.png",
+          "sha256": "3d971acf0e38fd59a5f95423416ab3c7ccd948e266041fcaedf522dd4e5d320e"
+        },
+        {
+          "path": "transition-v1-20261020/phase-5-4x3-draft-v4.png",
+          "sha256": "84b47885dc07c0deb8bab176d8eb03bceaac741aaf75aaa88f07e6ec14d440b4"
+        },
+        {
+          "path": "transition-v1-20261020/phase-5-16x10-draft-v4.png",
+          "sha256": "fd9ccdd9a673b8ad60111f59cd03b2e93b5144a5882f83ccb57a0d1a69fd73b5"
+        },
+        {
+          "path": "transition-v1-20261020/phase-5-16x9-draft-v4.png",
+          "sha256": "dc55787161ab0cb0484dce720c51583f004950c93d781517b8813c6aab59c2a4"
+        },
+        {
+          "path": "transition-v1-20261020/phase-5-21x9-draft-v4.png",
+          "sha256": "bca990ee14447dbb8737feb8e3df583f0157a47f9d27828bb7d839acb3091cc6"
+        },
+        {
+          "path": "transition-v1-20261020/phase-5-32x9-draft-v4.png",
+          "sha256": "e3cd21faaae302f0cd1902d426a21c75e5c67dc94d7262823b0f28ab64099379"
+        },
+        {
+          "path": "transition-v1-20261020/left-join-0-v4.png",
+          "sha256": "8d034bb9c2159e009d2325c0a4a8e3eb11cb3798d16ed575cad8c1f3dca1550f"
+        },
+        {
+          "path": "transition-v1-20261020/left-join-1-v4.png",
+          "sha256": "6cf02a806f89b3555024c0573fdac95d66aff8ca03d75222d8e20208145ff4f3"
+        },
+        {
+          "path": "transition-v1-20261020/left-join-2-v4.png",
+          "sha256": "a4dfd69631c5aa5f93273acc40d4ea91cee1b2e6ec066eff89966f0b497c90d1"
+        },
+        {
+          "path": "transition-v1-20261020/right-join-0-v4.png",
+          "sha256": "2b9d86b5ecc9aeb364a28758bb1ca320ad1db4939bcb6f310b6c22019f5304bd"
+        },
+        {
+          "path": "transition-v1-20261020/right-join-1-v4.png",
+          "sha256": "edc5327b39f8d03925ee77b8d18177c3cf9ac1f61f334452deefb21c34e1bc34"
+        },
+        {
+          "path": "transition-v1-20261020/right-join-2-v4.png",
+          "sha256": "60fbc8875bdf498cc2d2364543741566c19122aaf49d59f2c97811a2d79d7ee8"
+        },
+        {
+          "path": "transition-v1-20261020/left-join-full-v4.png",
+          "sha256": "ca84a279ae8bf62d327da1af288f98a59e001e0936fbd3134ac1fa00e3a4669e"
+        },
+        {
+          "path": "transition-v1-20261020/right-join-full-v4.png",
+          "sha256": "dc4eb73ffeb2a8fc6ada2d1e02c0a3c5b0f92e411ea642b541dd6850b8b109c2"
+        },
+        {
+          "path": "transition-v1-20261020/left-horizontal-overlap-0-v4.png",
+          "sha256": "42510b30a8ca3491c73ff864c38430196c3664442f6324866ff5e87955514141"
+        },
+        {
+          "path": "transition-v1-20261020/left-horizontal-overlap-1-v4.png",
+          "sha256": "58db82ee3ccca575ac4ef6939e4b9392443347e2051412074a179bf7eb3e3a60"
+        },
+        {
+          "path": "transition-v1-20261020/right-horizontal-overlap-0-v4.png",
+          "sha256": "c254184337d03fd55283a2e3ab176f7d248ba6097d187ba06f4b2fd6ea159ab3"
+        },
+        {
+          "path": "transition-v1-20261020/right-horizontal-overlap-1-v4.png",
+          "sha256": "4a37d68a91e12d7f34662d9f6ceca34e85da880733ad235e3b06c3af60dfc4ce"
+        }
+      ]
     }
   ],
-  "unique_pinned_files": 277,
-  "runtime_status": "Existing71-source artwork pipeline owner-playtested on Mac; skyline native tiles stillFaithful. New9Extras sources approved for art, isolated export prepared,gamevalidationpending. Transition pan stillneedswideart/registration."
+  "unique_pinned_files": 333,
+  "runtime_status": "Existingmenu pipeline owner-playtested;Extras9source4xexportpreparednotenabled;transition10sourceartconditional,actualpan/geometry/wideregistrationpending. Bitmap9remainsFaithful-only."
 }
