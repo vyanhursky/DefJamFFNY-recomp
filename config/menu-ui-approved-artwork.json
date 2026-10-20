@@ -2,8 +2,8 @@
   "schema": 1,
   "art_root_policy": "Relative to the PRIVATE pilot-v1 directory. No PNG/game bytes are stored here. This is an integrity catalogue,not a runtime mod manifest.",
   "decision_namespace": "Menu-session decisions are qualified /UI where they collide with main-branch decisions; preserve historical identifiers.",
-  "restoration_status": "RESUMED; Phone approved D168/UI; menu-details-v1 sixteenitems/nineteensources UNAPPROVED inreview D169/UI. Transitionv4conditionalpendingnativepan.",
-  "pilot_imagegen_calls": 127,
+  "restoration_status": "RESUMED;prior16item/19sourcebatchremainspendingD170/UI;new15item/22sourcepopup-profilebatch UNAPPROVEDinreviewD171/UI. Phoneapproved;transitionconditionalpendingnativepan.",
+  "pilot_imagegen_calls": 142,
   "source_counts": {
     "covered_by_artwork_review": 92,
     "unconditionally_approved_source_ids": 74,

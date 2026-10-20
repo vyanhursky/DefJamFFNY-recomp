@@ -1,15 +1,15 @@
 # Menu/UI modpack implementation handover
 
 **Current update — 2026-10-20:** Working HD/wide menus on PR62 were owner-playtested;
-PR73 included, toolkit `dd63e17`. Phone now APPROVED (D168/UI),10new pins/twoIDs,
-separate source4xexport ready/uninstalled. Catalogue343pins/92reviewed IDs:
-74unconditional+8Mode+10transitionconditional. Extras also ready/uninstalled;
-ladder v4 full approval still requires native moving-pan playtest. New16-item/
-19-source venue/title/support batch is UNAPPROVED at review51738: seven paper
-restorations and nine Faithful-only recommendations. Read [the batch report](research/menu-details-restoration-2026-10-20.md)
-and current PROGRESS.md §7 first. Leave the running game untouched (D163/UI).
-All artwork remains local; recipes/prompts published separately. Original
-October19pause and engineering plan below are historical.
+PR73 included, toolkit `dd63e17`. Phone approved, separate2tile4xexport ready/
+uninstalled; Extras9tile export also ready/uninstalled. Catalogue343pins/92IDs
+unchanged(74approved+8Mode+10transitionconditional). Ladder nativepan acceptance
+pending. Vlad explicitly leaves prior16item/19source batch pending(D170/UI).
+New15item/22source popup/profile/autosave batch is UNAPPROVED at review51738,
+including original-core widened profile wall v3; tenpaper restorations and four
+Faithful stamp/effect studies. Read [the latest report](research/menu-popup-profile-restoration-2026-10-20.md)
+and PROGRESS.md §7. No new installation/runtime change. Leave active game alone.
+Original October19pause/engineering plan below is historical.
 
 ---
 

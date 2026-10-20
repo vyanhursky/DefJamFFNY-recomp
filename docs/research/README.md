@@ -49,6 +49,9 @@ cite other development notes, logs and captures that are not published.
 
 ## HD textures
 
+- [Popup/profile/autosave review batch](menu-popup-profile-restoration-2026-10-20.md): fifteen studies over twenty-two sources, original-core wider wall and prior batch still pending
+- [Shared popup mapping](menu-shared-popup-mapping-2026-10-20.md): two-tile paper, authored header sampling and live backer clips
+- [Profile and autosave mapping](menu-profile-autosave-mapping-2026-10-20.md): 640×480 backdrop crop, paper pairs and exact platform/language structure
 - [Larger menu detail review batch](menu-details-restoration-2026-10-20.md): phone approved; sixteen candidates across nineteen venue/title/support source textures
 - [Venue card and shadow mapping](menu-venue-frame-mapping-2026-10-20.md): five independent animated layers with live photo content
 - [Title sticker/effect and support mapping](menu-title-support-mapping-2026-10-20.md): four proven sticker groups, soft radial effect and independent library icons

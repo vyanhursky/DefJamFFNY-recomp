@@ -1,5 +1,11 @@
 # Larger Menu/UI detail batch and phone approval — 2026-10-20
 
+**Later same-day direction(D170/UI):** Vlad says these look good, but explicitly
+leaves all16forreview and asks to move on. No approval/pins/export inferred;
+all19source candidates remain pending unchanged. [New popup/profilebatch](menu-popup-profile-restoration-2026-10-20.md)
+now leads the review page.
+
+
 Vlad approves the Story phone and requests larger batches for review (D168/UI).
 Freeze10files/two source IDs in private `phone-approval-20261020.json`: two
 source4x tiles, visible composite/alpha, native dark RGBArowprofile and five
