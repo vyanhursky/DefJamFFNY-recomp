@@ -60,6 +60,7 @@
 | Developer module, debug menu and Story scenes (D129, D130) | ✅ released v0.10.0 (macOS tested; Windows by CI compile only) | EA's developer run module (`CRunModuleAki`) rebuilt from the host and handed to the game's run-module manager. Its debug menu works: any match (`MODE - GAME`, tested Ludacris vs David Banner), REAL TIME CINEMA, stage viewer; controls mapped (d-pad, LT/RT ±10, A, Start = pause, QUIT → main menu). Any of the 38 Story scenes by name with no save: overlay Debug tab, `scenarios.py scene`, `RECOMP_SCENE`. Guides `docs/developer-menu.md`, `docs/scene-selector.md`; research `docs/research/dev-module-revival.md`. |
 | Picture options and setup progress fix (D136-D138; issues #40, #44, #47) | ✅ released v0.10.3 (latest, 2026-10-19) | PR #54 (setup progress-file contention, WinError 5) merged `c37bf34`; PR #55 (`[display] brightness`, `vignette`, `vignette_strength`, launcher/overlay Display → Picture, live; `docs/research/picture-options.md`) merged `1b04982`. Beta pre-release, owner's Deck play-test: brightness and vignette "work perfectly"; promoted to latest (D138). Windows not play-tested. Subtitles (#44) not started. |
 | Mac setup quarantine fix (D139; issue #59) | ✅ released v0.10.4 (latest, 2026-10-19) | PR #60 merged `1d4e13d`: the macOS setup unpacks its digest-checked payload with `ditto --noqtn` plus `xattr -d -r com.apple.quarantine`, so a browser-downloaded setup no longer stops on *"python3" Not Opened*. Owner confirmed with a quarantined test DMG. Tag `v0.10.4` on release PR #63 merge `110d50e`; game and toolkit identical to v0.10.3. |
+| Issue #67 / four-fighter Pit performance | ⏳ captured owner reproduction needed | 2026-10-20, M1 Pro/v0.10.5, scale 2, VSync, windowed widescreen: four guarded 1v1/FFA runs. Ordinary combat 59.97–60.00 presents/s and 60 simulation steps/s, no sustained 25/30 Hz pose cadence. Blazin activation explains the 4.2 s fight-counter pauses. Larger window/host-input and per-frame GPU pictures checked; all saves restored identical. Temporary probes removed and normal build rebuilt. `docs/research/issue67-pit-performance-macos-2026-10-20.md`; owner roster/F9 bundle and reporter log/platform/display pending. |
 
 ## 1. Decisions log
 
@@ -281,6 +282,8 @@ defjam-recomp/
 
 ## 5. Open questions for Vlad
 
+- **(2026-10-20) Issue #67 / sluggish FFA at The Pit.** Owner confirmed v0.10.5, scale 2, VSync on, windowed widescreen. Four M1 Pro runs did not reproduce sustained slowdown or 25/30 Hz pose updates (report `docs/research/issue67-pit-performance-macos-2026-10-20.md`). Still need the owner's exact four-fighter roster (asked in chat) and a local recorder bundle marked with fn+F9 just after sluggishness; enable Debug → Record play-tests first. Need issue #67 reporter's actual log (email attachment absent on GitHub), platform and display/refresh/settings. Physical panel cadence/controller latency and Windows have not been measured. No game fix or issue reply published.
+
 - **(2026-10-18) Windows performance to-do (owner has Windows access the week of 2026-10-25).** From the scene performance pass (PR #45, `docs/research/scene-perf-macos-2026-10-18.md`, Deck report on `test/scene-perf-deck`): (1) a disk shader cache for D3D11: every Windows launch still compiles each HLSL text with `D3DCompile` at first use (`d3d8_combiners.c`, `d3d8_extvs.c`, `d3d8_shaders.c`); keep the DXBC under `<data>/cache/d3d11` keyed by HLSL text, stage and compiler version, as `perf/shader-cache` (D133) does for Vulkan; (2) write and test the D3D11 pixel-shader dedupe that PR #46 records as a backlog item (the combiner cache is keyed by constant colours too; 212 combiner states were 10 distinct texts in one sc00 run); (3) `python scripts/scene-perf.py run all` on Windows and `compare` with the Mac and Deck baselines; (4) the stall fix on `test/hitch-capture` (D134) still needs a Windows build and a full `regress.py`; check whether `SwitchToThread` in the fence hold (`sub_0021EB90_enter`) starves the executor on Windows as `sched_yield` did on macOS; (5) check the wrapped tooltips (PR #45) in the Windows launcher and overlay, compiled by CI only so far; (6) shader pre-warm deferred: measure a cold against a warm Story start (title, sc00, first fight) first; build an opt-in warm-up only if more than sc00's one first-use hitch remains. A ready-made cache cannot ship (derived from the game's shaders). Added 2026-10-19: play-test the v0.10.3 picture options on Windows (brightness, vignette off and strength in a fight; D136, D138).
 - ~~**(2026-10-18) Scene performance pass (branch `test/scene-perf-tour`).**~~ Fulfilled: Deck run done, PRs #45/#48/#49/#50 merged, released as v0.10.2 (D135); Deck follow-ups in §7. All 38 Story scenes measured on the Mac at 16:9, render scale 3, vsync (`docs/research/scene-perf-macos-2026-10-18.md`): all play and end, steady 60 fps, no log faults. Open for Vlad: (1) run `python3 scripts/scene-perf.py run all` on the Deck and `compare` it with `docs/research/scene-perf-macos-2026-10-18.json`; (2) which findings to pursue: random 100-300 ms game-side stalls (F1, cause not found; next tool a hitch-triggered capture), scene-load freezes up to 1.8 s (F2), no shader/pipeline cache (F4), fence-hold spin (F5, Deck-relevant); (3) branch review/PR (scene-perf.py, wrapped overlay tooltips, widescreen contact sheets); nothing pushed.
 - ~~**(2026-10-17) Startup/PR25 publication and release.**~~ Fulfilled (D128/D132): toolkitPR1 merged a37e19e, PR39 merged0985f40 after CI28/28, v0.10.1 published/latest2026-10-17 22:25 ET. Release workflow39089619805 passes30/30; nine game-free assets verified by SHA-256/GitHub digests and exact source/toolkit provenance. [Release](https://github.com/vyanhursky/DefJamFFNY-recomp/releases/tag/v0.10.1).
@@ -321,7 +324,6 @@ defjam-recomp/
 
 > Recent entries only; older entries remain unchanged in the local `docs/worklog/` archive.
 
-- 2026-10-19 14:45 — Owner play-tested the v0.10.3 beta on the Steam Deck via the Linux setup: brightness and both vignette options "work perfectly". v0.10.3 promoted from pre-release to latest (D138), same tag `d8c8ad2` and the nine verified assets; release notes and `docs/known-issues.md` updated (beta wording dropped, Deck test recorded). Windows play-test added to the §5 to-do.
 - 2026-10-19 15:10 — Issue #59 (macOS setup blocker): a browser-downloaded setup stopped at "Preparing setup files" with *"python3" Not Opened*. Cause: `Setup.unpack()` used plain `ditto -x -k`, which copied the DMG's quarantine onto all 5365 payload files; Gatekeeper then refused the ad-hoc-signed, unnotarized bundled python3 (not a bad Python build; local builds were never quarantined, so it was never seen). Fix on `fix/macos-setup-quarantine`: `ditto --noqtn` plus `xattr -d -r com.apple.quarantine` on the digest-checked payload. Two tests in `tests/unit/test_macos_payload.py` (run the Swift's own ditto/xattr calls on a quarantined zip; both fail with the fix reverted). End to end: fixed Setup with the real v0.10.2 payload, quarantined, unpacked 0/4912 quarantined files and the engine ran (exit 2, no dump given). Units 515/32 skip; check-source-tree 416/0. Known-issues workaround for v0.10.3 and earlier. Not pushed.
 - 2026-10-19 15:30 — Owner confirmed the #59 fix with a quarantined test DMG of PR #60 ("This has fixed the issue") and asked for a hotfix. PR #60 merged `1d4e13d` (CI 28/28); #59 closed by it. v0.10.4 prepared on `chore/release-v0.10.4` (D139): CMake 0.10.4, `docs/releases/v0.10.4.md`, known-issues entry now "fixed in v0.10.4" with the `xattr` workaround for older setups. Since v0.10.3 only `setup/macos/Setup/main.swift`, its tests and docs changed (game sources and toolkit `32aab4d` identical), so no game regression was run.
 - 2026-10-19 15:25 — v0.10.4 published/latest at 15:21 ET (D139): release PR #63 merged `110d50e`, tag `v0.10.4`, Source release run 39309194188 green 30/30. Nine game-free assets downloaded and verified: each `.sha256` and GitHub digest match; provenance names source `110d50e`, toolkit `32aab4d`, production payloads. Released Mac DMG run with a quarantined payload: setup 0.10.4 unpacked 0/4914 files quarantined and the bundled engine ran (exit 2, no dump given). Issue #59 commented with the release and the workaround for older setups.
@@ -329,19 +331,38 @@ defjam-recomp/
 - 2026-10-19 16:20 — Pushed `fix/skip-intro-menu-audio` and opened PR #66 for issue #65 (D140). Prepared v0.10.5 on `chore/release-v0.10.5` (D141): CMake 0.10.5, `docs/releases/v0.10.5.md`; not merged, tagged or published.
 - 2026-10-19 19:58 — v0.10.5 published as latest (D141) from PR #68 merge `cb10747` (PR #66 merged `f2b7c6f`, #65 closed; both PRs CI 28/28). Source release run 39344036207 green 30/30; `check-release.py` verified 418 files; nine assets, installer SHA-256 files match GitHub digests. Not listened to on Windows or Linux.
 - 2026-10-20 12:00 — Issue #72 (v0.10.5 installer build on Windows 11, 5080: "has stopped working" right after build, empty Log lines field). Cannot be diagnosed without the log. Reworded the bug report's Log lines field (`.github/ISSUE_TEMPLATE/bug_report.yml`) to say where `logs/run-*.log.err` is for the installer and source builds, and to fall back to a PowerShell launch plus the Event Viewer "Application Error" entry when no log exists. Not committed or pushed; comment on #72 drafted, not posted.
+- 2026-10-20 12:45 — Issue #67 / owner's FFA sluggishness at The Pit: four serial guarded M1 Pro/v0.10.5 runs at scale 2/VSync/windowed widescreen, including larger 1800x1034 window and host-input path. Ordinary 30 s windows: 1v1 59.999/60.002 fps, FFA 60.001/59.966 fps, all ~60 fight steps/s; actor clocks/joint hashes show no sustained 25/30 Hz cadence. Two GPU video bundles (480 pictures each) identify the 4.2 s counter pause as Blazin activation; ordinary combat has 478 consecutive-frame pairs, zero exact duplicate pictures. Zero crash/watchdog/unresolved-call/debug-layer/truncated signatures; four save roots restored identical. Temporary pose/video probes removed and normal build rebuilt/verified. Logs run-20261020-122629, 122945, 123419, 123905; bundles under logs/sessions/20261020-123909; report docs/research/issue67-pit-performance-macos-2026-10-20.md. Exact owner roster/F9 bundle and issue reporter log/platform/settings remain needed; physical display/controller latency and Windows untested. No performance fix or public reply.
 
 ## 7. Hand-off
 
-v0.10.5 is the latest release (D141): https://github.com/vyanhursky/DefJamFFNY-recomp/releases/tag/v0.10.5. Tag on release PR #68
-merge `cb10747` (toolkit `32aab4d`); Source release run 39344036207 green 30/30; nine assets present, the three installers'
-SHA-256 files match GitHub's asset digests. It fixes #65 (PR #66): with *Skip startup movies and legal screen* on, Press
-Start and the menu transition sounds were silent in v0.10.1 to v0.10.4; `skip_intro.c` now runs `sub_0003DE20(1)`, the full
-audio init the game makes after the movies. Verified on the Mac only (audio capture, `boot`/`fight` routes, `--only skipintro`
-with a negative control, native fixture). The owner merged the PRs; no ear test of the fix is recorded, and Windows and Linux
-were not listened to.
+Issue #67 and the owner's slightly sluggish FFA at The Pit were investigated on the M1 Pro in four
+serial v0.10.5 runs (scale 2, VSync on, windowed 16:9; the final FFA also uses the larger saved window
+and the normal host-input path). Sustained slowdown and 25/30 Hz animation were not reproduced:
+ordinary combat is ~60 presented frames and 60 fight steps/s; actor joint poses track animation
+clock changes. The ~4.2 s gaps in the fight-step counter are Blazin' activation, confirmed with a GPU
+picture bundle. Report: `docs/research/issue67-pit-performance-macos-2026-10-20.md`; static evidence:
+`docs/research/issue67-animation-timing-read.md`. Branch `investigate/issue67-macos` contains docs only,
+based on prior issue-72 docs commit `0c6c665`. No publication or issue comment was authorized or sent.
 
-Open: Windows play-test of the picture options and the skip-on menu sounds (add to the §5 Windows to-do for the week of
-2026-10-25); subtitles (#44, backlog). Earlier items stay: Deck follow-ups (render scale 1 on sc00/sc11/sc07b/sc06, Game Mode
-60 Hz, `perf record` during sc00, F5 fence-hold wait), F2 scene-load freezes, the Windows to-do in §5. No game is running.
+Next: ask/receive the owner's exact four fighters and a **local** recorder bundle marked just after
+the sluggishness (Debug → Record play-tests, then fn+F9). The issue reporter's email log attachment is
+not visible on GitHub; obtain its actual log, platform, display/refresh/settings. Read the bundle with
+`python3 scripts/bug-bundle.py <path>` first, then reproduce that case. A rendered-frame/CPU counter
+is not physical panel timing; controller latency and Windows remain untested.
+Avoid averaging `sub_00087700` over CLogic state 7 as a fight-performance metric.
+
+Evidence: `logs/run-20261020-122629.log.err`, `122945`, `123419`, `123905`; sessions `20261020-122633`,
+`122948`, `123422`, `123909`. Video bundles in the last session: `001-animation-motion-124122` and
+`002-logic-state-7-124151`. Local scripts, full environments, samples and the reversible diagnostic
+patch are in `logs/issue67/`. All four save guards restored byte-identically. Temporary changes to
+`pc_debug.c` and `test_telemetry.c` were reverse-applied; the normal posix-release build was rebuilt
+and its pipeline state verified. No game is running. No persistent runtime/lifter/renderer change,
+so no full game regression was needed.
+
+v0.10.5 remains latest (D141), tag on PR #68 merge `cb10747`, toolkit `32aab4d`; it fixes skip-intro
+menu audio (#65/PR #66). Existing follow-ups remain: Windows play-test of picture settings and
+skip-on menu sounds in the week of 2026-10-25; subtitles #44; Deck render scale 1 on
+sc00/sc11/sc07b/sc06, Game Mode 60 Hz and `perf record` during sc00; F5 fence-hold wait; F2 scene-load
+freezes. The earlier release hand-off is archived locally in `docs/worklog/2026-10-handoffs.md`.
 
 Decisions are read by number or keyword: `decision D<n>`, `decisions --grep TEXT`.

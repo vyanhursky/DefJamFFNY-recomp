@@ -13,6 +13,7 @@ cite other development notes, logs and captures that are not published.
 
 ## Rendering
 
+- [Issue 67 and The Pit performance on macOS](issue67-pit-performance-macos-2026-10-20.md): 1v1/FFA timing, actor-pose cadence, and the Blazin' transition which pauses the fight-step counter; [static timing read](issue67-animation-timing-read.md)
 - [Render path: push-buffer executor and the D3D8 intercept](m2-render-path.md)
 - [Vertical-blank interrupt hang](m2-vblank-isr.md)
 - [Push-buffer space reservation and ring wrap](d3d-pushbuffer-wrap.md)
