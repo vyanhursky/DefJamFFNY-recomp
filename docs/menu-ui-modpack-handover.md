@@ -1,5 +1,11 @@
 # Menu/UI modpack implementation handover
 
+Current first-release scenery checkpoint (D179–D180/UI,2026-10-20): see
+[seven new wide background candidates](research/menu-wide-background-candidates-2026-10-20.md).
+New art is in review, not approved/installed. Retain existing approved work;
+leave held panel/detail/shop candidates alone. Active pre-fight loaders and
+complete fire-escape pan still need native validation.
+
 **Current update — 2026-10-20:** Gym/control15studies22IDs approved:600pins,
 136reviewedIDs(118unconditional+18conditional); isolated22tileexport ready/uninstalled.
 Vlad stops routine buttons/panels restoration because Faithful HD is sufficient.
