@@ -61,7 +61,7 @@
 | Picture options and setup progress fix (D136-D138; issues #40, #44, #47) | ✅ released v0.10.3 (latest, 2026-10-19) | PR #54 (setup progress-file contention, WinError 5) merged `c37bf34`; PR #55 (`[display] brightness`, `vignette`, `vignette_strength`, launcher/overlay Display → Picture, live; `docs/research/picture-options.md`) merged `1b04982`. Beta pre-release, owner's Deck play-test: brightness and vignette "work perfectly"; promoted to latest (D138). Windows not play-tested. Subtitles (#44) not started. |
 | Mac setup quarantine fix (D139; issue #59) | ✅ released v0.10.4 (latest, 2026-10-19) | PR #60 merged `1d4e13d`: the macOS setup unpacks its digest-checked payload with `ditto --noqtn` plus `xattr -d -r com.apple.quarantine`, so a browser-downloaded setup no longer stops on *"python3" Not Opened*. Owner confirmed with a quarantined test DMG. Tag `v0.10.4` on release PR #63 merge `110d50e`; game and toolkit identical to v0.10.3. |
 
-| Menu/UI restoration | ✅ v1 scenic artwork approved / ⏳ pack integration and native acceptance | D181/UI: seven new scenes approved,70newpins/670total,149IDs(131unconditional+18conditional). No further art batch needed for agreedv1scope; heldothersdeferred. Newwide/Profile registration, approvedcomponentintegration, active loadingroutes/fullpan/Mode/nativechecks remain. Game/packs untouched. |
+| Menu/UI restoration | ✅ separate local RC2 assembled / ⏳ native acceptance | D182–D184/UI: independent157native/164slab menu override,421.6MBZIP/423.4MBinstalled; Faithful optional/unbundled. Loading5aspects+FFA4 native pass. Transition inherited black first-tile rectangle under investigation; Story fixtures/owner native signoff remain. |
 
 ## 1. Decisions log
 
@@ -314,6 +314,10 @@
 | D180/UI | 2026-10-20 | Prepare seven widescreen scene candidates using13newsourceIDs and15builtin calls; keep allFaithful4:3cores exact and source-specific alpha/live layers separate. | Root APT placements audited; Crib door correctlytranslated469.4/reusesapprovedrightscenery. Tips both128pxjoins repaired plus fineLcontrast matched. Allnewartpending/uninstalled; oldMLoad dynamicallyloadedvenue/active loader route and conditional movingpan require laternativeevidence. Approved catalogue stays600pins/136IDs. |
 
 | D181/UI | 2026-10-20 | Vlad approves all seven widescreen background scenes. Freeze70finalfiles; no further new-art batch is required for the agreed first-release scope. |670totalpins/149reviewedIDs,131unconditional+18priorconditional. Approval covers artwork, not installation or native runtime acceptance. Remaining work: integrate approved components/Profile/newwide layers, identify active pre-fight routes and check live layers, fullfire-escape pan, Mode condition and native title/emblem derivatives acrossfiveaspects. Held detail/shop work remainsdeferred. |
+| D182/UI | 2026-10-20 | Vlad authorizes isolated release-candidate assembly and native tests on this Mac; this supersedes the earlier instruction to leave the launcher-redesign game alone. | No game was running when checked. Use a separate data/settings/save root and serial save-guarded harness runs; preserve the ordinary installation. |
+| D183/UI | 2026-10-20 | Ship the menu work as its own sparse modpack, independently enabled and ordered after Faithful HD so matching menu textures override it. | Explicit owner correction: do not bundle Faithful HD. One menu folder/ZIP, optional baseline packs remain separate; test with and without Faithful. |
+| D184/UI | 2026-10-20 | Register approved loading-wall scenery to the actual four dynamic pre-fight backgrounds, retaining each original center and separate live foreground layers. | Normal native Battle loads match/0_bg/paper_1v1 rather than battle/matchLoa; FFA3/FFA4/team have eight distinct tile IDs. Four technical color-response/placement derivatives are recorded separately from the149 owner-reviewed source IDs. No new image generation. |
+| D185/UI | 2026-10-20 | Use copy-on-write save-guard copies on macOS/APFS, retaining full-tree verification and normal-copy fallback. | Native test copies of4.9GB Xbox save/cache images exhausted disk space. Recover the isolated save from retained backup, keep failed payloads, remove only verified duplicate capture/temp exports. No ordinary save or runtime change. |
 
 ## 2. Environment inventory (2026-09-17)
 
@@ -399,13 +403,12 @@ defjam-recomp/
 
 - **2026-10-13 — Widescreen version:** v0.8.0 is already published for the setup updater (D104). Vlad chose v0.9.0; never replace the existing release.
 
-- **2026-10-20 — Menu/UI resumed (D161/UI).** Extras six studies are approved (D164/UI). Transition v4 is conditionally approved (D166/UI), pending native playtest; Story phone v1 approved (D168/UI); sixteen-item venue/title/support batch remains pending at owner request (D170/UI); popup/profile15-item batch is approved D172/UI; Gym/control15-item/22-source batch approved D175/UI. Routine small-panel/button restoration stopped D177/UI. D179/UI now scopes firstrelease to scenery/mainmenus/previouslyapprovedwork; sevennewwidebackgrounds13sourceIDs areapproved D181/UI, integration/nativeacceptance pending. Otherreviewcandidates remainheld. Mode Select's specific right-border condition and branding derivative sign-off remain separate from the broad successful playtest. Vlad answered: leave the launcher-redesign game running and continue texture work. Do not close it or launch a competing scripted game. Transition restoration/geometry validation remains pending; no other art-direction questions block preparation.
+- **2026-10-20 — Menu/UI resumed (D161/UI).** Extras six studies are approved (D164/UI). Transition v4 is conditionally approved (D166/UI), pending native playtest; Story phone v1 approved (D168/UI); sixteen-item venue/title/support batch remains pending at owner request (D170/UI); popup/profile15-item batch is approved D172/UI; Gym/control15-item/22-source batch approved D175/UI. Routine small-panel/button restoration stopped D177/UI. D179/UI now scopes firstrelease to scenery/mainmenus/previouslyapprovedwork; sevennewwidebackgrounds13sourceIDs areapproved D181/UI, integration/nativeacceptance pending. Otherreviewcandidates remainheld. Mode Select's specific right-border condition and branding derivative sign-off remain separate from the broad successful playtest. D182/UI supersedes the earlier leave-running restriction: isolated native tests are now authorized and underway. D183/UI requires a separate menu override, with optional Faithful installed independently. No art-direction question blocks testing.
 
 ## 6. Work log
 
 > Recent entries only; older entries remain unchanged in the local `docs/worklog/` archive.
 
-- 2026-10-20 10:56 — D163/UI: owner says leave launcher-redesign game running; no further launch/stop. D164/UI: approved all six Extras studies,51 new pins/nine tiles;277 pins/80 IDs(72 approved+8 conditional), separate4x export pixel-identical. D165/UI: trans/t1 ten-tile source reconstruction exposes bitmap9 placement exception; keep it Faithful-only. Eleven new built-in calls incl. rejected coarse material/upper framing;117 historical total. Transition v4 source-guided bridge/contrast draft at51738 with play/scrub through32:9; UNAPPROVED, no runtime registrations. 1,445 old PNGs/277 pins/core/tile guards/30 stage centers exact; browser30 pan/aspect states,3 join pairs, play/pause/wipe/bounds/nooverflow/zeroerrors. 22 focused tests pass. Private additive archive and source-only recipes/prompts prepared; docs/research/menu-fire-escape-artwork-2026-10-20.md.
 - 2026-10-20 11:15 — D166/UI: ladderv4 conditionally approved,56frozen files/10IDs, full native pan acceptance pending;333pins/90IDs. D167/UI: Story phone two-tile casing draft,1built-in call/118total, source display/branding/keycaps/alpha/UV/padding exact; original dark RGBAprofile extended through32:9, device size fixed. 1,725priorPNGs/333pins/five stage centers exact. Review51738 phone first, four reference/channel cases/four backgrounds/three modes/five layouts,75%bounds,nooverflow/zeroerrors.22focused tests. Active game untouched; no installation/runtime changes. New additive private archive and source-only recipes/prompts; docs/research/menu-story-phone-restoration-2026-10-20.md.
 - 2026-10-20 11:54 — D168/UI: phone approved,10pins/2IDs,343totalpins/92reviewed(74unconditional+18conditional), separate2tile source4xexport exact/uninstalled. D169/UI: larger16item/19source venue/title/support batch at51738;3cards/4stickers restored,6icons/2shadows/radialeffect Faithful-only.9built-in calls/127historical incl.2rejected dotgrain proposals. Sourcealpha/graphics/UVguards/padding,343pins/1,751priorPNGs/80isolatedaspectcenters exact. Browser64reference-channel cases/80aspectpairs loaded,3BG/3modes,75%bounds,nooverflow/zeroerrors;22focused tests. Game/activepacks untouched, ladderconditionalstillpendingplaytest. Additiveprivatearchive/source-onlybundle; docs/research/menu-details-restoration-2026-10-20.md.
 - 2026-10-20 12:30 — D170/UI: prior16item/19sourcebatch looks good but explicitlyleftpending; no approval. D171/UI: next15item/22source popup/profile/autosave batch at51738,10paper restorations+originalcorewidewall+4Faithfulstamps/effects.15builtin calls/142historical incl.bothjoinbridge repairs;v3Lcontrastmatchmedian.625left/.885right. Nativewallproposalunused,Faithfulcore/sourcegraphics/alpha/UVguards/padding exact;343pins/2,044priorPNGs/75centers unchanged. Sharedpopup/profileautosave mappingcorrectsPS2French nesting/headerstretch/UVoffsets. Browser60ref/channel+75aspectpairs loadedafterrevisit,3BG/3modes/75%bounds/3wallversions/bothjoins,nooverflow/zeroerrors;22focusedtests. No game/build/runtime/activepack changes. Additivearchive/source-onlyrecipes; docs/research/menu-popup-profile-restoration-2026-10-20.md. Source commits saved locally; both pushes blocked by GitHub authentication (invalid token/keychain access); PR62 description not updated.
@@ -413,43 +416,46 @@ defjam-recomp/
 - 2026-10-20 19:45 — D175/UI Gym15/22approved,127newpins/600total/136IDs(118unconditional+18conditional),22tile4xexportexact/uninstalled. D176/UI arrowbuttons/keys/counters on11artselectors;30studies57sources prepared. D177/UI ownerstopsroutinepanel/buttonrestoration;3inflightshoprawsheld/unadopted,147calls;7othersnotstarted. D178/UI fullgallery1323registered/1834core withoriginal/Faithful/status/nativecustomwhereavailable/localshortlist; coverage115/132respectively,1208/1702outsideapproval. Sourceaudit5unprocessedwidegroups10tiles,rootusage/clipunknown. Browser1323uniqueIDs/28pages,scopes/filters/comparison/zoom/arrow/shortlistreloadverified;8Node+22gamefocusedtests/600pins pass. Game/packs/8768untouched. Source/privatearchive;GitHubsign-in recovered and source branches published. docs/research/menu-inventory-browser-2026-10-20.md.
 - 2026-10-20 21:05 — D179–D180/UI firstrelease scenic scope:7widebackgrounddrafts/13newsourceIDs,15builtin calls/162historical,35exactFaithfulcores through32:9. Cribdoorparent469.4/sourcealpha/rightapprovedreuse; matchLoa/tipsmapped, dynamicoldMLoadnotclaimedactive. Tips2joinrepairs+Lgrainmatch. Newreviewwithoriginal/Faithful/joins/linkednavigation;600priorpins and22focusedtests pass. Newartpending/uninstalled, allotherreviewcandidatesheld; currentgame/packs/saves/8768 untouched. Sourcebundle/privatearchive; nativepan/loader/masks/fiveaspects pending. docs/research/menu-wide-background-candidates-2026-10-20.md.
 - 2026-10-20 21:20 — D181/UI ownerapprovesall7widebackgrounds. Freeze70finalpins/670total,149reviewedIDs(131unconditional+18conditional); registered121/core145. Markreview/inventoryapprovedart, retainFaithfulcores/pendingruntime distinction; no generations/pixel/activepack/gamechanges. V1art scopecomplete; newwide/Profile registration, approvedcomponentRC integration, activeloaders/live layers, fullpan/Mode/nativebranding/fiveaspects remain. Held19detailIDs/shopdrafts deferred. Approvaloverlay/sourceupdates preserved; docs/research/menu-wide-background-candidates-2026-10-20.md.
+- 2026-10-20 22:15 — D182–D184/UI: separate RC2 built157native4x/164slabs/62wideentries,421563157BZIP/423392524Binstalled; no Faithful library. Actual4dynamicloader variants8IDs registered from approved wall, four derivatives separate from artapproval. Native1v1loadingall5ratios+FFA4at32:9 saveguards/faultchecks pass;149RC1native+136slabs byte-identicalinRC2, all670artpins/325payloadhashes/ZIP verified. Five-aspectpan exposesblackfirsttile, Faithful-only and no-HD controls reproduce; synccontrol differs, notcausalproof. Interruptedtour220927 save restoredbyteidenticallyfromretainedbackup; remainingmenu-only/Storychecks underway. Zeroimggen/runtimechanges. Sourcecode/config/reports19focusedtests, source-onlycommits/pushpending. logs/run-20261020-220702.log.err; docs/research/menu-ui-separate-release-candidate-2026-10-20.md.
 
 ## 7. Hand-off
 
-### V1 scenic artwork approved; assemble/test the pack — 2026-10-20
+### Separate menu RC2 assembled; native validation in progress — 2026-10-20
 
-1. D181/UI approves all seven newscenes: choosGF2/4,choosPart,charDec,
-   CribOptions,matchLoa,tips. Currenttipsv3,othersv1; Criblayer/compositeand
-   separate loading-lighting previews included.70newpins/670total,149reviewedIDs,
-   131unconditional+18priorconditional. No additionalartbatch requiredforv1.
-   Prior16studies/19detailIDs and shopraws staydeferred, notapproved.
-2. Record `pilot-v1/wide-backgrounds-approval-20261020.json`; canonical catalogue
-   `config/menu-ui-approved-artwork.json`. SourceIDs/nativealiasdata preserved.
-   No newgeneration/pixelchanges.13newIDs reviewed;registered121/1323,core145/1834.
-   Artwork approved doesnotmean runtime-ready. No activepack/default/savechanges.
-3. Next engineering: assemblefreshisolatedRC fromexistingrestored/branding/wide
-   plusapproved Extras/Phone/Popup/Profile/Gym exports. Profilewide andsevennew
-   scenicmasters needmeasuredslab registration; keep loadingvignetteseparate.
-   Useexistingexporters andnormalapprovedpins, immutablecomponents. Sourcecore
-   remainsFaithfulexact; Cribdoorparentx469.4, originaltailalpha/order preserved.
-4. Finalnativechecks: identifyactualpre-fightloader(s), includingdynamicoldMLoad
-   ifactive; verifyportraits/text/masks/vignettes/UVs/scissors/fades at4:3,16:10,
-   16:9,21:9,32:9. Fullfire-escapepan/bitmap9geometry, Mode specificrightlighting
-   and title/emblemnativeexports requirevisualsignoff. No newartreviewbatchneeded
-   unlessplaytests exposeissues. Do not claimreleasecomplete beforethisgate.
-5. **Leave launcher-redesign game running**, no competinggame/stop/build. Existing
-   owneranswer persists. PrepareconcreteisolatedRC beforeaskingforscriptedchecks.
-   Preserve8768singlewriter,17workshop/Trejo, browserlocalStorage andoldarchives.
-6. Review51738/wide-backgrounds.html nowmarksapprovedartwork/integrationpending;
-   inventorykeepssource4:3Faithful-retaineddistinctfromnewwidescenery. Detailed
-   checkpoint `docs/research/menu-wide-background-candidates-2026-10-20.md`.
-   Fifteennewcalls/162historical; no furthergenerationneeded. Sourceprompts and
-   recipes `DefJam-Modding-Tools/research/menu-ui-wide-backgrounds-20261020/`.
-7. Source-onlybranches codex/menu-ui-modpack-handoff(PR62), authoring
-   codex/menu-ui-art-source(PR1). Artassets local. Privatebasearchive
-   `<data>/scratch/menu-ui-wide-backgrounds-v1-20261020/`302files/617899599bytes,
-   manifest2d033a453d84f4a000a35ddfbb2fc3e7972e037f3c62c350d9cb65d8d2714639.
-   Approvaloverlay `<data>/scratch/menu-ui-wide-backgrounds-approved-20261020/`.
-   No tag/merge/publicassetrelease.
-
-Decisions are read by number or keyword: `decision D<n>`, `decisions --grep TEXT`.
+1. D182/UI authorizes isolated native checks, superseding earlier leave-running
+   restriction. No pre-existing game was running. Ordinary installation unchanged.
+   D183/UI requires a separate menu override after optional Faithful HD; no
+   Faithful library bundled. Candidate name `menu-ui-hd-wide-v1-rc2`.
+2. Isolated data root `<data>/playtest-menu-ui-v1-rc1/`, pack and ZIP under `mods/`.
+   `play.sh all|menu-only|faithful`. ZIP421563157bytes, installed423392524bytes;
+   SHA25643bbb22cd14197091143623551f350a0b7ff622f0efccb1da058f491e7157634.
+   157native4xPNGs/164slabs/62wideentries/326files. Payload/ZIP hashes and canvas
+   sizes verified. All670approved/conditional artpins unchanged; zero newimggen.
+3. D184/UI: active pre-fight screen uses four `match/0_bg/paper_*` backgrounds,
+   eightIDs, not legacy `battle/matchLoa`. Approved exterior registered with
+   original centers retained; four master derivatives and aliases are separate
+   from owner art approval in config/menu-ui-runtime-registrations.json.
+4. Native one-on-one loading passes all5ratios and FFA4 passes32:9, portraits and
+   lettering intact, save guards restored/faultsnone. Pan capturedall5 but inherited
+   black first-left-tile rectangle also reproduces Faithful-only16:9; unresolved.
+   Do not mark release complete. Mode/nativebranding stillowner visual signoff;
+   GF2/GF4/partner needlaterStoryfixtures. Other19detailIDs/shop draftsdeferred.
+5. Resume scripts/receipts `logs/menu-ui-v1-rc/`; active serial runner
+   `run-final-probes.py` controls synchronous/Faithful and original transition,
+   menu-only compatibility and Story intro/Crib. Check processes/receipts before
+   another game. Prior tour was interrupted by app shutdown; no acceptance claim.
+   Saveguard payload/marker check is recorded in current tool output.
+6. Current report docs/research/menu-ui-separate-release-candidate-2026-10-20.md;
+   transition diagnostic and routes reports beside it. Sourcebuilder
+   scripts/build-menu-ui-release.py, config/menu-ui-release.json; exporter now
+   rounds fractionalUV shifts to runtime integer grammar. Focused19tests pass.
+7. Native browser http://127.0.0.1:51738/native-playtest.html (captures); artwork
+   reviews/inventory and notes preserved. Preserve8768writer/workshop/Trejo.
+   HostingPR17 report proposes Pages catalogue/external versionedZIP/helper later;
+   owner host preference pending, no account/upload/tag/release performed.
+8. Source changes currently UNCOMMITTED in game branch codex/menu-ui-modpack-handoff
+   (PR62) and tools codex/menu-ui-art-source (PR1). Finish checks, update current
+   coverage/PROGRESS, source-check/dry-run/commit/push per prior authorization.
+   New native authoring sourcebundle research/menu-ui-native-release-20261020/ in
+   tools repo. Archive four registered masters/native evidence additively outside
+   the worktree before completion. Previous immutable archives unchanged.
