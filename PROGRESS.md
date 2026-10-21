@@ -62,6 +62,8 @@
 | Picture options and setup progress fix (D136-D138; issues #40, #44, #47) | ✅ released v0.10.3 (latest, 2026-10-19) | PR #54 (setup progress-file contention, WinError 5) merged `c37bf34`; PR #55 (`[display] brightness`, `vignette`, `vignette_strength`, launcher/overlay Display → Picture, live; `docs/research/picture-options.md`) merged `1b04982`. Beta pre-release, owner's Deck play-test: brightness and vignette "work perfectly"; promoted to latest (D138). Windows not play-tested. Subtitles (#44) not started. |
 | Mac setup quarantine fix (D139; issue #59) | ✅ released v0.10.4 (latest, 2026-10-19) | PR #60 merged `1d4e13d`: the macOS setup unpacks its digest-checked payload with `ditto --noqtn` plus `xattr -d -r com.apple.quarantine`, so a browser-downloaded setup no longer stops on *"python3" Not Opened*. Owner confirmed with a quarantined test DMG. Tag `v0.10.4` on release PR #63 merge `110d50e`; game and toolkit identical to v0.10.3. |
 
+| Launcher mod catalogue | ✅ helper/UI/signing source / ⏳ acceptance and hosting | D186–D190/UI: current-main implementation in logs/mod-manager-worktree; strict helper/shared order, three native synthetic tours pass twice; fresh launcher+intro2/2 pass, full15/18 (USB/intro-name/gym-route diagnostics), units569pass. Catalogue PR1/3597c0e CI13tests pass; key/backup/protected secret provisioned with explicit approval. No live Pages/art host. |
+
 ## 1. Decisions log
 
 | # | Date | Decision | Rationale |
@@ -245,6 +247,12 @@
 D138–D140 were allocated independently on main and the launcher branch. Their rows retain both records, labelled by branch, so existing decision references keep their meaning; no identifiers were renumbered.
 
 
+| D186/UI | 2026-10-21 | Vlad requests launcher local-mod discovery, curated downloads/updates and one shared Load Order sub-window. Confirms new public vyanhursky/DefJamFFNY-mods, signed JSON, helper in game repo, owner-approved GitHub Actions publishing, Cloudflare R2 with modest cost. | Supersedes prior hosting question. No Cloudflare account/domain yet; recommend owner-owned account and production downloads subdomain, development r2.dev for testing. Menu remains separate from optional Faithful. |
+| D187/UI | 2026-10-21 | Texture-pack catalogue first: preserve schema1/runtime order; defer schema2 guest-file/archive overrides and generic-helper extraction. Create source-only catalogue foundation and protected release environment; trusted publishing remains disabled. | Latest main already has local Mods discovery/order and Setup retains Python. One additional repo suffices; do not replace redesigned launcher with this older art branch UI. Foundation adf8099, seven tests and CI39612826714 pass; no art/key/Pages/R2 release. |
+| D188/UI | 2026-10-21 | Vlad explicitly authorizes generating the catalogue Ed25519 signing key, retaining a private local backup and provisioning the protected GitHub environment secret. Completed; public pin tracked, private backup outside worktrees under `<data>/private-signing/mod-catalogue/`. | Specific credential authorization followed automatic-review request. Never print/track/package the private key; owner-approved main-only catalogue publishing remains a separate action. |
+| D189/UI | 2026-10-21 | Implement texture-only catalogue helper and current-main launcher bridge/shared order on `codex/launcher-mod-manager-v1`; bundle three pinned verification wheels on all Setup platforms. Catalogue PR1 isolates archive scans from protected signing, pins signer dependencies and refuses missing history except explicit first-empty bootstrap. | Preserve local ownership/order; journal updates and hold a game/installer lock. Main toolkit lacks wide slabs, so advertise `wide-v1` only when compiled loader supports it. First UI conservatively gates Play during an explicit helper job; ordinary offline Play needs no refresh. |
+| D190/UI | 2026-10-21 | Keep catalogue download URLs host-independent while evaluating GameBanana/Thunderstore/Quiver at Vlad's request. No new host, listing or external contact selected. | Compatible storefront downloads can be pinned by reviewed version/hash; R2 may be origin/mirror. Thunderstore needs a validated wrapper adapter and suitable community; Quiver needs an external-data path/import bridge and enable/order coordination. GameBanana AI-art policy requires training-data knowledge we cannot document for imggen: retain R2 for this pack pending moderator clarification. See storefront report. |
+
 ## 2. Environment inventory (2026-09-17)
 
 - Current test host (2026-10-17): macOS26.5.2 arm64, Apple Clang21.0.0, CMake4.4.4, Ninja and Python3.14.6 through `uv`. Build `posix-release`; data via the existing `game` symlink. Startup-skip tests use only disposable roots under `logs/startup-skip/`. Original Windows inventory below is retained for that machine.
@@ -328,11 +336,12 @@ defjam-recomp/
 
 - **2026-10-13 — Widescreen version:** v0.8.0 is already published for the setup updater (D104). Vlad chose v0.9.0; never replace the existing release.
 
+**2026-10-21 — Mod distribution (D188–D190/UI).** Signing-key custody/provisioning is complete with explicit approval. Account/domain or storefront choice remains before public downloads; no required answer blocks local work. Provider adapter/Quiver path acceptance and Windows/Deck testing remain.
+
 ## 6. Work log
 
 > Recent entries only; older entries remain unchanged in the local `docs/worklog/` archive.
 
-- 2026-10-20 12:00 — Issue #72 (v0.10.5 installer build on Windows 11, 5080: "has stopped working" right after build, empty Log lines field). Cannot be diagnosed without the log. Reworded the bug report's Log lines field (`.github/ISSUE_TEMPLATE/bug_report.yml`) to say where `logs/run-*.log.err` is for the installer and source builds, and to fall back to a PowerShell launch plus the Event Viewer "Application Error" entry when no log exists. Not committed or pushed; comment on #72 drafted, not posted.
 - 2026-10-20 10:28 — D142 launcher follow-up: main af0c03c integrated (v0.10.5 fixes preserved, concurrent D138-D140 labelled); slider-only contrast, Windowed 1920×1080 / Auto / 2× first-run/reset defaults, render-height help and viewport-bounded tooltip. Native new/saved settings + Auto boot and 200% narrow help verified; all disposable saves restored. Final quick 5/5 logs/regress-20261020-102601.txt (units 528 pass/32 skip/one slow deselected), picture/overlay 2/2 logs/regress-20261020-102746.txt; Swift wrappers type-check; hygiene 430/0. PR #58 remains for playtest, no merge/tag/release.
 - 2026-10-20 10:57 — D143: extra 640×480/250% QA after 7fac946 CI 28/28 could not reach Render Scale (logs/run-20261020-103627.log.err; triage: normal prelaunch quit, body crowded by chrome). Compact header/padding/footer and viewport-fitted help fixed; semantic hover added for stable native checks. 100/200/250% controls/help/Back pass, all disposable save roots restored. Final quick 5/5 logs/regress-20261020-105429.txt (528 units/32 skip/one slow deselected), picture/overlay 2/2 logs/regress-20261020-105615.txt; hygiene 430/0. PR #58; no merge/tag/release.
 - 2026-10-20 11:45 — D144: owner confirms controller works, authorizes Deck beta and README/docs screenshot replacement. Prepared v0.10.6 prerelease (v0.10.5 stays latest), rebuilt version-only source, captured real native Home/Advanced with disposable data/save guard; replaced launcher.png, added launcher-advanced.png and pinned exact UI-only hashes. Front-page README/player guide/gallery refreshed; final units 529 passed/32 skipped/one slow deselected, 62 local docs links valid, source hygiene 432/0. Initial unit run overlapped the final image/hash replacement (one fingerprint failure); rerun after finalization passed. Release/CI/publication pending.
@@ -340,34 +349,53 @@ defjam-recomp/
 - 2026-10-20 21:30 — D146, issue #77: Linux player gets no window (sound and pad work), `Failed loading /lib/libvulkan.so: wrong ELF class: ELFCLASS32`. The baked SDL Vulkan hint (CMake `Vulkan_LIBRARY`) is now macOS-only; Linux uses SDL's `libvulkan.so.1`. New unit test pins it; Linux setup and setup-engine tests 55 passed/17 skipped; `compile-game-sources.py` on macOS 31/31 with the hint still defined. Branch `fix/linux-vulkan-loader`; a game-free Linux setup from its CI goes to the reporter on #77.
 - 2026-10-20 22:13 — D145: owner authorized v0.10.6 stable promotion and name Improved Game Launcher. Updated GitHub title/notes, prerelease=false/latest=true; API confirms latest v0.10.6, same release ID, tag 2e8ec40 and all nine asset IDs/sizes/digests. README/gallery/handover beta wording removed; no rebuild, tag move, asset replacement or game run. Receipts logs/launcher-review/stable-20261020/{before,after,latest}.json.
 - 2026-10-21 08:48 — D146, issue #77: reporter confirms the Linux test setup from CI run 39521387707 (commit 2ccfee0, Clean Rebuild) opens a window and plays. PR #78 (28/28 CI) merged after merging main (D145 number taken by the v0.10.6 stable promotion; this decision renumbered D146). Issue #77 closed as fixed in the next release; no release cut.
+- 2026-10-21 11:31 — D188–D190/UI: current-main mod helper/launcher/shared order implemented in logs/mod-manager-worktree, pinned verifier wheels on all platforms. Owner-approved signing key/private backup/protected secret provisioned; catalogue PR1/3597c0e,13tests+22subtests/CI39623189224 pass, no Pages/art host published. Final units569pass/32skip/1slow deselected; three native synthetic launcher tours pass twice, full saves identical; realRC2 ZIP326files/421563157B validates. Native full15/18 in44min (regress-20261021-112705.txt): knownUSB callback, intro duplicate-name fixture, gym wrong-shop route; combat27/27, versus26/26, replay80records/1800steps, soak3/3 pass. Fresh-save launcher+intro2/2 pass (regress-20261021-113118.txt). GameBanana artwork policy requires training-data knowledge we cannot document for imggen; R2 stays primary pending clarification. Source-only commits/PR follow; no artwork/runtime toolkit/ordinary saves changed. docs/research/mod-manager-validation-2026-10-21.md.
 
 ## 7. Hand-off
 
-**v0.10.6 is stable/latest — Improved Game Launcher** (D145), owner-approved October 20:
-https://github.com/vyanhursky/DefJamFFNY-recomp/releases/tag/v0.10.6
-Promoted the existing prerelease; release ID, tag `2e8ec40c93fe309ef0cdba5d4e3915e18f24976e`
-and all nine asset IDs/sizes/digests are unchanged. API confirms prerelease=false,
-draft=false and Latest=v0.10.6. Updated title/notes and README/gallery/handover wording.
-No rebuild or new tag/assets; no new gameplay tests for this metadata/docs-only promotion.
-Before/after/latest receipts: `logs/launcher-review/stable-20261020/{before,after,latest}.json`.
+### Launcher mod manager implementation; separate menu art preserved — 2026-10-21
 
-Existing validation remains: candidate CI 28/28 (39451428303), tagged release 30/30
-(39452474210), source hygiene 432/0, nine setup/checksum/provenance assets downloaded and verified.
-Native Mac quick 5/5, picture/overlay 2/2, 100/200/250% UI and fresh/saved defaults checks pass.
-Version/media units 529 passed/32 skipped/one slow deselected. Earlier full run remains 16/18
-(host-stall audio underrun, retry27/27; historical replay callback D108 despite exact records).
-Keep those limits; do not claim a new full regression or detailed Deck acceptance from release approval.
-
-Settings: new/reset Windowed 1920×1080 / Widescreen Auto / 2×, VSync on; saved preferences preserved.
-Slider contrast, render-resolution help, Home/Advanced shared settings and Setup/pack invariants
-are in `docs/agent/launcher-handoff.md`; implementation evidence in
-`docs/research/launcher-ui-implementation-2026-10-19.md`. README and guides show current Home/Advanced;
-the UI-only exports stay hash-pinned. Mac appearance/controller owner-accepted. More detailed
-Deck/Windows GUI, real pack/Setup utility and gameplay feedback can still be collected.
-
-Use stable Linux setup in Desktop Mode: existing install/data folders, Clean Update, Bundled or Latest.
-Beta users already have the same installers/game version; promotion alone needs no reinstall.
-Keep launcher worktree `/Users/vlad/.codex/worktrees/launcher-redesign/DefJamFFNY-recomp` and
-`build/Def Jam Launcher Playtest.app`; owner continues in this chat. Finish/merge the docs-only
-promotion record after its CI passes, then prune its merged branch. Earlier Windows/F2/scene-load/
-audio backlog remains in §5 and `docs/known-issues.md`.
+1. Implementation worktree `logs/mod-manager-worktree`, branch
+   `codex/launcher-mod-manager-v1`, based on main a0c9109 + APFS save-guard ee8be70.
+   Toolkit stays main32aab4d. Helper, native bridge, installed/catalogue Mods UI,
+   shared Load Order, final-winner overlap display, recovery and bundled verifier
+   dependencies implemented. Read docs/mod-manager.md and
+   docs/research/mod-manager-validation-2026-10-21.md in that worktree.
+2. Full serial native regression15/18; compact receipt
+   /private/tmp/defjam-mod-manager-full.txt and logs/regress-20261021-112705.txt.
+   Failures: documented USB callback, intro name collision, gym wrong-shop route. Three synthetic native
+   launcher update/order/250% text/recovery tours pass with byte-identical save
+   restoration; real menu ZIP format validation passes. Fresh launcher/intro2/2
+   pass, logs/regress-20261021-113118.txt. Gym route remains uncalibrated. Keep any baseline USB/audio
+   failures visible in the final report; cross-platform acceptance remains.
+3. Catalogue https://github.com/vyanhursky/DefJamFFNY-mods/pull/1 draft, branch
+   codex/signed-catalogue-v1,3597c0e. Thirteen tests and CI39623189224 pass. No live
+   Pages index yet. Protected catalogue-release environment requires vyanhursky and
+   main-only deployment. Owner explicitly approved signing-key creation/backup/
+   secret provisioning: complete. Public keys match; private backup outside
+   worktrees in <data>/private-signing/mod-catalogue/, never commit/package it.
+4. No Cloudflare account/domain/bucket or public artwork upload. User asks how
+   GameBanana/Thunderstore/Quiver fit: host-independent signed catalogue stays;
+   compatible direct downloads possible, provider wrappers/path adapters unbuilt.
+   GameBanana policy requires training-data knowledge we cannot document for imggen;
+   retain R2 for this menu pack pending clarification. See storefront report. No third-party listing,
+   contact, automatic browsing or universal recomp compatibility claimed.
+5. Menu PR62/art branch and tools PR1 preserved. RC2 remains separate from optional
+   Faithful at <data>/playtest-menu-ui-v1-rc1/mods/menu-ui-hd-wide-v1-rc2[.zip].
+   157textures/164slabs/62wide/326files;421563157BZIP,423392524Binstalled; SHA256
+   43bbb22cd14197091143623551f350a0b7ff622f0efccb1da058f491e7157634.
+   Main32aab4d has no wide support; integrate PR62/PR73 deliberately before offering
+   the menu pack. Do not silently change toolkit pin or bundle Faithful.
+6. Menu native gates: transition first blacktile reproduces Faithful-only/noHD;
+   owner Mode lighting/branding signoff, Crib/GF2/GF4/partner/Tips,3player/team.
+   Existing docs/research/menu-ui-separate-release-candidate-2026-10-20.md and
+   menu-transition-native-black-rectangle-2026-10-20.md remain relevant.
+7. Private art logs/ui-restoration-20261017/pilot-v1; review51738/native-playtest.html
+   contains20runs. Immutable <data>/scratch/menu-ui-native-release-rc2-20261020/
+   11716files5552616413B manifestf93b80f023bee2b5d1e43348aa4a67327244017ad0e96f9e08d38e01054da3e6;
+   final review overlay7files282521B manifest5656a5e13bbf18703f0b0733e6de142bd1f9e585176e2e00d12dec91d2386419.
+   All670pins/149reviewedIDs preserved, held19detailIDs/shopdrafts deferred. No art
+   edits/imagegen/ordinary game saves/settings touched by manager development.
+8. Before finishing: finalize regression evidence, fast unit/source hygiene,
+   commit/push source-only implementation and open/attach draft game PR. Update
+   this handoff with final hashes/PR/results. Final fast units569pass/32skip/1slow deselected. No merge/tag/Pages/art release yet.

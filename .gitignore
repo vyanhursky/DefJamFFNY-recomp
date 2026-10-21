@@ -58,3 +58,10 @@ tests/golden/*.png
 # ---- personal agent settings (the shared .claude/skills, .claude/agents, .codex/skills are generated and tracked) ----
 .claude/settings.local.json
 CLAUDE.local.md
+
+# ---- private downloaded mod state and payloads (developer cwd fallback) ----
+/mod-manager/
+/mods/
+
+# Development history stays local; PROGRESS.md is the published handoff.
+/docs/worklog/

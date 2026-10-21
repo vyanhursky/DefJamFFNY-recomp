@@ -21,6 +21,9 @@ cite other development notes, logs and captures that are not published.
 
 ## Front end and movies
 
+- [Launcher mod manager](launcher-mod-manager-implementation-2026-10-21.md): catalogue/helper/shared load order and source-only publication; [validation](mod-manager-validation-2026-10-21.md).
+- [GameBanana, Thunderstore and Quiver](mod-storefront-integration-2026-10-21.md): community hosting alongside curated metadata and game-specific installation.
+
 - [Launcher UI proposal, 2026-10-19](launcher-ui-proposal-2026-10-19.md): Home/Advanced organization and source review
 - [Launcher implementation and playtest, 2026-10-19](launcher-ui-implementation-2026-10-19.md): native UI, setup handoff and acceptance evidence
 
