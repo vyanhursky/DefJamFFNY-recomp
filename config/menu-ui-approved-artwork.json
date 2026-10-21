@@ -2,26 +2,26 @@
   "schema": 1,
   "art_root_policy": "Relative to the PRIVATE pilot-v1 directory. No PNG/game bytes are stored here. This is an integrity catalogue,not a runtime mod manifest.",
   "decision_namespace": "Menu-session decisions are qualified /UI where they collide with main-branch decisions; preserve historical identifiers.",
-  "restoration_status": "Scope changed: stop routine smallpanel/button restoration. Focus widescreen backgrounds and owner-selected exceptions. Gym/controls approved D175/UI; prior16batch pending. Three rawshopproposals retained/unadopted;147calls total.",
-  "pilot_imagegen_calls": 147,
+  "restoration_status": "First-release artwork scope approved D181/UI: seven finalwide scenes/13newsourceIDs. No further routine panels/buttons/shop generations; held16study/19sourcebatch deferred. Pack integration/native release acceptance pending.",
+  "pilot_imagegen_calls": 162,
   "source_counts": {
-    "covered_by_artwork_review": 136,
-    "unconditionally_approved_source_ids": 118,
+    "covered_by_artwork_review": 149,
+    "unconditionally_approved_source_ids": 131,
     "conditionally_reviewed_mode_source_ids": 8,
     "registered_flows": {
       "total": 1323,
-      "covered": 115,
-      "not_custom_restored": 1208
+      "covered": 121,
+      "not_custom_restored": 1202
     },
     "core_families": {
       "total": 1834,
-      "covered": 132,
-      "not_custom_restored": 1702
+      "covered": 145,
+      "not_custom_restored": 1689
     },
     "broad_ui_category": {
       "total": 11261,
-      "covered": 136,
-      "not_custom_restored": 11125
+      "covered": 149,
+      "not_custom_restored": 11112
     },
     "confirmed_priority_shortlist": 17,
     "conditionally_reviewed_transition_source_ids": 10
@@ -2224,6 +2224,201 @@
           "height": 128
         }
       ]
+    },
+    {
+      "source_id": "0fbf5fd04abb0da6f5f3bf480edd362f68642c43551127b7f49a48e1ce425ea8",
+      "family": "wide-menu-loading-backgrounds",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/options/cribOptions.big::cribOptions.xsh",
+          "name": "7",
+          "index": 8,
+          "width": 64,
+          "height": 512
+        }
+      ],
+      "treatment": "Faithful source core retained; approved imggen exterior scenery"
+    },
+    {
+      "source_id": "42290375eda4db531edda2434ab77796cffbdff6a8e487e2504095ef8814d271",
+      "family": "wide-menu-loading-backgrounds",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/story/choosGF4.big::choosGF4.xsh",
+          "name": "1",
+          "index": 0,
+          "width": 128,
+          "height": 512
+        }
+      ],
+      "treatment": "Faithful source core retained; approved imggen exterior scenery"
+    },
+    {
+      "source_id": "4e14616005475a5f6ef45e94be97372ac82b202b9cd9a33b2f2c057db47952a4",
+      "family": "wide-menu-loading-backgrounds",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/story/charDec.big::charDec.xsh",
+          "name": "1",
+          "index": 0,
+          "width": 128,
+          "height": 512
+        }
+      ],
+      "treatment": "Faithful source core retained; approved imggen exterior scenery"
+    },
+    {
+      "source_id": "54845d31b4d5e066855854800aeea697144c022dfa6d27082ed6256488d46ddc",
+      "family": "wide-menu-loading-backgrounds",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/options/cribOptions.big::cribOptions.xsh",
+          "name": "8",
+          "index": 9,
+          "width": 512,
+          "height": 512
+        }
+      ],
+      "treatment": "Faithful source core retained; approved imggen exterior scenery"
+    },
+    {
+      "source_id": "7a5d6ce31c47aec8fdd9bbe11c9561a7d8cb833ded7058ab05cb229fad76d185",
+      "family": "wide-menu-loading-backgrounds",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/battle/matchLoa.big::matchLoa.xsh",
+          "name": "1",
+          "index": 0,
+          "width": 1024,
+          "height": 512
+        }
+      ],
+      "treatment": "Faithful source core retained; approved imggen exterior scenery"
+    },
+    {
+      "source_id": "7d0ce1a845a682f0a59b787a9cc5d90b1e83955036b60edb160d1acb930840fd",
+      "family": "wide-menu-loading-backgrounds",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/story/choosGF4.big::choosGF4.xsh",
+          "name": "2",
+          "index": 5,
+          "width": 512,
+          "height": 512
+        }
+      ],
+      "treatment": "Faithful source core retained; approved imggen exterior scenery"
+    },
+    {
+      "source_id": "85a965889ad5c66d51d2c6d5d23b8f4162c8366d7232a9202407848a41e06ab9",
+      "family": "wide-menu-loading-backgrounds",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/story/choosPart.big::choosPart.xsh",
+          "name": "2",
+          "index": 1,
+          "width": 512,
+          "height": 512
+        }
+      ],
+      "treatment": "Faithful source core retained; approved imggen exterior scenery"
+    },
+    {
+      "source_id": "a021919997cc9a50b377c257f6afed472242e7281e3f9ba8ca691525bba8ea77",
+      "family": "wide-menu-loading-backgrounds",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/battle/tips.big::tips.xsh",
+          "name": "2",
+          "index": 4,
+          "width": 512,
+          "height": 512
+        }
+      ],
+      "treatment": "Faithful source core retained; approved imggen exterior scenery"
+    },
+    {
+      "source_id": "ba60f610a2911adafc27adaa9555c092751ac272c0ffbe2f65fb14ec7454af3d",
+      "family": "wide-menu-loading-backgrounds",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/story/choosGF2.big::choosGF2.xsh",
+          "name": "16",
+          "index": 3,
+          "width": 512,
+          "height": 512
+        }
+      ],
+      "treatment": "Faithful source core retained; approved imggen exterior scenery"
+    },
+    {
+      "source_id": "bfb532b238b18aa0f3fe26cd486f4246756e2f24cdde428c7c9e929fbcda931b",
+      "family": "wide-menu-loading-backgrounds",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/story/choosGF2.big::choosGF2.xsh",
+          "name": "30",
+          "index": 9,
+          "width": 128,
+          "height": 512
+        }
+      ],
+      "treatment": "Faithful source core retained; approved imggen exterior scenery"
+    },
+    {
+      "source_id": "cc76ce61906858b8da3d522063f4a8d2e3cce1de51d7375a4db519f110676afb",
+      "family": "wide-menu-loading-backgrounds",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/battle/tips.big::tips.xsh",
+          "name": "1",
+          "index": 0,
+          "width": 128,
+          "height": 512
+        }
+      ],
+      "treatment": "Faithful source core retained; approved imggen exterior scenery"
+    },
+    {
+      "source_id": "e2cdef62ca33d5a1d862fab5bf352014cd309f48543968eaca81db7a264ea5a2",
+      "family": "wide-menu-loading-backgrounds",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/story/charDec.big::charDec.xsh",
+          "name": "2",
+          "index": 8,
+          "width": 512,
+          "height": 512
+        }
+      ],
+      "treatment": "Faithful source core retained; approved imggen exterior scenery"
+    },
+    {
+      "source_id": "f924c4842d081a7d37d4112e64c7ce634380d8a2b4c3f172c0087942920a2aee",
+      "family": "wide-menu-loading-backgrounds",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/story/choosPart.big::choosPart.xsh",
+          "name": "1",
+          "index": 0,
+          "width": 128,
+          "height": 512
+        }
+      ],
+      "treatment": "Faithful source core retained; approved imggen exterior scenery"
     }
   ],
   "approval_records": [
@@ -4762,8 +4957,296 @@
           "sha256": "457057a50ee5bcc5ddc47eb21bbcef5f80c340ad1325ed0d267055fd84c0f44e"
         }
       ]
+    },
+    {
+      "decision": "D181/UI",
+      "status": "owner-approved artwork",
+      "scope": "All seven wide-background scenes currently shown atwide-backgrounds.html; tipsv3, othersv1, Criblayer/composite reuse and proposed loader-lighting previews. Original/Faithful4:3cores retained. Excludes raw/history, held detail/shop candidates, active loading-route coverage, native registration and runtime acceptance.",
+      "files": [
+        {
+          "path": "wide-backgrounds-v1-20261020/charDec-16x10-draft.png",
+          "sha256": "a65cb5c42c5abcd62a4bac84ea1f739f57b9be1cecadbb7e5f71250a834cff99"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/charDec-16x9-draft.png",
+          "sha256": "ebfa8ee57cf25a4bd7101be5f67708ba937bc4aa2afc0601433f437634675217"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/charDec-21x9-draft.png",
+          "sha256": "8f2108dd11e84806318f9fbd6c9eae42d80d01721e1040d63d63835bf4d0ef30"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/charDec-32x9-draft.png",
+          "sha256": "0bbe9e046042a06a4df013d100a8b878a2c26c5d827d4d22763d0c4ab0f47012"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/charDec-4x3-draft.png",
+          "sha256": "169dff17e6dd361ded95c11a1c45240c126719c2bb211530b4338cafc9137e2c"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/charDec-core-hd.png",
+          "sha256": "169dff17e6dd361ded95c11a1c45240c126719c2bb211530b4338cafc9137e2c"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/charDec-left-join.png",
+          "sha256": "3a6fa7c1a86e6eec80b2e5ed418af2ba18d5a1c3ec0667baaf3f1655f9d423f8"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/charDec-right-join.png",
+          "sha256": "a9f10c59e0d6d336bb3f072fca81d42e62cceb0714881adb9899412feb66c9ce"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/charDec-wide-v1.png",
+          "sha256": "0bbe9e046042a06a4df013d100a8b878a2c26c5d827d4d22763d0c4ab0f47012"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/choosGF2-16x10-draft.png",
+          "sha256": "49b599533009f3f32b2a3b18d58289c68c855a47e7c8d1d26e544227b869a740"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/choosGF2-16x9-draft.png",
+          "sha256": "f9528c129569f499889e37239f0ab368a73d59d1ca510f78272a803414a072e2"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/choosGF2-21x9-draft.png",
+          "sha256": "296658f57fb56637ce5d26a26360047333d96a8b9c99f726daf28fdfd9b13d38"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/choosGF2-32x9-draft.png",
+          "sha256": "c4b12bb022fdaa7fe8dd30b830ac0ed70695c6df543769e5576550acf32d5fe4"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/choosGF2-4x3-draft.png",
+          "sha256": "12f9fd322275ff2ea4f64f5eb9d986a0342eae96c9428289ee2bdd73e2287c80"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/choosGF2-core-hd.png",
+          "sha256": "12f9fd322275ff2ea4f64f5eb9d986a0342eae96c9428289ee2bdd73e2287c80"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/choosGF2-left-join.png",
+          "sha256": "231ed1a14138ec5afb3de1539403b09869b4f9291a38a75f00ba0d68f44df56c"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/choosGF2-right-join.png",
+          "sha256": "09ab1dff5af4595486943f0b196e92f0c4bd88c8714ab223cc4bde61658863a2"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/choosGF2-wide-v1.png",
+          "sha256": "c4b12bb022fdaa7fe8dd30b830ac0ed70695c6df543769e5576550acf32d5fe4"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/choosGF4-16x10-draft.png",
+          "sha256": "f71b06f34115bcd5ff4c791bfc11741ea334012e359646bb4e1c2ffdd9042a2c"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/choosGF4-16x9-draft.png",
+          "sha256": "ab37f24b27a89f6f9ec9366d89d9c17ee6fb6b63bae359a8705deb055be34b22"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/choosGF4-21x9-draft.png",
+          "sha256": "aa312ba7691e3d34214213706e6fc6e72dba99edf116f9533381c04f08e25086"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/choosGF4-32x9-draft.png",
+          "sha256": "d1e6160cce9b5047d0c3fce9441a3e8f9ef15b84e7aa59806397fdad588fbe27"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/choosGF4-4x3-draft.png",
+          "sha256": "14ca4b5d348141f9903d50455dce2cc03f0911eda30148b972d84fcc14993e7c"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/choosGF4-core-hd.png",
+          "sha256": "14ca4b5d348141f9903d50455dce2cc03f0911eda30148b972d84fcc14993e7c"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/choosGF4-left-join.png",
+          "sha256": "e081b801953b808869b35e8702d775983e3663b82a27875f3b878e9a68f9b106"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/choosGF4-right-join.png",
+          "sha256": "bea826bfaac1b6128f03b57ced0256cd729e36ce80aa10e08b90547be788abe2"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/choosGF4-wide-v1.png",
+          "sha256": "d1e6160cce9b5047d0c3fce9441a3e8f9ef15b84e7aa59806397fdad588fbe27"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/choosPart-16x10-draft.png",
+          "sha256": "bffc22a38ab26309eec475cf2dc272f4dd64f42c5f0eed4444e12b2f88af9da7"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/choosPart-16x9-draft.png",
+          "sha256": "1dab0b93113fb055e238f170aae64b4c215052ce7b116d99776c1564ca4eb4bf"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/choosPart-21x9-draft.png",
+          "sha256": "f4235af58eca569a60ba8aed1624c67f32ba99c5950a44c6ec1006f3105c5cd0"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/choosPart-32x9-draft.png",
+          "sha256": "a5e390fc332a0e2cf331511ac92b0303394a12e74a5515029c9cb8a7adf9f87d"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/choosPart-4x3-draft.png",
+          "sha256": "0fdd6fb147740d4d359e8ff5e9a8b59e8a27e94270ab9e0221cd4f587abfb561"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/choosPart-core-hd.png",
+          "sha256": "0fdd6fb147740d4d359e8ff5e9a8b59e8a27e94270ab9e0221cd4f587abfb561"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/choosPart-left-join.png",
+          "sha256": "caff6aa946a04d394dbcc1686a1e3efe27b150731e4cf1ae4fa026fa534c2cb0"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/choosPart-right-join.png",
+          "sha256": "3e8e630b7e7fb0153bcd1919a1e604e4115ec80f732af09801d19e01e2df0401"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/choosPart-wide-v1.png",
+          "sha256": "a5e390fc332a0e2cf331511ac92b0303394a12e74a5515029c9cb8a7adf9f87d"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/cribOptions-16x10-draft.png",
+          "sha256": "fa714b4f5f37e6bdf20517ac74283993e76459f0c449f48915c56d66042b8589"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/cribOptions-16x9-draft.png",
+          "sha256": "90e463db4e65997a1acaaaaca9c2d958bbe3202aa10ec82e532cb2f1545fd891"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/cribOptions-21x9-draft.png",
+          "sha256": "9b6b3f24ed2b0f278e345704048b61a8509112f2840f230e330ca4fff3111470"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/cribOptions-32x9-draft.png",
+          "sha256": "9d6ad1cdde09ed790a2e05d0839c00be7f39a14461b458c0e06398f1eae0a293"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/cribOptions-4x3-draft.png",
+          "sha256": "47e68adfee6aaab4f82a26c5ad3b4a2ba73bfbd2f7489597a440d879b9dd523f"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/cribOptions-composite-core-faithful.png",
+          "sha256": "47e68adfee6aaab4f82a26c5ad3b4a2ba73bfbd2f7489597a440d879b9dd523f"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/cribOptions-composite-wide.png",
+          "sha256": "9d6ad1cdde09ed790a2e05d0839c00be7f39a14461b458c0e06398f1eae0a293"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/cribOptions-core-hd.png",
+          "sha256": "fa85bc5fccdf68badff0aea08692b123634d91906ee66c29e36caa53dbe76e06"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/cribOptions-left-join.png",
+          "sha256": "d5c6f504799bae7f10701c940e0fd93892f45ffa1090de16d4fc3410ba272e9d"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/cribOptions-right-join.png",
+          "sha256": "83a4abdfd5fd6fe57d5944e0a8ab5dc4e184456dba7fb50671c3aa83e67a780a"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/cribOptions-wide-v1.png",
+          "sha256": "5dce39263130e9b1c38b5fbcf98c526bffe97f283740a0413ef31983f681d168"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/matchLoa-16x10-draft-lighting.png",
+          "sha256": "c199145d443d84d5804cd879b48073f58315f1cb5b8a5713a38cfce972268544"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/matchLoa-16x10-draft.png",
+          "sha256": "86c8fc30dfafc0530ac4b678a1d1c35ac89c90c266d3608c84d075ece7370ba3"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/matchLoa-16x9-draft-lighting.png",
+          "sha256": "70038814b005d4ca23cf1e618a96d4474a619bdeb0b9be360e20a9f55f1a9b91"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/matchLoa-16x9-draft.png",
+          "sha256": "6fe8fdbb5d77c5b0054b72a98796efa898829d09ccb2d54327ea9e1997e7ffd8"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/matchLoa-21x9-draft-lighting.png",
+          "sha256": "929b1b91843b40f391bc3c0de73a0874a2e1bd8dbab7dd4eb1436d97ea890311"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/matchLoa-21x9-draft.png",
+          "sha256": "e7daa665f32a12b124340183664ac75c1c3d77d9ba2472a813ef1c00aa5ae8a3"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/matchLoa-32x9-draft-lighting.png",
+          "sha256": "3fccca62881d043466823fdf04e9921fd6f2d062a6e76e1e7444154345e7b246"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/matchLoa-32x9-draft.png",
+          "sha256": "0328b464dabf8d24917a3b37843054381687e24a41d34683d5bb95e02fd9a8c4"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/matchLoa-4x3-draft-lighting.png",
+          "sha256": "a78a663564beaf2ffcda3ffc73a9837c32bda214fdf1259bd463992f4b8bd747"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/matchLoa-4x3-draft.png",
+          "sha256": "1d3799478a76d605d6a419776ec3c357a3bffa0cb669e3caa9d4ddd3bc62e1fa"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/matchLoa-core-hd.png",
+          "sha256": "1d3799478a76d605d6a419776ec3c357a3bffa0cb669e3caa9d4ddd3bc62e1fa"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/matchLoa-left-join.png",
+          "sha256": "cff99184bfad813e8f7ef4a5f37489c1e4d96f1f24e15d3ec6740acb12ceb3ca"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/matchLoa-right-join.png",
+          "sha256": "eae1b3b943cf7e50d5d6410270590ce6f790ae7c9bef973e98d11f39c6158f33"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/matchLoa-wide-v1.png",
+          "sha256": "0328b464dabf8d24917a3b37843054381687e24a41d34683d5bb95e02fd9a8c4"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/tips-16x10-draft-v3.png",
+          "sha256": "2af2d1e39a65b200cbad91233d8c040b01b5326008ecac10177c51617e76617d"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/tips-16x9-draft-v3.png",
+          "sha256": "1ddba430acba27b29fe0d4308ad3f31ea343616e9f0acf0ab148ce32ba0e254c"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/tips-21x9-draft-v3.png",
+          "sha256": "9975f0165030274fdd9bb14b2f64b4a2c06bf5c585fcdb90a606b41e4cd332f6"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/tips-32x9-draft-v3.png",
+          "sha256": "4929e44d36b2721fba225006d0b1897c1d87905158b4ddd7657112e17b720162"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/tips-4x3-draft-v3.png",
+          "sha256": "692966b05a98f659d15cf9f38adc63e7b35652bcc8501f53d10e980554dba14a"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/tips-core-hd.png",
+          "sha256": "c2b8926f3c40c618f93ac84cfcb6f11244328f6032bc912f67e264fb5e6ad7e8"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/tips-left-join-v3.png",
+          "sha256": "418bd706ad44be6d3a47c4310efdbb683cf712160b7b0af1f95ae1e156d92ec2"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/tips-right-join-v3.png",
+          "sha256": "e8bed5d38d9837e97dda79537027f19fe83bb63748b715417cb8590783317933"
+        },
+        {
+          "path": "wide-backgrounds-v1-20261020/tips-wide-v3.png",
+          "sha256": "4929e44d36b2721fba225006d0b1897c1d87905158b4ddd7657112e17b720162"
+        }
+      ],
+      "record": "wide-backgrounds-approval-20261020.json"
     }
   ],
-  "unique_pinned_files": 600,
-  "runtime_status": "Earlier HD/wide menus owner-playtested. Approved Extras/Phone/Popup/Gym source4xexports ready/uninstalled; transition full pan and other new native validation pending. Fullimageinventory and background-focus source published separately from localart."
+  "unique_pinned_files": 670,
+  "runtime_status": "Earlier HD/wide menus owner-playtested. New approved wide masters/Profile need registration; approved component exports require isolatedRC integration. Actual loading routes/live layers, fullfire-escape pan, Mode specificlighting and native derivative checks remain pending. Game/activepacks untouched."
 }

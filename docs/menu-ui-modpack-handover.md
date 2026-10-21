@@ -2,7 +2,7 @@
 
 Current first-release scenery checkpoint (D179–D180/UI,2026-10-20): see
 [seven new wide background candidates](research/menu-wide-background-candidates-2026-10-20.md).
-New art is in review, not approved/installed. Retain existing approved work;
+All seven new scenic artworks are approved D181/UI; integration and native acceptance are pending. Retain existing approved work;
 leave held panel/detail/shop candidates alone. Active pre-fight loaders and
 complete fire-escape pan still need native validation.
 

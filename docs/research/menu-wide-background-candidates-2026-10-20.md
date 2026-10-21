@@ -1,5 +1,11 @@
 # Widescreen menu background candidates — 2026-10-20
 
+**Current checkpoint — D181/UI:** Vlad approved all seven scenes on2026-10-20.
+Seventy final-file pins are frozen (670total);149source identities reviewed,
+131unconditional plus18previously conditional. New scenic artwork is approved;
+pack integration and native acceptance remain pending. The earlier review
+record below describes how the batch was prepared and its unchanged limits.
+
 Vlad chose the first menu-mod release scope: finish widescreen scenery, include
 pre-fight loading, retain the main menus and previously approved artwork, and
 leave the remaining panel/button/detail candidates alone. This supersedes the
