@@ -21,6 +21,10 @@ cite other development notes, logs and captures that are not published.
 
 ## Front end and movies
 
+- [Separate HD widescreen menu RC2](menu-ui-separate-release-candidate-2026-10-20.md): sparse pack, measured size, actual loader registration, native evidence and remaining acceptance.
+- [Menu pack hosting and PR17](menu-modpack-hosting-pr17-2026-10-20.md): independent catalogue/downloads and current provider sizing.
+- [Native menu route coverage](menu-wide-scene-test-routes-2026-10-20.md) and [transition black-tile controls](menu-transition-native-black-rectangle-2026-10-20.md).
+
 - [The loader's own script](m3-feloader-script.md)
 - [How a loaded movie becomes the displayed one](m3-movie-display.md)
 - [Screen transitions](m4a-fe-transitions.md)

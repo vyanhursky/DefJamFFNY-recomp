@@ -9,6 +9,9 @@ REPO = Path(__file__).resolve().parents[2]
 spec = importlib.util.spec_from_file_location('menu_pack', REPO/'scripts/export-menu-ui-pack.py')
 mod = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(mod)
+spec_wide = importlib.util.spec_from_file_location('menu_wide', REPO/'scripts/export-menu-ui-wide.py')
+wide = importlib.util.module_from_spec(spec_wide)
+spec_wide.loader.exec_module(wide)
 
 SID = 'a' * 64
 
@@ -54,8 +57,9 @@ def test_tracked_table_matches_tracked_catalogue():
 def test_wide_layer_table_uses_pinned_masters_and_known_anchors():
     layers = json.loads((REPO/'config/menu-ui-wide-layers.json').read_text())
     catalogue = json.loads((REPO/'config/menu-ui-approved-artwork.json').read_text())
-    pins = {f['path'] for r in catalogue['approval_records'] for f in r['files']}
-    sources = {s['source_id']: s['aliases'][0]['width'] for s in catalogue['reviewed_sources']}
+    registrations = json.loads((REPO/'config/menu-ui-runtime-registrations.json').read_text())
+    pins, dimensions = wide.registered_inputs(catalogue, registrations)
+    sources = {sid: size[0] for sid, size in dimensions.items()}
     labels = [layer['label'] for layer in layers['layers']]
     assert len(labels) == len(set(labels))
     for layer in layers['layers']:
@@ -68,3 +72,30 @@ def test_wide_layer_table_uses_pinned_masters_and_known_anchors():
     # Paper panels are not scenery: none of their sources may carry side slabs.
     papers = {s['source_id'] for s in catalogue['reviewed_sources'] if s['family'] in ('result-papers', 'extras-papers')}
     assert not papers & {layer['anchor'] for layer in layers['layers']}
+
+
+def test_wide_offsets_use_runtime_integer_grammar_with_fractional_uvs():
+    spec = importlib.util.spec_from_file_location('menu_wide', REPO/'scripts/export-menu-ui-wide.py')
+    wide = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(wide)
+    shifts = wide.slab_shifts(-5, 5, 127.968017578125)
+    assert shifts == sorted(set(shifts))
+    assert all(isinstance(x, int) and abs(x - i*127.968017578125) <= .5
+               for i, x in zip(range(-5, 6), shifts))
+    assert wide.slab_shifts(-2, 2, 512) == [-1024, -512, 0, 512, 1024]
+
+
+def test_engineering_registration_requires_original_approved_parent():
+    _, catalogue = tables()
+    item = dict(path='derived.png', sha256='c'*64, derived_from='x/tile.png',
+                derived_from_sha256='b'*64)
+    assert wide.registered_inputs(catalogue, {'files':[item]})[0]['derived.png'] == 'c'*64
+    item['derived_from_sha256'] = 'd'*64
+    with pytest.raises(ValueError, match='approved parent'):
+        wide.registered_inputs(catalogue, {'files':[item]})
+    item.update(derived_from_sha256='b'*64, path='x/tile.png')
+    with pytest.raises(ValueError, match='replace an approval'):
+        wide.registered_inputs(catalogue, {'files':[item]})
+    item.update(path='derived.png', derived_from='unknown.png', derived_from_sha256=None)
+    with pytest.raises(ValueError, match='approved parent'):
+        wide.registered_inputs(catalogue, {'files':[item]})

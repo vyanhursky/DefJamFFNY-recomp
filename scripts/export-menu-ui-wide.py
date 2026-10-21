@@ -75,6 +75,32 @@ def locate(master, tile, s, hint=None):
     return best
 
 
+def slab_shifts(lo, hi, step):
+    """Runtime manifest offsets are integer source texels, including fractional authored UV spans."""
+    return sorted({round(i * step) for i in range(lo, hi + 1)})
+
+
+def registered_inputs(catalogue, registrations):
+    """Keep engineering derivatives separate from owner approvals and require an approved parent."""
+    pins = {f['path']: f['sha256'] for r in catalogue['approval_records'] for f in r['files']}
+    approved = dict(pins)
+    sizes = {s['source_id']: (s['aliases'][0]['width'], s['aliases'][0]['height'])
+             for s in catalogue['reviewed_sources']}
+    for item in registrations.get('files', []):
+        if item['derived_from'] not in approved or approved[item['derived_from']] != item['derived_from_sha256']:
+            raise ValueError('Registration requires an unchanged approved parent: ' + item['path'])
+        if item['path'] in pins:
+            raise ValueError('Registration cannot replace an approval: ' + item['path'])
+        pins[item['path']] = item['sha256']
+    for source in registrations.get('sources', []):
+        sid = source['source_id']
+        if sid in sizes:
+            raise ValueError('Duplicate registered source: ' + sid)
+        alias = source['aliases'][0]
+        sizes[sid] = (alias['width'], alias['height'])
+    return pins, sizes
+
+
 def main():
     import numpy as np
     from PIL import Image
@@ -85,13 +111,14 @@ def main():
     ap.add_argument('--out', type=Path, required=True)
     ap.add_argument('--layers', type=Path, default=REPO/'config/menu-ui-wide-layers.json')
     ap.add_argument('--catalogue', type=Path, default=REPO/'config/menu-ui-approved-artwork.json')
+    ap.add_argument('--registrations', type=Path, default=REPO/'config/menu-ui-runtime-registrations.json')
     ap.add_argument('--only', help='comma-separated layer labels')
     args = ap.parse_args()
     art = args.art_root.resolve()
     cfg = json.loads(args.layers.read_text())
     catalogue = json.loads(args.catalogue.read_text())
-    pins = {f['path']: f['sha256'] for r in catalogue['approval_records'] for f in r['files']}
-    sizes = {s['source_id']: (s['aliases'][0]['width'], s['aliases'][0]['height']) for s in catalogue['reviewed_sources']}
+    registrations = json.loads(args.registrations.read_text()) if args.registrations.exists() else {}
+    pins, sizes = registered_inputs(catalogue, registrations)
     replacements = {}
     for comp in cfg['anchor_packs']:
         for line in (args.mods/comp/'manifest.ini').read_text().splitlines():
@@ -140,7 +167,7 @@ def main():
         src = Image.new('RGBA', (master.shape[1] + 2 * pad, master.shape[0] + 2 * pad))
         src.paste(Image.fromarray(master), (pad, pad))
         slabs = []
-        for dt in (i * step for i in range(lo, hi + 1)):
+        for dt in slab_shifts(lo, hi, step):
             # Settled screen extent of this slab; keep only slabs reaching the requested side area.
             start = layer['x0'] + dt * layer['per']
             end = start + step * layer['per']

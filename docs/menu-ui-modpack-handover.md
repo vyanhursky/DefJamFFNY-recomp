@@ -1,22 +1,22 @@
 # Menu/UI modpack implementation handover
 
-Current first-release scenery checkpoint (D179–D180/UI,2026-10-20): see
-[seven new wide background candidates](research/menu-wide-background-candidates-2026-10-20.md).
-All seven new scenic artworks are approved D181/UI; integration and native acceptance are pending. Retain existing approved work;
-leave held panel/detail/shop candidates alone. Active pre-fight loaders and
-complete fire-escape pan still need native validation.
+Current checkpoint — 2026-10-20 (D182–D184/UI): a **separate menu-only RC2** is built
+and being tested on this Mac. Faithful HD is optional and earlier-loaded; its library
+is not bundled. Download421.6MB / installed423.4MB,157nativePNGs/164sideslabs.
+Read [the current release-candidate report](research/menu-ui-separate-release-candidate-2026-10-20.md)
+and PROGRESS.md §7 for exact artifact locations, hashes, commands and test coverage.
 
-**Current update — 2026-10-20:** Gym/control15studies22IDs approved:600pins,
-136reviewedIDs(118unconditional+18conditional); isolated22tileexport ready/uninstalled.
-Vlad stops routine buttons/panels restoration because Faithful HD is sufficient.
-Focus widenscreen backgrounds and his selected exceptions. Full image browser at
-review51738/inventory.html:1323registeredIDs,optional1834core,original/Faithful/
-customwhereavailable/status/localshortlist. Fiveknownunprocessedbackgroundgroups
-mapped; rootusage/clipping and fulltransitionpan remainunverified. Prior16/19
-batchpending. Threeinflightshopraws retained/unadopted,147historicalcalls; no
-furthergenerationbeforeselections. Read [the current report](research/menu-inventory-browser-2026-10-20.md)
-and PROGRESS.md §7. Game/activepacks unchanged. GitHub sign-in recovered; source-only branches and existing draftPRs
-are updated. Original October19pause/engineering plan below is historical.
+The actual pre-fight loader uses four `match/0_bg/paper_*` resources (eight IDs),
+registered separately from the older approved `battle/matchLoa` preview. All670
+approved/conditional art pins remain intact; no new generation was needed.
+The transition has an inherited black first-tile rectangle, also reproduced with
+Faithful alone; it remains a release issue. Appropriate Story saves, native visual
+signoff and final checks remain. Other panel/detail/shop candidates stay held.
+[Hosting discussion](research/menu-modpack-hosting-pr17-2026-10-20.md) follows PR17's
+small catalogue / separate external artwork download architecture.
+
+The October19 pause and earlier engineering notes below are historical, superseded
+by the current report and D161/UI's restoration resume. Artwork stays local.
 
 ---
 
