@@ -23,6 +23,7 @@ cite other development notes, logs and captures that are not published.
 
 - [Separate HD widescreen menu RC2](menu-ui-separate-release-candidate-2026-10-20.md): sparse pack, measured size, actual loader registration, native evidence and remaining acceptance.
 - [Menu pack hosting and PR17](menu-modpack-hosting-pr17-2026-10-20.md): independent catalogue/downloads and current provider sizing.
+- [Launcher mod-manager implementation](launcher-mod-manager-implementation-2026-10-21.md): agreed local/catalogue/shared-order UI, JSON/R2 architecture, protected publishing and source-only catalogue foundation.
 - [Native menu route coverage](menu-wide-scene-test-routes-2026-10-20.md) and [transition black-tile controls](menu-transition-native-black-rectangle-2026-10-20.md).
 
 - [The loader's own script](m3-feloader-script.md)

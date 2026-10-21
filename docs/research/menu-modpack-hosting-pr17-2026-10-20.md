@@ -1,5 +1,13 @@
 # Menu-only artwork pack hosting discussion — 2026-10-20
 
+**2026-10-21 follow-up:** Vlad chose Cloudflare R2, one new public JSON catalogue repository,
+the helper initially in the game repository, and owner-approved GitHub Actions signing. The
+catalogue source foundation and protected environment now exist; account/domain, key provisioning,
+trusted publication and helper/launcher implementation remain. See the current
+[implementation plan](launcher-mod-manager-implementation-2026-10-21.md). The report below preserves
+the earlier investigation; its statements that the hosting preference/repository were undecided
+describe the state on 2026-10-20.
+
 ## Finding
 
 PR [#17](https://github.com/vyanhursky/DefJamFFNY-recomp/pull/17) is an open, documentation-only proposal (D104, retitled after decision-number conflicts). Its described architecture is a signed `index.json` in a separate repository served by GitHub Pages; a separate `defjam-mods` helper performs fetch, resumable download, hash/size verification, install and rollback; the launcher would show available mods and updates while the game remains offline. Mod files are pinned by size and SHA-256. Submissions would arrive as reviewed pull requests and be scanned. The proposal says project hosting is for original content and recipe mods that generate from the player's own dump; derived assets should be linked from third-party hosts. It stages data mods before any code mods. PR #17 remains open and unscheduled. The API query `gh pr view 17 --comments` returned no comments; the PR diff and full design document were also retrieved from the PR head.
