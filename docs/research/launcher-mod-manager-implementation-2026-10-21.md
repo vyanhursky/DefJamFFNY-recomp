@@ -207,3 +207,21 @@ Local catalogue checkout: `logs/mod-catalogue-foundation/` (its own Git reposito
 parent). Future changes should use a `codex/` topic branch and PR. Its public source is recoverable
 independently of the private menu artifacts. Start helper/UI work from current main in a separate
 worktree; do not replace the redesigned launcher with this art branch's older UI.
+
+
+## Implementation delivered — 2026-10-21
+
+The current-main implementation is in [draft game PR82](https://github.com/vyanhursky/DefJamFFNY-recomp/pull/82)
+(source eb6c65e), preserving this older menu branch's artwork and review work.
+Read the PR's validation report for569passing units, three native synthetic tours
+repeated twice, full15/18 and fresh launcher/intro2/2. Catalogue protected signing
+is [PR1](https://github.com/vyanhursky/DefJamFFNY-mods/pull/1),3597c0e. Owner explicitly
+approved key generation/private backup/protected-secret provisioning; complete.
+No live Pages catalogue or public art hosting has been published.
+
+[Storefront assessment](mod-storefront-integration-2026-10-21.md): keep R2 primary
+for the imggen menu pack. GameBanana's AI-art policy requires training-data
+knowledge we cannot document; seek clarification before listing. Thunderstore
+needs community/content acceptance and a validated wrapper adapter; Quiver needs
+the external-data path/enable-order bridge. Host-independent URLs preserve the
+signed catalogue and shared order regardless of the future host.

@@ -141,3 +141,5 @@ The plan built from these is in [docs/widescreen](../widescreen/README.md), whic
 - [Gym and shared popup source mapping](menu-ui-next-batch-mapping-2026-10-20.md) — complete shapes50/60/64 and unknown popup consumers.
 
 - [Start here: approved-art modpack implementation](../menu-ui-modpack-handover.md)
+
+- [GameBanana, Thunderstore and Quiver with the curated catalogue](mod-storefront-integration-2026-10-21.md) — host roles, wrapper/path work and GameBanana AI-art constraint.
