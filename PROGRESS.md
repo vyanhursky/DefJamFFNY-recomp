@@ -61,7 +61,7 @@
 | Picture options and setup progress fix (D136-D138; issues #40, #44, #47) | ✅ released v0.10.3 (latest, 2026-10-19) | PR #54 (setup progress-file contention, WinError 5) merged `c37bf34`; PR #55 (`[display] brightness`, `vignette`, `vignette_strength`, launcher/overlay Display → Picture, live; `docs/research/picture-options.md`) merged `1b04982`. Beta pre-release, owner's Deck play-test: brightness and vignette "work perfectly"; promoted to latest (D138). Windows not play-tested. Subtitles (#44) not started. |
 | Mac setup quarantine fix (D139; issue #59) | ✅ released v0.10.4 (latest, 2026-10-19) | PR #60 merged `1d4e13d`: the macOS setup unpacks its digest-checked payload with `ditto --noqtn` plus `xattr -d -r com.apple.quarantine`, so a browser-downloaded setup no longer stops on *"python3" Not Opened*. Owner confirmed with a quarantined test DMG. Tag `v0.10.4` on release PR #63 merge `110d50e`; game and toolkit identical to v0.10.3. |
 | Issue #67 / four-fighter Pit performance | ⏳ captured owner reproduction needed | 2026-10-20, M1 Pro/v0.10.5, scale 2, VSync, windowed widescreen: four guarded 1v1/FFA runs. Ordinary combat 59.97–60.00 presents/s and 60 simulation steps/s, no sustained 25/30 Hz pose cadence. Blazin activation explains the 4.2 s fight-counter pauses. Larger window/host-input and per-frame GPU pictures checked; all saves restored identical. Temporary probes removed and normal build rebuilt. `docs/research/issue67-pit-performance-macos-2026-10-20.md`; owner roster/F9 bundle and reporter log/platform/display pending. |
-| Issue #72 / Windows startup crash | ⏳ candidate requested; GitHub login required | D143. Reporter log now identifies incomplete translated guest layout: RAM at 0xBFFF0000; physical/device windows fail error 487; AC97 shadow copy reads missing guest 0xFEC00000. Transactional allocator in isolated toolkit branch defjam/issue72-memory-layout; game-free mapping/rollback fixture passes on Mac. Local toolkit e818066; both memory fixtures, units 478/44 skip and all 17 Mac game gates pass across two complementary runs. User requested Windows test artifact/issue comment; workflow and reply drafted. Publishing/build blocked by expired GitHub login; native Windows/reporter retest pending. docs/research/issue72-windows-startup-memory-layout.md. |
+| Issue #72 / Windows startup crash | ⏳ Windows candidate published; reporter retest pending | D143–D144. Incomplete guest layout caused AC97 to read missing memory. Published toolkit e818066, parent 9e4f805 on fix/issue72-startup. Windows run 39519139830 green: native memory 5/5, runtime/game-source compilation, installer 177 pass/9 skip, inventory and packaged smokes. Game-free artifact 12310426740 downloaded/hash/provenance verified; issue comment 6304712397 links it and asks @klwn911 to Clean Rebuild/test menu+fight. No stable release changed. Report docs/research/issue72-windows-startup-memory-layout.md. |
 
 
 ## 1. Decisions log
@@ -237,7 +237,7 @@
 | D140 | 2026-10-19 | `skip_intro` also replays the game's full audio initialization: after `ControllerBootup` it calls `sub_0003DE20(1)` once at the first screen selection (issue #65). Fix is game-specific, in `src/patches/skip_intro.c`; no toolkit or lifter change. | Owner found that with *Skip startup movies and legal screen* on, Press Start and the menu transition sounds were silent (v0.10.1 to v0.10.4). Traced with temporary entry logging: a normal boot runs `sub_0003DE20(0)` (minimal, sets `0x340374`) from the first state-0 entry, then `sub_0003DE20(1)` (shuts that down, loads the audio config and music tables, sets `0x340320`) when the movies end and the game re-enters state 0. The skip redirect never reaches the second entry. Calling `sub_0003DE20(1)` in the existing hook restores the same state; `regress.py --only skipintro` now requires `0x340320 == 1` and fails without the fix. Chosen over adding a `sub_0003DE20_enter` hook, which needs a full re-lift. |
 | D141 | 2026-10-19 | Release **v0.10.5** as a normal (latest) hotfix from main after PR #66 (the #65 audio fix, D140): version 0.10.5 and `docs/releases/v0.10.5.md` (PR #68, merge `cb10747`). Toolkit `32aab4d` unchanged. Published 2026-10-19 19:57 ET. | Owner asked to push the fix, open the PR and get ready to release. v0.10.1 to v0.10.4 players who use the skip option have no menu sound effects, and a published release is never replaced. |
 | D143 | 2026-10-20 | Issue #72: on Windows, select a free full guest span (at least 4 GB of virtual addresses), then place RAM, physical/tiled views, MMIO apertures and non-overlapping mirrors transactionally before copying the XBE or starting polling threads. Release an unsuccessful attempt and retry, or fail initialization; never proceed with missing required windows. Work in isolated toolkit branch `defjam/issue72-memory-layout`; retain published parent pin `32aab4d` until the fix is published. | The attached log shows RAM at `0xBFFF0000`, failed physical/device mappings (487), and an AC97 shadow-copy fault exactly at `0xFEC00000 + offset`. A free RAM view alone does not establish a usable layout. Full-span reserve/probe/release plus checked fixed mappings avoids partial Win32 frees and requires no newer placeholder APIs; rollback handles any placement race. Native Windows and reporter acceptance remain unverified. D142 already belongs to the concurrent texture-list fix and is not reused here. |
-| D144 | 2026-10-20 | At Vlad’s request, prepare a game-free Windows test installer from the v0.10.5 baseline plus toolkit e818066, publish it as a branch-scoped Actions artifact with SHA-256/provenance, then link it on issue #72 and ask the reporter to test. Gate the artifact on native Windows memory fixtures, source compilation, installer tests/inventory and packaged smoke tests. No stable tag/version replacement or unrelated launcher-beta integration. | Isolates the memory-layout fix on the version the reporter used. The current v0.10.6 beta includes unrelated UI changes. Source publication, artifact build and the issue message are authorized by the follow-up; GitHub CLI authentication currently fails HTTP 401 and needs a user login refresh. |
+| D144 | 2026-10-20 | At Vlad’s request, prepare a game-free Windows test installer from the v0.10.5 baseline plus toolkit e818066, publish it as a branch-scoped Actions artifact with SHA-256/provenance, then link it on issue #72 and ask the reporter to test. Gate the artifact on native Windows memory fixtures, source compilation, installer tests/inventory and packaged smoke tests. No stable tag/version replacement or unrelated launcher-beta integration. | Isolates the memory-layout fix on the version the reporter used. The current v0.10.6 beta includes unrelated UI changes. Source publication, artifact build and the issue message are authorized by the follow-up; GitHub CLI authentication was restored by Vlad; toolkit and candidate branch are published. |
 
 
 ## 2. Environment inventory (2026-09-17)
@@ -287,7 +287,7 @@ defjam-recomp/
 
 ## 5. Open questions for Vlad
 
-- **(2026-10-20) Issue #72 Windows test candidate — GitHub login required.** Vlad asked to create/link a Windows artifact and ask the reporter to test. The stored CLI token returns HTTP 401; Git cannot read its Keychain credential (-25293). Candidate workflow and issue reply are prepared locally, not published/sent. Asked in chat to run `gh auth login --hostname github.com --git-protocol https --web --scopes workflow` in Terminal and report ready, without sharing a token. Publishing the toolkit source and starting the Windows runner depend on this.
+- ~~**(2026-10-20) Issue #72 Windows test candidate — GitHub login required.**~~ Resolved: Vlad restored login. Toolkit e818066 and candidate parent 9e4f805 published; Windows run 39519139830 passed. Artifact linked on #72 (comment 6304712397); reporter menu/fight acceptance pending.
 
 
 - **(2026-10-20) Issue #67 / sluggish FFA at The Pit.** Owner confirmed v0.10.5, scale 2, VSync on, windowed widescreen. Four M1 Pro runs did not reproduce sustained slowdown or 25/30 Hz pose updates (report `docs/research/issue67-pit-performance-macos-2026-10-20.md`). Still need the owner's exact four-fighter roster (asked in chat) and a local recorder bundle marked with fn+F9 just after sluggishness; enable Debug → Record play-tests first. Need issue #67 reporter's actual log (email attachment absent on GitHub), platform and display/refresh/settings. Physical panel cadence/controller latency and Windows have not been measured. No game fix or issue reply published.
@@ -332,7 +332,6 @@ defjam-recomp/
 
 > Recent entries only; older entries remain unchanged in the local `docs/worklog/` archive.
 
-- 2026-10-19 15:25 — v0.10.4 published/latest at 15:21 ET (D139): release PR #63 merged `110d50e`, tag `v0.10.4`, Source release run 39309194188 green 30/30. Nine game-free assets downloaded and verified: each `.sha256` and GitHub digest match; provenance names source `110d50e`, toolkit `32aab4d`, production payloads. Released Mac DMG run with a quarantined payload: setup 0.10.4 unpacked 0/4914 files quarantined and the bundled engine ran (exit 2, no dump given). Issue #59 commented with the release and the workaround for older setups.
 - 2026-10-19 16:05 — Issue #65 (owner report): with `skip_intro` on, Press Start and menu transition sound effects are silent (v0.10.1 to v0.10.4). Reproduced on the Mac with `RECOMP_APU_PCM` on the `boot` route (skip boot silent at the Audio.Play events; normal boot has the bursts), while the log shows identical `Audio.Play` calls. Temporary `[AUD]` entry logging in the lifted code (not kept, `src/recomp/gen` restored byte for byte) showed a normal boot calls `sub_0003DE20(0)` then, after the movies, `sub_0003DE20(1)`; skip only does the first. D140: `skip_intro.c` calls `sub_0003DE20(1)`. Fixed skip boot has the same bursts as a normal boot; `fight` route 101 present lines, median 120, no crash, save identical; `regress.py --only skipintro` passes 110 s (`logs/regress-20261019-155827.txt`), fails without the fix (`logs/regress-20261019-160026.txt`); native fixture passes. Another `defjam_recomp` from `~/.codex/worktrees/01c5` was running during these runs and one startup crash coincided with it (not reproduced).
 - 2026-10-19 16:20 — Pushed `fix/skip-intro-menu-audio` and opened PR #66 for issue #65 (D140). Prepared v0.10.5 on `chore/release-v0.10.5` (D141): CMake 0.10.5, `docs/releases/v0.10.5.md`; not merged, tagged or published.
 - 2026-10-19 19:58 — v0.10.5 published as latest (D141) from PR #68 merge `cb10747` (PR #66 merged `f2b7c6f`, #65 closed; both PRs CI 28/28). Source release run 39344036207 green 30/30; `check-release.py` verified 418 files; nine assets, installer SHA-256 files match GitHub digests. Not listened to on Windows or Linux.
@@ -340,89 +339,62 @@ defjam-recomp/
 - 2026-10-20 12:45 — Issue #67 / owner's FFA sluggishness at The Pit: four serial guarded M1 Pro/v0.10.5 runs at scale 2/VSync/windowed widescreen, including larger 1800x1034 window and host-input path. Ordinary 30 s windows: 1v1 59.999/60.002 fps, FFA 60.001/59.966 fps, all ~60 fight steps/s; actor clocks/joint hashes show no sustained 25/30 Hz cadence. Two GPU video bundles (480 pictures each) identify the 4.2 s counter pause as Blazin activation; ordinary combat has 478 consecutive-frame pairs, zero exact duplicate pictures. Zero crash/watchdog/unresolved-call/debug-layer/truncated signatures; four save roots restored identical. Temporary pose/video probes removed and normal build rebuilt/verified. Logs run-20261020-122629, 122945, 123419, 123905; bundles under logs/sessions/20261020-123909; report docs/research/issue67-pit-performance-macos-2026-10-20.md. Exact owner roster/F9 bundle and issue reporter log/platform/settings remain needed; physical display/controller latency and Windows untested. No performance fix or public reply.
 - 2026-10-20 18:03 — Issue #72 root cause confirmed from attached run-20261020-193903.error.log: RAM/offset 0xBFFF0000 accepted despite physical/device mapping failures (Win32 487); AC97 shadow memcpy then reads missing guest 0xFEC00000, exactly host 0x1BEBF0000. D143 (D142 is the concurrent texture-list fix): complete Windows layout transaction, rollback/retry before XBE copy/threads, correct view/handle cleanup; local toolkit e81806613baf5a8c20e9b2a09e61cb103f7160fd on defjam/issue72-memory-layout in logs/issue72/toolkit (clean). Both game-free memory fixtures pass (34 rollback points/all 28 retail mirrors/128 MB/re-init); units 478 pass/44 skip/1 deselected. Mac release build fresh; all 17 game gates covered and pass: initial ten UI/golden/fight gates in logs/issue72/full-regression.txt; initial Python/data-root preconditions corrected, guard interruption restored original tree/absence; remaining seven pass in logs/regress-20261020-180044.txt, correct data root/mac-profiles fixture/uv. Combat 27/27, versus 26/26, replay 80 records/1800 steps unchanged, Story intro/crib/gym pass, soak 3/3; median fights 120 presents/2 s, minimum Terrordome 118. Full details docs/research/issue72-windows-startup-memory-layout.md. Native Windows/reporter retest pending; no game running, source-only local commits, no push/comment/release; parent pin stays published 32aab4d.
 - 2026-10-20 18:59 — Issue #72 follow-up (D144): owner authorized Windows test artifact and issue reply asking reporter to test. History confirms full crash path in first public v0.1.0 (2026-10-04, toolkit aa1a1b91); OS-chosen fallback made reachable by toolkit 75119d5 (2026-09-16); no mapping/hook/pin change v0.10.4→v0.10.5. v0.4.0 launcher can affect address occupancy but is only an exposure hypothesis. Prepared .github/workflows/windows-candidate.yml (v0.10.5 + e818066; native Windows fixtures, game-source compile, production-format setup/inventory/smokes; checksum/provenance artifact) and unsent logs/issue72/issue-comment-draft.md. YAML parses/contents permission read-only; source policy 421/0. Cannot publish/start Windows runner: gh auth/API user HTTP 401; Git Keychain credential inaccessible (-25293); SSH host trust absent. Browser signed in; asked owner to refresh CLI login. No artifact URL exists and no issue comment sent. Report updated with release-history evidence; toolkit and published parent pin unchanged.
+- 2026-10-20 20:13 — Issue #72 Windows candidate published (D144): auth restored by owner; toolkit e818066 pushed before parent pin 9e4f805. Windows run 39519139830 green: allocator1/1 incl real collision/34 rollback points, existing memory4/4, runtime/game-source compilation, installer177 pass/9 skip, production inventory and packaged UI/preparation/invalid-input smokes. Game-free setup artifact12310426740, 54,650,880-byte installer SHA25687d84cd4e373206987c96498d1295196f6bf16d7c69ccd75e326fe07a6f590ed; download checksum/provenance/source+kit verified. Posted/read-back issue comment6304712397 with human cause/history, artifact and bundled Clean Rebuild/menu+fight test request. Reporter acceptance pending; no stable release changed. Evidence logs/issue72/windows-job-current.log, windows-test-reports/, windows-candidate/, issue-comment-published.md.
 
 ## 7. Hand-off
 
-Issue #72 is diagnosed and has a local toolkit fix (D143; D142 is already the concurrent
-texture-list-limit decision). Vlad now requests a Windows test artifact, linked in an issue
-comment asking the reporter to test, with a plain-language explanation (D144).
+Issue #72 (D143–D144): **Windows test installer published and reporter asked to test**.
+Run [39519139830](https://github.com/vyanhursky/DefJamFFNY-recomp/actions/runs/39519139830) passed; candidate source/pin **9e4f805**,
+toolkit **e81806613baf5a8c20e9b2a09e61cb103f7160fd** published on
+`defjam/issue72-memory-layout`. Parent branch `fix/issue72-startup`; toolkit worktree
+`logs/issue72/toolkit` clean; primary submodule clean/detached at e818066.
+Vlad restored GitHub login, verified vyanhursky. No remaining auth blocker.
 
-**Publication is blocked by GitHub authentication.** `gh api user` returns HTTP 401, and
-HTTPS Git cannot read its Keychain credential (-25293). Browser Firefox is signed in, but
-CLI access is needed to publish the reviewed source/start the Windows runner. Asked in chat
-to run `gh auth login --hostname github.com --git-protocol https --web --scopes workflow`
-in Terminal and report ready; do not request or expose a token. No artifact has been built
-or linked, and no issue comment was posted. Do not treat the draft as sent.
+Artifact: https://github.com/vyanhursky/DefJamFFNY-recomp/actions/runs/39519139830/artifacts/12310426740
+GitHub sign-in required, expires **2026-11-20 00:11 UTC**. Exactly the game-free
+0.10.5 Windows setup, checksum and provenance; **54,650,880 bytes**, installer SHA-256
+`87d84cd4e373206987c96498d1295196f6bf16d7c69ccd75e326fe07a6f590ed`.
+Downloaded hash/provenance/source/toolkit/development=false/helper inclusion verified.
+Sent and read back: https://github.com/vyanhursky/DefJamFFNY-recomp/issues/72#issuecomment-6304712397
+Body `logs/issue72/issue-comment-published.md`. @klwn911 asked to select the bundled
+build, existing locations, **Clean Rebuild**, then test menu+fight and send new crash
+log if needed. **Reporter acceptance remains pending; agent has not run game on Windows.**
+No stable release/tag, main merge or upstream PR was requested/performed.
 
-Prepared `.github/workflows/windows-candidate.yml`: branch push on `fix/issue72-startup`,
-native Windows placement/memory fixtures, game-source compilation, setup tests, production
-payload inventory/smokes, then a game-free setup/SHA-256/provenance Actions artifact. YAML
-parses; contents permission read-only. The candidate keeps the v0.10.5 source baseline plus
-e818066 rather than mixing in the unrelated v0.10.6 launcher beta. Stable release unchanged.
-Unsent reply: `logs/issue72/issue-comment-draft.md`; fill the artifact URL and actual Windows
-CI result only after all gates pass. It includes bundled-build/Clean Rebuild instructions.
+Next: inspect reporter feedback when requested; if startup passes, integrate the memory
+topic onto the current toolkit tip, preserving separate texture-list fix **72bec86**
+(D142). Candidate intentionally retains v0.10.5 baseline, avoiding unrelated launcher-beta
+changes. No upstream PR without separate approval. Never distribute built game executables.
 
-History checked against git objects: the full observed path ships in first public v0.1.0
-(2026-10-04, toolkit aa1a1b91). Toolkit 75119d5 (2026-09-16) made the arbitrary OS-chosen
-fallback reachable. v0.10.4 → v0.10.5 changes neither pin, main.c nor ac97_bm.c. The v0.4.0
-(2026-10-07) launcher can change occupancy before guest mapping but is only an exposure
-hypothesis. We cannot date when this PC first started failing. See the report’s history table.
+Root cause: attached `logs/issue72/run-20261020-193903.error.log` accepts RAM/offset
+0xBFFF0000 despite physical/device allocation failures (Win32 487). AC97 then reads
+missing guest 0xFEC00000 = host 0x1BEBF0000. Full-span probe plus checked mapping transaction,
+rollback/retry before XBE copy/workers prevents this. Native stack is a raw scan, not proof
+of range occupancy. Report `docs/research/issue72-windows-startup-memory-layout.md`.
+History: full path shipped v0.1.0 (Oct4); OS-chosen fallback reachable from toolkit 75119d5
+(Sep16). v0.10.5 did not change affected code; cannot date exposure on this PC.
 
-Do not push the candidate parent branch until the toolkit source is published and its
-gitlink is updated; the candidate workflow intentionally requires the new toolkit fixture.
-Publish fork branch first, update/commit the parent pin, then push `fix/issue72-startup`.
-Watch the Windows candidate workflow, inspect failures, verify its three inventoried setup
-assets and provenance, then post the completed reply on #72 with the artifact link.
+Windows evidence: `logs/issue72/windows-job-current.log`, `windows-test-reports/`,
+`windows-candidate/`. New fixture 1/1 (collision/34 rollback points/retries/exhaustion/
+aliases/re-init/128 MB), existing memory 4/4, runtime including xbox_memory_layout.c and
+263 game-side sources compile, installer 177 pass/9 skip, production inventory and all
+three packaged smokes pass. CI contains no game code/data.
 
-The reporter’s attachment follows: The reporter's attachment is `logs/issue72/run-20261020-193903.error.log`.
-Windows accepted RAM at/offset `0xBFFF0000`, all physical/device windows failed with error 487,
-and the AC97 shadow copy then read unmapped guest `0xFEC00000` = host `0x1BEBF0000`.
-The native-stack block is also a scan: it does not identify the rejected ranges' occupants.
-Report: `docs/research/issue72-windows-startup-memory-layout.md`.
+Mac validation: both memory fixtures, units **478 pass / 44 skip / 1 deselected**;
+all **17 game gates** pass across two complementary runs. First ten golden/UI/fight gates
+`logs/issue72/full-regression.txt`; corrected Python/data-root preconditions and verified
+save-guard restore; remaining **7/7** `logs/regress-20261020-180044.txt`, console
+`logs/issue72/remaining-regression.txt`. Combat27/27, versus26/26, replay80 records/1800
+steps unchanged, Story intro/crib/gym pass, soak3/3; fight median120 presents/2s,
+Terrordome minimum118. Existing posix-release built against isolated toolkit; pipeline
+verify-build passed. No game running. Use **DEFJAM_DATA=/Users/vlad/Code/defjam-data**,
+fixture `/Users/vlad/Code/defjam-data/fixtures/mac-profiles`, documented uv Python.
+Rebuild without re-lift: `python3 scripts/pipeline.py --toolkit logs/issue72/toolkit build`.
 
-Fix: clean isolated worktree `logs/issue72/toolkit`, branch `defjam/issue72-memory-layout`,
-local commit **e81806613baf5a8c20e9b2a09e61cb103f7160fd**, based on released `32aab4d`.
-`src/kernel/windows_guest_layout.h` selects a full free guest span, then places all required
-windows transactionally before XBE copy/device workers, rolling back and retrying collisions.
-Failure stops init before AC97. View/handle/kernel-page ownership and worker ordering are fixed.
-Parent `tools/xboxrecomp` remains clean at the published pin **32aab4d**. Source/candidate
-publication and the issue reply are now authorized (D144), but have not been performed.
-No stable release/tag, main merge or upstream PR was requested.
-
-Validation: both game-free memory fixtures pass, units **478 pass / 44 skip / 1 deselected**,
-and all **17 game gates** in the full suite were covered and pass across two complementary runs.
-First ten goldens/UI/fights: `logs/issue72/full-regression.txt` (plain Python lacked pytest and
-the harness fallback data folder had no profiles; stopped through a verified save-guard restore).
-Remaining seven: **7/7** in `logs/regress-20261020-180044.txt`, console
-`logs/issue72/remaining-regression.txt`, with the established data folder and verified
-`mac-profiles` fixture. Combat 27/27, versus 26/26, replay 80 records/1800 steps unchanged,
-Story intro/crib/gym pass, boot soak 3/3. Fights median 120 presents/2 s, Terrordome minimum 118.
-Memory fixture evidence: `logs/issue72/windows-layout-fixture.txt` and
-`logs/issue72/memory-posix-fixture.txt`; units `logs/issue72/unit-tests.txt`.
-No game is running. The existing `posix-release` executable is rebuilt against the isolated
-toolkit and passes `python3 scripts/pipeline-state.py verify-build --preset posix-release`.
-
-Next: **native Windows compilation and reporter retest are still required**. From the toolkit
-root, configure/build/ctest `tests/windows_guest_layout` (README there), and run the existing
-`tests/memory_regressions` fixture plus the game regression on Windows. The Mac fixture tests
-the Windows allocator through POSIX primitives, not Windows loader/driver behavior.
-When GitHub authentication is restored, publish the reviewed toolkit commit before changing
-the parent gitlink. The new candidate workflow runs `windows_guest_layout` natively. Preserve the separately
-published texture-list fix `72bec86` if the integration target includes it: apply this topic
-on the current fork tip rather than replacing that fix with the older base. No upstream PR
-without separate approval; no built game executable may be distributed.
-
-For local reruns use **DEFJAM_DATA=/Users/vlad/Code/defjam-data** and the documented Python:
-`uv run --no-project --with pyxbe --with capstone --with pytest python`.
-Do not use the empty default sibling `defjam` directory. The fixture is
-`/Users/vlad/Code/defjam-data/fixtures/mac-profiles`. Rebuild without a re-lift with
-`python3 scripts/pipeline.py --toolkit logs/issue72/toolkit build` (kill the game first).
-
-Issue #67 remains a separate follow-up: owner roster/F9 recorder bundle and reporter
-log/platform/display needed; Mac investigation found ~60 fps/steps and Blazin activation
-explained the 4.2 s counter pause. Reports `docs/research/issue67-pit-performance-macos-2026-10-20.md`
-and `issue67-animation-timing-read.md`; prior detailed hand-off archived in
-`docs/worklog/2026-10-handoffs.md`. v0.10.5 remains the stable release for this branch (D141).
-Windows picture/skip-audio owner playtest, subtitles #44, and prior Deck/F2/F5 follow-ups remain.
+Issue #67 remains separate: owner roster/F9 bundle and reporter log/platform/display
+needed. Mac measured ~60fps/steps; Blazin activation explains4.2s counter pause.
+Reports `docs/research/issue67-pit-performance-macos-2026-10-20.md` and
+`issue67-animation-timing-read.md`; prior details archived under docs/worklog/.
+Windows picture/skip-audio owner playtest, subtitles #44 and prior Deck/F2/F5 follow-ups remain.
 
 Decisions are read by number or keyword: `decision D<n>`, `decisions --grep TEXT`.

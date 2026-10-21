@@ -84,7 +84,7 @@ does not tell us the date it first failed on a particular computer.
 ## Fix
 
 Toolkit branch `defjam/issue72-memory-layout`, isolated worktree
-`logs/issue72/toolkit`, local commit `e81806613baf5a8c20e9b2a09e61cb103f7160fd`,
+`logs/issue72/toolkit`, published commit `e81806613baf5a8c20e9b2a09e61cb103f7160fd`,
 based on the released pin `32aab4d`:
 
 - Select room for the full guest address span, at least 4 GB of virtual address
@@ -152,28 +152,42 @@ Local evidence: `logs/issue72/full-regression.txt`,
 `logs/scenarios/regress-combat-20261020-174242`,
 `regress-versus-20261020-174615`, `regress-replay-20261020-174948`.
 
-Native Windows compilation, the allocator fixture on Windows, and the reporter's
-installed-game retest remain required. The Mac fixture verifies the allocator's
-algorithm and cleanup; it cannot establish Windows driver/ASLR behavior.
+## Windows candidate published
 
-The initial investigation did not publish source or post an issue comment.
-In the follow-up, Vlad requested a Windows test artifact and a comment linking
-it and asking the reporter to test. A branch-scoped Windows candidate workflow
-is prepared in `.github/workflows/windows-candidate.yml`. It gates the artifact
-on native Windows memory fixtures, game-side source compilation, installer
-tests, payload inventory and packaged smoke tests. It uploads only the game-free
-setup, SHA-256 and provenance, not a built game or translated code.
+Vlad restored GitHub authentication and requested publication of the test installer
+and a reply on #72 (D144). Toolkit `e818066` is published on
+`defjam/issue72-memory-layout`; parent source/pin commit is
+`9e4f805877d36e8fad34a3fae8d7d0c49ba998d2` on `fix/issue72-startup`.
+The candidate retains the v0.10.5 baseline plus this memory fix; it does not
+include unrelated launcher-beta changes or replace the stable release.
 
-The candidate keeps the v0.10.5 source baseline plus the memory fix, to avoid
-mixing the unrelated v0.10.6 launcher beta into this diagnostic test. Its Actions
-artifact name and provenance distinguish it from the normal v0.10.5 installer;
-no stable release is replaced. Publishing and starting the Windows runner are
-currently blocked by the expired GitHub CLI login (HTTP 401) and unavailable
-Git Keychain credential. The user has been asked to restore the CLI login.
+[Windows candidate run 39519139830](https://github.com/vyanhursky/DefJamFFNY-recomp/actions/runs/39519139830) passed:
 
-Keep the parent gitlink at published `32aab4d` until the reviewed toolkit
-commit is published, then update it for the candidate. If a later integration
-target includes the separately published texture-list fix `72bec86`, apply
-this topic on that fork tip so the other fix is retained. Native Windows build
-results, the actual artifact URL and the sent issue-comment URL must be recorded
-after publication. No built game executable may be distributed.
+- Native MSVC allocator fixture: 1/1; real collision, all 34 rollback points,
+  retries/exhaustion, reservation failure, aliases, re-init and 128 MB layout.
+- Existing native memory regressions: 4/4; runtime (including
+  `xbox_memory_layout.c`) and game-side source compilation succeeded.
+- Installer tests: 177 passed / 9 skipped; production payload inventory passed.
+- Packaged UI, preparation/responsiveness and silent invalid-input smoke tests passed.
+
+[Download the Windows test installer ZIP](https://github.com/vyanhursky/DefJamFFNY-recomp/actions/runs/39519139830/artifacts/12310426740)
+(GitHub sign-in required; expires **2026-11-20 00:11 UTC**). It contains exactly
+the game-free `DefJamSetup-0.10.5-windows-x64.exe`, SHA-256 and provenance.
+Downloaded installer: **54,650,880 bytes**, SHA-256
+`87d84cd4e373206987c96498d1295196f6bf16d7c69ccd75e326fe07a6f590ed`.
+Independent local verification matched the checksum and provenance, checked
+`development=false`, source/pin above, and inclusion of `windows_guest_layout.h`.
+No game executable or translated code is distributed.
+
+[Issue reply posted and read back](https://github.com/vyanhursky/DefJamFFNY-recomp/issues/72#issuecomment-6304712397) explains the cause and history,
+links the artifact, and asks @klwn911 to use the bundled build with **Clean
+Rebuild**, then test the main menu and a fight. The installed game itself has
+not been run on Windows by this agent; **reporter acceptance remains pending**.
+The version label remains 0.10.5; the artifact name and provenance distinguish
+this candidate from the regular release.
+
+Local evidence: `logs/issue72/windows-job-current.log`,
+`logs/issue72/windows-test-reports/`, `logs/issue72/windows-candidate/`,
+and sent body `logs/issue72/issue-comment-published.md` (all ignored).
+A later integration target may include the separately published texture-list
+fix `72bec86`; apply this memory topic on that fork tip to preserve the other fix.
