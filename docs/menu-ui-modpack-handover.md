@@ -1,17 +1,16 @@
 # Menu/UI modpack implementation handover
 
-**Current update — 2026-10-20:** PR62 menus were owner-playtested; PR73/toolkit
-`dd63e17` included. Popup/profile15studies/22sources now approved D172/UI:
-473pins/114reviewed IDs (96unconditional+8Mode+10transitionconditional).
-Separate22tile source4xexport ready/uninstalled, alongside Extras/Phone exports.
-Profile widewall approved as artwork; runtime anchors remain unmeasured.
-Earlier16item/19source batch remains pending. New Gym/controls15studies/22sources
-await review: two restrained papers and thirteen Faithful choices. Review51738
-now supports synchronized mouse zoom/pan on every image. Read [the latest
-report](research/menu-controls-restoration-2026-10-20.md) and PROGRESS.md §7.
-Leave the active game untouched. Native transitionpan approval is pending.
-GitHub authentication remains invalid; latest source commits are local.
-Original October19pause/engineering plan below is historical.
+**Current update — 2026-10-20:** Gym/control15studies22IDs approved:600pins,
+136reviewedIDs(118unconditional+18conditional); isolated22tileexport ready/uninstalled.
+Vlad stops routine buttons/panels restoration because Faithful HD is sufficient.
+Focus widenscreen backgrounds and his selected exceptions. Full image browser at
+review51738/inventory.html:1323registeredIDs,optional1834core,original/Faithful/
+customwhereavailable/status/localshortlist. Fiveknownunprocessedbackgroundgroups
+mapped; rootusage/clipping and fulltransitionpan remainunverified. Prior16/19
+batchpending. Threeinflightshopraws retained/unadopted,147historicalcalls; no
+furthergenerationbeforeselections. Read [the current report](research/menu-inventory-browser-2026-10-20.md)
+and PROGRESS.md §7. Game/activepacks unchanged. GitHub sign-in recovered; source-only branches and existing draftPRs
+are updated. Original October19pause/engineering plan below is historical.
 
 ---
 

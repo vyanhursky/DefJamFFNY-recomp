@@ -2,26 +2,26 @@
   "schema": 1,
   "art_root_policy": "Relative to the PRIVATE pilot-v1 directory. No PNG/game bytes are stored here. This is an integrity catalogue,not a runtime mod manifest.",
   "decision_namespace": "Menu-session decisions are qualified /UI where they collide with main-branch decisions; preserve historical identifiers.",
-  "restoration_status": "RESUMED;15popup/profile studies22sources approved D172/UI. Earlier16item19sourcebatch pending D170/UI. New15Gym/control studies22sources pending D174/UI;linkedreviewnavigation D173/UI.",
-  "pilot_imagegen_calls": 144,
+  "restoration_status": "Scope changed: stop routine smallpanel/button restoration. Focus widescreen backgrounds and owner-selected exceptions. Gym/controls approved D175/UI; prior16batch pending. Three rawshopproposals retained/unadopted;147calls total.",
+  "pilot_imagegen_calls": 147,
   "source_counts": {
-    "covered_by_artwork_review": 114,
-    "unconditionally_approved_source_ids": 96,
+    "covered_by_artwork_review": 136,
+    "unconditionally_approved_source_ids": 118,
     "conditionally_reviewed_mode_source_ids": 8,
     "registered_flows": {
       "total": 1323,
-      "covered": 114,
-      "not_custom_restored": 1209
+      "covered": 115,
+      "not_custom_restored": 1208
     },
     "core_families": {
       "total": 1834,
-      "covered": 114,
-      "not_custom_restored": 1720
+      "covered": 132,
+      "not_custom_restored": 1702
     },
     "broad_ui_category": {
       "total": 11261,
-      "covered": 114,
-      "not_custom_restored": 11147
+      "covered": 136,
+      "not_custom_restored": 11125
     },
     "confirmed_priority_shortlist": 17,
     "conditionally_reviewed_transition_source_ids": 10
@@ -1787,6 +1787,440 @@
           "name": "31",
           "index": 22,
           "width": 128,
+          "height": 128
+        }
+      ]
+    },
+    {
+      "source_id": "31460303b1c7cc671c6b0355efb2f619a688fedf0c24f35aff8465e9db6ed2c7",
+      "family": "gym-controls",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/story/chooseStyle.big::chooseStyle.xsh",
+          "name": "44",
+          "index": 13,
+          "width": 256,
+          "height": 256
+        },
+        {
+          "source": "screens/screens.viv::screens/story/gym.big::gym.xsh",
+          "name": "59",
+          "index": 65,
+          "width": 256,
+          "height": 256
+        }
+      ]
+    },
+    {
+      "source_id": "05006f7ec4c10ac0910b104e5c6776c625444726194983e57ab08782116fda0c",
+      "family": "gym-controls",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/story/gym.big::gym.xsh",
+          "name": "47",
+          "index": 59,
+          "width": 256,
+          "height": 256
+        }
+      ]
+    },
+    {
+      "source_id": "9276f96f3218687f6587b3bfff8a1f848a435cd39cb896cdf247cce6069523be",
+      "family": "gym-controls",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/story/gym.big::gym.xsh",
+          "name": "49",
+          "index": 61,
+          "width": 256,
+          "height": 256
+        }
+      ]
+    },
+    {
+      "source_id": "0dd32b612b4047d3d475b4954973f686d6b4ad8f1fa8f4311281334d9b9cf7a6",
+      "family": "gym-controls",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "assets/misc.viv::popups.xsh",
+          "name": "texP",
+          "index": 0,
+          "width": 256,
+          "height": 256
+        },
+        {
+          "source": "assets/misc.viv::popupsF.xsh",
+          "name": "texP",
+          "index": 0,
+          "width": 256,
+          "height": 256
+        }
+      ]
+    },
+    {
+      "source_id": "2e624c292129efe4bf9ccf499ddbcca80b49f6a393454e18c9278055dc9fb64b",
+      "family": "gym-controls",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/story/chooseStyle.big::chooseStyle.xsh",
+          "name": "42",
+          "index": 11,
+          "width": 256,
+          "height": 128
+        },
+        {
+          "source": "screens/screens.viv::screens/story/gym.big::gym.xsh",
+          "name": "57",
+          "index": 63,
+          "width": 256,
+          "height": 128
+        }
+      ]
+    },
+    {
+      "source_id": "69b7f4c1d4a653c6502b6834b4faa45240071cfa2cdc880b796c00d4d913002f",
+      "family": "gym-controls",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/story/chooseStyle.big::chooseStyle.xsh",
+          "name": "48",
+          "index": 15,
+          "width": 256,
+          "height": 128
+        },
+        {
+          "source": "screens/screens.viv::screens/story/gym.big::gym.xsh",
+          "name": "63",
+          "index": 67,
+          "width": 256,
+          "height": 128
+        }
+      ]
+    },
+    {
+      "source_id": "f72dcdc83ade2fd316565909e95b1ff523449286350169861ade8898a1251716",
+      "family": "gym-controls",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/story/gym.big::gym.xsh",
+          "name": "46",
+          "index": 58,
+          "width": 128,
+          "height": 256
+        }
+      ]
+    },
+    {
+      "source_id": "c263c20b240c4ec872e1c13e6b1fd0e7bf3489b7b5220989589f253d0cf80166",
+      "family": "gym-controls",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/story/gym.big::gym.xsh",
+          "name": "48",
+          "index": 60,
+          "width": 128,
+          "height": 256
+        }
+      ]
+    },
+    {
+      "source_id": "92293188c12dd2449a864035e6b82e85fb5a034c730a84219469d9ca2f604aa1",
+      "family": "gym-controls",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/intMain/support/mainMenuButtons.big::mainMenuButtons.xsh",
+          "name": "11",
+          "index": 0,
+          "width": 128,
+          "height": 128
+        },
+        {
+          "source": "screens/screens.viv::screens/test/mnMnTest.big::mnMnTest.xsh",
+          "name": "10",
+          "index": 1,
+          "width": 128,
+          "height": 128
+        }
+      ]
+    },
+    {
+      "source_id": "526ab883927181a717592611416c2af371874cb26a2308a01228b421ed7244ca",
+      "family": "gym-controls",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/intMain/support/mainMenuButtons.big::mainMenuButtons.xsh",
+          "name": "15",
+          "index": 1,
+          "width": 128,
+          "height": 128
+        },
+        {
+          "source": "screens/screens.viv::screens/test/mnMnTest.big::mnMnTest.xsh",
+          "name": "18",
+          "index": 7,
+          "width": 128,
+          "height": 128
+        }
+      ]
+    },
+    {
+      "source_id": "f0c00e8ae417632a7cbf84610570fde36a01b3a6b9d29743762f4248b70a0063",
+      "family": "gym-controls",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/intMain/support/mainMenuButtons.big::mainMenuButtons.xsh",
+          "name": "19",
+          "index": 2,
+          "width": 128,
+          "height": 128
+        },
+        {
+          "source": "screens/screens.viv::screens/test/mnMnTest.big::mnMnTest.xsh",
+          "name": "22",
+          "index": 8,
+          "width": 128,
+          "height": 128
+        }
+      ]
+    },
+    {
+      "source_id": "5941f1679f89a478f57a2ad0d8f676bea37d83cb691f01cdae2372f5a8f0e42a",
+      "family": "gym-controls",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/intMain/support/mainMenuButtons.big::mainMenuButtons.xsh",
+          "name": "23",
+          "index": 3,
+          "width": 128,
+          "height": 128
+        },
+        {
+          "source": "screens/screens.viv::screens/test/mnMnTest.big::mnMnTest.xsh",
+          "name": "26",
+          "index": 9,
+          "width": 128,
+          "height": 128
+        }
+      ]
+    },
+    {
+      "source_id": "3ee52b6d7769027b05212ab649c09cec32ad5649334d7f58eae2b9e8db463007",
+      "family": "gym-controls",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/intMain/support/mainMenuButtons.big::mainMenuButtons.xsh",
+          "name": "27",
+          "index": 4,
+          "width": 128,
+          "height": 128
+        },
+        {
+          "source": "screens/screens.viv::screens/test/mnMnTest.big::mnMnTest.xsh",
+          "name": "30",
+          "index": 10,
+          "width": 128,
+          "height": 128
+        }
+      ]
+    },
+    {
+      "source_id": "1ae171126745ec77d2f8a6066217f5fa2fc9206e56a4b15da10eea8b431d3d60",
+      "family": "gym-controls",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/intMain/support/mainMenuButtons.big::mainMenuButtons.xsh",
+          "name": "31",
+          "index": 5,
+          "width": 128,
+          "height": 128
+        },
+        {
+          "source": "screens/screens.viv::screens/test/mnMnTest.big::mnMnTest.xsh",
+          "name": "34",
+          "index": 11,
+          "width": 128,
+          "height": 128
+        }
+      ]
+    },
+    {
+      "source_id": "42e7189a05971a7fe3a3e87645c0fb02bf20c38a9bdac54cd483482a6b003222",
+      "family": "gym-controls",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/intMain/support/mainMenuButtons.big::mainMenuButtons.xsh",
+          "name": "37",
+          "index": 6,
+          "width": 128,
+          "height": 128
+        }
+      ]
+    },
+    {
+      "source_id": "a3fdb3fcb5d504db608865197a8c0dedfed9b1615ceeec372ee73c2600cbdc3d",
+      "family": "gym-controls",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/intMain/support/mainMenuButtons.big::mainMenuButtons.xsh",
+          "name": "42",
+          "index": 7,
+          "width": 128,
+          "height": 128
+        },
+        {
+          "source": "screens/screens.viv::screens/test/mnMnTest.big::mnMnTest.xsh",
+          "name": "14",
+          "index": 6,
+          "width": 128,
+          "height": 128
+        },
+        {
+          "source": "screens/screens.viv::screens/test/test.big::test.xsh",
+          "name": "1",
+          "index": 0,
+          "width": 128,
+          "height": 128
+        }
+      ]
+    },
+    {
+      "source_id": "3f74caf51ce9218f2e2929deb9a28f6b553281d29e3e0fef1701c17727e3b5f7",
+      "family": "gym-controls",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "assets/misc.viv::popups.xsh",
+          "name": "texN",
+          "index": 2,
+          "width": 256,
+          "height": 64
+        },
+        {
+          "source": "assets/misc.viv::popupsF.xsh",
+          "name": "texN",
+          "index": 2,
+          "width": 256,
+          "height": 64
+        }
+      ]
+    },
+    {
+      "source_id": "1ff57a715094afdf7804d5b6d764c8df6f277c9176c346a59218a4f03af942cf",
+      "family": "gym-controls",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "assets/misc.viv::popups.xsh",
+          "name": "texF",
+          "index": 3,
+          "width": 256,
+          "height": 32
+        },
+        {
+          "source": "assets/misc.viv::popupsF.xsh",
+          "name": "texF",
+          "index": 3,
+          "width": 256,
+          "height": 32
+        }
+      ]
+    },
+    {
+      "source_id": "684eb85fd7ac720a3d423b0cc1f4dd84e5c58efd08feb98f2ff144189b437900",
+      "family": "gym-controls",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "assets/misc.viv::popups.xsh",
+          "name": "texT",
+          "index": 1,
+          "width": 256,
+          "height": 32
+        },
+        {
+          "source": "assets/misc.viv::popupsF.xsh",
+          "name": "texT",
+          "index": 1,
+          "width": 256,
+          "height": 32
+        }
+      ]
+    },
+    {
+      "source_id": "d62e0f39e7f6b815fe6a9233d46437c0eb00e107392908d28e8b6415cdc32a25",
+      "family": "gym-controls",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/story/chooseStyle.big::chooseStyle.xsh",
+          "name": "43",
+          "index": 12,
+          "width": 64,
+          "height": 256
+        },
+        {
+          "source": "screens/screens.viv::screens/story/gym.big::gym.xsh",
+          "name": "58",
+          "index": 64,
+          "width": 64,
+          "height": 256
+        }
+      ]
+    },
+    {
+      "source_id": "a4c6ec9072766ae153acb406d41a51165289934ff5ab304c7dcf99a5cac8652a",
+      "family": "gym-controls",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/story/chooseStyle.big::chooseStyle.xsh",
+          "name": "41",
+          "index": 10,
+          "width": 64,
+          "height": 128
+        },
+        {
+          "source": "screens/screens.viv::screens/story/gym.big::gym.xsh",
+          "name": "56",
+          "index": 62,
+          "width": 64,
+          "height": 128
+        }
+      ]
+    },
+    {
+      "source_id": "6aabda07d86ca806082d23f93228cdb8df85095809d39739664cfccd9c10bc4d",
+      "family": "gym-controls",
+      "status": "approved-artwork",
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/story/chooseStyle.big::chooseStyle.xsh",
+          "name": "47",
+          "index": 14,
+          "width": 64,
+          "height": 128
+        },
+        {
+          "source": "screens/screens.viv::screens/story/gym.big::gym.xsh",
+          "name": "62",
+          "index": 66,
+          "width": 64,
           "height": 128
         }
       ]
@@ -3812,8 +4246,524 @@
           "sha256": "1f4ead17ebae16f4c226c8f35dbeb15b69378c85fdd7ca89a2f75ba6f3038d2f"
         }
       ]
+    },
+    {
+      "decision": "D175/UI",
+      "status": "owner-approved artwork",
+      "scope": "15Gym/control studies over22sourceIDs: two restrained papers and13Faithful studies, complete native4xtiles, draft alpha proofs and five isolated ratio studies; excludes raw/history and actual game acceptance. Earlier16item batch remains pending.",
+      "record": "controls-approval-20261020.json",
+      "files": [
+        {
+          "path": "controls-v1-20261020/05006f7ec4c10ac0910b104e5c6776c625444726194983e57ab08782116fda0c-draft.png",
+          "sha256": "bc93dfb72ddbc8a9952fa8bcdbb0e685be1ce90c2b2dc9a740357c82efe28032"
+        },
+        {
+          "path": "controls-v1-20261020/0dd32b612b4047d3d475b4954973f686d6b4ad8f1fa8f4311281334d9b9cf7a6-draft.png",
+          "sha256": "49bf742c6bb11d19433b3bf5e9ccfd4cfb8390ea0766321c46c4d1e350d10b1c"
+        },
+        {
+          "path": "controls-v1-20261020/1ae171126745ec77d2f8a6066217f5fa2fc9206e56a4b15da10eea8b431d3d60-draft.png",
+          "sha256": "24f86db545f56395b92bc1dac3466bda461f2783e0e9b45170c7be9e20341c82"
+        },
+        {
+          "path": "controls-v1-20261020/1ff57a715094afdf7804d5b6d764c8df6f277c9176c346a59218a4f03af942cf-draft.png",
+          "sha256": "6d0b82a88f7f10c28914a19d20a7af7251f6126cfbcb425735f2ad84f1f9e5d4"
+        },
+        {
+          "path": "controls-v1-20261020/2e624c292129efe4bf9ccf499ddbcca80b49f6a393454e18c9278055dc9fb64b-draft.png",
+          "sha256": "3907fc2c4ab756e687dd75b12b4fb58a48f26b23690b1b776ad833431bb25ec1"
+        },
+        {
+          "path": "controls-v1-20261020/31460303b1c7cc671c6b0355efb2f619a688fedf0c24f35aff8465e9db6ed2c7-draft.png",
+          "sha256": "867fda49746c6fde16309a52489eb040f394cfae6a79c6061479f22864996dd5"
+        },
+        {
+          "path": "controls-v1-20261020/3ee52b6d7769027b05212ab649c09cec32ad5649334d7f58eae2b9e8db463007-draft.png",
+          "sha256": "cb318ec515007c70f4bb78a0666c1725de40621cc8198d5d8bac6f4a330c541a"
+        },
+        {
+          "path": "controls-v1-20261020/3f74caf51ce9218f2e2929deb9a28f6b553281d29e3e0fef1701c17727e3b5f7-draft.png",
+          "sha256": "646e99b14d69753d52d74ce561c36782ccd1d23062a02441a86cec886f71db59"
+        },
+        {
+          "path": "controls-v1-20261020/42e7189a05971a7fe3a3e87645c0fb02bf20c38a9bdac54cd483482a6b003222-draft.png",
+          "sha256": "fcbeb132d423dae77262c04d4ab23c5b3751783c0b972b8c14c5038ae509b632"
+        },
+        {
+          "path": "controls-v1-20261020/526ab883927181a717592611416c2af371874cb26a2308a01228b421ed7244ca-draft.png",
+          "sha256": "c4eaec5026c28d48b80ff21bb30b6d115cab1c9ccd3441e6f27f2fc3c72720db"
+        },
+        {
+          "path": "controls-v1-20261020/5941f1679f89a478f57a2ad0d8f676bea37d83cb691f01cdae2372f5a8f0e42a-draft.png",
+          "sha256": "d0eec989742337b1a41a7385d2db8f4d365673fd222123c2011c4fe9e8e51603"
+        },
+        {
+          "path": "controls-v1-20261020/684eb85fd7ac720a3d423b0cc1f4dd84e5c58efd08feb98f2ff144189b437900-draft.png",
+          "sha256": "457057a50ee5bcc5ddc47eb21bbcef5f80c340ad1325ed0d267055fd84c0f44e"
+        },
+        {
+          "path": "controls-v1-20261020/69b7f4c1d4a653c6502b6834b4faa45240071cfa2cdc880b796c00d4d913002f-draft.png",
+          "sha256": "401da3e45ef2aae5cf734df26ea5c263d5346fedf889a7d66f6d12a74840c8a1"
+        },
+        {
+          "path": "controls-v1-20261020/6aabda07d86ca806082d23f93228cdb8df85095809d39739664cfccd9c10bc4d-draft.png",
+          "sha256": "5958f531dde837cccdef470552d0d18a3d758a1a37c64e53abd99a1f798ca182"
+        },
+        {
+          "path": "controls-v1-20261020/92293188c12dd2449a864035e6b82e85fb5a034c730a84219469d9ca2f604aa1-draft.png",
+          "sha256": "f9a9b3960b074e05db5ea1bd5887608206d2ae1c47b6bec7ee26c08679aabd7d"
+        },
+        {
+          "path": "controls-v1-20261020/9276f96f3218687f6587b3bfff8a1f848a435cd39cb896cdf247cce6069523be-draft.png",
+          "sha256": "5490974769178f68a03defc9a02e10247e621a2fd39cbdb37002d340068591ec"
+        },
+        {
+          "path": "controls-v1-20261020/a3fdb3fcb5d504db608865197a8c0dedfed9b1615ceeec372ee73c2600cbdc3d-draft.png",
+          "sha256": "34732518fda34d089eb6e16d920dc74b1b94d9b7a1752f253a3edcc7e5579616"
+        },
+        {
+          "path": "controls-v1-20261020/a4c6ec9072766ae153acb406d41a51165289934ff5ab304c7dcf99a5cac8652a-draft.png",
+          "sha256": "a402b76edab76cf79d6ee1f07cfd89c72343db7013a4cfeeb56101dd35e7a8cb"
+        },
+        {
+          "path": "controls-v1-20261020/button-11-16x10-draft.png",
+          "sha256": "b7f9aaf76bf611940adb8fc5d469870a2854acf252b6e67a700ea1c419285e97"
+        },
+        {
+          "path": "controls-v1-20261020/button-11-16x9-draft.png",
+          "sha256": "4211d76480114b9977db9fb4303805d33034b9f08ecb55f47db3ae3f58d539ba"
+        },
+        {
+          "path": "controls-v1-20261020/button-11-21x9-draft.png",
+          "sha256": "566de0b26e2583c8f7eb5e7a12a5b932236068c486929828190dc2d26d1adc0d"
+        },
+        {
+          "path": "controls-v1-20261020/button-11-32x9-draft.png",
+          "sha256": "48df637cc41a1befc12ecdfa5eeadcad4f1909bdaeff387e197be57697432184"
+        },
+        {
+          "path": "controls-v1-20261020/button-11-4x3-draft.png",
+          "sha256": "7af959deb47c64e73f1c6608042823b234afae705c63d8a19629f0467092e439"
+        },
+        {
+          "path": "controls-v1-20261020/button-11-draft-alpha.png",
+          "sha256": "08e512d15affc6b55b8fa2b700d253634b4a2b5eab9d7d710c221a7a27fd42cc"
+        },
+        {
+          "path": "controls-v1-20261020/button-11-draft.png",
+          "sha256": "f9a9b3960b074e05db5ea1bd5887608206d2ae1c47b6bec7ee26c08679aabd7d"
+        },
+        {
+          "path": "controls-v1-20261020/button-15-16x10-draft.png",
+          "sha256": "93a847cc04b4d054f5835c4862f944f36ec7f14a67fb8628cf8c45a7fe025648"
+        },
+        {
+          "path": "controls-v1-20261020/button-15-16x9-draft.png",
+          "sha256": "c4453ac4956d1b6e2fc784aee6c3e3f64bc4fe14a297651eeefe1dfcd4fd7444"
+        },
+        {
+          "path": "controls-v1-20261020/button-15-21x9-draft.png",
+          "sha256": "a1ba59e44497d41e6f5784d6aec53f80e60294f07ff101114d39e91a4bf51f3e"
+        },
+        {
+          "path": "controls-v1-20261020/button-15-32x9-draft.png",
+          "sha256": "6fff0a135fd0766921a5f448703a0ee85b1d7bce7cf294590bc2d7e5cb421647"
+        },
+        {
+          "path": "controls-v1-20261020/button-15-4x3-draft.png",
+          "sha256": "cc9517bbbd14f2accd72137d811ec2fa610b4e848b6fd0eec28ab98df5bba4e8"
+        },
+        {
+          "path": "controls-v1-20261020/button-15-draft-alpha.png",
+          "sha256": "d86fad6218176699ede45f047f0c4f7b093749f90a77858b7359a3aaf4f238a7"
+        },
+        {
+          "path": "controls-v1-20261020/button-15-draft.png",
+          "sha256": "c4eaec5026c28d48b80ff21bb30b6d115cab1c9ccd3441e6f27f2fc3c72720db"
+        },
+        {
+          "path": "controls-v1-20261020/button-19-16x10-draft.png",
+          "sha256": "ef5ce9e9aef86841d136c345508195868597ca5f9fa94b776af573263c76d807"
+        },
+        {
+          "path": "controls-v1-20261020/button-19-16x9-draft.png",
+          "sha256": "facb810015b52d44bf99927d6edabfe975be1afe1eebd368af41912da5a8fbdc"
+        },
+        {
+          "path": "controls-v1-20261020/button-19-21x9-draft.png",
+          "sha256": "adf4288222c04b9a3f6ab8c3f0170c8f99deb57f0105ec6675e73a7a09d5383b"
+        },
+        {
+          "path": "controls-v1-20261020/button-19-32x9-draft.png",
+          "sha256": "e715f7839834cc8052545c459f328ddb25cbc404e04a64672c36e83479dcb955"
+        },
+        {
+          "path": "controls-v1-20261020/button-19-4x3-draft.png",
+          "sha256": "0cc720c89e61f3938d210aa42f13603eba4582a52dc016a995ff742fba7bcd53"
+        },
+        {
+          "path": "controls-v1-20261020/button-19-draft-alpha.png",
+          "sha256": "9d758c0fba30ab88ea8c927ae18146d4f289efc02f519a5ac4312bb47eb4366d"
+        },
+        {
+          "path": "controls-v1-20261020/button-19-draft.png",
+          "sha256": "9e30ced3c53b850975842e80078f7fc7fa8ffb2eada0d530ded27a1e419fa74e"
+        },
+        {
+          "path": "controls-v1-20261020/button-23-16x10-draft.png",
+          "sha256": "fd625d3240dcc3a7f94475dd9e8bc2d6271a752dfb1a8392923af9fdf7924593"
+        },
+        {
+          "path": "controls-v1-20261020/button-23-16x9-draft.png",
+          "sha256": "a209df0ef31a200b54f1e0dc7992ec7d33d3dc60e59d356da475b8594c000999"
+        },
+        {
+          "path": "controls-v1-20261020/button-23-21x9-draft.png",
+          "sha256": "bc9e29f98e4c6ab8f37b90a4e4bd29ae771bae115d00c1c567b6841d8627f890"
+        },
+        {
+          "path": "controls-v1-20261020/button-23-32x9-draft.png",
+          "sha256": "69203c77bceacfb8fc6b01dcc46cc82fb2023b7c236f70a647321a70a0d4ed11"
+        },
+        {
+          "path": "controls-v1-20261020/button-23-4x3-draft.png",
+          "sha256": "1b6e7977756efe971f82123286eeee251988a9b71ff8fe6740492fd3541db7f9"
+        },
+        {
+          "path": "controls-v1-20261020/button-23-draft-alpha.png",
+          "sha256": "aa36ded9f086f69ca9b5210f9324f5a9b3a76b81028ba9084ad39c6381f86b7a"
+        },
+        {
+          "path": "controls-v1-20261020/button-23-draft.png",
+          "sha256": "d0eec989742337b1a41a7385d2db8f4d365673fd222123c2011c4fe9e8e51603"
+        },
+        {
+          "path": "controls-v1-20261020/button-27-16x10-draft.png",
+          "sha256": "40bc61a285b5d453cb81fc8d456ec6e72736f32ddcc6c0c1b5e40fec00c6d6ae"
+        },
+        {
+          "path": "controls-v1-20261020/button-27-16x9-draft.png",
+          "sha256": "1d90abb24de1f9f53f99f456e6cec8bff1ea29ad92388e837fd5050b839d7ac9"
+        },
+        {
+          "path": "controls-v1-20261020/button-27-21x9-draft.png",
+          "sha256": "787f57bc42fa136722fc99c50ce1745a3e89a74e6c422193b3d5a96ad00e4e9c"
+        },
+        {
+          "path": "controls-v1-20261020/button-27-32x9-draft.png",
+          "sha256": "0998631716141738dff4c1c3fa1dabd9ea2d3fa7fa0c9bda9c3a278d310dfe93"
+        },
+        {
+          "path": "controls-v1-20261020/button-27-4x3-draft.png",
+          "sha256": "2f1fbcbdaaeaed3656a9a8af554dcff26c8e2ebbe3976d4e159551d26df7ac25"
+        },
+        {
+          "path": "controls-v1-20261020/button-27-draft-alpha.png",
+          "sha256": "d04e1b32a835e7142265e6bb22ad50cef8e57199ee53e77ba648fb871538951a"
+        },
+        {
+          "path": "controls-v1-20261020/button-27-draft.png",
+          "sha256": "cb318ec515007c70f4bb78a0666c1725de40621cc8198d5d8bac6f4a330c541a"
+        },
+        {
+          "path": "controls-v1-20261020/button-31-16x10-draft.png",
+          "sha256": "b4aef0498c9caf7e9ff5db98683cccc97dc88500479f814fadddca4c52fc131d"
+        },
+        {
+          "path": "controls-v1-20261020/button-31-16x9-draft.png",
+          "sha256": "9a49d89ecd1e725ef3ed6d4cc089a0b751522aff2df30a01b021350587a46189"
+        },
+        {
+          "path": "controls-v1-20261020/button-31-21x9-draft.png",
+          "sha256": "3450e514537c395f20bae43b243795972799bb8a8a82391dab0511217c99f34a"
+        },
+        {
+          "path": "controls-v1-20261020/button-31-32x9-draft.png",
+          "sha256": "8ca6e64cf34e412a11c9ff97bdb681f27957cd4ba44c473da5e410eef14c5d0a"
+        },
+        {
+          "path": "controls-v1-20261020/button-31-4x3-draft.png",
+          "sha256": "8bb366d555b9e96f5ef67d59257e914cee402a10297fbf0de5805797cb53f697"
+        },
+        {
+          "path": "controls-v1-20261020/button-31-draft-alpha.png",
+          "sha256": "f903542d74be5cd7ee685d70717e2914ccb2f8f70c3b8ddec33c8bbfb548c55e"
+        },
+        {
+          "path": "controls-v1-20261020/button-31-draft.png",
+          "sha256": "24f86db545f56395b92bc1dac3466bda461f2783e0e9b45170c7be9e20341c82"
+        },
+        {
+          "path": "controls-v1-20261020/button-37-16x10-draft.png",
+          "sha256": "80341ec6278cf84011b408b03bb5b6ffb2f4ef98606a15c44165c38e7c5977cf"
+        },
+        {
+          "path": "controls-v1-20261020/button-37-16x9-draft.png",
+          "sha256": "30c2fb88919139761b345724b59797c0b638601f249364291a4d835800d6e4ea"
+        },
+        {
+          "path": "controls-v1-20261020/button-37-21x9-draft.png",
+          "sha256": "b334b54c3fc656b59476b610d9a333990d64d644223361b045178294a860c159"
+        },
+        {
+          "path": "controls-v1-20261020/button-37-32x9-draft.png",
+          "sha256": "adea1a3fa3be13070999712283c182a3fb6bb0a6d038c7fba8431b32e33cd932"
+        },
+        {
+          "path": "controls-v1-20261020/button-37-4x3-draft.png",
+          "sha256": "acac2ccb366845b560f53ff329fd9b689357ea91b0297e2e6129d8aaf0b3c209"
+        },
+        {
+          "path": "controls-v1-20261020/button-37-draft-alpha.png",
+          "sha256": "0cc13622228864e657289fd95235ebd84a625a5ccb4c90443516d1eae40dc11e"
+        },
+        {
+          "path": "controls-v1-20261020/button-37-draft.png",
+          "sha256": "fcbeb132d423dae77262c04d4ab23c5b3751783c0b972b8c14c5038ae509b632"
+        },
+        {
+          "path": "controls-v1-20261020/button-42-16x10-draft.png",
+          "sha256": "9eaf345cc52ae424835892715bc9f2e189ab2b78cc23ed32fc9f6605887e8630"
+        },
+        {
+          "path": "controls-v1-20261020/button-42-16x9-draft.png",
+          "sha256": "c37c4102320e6079c96e72507533acb0b45953f8305765bcbeb73d9e06a33dd6"
+        },
+        {
+          "path": "controls-v1-20261020/button-42-21x9-draft.png",
+          "sha256": "845eab460953f1761f64d48c35ac7e673c8176d2ba4b32f966f707ccbefbd68d"
+        },
+        {
+          "path": "controls-v1-20261020/button-42-32x9-draft.png",
+          "sha256": "834a59513cec5f75d608ca5feb967c8e6b8c8fae10bdb278cf95390ecd7cebd2"
+        },
+        {
+          "path": "controls-v1-20261020/button-42-4x3-draft.png",
+          "sha256": "4211c2f27e1790ac9e299943cfd238d99e664e51f5f04988043947bdb9dce8c8"
+        },
+        {
+          "path": "controls-v1-20261020/button-42-draft-alpha.png",
+          "sha256": "cb0ef2fcef7d405852ec288097630389632763142a12f0096cc323f2f8fd1599"
+        },
+        {
+          "path": "controls-v1-20261020/button-42-draft.png",
+          "sha256": "34732518fda34d089eb6e16d920dc74b1b94d9b7a1752f253a3edcc7e5579616"
+        },
+        {
+          "path": "controls-v1-20261020/c263c20b240c4ec872e1c13e6b1fd0e7bf3489b7b5220989589f253d0cf80166-draft.png",
+          "sha256": "0ae43522dcdc152bca9085092fd04429deb4807d80fbd4dfe94f05e662eec846"
+        },
+        {
+          "path": "controls-v1-20261020/d62e0f39e7f6b815fe6a9233d46437c0eb00e107392908d28e8b6415cdc32a25-draft.png",
+          "sha256": "2e6ff5b74fcbe27e6ecfc618d703ffdd4e1416dabeeec98254b96e9031d991d4"
+        },
+        {
+          "path": "controls-v1-20261020/f0c00e8ae417632a7cbf84610570fde36a01b3a6b9d29743762f4248b70a0063-draft.png",
+          "sha256": "9e30ced3c53b850975842e80078f7fc7fa8ffb2eada0d530ded27a1e419fa74e"
+        },
+        {
+          "path": "controls-v1-20261020/f72dcdc83ade2fd316565909e95b1ff523449286350169861ade8898a1251716-draft.png",
+          "sha256": "d45f9c3f0461651fec5ac988353141e98ac091ce494a187c413ece4c00b5e2a9"
+        },
+        {
+          "path": "controls-v1-20261020/gym-display-16x10-draft.png",
+          "sha256": "81e6a748244be2d3f96022af1315c311313ed28a6fa64b0ba9040b99fb997398"
+        },
+        {
+          "path": "controls-v1-20261020/gym-display-16x9-draft.png",
+          "sha256": "c9e7f718fabcd11f0790975fb41c47c5bc980bb8c676f53e54d1e1cc2ebd3654"
+        },
+        {
+          "path": "controls-v1-20261020/gym-display-21x9-draft.png",
+          "sha256": "9fec37ce770e8e2bbfff13206043c3db055c1efa6d52646a90e7f638f0d36195"
+        },
+        {
+          "path": "controls-v1-20261020/gym-display-32x9-draft.png",
+          "sha256": "11f943cb7fcd409bcee6799652e805b03a0776568baa5cb616dd41da3559d78f"
+        },
+        {
+          "path": "controls-v1-20261020/gym-display-4x3-draft.png",
+          "sha256": "9a1dc0979346dad519fe456953ec924847fcfb21188a1b501fe5ed15e8429c7c"
+        },
+        {
+          "path": "controls-v1-20261020/gym-display-draft-alpha.png",
+          "sha256": "a53e5e9cadde46249fb611af3d27c1f1446b60c25f60857d51f3eda5c51c1c6a"
+        },
+        {
+          "path": "controls-v1-20261020/gym-display-draft.png",
+          "sha256": "7596fda2dc2785e53f5f3d710d56f969ea2d308944ccb07081d84faf80369d34"
+        },
+        {
+          "path": "controls-v1-20261020/gym-paper-16x10-draft.png",
+          "sha256": "ddd6dcc613bef213e34c476aaa1e3e1608e63327b72df3447bad431a0d38c787"
+        },
+        {
+          "path": "controls-v1-20261020/gym-paper-16x9-draft.png",
+          "sha256": "6dc4e5de6b0abd04c25af5ebe2701f8d0d058023abec3ff6f90b077d3dd2fa00"
+        },
+        {
+          "path": "controls-v1-20261020/gym-paper-21x9-draft.png",
+          "sha256": "06f5c7be679e5efacdb3b761e897a298ec49baa3974ec5966278fb8853148555"
+        },
+        {
+          "path": "controls-v1-20261020/gym-paper-32x9-draft.png",
+          "sha256": "5f9446cc2eed5af23f9d68344df04c23b21243cd4c47b1238ff94517de7b1e6b"
+        },
+        {
+          "path": "controls-v1-20261020/gym-paper-4x3-draft.png",
+          "sha256": "5f62a6835b8ef635b3a5b0ff6c734968151e282135d1c7d6be452f8c4d03c0e5"
+        },
+        {
+          "path": "controls-v1-20261020/gym-paper-draft-alpha.png",
+          "sha256": "ec359f22a5a7344229557e8fa42b8cf3e0775cb53432ebae199787a3c47af9ec"
+        },
+        {
+          "path": "controls-v1-20261020/gym-paper-draft.png",
+          "sha256": "e8139ddf1068b5c304f03718078f4030c68c929bb1fd8f41af4ecd33c4c8c7f9"
+        },
+        {
+          "path": "controls-v1-20261020/gym-rail-16x10-draft.png",
+          "sha256": "4898ea44a745f1caf1b0dcd4d1db9829d9d0d3ffc83413025e8a02e207cce806"
+        },
+        {
+          "path": "controls-v1-20261020/gym-rail-16x9-draft.png",
+          "sha256": "0e244e5c82fd5e7eb9bd25c47591abd694a5428afeb220127132494f197d9e30"
+        },
+        {
+          "path": "controls-v1-20261020/gym-rail-21x9-draft.png",
+          "sha256": "11f11cd2c10f65191ba9917f047b11dbe7e6a38f96d8bbc4b853ee6899b0a273"
+        },
+        {
+          "path": "controls-v1-20261020/gym-rail-32x9-draft.png",
+          "sha256": "49c9fc8b33f5f9129832875e0da6379fe882708670f013a8803e74400d2a5adb"
+        },
+        {
+          "path": "controls-v1-20261020/gym-rail-4x3-draft.png",
+          "sha256": "4c1cbfb370106650ed1909795fbceb1f66e77f35a4e9ef6bf140d718b60ba123"
+        },
+        {
+          "path": "controls-v1-20261020/gym-rail-draft-alpha.png",
+          "sha256": "f24b3a3fc2a1ad9c06e7b7cbc3151479f023dee6ed560d33a0ced5ad67ac4c3f"
+        },
+        {
+          "path": "controls-v1-20261020/gym-rail-draft.png",
+          "sha256": "bf62fa8a24142daa2f27aae79e5665a70d0a78ba0663831a0cad81e427991c9d"
+        },
+        {
+          "path": "controls-v1-20261020/popup-texF-16x10-draft.png",
+          "sha256": "8051d53c905f564872e59d8476084d7248ff7583652b8b841e5093ad20cd25d7"
+        },
+        {
+          "path": "controls-v1-20261020/popup-texF-16x9-draft.png",
+          "sha256": "0268abd77af01b1231adcd478cc5f6ea884d309f4ee55785f92164963d459c3c"
+        },
+        {
+          "path": "controls-v1-20261020/popup-texF-21x9-draft.png",
+          "sha256": "17000afead18e2025185249f09763cb6e8f0d3861c7d9c103c4fd2e8f7102617"
+        },
+        {
+          "path": "controls-v1-20261020/popup-texF-32x9-draft.png",
+          "sha256": "f37469b0b0f5cb370e49000bab0c13db9a543cf9625b884e015be712bcc0058b"
+        },
+        {
+          "path": "controls-v1-20261020/popup-texF-4x3-draft.png",
+          "sha256": "687b9e59b4db87ade9714dd8ff5b9a1db50104c1bb71419337b4497ccd30983e"
+        },
+        {
+          "path": "controls-v1-20261020/popup-texF-draft-alpha.png",
+          "sha256": "f9efb24fa740534521d5132c74ca46558193c2f15de4d07ad952a6a8fb71e39b"
+        },
+        {
+          "path": "controls-v1-20261020/popup-texF-draft.png",
+          "sha256": "6d0b82a88f7f10c28914a19d20a7af7251f6126cfbcb425735f2ad84f1f9e5d4"
+        },
+        {
+          "path": "controls-v1-20261020/popup-texN-16x10-draft.png",
+          "sha256": "b9377f520e7e59749ffceffde6a4457af6dc54740926a611003bf3b7902a03f1"
+        },
+        {
+          "path": "controls-v1-20261020/popup-texN-16x9-draft.png",
+          "sha256": "5fe951490aae1f1230c150ee40a7708341a9efc68111c54b022c8353c05ba9e7"
+        },
+        {
+          "path": "controls-v1-20261020/popup-texN-21x9-draft.png",
+          "sha256": "4a8dee6a0318c73406271ef419dad0b65291188970589f5793feabe344266c08"
+        },
+        {
+          "path": "controls-v1-20261020/popup-texN-32x9-draft.png",
+          "sha256": "ebd0621610d5228024e7241cd53784428f11d434fe087c72011027c67dfba09a"
+        },
+        {
+          "path": "controls-v1-20261020/popup-texN-4x3-draft.png",
+          "sha256": "477f811f0c28ff68bdf9400a2b489b42bef7eb38b5bba3cb4546586340ed28c4"
+        },
+        {
+          "path": "controls-v1-20261020/popup-texN-draft-alpha.png",
+          "sha256": "4852cf8a4aec0139b8d353874776949385c6e9bdd9065035d28395a5d485a492"
+        },
+        {
+          "path": "controls-v1-20261020/popup-texN-draft.png",
+          "sha256": "646e99b14d69753d52d74ce561c36782ccd1d23062a02441a86cec886f71db59"
+        },
+        {
+          "path": "controls-v1-20261020/popup-texP-16x10-draft.png",
+          "sha256": "84c72f4f1c4230266c7737d26e7ff2b2dd884336f09a8fd88e227127e5dcd315"
+        },
+        {
+          "path": "controls-v1-20261020/popup-texP-16x9-draft.png",
+          "sha256": "3f0fa1c21c60c7d48146ecf47b74809a00d077275e8a53bca97cc182dc106754"
+        },
+        {
+          "path": "controls-v1-20261020/popup-texP-21x9-draft.png",
+          "sha256": "da6b75c750b8c056b61a61c5d83eb78164bf13568c816efa7e976437677ed2a7"
+        },
+        {
+          "path": "controls-v1-20261020/popup-texP-32x9-draft.png",
+          "sha256": "30977674746d48ee46755d50c63e8cc337740188cdd4e100c318e6beb774be1d"
+        },
+        {
+          "path": "controls-v1-20261020/popup-texP-4x3-draft.png",
+          "sha256": "cdaaf6d2b45adf0f7ef1f6aad7004d6723e5d87ac86b32ccef9388171063cb93"
+        },
+        {
+          "path": "controls-v1-20261020/popup-texP-draft-alpha.png",
+          "sha256": "d121b1702174102a7369d1ec6b56e586749a7aaacd4dc0f9cc36024e06967746"
+        },
+        {
+          "path": "controls-v1-20261020/popup-texP-draft.png",
+          "sha256": "49bf742c6bb11d19433b3bf5e9ccfd4cfb8390ea0766321c46c4d1e350d10b1c"
+        },
+        {
+          "path": "controls-v1-20261020/popup-texT-16x10-draft.png",
+          "sha256": "fc29b6155f99ff88d6c6fc8437406b691108359d03154e4a81b8d4824fdc2e26"
+        },
+        {
+          "path": "controls-v1-20261020/popup-texT-16x9-draft.png",
+          "sha256": "e6cac600e6f62736e613ba0be094bda5d752637dd4c063b9bfe4bfd5d2a3c945"
+        },
+        {
+          "path": "controls-v1-20261020/popup-texT-21x9-draft.png",
+          "sha256": "e50a0daf1da23fbc4eabce9bba2d2fd5ae5996feb286802e9faeb37cb7c1b00e"
+        },
+        {
+          "path": "controls-v1-20261020/popup-texT-32x9-draft.png",
+          "sha256": "5096a9c8d06077483da2e3e472707479950da98087f5831bac72883b3f038847"
+        },
+        {
+          "path": "controls-v1-20261020/popup-texT-4x3-draft.png",
+          "sha256": "9d8dc6c9d06e6a5517688e8eb8a57b060c3e90023c0c023bf144285c110642f8"
+        },
+        {
+          "path": "controls-v1-20261020/popup-texT-draft-alpha.png",
+          "sha256": "fc7f7041fc439f08bba7e8eaf2485e02decdce3c9691579061bc4872d4f4c648"
+        },
+        {
+          "path": "controls-v1-20261020/popup-texT-draft.png",
+          "sha256": "457057a50ee5bcc5ddc47eb21bbcef5f80c340ad1325ed0d267055fd84c0f44e"
+        }
+      ]
     }
   ],
-  "unique_pinned_files": 473,
-  "runtime_status": "Earlier HD/wide menus owner-playtested. Extras, Phone and Popup/Profile22tile approved source4xexports ready/uninstalled. New Gym/controls and prior16batch pending; transition native pan acceptance pending."
+  "unique_pinned_files": 600,
+  "runtime_status": "Earlier HD/wide menus owner-playtested. Approved Extras/Phone/Popup/Gym source4xexports ready/uninstalled; transition full pan and other new native validation pending. Fullimageinventory and background-focus source published separately from localart."
 }

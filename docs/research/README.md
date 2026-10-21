@@ -127,6 +127,11 @@ The plan built from these is in [docs/widescreen](../widescreen/README.md), whic
 
 ## Menu/UI artwork restoration and modpack handover
 
+- [Full menu image browser and widescreen focus](menu-inventory-browser-2026-10-20.md) — owner stops routine panel generation;1323/1834gallery and sourcecounts.
+- [Remaining Menu/UI census](menu-ui-remaining-census-2026-10-20.md) — scoped coverage/pending/untouched totals.
+- [Widescreen background gaps](menu-widescreen-background-gaps-2026-10-20.md) — ten unreviewed tiles in five candidate groups, native usage unverified.
+- [Story/shop paper mapping](menu-story-shop-mapping-2026-10-20.md) — deferred ten-panel source audit.
+
 - [Gym/controls restoration and linked mouse review](menu-controls-restoration-2026-10-20.md) — fifteen studies,22sources; popup approval and review navigation.
 - [Gym and shared popup source mapping](menu-ui-next-batch-mapping-2026-10-20.md) — complete shapes50/60/64 and unknown popup consumers.
 
