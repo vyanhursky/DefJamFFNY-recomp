@@ -62,7 +62,7 @@
 | Mac setup quarantine fix (D139; issue #59) | ✅ released v0.10.4 (latest, 2026-10-19) | PR #60 merged `1d4e13d`: the macOS setup unpacks its digest-checked payload with `ditto --noqtn` plus `xattr -d -r com.apple.quarantine`, so a browser-downloaded setup no longer stops on *"python3" Not Opened*. Owner confirmed with a quarantined test DMG. Tag `v0.10.4` on release PR #63 merge `110d50e`; game and toolkit identical to v0.10.3. |
 
 | Menu/UI restoration | ✅ RC2 uploaded and verified on R2 / ⏳ native acceptance | D182–D184/UI: independent157native/164slab menu override,421.6MBZIP/423.4MBinstalled; Faithful optional/unbundled. Loading5aspects+FFA4, menu-only,3mainmenus andStorycharDec native pass. Transition inherited black first-tile rectangle under investigation; Story fixtures/owner native signoff remain. |
-| Launcher mod catalogue | ✅ helper/UI/signing source / ⏳ acceptance and hosting | D186–D190/UI: current-main implementation in logs/mod-manager-worktree; strict helper/shared order, three native synthetic tours pass twice; fresh launcher+intro2/2 pass, full15/18 (USB/intro-name/gym-route diagnostics), units569pass. Catalogue PR1/3597c0e CI13tests pass; key/backup/protected secret provisioned with explicit approval. No live signed Pages index; RC2 R2 test download verified (D191/UI). |
+| Launcher mod catalogue | ✅ helper/UI/signing source / ⏳ integration, CI and signed publication | D186–D190/UI: current-main implementation in logs/mod-manager-worktree; strict helper/shared order, three native synthetic tours pass twice; fresh launcher+intro2/2 pass, full15/18 (USB/intro-name/gym-route diagnostics), units569pass. Catalogue PR1/3597c0e CI13tests pass; key/backup/protected secret provisioned with explicit approval. No live signed Pages index; RC2 R2 test download verified (D191/UI). D192/UI audit: launcher-only delivery incomplete; PR82 Windows lock test/macOS disk-space CI failures, conflicting game PRs and RC2 testing-channel UI remain. |
 
 ## 1. Decisions log
 
@@ -328,6 +328,8 @@
 
 | D191/UI | 2026-10-23 | Vlad supplies R2 bucket defjam-ffny-mods/public r2.dev origin and explicitly requests uploading the separate menu texture pack for Windows testing. He signs into Cloudflare and configures a bucket-scoped S3 credential locally as defjam-r2 after the300MB dashboard limit is confirmed. | Authorizes this RC2 test-artwork upload and its checksum/instructions, not a stable signed catalogue or game executable release. ZIP421563157B/326files/SHA43bbb22c… public-download verified; HTTP206 range pass. No art bytes in GitHub source. Current v0.10.7 lacks wide slabs; existing PR62 Windows setup artifact12277037576 verified for testing (Bundled/offline, separate install). |
 
+| D192/UI | 2026-10-23 | Vlad requires launcher-only hosted mod discovery/download/enable/shared order; direct ZIP download and manual extraction do not satisfy delivery. Audit PR17/62/73/82 together before claiming readiness. | R2 RC2 complete, but all four game PRs open/conflicting; PR82 draft has Windows lock-test and macOS packaging disk-space failures. Released v0.10.7 lacks wide loader. Signed Pages index/signature404; catalogue PR1 and actual menu record/publication remain. Native UI stable-only excludes RC2. Combine current toolkit wide+long settings with current-main manager, publish approved catalogue, then verify real end-to-end flow. See mod-launcher-delivery-readiness-2026-10-23.md. |
+
 ## 2. Environment inventory (2026-09-17)
 
 - Current test host (2026-10-17): macOS26.5.2 arm64, Apple Clang21.0.0, CMake4.4.4, Ninja and Python3.14.6 through `uv`. Build `posix-release`; data via the existing `game` symlink. Startup-skip tests use only disposable roots under `logs/startup-skip/`. Original Windows inventory below is retained for that machine.
@@ -417,13 +419,12 @@ defjam-recomp/
 **2026-10-23 — Mod catalogue setup (D186–D191/UI).** Repository/signing preferences and key/backup/secret provision are complete. R2 bucket and owner-authorized RC2 test download now verified. Production domain, signed Pages publication and platform acceptance remain; no answer currently blocks the direct Windows playtest download. Implementation in logs/mod-manager-worktree.
 
 
-**2026-10-23 — Mod distribution (D188–D191/UI).** R2 direct download/checksum/Windows guide and resume are verified. Windows testing is planned, not completed. Use the compatible PR62 CI setup with Bundled release/offline and separate folders; v0.10.7 lacks wide slabs. Production domain, provider adapters/Quiver path, signed catalogue and Windows/Deck acceptance remain.
+**2026-10-23 — Mod distribution (D188–D191/UI).** R2 direct download/checksum/Windows guide and resume are verified. Windows testing is planned, not completed. Use the compatible PR62 CI setup with Bundled release/offline and separate folders; v0.10.7 lacks wide slabs. D192/UI: manual delivery is insufficient for the requested release; live signed catalogue, RC2 testing-channel access, combined manager/wide runtime, green CI and launcher-only Windows acceptance remain. Production domain/provider adapters are separate follow-ups.
 
 ## 6. Work log
 
 > Recent entries only; older entries remain unchanged in the local `docs/worklog/` archive.
 
-- 2026-10-20 21:20 — D181/UI ownerapprovesall7widebackgrounds. Freeze70finalpins/670total,149reviewedIDs(131unconditional+18conditional); registered121/core145. Markreview/inventoryapprovedart, retainFaithfulcores/pendingruntime distinction; no generations/pixel/activepack/gamechanges. V1art scopecomplete; newwide/Profile registration, approvedcomponentRC integration, activeloaders/live layers, fullpan/Mode/nativebranding/fiveaspects remain. Held19detailIDs/shopdrafts deferred. Approvaloverlay/sourceupdates preserved; docs/research/menu-wide-background-candidates-2026-10-20.md.
 - 2026-10-20 22:15 — D182–D184/UI: separate RC2 built157native4x/164slabs/62wideentries,421563157BZIP/423392524Binstalled; no Faithful library. Actual4dynamicloader variants8IDs registered from approved wall, four derivatives separate from artapproval. Native1v1loadingall5ratios+FFA4at32:9 saveguards/faultchecks pass;149RC1native+136slabs byte-identicalinRC2, all670artpins/325payloadhashes/ZIP verified. Five-aspectpan exposesblackfirsttile, Faithful-only and no-HD controls reproduce; synccontrol differs, notcausalproof. Interruptedtour220927 save restoredbyteidenticallyfromretainedbackup; remainingmenu-only/Storychecks underway. Zeroimggen/runtimechanges. Sourcecode/config/reports19focusedtests, source-onlycommits/pushpending. logs/run-20261020-220702.log.err; docs/research/menu-ui-separate-release-candidate-2026-10-20.md.
 - 2026-10-20 22:24 — D185/UI: native tests exhausted disk with4.9GB physical save/cache copies; isolated failed restore recovered byte-identically from retained payload, ordinary saves untouched.163duplicateBMPs pixel-verified againstPNG then removed(1063512162B),337MBpartialexports removed; failedguardpayloads preserved. macOSclonefile/fallbacksavecopy nowtested64focused/534totalpassing unit checks(2sandboxblockedsetupchecks passed withhostaccess),32skips/1slowdeselected. Successfulmenu-only32:9 retryguard restored;11GiBavailable after oldsuccessfulbackupprune. Sourcecommit69e0892, no runtimechange. logs/run-20261020-222031.log.err; logs/menu-ui-v1-rc/diskfull-recovery.json.
 - 2026-10-20 22:47 — RC2final: independent157native/164slabs/62wideentries,421563157BZIP/423392524Binstalled. Native1v1loading5ratios+FFA4/menu-only/Options/Jukebox/HighScores/charDec32:9 pass; nestedAAAfixturebothguardsrestore(223739log). Panblackfirsttile survivesFaithful/no-HDcontrol, not releaseaccepted; Crib/GF/partner/Tips/FFA3/team andownerMode/branding gatesremain. 534fastunitpasses(2hostaccessreruns),32skip/1slowheld;64focused,20runbrowserframe/keys/zoom/fullwidth/load/nooverflow pass. All670artpins/325payloadhashes/ZIPcheckpass; noimggen/runtimechange. Privatefullarchive11716files5552616413B/f93b80f0 and7filefinalreviewoverlay5656a5e1 frozen. Source-onlyPR62/PR1 updates; nopublicassetrelease. docs/research/menu-ui-separate-release-candidate-2026-10-20.md.
@@ -431,60 +432,54 @@ defjam-recomp/
 - 2026-10-21 11:31 — D188–D190/UI: current-main mod helper/launcher/shared order implemented in logs/mod-manager-worktree, pinned verifier wheels on all platforms. Owner-approved signing key/private backup/protected secret provisioned; catalogue PR1/3597c0e,13tests+22subtests/CI39623189224 pass, no Pages/art host published. Final units569pass/32skip/1slow deselected; three native synthetic launcher tours pass twice, full saves identical; realRC2 ZIP326files/421563157B validates. Native full15/18 in44min (regress-20261021-112705.txt): knownUSB callback, intro duplicate-name fixture, gym wrong-shop route; combat27/27, versus26/26, replay80records/1800steps, soak3/3 pass. Fresh-save launcher+intro2/2 pass (regress-20261021-113118.txt). GameBanana artwork policy requires training-data knowledge we cannot document for imggen; R2 stays primary pending clarification. Implementation eb6c65e pushed, draft gamePR82 opened/attached; no artwork/runtime toolkit/ordinary saves changed. docs/research/mod-manager-validation-2026-10-21.md.
 - 2026-10-22 15:27 — Owner will start Cloudflare account/R2 bucket setup and plans Windows testing on a separate computer. Checked current official R2 onboarding/create-bucket/public-URL/pricing/token docs; supplied short account→Standard bucket→development URL checklist, leave payload/token for integration. Account/bucket creation and Windows results not yet confirmed. No code, game run, cloud resource or upload performed.
 - 2026-10-23 09:49 — D191/UI: owner supplies defjam-ffny-mods/r2.dev and requests RC2 upload for Windows. Browser300MB limit confirmed; owner signs in/configures bucket-scoped S3 profile locally. Exact421563157B ZIP/326files/423392524B expanded SHA43bbb22cd14197091143623551f350a0b7ff622f0efccb1da058f491e7157634 uploaded with93Bchecksum/2500Bguide;3572Bfinal v3 guide supplies older-launcher steps/verified 1023-byte list limit and compatible Windows setup artifact12277037576; v1/v2 superseded. All public full hashes/lengths and64KiB HTTP206 range match; receipt logs/menu-ui-r2-20261023/upload-receipt.json. v0.10.7/toolkit8589f88 has no wide slab loader, so compatible PR62/test Windows runtime required. No game/executable upload, art-in-Git, credential output, game run or ordinary-save change. docs/research/menu-ui-r2-windows-playtest-2026-10-23.md.
+- 2026-10-23 10:18 — D192/UI: audited PR17/62/73/82 against launcher-only requirement. R2 RC2 verified, but all four game PRs open/conflicting,62/82draft; v0.10.7 lacks wide slabs. Live index/signature and Pages404; no menu source record. PR82 CI39626852537 Windows lock interop PermissionError (1failed/62pass), macOS hdiutil disk full; other25 checks pass. UI stable-only excludes RC2. Report documents current-main/toolkit integration, CI fixes, approved signed publication/testing channel and actual hosted launcher/native acceptance gates. No source fixes/merges/game runs/settings/art/credentials touched. docs/research/mod-launcher-delivery-readiness-2026-10-23.md.
 
 ## 7. Hand-off
 
-### Launcher mod manager implementation; separate menu art preserved — 2026-10-21
+### Launcher-only menu delivery is the next integration gate — 2026-10-23
 
-1. Implementation worktree `logs/mod-manager-worktree`, branch
-   `codex/launcher-mod-manager-v1`, based on main a0c9109 + APFS save-guard ee8be70.
-   Toolkit stays main32aab4d. Helper, native bridge, installed/catalogue Mods UI,
-   shared Load Order, final-winner overlap display, recovery and bundled verifier
-   dependencies implemented. Read docs/mod-manager.md and
-   docs/research/mod-manager-validation-2026-10-21.md in that worktree.
-2. Full serial native regression15/18; compact receipt
-   /private/tmp/defjam-mod-manager-full.txt and logs/regress-20261021-112705.txt.
-   Failures: documented USB callback, intro name collision, gym wrong-shop route. Three synthetic native
-   launcher update/order/250% text/recovery tours pass with byte-identical save
-   restoration; real menu ZIP format validation passes. Fresh launcher/intro2/2
-   pass, logs/regress-20261021-113118.txt. Gym route remains uncalibrated. Keep any baseline USB/audio
-   failures visible in the final report; cross-platform acceptance remains.
-3. Catalogue https://github.com/vyanhursky/DefJamFFNY-mods/pull/1 draft, branch
-   codex/signed-catalogue-v1,3597c0e. Thirteen tests and CI39623189224 pass. No live
-   Pages index yet. Protected catalogue-release environment requires vyanhursky and
-   main-only deployment. Owner explicitly approved signing-key creation/backup/
-   secret provisioning: complete. Public keys match; private backup outside
-   worktrees in <data>/private-signing/mod-catalogue/, never commit/package it.
-4. R2 account/bucket confirmed2026-10-23: defjam-ffny-mods, public origin
-   https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev. Owner explicitly authorizes
-   RC2 upload for Windows testing; browser limit300MB, so owner configured local
-   bucket-scoped S3 profile defjam-r2. ZIP, checksum and final WINDOWS-PLAYTEST-v3.txt uploaded; full public SHA/length and HTTP206
-   range verified in logs/menu-ui-r2-20261023/upload-receipt.json. Exact links in
-   docs/research/menu-ui-r2-windows-playtest-2026-10-23.md. No credentials printed/committed. User asks how
-   GameBanana/Thunderstore/Quiver fit: host-independent signed catalogue stays;
-   compatible direct downloads possible, provider wrappers/path adapters unbuilt.
-   GameBanana policy requires training-data knowledge we cannot document for imggen;
-   retain R2 for this menu pack pending clarification. See storefront report. No third-party listing,
-   contact, automatic browsing or universal recomp compatibility claimed.
-5. Menu PR62/art branch and tools PR1 preserved. RC2 remains separate from optional
-   Faithful at <data>/playtest-menu-ui-v1-rc1/mods/menu-ui-hd-wide-v1-rc2[.zip].
-   157textures/164slabs/62wide/326files;421563157BZIP,423392524Binstalled; SHA256
-   43bbb22cd14197091143623551f350a0b7ff622f0efccb1da058f491e7157634.
-   Released v0.10.7/toolkit8589f88 still has no wide support; use verified Windows setup artifact12277037576 (run39447027154),
-   Bundled release/offline in a separate install, for widescreen acceptance. PR73 remains open. Do not silently change toolkit pin or bundle Faithful.
-6. Menu native gates: transition first blacktile reproduces Faithful-only/noHD;
-   owner Mode lighting/branding signoff, Crib/GF2/GF4/partner/Tips,3player/team.
-   Existing docs/research/menu-ui-separate-release-candidate-2026-10-20.md and
-   menu-transition-native-black-rectangle-2026-10-20.md remain relevant.
-7. Private art logs/ui-restoration-20261017/pilot-v1; review51738/native-playtest.html
-   contains20runs. Immutable <data>/scratch/menu-ui-native-release-rc2-20261020/
-   11716files5552616413B manifestf93b80f023bee2b5d1e43348aa4a67327244017ad0e96f9e08d38e01054da3e6;
-   final review overlay7files282521B manifest5656a5e13bbf18703f0b0733e6de142bd1f9e585176e2e00d12dec91d2386419.
-   All670pins/149reviewedIDs preserved, held19detailIDs/shopdrafts deferred. No art
-   edits/imagegen/ordinary game saves/settings touched by manager development.
-8. Source pushed: game implementation eb6c65e, draft
-   https://github.com/vyanhursky/DefJamFFNY-recomp/pull/82 attached; catalogue PR1
-   3597c0e. Final units569pass/32skip/1slow deselected; hygiene444files/0failures.
-   Next: review PR82/CI, Windows+Deck/physical-controller acceptance, calibrate gym
-   fixture, finish hosted helper integration (direct RC2 download verified), then
-   owner-approved catalogue publication. No merge/tag/Pages/stable release yet; owner-authorized RC2 art test upload done.
+Read docs/research/mod-launcher-delivery-readiness-2026-10-23.md first. Owner
+explicitly requires launcher discovery/download/enable/shared order, no manual
+extraction. R2 upload is complete; the integrated product is not.
+
+1. Root/art branch codex/menu-ui-modpack-handoff PR62/d447922, toolkit dd63e17
+   includes wide slabs AND PR73 long settings. PR17 docs, PR62, PR73 and PR82
+   are open/conflicting. Latest v0.10.7/main toolkit8589f88 lacks wide slabs.
+   Reconcile on current main; preserve recent fixes and publish one combined
+   toolkit with wide+long settings. Do not blindly replace the toolkit pin.
+2. Manager worktree logs/mod-manager-worktree, codex/launcher-mod-manager-v1,
+   PR82/21e3ce4, implementation eb6c65e, main toolkit32aab4d without wide slabs.
+   CI39626852537: Windows119314999213 lock interop test PermissionError; macOS
+   119314998421 hdiutil no disk space. Audit excerpts logs/pr82-*-ci-audit.txt.
+   Fix/verify before release. Local units569pass; full native15/18 retains
+   known USB callback/intro duplicate/gym route issues; fresh intro+launcher2/2.
+   Three synthetic UI tours pass twice; actual RC2 archive validates, but no live
+   signed-catalogue/native launcher menu install has been tested.
+3. Catalogue repo logs/mod-catalogue-foundation, PR1/3597c0e open/mergeable/CIgreen;
+   remote main adf8099 foundation only. index.json and .sig404, no menu record.
+   Finish source integration/Pages/bootstrap/menu metadata and owner-approved
+   protected signing. Key/backup/secret already authorized/provisioned; never
+   print/track the private key under <data>/private-signing/mod-catalogue/.
+   Native manager view is stable-only, so add deliberate RC2 testing-channel
+   access rather than mislabeling an unapproved RC as stable.
+4. R2 defjam-ffny-mods uploaded immutable menu-ui-hd-wide/1.0.0-rc2/43bbb22c.../
+   ZIP421563157B, installed423392524B,326files,157native/164slabs/62wide;
+   SHA43bbb22cd14197091143623551f350a0b7ff622f0efccb1da058f491e7157634.
+   Receipt logs/menu-ui-r2-20261023/upload-receipt.json; public links and older
+   manual Windows test setup in docs/research/menu-ui-r2-windows-playtest-2026-10-23.md.
+   That manual path is interim only. Faithful optional and never bundled.
+   AWS profile defjam-r2 already configured locally; no credential blocker.
+5. Preserve artwork/review logs/ui-restoration-20261017/pilot-v1 and review51738.
+   RC2 at <data>/playtest-menu-ui-v1-rc1/mods/menu-ui-hd-wide-v1-rc2[.zip].
+   All670pins/149reviewedIDs preserved; held19detailIDs/shopdrafts deferred.
+   Native gates: inherited transition black first tile (also Faithful-only/noHD),
+   Mode lighting/branding owner signoff, Crib/GF2/GF4/partner/Tips,3player/team.
+   See separate-release-candidate and transition-native-black-rectangle reports
+   dated2026-10-20. No new art/ordinary save/settings/game run in readiness audit.
+6. Acceptance target: Mods -> Refresh -> menu pack -> Install -> Enable ->
+   Load Order after optional Faithful -> Play. Verify real hosted install,
+   actual texture winners, persistent order/offline restart, cancellation/update/
+   recovery and native Windows plus 4:3/16:9/16:10/21:9/32:9 menu/transition checks.
+   No merges/tags/Pages/stable release yet. A production domain is optional for
+   controlled testing, advisable before public traffic. Prior full handoff
+   archived under docs/worklog/2026-10-handoffs.md.
