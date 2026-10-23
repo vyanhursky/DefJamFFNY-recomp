@@ -143,3 +143,5 @@ The plan built from these is in [docs/widescreen](../widescreen/README.md), whic
 - [Start here: approved-art modpack implementation](../menu-ui-modpack-handover.md)
 
 - [GameBanana, Thunderstore and Quiver with the curated catalogue](mod-storefront-integration-2026-10-21.md) — host roles, wrapper/path work and GameBanana AI-art constraint.
+
+- [Menu RC2 R2 upload and Windows playtest](menu-ui-r2-windows-playtest-2026-10-23.md) — authorized test upload, integrity receipt and compatible-runtime prerequisite.
