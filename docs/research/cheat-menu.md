@@ -49,7 +49,7 @@ anything is built on it.
 | Story: choose fighting style | §4 | hero style bytes S+0x140..0x143 |
 | Story: play as a different fighter, with that fighter's moveset | below | match setup for the hero's slot |
 
-**Rule:** every cheat that changes the Story profile (cash, development points, styles, the hero) tells
+**Rule:** every cheat that changes the Story profile (cash, development points, styles) tells
 the player, before it applies, that the change is saved into their profile and cannot be undone.
 Advise them to back up the save first.
 
@@ -66,7 +66,8 @@ Advise them to back up the save first.
   uses their own is a design choice, and both look possible.
 - **Outside fights** (cutscenes, the crib, shops, the map), the created hero is drawn from the profile's
   creator data. Showing another fighter there is not explored and is likely much harder.
-- The first version could be fights only. It can be a temporary toggle, since it needs no profile
+- **Decided (D195):** the first version is fights only, and "everywhere" is a later enhancement. It can
+  be a temporary toggle, since it needs no profile
   write. That differs from the style choice, which is stored in the profile.
 
 ## 1. What is built in
