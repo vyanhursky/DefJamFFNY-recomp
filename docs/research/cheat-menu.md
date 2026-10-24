@@ -1,7 +1,8 @@
 # Cheat menu: research for issue #71
 
 2026-10-23. A dated record of a static read: nothing was built or run, and no game code was changed.
-The source is authoritative.
+The source is authoritative. §7 (2026-10-24) records the implementation and what the live runs showed;
+where it differs from §1-§6, §7 is the checked one.
 
 - Request: [vyanhursky/DefJamFFNY-recomp#71](https://github.com/vyanhursky/DefJamFFNY-recomp/issues/71) "cheat menu".
 - What #71 asks for: max development points and cash from the start of Story, infinite health, and a
@@ -281,3 +282,61 @@ Other ideas found on the way:
 
 Each of these needs a live run on a throw-away data root (`DEFJAM_DATA` plus a fixture copy), not
 the owner's save.
+
+## 7. Implementation and live checks (2026-10-24)
+
+Built as `src/patches/cheats.c`, the `[cheats]` settings and the launcher's and overlay's **Cheats**
+page (`src/hooks/pc_ui.cpp`), and checked on the Mac (M1 Pro, macOS 26) against the user's own dump,
+with the harness's save guard (every run restored the save byte for byte). Unit test:
+`tests/unit/test_cheats_native.py`.
+
+| Cheat | How it works | Live check |
+|---|---|---|
+| Infinite health | `sub_001A50B0`'s entry hook zeroes a negative delta for the chosen fighters; each step puts +0x350 and +0x358 back at +0x354 (a fighter already at 0 is left down) | P1 stayed at 265.6/265.6 for a whole One on One while the CPU took 27 damage events and P1 none |
+| Max Blazin' | after 300 fighting steps, the game's own gain `sub_001A5190(record, 1000.0)` for a fighter with +0x93E & 3 clear; the old direct writes only as a fallback | the gain sets ready itself; the CPU, given it, started Blazin' and ran it out over and over (+0x93E 1, 2, 6, 2, 1 ...) to the end of the fight |
+| No health regeneration | the regeneration call (return address 0x001A5807) gets a delta of 0 | health went up 79 and 62 times in a stock fight, 0 times with the cheat |
+| Giant / tiny | scale 1.4 / 0.6 on the model's scene node: model + 0x30, or for a model built from parts (+0xABB4 bit 0, the created hero) the node at MEM32(model + 0x9D0); scale at node + 0x2E0 | both fighters drawn at 1.4x over a normal-size crowd |
+| Story cash | slot +0x20 = 999,999 | the clothing shop shows "You have $999,999" |
+| Story development points | slot +0x28 = 99,999 | the gym shows "You have 99,999 dev points" |
+| Story fighting styles | +0x140/+0x141/+0x142, +0x143 = table value + 1, then `sub_00014C20` on the slot | 2/0/none gave +0x143 = 110 (table 109), and the next Story fight's hero character index was 109 |
+| Story hero | the match setup's hero slot rewritten at `Game.StartGame` (below) | the hero fought as Bo: character index 55 (coreID 56), Bo's model, the hero's name on the HUD; the fight ran to its result |
+
+What the live runs corrected or added to the static read:
+
+- **Pointers.** The game-data and profile objects are on the contiguous heap at 0x80000000 (game
+  data 0x801A91E0, profile 0x801EA240 in these runs), not in the image's range.
+- **When it is Story.** The Story map is `battle/chsVenue.swf`, so the screen name cannot say. Story is
+  tracked from `Game.StartStoryMode` until the front end shows an `intMain/` screen again.
+- **Style id.** +0x143 holds the style table's value plus one (the live profile: styles 1/none/none,
+  +0x143 = 98, table 97), which is what the gym's purchase (`sub_0004EB60`) writes. In a Story fight
+  the hero's character index is that table value (97, 109): the "CP" style templates.
+- **Blazin' timing.** A CPU fighter made ready during the walk-in (phase 1 starts two steps into the
+  match) started Blazin' at once and the match stopped there for good: the fight step was never called
+  again, while the frame loop kept running. Five seconds of fighting first avoids it. Writing the meter
+  fields directly left the player's ready state unused in the runs below, so the cheat now goes
+  through the game's own gain, which an earned meter also takes.
+- **Story hero.** In Story the match setup (game data + 0xC0) is built by `sub_000C1240` during
+  `Game.LoadNextRunModule`, not by `Game.StartGame`, and with gd+0x344 = 0 (the slot that
+  MEM32(gd)+0x14 names is the hero while byte MEM32(gd)+0x18 is set). So changing the fighter id
+  (gd+0x1AAA) before `Game.StartGame` changes nothing. The setup marks the hero's slot with
+  gd+0x1E8+slot = slot + 1; `sub_0008B730`/`sub_0008B440` then use the profile's parts model, and
+  `sub_000871F0` takes the character index from gd+0x168+4*slot - 1. The cheat, at `Game.StartGame`
+  (before the match is made), writes the chosen fighter's coreID (from `game/fighter.xml`) to
+  gd+0x168 and gd+0x188, points gd+0x208 and gd+0x228 at that fighter's model and shadow names in the
+  game's own loaded copy of `fighter.xml` (found as whole strings near the opponent's model name), and
+  clears the mark. The hero's name (gd+0x218) and the profile stay as they are.
+- **Display caps.** $999,999 and 99,999 points show in full on the shop and gym screens.
+- **Time limits.** Infinite health keeps a fighter standing, but a Story fight with a time limit is
+  still decided on points when the clock runs out: with both fighters at full health the CPU won the
+  2:00 Club 357 fight on the decision.
+
+Not exercised by the harness:
+
+- A **player** starting Blazin' with the cheat. In the runs that logged it, the scripted pad's
+  right-stick flicks and clicks never showed in the fighter's input words (+0x9E0, +0xA04), with or
+  without the route's attack presses, so the player's activation is for a hands-on play-test. The ready state is the one
+  the game's own gain sets for an earned meter.
+- The fighter swap in a Story fight's cutscenes, the crib and the shops (out of scope, D199), the
+  Story result after a swapped fight beyond the result screen, and any fighter other than Bo.
+- Windows and the Steam Deck.
+

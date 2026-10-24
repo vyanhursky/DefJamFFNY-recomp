@@ -36,6 +36,7 @@
 #include "hooks/scene_launcher.h"
 #include "hooks/dev_module.h"
 #include "patches/picture.h"
+#include "patches/cheats.h"
 
 /* Crowd test controls (src/hooks/crowd_control.c, RECOMP_TEST_CROWD; off unless set). */
 void defjam_crowd_match_start(void);
@@ -55,6 +56,7 @@ void sub_001A50B0_enter(void)
 {
     if (defjam_test_observations_enabled())
         defjam_test_health_begin(MEM32(g_esp + 4), MEM32(g_esp));
+    cheats_health_change();     /* [cheats] infinite_health, no_regen (src/patches/cheats.c) */
 }
 void sub_001A6870_enter(void)
 {
@@ -77,8 +79,9 @@ void sub_00087700_enter(void)
         if (MEM32(0x340D70 + i * 0xC8) != 0 && (MEM8(0x340D70 + i * 0xC8 + 0xC0) & 8) == 0)
             fighters++;
     nv2a_ws_hud_heartbeat(fighters >= 3);
+    cheats_fight_step();        /* [cheats] fight cheats (src/patches/cheats.c) */
 }
-void sub_001A4D90_enter(void) { defjam_test_match_start(); defjam_crowd_match_start(); }
+void sub_001A4D90_enter(void) { defjam_test_match_start(); defjam_crowd_match_start(); cheats_match_start(); }
 void sub_001BC690_enter(void) { defjam_test_rng(g_esp); }
 void sub_001AD220_enter(void) { defjam_test_ai_seed(g_esp); }
 /* The seeding routine every generator of this kind goes through (thiscall). */
@@ -97,7 +100,7 @@ void sub_00073FD0_enter(void) { scene_launcher_loader_enter(); }
 void sub_0002DFF0_enter(void) { scene_launcher_mode_enter(); }
 /* The developer run module, rebuilt from the host (src/hooks/dev_module.c): the manager's tick
  * queues it on request; its methods are traced. RECOMP_DEV_MODULE; off unless set. */
-void sub_00077040_enter(void) { dev_module_manager_enter(); }
+void sub_00077040_enter(void) { dev_module_manager_enter(); cheats_game_tick(); }  /* + Story cheats, src/patches/cheats.c */
 void sub_00077C40_enter(void) { dev_module_trace(1); }
 void sub_00077A40_enter(void) { dev_module_trace(3); }
 void sub_00077B20_enter(void) { dev_module_trace(4); }
@@ -536,6 +539,7 @@ static void funccall_hook(void)
     recorder_event_text("fe", "text", text);
     xbox_NoteAnchorEvent(text);
     defjam_unlock_all_on_funccall(text);   /* RECOMP_UNLOCK_ALL, src/patches/dev_unlock.c */
+    cheats_on_funccall(text);              /* Story tracking and Story cheats, src/patches/cheats.c */
     sub_00068BA0();
     /* RECOMP_FE_INJECT: commands of a test's own, after a chosen call (src/hooks/fe_inject.c). */
     fe_inject_after_call(text);
