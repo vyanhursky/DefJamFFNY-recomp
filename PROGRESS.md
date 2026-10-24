@@ -434,6 +434,7 @@ defjam-recomp/
 
 > Recent entries only; older entries remain unchanged in the local `docs/worklog/` archive.
 
+- 2026-10-23 20:53 — Issue #67 (choppy fights at 60 fps): reading the code, vsync paces only on a refresh rate that is a multiple of 60 (`d3d8_present_interval_for`); on 75/100/144/165 Hz the executor's 60 Hz timer paces and a frame stays up 2 or 3 refreshes, which judders. No ALLOW_TEARING, so VRR may not engage either (#92). Added a Windows `[DISPLAY]` log line (refresh, window mode, vsync, who paces; once a second, on change) in `src/hooks/d3d11_translator.c`; branch `fix/log-display-refresh`. Release build, boot route on this PC: `[DISPLAY] refresh 120 Hz, windowed, vsync on: the display paces frames (sync interval 2)` (run-20261023-204508), vsync off: `... the game's 60 fps timer paces frames` (run-20261023-204601), presents median 120 per 2 s in both. Quick regress 5/5 (regress-20261023-205429.txt). The 144 Hz branch is untested until the owner switches his monitor (it offers 143.91/165 Hz and FreeSync 49-120 Hz).
 - 2026-10-23 21:41 — D195 owner feedback: posted three-screen modpack1.1 backlog to PR91; created pause-HUD issue95. Implemented installed/descending-priority tables, one Recomp HD row/details, legacy missing-selection warning and catalogue authors.606units/26skip/1deselected, focused49pass, MSVC native preview builds. Original installed source/exe restored5/5; separate review fixture. Native visual/input acceptance blocked by computer-use kernel asset/path failure after reset; not claimed passed. Current redesign local for owner review; no release or new art. Report docs/research/mods-owner-feedback-2026-10-23.md.
 - 2026-10-24 06:50 — D196 owner approves Mods layout; extra recommendation removed4f74f53 and preview rebuilt. Authorvyanhursky correction cataloguePR2/c8940e2 validated13tests/22subtests, CIpass; live signed revision pending. Main0b3fa17 integrated locally, three conflicts resolved preserving C++17/C++20 Unicode and grouped priority behavior;74focused and625fast/26skip/1deselected pass, nativebuildpass. Release readiness report added. PR91 remains draft; final CI/setup/native-large-text/platform checks and issue95/fire-escape disposition remain; missingthree screens deferred1.1. No merge/tag/release or catalogue signing.
 - 2026-10-24 07:01 — D197 owner authorizes PR91 merge/v0.11.0 Preview only; accepted HUD95/fire-escape/modpack1.1 limitations, Mac/Linux owner playtest. Prior head44e4163 CI40099889633 green; catalogue publication40100204475 succeeded, real client verified signed revision2 authors=vyanhursky. Version/notes plus targeted release/packaging tests194pass/24platform skips (../logs/v011-release-policy-tests.log); source hygiene526files/0failures. Final CI/installer checks pending; latest stable stays0.10.7.
@@ -447,7 +448,7 @@ defjam-recomp/
 
 ### Cheat menu (issue #71, D199-D200) — branch `docs/cheat-menu-research`, PR #97 — 2026-10-24
 
-- Worktree `/Users/vlad/Code/DefJamFFNY-recomp-cheats`, rebased on main `10dac51` (v0.11.0). Built with
+- Worktree `/Users/vlad/Code/DefJamFFNY-recomp-cheats`, rebased on main `10dac51` (v0.11.0), then main `c7ed105` (PR #96) merged in. Built with
   `pipeline.py analyze --no-archive`, `recomp`, `build`; `game` links to `<data>/extracted`.
 - Code: `src/patches/cheats.c|h` (hooks from `src/recomp_manual.c`: `sub_00087700_enter` step,
   `sub_001A50B0_enter` health, `sub_001A4D90_enter` match start, `sub_00077040_enter` per-frame Story
@@ -461,7 +462,7 @@ defjam-recomp/
   (Club 357 vs Ice-T, 2-minute limit).
 - Next: owner play-test (player Blazin' activation, Story swap with other fighters, overlay buttons by
   hand); Windows build and the native/Windows UI check; then PR #97 review, merge and the #71 reply.
-  Nothing pushed without Vlad's go-ahead.
+  Pushed to PR #97 with Vlad's go-ahead (2026-10-24; Auto-fix on); no comment on #71 yet.
 
 ### v0.11.0 stable/latest — Mod Support Beta — 2026-10-24
 
@@ -494,3 +495,19 @@ defjam-recomp/
 - Evidence ../logs/v011-stable-verification.json, v011-before-stable-release.json,
   stable-prepared-index/index.json, stable-publication-approval.json. Historical
   game-free packaging/Windows gameplay evidence remains in preview release record.
+
+**Issue #67 (choppy fights at 60 fps) and #92 (exclusive full screen):** PR #96
+(`fix/log-display-refresh`) adds the Windows `[DISPLAY]` log line. On a
+75/100/144/165 Hz display vsync is not used; without VRR each 60 fps frame stays
+up 2 or 3 refreshes (measured 73/48 of 121 at 144 Hz windowed), and the owner
+sees 143.91 Hz as much choppier than 120 Hz. VRR already engages in borderless
+full screen (owner's RTX 4070 Ti SUPER, G-SYNC "full screen", FreeSync monitor):
+scripted fights there show 98% of frames at one 16.7 ms refresh in every present
+mode, so neither exclusive full screen nor ALLOW_TEARING is needed for #92.
+Open: heavier settings hold more fight frames 2 refreshes (4:3 scale 2: 2%,
+widescreen scale 2: 6%, widescreen scale 3: 8%), and one run (4:3, scale 3) and
+one manual run locked to ~49 fps, the panel's minimum VRR rate (game runs slow).
+Experiment toolkit branch `defjam/vrr-present` (local only: RECOMP_PRESENT_VRR,
+per-frame time on screen in RECOMP_PRESENT_PACING) in `code/defjam-refresh-log`.
+Runs need the monitor awake: with the display asleep DXGI reports no frame
+statistics and timings are meaningless. The #67 reporter has not re-attached the log.
