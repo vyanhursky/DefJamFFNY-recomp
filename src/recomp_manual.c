@@ -36,6 +36,7 @@
 #include "hooks/scene_launcher.h"
 #include "hooks/dev_module.h"
 #include "patches/picture.h"
+#include "patches/cheats.h"
 
 /* Crowd test controls (src/hooks/crowd_control.c, RECOMP_TEST_CROWD; off unless set). */
 void defjam_crowd_match_start(void);
@@ -53,6 +54,7 @@ void sub_001A5DD0_enter(void)
 }
 void sub_001A50B0_enter(void)
 {
+    cheats_health_change();   /* src/patches/cheats.c: may zero the delta */
     if (defjam_test_observations_enabled())
         defjam_test_health_begin(MEM32(g_esp + 4), MEM32(g_esp));
 }
@@ -70,6 +72,7 @@ void sub_00087700_enter(void)
     uint32_t i, fighters = 0;
     defjam_crowd_step();
     defjam_test_step();
+    cheats_fight_step();      /* src/patches/cheats.c */
     /* Widescreen: a fight HUD is up (src/patches/widescreen.c). The four fighter
      * slots the fight camera reads (0x340D70, stride 0xC8; a slot counts when set
      * and bit 3 of +0xC0 is clear): with 3 or 4 fighters the HUD has bottom rows. */

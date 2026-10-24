@@ -55,6 +55,7 @@ extern "C" {
 #include "pc_settings.h"
 #include "pc_ui.h"
 #include "pc_ui_internal.h"
+#include "patches/cheats.h"
 
 #ifndef DEFJAM_VERSION
 #define DEFJAM_VERSION "dev"
@@ -221,6 +222,9 @@ static const char *friendly(const char *section, const char *key)
         {"launcher", "skip", "Skip the launcher at start"},
         {"ui", "scale", "Text and control size"},
         {"debug", "unlock_all", "Unlock all fighters and venues"},
+        {"cheats", "infinite_health", "Infinite health"},
+        {"cheats", "max_blazin", "Blazin' meter always full"},
+        {"cheats", "no_regen", "No health regeneration"},
         {"debug", "skip_intro", "Skip startup movies and legal screen"},
         {"ui", "overlay_pad", "Overlay pad buttons"},
         {"ui", "overlay_key", "Overlay key"},
@@ -1257,10 +1261,61 @@ static void page_debug(UiMode mode)
     }
 }
 
+static void page_cheats(UiMode mode)
+{
+    ImGui::SeparatorText("Fights");
+    settings_group("cheats", {"infinite_health", "max_blazin", "no_regen"});
+    ImGui::TextWrapped("These apply at once, in any match, and change nothing in your save. \"players\" means "
+                       "every fighter the CPU does not control.");
+    ImGui::SeparatorText("Story");
+    if (mode != UI_OVERLAY) {
+        ImGui::TextWrapped("Load your Story profile in the game, then open the overlay to change its cash and "
+                           "development points.");
+        return;
+    }
+    CheatsStory story;
+    cheats_story_read(&story);
+    if (!story.valid) {
+        ImGui::TextDisabled("No profile is loaded yet.");
+        return;
+    }
+    ImGui::Text("Profile in use: cash $%u, development points %u", story.cash, story.dev_points);
+    ImGui::TextColored(pcui::gold(), "These change your Story profile. Once the game saves, the change is permanent "
+                                     "and cannot be undone. Back up your save first (Maintenance, Saves).");
+    static int pending;     /* 1 cash, 2 development points */
+    char label[64];
+    snprintf(label, sizeof label, "Max cash ($%u)", CHEATS_STORY_MAX);
+    if (ImGui::Button(label)) pending = 1;
+    ui_target("Max cash");
+    item_tooltip("Sets the cash of the Story profile in use. Saved into your profile: permanent.");
+    ImGui::SameLine();
+    snprintf(label, sizeof label, "Max development points (%u)", CHEATS_STORY_MAX);
+    if (ImGui::Button(label)) pending = 2;
+    ui_target("Max development points");
+    item_tooltip("Sets the development points of the Story profile in use, to spend at the gym. Saved into "
+                 "your profile: permanent.");
+    if (pending) ImGui::OpenPopup("Change your Story profile?");
+    if (ImGui::BeginPopupModal("Change your Story profile?", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::Text("%s goes to %u.", pending == 1 ? "Cash" : "Development points", CHEATS_STORY_MAX);
+        ImGui::TextUnformatted("The game keeps this in your profile when it next saves. It cannot be undone.");
+        if (ImGui::Button("Apply")) {
+            if (pending == 1) cheats_story_set_cash(CHEATS_STORY_MAX);
+            else cheats_story_set_dev_points(CHEATS_STORY_MAX);
+            pending = 0;
+            ImGui::CloseCurrentPopup();
+        }
+        ui_target("Apply cheat");
+        ImGui::SameLine();
+        if (ImGui::Button("Cancel")) { pending = 0; ImGui::CloseCurrentPopup(); }
+        ImGui::EndPopup();
+    }
+}
+
 static int g_page = 0;
 static bool g_advanced = false, g_select_page = false, g_return_focus = false, g_setup_request = false;
 static std::string g_home_return = "Advanced";
-static const char *page_names[] = {"Display", "Controls", "Mods", "Interface", "Diagnostics", "Maintenance"};
+static const char *page_names[] = {"Display", "Controls", "Mods", "Interface", "Cheats", "Diagnostics", "Maintenance"};
+static const int k_pages = (int)(sizeof page_names / sizeof page_names[0]);
 static void controls_page()
 {
     if (ImGui::CollapsingHeader("Players, devices and feel", ImGuiTreeNodeFlags_DefaultOpen))
@@ -1346,12 +1401,12 @@ UiResult ui_draw(UiMode mode, float x, float y, float width, float height)
         {
             if (ImGui::IsKeyPressed(ImGuiKey_GamepadR1, false))
             {
-                g_page = (g_page + 1) % 6;
+                g_page = (g_page + 1) % k_pages;
                 g_select_page = true;
             }
             if (ImGui::IsKeyPressed(ImGuiKey_GamepadL1, false))
             {
-                g_page = (g_page + 5) % 6;
+                g_page = (g_page + k_pages - 1) % k_pages;
                 g_select_page = true;
             }
             if (mode == UI_LAUNCHER && (ImGui::IsKeyPressed(ImGuiKey_Escape, false) ||
@@ -1369,7 +1424,7 @@ UiResult ui_draw(UiMode mode, float x, float y, float width, float height)
             ImGui::SetNextItemWidth(-1);
             if (ImGui::BeginCombo("##category", page_names[g_page]))
             {
-                for (int i = 0; i < 6; i++)
+                for (int i = 0; i < k_pages; i++)
                     if (ImGui::Selectable(page_names[i], g_page == i))
                         g_page = i;
                 ImGui::EndCombo();
@@ -1379,7 +1434,7 @@ UiResult ui_draw(UiMode mode, float x, float y, float width, float height)
         else if (ImGui::BeginTabBar("categories", ImGuiTabBarFlags_NoCloseWithMiddleMouseButton))
         {
             int requested = g_page;
-            for (int i = 0; i < 6; i++)
+            for (int i = 0; i < k_pages; i++)
             {
                 bool active =
                     ImGui::BeginTabItem(page_names[i], nullptr,
@@ -1413,9 +1468,12 @@ UiResult ui_draw(UiMode mode, float x, float y, float width, float height)
             page_general(mode);
             break;
         case 4:
-            page_debug(mode);
+            page_cheats(mode);
             break;
         case 5:
+            page_debug(mode);
+            break;
+        case 6:
             page_maintenance(mode);
             break;
         }
