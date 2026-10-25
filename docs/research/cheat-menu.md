@@ -39,7 +39,7 @@ anything is built on it.
   slot as a raw memory image**, so cash, points, stats, styles and items stay in the player's save for
   good. Fight cheats (health, meter, time, movesets) live only in memory and leave no trace.
 
-## Owner's picks (2026-10-23, D199)
+## Owner's picks (2026-10-23, PR #97)
 
 | Cheat | Where in this note | Hook |
 |---|---|---|
@@ -67,7 +67,7 @@ Advise them to back up the save first.
   uses their own is a design choice, and both look possible.
 - **Outside fights** (cutscenes, the crib, shops, the map), the created hero is drawn from the profile's
   creator data. Showing another fighter there is not explored and is likely much harder.
-- **Decided (D199):** the first version is fights only, and "everywhere" is a later enhancement. It can
+- **Decided (2026-10-23, PR #97):** the first version is fights only, and "everywhere" is a later enhancement. It can
   be a temporary toggle, since it needs no profile
   write. That differs from the style choice, which is stored in the profile.
 
@@ -336,7 +336,7 @@ Not exercised by the harness:
   right-stick flicks and clicks never showed in the fighter's input words (+0x9E0, +0xA04), with or
   without the route's attack presses, so the player's activation is for a hands-on play-test. The ready state is the one
   the game's own gain sets for an earned meter.
-- The fighter swap in a Story fight's cutscenes, the crib and the shops (out of scope, D199), the
+- The fighter swap in a Story fight's cutscenes, the crib and the shops (out of scope for the first version), the
   Story result after a swapped fight beyond the result screen, and any fighter other than Bo.
 - Windows and the Steam Deck.
 

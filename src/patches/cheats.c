@@ -1,4 +1,4 @@
-/* Cheats (issue #71; docs/research/cheat-menu.md, D199).
+/* Cheats (issue #71, PR #97; docs/research/cheat-menu.md).
  *
  * Fight cheats are [cheats] settings that apply as they change and live only in memory:
  *

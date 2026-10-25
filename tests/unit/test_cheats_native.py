@@ -1,6 +1,6 @@
 """The cheats (src/patches/cheats.c) against synthetic guest memory, with the real settings registry.
 
-Each fight cheat is checked at the guest fields and calls the live runs confirmed (D199,
+Each fight cheat is checked at the guest fields and calls the live runs confirmed (PR #97,
 docs/research/cheat-menu.md): who it applies to, the health routine's delta, the Blazin' gate and the
 momentum-gain call, the model scale nodes; then the Story slot, the one-shot requests, the style
 encoding and the Story hero's match setup at Game.StartGame. The launcher's fighter list is checked too.
