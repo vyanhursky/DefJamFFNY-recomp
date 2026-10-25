@@ -13,7 +13,7 @@ game's artwork and stay under `logs/`, which git ignores.
 | Command | Time | What it is for |
 |---|---|---|
 | `python scripts/regress.py --quick` | about 10 min | after every change: unit tests, three golden frames, one fight |
-| `python scripts/regress.py` | about an hour | before a commit that touches the runtime, renderer or generated code |
+| `python scripts/regress.py` | about an hour | once per platform on each release candidate ([releasing](releasing.md)); a pull request runs `--only` checks for its area |
 | `python scripts/scenario_suite.py run <route> ...` | one launch | one scenario with all its evidence and a browsable report |
 
 Never run two of these at once: they share the save area, the window and the
@@ -52,7 +52,11 @@ defaults can use Widescreen (Auto) without changing those baselines. An explicit
 
 For native launcher help checks, `RECOMP_LAUNCHER_SCRIPT` accepts `<ms>:ui:<id>` to click a named
 control and `<ms>:hover:<id>` to reveal/hover it without editing its value (for example,
-`600:ui:Advanced;1200:hover:display.render_scale`). Captures and quit use the existing script actions.
+`600:ui:Advanced;1200:hover:display.render_scale`). `<ms>:uiopt:<id>` clicks it if it is there and says
+nothing if not, for a control that exists in one layout only: a narrow or large-text launcher (the Steam Deck's)
+draws an on/off setting as an Off/On list, whose items are `<section>.<key>.on` and `.off`, where a wide one
+draws a checkbox (`2000:ui:display.vignette;2600:uiopt:display.vignette.off`). Captures and quit use the
+existing script actions.
 
 ## The combat check
 
