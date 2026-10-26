@@ -26,7 +26,27 @@ Play starts the game that setup built on this computer, with `--no-launcher`.
   "Skip launcher" is on, unless Shift is held or `--launcher` is given; always shown when mods need
   recovery or nothing is installed. `--play` always skips it.
 
-macOS and Linux (with SDL3) for now; nothing packages or installs the app yet.
+- **Updates itself** (`app_update.cpp`). At start (unless `[launcher] check_updates` is off) the
+  engine looks on GitHub for a newer app (`--check-app-update`); Update downloads and verifies it
+  beside this one (`--stage-app`, `setup/releases.py` `select_app`), swaps the bundles and starts
+  the new app, which offers to build the game it carries (a Clean Update from its own payload).
+- **The play wrapper forwards.** Whenever it loads an install from a bundle, the app writes where it
+  is to `<install>/app-location.txt`; the wrapper that setup puts in the install and in
+  Applications (`setup/macos/Launcher`) then opens the app instead of the game (`--no-launcher` as
+  `--play`). Without that file, or with the app gone, the wrapper plays the game as before.
+
+macOS and Linux (with SDL3); only the macOS app is packaged and published.
+
+## Packaging (macOS)
+
+`scripts/build-setup.sh` builds it with the setup, from the same payload: `defjam_app` is compiled
+with the payload's own CMake, Ninja, SDL3 and Dear ImGui source (nothing else on the build machine),
+`scripts/package-app.py` makes `Def Jam Recompiled.app` (the program, its Info.plist and icon, and
+the payload in `Contents/Resources/payload`, whose SDL3 the program loads through its rpath; signed
+ad hoc) and its ZIP, and `scripts/check-setup-assets.py --app` checks that archive file by file
+against the inspected payload before writing `DefJamRecompiled-<version>-macos-arm64.zip`, its
+`.sha256` and its `kind: app` provenance beside the setup's. The release workflow attaches them
+with the setup assets (D215).
 
 ```
 cmake -S . -B build/app -G Ninja -DDEFJAM_BUILD_GAME=OFF

@@ -1,9 +1,15 @@
 #!/usr/bin/env python3
-"""Validate the narrow game-free setup release exception, never game binaries."""
+"""Validate the narrow game-free setup release exception, never game binaries.
+
+With --app (macOS), also the app that sets up, launches and updates the game (src/app, D215):
+the archive scripts/package-app.py makes, checked file by file against the inspected payload,
+published as DefJamRecompiled-<version>-macos-arm64.zip with its checksum and a kind: app
+provenance that setup/releases.py select_app verifies before the app replaces itself."""
 import argparse
 import hashlib
 import importlib.util
 import json
+import os
 from pathlib import Path
 import re
 import sys
@@ -22,6 +28,7 @@ def load(name, path):
 
 engine = load('asset_setup_engine', ROOT / 'setup/engine.py')
 package = load('asset_setup_package', ROOT / 'scripts/package-setup.py')
+releases = load('asset_setup_releases', ROOT / 'setup/releases.py')
 
 
 def inspect_payload(archive):
@@ -95,16 +102,69 @@ def platform_of(archive):
 
 
 INSTALLER_EXTENSION = {'windows-x64': '.exe', 'macos-arm64': '.dmg', 'linux-x64': '.tar.gz'}
+# The files an app bundle may hold besides its payload (scripts/package-app.py).
+APP_FILES = {'Contents/Info.plist', 'Contents/MacOS/' + releases.APP_PROGRAM, 'Contents/Resources/defjam.icns',
+             'Contents/_CodeSignature/CodeResources'}
 
 
-def validate_asset_names(version, names, platform='windows-x64'):
+def app_stem(version, platform):
+    return releases.APP_ASSETS[platform].format(v=version).rsplit('.', 1)[0]
+
+
+def validate_asset_names(version, names, platform='windows-x64', app=False):
     if not re.fullmatch(r'\d+\.\d+\.\d+', version):
         raise ValueError('Invalid setup release version')
     stem = f'DefJamSetup-{version}-{platform}'
     extension = INSTALLER_EXTENSION[platform]
     expected = {stem + extension, stem + '.sha256', stem + '.provenance.json'}
+    if app:
+        if platform != 'macos-arm64':
+            raise ValueError('Only the macOS app is published so far')
+        a = app_stem(version, platform)
+        expected |= {releases.APP_ASSETS[platform].format(v=version), a + '.sha256', a + '.provenance.json'}
     if set(names) != expected:
-        raise ValueError('Release assets must be exactly the approved setup installer, checksum and provenance')
+        raise ValueError('Release assets must be exactly the approved setup installer and app, their checksums and provenance')
+
+
+def inspect_app(app_zip, archive, binary_checks=sys.platform == 'darwin'):
+    """The app archive holds one bundle: the approved bundle files and, under Resources/payload, exactly
+    the inspected payload's files, byte for byte. The program carries no lifted game code and loads
+    only the system's libraries and the payload's SDL3."""
+    import subprocess
+    with zipfile.ZipFile(archive) as payload_zip:
+        expected = {name: hashlib.sha256(payload_zip.read(name)).hexdigest()
+                    for name in payload_zip.namelist() if not name.endswith('/')}
+    with tempfile.TemporaryDirectory() as temporary:
+        folder = Path(temporary)
+        releases.safe_zip(Path(app_zip).read_bytes(), folder)      # no links, escapes or duplicates
+        if sorted(p.name for p in folder.iterdir()) != [releases.APP_BUNDLE]:
+            raise ValueError('The app archive must hold only ' + releases.APP_BUNDLE)
+        bundle = folder / releases.APP_BUNDLE
+        payload, found = {}, set()
+        for path in bundle.rglob('*'):
+            if not path.is_file():
+                continue
+            name = path.relative_to(bundle).as_posix()
+            if name.startswith('Contents/Resources/payload/'):
+                payload[name[len('Contents/Resources/payload/'):]] = engine.digest(path)
+            elif name in APP_FILES:
+                found.add(name)
+            else:
+                raise ValueError('Unexpected file in the app: ' + name)
+        if payload != expected:
+            raise ValueError('The payload inside the app does not match the inspected payload')
+        program = bundle / 'Contents/MacOS' / releases.APP_PROGRAM
+        if not {'Contents/Info.plist', 'Contents/MacOS/' + releases.APP_PROGRAM} <= found or not os.access(program, os.X_OK):
+            raise ValueError('The app has no program or Info.plist')
+        if binary_checks:                                         # nm and otool are macOS's
+            symbols = subprocess.run(['/usr/bin/nm', '-U', program], check=True, capture_output=True, text=True).stdout
+            if re.search(r' _sub_[0-9A-Fa-f]{8}\b', symbols):
+                raise ValueError('The app program contains lifted game code')
+            loads = subprocess.run(['/usr/bin/otool', '-L', program], check=True, capture_output=True, text=True).stdout
+            for line in loads.splitlines()[1:]:
+                library = line.split(' (')[0].strip()
+                if not library.startswith(('/usr/lib/', '/System/Library/', '@rpath/libSDL3.0.dylib')):
+                    raise ValueError('The app program loads a library it does not carry: ' + library)
 
 
 def verify_embedded_payload(installer, archive):
@@ -180,6 +240,7 @@ def main(argv=None):
     parser.add_argument('--payload', type=Path, required=True)
     parser.add_argument('--installer', type=Path, required=True)
     parser.add_argument('--output-dir', type=Path, required=True)
+    parser.add_argument('--app', type=Path, help='macOS: the app archive from scripts/package-app.py --zip')
     parser.add_argument('--development', action='store_true')
     args = parser.parse_args(argv)
     manifest = inspect_payload(args.payload)
@@ -197,7 +258,20 @@ def main(argv=None):
     (args.output_dir / (stem + '.sha256')).write_text(sha + '  ' + exe.name + '\n', encoding='utf-8')
     (args.output_dir / (stem + '.provenance.json')).write_text(json.dumps(
         {'installer_sha256': sha, 'payload_sha256': engine.digest(args.payload), **manifest}, indent=2) + '\n', encoding='utf-8')
-    validate_asset_names(manifest['version'], [p.name for p in args.output_dir.iterdir()], platform)
+    if args.app:
+        if platform != 'macos-arm64':
+            raise ValueError('Only the macOS app is published so far')
+        inspect_app(args.app, args.payload)
+        app = args.output_dir / releases.APP_ASSETS[platform].format(v=manifest['version'])
+        shutil.copyfile(args.app, app)
+        app_sha = engine.digest(app)
+        a = app_stem(manifest['version'], platform)
+        (args.output_dir / (a + '.sha256')).write_text(app_sha + '  ' + app.name + '\n', encoding='utf-8')
+        (args.output_dir / (a + '.provenance.json')).write_text(json.dumps(
+            {'kind': 'app', 'app_sha256': app_sha, 'payload_sha256': engine.digest(args.payload), **manifest},
+            indent=2) + '\n', encoding='utf-8')
+        print('Verified game-free app assets:', a)
+    validate_asset_names(manifest['version'], [p.name for p in args.output_dir.iterdir()], platform, app=bool(args.app))
     print('Verified game-free setup assets:', stem)
     return 0
 

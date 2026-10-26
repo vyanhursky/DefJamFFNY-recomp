@@ -95,8 +95,9 @@ fs::path cache_dir()
 #endif
 }
 
-// The bundle this program is in (…/Def Jam Recompiled.app/Contents/MacOS/defjam_app), or empty.
-fs::path bundle()
+} // namespace
+
+fs::path bundle_path()
 {
     fs::path p = app::program();
     fs::path contents = p.parent_path().parent_path();
@@ -105,6 +106,11 @@ fs::path bundle()
         return {};
     return contents.parent_path();
 }
+
+namespace
+{
+
+fs::path bundle() { return bundle_path(); }
 
 fs::path beside(const fs::path &bundle, const char *suffix)
 {

@@ -258,6 +258,28 @@ bool shift_held()
 #endif
 }
 
+// Tell the install where this app is, so its play wrapper (setup/macos/Launcher), which shortcuts
+// and older habits still open, starts the app instead of the game. Only a bundle is worth naming.
+void note_location()
+{
+    fs::path here = app::bundle_path();
+    const app::Install &in = app::install();
+    std::error_code ec;
+    if (here.empty() || !fs::is_directory(in.root, ec)) return;
+    fs::path note = in.root / "app-location.txt";
+    std::ifstream current(note);
+    std::string recorded;
+    std::getline(current, recorded);
+    if (recorded == here.string()) return;
+    fs::path pending = in.root / "app-location.txt.pending";
+    {
+        std::ofstream out(pending);
+        out << here.string() << "\n";
+        if (!out) return;
+    }
+    fs::rename(pending, note, ec);
+}
+
 int g_lock = -1;
 fs::path g_payload;
 std::string g_payload_version;
@@ -377,6 +399,7 @@ bool load_install(std::string *why)
     std::string settings = env && !strcasecmp(env, "none") ? "" : env && *env ? env : (in.data / "settings.ini").string();
     pc_settings_open(settings.c_str());
     in.installed = true;
+    note_location();
     return true;
 }
 

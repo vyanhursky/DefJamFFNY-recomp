@@ -50,8 +50,9 @@ struct FirstRun
 };
 FirstRun &first_run();
 
-// The running program, resolved.
+// The running program, resolved, and the macOS bundle it is in (empty when it is not in one).
 std::filesystem::path program();
+std::filesystem::path bundle_path();
 
 // The app's command line after the program name, and whether it was started by its own update.
 std::vector<std::string> &arguments();
