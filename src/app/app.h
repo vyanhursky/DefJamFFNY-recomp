@@ -2,8 +2,11 @@
 // launcher, setup and maintenance (app_setup.cpp).
 #pragma once
 
+#include <sys/types.h>
+
 #include <filesystem>
 #include <string>
+#include <vector>
 
 struct UiResult;
 
@@ -47,7 +50,30 @@ struct FirstRun
 };
 FirstRun &first_run();
 
+// The running program, resolved.
+std::filesystem::path program();
+
+// The app's command line after the program name, and whether it was started by its own update.
+std::vector<std::string> &arguments();
+bool just_updated();
+
+// The setup payload's version: what this app builds ("" without a payload).
+std::string payload_version();
+
+// Whether release version `a` is newer than `b` ("0.13.1" against "0.13.0"; false if either is not one).
+bool newer(const std::string &a, const std::string &b);
+
+// A program to exec in place of the game when the launcher's window closes: the updated app.
+std::vector<std::string> &relaunch();
+
 // ---- the screens (app_setup.cpp) ---------------------------------------------------------------
+
+// The top of each of the app's pages: the window, the brand line and a heading.
+void page_begin(float width, float height, const char *heading);
+
+// Clean Update of the installed game to this app's payload version, with the progress screen.
+void start_update_build();
+
 
 // Draw this frame's screen when the app has one up (first-run setup, maintenance, an operation's
 // progress); returns false to let the launcher draw. Inside the launcher's frame.
@@ -59,5 +85,22 @@ void screen_open_maintenance();
 // An operation is running: the window may not close (a close asks to cancel instead).
 bool screen_busy();
 void screen_request_cancel();
+
+// ---- the app's own updates (app_update.cpp) ----------------------------------------------------
+
+// Remove what a finished update left beside the app, once it has started again. At start.
+void update_cleanup();
+
+// The update screen, when it is up; called first by screen_draw.
+bool update_screen_draw(float width, float height, UiResult *result);
+
+// Whether the app's own update is being downloaded (the window may not close meanwhile), and
+// asking that download to stop.
+bool update_busy();
+void update_request_cancel();
+
+// Start setup/engine.py from the app's payload with its Python and these arguments (after
+// --payload), in the plain environment the setup wizards give it (app_setup.cpp).
+bool spawn_engine(const std::vector<std::string> &engine_args, pid_t *pid, std::string *error);
 
 } // namespace app

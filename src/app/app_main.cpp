@@ -2,7 +2,7 @@
 // own with no game code in it (docs/research/unified-app-design-2026-10-26.md, steps 2 and 3).
 //
 //   defjam_app [--install DIR] [--payload DIR] [--dump PATH] [--data DIR] [--no-shortcuts]
-//              [--play | --launcher]
+//              [--play | --launcher] [--updated]
 //
 // With nothing installed it opens on the first run's setup (app_setup.cpp), which runs the setup
 // engine from the app's setup payload; Maintenance repairs or rebuilds an install the same way.
@@ -17,7 +17,8 @@
 //
 // The install is --install DIR, else DEFJAM_INSTALL_DIR, else the nearest folder above this program
 // that holds installed.json, else the platform's usual place. --dump, --data and --no-shortcuts fill
-// in the first run's choices. Off Windows for now; the Windows app is a later step.
+// in the first run's choices. The app updates itself (app_update.cpp) and starts the new copy with
+// --updated, which then offers to build the game it carries. Off Windows for now; the Windows app is a later step.
 
 #define _CRT_SECURE_NO_WARNINGS
 #include <errno.h>
@@ -259,6 +260,23 @@ bool shift_held()
 
 int g_lock = -1;
 fs::path g_payload;
+std::string g_payload_version;
+std::vector<std::string> g_arguments, g_relaunch;
+bool g_updated = false;
+
+// "0.13.1" as numbers, or empty when it is not a release version.
+std::vector<int> release_version(const std::string &text)
+{
+    std::vector<int> parts;
+    std::string s = text.rfind('v', 0) == 0 ? text.substr(1) : text;
+    std::stringstream in(s);
+    std::string part;
+    while (std::getline(in, part, '.')) {
+        if (part.empty() || part.find_first_not_of("0123456789") != std::string::npos) return {};
+        parts.push_back(atoi(part.c_str()));
+    }
+    return parts.size() == 3 ? parts : std::vector<int>();
+}
 
 } // namespace
 
@@ -278,6 +296,17 @@ FirstRun &first_run()
 }
 
 fs::path payload() { return g_payload; }
+fs::path program() { return program_path(); }
+std::vector<std::string> &arguments() { return g_arguments; }
+bool just_updated() { return g_updated; }
+std::string payload_version() { return g_payload_version; }
+std::vector<std::string> &relaunch() { return g_relaunch; }
+
+bool newer(const std::string &a, const std::string &b)
+{
+    std::vector<int> x = release_version(a), y = release_version(b);
+    return !x.empty() && !y.empty() && x > y;
+}
 
 // Where the wrappers keep the session logs; the game's log goes there too (DEFJAM_LOG_DIR).
 fs::path log_dir()
@@ -363,8 +392,10 @@ int main(int argc, char **argv)
     const char *named = nullptr, *payload = nullptr;
     bool play_now = false, force_launcher = false;
     app::FirstRun &first = app::first_run();
+    for (int a = 1; a < argc; a++) g_arguments.push_back(argv[a]);
     for (int a = 1; a < argc; a++) {
-        if (!strcmp(argv[a], "--install") && a + 1 < argc) named = argv[++a];
+        if (!strcmp(argv[a], "--updated")) g_updated = true;             // started by its own update
+        else if (!strcmp(argv[a], "--install") && a + 1 < argc) named = argv[++a];
         else if (!strcmp(argv[a], "--payload") && a + 1 < argc) payload = argv[++a];
         else if (!strcmp(argv[a], "--dump") && a + 1 < argc) first.dump = argv[++a];
         else if (!strcmp(argv[a], "--data") && a + 1 < argc) first.data = argv[++a];
@@ -387,7 +418,15 @@ int main(int argc, char **argv)
         first.data = env && *env ? env : default_data.string();
     }
 
+    if (!g_payload.empty()) {
+        std::ifstream manifest(g_payload / "manifest.json", std::ios::binary);
+        std::stringstream text;
+        text << manifest.rdbuf();
+        g_payload_version = json_strings(text.str())["version"];
+    }
+
     open_session_log();
+    app::update_cleanup();
     // Acquire the lifetime lock before reading activation state or the receipt.
     if (!app::lock_install()) fail("The game or an update is already running.");
     std::string why;
@@ -395,9 +434,10 @@ int main(int argc, char **argv)
         if (!why.empty()) fprintf(stderr, "[APP] %s\n", why.c_str());
         pc_settings_open("");                       // the screens' own settings, at their defaults
     }
-    fprintf(stderr, "[APP] Def Jam Recompiled %s: install %s (%s), setup files %s\n", DEFJAM_VERSION,
+    fprintf(stderr, "[APP] Def Jam Recompiled %s: install %s (%s), setup files %s (v%s)%s\n", DEFJAM_VERSION,
             in.root.c_str(), in.installed ? ("v" + in.version).c_str() : "not installed",
-            g_payload.empty() ? "none" : g_payload.c_str());
+            g_payload.empty() ? "none" : g_payload.c_str(), g_payload_version.c_str(),
+            g_updated ? ", just updated" : "");
 
     if (!SDL_Init(SDL_INIT_VIDEO)) fail(std::string("No display to show the launcher on: ") + SDL_GetError());
     int skip = pc_mods_needs_recovery() ? 0 : recomp_settings_get("launcher", "skip", 0);
@@ -408,6 +448,26 @@ int main(int argc, char **argv)
         int play = pc_launcher_window(&open_setup);
         pc_input_stop();
         if (play < 0) fail("The launcher window could not be opened.");
+        if (!g_relaunch.empty()) {
+            // The app replaced itself: start the new one in this process, without the lock, which
+            // it takes again.
+            SDL_Quit();
+            app::unlock_install();
+            // A scripted run (RECOMP_LAUNCHER_SCRIPT, src/hooks/pc_launcher_sdl.cpp) gives the
+            // updated app a script of its own, or none: this one's times start again there.
+            const char *after = getenv("RECOMP_LAUNCHER_SCRIPT_AFTER_UPDATE");
+            if (after) setenv("RECOMP_LAUNCHER_SCRIPT", after, 1);
+            else unsetenv("RECOMP_LAUNCHER_SCRIPT");
+            unsetenv("RECOMP_LAUNCHER_SCRIPT_AFTER_UPDATE");
+            fprintf(stderr, "[APP] starting the updated app: %s\n", g_relaunch[0].c_str());
+            fflush(stdout);
+            fflush(stderr);
+            std::vector<char *> next;
+            for (auto &a : g_relaunch) next.push_back(a.data());
+            next.push_back(nullptr);
+            execv(next[0], next.data());
+            fail(std::string("The updated app could not be started (") + strerror(errno) + ").");
+        }
         if (!play || !in.installed) {
             SDL_Quit();
             return 0;
