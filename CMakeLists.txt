@@ -209,6 +209,7 @@ if(DEFJAM_BUILD_APP AND NOT WIN32 AND DEFJAM_SDL3)
     include(imgui)
     add_executable(defjam_app
         src/app/app_main.cpp
+        src/app/app_setup.cpp
         src/host_posix_keys.c
         src/hooks/pc_settings_catalog.c
         src/hooks/pc_input.c
