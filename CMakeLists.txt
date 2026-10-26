@@ -57,6 +57,13 @@ set(XBOXRECOMP_SDL3 ${DEFJAM_SDL3} CACHE BOOL "Read gamepads through SDL3 (fetch
 # Builds all runtime libraries and provides the 'xboxrecomp' umbrella target.
 add_subdirectory(${XBOXRECOMP_DIR} ${CMAKE_BINARY_DIR}/xboxrecomp)
 
+# Whether the toolkit's texture loader takes wide slabs, which the Mods page reports (pc_mods.cpp).
+file(READ "${XBOXRECOMP_DIR}/src/nv2a/texture_pack.c" _mod_texture_loader)
+string(FIND "${_mod_texture_loader}" "texture_pack_wide_slabs" _mod_has_wide)
+if(NOT _mod_has_wide EQUAL -1)
+    set(DEFJAM_MOD_WIDE ON)
+endif()
+
 # ── Game executable (only when lifted code is present) ──────────────────
 file(GLOB RECOMP_GEN_SOURCES CONFIGURE_DEPENDS "src/recomp/gen/*.c")
 file(GLOB HOOK_SOURCES       CONFIGURE_DEPENDS "src/hooks/*.c" "src/hooks/*.cpp")
@@ -89,7 +96,7 @@ if(DEFJAM_BUILD_GAME)
         # (Vulkan, in the game's window) are the same screen as on Windows,
         # in pc_ui.cpp; pc_launcher.cpp is the Direct3D 11 one.
         list(FILTER HOOK_SOURCES EXCLUDE REGEX "/(watchpoint\\.c|pc_launcher\\.cpp)$")
-        set(HOST_SOURCES src/host_posix.c)
+        set(HOST_SOURCES src/host_posix.c src/host_posix_keys.c)
         if(APPLE)
             enable_language(OBJC)
             list(APPEND HOST_SOURCES src/host_macos.m)
@@ -144,9 +151,7 @@ if(DEFJAM_BUILD_GAME)
     endif()
     target_compile_definitions(${PROJECT_NAME} PRIVATE DEFJAM_VERSION=\"${PROJECT_VERSION}\")
     target_compile_definitions(${PROJECT_NAME} PRIVATE DEFJAM_MOD_SOURCE_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\")
-    file(READ "${XBOXRECOMP_DIR}/src/nv2a/texture_pack.c" _mod_texture_loader)
-    string(FIND "${_mod_texture_loader}" "texture_pack_wide_slabs" _mod_has_wide)
-    if(NOT _mod_has_wide EQUAL -1)
+    if(DEFJAM_MOD_WIDE)
         target_compile_definitions(${PROJECT_NAME} PRIVATE DEFJAM_MOD_WIDE=1)
     endif()
     target_include_directories(${PROJECT_NAME} PRIVATE
@@ -188,5 +193,45 @@ if(DEFJAM_BUILD_GAME)
     endif()
     if(DEFJAM_VERBOSE_KERNEL)
         target_compile_definitions(${PROJECT_NAME} PRIVATE VERBOSE_KERNEL_LOG=1)
+    endif()
+endif()
+
+# ── The app: the launcher's Home and Settings, and Play starting the built game ────────────────
+# No game code: the settings catalogue, the launcher screen (pc_ui.cpp with DEFJAM_APP, which leaves
+# out the overlay) and the toolkit's settings and input libraries. It builds without lifted code.
+# Off Windows for now, and with SDL3 (docs/research/unified-app-design-2026-10-26.md, step 2).
+if(NOT WIN32 AND DEFJAM_SDL3)
+    option(DEFJAM_BUILD_APP "Build the game-free app (src/app)" ON)
+endif()
+if(DEFJAM_BUILD_APP AND NOT WIN32 AND DEFJAM_SDL3)
+    list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+    find_package(SDL3 REQUIRED CONFIG)
+    include(imgui)
+    add_executable(defjam_app
+        src/app/app_main.cpp
+        src/host_posix_keys.c
+        src/hooks/pc_settings_catalog.c
+        src/hooks/pc_input.c
+        src/hooks/pc_ui_settings.c
+        src/hooks/pc_ui.cpp
+        src/hooks/pc_ui_theme.cpp
+        src/hooks/pc_ui_actions.cpp
+        src/hooks/pc_launcher_home.cpp
+        src/hooks/pc_launcher_sdl.cpp
+        src/hooks/pc_mods.cpp)
+    target_compile_features(defjam_app PRIVATE cxx_std_17)
+    target_compile_definitions(defjam_app PRIVATE DEFJAM_APP=1 DEFJAM_VERSION=\"${PROJECT_VERSION}\"
+                               DEFJAM_MOD_SOURCE_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\")
+    if(DEFJAM_MOD_WIDE)
+        target_compile_definitions(defjam_app PRIVATE DEFJAM_MOD_WIDE=1)
+    endif()
+    target_include_directories(defjam_app PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/hooks
+        ${XBOXRECOMP_DIR}/include)
+    target_link_libraries(defjam_app PRIVATE recomp_settings xbox_input defjam_imgui_sdl SDL3::SDL3)
+    if(APPLE)
+        # Shift held at start-up is read from the window server, as the game does.
+        target_link_libraries(defjam_app PRIVATE "-framework ApplicationServices")
     endif()
 endif()
