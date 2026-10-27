@@ -173,3 +173,5 @@ The plan built from these is in [docs/widescreen](../widescreen/README.md), whic
 - [Menu text 1.2 candidate](menu-ui-text-v1.2-2026-10-26.md) — Stronger treatment across the text census, 1,140 pinned outputs, standalone installer validation and native checks.
 
 - [Menu 1.2 publication](menu-ui-v1.2-publication-2026-10-26.md) — approved stable text pack, Cloudflare pins, signed catalogue and released-helper compatibility.
+
+- [UI sharpness samples](menu-ui-sharpness-samples-2026-10-27.md) — three unapproved contour reconstructions beyond 1.2; exact prompts, comparison review and native-integration limits.

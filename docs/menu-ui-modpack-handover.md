@@ -1,5 +1,13 @@
 # Menu/UI modpack implementation handover
 
+**Sharper sample batch — 2026-10-27:** [pilot report](research/menu-ui-sharpness-samples-2026-10-27.md).
+Owner finds 1.2 text pixelated at 1440p. Three built-in imagegen contour studies
+(Main Menu v1, Capone v1, Continue v2) are at `http://127.0.0.1:51741/review.html`.
+Four immutable raw outputs and full prompts are pinned in the sample config.
+Unapproved texture previews only; atlas assembly and native checks follow style
+selection. Published 1.2/catalogue revision 5 and earlier review sessions remain
+unchanged. Local branch `codex/menu-ui-sharpness-samples`; no push requested.
+
 **1.2 published — 2026-10-26 (signed catalogue revision 5):** [publication report](research/menu-ui-v1.2-publication-2026-10-26.md).
 The owner approved and requested shipment. Stable 1.2 includes 1,140 Stronger text
 overrides, including 214 fighter-banner variants; 1,304 native mappings, 80 wide

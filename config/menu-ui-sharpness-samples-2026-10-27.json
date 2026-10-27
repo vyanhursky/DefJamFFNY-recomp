@@ -1,0 +1,113 @@
+{
+  "schema": 1,
+  "status": "Unapproved local sample batch; not atlas assembled or game tested",
+  "date": "2026-10-27",
+  "tool": "built-in image_gen",
+  "generation_calls": 4,
+  "reference": "Published HD Widescreen Menus 1.2.0",
+  "published_archive_sha256": "bb9109ef1fa77f78796afd051c4d6c602f5dbfa0554e698f3b8746be4cbd3589",
+  "review_scale": "3 CSS pixels per original texel, generated visible width matched, proportions preserved; not a game capture",
+  "approval": null,
+  "samples": [
+    {
+      "label": "MAIN MENU",
+      "source_id": "704503561725bca42e9c4f7489ff018dcbb3808b5ee2c23755b02cb06508ee64",
+      "published_texture_sha256": "4a4eac83054b1d33f730681911fecaa2d6a3fb29bdeb53fadf4a87549b8e0ea1",
+      "reference_crop_sha256": "d3ef147581b372f61a93c96c97cacbef59e574fc1458be379b8031d29bb74831",
+      "revisions": [
+        {
+          "revision": "v1",
+          "sha256": "da9d262495607b9b6eeb59fca437f196d6a048185acd8d9c6eb5d1cc345d55f7",
+          "dimensions": [
+            1916,
+            821
+          ],
+          "alpha_bbox_ge_16": [
+            24,
+            278,
+            1889,
+            528
+          ],
+          "transparent_pixels": 1206174,
+          "opaque_pixels": 1722,
+          "partial_alpha_pixels": 365140,
+          "prompt": "Restore this exact MAIN MENU bitmap heading as a much sharper HD game UI texture. Edit target is the supplied image. Text verbatim: \"MAIN MENU\". Retain the exact blocky condensed slab-serif letter designs, relative letter widths, spacing, baseline, off-white face, dark inset/extruded edges and thin original light highlights. Reconstruct the intended straight bevels and smooth curves at high resolution instead of following the visible pixel staircase. Eliminate low-resolution zigzags, speckles and ringing on the outside silhouettes and the inside letter counters. Preserve the 2004 game aesthetic and subtle original surface shading; no modern font substitution, no new ornament, no added text, no perspective or layout redesign. Legibility and clean contours at 1440p are the priority. Flat isolated horizontal texture strip, large smooth high-resolution outlines, the complete word fits inside canvas without clipping, small even transparent guard border. Real transparent background, no checkerboard drawn into pixels. Aim for approximately 2048 by 350 pixels or the same wide proportions as the reference.",
+          "selected_for_review": true
+        }
+      ]
+    },
+    {
+      "label": "CAPONE \u2022 2 fighters",
+      "source_id": "925d89ba2f90cd7a1ff3555da16ff84a580a2379cad0c7706dc762cbb53cc35d",
+      "published_texture_sha256": "a0010d129fa4c9c5b7cacfe30188fde5082ed823f88415f25f94f7c2f4809727",
+      "reference_crop_sha256": "d26bd8e288b5797446f3f0f312b8089348ee9e9631ca286b275f53375258ea80",
+      "revisions": [
+        {
+          "revision": "v1",
+          "sha256": "c74815add54e84f876733a0ff1be2f34cacb4637d64991b7f4d0bc58986f34b1",
+          "dimensions": [
+            1997,
+            787
+          ],
+          "alpha_bbox_ge_16": [
+            50,
+            185,
+            1947,
+            564
+          ],
+          "transparent_pixels": 1028304,
+          "opaque_pixels": 2854,
+          "partial_alpha_pixels": 540481,
+          "prompt": "Restore the exact supplied fighter-name UI texture, spelling verbatim \"CAPONE\", as a clean HD texture for Def Jam Fight for NY. Preserve these distinctive heavy angular slab-serif letter shapes, relative character widths and spacing, dark charcoal/brown faces, muted lighter bevel, thin light outline and original subtle worn surface shading. Reconstruct intended straight cuts, smooth rounded outer corners and crisp counters at high resolution; remove the low-resolution pixel stair steps and enlargement blur. Do not substitute a generic font or redesign the lettering; no additional objects, letters or decorations. Keep an exact flat horizontal wordmark with the whole word visible and a small even transparent guard border. A crisp raster from carefully redrawn contours rather than a sharpened low-resolution bitmap. No halos or oversized new outlines. Real transparent alpha background, not black or a checkerboard painted in. Preserve the horizontal aspect of the reference; aim for 2048 by 510 pixels.",
+          "selected_for_review": true
+        }
+      ]
+    },
+    {
+      "label": "CONTINUE",
+      "source_id": "a7f7e7d0c4a3ad944848c9b5e57ca9caae37286c944abd33d0785085fb1b7ff7",
+      "published_texture_sha256": "0bac4bef4bd01d96a4f0e2dcbd30ae169605b97bf4a29bfd643a8f5dd1e33538",
+      "reference_crop_sha256": "f6acc7d764648569c03a99b64bcbf8d58472b94e047ae3cc14145e76a2d200d0",
+      "revisions": [
+        {
+          "revision": "v1",
+          "sha256": "25977e57d1958237fd9effcd91dcddd9e95e5cce27ef86141f4d02d56fda604b",
+          "dimensions": [
+            2172,
+            724
+          ],
+          "alpha_bbox_ge_16": [
+            72,
+            128,
+            2100,
+            565
+          ],
+          "transparent_pixels": 778571,
+          "opaque_pixels": 3698,
+          "partial_alpha_pixels": 790259,
+          "prompt": "Faithfully reconstruct the exact supplied small UI label at genuinely sharp high resolution. Text verbatim: \"CONTINUE\". The reference is a tiny white all-caps condensed square athletic/stencil lettering label with black offset outline/shadow and small straight-cut facets. Keep every original character, their relative widths, tight spacing and original silhouette style; resolve the jagged pixel stair steps into intentional clean straight segments and curves. Make the small lettering readable at 1440p while retaining the game style. Solid bright white faces, same thin dark outline/shadow, no soft enlargement blur, no extra gritty noise, no new font style, no extra words. Isolated flat horizontal complete label on real transparent alpha, small even transparent guard border, no painted checkerboard, no clipping. Aim for 1536 by 480 pixels in the same aspect as the original.",
+          "selected_for_review": false
+        },
+        {
+          "revision": "v2",
+          "sha256": "5e9ea3f2760a6cdcd1f96a803122619ecb59da2db300570c14a03fd10376a87e",
+          "dimensions": [
+            2135,
+            736
+          ],
+          "alpha_bbox_ge_16": [
+            55,
+            147,
+            2080,
+            579
+          ],
+          "transparent_pixels": 964408,
+          "opaque_pixels": 3908,
+          "partial_alpha_pixels": 603044,
+          "prompt": "Edit target: the supplied original CONTINUE UI texture. Restore its exact lettering cleanly at high resolution. Text verbatim: \"CONTINUE\". This is narrow, tall, light-to-medium weight condensed sans-serif lettering, with thin white strokes, softly rounded rectangular corners and generous open dark counters. Preserve the distinct ORIGINAL letter skeletons, original thin strokes relative to height, narrow U/N shapes, character-width ratios and spacing. Do NOT turn it into heavy varsity/college lettering, bold block/stencil type, or a wide athletic font. Do not add chamfered octagonal corners. Reconstruct smooth continuous curves and straight segments instead of pixel stairs, retaining the same off-white/white faces and restrained narrow dark outline/shadow. Simple flat UI label, no bevelled 3D redesign, no extra markings. Exact word in a horizontal strip, full label visible, small clear guard border, actual transparent alpha background. Clean contours and legibility at 1440p; font authenticity is equally important. About 2048x500, but original letter proportions take precedence.",
+          "selected_for_review": true
+        }
+      ]
+    }
+  ]
+}
