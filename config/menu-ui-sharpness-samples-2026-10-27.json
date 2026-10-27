@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "status": "Unapproved local sample batch; not atlas assembled or game tested",
+  "status": "Main Menu v5 and Continue v3 typography accepted; Capone brightness pending; atlas/native checks pending",
   "date": "2026-10-27",
   "tool": "built-in image_gen",
   "generation_calls": 10,
@@ -349,5 +349,45 @@
       "brick_frame_sha256": "b631ac603551e795d5c78f71d540924e946069c0867189f616cba9fc02bfa66e"
     },
     "approval": null
+  },
+  "typography_acceptance": {
+    "date": "2026-10-27",
+    "owner_feedback": "Both are close enough",
+    "samples": {
+      "main-menu": "v5",
+      "continue": "v3"
+    },
+    "scope": "Typography only; no atlas, native or release approval"
+  },
+  "banner_context_correction": {
+    "date": "2026-10-27",
+    "review_url": "http://127.0.0.1:51741/contexts/review.html#capone",
+    "dark_fighter_select": "Pale paper header",
+    "light_loading_screen": "Portrait area",
+    "capone_revision": "v2",
+    "capone_brightness_approval": null,
+    "receipt": {
+      "schema": 1,
+      "reason": "Owner distinguishes dark fighter-select and light loading banners",
+      "dark_select": {
+        "source_id": "c49727c8650aaf13bb5d1a0aee11b3fc466d607a657b77a35b86bda6b99aa9e7",
+        "image_sha256": "888e52fa13fe4621e11bbaf2c0002dae35fd99b8c9f61ad94b945e49eac4af0b",
+        "header_origin": [
+          255,
+          365
+        ],
+        "scale": "Published PNG is 4x; canvas samples at original-texel scale"
+      },
+      "game_window_reference_sha256": "49c1561da6a29413b507d28866f6ac9d1ac027a250345d02923468e1f3aee1ee",
+      "loading_reference_sha256": "30b957fb18e9b4d7294162d33b70f9ff6238b52e89497bab188e17872ffe2da7",
+      "capone_default": "select-header",
+      "typing_feedback": {
+        "main-menu-v5": "Typography accepted; atlas/native pending",
+        "continue-v3": "Typography accepted; atlas/native pending"
+      },
+      "capone_brightness_approval": null,
+      "generation_calls": 0
+    },
+    "inventory_limit": "Assign contexts from confirmed game usage; do not infer every variant from filename or image brightness."
   }
 }

@@ -1,6 +1,36 @@
 # UI sharpness sample batch — 2026-10-27
 
-## Follow-up: typography fidelity and game backdrops
+## Latest: correct banner contexts and accepted typography
+
+The owner accepts Main Menu v5 and Continue v3 typography: “Both are close
+enough.” This acceptance is limited to those lettering studies; atlas assembly
+and native candidate checks remain pending.
+
+The prior Capone backdrop grouping was incorrect. Dark fighter-select names
+belong on the pale paper header; light loading-screen names belong over the
+portraits. The corrected review is
+`http://127.0.0.1:51741/contexts/review.html#capone`.
+Capone v2 now defaults to the actual published fighter-select panel artwork,
+source ID `c49727c8650aaf13bb5d1a0aee11b3fc466d607a657b77a35b86bda6b99aa9e7`
+from `screens/battle/chooseF2.big`; PNG SHA-256
+`888e52fa13fe4621e11bbaf2c0002dae35fd99b8c9f61ad94b945e49eac4af0b`.
+Canvas rendering samples its clean pale header from origin (255,365), accounting
+for the published PNG's 4x resolution. The artwork bytes are copied unchanged.
+
+The game-window-only owner reference and the earlier native Blaze/Fat Joe loading
+capture appear separately with context labels. The full desktop screenshot is
+not copied into the review. Both Capone revisions can be compared against the
+same header; brightness is still awaiting judgment. No new light banner is
+fabricated. Broader banner variants need confirmed usage rather than a filename
+or image-brightness heuristic, since runtime tint/blending can affect appearance.
+
+The browser check confirms the Capone default and both displayed comparisons;
+proof is private at `contexts/proof-capone-select-header.png`. Earlier pages,
+all ten raw generations and exact prompts remain intact. This correction adds
+no imagegen call, generated artwork edit, game run, pack export or publication.
+The source config records the scoped acceptance and background provenance.
+
+## Earlier follow-up: typography fidelity and game backdrops
 
 The owner likes the sharper samples at 1x and 6x, but requests closer original
 letter sizes, spacing and weight for Main Menu/Continue. Capone's embellished

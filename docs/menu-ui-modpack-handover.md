@@ -1,5 +1,13 @@
 # Menu/UI modpack implementation handover
 
+**Corrected banner contexts — 2026-10-27:** [pilot report](research/menu-ui-sharpness-samples-2026-10-27.md).
+Main Menu v5 and Continue v3 typography accepted. Correct review:
+`http://127.0.0.1:51741/contexts/review.html#capone`. Dark Capone now uses the
+actual fighter-select pale paper header; light loading banners use portrait
+context. Capone brightness remains undecided. No new generations, game run,
+export or publication; atlas/native validation remains pending. Earlier context
+review below is preserved as history.
+
 **Sample fidelity follow-up — 2026-10-27:** [updated pilot report](research/menu-ui-sharpness-samples-2026-10-27.md).
 Owner likes sharpness but requests original typography and game backdrops. Review
 `http://127.0.0.1:51741/round2/review.html#capone`: Main Menu v5, Continue v3,
