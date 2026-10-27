@@ -144,6 +144,15 @@ extern "C" int pc_launcher_window(int *open_setup_out)
     }
     SDL_SetRenderVSync(renderer, 1);
     SDL_SetWindowMinimumSize(window, 640, 480);
+#if defined(_WIN32)
+    // Windows measures the window in pixels: make it as big on a scaled display as it is elsewhere.
+    float scale = SDL_GetWindowDisplayScale(window);
+    if (scale > 1.0f) {
+        SDL_SetWindowMinimumSize(window, (int)(640 * scale), (int)(480 * scale));
+        SDL_SetWindowSize(window, (int)(1100 * scale), (int)(720 * scale));
+        SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+    }
+#endif
 
     ui_lock();
     ui_context_begin(window);
