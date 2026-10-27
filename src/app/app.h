@@ -17,7 +17,6 @@ struct Install
     std::filesystem::path root, data, source, executable;
     std::string version;
     bool installed = false;     // a completed, playable installation
-    bool shortcuts = true;      // the install has shortcuts (Applications, Desktop) to keep
     std::string problem;        // why an installation that is there cannot be played (Repair fixes it)
 };
 Install &install();
@@ -39,11 +38,10 @@ std::filesystem::path payload();
 // The folder the session logs go to.
 std::filesystem::path log_dir();
 
-// Defaults for the first run's choices (--dump, --data, --no-shortcuts, or the platform's usual places).
+// Defaults for the first run's choices (--dump, --data, or the platform's usual places).
 struct FirstRun
 {
     std::string dump, install, data;
-    bool shortcuts = true;      // Applications (macOS) or the menu and Desktop entries (Linux)
 };
 FirstRun &first_run();
 
