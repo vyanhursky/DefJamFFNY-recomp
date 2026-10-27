@@ -3,7 +3,7 @@
   "status": "Unapproved local sample batch; not atlas assembled or game tested",
   "date": "2026-10-27",
   "tool": "built-in image_gen",
-  "generation_calls": 4,
+  "generation_calls": 10,
   "reference": "Published HD Widescreen Menus 1.2.0",
   "published_archive_sha256": "bb9109ef1fa77f78796afd051c4d6c602f5dbfa0554e698f3b8746be4cbd3589",
   "review_scale": "3 CSS pixels per original texel, generated visible width matched, proportions preserved; not a game capture",
@@ -109,5 +109,245 @@
         }
       ]
     }
-  ]
+  ],
+  "initial_generation_calls": 4,
+  "follow_up": {
+    "date": "2026-10-27",
+    "feedback": "Owner likes sharpness at 1x/6x; requests original letter sizes/spacing/weight and game-type backgrounds; likes Capone detail but finds it lighter.",
+    "review_url": "http://127.0.0.1:51741/round2/review.html#capone",
+    "additional_generation_calls": 6,
+    "selected": {
+      "main-menu": "v5",
+      "continue": "v3",
+      "capone": "v2"
+    },
+    "revisions": [
+      {
+        "key": "main-menu",
+        "revision": "v2",
+        "sha256": "caa3502c52716e2eae304d5d3f337182be5304b4f67471d1bd4e9682c4e9446c",
+        "size": [
+          2170,
+          725
+        ],
+        "alpha128_bbox": [
+          38,
+          234,
+          2124,
+          491
+        ],
+        "transparent_pixels": 1194493,
+        "opaque_pixels": 3839,
+        "partial_alpha_pixels": 374918,
+        "raw_height_error_at_matched_width_percent": -2.33,
+        "rgb_median": [
+          242,
+          235,
+          215
+        ],
+        "selected_for_review": false,
+        "status": "Held fringe artefacts; retained history",
+        "prompt": "Fidelity-critical HD restoration of this supplied MAIN MENU bitmap. The reference is an exact typography blueprint, not a loose style reference. Text verbatim \"MAIN MENU\". Keep the SAME letter widths, cap height, baseline, spacing, stroke weight and narrow serif shapes. In particular M A I N [large word space] M E N U must retain their exact horizontal positions. The original visible word is 880 units wide and 111 high (7.9279:1); do not make it taller or heavier. Original letter x ranges measured relative to word left, in those same units: M 0..125; A 140..232; I 247..275; N 291..384; then M 449..579; E 600..667; N 680..772; U 788..880. These are layout constraints, not text to print. Thin tapered/slab serif cuts and the original unusual U shape must remain. Off-white faces, restrained original edge highlights. Remove only low-resolution stairs, speckles and ringing; do not add a thick black outline, bold 3D extrusion or enlarged bevels. Preserve clean source-like flat face weight rather than the previous more embossed interpretation. Sharp smooth high-resolution raster, exact word visible, real transparent alpha background and even clear guard border. No new font, decorations or text. A faithful tracing with smooth edges, not a redesigned wordmark.",
+        "inputs": [
+          {
+            "sha256": "d3ef147581b372f61a93c96c97cacbef59e574fc1458be379b8031d29bb74831",
+            "role": "reference or edit target; ordered as prompt describes"
+          }
+        ]
+      },
+      {
+        "key": "continue",
+        "revision": "v3",
+        "sha256": "76314ebd19bc08d710db5681bfe73ba97327997f216e661fc93f426a3b5da9ae",
+        "size": [
+          2170,
+          725
+        ],
+        "alpha128_bbox": [
+          91,
+          182,
+          2076,
+          527
+        ],
+        "transparent_pixels": 1089036,
+        "opaque_pixels": 1955,
+        "partial_alpha_pixels": 482259,
+        "raw_height_error_at_matched_width_percent": -2.83,
+        "rgb_median": [
+          253,
+          252,
+          253
+        ],
+        "selected_for_review": true,
+        "status": "Unapproved review draft",
+        "prompt": "Fidelity-critical HD tracing/restoration of the supplied CONTINUE game UI bitmap. Text verbatim \"CONTINUE\". The source controls typeface, ALL widths/heights/spacing/stroke weight. Reconstruct continuous clean outlines without redesigning its letter skeletons. This is thin/light-medium condensed sans-serif, small rounded/softly cut corners, with slender strokes and open counters, NOT bold athletic/varsity/stencil lettering. Keep original word visible bounds width246 height44, aspect5.5909:1. At identical word width, do NOT make letters taller than reference. Measured letter face x ranges relative to word left: C0..26 O32..58 N65..93 T100..126 I133..141 N149..177 U185..213 E222..245. Layout constraints only, do not print numbers. Thin I, source-shaped N diagonals, narrow U counter, original cap height and baseline; equal original spacing. White faces with the original very restrained dark edge/shadow. Do not add a heavier rounded outline or a new bevel. Correct pixel stairs into smooth contours, keep letter weight and exact original layout. Entire word as flat isolated horizontal UI strip, actual transparent alpha, even guard margin, no added text. The original rather than a modern font is the authority.",
+        "inputs": [
+          {
+            "sha256": "f6acc7d764648569c03a99b64bcbf8d58472b94e047ae3cc14145e76a2d200d0",
+            "role": "reference or edit target; ordered as prompt describes"
+          }
+        ]
+      },
+      {
+        "key": "capone",
+        "revision": "v2",
+        "sha256": "3594b47ad9f3c1f1149378b8173a6b10e89b46f6c0273d7a3a716e3daa6b6a01",
+        "size": [
+          1997,
+          787
+        ],
+        "alpha128_bbox": [
+          48,
+          183,
+          1948,
+          565
+        ],
+        "transparent_pixels": 1015508,
+        "opaque_pixels": 4186,
+        "partial_alpha_pixels": 551945,
+        "raw_height_error_at_matched_width_percent": 6.07,
+        "rgb_median": [
+          38,
+          32,
+          26
+        ],
+        "selected_for_review": true,
+        "status": "Unapproved review draft",
+        "prompt": "Edit Image1, the detailed CAPONE reconstruction. Image2 is the original game texture and controls the original dark values and letter layout. Text remains exactly \"CAPONE\". Keep the embellished worn texture detail and fine bevel workmanship from Image1; the owner likes that detail. Darken only the broad letter faces toward the near-black/dark brown-charcoal value of Image2, so the result reads like original dark ink/metal rather than the lighter grey-brown first reconstruction. Highlights should stay thin and restrained, not a broad bright border. Preserve the existing exact letter skeletons, smooth silhouette, counters, spacing and word proportions; do not regenerate a new font or embellishments. Keep fine wear visible inside the darker material; avoid globally crushing all detail to pure black. Entire flat wordmark isolated on actual transparent alpha background, no paper or scenery baked in, no new words. Source reference visible bounds612wide116high, aspect5.2759:1; preserve that ratio and original stroke weight.",
+        "inputs": [
+          {
+            "sha256": "c74815add54e84f876733a0ff1be2f34cacb4637d64991b7f4d0bc58986f34b1",
+            "role": "reference or edit target; ordered as prompt describes"
+          },
+          {
+            "sha256": "d26bd8e288b5797446f3f0f312b8089348ee9e9631ca286b275f53375258ea80",
+            "role": "reference or edit target; ordered as prompt describes"
+          }
+        ]
+      },
+      {
+        "key": "main-menu",
+        "revision": "v3",
+        "sha256": "1b20d7854f7054800fea0d75f1ce4802904bb326e8c89396467b83d33fbd68e4",
+        "size": [
+          2170,
+          725
+        ],
+        "alpha128_bbox": [
+          39,
+          225,
+          2125,
+          495
+        ],
+        "transparent_pixels": 1191560,
+        "opaque_pixels": 2055,
+        "partial_alpha_pixels": 379635,
+        "raw_height_error_at_matched_width_percent": 2.61,
+        "rgb_median": [
+          243,
+          234,
+          212
+        ],
+        "selected_for_review": false,
+        "status": "Held fringe artefacts; retained history",
+        "prompt": "Cleanup edit of Image1, exact text \"MAIN MENU\". Image2 is the original typography authority. Preserve the thin original-style letter faces, each letter position/width, the cap height, large word gap, original U shape and pale ivory colour of Image1. ONLY fix the bad fringe: remove ALL stray white speckles, scratchy halos and ragged white patches outside the real letters and inside counters. Give every silhouette a crisp smooth clean alpha boundary, with a very narrow restrained dark edge if needed like Image2. Clear every pixel outside the intended letter silhouettes to actual transparency; no pale sprayed outline or fuzzy surround. Do not add a thick 3D black rim or bevel. Keep the exact existing face shapes and spacing, no font substitution, no added texture, no extra text. Entire flat horizontal wordmark, 880:111 visible word aspect; real transparent background, even clear guard.",
+        "inputs": [
+          {
+            "sha256": "caa3502c52716e2eae304d5d3f337182be5304b4f67471d1bd4e9682c4e9446c",
+            "role": "reference or edit target; ordered as prompt describes"
+          },
+          {
+            "sha256": "d3ef147581b372f61a93c96c97cacbef59e574fc1458be379b8031d29bb74831",
+            "role": "reference or edit target; ordered as prompt describes"
+          }
+        ]
+      },
+      {
+        "key": "main-menu",
+        "revision": "v4",
+        "sha256": "f4d223d659013c779109e32aa2dd155fa402f8a04ec824730fe5659128450ab0",
+        "size": [
+          1915,
+          821
+        ],
+        "alpha128_bbox": [
+          28,
+          273,
+          1882,
+          507
+        ],
+        "transparent_pixels": 1260239,
+        "opaque_pixels": 1484,
+        "partial_alpha_pixels": 310492,
+        "raw_height_error_at_matched_width_percent": 0.06,
+        "rgb_median": [
+          236,
+          229,
+          215
+        ],
+        "selected_for_review": false,
+        "status": "Held fringe artefacts; retained history",
+        "prompt": "Edit Image1 (the clean high-resolution MAIN MENU draft) to match the ORIGINAL Image2 more closely. Keep the high-resolution smooth contours of Image1. Reduce its black border/extrusion thickness by about 75 percent to a thin dark hairline. Flatten the broad bevel highlights to the subtle original, keeping pale ivory face colour. Use Image2 exact letter positions, widths, cap height, baseline and spacing. In particular preserve the original thin I and original U shape; the word ink rectangle must be 880:111 (about7.93:1), so make it less tall than Image1 at matching width. Text exactly \"MAIN MENU\". No new font, no extra grit or distress. IMPORTANT transparent-edge quality: every letter has a clean smooth dark-edged silhouette against truly clear alpha; absolutely no white halo, white outline, loose flecks, speckles, jagged patches or fog outside the letters or in counters. Keep the entire word visible, flat horizontal view, with a clear guard border. Smooth authentic source-shaped lettering with restrained, thin dark contours, not thick 3D lettering. Genuine transparent background.",
+        "inputs": [
+          {
+            "sha256": "da9d262495607b9b6eeb59fca437f196d6a048185acd8d9c6eb5d1cc345d55f7",
+            "role": "reference or edit target; ordered as prompt describes"
+          },
+          {
+            "sha256": "d3ef147581b372f61a93c96c97cacbef59e574fc1458be379b8031d29bb74831",
+            "role": "reference or edit target; ordered as prompt describes"
+          }
+        ]
+      },
+      {
+        "key": "main-menu",
+        "revision": "v5",
+        "sha256": "405f8375df10bec9e1de980da1cadec8bdd92311b19fde0e47cfe281cfec2841",
+        "size": [
+          1915,
+          821
+        ],
+        "alpha128_bbox": [
+          26,
+          283,
+          1885,
+          523
+        ],
+        "transparent_pixels": 1243654,
+        "opaque_pixels": 1282,
+        "partial_alpha_pixels": 327279,
+        "raw_height_error_at_matched_width_percent": 2.35,
+        "rgb_median": [
+          241,
+          234,
+          220
+        ],
+        "selected_for_review": true,
+        "status": "Unapproved; Main Menu retains bevel/style drift",
+        "prompt": "Make ONE restrained typography adjustment to the supplied clean MAIN MENU wordmark. Preserve the exact letters, individual widths, positions, spacing and ivory face skeletons. Reduce only the thick dark bevel/outer rim to a thin simple clean charcoal edge, roughly half its current width, reducing its embossed effect. Keep the word flat and less tall: intended visible aspect880:111 (7.93:1). Do not repaint it with distress. Exact text \"MAIN MENU\". Colours are ONLY ivory, pale warm grey and charcoal grey. Every edge and all counters must have perfectly clean transparent alpha outside the letters. No red, yellow or green anywhere; no coloured fringe, bright outline, white specks, chips, halos, fog or loose pixels. Do not change typeface or move any letter. Smooth source-style serif contours, clean thin outline, subtle original shading; no 3D-heavy extrusion. Entire word visible on genuine transparent background with even guard margin.",
+        "inputs": [
+          {
+            "sha256": "da9d262495607b9b6eeb59fca437f196d6a048185acd8d9c6eb5d1cc345d55f7",
+            "role": "reference or edit target; ordered as prompt describes"
+          }
+        ]
+      }
+    ],
+    "preview": "Reference outer bounds may be matched in canvas only; not per-glyph locking or runtime atlas assembly.",
+    "native_background": {
+      "log": "logs/run-20261027-154735.log.err",
+      "save_restored_identical": true,
+      "crashes": 0,
+      "watchdogs": 0,
+      "unresolved_calls": 0,
+      "present_intervals": 42,
+      "median_presents_per_2s": 120,
+      "min_presents_per_2s": 70,
+      "portraits": "Blaze and Fat Joe; no generated-art native verification",
+      "loading_frame_sha256": "30b957fb18e9b4d7294162d33b70f9ff6238b52e89497bab188e17872ffe2da7",
+      "paper_master_sha256": "849ba69cbf1f4337f0b0c4080cdac91cee0eb86cb7237409f20c4993a2106201",
+      "brick_frame_sha256": "b631ac603551e795d5c78f71d540924e946069c0867189f616cba9fc02bfa66e"
+    },
+    "approval": null
+  }
 }

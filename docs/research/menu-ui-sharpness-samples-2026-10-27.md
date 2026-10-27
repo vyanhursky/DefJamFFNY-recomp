@@ -1,5 +1,65 @@
 # UI sharpness sample batch — 2026-10-27
 
+## Follow-up: typography fidelity and game backdrops
+
+The owner likes the sharper samples at 1x and 6x, but requests closer original
+letter sizes, spacing and weight for Main Menu/Continue. Capone's embellished
+detail is liked; its lighter value needs comparison against game backgrounds.
+That is directional feedback, not approval of a new release.
+
+The separate follow-up page is `http://127.0.0.1:51741/round2/review.html#capone`.
+The original review page and its four image outputs remain unchanged. New review
+defaults: Main Menu v5, Continue v3 and Capone v2. Six additional built-in imagegen
+calls retain exact prompts and all raw PNGs; ten outputs total are now pinned
+in the sample config. Prompts specify the source cap-height/word-width ratio,
+per-letter horizontal ranges, spacing and stroke-weight invariants. Capone keeps
+the detailed v1 reference but requests darker broad faces and restrained highlights.
+
+Measured raw height at matched word width is +2.35% for Main Menu v5, -2.83% for
+Continue v3 and +6.07% for Capone v2, using alpha>=128 bounds. The previous Continue
+v2 was about 19% taller than the source. These measurements address overall
+proportions, not exact glyph correspondence. Prompts alone did not lock every
+letter's shape, weight or spacing. Main Menu remains more bevelled than the source.
+Main Menu v2/v3 produced white fringes and v4 coloured fringes; all three are held
+as private history, not selected. V5 uses the cleaner first draft as its edit target.
+
+The new review can match both outer bounds to the reference for presentation,
+or show uncorrected generated proportions. This fit is canvas-only, not an
+exported asset transformation or per-glyph geometry lock. An optional cyan source
+ghost exposes alignment differences, and a draft selector compares the previous
+version with the new one on an identical backdrop. All three cases, prior/latest,
+3x/6x, ghost/bounds controls and game-paper/portrait/brick backdrops were inspected
+in the browser; no broken reference image or page overflow was observed.
+
+Backdrops are the real loading-paper master, a new native loading-screen portrait
+excerpt, and an existing native Main Menu brick excerpt. The full native loading
+frame is shown separately as context. These are clearly labelled texture studies;
+they do not reproduce the candidate's actual game tint/combiners/animation.
+No generated sample was installed or natively verified.
+
+The background-only native run `logs/run-20261027-154735.log.err` uses the isolated
+1.2 fixture and complete-save-root guard. It reaches Game.StartGame, records 42
+two-second present intervals (minimum70/median120/maximum121), zero measured
+crashes/watchdogs/unresolved calls/debug-layer/truncated-batch faults, and identical
+save restoration. The ten reported optional omissions are inherited. Triage's
+PARTIAL line-count warning is resolved by the bounded tail: TRANS frames advance
+through5038 after the last sparse present report; the first unclassified return
+is the known NtFsControlFile stub. No hang is inferred from that line count.
+
+The native capture still shows Blaze/Fat Joe. `RECOMP_START_FIGHTERS=47,55` logs
+47/55 at Game.StartGame, but this hook runs after loading-portrait selection;
+it does not establish a native Capone banner comparison. This run is evidence
+for the actual background context and save safety only. Private receipt:
+`logs/menu-ui-sharpness-samples-20261027/round2/native-background-receipt.json`.
+
+Await judgment on the darker Capone and remaining typography differences. Exact
+original letter geometry, if required beyond these drafts, needs a constrained
+font/contour construction rather than treating a prompt as a pixel lock. Atlas
+assembly and a genuine native candidate comparison still precede any wider rollout.
+No source push, catalogue change, public artwork upload or new PR was requested.
+
+## Initial sample checkpoint
+
 The owner found the published 1.2 UI textures pixelated on a 27-inch 1440p
 display and requested a small sharper sample batch before extending the work.
 The previous Stronger recipe narrows alpha ramps but retains the underlying

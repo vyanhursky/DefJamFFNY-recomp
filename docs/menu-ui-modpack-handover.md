@@ -1,5 +1,14 @@
 # Menu/UI modpack implementation handover
 
+**Sample fidelity follow-up — 2026-10-27:** [updated pilot report](research/menu-ui-sharpness-samples-2026-10-27.md).
+Owner likes sharpness but requests original typography and game backdrops. Review
+`http://127.0.0.1:51741/round2/review.html#capone`: Main Menu v5, Continue v3,
+darker detailed Capone v2; prior-draft toggle, source ghost, raw/matched bounds
+and real paper/portrait/brick excerpts. Ten raw generations pinned including
+three held fringe trials. Native background run 154735 passes and restores its
+isolated saves; it shows Blaze/Fat Joe, not generated Capone. Letter geometry
+is still approximate; no new art approval, native candidate test or publication.
+
 **Sharper sample batch — 2026-10-27:** [pilot report](research/menu-ui-sharpness-samples-2026-10-27.md).
 Owner finds 1.2 text pixelated at 1440p. Three built-in imagegen contour studies
 (Main Menu v1, Capone v1, Continue v2) are at `http://127.0.0.1:51741/review.html`.
