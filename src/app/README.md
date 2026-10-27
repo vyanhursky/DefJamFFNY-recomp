@@ -6,9 +6,10 @@ code: it sets up the game from the player's own dump, shows the launcher's Home 
 Play starts the game that setup built on this computer, with `--no-launcher`.
 
 - **Setup inside the app** (`app_setup.cpp`). With nothing installed it opens on the first run:
-  the dump (an image or an extracted folder), the install and data folders, HD textures and
-  shortcuts. Home's Update / Repair, and Advanced > Maintenance, open Maintenance: Repair and Clean
-  Rebuild. Each runs `setup/engine.py` from the app's setup payload with that payload's Python, as
+  the dump (an image or an extracted folder), the install and data folders, and HD textures.
+  Setup makes no shortcuts: the app the player downloaded is the only copy, and they move it
+  wherever they like. Home's Update / Repair, and Advanced > Maintenance, open Maintenance:
+  Repair and Clean Rebuild. Each runs `setup/engine.py` from the app's setup payload with that payload's Python, as
   the setup wizards do: the choices on its command line, its progress read from `--status-file`
   every frame and shown as a list of stages, Cancel through `--cancel-file`, and its exit code and
   last status line for how it ended. Closing the window during an operation asks it to cancel.
@@ -59,9 +60,7 @@ build/app/defjam_app --payload <unpacked setup payload> [--install DIR] [--dump 
   Support/DefJamRecompiled/app`, or `~/Games/DefJamRecompiled/App`).
 - **Setup payload.** `--payload DIR`, else `DEFJAM_SETUP_PAYLOAD`, else `payload` in the bundle's
   `Resources` or beside the program.
-- **First-run choices.** `--dump`, `--data` and `--no-shortcuts` fill them in. Setup refuses an
-  Applications app that belongs to another install, so a second, test install needs
-  `--no-shortcuts`.
+- **First-run choices.** `--dump` and `--data` fill them in.
 - **Test hooks.** The launcher's work here too (`RECOMP_LAUNCHER_SCRIPT`, `RECOMP_WINDOW_SHOT`;
   see `src/hooks/pc_launcher_sdl.cpp`), with the setup screens' controls named `setup.*`.
   `RECOMP_APP_NO_DIALOG=1` reports a failure on stderr only. After a self-update the new app gets
