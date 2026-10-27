@@ -16,13 +16,21 @@ def engine_options():
 
 def test_every_option_the_app_passes_is_an_engine_option():
     # The engine's command line: spawn_engine's own, start()'s, and app_update.cpp's (not xcode-select's).
-    spawn = APP[APP.index('bool spawn_engine('):APP.index('std::vector<char *> argv')]
+    spawn = APP[APP.index('bool spawn_engine('):APP.index('std::vector<std::string> env_text')]
     operation = APP[APP.index('std::vector<std::string> args = {"--bundled-only"'):APP.index('if (!spawn_engine(args')]
     update = ''.join(re.findall(r'spawn_engine\(\{(.*?)\}', UPDATE, re.S))
     passed = set(re.findall(r'"(--[a-z-]+)"', spawn + operation + update))
     assert {'--payload', '--operation', '--install-dir', '--data-dir', '--dump', '--status-file', '--cancel-file',
-            '--log', '--bundled-only', '--no-shortcuts', '--check-app-update', '--stage-app', '--stage-dir'} <= passed
+            '--log', '--bundled-only', '--no-shortcuts', '--install-prerequisites', '--check-app-update',
+            '--stage-app', '--stage-dir'} <= passed
     assert passed - engine_options() == set()
+
+
+def test_the_windows_build_tools_check_is_an_engine_option():
+    # The app asks before setup starts whether Microsoft's C++ Build Tools are installed.
+    check = APP[APP.index('void start_tools_check()'):APP.index('void poll_tools_check()')]
+    assert set(re.findall(r'"(--[a-z-]+)"', check)) == {'--payload', '--check-toolchain'}
+    assert '--check-toolchain' in engine_options()
 
 
 def test_the_operations_the_app_starts_are_engine_operations():

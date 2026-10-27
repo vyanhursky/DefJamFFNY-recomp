@@ -36,6 +36,10 @@ APP_ASSETS = {'windows-x64': 'DefJamRecompiled-{v}-windows-x64.exe',
               'linux-x64': 'DefJamRecompiled-{v}-x86_64.AppImage'}
 APP_BUNDLE = 'Def Jam Recompiled.app'
 APP_PROGRAM = 'defjam_app'
+# On Windows the app is one program with the setup payload ZIP inside it as a resource (RCDATA 101,
+# as in the setup executable). Staged for an update, it is a folder: the program and payload/.
+APP_PROGRAM_WINDOWS = 'DefJamRecompiled.exe'
+PAYLOAD_RESOURCE = (10, 101)        # RT_RCDATA, the payload's id
 
 
 def default_cache():
@@ -312,6 +316,72 @@ def safe_zip(data, destination):
                     target.chmod(mode & 0o777)
 
 
+def pe_resource(data, type_id, name_id):
+    """The bytes of resource `name_id` of type `type_id` (first language) in a Windows PE image,
+    read from the file's own tables: nothing is loaded or run. ValueError when it is not there or
+    the tables point outside the file."""
+    def u16(at):
+        if at < 0 or at + 2 > len(data):
+            raise ValueError('Not a complete Windows program')
+        return int.from_bytes(data[at:at + 2], 'little')
+
+    def u32(at):
+        if at < 0 or at + 4 > len(data):
+            raise ValueError('Not a complete Windows program')
+        return int.from_bytes(data[at:at + 4], 'little')
+
+    if data[:2] != b'MZ':
+        raise ValueError('Not a Windows program')
+    pe = u32(0x3C)
+    if data[pe:pe + 4] != b'PE\0\0':
+        raise ValueError('Not a Windows program')
+    sections, optional_size = u16(pe + 6), u16(pe + 20)
+    optional = pe + 24
+    magic = u16(optional)
+    if magic not in (0x10B, 0x20B):
+        raise ValueError('Unknown Windows program format')
+    directories = optional + (96 if magic == 0x10B else 112)
+    if u32(directories - 4) < 3:
+        raise ValueError('The program has no resources')
+    rsrc_rva = u32(directories + 16)
+    table = optional + optional_size
+
+    def offset(rva, size=0):
+        for s in range(sections):
+            at = table + 40 * s
+            virtual_size, address, raw_size, raw = u32(at + 8), u32(at + 12), u32(at + 16), u32(at + 20)
+            if address <= rva < address + max(virtual_size, raw_size):
+                result = rva - address + raw
+                if rva + size > address + raw_size or result + size > len(data):
+                    raise ValueError('Resource outside the program file')
+                return result
+        raise ValueError('Resource outside the program file')
+
+    base = offset(rsrc_rva)
+
+    def entry(directory, wanted):
+        named, ids = u16(directory + 12), u16(directory + 14)
+        for k in range(named + ids):
+            at = directory + 16 + 8 * k
+            name, target = u32(at), u32(at + 4)
+            if wanted is None or (not name & 0x80000000 and name == wanted):
+                return target
+        raise ValueError('Resource not found')
+
+    level = entry(base, type_id)
+    if not level & 0x80000000:
+        raise ValueError('Malformed resource table')
+    level = entry(base + (level & 0x7FFFFFFF), name_id)
+    if not level & 0x80000000:
+        raise ValueError('Malformed resource table')
+    leaf = entry(base + (level & 0x7FFFFFFF), None)      # the first language
+    if leaf & 0x80000000:
+        raise ValueError('Malformed resource table')
+    data_rva, size = u32(base + leaf), u32(base + leaf + 4)
+    start = offset(data_rva, size)
+    return bytes(data[start:start + size])
+
+
 def unpack_setup(installer, platform, destination):
     if platform == 'macos-arm64':
         mount = Path(destination).parent / 'mounted'
@@ -441,8 +511,10 @@ def select_app(tag, platform, cache, verify, cancelled, progress):
     """Download a release's app and verify it as select_payload verifies setup: the asset's
     GitHub digest, its checksum file and its provenance, then the setup payload inside it
     against that provenance. Returns (scratch, bundle); the caller moves the bundle and
-    removes scratch. macOS only for now: the other platforms' apps are not built yet."""
-    if platform != 'macos-arm64':
+    removes scratch. macOS: the ZIP of the bundle. Windows: the program, whose payload resource is
+    read from its tables (not run) and checked against the provenance's payload_sha256; the
+    bundle is a folder with the program and payload/. Linux's AppImage is not built yet."""
+    if platform not in ('macos-arm64', 'windows-x64'):
         raise ValueError('This platform\'s app cannot update itself yet; download it from the release page')
     cache = Path(cache)
     cache.mkdir(parents=True, exist_ok=True)
@@ -467,6 +539,21 @@ def select_app(tag, platform, cache, verify, cancelled, progress):
     try:
         progress('Verifying the new app')
         cancelled()
+        if platform == 'windows-x64':
+            if not re.fullmatch(r'[0-9a-f]{64}', str(provenance.get('payload_sha256'))):
+                raise ValueError('App provenance identity mismatch')
+            payload_zip = pe_resource(archive.read_bytes(), *PAYLOAD_RESOURCE)
+            if hashlib.sha256(payload_zip).hexdigest() != provenance['payload_sha256']:
+                raise ValueError('The setup files inside the new app do not match its release provenance')
+            bundle = scratch / 'app'
+            bundle.mkdir()
+            shutil.copyfile(archive, bundle / APP_PROGRAM_WINDOWS)
+            safe_zip(payload_zip, bundle / 'payload')
+            manifest = verify(bundle / 'payload')
+            for key in ('version', 'platform', 'source_commit', 'toolkit_commit', 'files', 'updater'):
+                if manifest.get(key) != provenance.get(key):
+                    raise ValueError('The new app does not match its release provenance: ' + key)
+            return scratch, bundle
         safe_zip(archive.read_bytes(), scratch)
         if sorted(p.name for p in scratch.iterdir()) != [APP_BUNDLE]:
             raise ValueError('Unexpected app archive contents')
@@ -564,7 +651,12 @@ def run_selected(args, platform, payload, cancelled):
     def processes():
         if os.name == 'nt':
             return {}
-        rows = subprocess.run(['ps', '-axo', 'pid=,ppid=,pgid=,lstart='], capture_output=True, text=True).stdout.splitlines()
+        try:
+            rows = subprocess.run(['ps', '-axo', 'pid=,ppid=,pgid=,lstart='], capture_output=True, text=True).stdout.splitlines()
+        except OSError:
+            # Some sandboxes refuse to start ps. Stage tracking is only a backstop for a crashed
+            # engine; losing it must not abort the handoff or skip killing the engine.
+            return {}
         result = {}
         for row in rows:
             fields = row.split(None, 3)
@@ -617,7 +709,8 @@ def run_selected(args, platform, payload, cancelled):
             if os.name != 'nt':
                 stop_stages(signal.SIGKILL)
             raise
-        sample()
+        with contextlib.suppress(Exception):
+            sample()  # A failed sample must never skip the kill below and leave the engine running.
         if os.name == 'nt':
             subprocess.run(['taskkill', '/PID', str(child.pid), '/T', '/F'], capture_output=True)
         else:

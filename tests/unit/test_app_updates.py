@@ -6,6 +6,7 @@ import hashlib
 import importlib.util
 import io
 import json
+import os
 from pathlib import Path
 import zipfile
 
@@ -118,7 +119,8 @@ def test_select_app_verifies_and_returns_the_bundle(tmp_path, monkeypatch):
     scratch, bundle = releases.select_app('v0.13.1', PLATFORM, tmp_path, verify, lambda: None, lambda text: None)
     assert bundle == scratch / releases.APP_BUNDLE and seen == [bundle / 'Contents/Resources/payload']
     program = bundle / 'Contents/MacOS' / releases.APP_PROGRAM
-    assert program.read_text() == 'synthetic program' and program.stat().st_mode & 0o111
+    assert program.read_text() == 'synthetic program'
+    assert os.name == 'nt' or program.stat().st_mode & 0o111      # Windows has no execute bit
 
 
 @pytest.mark.parametrize('case', ['development', 'not-an-app', 'old-contract', 'digest', 'extra-root',
@@ -181,3 +183,124 @@ def test_engine_stage_app_moves_only_a_verified_bundle_and_never_over_a_folder(t
     assert engine.main(args) == 0
     assert (stage / 'Contents').is_dir() and not scratch.exists()
     assert engine.main(args) == 2                           # an existing folder is never replaced
+
+
+# ---- Windows: one program with the setup payload ZIP inside it as a resource ------------------------
+
+WINDOWS = 'windows-x64'
+
+
+def synthetic_pe(resources):
+    """A minimal PE32+ image whose .rsrc section holds `resources` ({(type, id): bytes}, one language
+    each): enough for releases.pe_resource, which reads only the headers and the resource tree."""
+    va, raw = 0x1000, 0x400
+    types = sorted({t for t, _ in resources})
+    body = bytearray()
+
+    def directory(entries):                         # entries: [(id, offset | subdirectory flag)]
+        out = bytearray(16)
+        out[14:16] = len(entries).to_bytes(2, 'little')
+        for ident, target in entries:
+            out += ident.to_bytes(4, 'little') + target.to_bytes(4, 'little')
+        return out
+    # Lay out: root, then per type a directory, per id a directory, per id a data entry, then data.
+    root_size = 16 + 8 * len(types)
+    layout, at = {}, root_size
+    for t in types:
+        ids = sorted(i for tt, i in resources if tt == t)
+        layout[t] = at
+        at += 16 + 8 * len(ids)
+        for i in ids:
+            layout[(t, i)] = at
+            at += 16 + 8
+    for key in resources:
+        layout[('entry',) + key] = at
+        at += 16
+    for key in resources:
+        layout[('data',) + key] = at
+        at += (len(resources[key]) + 7) & ~7
+    body = bytearray(at)
+    body[0:root_size] = directory([(t, 0x80000000 | layout[t]) for t in types])
+    for t in types:
+        ids = sorted(i for tt, i in resources if tt == t)
+        d = directory([(i, 0x80000000 | layout[(t, i)]) for i in ids])
+        body[layout[t]:layout[t] + len(d)] = d
+        for i in ids:
+            d = directory([(0x409, layout[('entry', t, i)])])
+            body[layout[(t, i)]:layout[(t, i)] + len(d)] = d
+    for key, data in resources.items():
+        e = layout[('entry',) + key]
+        body[e:e + 8] = (va + layout[('data',) + key]).to_bytes(4, 'little') + len(data).to_bytes(4, 'little')
+        body[layout[('data',) + key]:layout[('data',) + key] + len(data)] = data
+    pe = 0x80
+    head = bytearray(raw)
+    head[0:2] = b'MZ'
+    head[0x3C:0x40] = pe.to_bytes(4, 'little')
+    head[pe:pe + 4] = b'PE\0\0'
+    coff = pe + 4
+    head[coff:coff + 2] = (0x8664).to_bytes(2, 'little')
+    head[coff + 2:coff + 4] = (1).to_bytes(2, 'little')             # one section
+    head[coff + 16:coff + 18] = (240).to_bytes(2, 'little')         # optional header size
+    opt = coff + 20
+    head[opt:opt + 2] = (0x20B).to_bytes(2, 'little')
+    head[opt + 108:opt + 112] = (16).to_bytes(4, 'little')          # data directories
+    head[opt + 112 + 16:opt + 112 + 24] = va.to_bytes(4, 'little') + len(body).to_bytes(4, 'little')
+    sec = opt + 240
+    head[sec:sec + 8] = b'.rsrc\0\0\0'
+    head[sec + 8:sec + 24] = b''.join(x.to_bytes(4, 'little') for x in (len(body), va, len(body), raw))
+    return bytes(head + body)
+
+
+def payload_zip(manifest):
+    out = io.BytesIO()
+    with zipfile.ZipFile(out, 'w') as z:
+        z.writestr('manifest.json', json.dumps(manifest))
+        z.writestr('source/x.c', '/* synthetic */')
+    return out.getvalue()
+
+
+def test_pe_resource_reads_a_resource_from_the_tables_and_refuses_the_rest():
+    image = synthetic_pe({(10, 101): b'payload bytes', (16, 1): b'version'})
+    assert releases.pe_resource(image, 10, 101) == b'payload bytes'
+    assert releases.pe_resource(image, 16, 1) == b'version'
+    for bad in (lambda: releases.pe_resource(image, 10, 102), lambda: releases.pe_resource(image[:600], 10, 101),
+                lambda: releases.pe_resource(b'not a program', 10, 101)):
+        with pytest.raises(ValueError):
+            bad()
+
+
+def windows_release(v, program, provenance):
+    tag = 'v' + v
+    stem = f'DefJamRecompiled-{v}-{WINDOWS}'
+    digest = hashlib.sha256(program).hexdigest()
+    files, assets = {}, []
+    for i, (name, data) in enumerate(((stem + '.exe', program), (stem + '.sha256', f'{digest}  {stem}.exe\n'.encode()),
+                                      (stem + '.provenance.json', json.dumps(provenance).encode())), start=10):
+        a = asset(tag, name, data, i)
+        assets.append(a)
+        files[a['browser_download_url']] = data
+    return dict(tag_name=tag, body='notes', assets=assets), files
+
+
+@pytest.mark.parametrize('case', ['good', 'payload-mismatch', 'no-payload', 'manifest-mismatch'])
+def test_select_app_on_windows_reads_the_payload_out_of_the_program(tmp_path, monkeypatch, case):
+    manifest = dict(MANIFEST, platform=WINDOWS)
+    archive = payload_zip(manifest)
+    program = synthetic_pe({} if case == 'no-payload' else {releases.PAYLOAD_RESOURCE: archive})
+    prov = dict(manifest, kind='app', app_sha256=hashlib.sha256(program).hexdigest(),
+                payload_sha256=hashlib.sha256(archive).hexdigest())
+    if case == 'payload-mismatch':
+        prov['payload_sha256'] = 'f' * 64
+    if case == 'manifest-mismatch':
+        prov['toolkit_commit'] = 'e' * 40
+    serve(monkeypatch, [windows_release('0.13.1', program, prov)])
+    verify = lambda payload: json.loads((payload / 'manifest.json').read_text())
+    if case != 'good':
+        with pytest.raises(ValueError):
+            releases.select_app('v0.13.1', WINDOWS, tmp_path, verify, lambda: None, lambda text: None)
+        assert not list(tmp_path.glob('app-*'))
+        return
+    scratch, bundle = releases.select_app('v0.13.1', WINDOWS, tmp_path, verify, lambda: None, lambda text: None)
+    assert sorted(p.name for p in bundle.iterdir()) == [releases.APP_PROGRAM_WINDOWS, 'payload']
+    assert (bundle / releases.APP_PROGRAM_WINDOWS).read_bytes() == program
+    assert json.loads((bundle / 'payload/manifest.json').read_text()) == manifest

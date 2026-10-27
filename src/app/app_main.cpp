@@ -11,25 +11,23 @@
 // and keeps the session's log. In between it shows the launcher's window (pc_launcher_window, the
 // same screen and settings file as the game's own launcher), and Play then becomes the game with
 // --no-launcher: the lock descriptor survives the exec, so the lock lives as long as the game, and
-// the app is gone when the game ends (D215). The window is skipped as the game's own launcher is
+// the app is gone when the game ends (D215). Windows has no exec: there the app closes its window,
+// starts the game, keeps the lock while it waits for it and exits with it (app_os.cpp). The window is skipped as the game's own launcher is
 // (pc_launcher_wanted): when the player turned "Skip launcher" on, unless Shift is held or --launcher
 // is given, and never when mods need recovery; --play always skips it.
 //
 // The install is --install DIR, else DEFJAM_INSTALL_DIR, else the nearest folder above this program
 // that holds installed.json, else the platform's usual place. --dump and --data fill in the first
 // run's choices. The app updates itself (app_update.cpp) and starts the new copy with --updated,
-// which then offers to build the game it carries. Off Windows for now; the Windows app is a later step.
+// which then shows its window (even when the launcher is skipped) and offers to build the game it
+// carries. System calls are in app_os.cpp (POSIX and Windows).
 
 #define _CRT_SECURE_NO_WARNINGS
 #include <errno.h>
-#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/file.h>
-#include <sys/stat.h>
 #include <time.h>
-#include <unistd.h>
 
 #include <algorithm>
 #include <filesystem>
@@ -41,10 +39,16 @@
 
 #if defined(__APPLE__)
 #include <ApplicationServices/ApplicationServices.h>
-#include <mach-o/dyld.h>
+#endif
+#if defined(_WIN32)
+#include <windows.h>
+#define strcasecmp _stricmp
 #endif
 
 #include <SDL3/SDL.h>
+#if defined(_WIN32)
+#include <SDL3/SDL_main.h>          // WinMain, handing main its arguments in UTF-8
+#endif
 
 extern "C" {
 #include "recomp_settings.h"
@@ -54,6 +58,7 @@ extern "C" {
 #include "pc_ui.h"
 #include "pc_ui_actions.h"
 #include "app.h"
+#include "app_os.h"
 
 namespace fs = std::filesystem;
 
@@ -68,19 +73,7 @@ namespace {
     exit(1);
 }
 
-fs::path program_path()
-{
-#if defined(__APPLE__)
-    char raw[4096];
-    uint32_t n = sizeof raw;
-    if (_NSGetExecutablePath(raw, &n)) return {};
-    std::error_code ec;
-    return fs::canonical(raw, ec);
-#else
-    std::error_code ec;
-    return fs::canonical("/proc/self/exe", ec);
-#endif
-}
+fs::path program_path() { return app::os::program(); }
 
 // The top-level values of a JSON object (the install receipt): strings decoded, anything else as
 // its JSON text.
@@ -174,9 +167,13 @@ std::map<std::string, std::string> json_strings(const std::string &text)
 // The platform's usual install and data folders, as the setup wizards propose them.
 void default_locations(fs::path *root, fs::path *data)
 {
-    const char *home = getenv("HOME");
-    fs::path base = home ? fs::path(home) : fs::current_path();
-#if defined(__APPLE__)
+    fs::path base = app::os::user_base();
+    if (base.empty()) base = fs::current_path();
+#if defined(_WIN32)
+    base /= "DefJamRecompiled";
+    *root = base / "app";
+    *data = base / "data";
+#elif defined(__APPLE__)
     base /= "Library/Application Support/DefJamRecompiled";
     *root = base / "app";
     *data = base / "data";
@@ -225,8 +222,7 @@ void open_session_log()
     fs::path logs = app::log_dir();
     std::error_code ec;
     if (logs.empty() || !fs::create_directories(logs, ec) && ec) return;
-    setenv("DEFJAM_LOG_DIR", logs.c_str(), 1);
-    if (isatty(STDERR_FILENO)) return;
+    app::os::set_env("DEFJAM_LOG_DIR", logs.string());
     std::vector<std::string> old;
     for (const auto &entry : fs::directory_iterator(logs, ec)) {
         std::string name = entry.path().filename().string();
@@ -241,11 +237,7 @@ void open_session_log()
     char stamp[32];
     time_t now = time(nullptr);
     strftime(stamp, sizeof stamp, "play-%Y%m%d-%H%M%S", localtime(&now));
-    fs::path base = logs / stamp;
-    int out = open((base.string() + ".log").c_str(), O_WRONLY | O_CREAT | O_APPEND, 0644);
-    int err = open((base.string() + ".log.err").c_str(), O_WRONLY | O_CREAT | O_APPEND, 0644);
-    if (out >= 0) { dup2(out, STDOUT_FILENO); close(out); }
-    if (err >= 0) { dup2(err, STDERR_FILENO); close(err); }
+    app::os::redirect_output(logs / stamp);
 }
 
 // Whether Shift is down right now, before any key event has said so (as host_posix_shift_held).
@@ -253,12 +245,14 @@ bool shift_held()
 {
 #if defined(__APPLE__)
     return (CGEventSourceFlagsState(kCGEventSourceStateCombinedSessionState) & kCGEventFlagMaskShift) != 0;
+#elif defined(_WIN32)
+    return (GetAsyncKeyState(VK_SHIFT) & 0x8000) != 0;
 #else
     return (SDL_GetModState() & SDL_KMOD_SHIFT) != 0;
 #endif
 }
 
-int g_lock = -1;
+intptr_t g_lock = -1;
 fs::path g_payload;
 std::string g_payload_version;
 std::vector<std::string> g_arguments, g_relaunch;
@@ -312,10 +306,15 @@ bool newer(const std::string &a, const std::string &b)
 fs::path log_dir()
 {
     if (const char *named = getenv("DEFJAM_LOG_DIR"); named && *named) return fs::path(named);
+#if defined(_WIN32)
+    fs::path base = os::user_base();
+    return base.empty() ? base : base / "DefJamRecompiled" / "logs";
+#else
     const char *home = getenv("HOME");
+#endif
 #if defined(__APPLE__)
     return home ? fs::path(home) / "Library/Logs/DefJamRecompiled" : fs::path();
-#else
+#elif !defined(_WIN32)
     const char *state = getenv("XDG_STATE_HOME");
     if (state && *state) return fs::path(state) / "DefJamRecompiled/logs";
     return home ? fs::path(home) / ".local/state/DefJamRecompiled/logs" : fs::path();
@@ -327,19 +326,15 @@ bool lock_install()
     std::error_code ec;
     if (g_lock >= 0) return true;
     if (!fs::is_directory(install().root, ec)) return true;     // nothing installed there to guard yet
-    int fd = open((install().root / "play.lock").c_str(), O_RDWR | O_CREAT, 0644);
-    if (fd < 0) return false;
-    if (flock(fd, LOCK_EX | LOCK_NB) != 0) {
-        close(fd);
-        return false;
-    }
-    g_lock = fd;
+    intptr_t handle = os::lock_file(install().root / "play.lock");
+    if (handle < 0) return false;
+    g_lock = handle;
     return true;
 }
 
 void unlock_install()
 {
-    if (g_lock >= 0) close(g_lock);                             // closing the descriptor lets the lock go
+    os::unlock_file(g_lock);                                    // closing the handle lets the lock go
     g_lock = -1;
 }
 
@@ -360,14 +355,14 @@ bool load_install(std::string *why)
     in.version = receipt["version"];
     if (fs::exists(in.root / ".setup-transaction", ec))
         *why = "An update was interrupted. Select Repair to recover the installation.";
-    else if (in.source.empty() || in.data.empty() || in.executable.empty() || access(in.executable.c_str(), X_OK) != 0)
+    else if (in.source.empty() || in.data.empty() || in.executable.empty() || !os::is_program(in.executable))
         *why = "The installation is incomplete. Select Repair to fix it.";
-    else if (chdir(in.source.c_str()) != 0)
+    else if (!os::change_dir(in.source))
         *why = "The installed game folder is missing. Select Repair to fix it.";
     in.problem = *why;
     if (!why->empty()) return false;
-    setenv("DEFJAM_DATA", in.data.c_str(), 1);
-    setenv("DEFJAM_INSTALL_DIR", in.root.c_str(), 1);
+    os::set_env("DEFJAM_DATA", in.data.string());
+    os::set_env("DEFJAM_INSTALL_DIR", in.root.string());
     // The same settings file as the game, with the same catalogue.
     const char *env = getenv("RECOMP_SETTINGS");
     std::string settings = env && !strcasecmp(env, "none") ? "" : env && *env ? env : (in.data / "settings.ini").string();
@@ -430,14 +425,17 @@ int main(int argc, char **argv)
         pc_settings_open("");                       // the screens' own settings, at their defaults
     }
     fprintf(stderr, "[APP] Def Jam Recompiled %s: install %s (%s), setup files %s (v%s)%s\n", DEFJAM_VERSION,
-            in.root.c_str(), in.installed ? ("v" + in.version).c_str() : "not installed",
-            g_payload.empty() ? "none" : g_payload.c_str(), g_payload_version.c_str(),
+            in.root.string().c_str(), in.installed ? ("v" + in.version).c_str() : "not installed",
+            g_payload.empty() ? "none" : g_payload.string().c_str(), g_payload_version.c_str(),
             g_updated ? ", just updated" : "");
 
     if (!SDL_Init(SDL_INIT_VIDEO)) fail(std::string("No display to show the launcher on: ") + SDL_GetError());
     int skip = pc_mods_needs_recovery() ? 0 : recomp_settings_get("launcher", "skip", 0);
-    // Without a playable install there is only the setup to show.
-    if (!in.installed || pc_launcher_wanted(skip, force_launcher && !play_now, play_now, shift_held(), 0)) {
+    // Without a playable install there is only the setup to show. Just after its own update the app
+    // always shows its window: the update was started from it, and the new app offers to build the
+    // game it carries (a player who skips the launcher would otherwise go straight into the old one).
+    bool force = (force_launcher || g_updated) && !play_now;
+    if (!in.installed || pc_launcher_wanted(skip, force, play_now, shift_held(), 0)) {
         pc_input_start();                           // pads drive the menus, as in the game's launcher
         int open_setup = 0;
         int play = pc_launcher_window(&open_setup);
@@ -451,17 +449,12 @@ int main(int argc, char **argv)
             // A scripted run (RECOMP_LAUNCHER_SCRIPT, src/hooks/pc_launcher_sdl.cpp) gives the
             // updated app a script of its own, or none: this one's times start again there.
             const char *after = getenv("RECOMP_LAUNCHER_SCRIPT_AFTER_UPDATE");
-            if (after) setenv("RECOMP_LAUNCHER_SCRIPT", after, 1);
-            else unsetenv("RECOMP_LAUNCHER_SCRIPT");
-            unsetenv("RECOMP_LAUNCHER_SCRIPT_AFTER_UPDATE");
+            if (after) app::os::set_env("RECOMP_LAUNCHER_SCRIPT", after);
+            else app::os::unset_env("RECOMP_LAUNCHER_SCRIPT");
+            app::os::unset_env("RECOMP_LAUNCHER_SCRIPT_AFTER_UPDATE");
             fprintf(stderr, "[APP] starting the updated app: %s\n", g_relaunch[0].c_str());
-            fflush(stdout);
-            fflush(stderr);
-            std::vector<char *> next;
-            for (auto &a : g_relaunch) next.push_back(a.data());
-            next.push_back(nullptr);
-            execv(next[0], next.data());
-            fail(std::string("The updated app could not be started (") + strerror(errno) + ").");
+            std::string error = app::os::replace_with(g_relaunch);
+            fail("The updated app could not be started (" + error + ").");
         }
         if (!play || !in.installed) {
             SDL_Quit();
@@ -470,10 +463,11 @@ int main(int argc, char **argv)
     }
     SDL_Quit();
 
-    fprintf(stderr, "[APP] starting %s --no-launcher\n", in.executable.c_str());
-    fflush(stdout);
-    fflush(stderr);
-    char *game_argv[] = { strdup(in.executable.c_str()), strdup("--no-launcher"), nullptr };
-    execv(in.executable.c_str(), game_argv);
-    fail(std::string("The game could not be started (") + strerror(errno) + "). Select Repair to fix it.");
+    fprintf(stderr, "[APP] starting %s --no-launcher\n", in.executable.string().c_str());
+#if defined(_WIN32)
+    // The game keeps its run logs in logs\ under its folder, where the old play wrapper pointed too.
+    app::os::set_env("DEFJAM_LOG_DIR", (in.source / "logs").string());
+#endif
+    std::string error = app::os::run_in_place({in.executable.string(), "--no-launcher"}, in.source);
+    fail("The game could not be started (" + error + "). Select Repair to fix it.");
 }

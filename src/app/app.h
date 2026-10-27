@@ -2,11 +2,11 @@
 // launcher, setup and maintenance (app_setup.cpp).
 #pragma once
 
-#include <sys/types.h>
-
 #include <filesystem>
 #include <string>
 #include <vector>
+
+#include "app_os.h"
 
 struct UiResult;
 
@@ -99,6 +99,6 @@ void update_request_cancel();
 
 // Start setup/engine.py from the app's payload with its Python and these arguments (after
 // --payload), in the plain environment the setup wizards give it (app_setup.cpp).
-bool spawn_engine(const std::vector<std::string> &engine_args, pid_t *pid, std::string *error);
+bool spawn_engine(const std::vector<std::string> &engine_args, os::Process *process, std::string *error);
 
 } // namespace app
