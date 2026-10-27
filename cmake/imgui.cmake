@@ -28,7 +28,15 @@ set(DEFJAM_IMGUI_CORE
     ${imgui_SOURCE_DIR}/imgui_tables.cpp
     ${imgui_SOURCE_DIR}/imgui_widgets.cpp)
 
-if(WIN32)
+if(WIN32 AND DEFJAM_BUILD_APP)
+    # The app (src/app) draws with SDL's renderer on Windows too; the game keeps Win32 and D3D11.
+    add_library(defjam_imgui_sdl STATIC
+        ${DEFJAM_IMGUI_CORE}
+        ${imgui_SOURCE_DIR}/backends/imgui_impl_sdlrenderer3.cpp)
+    target_include_directories(defjam_imgui_sdl PUBLIC ${imgui_SOURCE_DIR} ${imgui_SOURCE_DIR}/backends)
+    target_compile_definitions(defjam_imgui_sdl PUBLIC IMGUI_DISABLE_DEBUG_TOOLS)
+    target_link_libraries(defjam_imgui_sdl PUBLIC SDL3::SDL3)
+elseif(WIN32)
     add_library(defjam_imgui STATIC
         ${DEFJAM_IMGUI_CORE}
         ${imgui_SOURCE_DIR}/backends/imgui_impl_win32.cpp

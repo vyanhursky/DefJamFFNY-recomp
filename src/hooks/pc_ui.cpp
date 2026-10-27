@@ -14,14 +14,22 @@
 // to look for its hotkeys.
 
 #define _CRT_SECURE_NO_WARNINGS
+// PCUI_WIN32: the game's window on Windows, Win32 with Direct3D 11. Everything else (the game off
+// Windows, and the app on every platform) is an SDL window; pc_ui_internal.h says the same.
+#if defined(_WIN32) && !defined(DEFJAM_APP)
+#define PCUI_WIN32 1
+#endif
 #if defined(_WIN32)
 #include <windows.h>
 #include <shellapi.h>
-#include <d3d11.h>
 #else
 #include <spawn.h>
-#include <sys/stat.h>
 #include <unistd.h>
+#endif
+#if defined(PCUI_WIN32)
+#include <d3d11.h>
+#else
+#include <sys/stat.h>
 #include <chrono>
 #include <mutex>
 #include <SDL3/SDL.h>
@@ -40,10 +48,10 @@
 #include "pc_launcher_home.h"
 
 #include "imgui.h"
-#if defined(_WIN32)
+#if defined(PCUI_WIN32)
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
-#else
+#elif !defined(DEFJAM_APP)
 #include "imgui_impl_vulkan.h"
 #endif
 
@@ -343,7 +351,7 @@ void capture_commit_key(int vk)
 
 bool ui_capturing() { return g_capture.kind != Capture::NONE; }
 
-#if defined(_WIN32)
+#if defined(PCUI_WIN32)
 bool ui_capture_message(HWND, UINT msg, WPARAM wp, LPARAM lp)
 {
     if (g_capture.kind != Capture::KEY) return false;
@@ -464,10 +472,17 @@ static float g_extra_scale = 1.0f;
 static float display_scale(UiWindow window)
 {
     float dpi = g_extra_scale;
-#if defined(_WIN32)
+#if defined(PCUI_WIN32)
     if (window) {
         UINT d = GetDpiForWindow(window);
         if (d) dpi *= d / 96.0f;
+    }
+#elif defined(_WIN32)
+    // The app's SDL window on Windows: SDL measures it in pixels and reports the display's scaling
+    // apart (docs/README-highdpi.md in SDL), so the screen is enlarged by it here.
+    if (window) {
+        float s = SDL_GetWindowDisplayScale((SDL_Window *)window) / SDL_GetWindowPixelDensity((SDL_Window *)window);
+        if (s > 0.0f) dpi *= s;
     }
 #else
     // The window's points are not its pixels on a Retina display, and the screen is drawn in points
@@ -1934,8 +1949,8 @@ extern "C" void pc_ui_overlay(void *device, void *context, void *window_rtv, uns
 #endif
 #endif  // !DEFJAM_APP
 
-#if !defined(_WIN32)
-// ---- off Windows: SDL events, and the overlay through the Vulkan present --------------------------------------------
+#if !defined(PCUI_WIN32)
+// ---- an SDL window (off Windows, and the app): SDL events, and the overlay through the Vulkan present --------------------------------------------
 
 static ImGuiKey imgui_key(SDL_Scancode sc)
 {

@@ -15,11 +15,18 @@ def engine_options():
 
 def test_every_option_the_app_passes_is_an_engine_option():
     # The engine's command line: the args vector and what is added to it (not xcode-select's).
-    body = APP[APP.index('std::vector<std::string> args'):APP.index('std::vector<char *> argv')]
+    body = APP[APP.index('std::vector<std::string> args'):APP.index('std::vector<std::string> env_text')]
     passed = set(re.findall(r'"(--[a-z-]+)"', body))
     assert {'--payload', '--operation', '--install-dir', '--data-dir', '--dump', '--status-file',
-            '--cancel-file', '--log', '--bundled-only', '--no-shortcuts'} <= passed
+            '--cancel-file', '--log', '--bundled-only', '--no-shortcuts', '--install-prerequisites'} <= passed
     assert passed - engine_options() == set()
+
+
+def test_the_windows_build_tools_check_is_an_engine_option():
+    # The app asks before setup starts whether Microsoft's C++ Build Tools are installed.
+    check = APP[APP.index('void start_tools_check()'):APP.index('void poll_tools_check()')]
+    assert set(re.findall(r'"(--[a-z-]+)"', check)) == {'--payload', '--check-toolchain'}
+    assert '--check-toolchain' in engine_options()
 
 
 def test_the_operations_the_app_starts_are_engine_operations():
