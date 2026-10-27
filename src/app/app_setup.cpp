@@ -92,7 +92,7 @@ Screen g_screen = Screen::None;
 bool g_started = false;
 Run g_run;
 char g_dump[2048], g_root[2048], g_data[2048];
-bool g_hd = false, g_shortcuts = true, g_desktop = true;
+bool g_hd = false;
 bool g_confirm_cancel = false;
 std::string g_form_error;
 
@@ -225,10 +225,10 @@ bool start(const std::string &operation, const std::string &title, const std::st
                                      "--cancel-file", g_run.cancel.string(), "--log", g_run.log.string()};
     if (!dump.empty()) args.insert(args.end(), {"--dump", dump});
     if (hd) args.push_back("--hd-textures");
-    // Shortcuts are the first run's choice; a repair keeps what the install has (setup makes them
-    // again after every operation unless told not to).
-    if (operation == "install" ? !g_shortcuts : !app::install().shortcuts) args.push_back("--no-shortcuts");
-    else if (operation == "install" && !g_desktop) args.push_back("--no-desktop-shortcut");
+    // The app the player downloaded is the only copy: setup makes no Applications, Desktop or menu
+    // shortcut (it would otherwise make them again after every operation). The player moves the
+    // app wherever they like.
+    args.push_back("--no-shortcuts");
     fprintf(stderr, "[APP] setup: %s (%s), log %s\n", operation.c_str(), root.c_str(), g_run.log.c_str());
     fflush(stderr);
     // Setup takes play.lock itself, to keep the game from starting while it works; finish() takes it
@@ -365,17 +365,6 @@ void first_run_page(float width, float height, UiResult *result)
     ImGui::Spacing();
     ImGui::Checkbox("Generate HD textures (adds several minutes and about 15 GB)", &g_hd);
     ui_target("setup.hd");
-#if defined(__APPLE__)
-    ImGui::Checkbox("Add Def Jam Recompiled to Applications", &g_shortcuts);
-#else
-    ImGui::Checkbox("Add Def Jam Recompiled to the applications menu", &g_shortcuts);
-#endif
-    ui_target("setup.shortcuts");
-    ImGui::BeginDisabled(!g_shortcuts);
-    ImGui::Indent();
-    ImGui::Checkbox("Also on the Desktop", &g_desktop);
-    ImGui::Unindent();
-    ImGui::EndDisabled();
     ImGui::Spacing();
     if (!g_form_error.empty()) ImGui::TextColored(ImVec4(1, 0.45f, 0.4f, 1), "%s", g_form_error.c_str());
     bool ready = g_dump[0] && g_root[0] && g_data[0];
@@ -555,7 +544,6 @@ bool screen_draw(float width, float height, UiResult *result)
         snprintf(g_dump, sizeof g_dump, "%s", f.dump.c_str());
         snprintf(g_root, sizeof g_root, "%s", f.install.c_str());
         snprintf(g_data, sizeof g_data, "%s", f.data.c_str());
-        g_shortcuts = g_desktop = f.shortcuts;
         const Install &in = app::install();
         if (!in.installed) {
             g_screen = in.problem.empty() ? Screen::FirstRun : Screen::Maintenance;

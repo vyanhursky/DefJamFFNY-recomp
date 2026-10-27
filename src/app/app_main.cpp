@@ -1,8 +1,8 @@
 // Def Jam Recompiled, the app: setup, the launcher's Home and Settings, and Play, in a program of its
 // own with no game code in it (docs/research/unified-app-design-2026-10-26.md, steps 2 and 3).
 //
-//   defjam_app [--install DIR] [--payload DIR] [--dump PATH] [--data DIR] [--no-shortcuts]
-//              [--play | --launcher] [--updated]
+//   defjam_app [--install DIR] [--payload DIR] [--dump PATH] [--data DIR] [--play | --launcher]
+//              [--updated]
 //
 // With nothing installed it opens on the first run's setup (app_setup.cpp), which runs the setup
 // engine from the app's setup payload; Maintenance repairs or rebuilds an install the same way.
@@ -16,9 +16,9 @@
 // is given, and never when mods need recovery; --play always skips it.
 //
 // The install is --install DIR, else DEFJAM_INSTALL_DIR, else the nearest folder above this program
-// that holds installed.json, else the platform's usual place. --dump, --data and --no-shortcuts fill
-// in the first run's choices. The app updates itself (app_update.cpp) and starts the new copy with
-// --updated, which then offers to build the game it carries. Off Windows for now; the Windows app is a later step.
+// that holds installed.json, else the platform's usual place. --dump and --data fill in the first
+// run's choices. The app updates itself (app_update.cpp) and starts the new copy with --updated,
+// which then offers to build the game it carries. Off Windows for now; the Windows app is a later step.
 
 #define _CRT_SECURE_NO_WARNINGS
 #include <errno.h>
@@ -358,10 +358,6 @@ bool load_install(std::string *why)
     in.source = receipt["source"];
     in.executable = receipt["executable"];
     in.version = receipt["version"];
-    // Shortcuts the first run made, which every later operation keeps; "[]" when it made none.
-    std::string made = receipt["shortcuts"];
-    made.erase(std::remove_if(made.begin(), made.end(), [](char c) { return isspace((unsigned char)c); }), made.end());
-    in.shortcuts = made != "[]";
     if (fs::exists(in.root / ".setup-transaction", ec))
         *why = "An update was interrupted. Select Repair to recover the installation.";
     else if (in.source.empty() || in.data.empty() || in.executable.empty() || access(in.executable.c_str(), X_OK) != 0)
@@ -399,7 +395,6 @@ int main(int argc, char **argv)
         else if (!strcmp(argv[a], "--payload") && a + 1 < argc) payload = argv[++a];
         else if (!strcmp(argv[a], "--dump") && a + 1 < argc) first.dump = argv[++a];
         else if (!strcmp(argv[a], "--data") && a + 1 < argc) first.data = argv[++a];
-        else if (!strcmp(argv[a], "--no-shortcuts")) first.shortcuts = false;
         else if (!strcmp(argv[a], "--play")) play_now = true;
         else if (!strcmp(argv[a], "--launcher")) force_launcher = true;
         else if (!strncmp(argv[a], "-psn", 4)) continue;                   // macOS's own, from Finder
