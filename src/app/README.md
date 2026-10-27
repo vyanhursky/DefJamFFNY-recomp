@@ -32,9 +32,10 @@ Play starts the game that setup built on this computer, with `--no-launcher`.
   beside this one (`--stage-app`, `setup/releases.py` `select_app`), swaps the bundles and starts
   the new app, which offers to build the game it carries (a Clean Update from its own payload).
 - **The play wrapper forwards.** Whenever it loads an install from a bundle, the app writes where it
-  is to `<install>/app-location.txt`; the wrapper that setup puts in the install and in
-  Applications (`setup/macos/Launcher`) then opens the app instead of the game (`--no-launcher` as
-  `--play`). Without that file, or with the app gone, the wrapper plays the game as before.
+  is to `<install>/app-location.txt`. The play wrapper setup keeps in the install folder (and in
+  Applications, for installs an older setup made; `setup/macos/Launcher`) then opens the app
+  instead of the game (`--no-launcher` as `--play`). Without that file, or with the app gone, the
+  wrapper plays the game as before.
 
 macOS and Linux (with SDL3); only the macOS app is packaged and published.
 
