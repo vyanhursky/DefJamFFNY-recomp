@@ -1,5 +1,19 @@
 # Menu/UI modpack implementation handover
 
+**50-wordmark batch — 2026-10-28:** [batch report](research/menu-ui-reconstruction-wave-02-2026-10-28.md).
+Owner accepted the previous27 review textures and requested at least50 per
+routine batch. Approval pins: `menu-ui-reconstruction-approvals-2026-10-28.json`.
+New review: `http://127.0.0.1:51743/review.html#overview`, fifty distinct select /
+loading wordmarks for25characters, with paired grid, filters/search and detail
+next/previous +1x/3x/6x.51built-in generations; selectedTrejo v2 restores its sun's
+black centre;v1held. Original intentional colours retained; alpha/RGB>16 exact,
+all50exports clear of near-pure neon-green matte pixels. All50details and100grid
+canvases load;0consoleerrors/pageoverflow. New drafts await review, native tests
+remain separate. No game stopped/run, no pack/publication/push. Prior27PNGs exact.
+Ledger: `menu-ui-reconstruction-wave-02-2026-10-28.json`; workspace
+`logs/menu-ui-wave02-20261028/`; separate read-only server51743. Previous review
+and immutable checkpoints preserved. FurtherPRs use milestonev0.12.2.
+
 **Next production set — 2026-10-27:** [wave and corrected-master report](research/menu-ui-reconstruction-wave-01-2026-10-27.md).
 Owner approved the twelve-family direction and requested the next set ready for
 tomorrow. Native feedback overrides earlier browser approval: Main Menu v5 is

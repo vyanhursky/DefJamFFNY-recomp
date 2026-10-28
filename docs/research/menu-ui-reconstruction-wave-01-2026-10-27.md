@@ -1,5 +1,12 @@
 # UI reconstruction: first production wave and corrected masters — 2026-10-27
 
+**Accepted 2026-10-28:** the owner approves all27 review outputs and requests at
+least50 textures per subsequent review batch. Exact output hashes are pinned in
+`config/menu-ui-reconstruction-approvals-2026-10-28.json`. Continue with the
+[50-wordmark batch](menu-ui-reconstruction-wave-02-2026-10-28.md). Historical
+pending statements below describe this wave's original review checkpoint;
+per-source native checks and publication approval remain separate.
+
 The owner approved expanding the twelve-family direction, then corrected two
 native pilot samples: Main Menu v5 was too heavy, especially M/N/A and the A
 counter; dark Capone v2 had an added outer edge/depth lining. Startup Continue v3

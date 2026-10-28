@@ -177,5 +177,6 @@ The plan built from these is in [docs/widescreen](../widescreen/README.md), whic
 - [UI sharpness samples](menu-ui-sharpness-samples-2026-10-27.md) — three contour reconstructions beyond 1.2; accepted visual direction, exact prompts, corrected banner contexts and native-integration limits.
 - [Remaining UI reconstruction plan](menu-ui-reconstruction-plan-2026-10-27.md) — production scope, complete prompt set, family batches, atlas assembly, native checks and release approach.
 
+- [UI reconstruction 50-wordmark batch](menu-ui-reconstruction-wave-02-2026-10-28.md) — paired select/loading originals for25characters, 50newdrafts, fast grid/detail review; previous27 accepted.
 - [UI reconstruction first production wave](menu-ui-reconstruction-wave-01-2026-10-27.md) — approved family expansion, 25 new labels and Main Menu/Capone native-feedback corrections; Continue preserved.
 - [UI reconstruction native pilot and family batch](menu-ui-reconstruction-pilot-2026-10-27.md) — 1,348-mapping corrected scope, 12 family drafts, native 1440p samples and bounded green-edge cleanup.

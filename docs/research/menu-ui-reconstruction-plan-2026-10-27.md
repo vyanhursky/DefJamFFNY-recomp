@@ -1,6 +1,12 @@
 # Remaining UI texture reconstruction plan — 2026-10-27
 
-Status: owner-approved production plan. The [first native pilot and family batch](menu-ui-reconstruction-pilot-2026-10-27.md) is now ready for review.
+Status: owner-approved production plan. On 2026-10-28 the owner accepted the
+[next 27 review textures](menu-ui-reconstruction-wave-01-2026-10-27.md), including
+Main Menu v6 and flat dark Capone v3, and requested **at least 50 textures per
+routine review batch**. The first twelve-family direction was approved earlier.
+These supersede earlier Main Menu v5/Capone v2 style references below; historical
+literal prompts remain unchanged. Startup Continue v3 stays accepted. Artwork
+approval does not establish native coverage of every texture or authorize release.
 
 Planning checkpoint, before further asset work: The owner gives
 positive feedback on all three corrected-context samples (“They all look good
@@ -84,8 +90,10 @@ compatibility is demonstrated. Share a master only where identity is verified.
 
 ## Phase 2 — integrate the three accepted samples before expansion
 
-Keep raw generated PNGs immutable. Assemble Main Menu v5, Continue v3 and Capone
-v2 into their original full texture/atlas coordinate systems in an isolated
+Keep raw generated PNGs immutable. The initial pilot's Main Menu v5 and Capone v2
+were corrected after native feedback. The current accepted masters are Main Menu
+v6, Continue v3 and flat dark Capone v3. Assemble them into their original full
+texture/atlas coordinate systems in an isolated
 candidate pack, rather than installing cropped words as replacement textures.
 Match original visible bounds and baseline; retain gutters, transparent margins,
 rotation, non-target content and UV relationships. The browser's optional bounds
@@ -184,13 +192,15 @@ Family addenda are attached to that master, not sent without the original refere
 
 - **Serif headings:** retain each heading's slab/serif cuts, narrow letters,
   unusual U/M forms, original word gaps, ivory face and restrained charcoal edge.
-  Main Menu v5 is the accepted clarity reference; do not increase its bevel further.
+  Main Menu v6 is the accepted clarity reference; retain flat lettering and thin
+  stems/open counters, without adding a bevel.
 - **Small labels:** preserve condensed slender strokes, thin I, open counters,
   modest rounded corners and restrained shadow. Continue v3 is the accepted clarity
   reference. Do not turn the label into bold varsity, athletic or stencil type.
 - **Dark fighter-select wordmarks:** retain that fighter's own logo/skeleton and
-  near-black/brown-charcoal broad faces against pale paper. Capone v2 is a quality
-  reference only for compatible material. Keep fine wear; highlights stay narrow.
+  near-black/brown-charcoal broad faces against pale paper, retaining intentional
+  source colours. Flat dark Capone v3 is a quality reference only for compatible
+  material. Keep fine wear, without adding an outer rim or depth lining.
 - **Light loading wordmarks:** retain that source's ivory/tan face and original
   dark edge for legibility against portraits. Do not darken it to the select
   version or create it by automatic inversion. Confirm any shared/tinted source.
@@ -220,8 +230,10 @@ font or quietly weaken a quality requirement.
 
 ## Phase 4 — production waves and quality checks
 
-After family review, work in waves of roughly 25–50 unique masters, grouped by
-family/screen, with a contact sheet and status ledger per wave. This is a workload
+After family review, work in waves of **at least 50 textures**, grouped by
+family/screen, with a contact sheet and status ledger per wave (owner preference,
+2026-10-28; supersedes the original 25–50 suggestion). Count distinct source
+artwork, not retries as extra review items. This is a workload
 size, not a promise that one call produces a whole sheet. Keep an approved master
 and its observed variants linked, and mark every source mapping as reused,
 newly reconstructed, retained for a stated reason, or held. Reconcile the full
