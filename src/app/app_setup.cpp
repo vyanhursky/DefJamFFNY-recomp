@@ -447,6 +447,9 @@ void maintenance_page(float width, float height, UiResult *result)
         start("rebuild", "Rebuilding", in.root.string(), in.data.string(), "", g_hd);
     }
     ui_target("setup.rebuild");
+#if defined(_WIN32)
+    if (in.installed) steam_section();
+#endif
     ImGui::Spacing();
     ImGui::Separator();
     if (in.installed) {
@@ -631,6 +634,9 @@ bool screen_draw(float width, float height, UiResult *result)
 
 void screen_open_maintenance()
 {
+#if defined(_WIN32)
+    steam_section_reset();
+#endif
     g_form_error.clear();
     g_screen = Screen::Maintenance;
 }
@@ -644,7 +650,7 @@ void start_update_build()
 }
 
 #if defined(_WIN32)
-bool screen_busy() { return g_run.process.id != 0 || update_busy() || install_busy(); }
+bool screen_busy() { return g_run.process.id != 0 || update_busy() || install_busy() || steam_busy(); }
 #else
 bool screen_busy() { return g_run.process.id != 0 || update_busy(); }
 #endif
