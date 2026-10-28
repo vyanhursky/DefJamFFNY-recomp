@@ -1,6 +1,10 @@
 # Remaining UI texture reconstruction plan — 2026-10-27
 
-Status: owner-approved production plan. On 2026-10-28 the owner accepted the
+Status: owner-approved production plan. The owner subsequently approved all fifty
+[wave-two textures](menu-ui-reconstruction-wave-02-2026-10-28.md), requested a larger
+batch and explicitly authorized parallel imagegen workers for the next hundred.
+Workers own disjoint asset lists; integration and native testing remain centralized.
+ On 2026-10-28 the owner accepted the
 [next 27 review textures](menu-ui-reconstruction-wave-01-2026-10-27.md), including
 Main Menu v6 and flat dark Capone v3, and requested **at least 50 textures per
 routine review batch**. The first twelve-family direction was approved earlier.
@@ -75,6 +79,17 @@ exact visible text, language, texture and logical word bounds, baseline,
 rotation, alpha/colour role, tile group, observed screen and state, placement,
 review revision, and native-validation status. OCR assists searching; inspect
 spelling and punctuation manually. Uncertain text or context is held, not guessed.
+
+Transparent material check, added during wave three: inspect each true source RGBA
+on two contrasting backdrops before prompting. A pale face in a paper composite
+may be an alpha-zero opening rather than cream ink. Record that distinction;
+preserve negative letter faces, emblem gaps and transparent internal keylines.
+Provide the original RGBA crop and contrasting composites when one flat reference
+would make opacity ambiguous. Compare generated originals on contrasting backdrops
+again before selection. A transparent outer canvas alone is insufficient.
+Sample actual RGBA in ambiguous regions: low-valued grey or brown with partial
+alpha can be real ink. Absence of bright RGB does not prove transparency; keep
+that subdued material instead of erasing it as a hole.
 
 Separate serif headings, small sans-serif labels, distressed/stencil headings,
 fighter-specific wordmarks, venue/match logos and glyph atlases. Give every fighter

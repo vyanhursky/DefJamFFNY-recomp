@@ -1,5 +1,11 @@
 # UI reconstruction: 50 fighter wordmarks — 2026-10-28
 
+**Subsequent owner approval (2026-10-28):** all fifty textures accepted with no issues.
+Exact selected-preview pins are in `config/menu-ui-reconstruction-wave02-approval-2026-10-28.json`.
+The owner requested a larger batch and explicitly authorized parallel imagegen
+workers. Historical pending-review statements below describe the earlier checkpoint.
+Artwork approval does not establish native validation or release approval.
+
 The owner approved the previous 27 review textures, including Main Menu v6 and
 dark Capone v3, and requested **at least 50 textures per review batch**. Approval
 is pinned separately in `config/menu-ui-reconstruction-approvals-2026-10-28.json`;

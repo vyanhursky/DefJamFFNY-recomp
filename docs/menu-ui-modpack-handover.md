@@ -1,5 +1,31 @@
 # Menu/UI modpack implementation handover
 
+**100 new textures + four alpha corrections — 2026-10-28:** [batch report](research/menu-ui-reconstruction-wave-03-2026-10-28.md).
+Owner accepted all previous50 with no issues and explicitly requested larger,
+parallel imagegen batches. Approval pins: `menu-ui-reconstruction-wave02-approval-2026-10-28.json`.
+New review `http://127.0.0.1:51744/review.html#overview` contains100new sources
+(84two-fighter +16three-fighter) and four earlier select-material corrections
+(Nyne/Skull/Ice-T/Solo),104distinct mappings. Three workers own disjoint lists;
+completed workers take bounded final corrections in separate folders.130actual
+built-in outputs,104selected,26held; all attempts/prompts retained and hash-verified.
+Grid208canvases/104details, search/type/layout/four-alpha-fix filters, wraparound,
+1x/3x/6x/raw/ghost/backdrops pass with0consoleerrors/pageoverflow. Parent inspected
+all104matched source/draft blue-background rows after selection. Export alpha and
+RGB>16 exact relative to raw; all104 clear of near-pure neon green. Genuine source
+colour and dark translucent material retained. Source-opacity samples distinguish
+real holes from grayink; no RGB-only threshold or universal colour-to-alpha fix.
+Earlier approved50and27previews remain byte-identical. No game stopped/run,
+no pack/catalogue/game/toolkit/publication/push. Native placement/blending/clipping
+remain to validate after atlas assembly. Further PRs milestonev0.12.2.
+Ledger `config/menu-ui-reconstruction-wave-03-2026-10-28.json`; workspace
+`logs/menu-ui-wave03-20261028/`; localhost server51744. Recovery folder
+`/Users/vlad/Code/defjam-data/scratch/menu-ui-wave03-review-20261028` (manifest pin
+in `config/menu-ui-reconstruction-wave-03-checkpoint-2026-10-28.json`). Previous
+reviews/checkpoints remain intact. Next: owner reviews104, resolve exceptions,
+continue100+ source-specific batches; finish prior-master contrasting-background
+material audit (Bo/Cruz/WC select are specific candidates) before native assembly.
+Do not infer all earlier style approvals establish source-alpha correctness.
+
 **50-wordmark batch — 2026-10-28:** [batch report](research/menu-ui-reconstruction-wave-02-2026-10-28.md).
 Owner accepted the previous27 review textures and requested at least50 per
 routine batch. Approval pins: `menu-ui-reconstruction-approvals-2026-10-28.json`.
