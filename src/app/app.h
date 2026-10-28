@@ -3,6 +3,7 @@
 #pragma once
 
 #include <filesystem>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -59,6 +60,9 @@ bool just_updated();
 // The setup payload's version: what this app builds ("" without a payload).
 std::string payload_version();
 
+// The top-level values of a JSON object: strings decoded, anything else as its JSON text.
+std::map<std::string, std::string> json_values(const std::string &text);
+
 // Whether release version `a` is newer than `b` ("0.13.1" against "0.13.0"; false if either is not one).
 bool newer(const std::string &a, const std::string &b);
 
@@ -103,6 +107,15 @@ bool ensure_payload(std::string *error);
 // The install page, while it is up; drawn before anything else. And whether it is copying files.
 bool install_screen_draw(float width, float height, UiResult *result);
 bool install_busy();
+
+// ---- Windows: Add to Steam (app_steam.cpp) ----------------------------------------------------------
+
+// Maintenance's Steam section: Add to Steam / Remove from Steam, asking before Steam is closed.
+void steam_section();
+// Ask Steam's state again the next time the section is drawn (Maintenance was opened).
+void steam_section_reset();
+// The engine is changing Steam's library (the window may not close meanwhile).
+bool steam_busy();
 
 // ---- the app's own updates (app_update.cpp) ----------------------------------------------------
 
