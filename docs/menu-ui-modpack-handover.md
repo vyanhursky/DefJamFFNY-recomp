@@ -1,5 +1,13 @@
 # Menu/UI modpack implementation handover
 
+**Production plan requested — 2026-10-27:** [full approach and prompt set](research/menu-ui-reconstruction-plan-2026-10-27.md).
+Owner gives positive feedback on all three corrected-context samples and wants
+the plan before more work. Main Menu v5, Continue v3 and Capone v2 establish
+the visual direction; native integration and release approval remain pending.
+Proposed order: inventory/context mapping, integrate these three in-game,
+12–20 representative masters, then production waves and a validated package.
+No new generations, integration or publication performed for this planning turn.
+
 **Corrected banner contexts — 2026-10-27:** [pilot report](research/menu-ui-sharpness-samples-2026-10-27.md).
 Main Menu v5 and Continue v3 typography accepted. Correct review:
 `http://127.0.0.1:51741/contexts/review.html#capone`. Dark Capone now uses the

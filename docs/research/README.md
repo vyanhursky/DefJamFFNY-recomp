@@ -174,4 +174,5 @@ The plan built from these is in [docs/widescreen](../widescreen/README.md), whic
 
 - [Menu 1.2 publication](menu-ui-v1.2-publication-2026-10-26.md) — approved stable text pack, Cloudflare pins, signed catalogue and released-helper compatibility.
 
-- [UI sharpness samples](menu-ui-sharpness-samples-2026-10-27.md) — three unapproved contour reconstructions beyond 1.2; exact prompts, comparison review and native-integration limits.
+- [UI sharpness samples](menu-ui-sharpness-samples-2026-10-27.md) — three contour reconstructions beyond 1.2; accepted visual direction, exact prompts, corrected banner contexts and native-integration limits.
+- [Remaining UI reconstruction plan](menu-ui-reconstruction-plan-2026-10-27.md) — production scope, complete prompt set, family batches, atlas assembly, native checks and release approach.
