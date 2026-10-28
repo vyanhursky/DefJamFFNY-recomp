@@ -1,11 +1,34 @@
 # Remaining UI texture reconstruction plan — 2026-10-27
 
-Status: proposed production plan, before further asset work. The owner gives
+Status: owner-approved production plan. The [first native pilot and family batch](menu-ui-reconstruction-pilot-2026-10-27.md) is now ready for review.
+
+Planning checkpoint, before further asset work: The owner gives
 positive feedback on all three corrected-context samples (“They all look good
 to me I think”) and requests the complete plan before proceeding. Treat Main Menu
 v5, Continue v3 and Capone v2 as the accepted visual direction. This does not
 establish native candidate quality or authorize publication of a new release.
-No new artwork, game run, pack assembly or publication is performed for this plan.
+No new artwork, game run, pack assembly or publication was performed during the original planning turn.
+
+## Production authorization and green-fringe addition
+
+The owner approved this plan on 2026-10-27 and authorized stopping the running
+game when the isolated pilot was ready. Production has begun in a separate
+private workspace. The owner also requested considering removal of the green
+edge tinge from all remastered textures, citing
+[issue #142](https://github.com/vyanhursky/DefJamFFNY-recomp/issues/142).
+The issue reports green chroma backing and edge contamination; its suggestions
+are investigation proposals, not proof that every green texel is unwanted.
+
+Add a pack-wide green-edge census and inspect flagged textures. For reconstructed
+lettering, explicitly exclude green matte contamination from the preservation
+constraints, require neutral/source-appropriate antialias colours, and reject
+coloured fringes. Use the established RGB bleed into alpha-zero texels at export,
+checking that alpha and visible RGB remain exact. For retained artwork, visible
+edge de-matting needs measured source-specific confirmation and comparison; do
+not globally desaturate green, alter transparency or remove genuine green art.
+Record source/output hashes and before/after metrics. Check pale, dark and real
+game backgrounds plus downsampling. Keep runtime cleaning changes separate if
+needed; this work first targets the pack data.
 
 ## Goal and scope
 

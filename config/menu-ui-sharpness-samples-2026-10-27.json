@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "status": "Main Menu v5 and Continue v3 typography accepted; Capone brightness pending; atlas/native checks pending",
+  "status": "Three sample directions accepted; native pilot captured; production/family review tracked separately",
   "date": "2026-10-27",
   "tool": "built-in image_gen",
   "generation_calls": 10,
@@ -389,5 +389,16 @@
       "generation_calls": 0
     },
     "inventory_limit": "Assign contexts from confirmed game usage; do not infer every variant from filename or image brightness."
+  },
+  "sample_direction_feedback": {
+    "date": "2026-10-27",
+    "owner_feedback": "They all look good to me I think",
+    "selected": {
+      "main-menu": "v5",
+      "continue": "v3",
+      "capone": "v2"
+    },
+    "scope": "Visual direction accepted; owner subsequently approved production plan. Native pilot feedback and release approval remain separate.",
+    "production_record": "config/menu-ui-reconstruction-pilot-2026-10-27.json"
   }
 }

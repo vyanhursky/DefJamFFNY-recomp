@@ -1,5 +1,16 @@
 # Menu/UI modpack implementation handover
 
+**Native pilot / family batch — 2026-10-27:** [results and continuation](research/menu-ui-reconstruction-pilot-2026-10-27.md).
+Owner approved the production plan and added issue #142 green-edge cleanup. Three
+accepted samples are captured natively at 1440p; 12 family drafts await review at
+`http://127.0.0.1:51742/review/review.html#capone-loading` (Native pilot tab too).
+Fourteen generations include two held bad label trials. Preview cleanup preserves
+alpha/all RGB above alpha16, removes measured green residue in all12; retained-art
+de-matting remains pending. Added 208 separate light loading-name sources: 1,348
+text mappings total. Config pins `menu-ui-reconstruction-pilot-2026-10-27.json`.
+Published1.2 unchanged. Await family/native feedback before broad waves; tiled,
+glyph/language cases and global retained-art fringe work remain.
+
 **Production plan requested — 2026-10-27:** [full approach and prompt set](research/menu-ui-reconstruction-plan-2026-10-27.md).
 Owner gives positive feedback on all three corrected-context samples and wants
 the plan before more work. Main Menu v5, Continue v3 and Capone v2 establish

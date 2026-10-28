@@ -1,5 +1,10 @@
 # UI sharpness sample batch — 2026-10-27
 
+**Later checkpoint:** the owner gives positive feedback on all three corrected-context
+samples and approves the production plan. See [native pilot and family results](menu-ui-reconstruction-pilot-2026-10-27.md)
+for the integrated captures, corrected 1,348-mapping scope and new family review.
+Earlier pending-approval statements below describe their historical checkpoints.
+
 ## Latest: correct banner contexts and accepted typography
 
 The owner accepts Main Menu v5 and Continue v3 typography: “Both are close
