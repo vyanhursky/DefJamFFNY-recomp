@@ -8,10 +8,16 @@
   var NEWS_COUNT = 4;
 
   var PLATFORMS = {
-    windows: { label: 'Download for Windows', sub: 'x64 · .exe', asset: 'windows-x64.exe' },
-    mac: { label: 'Download for macOS', sub: 'Apple Silicon · .dmg', asset: 'macos-arm64.dmg' },
-    linux: { label: 'Download for Linux', sub: 'x86-64 & Steam Deck · .tar.gz', asset: 'linux-x64.tar.gz' }
+    windows: { label: 'Download for Windows', sub: 'x64', asset: 'windows-x64.exe' },
+    mac: { label: 'Download for macOS', sub: 'Apple Silicon', asset: 'macos-arm64.dmg' },
+    linux: { label: 'Download for Linux', sub: 'x86-64 & Steam Deck', asset: 'linux-x64.tar.gz' }
   };
+
+  // Since v0.13.0 a release carries the app (DefJamRecompiled-<v>-<platform>, D215), which sets up,
+  // launches and updates the game, beside the setup (DefJamSetup-<v>-<platform>). A button asks for
+  // its platform's setup suffix; the app is offered where the release has one, the setup otherwise
+  // (older releases, Linux). Names are matched whole, so the two Windows .exe files never mix.
+  var APP_FOR = { 'windows-x64.exe': 'windows-x64.exe', 'macos-arm64.dmg': 'macos-arm64.zip' };
 
   // Best guess at the visitor's desktop OS; null on phones, tablets and anything unknown.
   function detectOS() {
@@ -80,29 +86,50 @@
     return words || name;
   }
 
-  function assetUrl(release, suffix) {
+  function findAsset(release, prefix, suffix) {
     var assets = (release && release.assets) || [];
+    var pattern = new RegExp('^' + prefix + '-\\d+\\.\\d+\\.\\d+-' + suffix.replace(/\./g, '\\.') + '$');
     for (var i = 0; i < assets.length; i++) {
-      if (assets[i].name.slice(-suffix.length - 1) === '-' + suffix) return assets[i].browser_download_url;
+      if (pattern.test(assets[i].name)) return assets[i];
     }
     return null;
+  }
+
+  // The asset a button for `suffix` should download: the app when the release has it, else the setup.
+  function pickAsset(release, suffix) {
+    var app = APP_FOR[suffix] && findAsset(release, 'DefJamRecompiled', APP_FOR[suffix]);
+    return app || findAsset(release, 'DefJamSetup', suffix);
+  }
+
+  function assetUrl(release, suffix) {
+    var asset = pickAsset(release, suffix);
+    return asset ? asset.browser_download_url : null;
+  }
+
+  function extension(asset) {
+    var match = asset && asset.name.match(/\.(tar\.gz|[a-z]+)$/);
+    return match ? '.' + match[1] : '';
   }
 
   function applyDownloads(os, latest) {
     if (latest) {
       document.querySelectorAll('[data-asset]').forEach(function (a) {
-        var url = assetUrl(latest, a.getAttribute('data-asset'));
-        if (url) a.href = url;
+        var asset = pickAsset(latest, a.getAttribute('data-asset'));
+        if (!asset) return;
+        a.href = asset.browser_download_url;
+        // A card's "Download .dmg" names the file it now gets (the app's .zip on a Mac).
+        if (/^Download \.[a-z.]+$/.test(a.textContent.trim())) a.textContent = 'Download ' + extension(asset);
       });
     }
     if (!os) return;
     var p = PLATFORMS[os];
     var primary = document.getElementById('download-primary');
     primary.querySelector('.btn__label').textContent = p.label;
+    var asset = latest && pickAsset(latest, p.asset);
+    var format = asset ? extension(asset) : '.' + p.asset.split('.').slice(1).join('.');
     document.getElementById('download-sub').textContent =
-      (latest ? latest.tag_name + ' · ' : '') + p.sub;
-    var url = latest && assetUrl(latest, p.asset);
-    if (url) primary.href = url;
+      (latest ? latest.tag_name + ' · ' : '') + p.sub + ' · ' + format;
+    if (asset) primary.href = asset.browser_download_url;
     var card = document.querySelector('.platform[data-platform="' + os + '"]');
     if (card) card.classList.add('is-yours');
   }
