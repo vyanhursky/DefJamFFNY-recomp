@@ -49,7 +49,8 @@ enum class Screen
     FirstRun,       // nothing installed yet: choose the dump and the folders
     Maintenance,    // Repair or Clean Rebuild of the install
     Running,        // an operation's progress
-    Finished        // how it ended
+    Finished,       // how it ended
+    UpdateReady     // the app was just updated: build the game it now carries
 };
 
 // The steps the engine reports, in order, by the start of its status lines.
@@ -160,17 +161,52 @@ fs::path python_in(const fs::path &payload)
     return {};
 }
 
+} // namespace
+
+bool spawn_engine(const std::vector<std::string> &engine_args, os::Process *process, std::string *error)
+{
+    fs::path payload = app::payload();
+    fs::path python = python_in(payload);
+    if (payload.empty() || python.empty()) {
+        *error = "This copy of the app has no setup files. Start it with --payload <setup payload folder>.";
+        return false;
+    }
+    std::vector<std::string> args = {python.string(), "-B", (payload / "engine/engine.py").string(),
+                                     "--payload", payload.string()};
+    args.insert(args.end(), engine_args.begin(), engine_args.end());
+
+    // As the macOS wizard runs it: a plain environment, so nothing from a package manager or a
+    // development shell changes the build. Elsewhere the engine may need the session's own
+    // (the build container's runtime folder, the display for Steam; on Windows the user's folders).
+    std::vector<std::string> env_text;
+    const std::vector<std::string> *env = nullptr;
+#if defined(__APPLE__)
+    const char *home = getenv("HOME");
+    const char *tmp = getenv("TMPDIR");
+    env_text = {std::string("HOME=") + (home ? home : ""), "PATH=/usr/bin:/bin:/usr/sbin:/sbin",
+                std::string("TMPDIR=") + (tmp ? tmp : "/tmp"), "LANG=en_US.UTF-8"};
+    env = &env_text;
+#endif
+    std::string why;
+    if (!os::start(args, env, process, &why)) {
+        *error = "Setup could not start: " + why;
+        return false;
+    }
+    return true;
+}
+
+namespace
+{
+
 // Start the engine for `operation`. Returns false with g_form_error set when it could not start.
 bool start(const std::string &operation, const std::string &title, const std::string &root,
            const std::string &data, const std::string &dump, bool hd, bool install_tools = false)
 {
-    g_request = {operation, title, root, data, dump, hd};
-    fs::path payload = app::payload();
-    fs::path python = python_in(payload);
-    if (payload.empty() || python.empty()) {
+    if (app::payload().empty()) {
         g_form_error = "This copy of the app has no setup files. Start it with --payload <setup payload folder>.";
         return false;
     }
+    g_request = {operation, title, root, data, dump, hd};
     g_run = Run();
     g_run.operation = operation;
     g_run.title = title;
@@ -186,11 +222,9 @@ bool start(const std::string &operation, const std::string &title, const std::st
     fs::create_directories(app::log_dir(), ec);
     g_run.log = app::log_dir() / ("setup-" + std::string(stamp) + ".log");
 
-    std::vector<std::string> args = {python.string(), "-B", (payload / "engine/engine.py").string(),
-                                     "--payload", payload.string(), "--bundled-only",
-                                     "--operation", operation, "--install-dir", root, "--data-dir", data,
-                                     "--status-file", g_run.status.string(), "--cancel-file", g_run.cancel.string(),
-                                     "--log", g_run.log.string()};
+    std::vector<std::string> args = {"--bundled-only", "--operation", operation, "--install-dir", root,
+                                     "--data-dir", data, "--status-file", g_run.status.string(),
+                                     "--cancel-file", g_run.cancel.string(), "--log", g_run.log.string()};
     if (!dump.empty()) args.insert(args.end(), {"--dump", dump});
     if (hd) args.push_back("--hd-textures");
     // The app the player downloaded is the only copy: setup makes no Applications, Desktop or menu
@@ -204,28 +238,13 @@ bool start(const std::string &operation, const std::string &title, const std::st
 #else
     (void)install_tools;
 #endif
-
-    // As the macOS wizard runs it: a plain environment, so nothing from a package manager or a
-    // development shell changes the build. Elsewhere the engine may need the session's own
-    // (the build container's runtime folder, the display for Steam).
-    std::vector<std::string> env_text;
-    const std::vector<std::string> *env = nullptr;
-#if defined(__APPLE__)
-    const char *home = getenv("HOME");
-    const char *tmp = getenv("TMPDIR");
-    env_text = {std::string("HOME=") + (home ? home : ""), "PATH=/usr/bin:/bin:/usr/sbin:/sbin",
-                std::string("TMPDIR=") + (tmp ? tmp : "/tmp"), "LANG=en_US.UTF-8"};
-    env = &env_text;
-#endif
     fprintf(stderr, "[APP] setup: %s (%s), log %s\n", operation.c_str(), root.c_str(), g_run.log.string().c_str());
     fflush(stderr);
     // Setup takes play.lock itself, to keep the game from starting while it works; finish() takes it
     // back for the app.
     app::unlock_install();
-    std::string error;
-    if (!os::start(args, env, &g_run.process, &error)) {
+    if (!spawn_engine(args, &g_run.process, &g_form_error)) {
         app::lock_install();
-        g_form_error = "Setup could not start: " + error;
         return false;
     }
     g_run.started_ms = SDL_GetTicks();
@@ -330,7 +349,9 @@ std::string elapsed(unsigned long long ms)
     return text;
 }
 
-bool begin_page(float width, float height, const char *heading)
+} // namespace
+
+void page_begin(float width, float height, const char *heading)
 {
     float scale = ImGui::GetStyle().FontScaleMain;
     ImGui::SetNextWindowPos(ImVec2(0, 0));
@@ -344,8 +365,10 @@ bool begin_page(float width, float height, const char *heading)
     ImGui::Separator();
     pcui::heading(heading, 24 * scale);
     ImGui::Spacing();
-    return true;
 }
+
+namespace
+{
 
 void path_row(const char *label, const char *id, char *value, bool folder, bool image_too)
 {
@@ -367,7 +390,7 @@ void path_row(const char *label, const char *id, char *value, bool folder, bool 
 
 void first_run_page(float width, float height, UiResult *result)
 {
-    begin_page(width, height, "SET UP THE GAME");
+    page_begin(width, height, "SET UP THE GAME");
     ImGui::TextWrapped("The game is built here from your own copy of Def Jam: Fight for NY (Xbox): a disc "
                        "image or an extracted folder. Nothing from it leaves this computer. Setup takes about "
                        "ten minutes and needs about 12 GB.");
@@ -400,7 +423,7 @@ void first_run_page(float width, float height, UiResult *result)
 void maintenance_page(float width, float height, UiResult *result)
 {
     const Install &in = app::install();
-    begin_page(width, height, "MAINTENANCE");
+    page_begin(width, height, "MAINTENANCE");
     ImGui::TextWrapped("Installed: v%s in %s", in.version.c_str(), in.root.string().c_str());
     ImGui::TextWrapped("Data: %s", in.data.string().c_str());
     ImGui::Spacing();
@@ -438,6 +461,24 @@ void maintenance_page(float width, float height, UiResult *result)
     ImGui::End();
 }
 
+void update_ready_page(float width, float height)
+{
+    const Install &in = app::install();
+    page_begin(width, height, "UPDATE READY");
+    ImGui::TextWrapped("Def Jam Recompiled is now v%s. Your game is still built from v%s: build v%s now "
+                       "(about three to ten minutes) to play it. Until then Play starts the v%s build.",
+                       app::payload_version().c_str(), in.version.c_str(), app::payload_version().c_str(),
+                       in.version.c_str());
+    ImGui::Spacing();
+    if (pcui::play_button("BUILD UPDATE", ImVec2(ImGui::GetFontSize() * 12, ImGui::GetFrameHeight() * 1.8f), 26))
+        start_update_build();
+    ui_target("update.build");
+    ImGui::SameLine();
+    if (ImGui::Button("Later")) g_screen = Screen::None;
+    ui_target("update.later");
+    ImGui::End();
+}
+
 void stage_list()
 {
     for (int s = 0; s < k_stage_count; s++) {
@@ -453,7 +494,7 @@ void stage_list()
 
 void running_page(float width, float height)
 {
-    begin_page(width, height, g_run.title.c_str());
+    page_begin(width, height, g_run.title.c_str());
     stage_list();
     ImGui::Spacing();
     ImGui::TextWrapped("%s", g_run.cancelling ? "Cancelling the current step..." : g_run.line.c_str());
@@ -487,7 +528,7 @@ void finished_page(float width, float height, UiResult *result)
 {
     bool ok = g_run.exit_code == 0;
     const char *title = ok ? "DONE" : g_run.exit_code == 6 ? "CANCELLED" : "SETUP STOPPED";
-    begin_page(width, height, title);
+    page_begin(width, height, title);
     stage_list();
     ImGui::Spacing();
     if (ok)
@@ -565,18 +606,22 @@ bool screen_draw(float width, float height, UiResult *result)
         if (!in.installed) {
             g_screen = in.problem.empty() ? Screen::FirstRun : Screen::Maintenance;
             g_form_error = in.problem;
+        } else if (app::just_updated() && app::newer(app::payload_version(), in.version)) {
+            g_screen = Screen::UpdateReady;
         }
         start_tools_check();
     }
     take_pick();
     poll_tools_check();
     poll();
+    if (update_screen_draw(width, height, result)) return true;
     switch (g_screen) {
     case Screen::None: return false;
     case Screen::FirstRun: first_run_page(width, height, result); break;
     case Screen::Maintenance: maintenance_page(width, height, result); break;
     case Screen::Running: running_page(width, height); break;
     case Screen::Finished: finished_page(width, height, result); break;
+    case Screen::UpdateReady: update_ready_page(width, height); break;
     }
     return true;
 }
@@ -587,10 +632,19 @@ void screen_open_maintenance()
     g_screen = Screen::Maintenance;
 }
 
-bool screen_busy() { return g_run.process.id != 0; }
+void start_update_build()
+{
+    const Install &in = app::install();
+    g_form_error.clear();
+    if (!start("update", "Updating to v" + app::payload_version(), in.root.string(), in.data.string(), "", false))
+        g_screen = Screen::Maintenance;                     // which shows why
+}
+
+bool screen_busy() { return g_run.process.id != 0 || update_busy(); }
 
 void screen_request_cancel()
 {
+    update_request_cancel();
     if (!g_run.process.id || g_run.cancelling) return;
     std::ofstream(g_run.cancel) << "cancel";
     g_run.cancelling = true;

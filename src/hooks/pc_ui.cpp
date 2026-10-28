@@ -233,6 +233,7 @@ static const char *friendly(const char *section, const char *key)
         {"gamepad", "left_stick", "Left stick comes from"},
         {"gamepad", "right_stick", "Right stick comes from"},
         {"launcher", "skip", "Skip the launcher at start"},
+        {"launcher", "check_updates", "Check for updates when the app starts"},
         {"ui", "scale", "Text and control size"},
         {"debug", "unlock_all", "Unlock all fighters and venues"},
         {"debug", "skip_intro", "Skip startup movies and legal screen"},
@@ -1246,7 +1247,11 @@ static void open_folder()
 static void page_general(UiMode mode)
 {
     ImGui::SeparatorText("Start-up");
+#if defined(DEFJAM_APP)
+    settings_group("launcher", { "skip", "check_updates" });
+#else
     settings_group("launcher", { "skip" });
+#endif
     if (mode == UI_OVERLAY)
         ImGui::TextWrapped("With the launcher skipped, hold Shift while the game starts, or start it with --launcher, to see it again.");
     ImGui::SeparatorText("In-game overlay");
@@ -1279,6 +1284,7 @@ static void page_general(UiMode mode)
 }
 #if defined(DEFJAM_APP)
 static bool g_app_maintenance = false;   // the app's own Maintenance screen was asked for
+void pc_app_home_notice();               // src/app/app_update.cpp: a newer app, or a build to update
 #endif
 static void page_maintenance(UiMode mode)
 {
@@ -1487,6 +1493,9 @@ UiResult ui_draw(UiMode mode, float x, float y, float width, float height)
     ImGui::BeginChild("page", ImVec2(0, -footer), ImGuiChildFlags_None, ImGuiWindowFlags_NoBackground);
     if (!advanced)
     {
+#if defined(DEFJAM_APP)
+        pc_app_home_notice();
+#endif
         auto home = ui_launcher_home(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y,
                                      g_return_focus ? g_home_return.c_str() : nullptr);
         g_return_focus = false;
