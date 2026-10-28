@@ -4,6 +4,10 @@ Status: owner-approved production plan. The owner subsequently approved all fift
 [wave-two textures](menu-ui-reconstruction-wave-02-2026-10-28.md), requested a larger
 batch and explicitly authorized parallel imagegen workers for the next hundred.
 Workers own disjoint asset lists; integration and native testing remain centralized.
+The owner then accepted all 104 wave-three review entries and requested the next
+batch. Wave four covers 100 new three-fighter banner sources and three earlier
+material corrections. Each generation now has an immutable request record saved
+before its call, then a matching versioned result record and raw PNG hash.
  On 2026-10-28 the owner accepted the
 [next 27 review textures](menu-ui-reconstruction-wave-01-2026-10-27.md), including
 Main Menu v6 and flat dark Capone v3, and requested **at least 50 textures per
@@ -90,6 +94,9 @@ again before selection. A transparent outer canvas alone is insufficient.
 Sample actual RGBA in ambiguous regions: low-valued grey or brown with partial
 alpha can be real ink. Absence of bright RGB does not prove transparency; keep
 that subdued material instead of erasing it as a hole.
+Tiny source RGB sampling fringes must not expand into decorative corrosion or
+painted stripes. Inspect their placement and actual RGBA before deciding whether
+they are artifacts; preserve broad intentional source colours and subdued ink.
 
 Separate serif headings, small sans-serif labels, distressed/stencil headings,
 fighter-specific wordmarks, venue/match logos and glyph atlases. Give every fighter

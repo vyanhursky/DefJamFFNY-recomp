@@ -1,5 +1,7 @@
 # UI reconstruction: 100 new sources and four alpha corrections — 2026-10-28
 
+**Subsequent owner approval (2026-10-28):** all104textures accepted: “These are all perfect - send the next batch over.” Exact selected-preview hashes are pinned in `config/menu-ui-reconstruction-wave03-approval-2026-10-28.json`. Pending-review statements below are historical; native validation and publication remain separate.
+
 The owner accepted all fifty textures in the previous batch with no issues and
 requested a larger batch, explicitly suggesting parallel imagegen workers.
 `config/menu-ui-reconstruction-wave02-approval-2026-10-28.json` pins that approval

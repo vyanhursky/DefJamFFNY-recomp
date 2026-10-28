@@ -1,5 +1,30 @@
 # Menu/UI modpack implementation handover
 
+**Next 100 banner variants + three material corrections — 2026-10-28:** [batch report](research/menu-ui-reconstruction-wave-04-2026-10-28.md).
+The owner approved all previous 104; approval pins are in
+`config/menu-ui-reconstruction-wave03-approval-2026-10-28.json`.
+New review: `http://127.0.0.1:51745/review.html#overview`, 103 distinct mappings:
+100 new three-fighter variants plus earlier Bo/Cruz/WC select corrections.
+Three isolated workers completed 111 saved built-in outputs; 103 selected,
+8 held. All actual attempts and immutable pre-call/result records are retained
+and hash-verified. Unissued requests are separate from successful output counts.
+Parent inspected all 103 matched blue comparisons; worker pale/RGBA checks and
+source samples distinguish real ink, partial material and clear holes. Genuine
+source colours remain. Busta loading has a documented constant-tail exclusion:
+use `logical_review_bounds=[0,5,166,64]` inside its retained full crop when assembling.
+All 103 exports retain exact raw alpha and RGB above alpha 16 and pass the
+bounded near-pure neon-green check. Prior approved 104/50/27 previews remain exact.
+Browser: 103 details, 206 grid canvases, filters/search/1×/3×/6×/raw/ghost/backdrops,
+zero console errors or page overflow. These new drafts await owner review;
+no new game run, atlas assembly, installation, publication or push is claimed.
+Published 1.2 / catalogue 5, scenery, game and toolkit remain unchanged.
+Ledger `config/menu-ui-reconstruction-wave-04-2026-10-28.json`; private workspace
+`logs/menu-ui-wave04-20261028/`, server 51745. Recovery `/Users/vlad/Code/defjam-data/scratch/menu-ui-wave04-review-20261028`;
+manifest pin `config/menu-ui-reconstruction-wave-04-checkpoint-2026-10-28.json`.
+Next: review 103, resolve exceptions, continue 100+ source-specific batches,
+then native atlas/blending/placement/clipping/sampling validation. Future PRs
+use milestone v0.12.2. Historical pending statements below retain their dates.
+
 **100 new textures + four alpha corrections — 2026-10-28:** [batch report](research/menu-ui-reconstruction-wave-03-2026-10-28.md).
 Owner accepted all previous50 with no issues and explicitly requested larger,
 parallel imagegen batches. Approval pins: `menu-ui-reconstruction-wave02-approval-2026-10-28.json`.
