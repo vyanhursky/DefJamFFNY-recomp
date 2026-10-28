@@ -104,3 +104,35 @@ def test_the_program_must_carry_no_lifted_code(tmp_path, source, ok):
     else:
         with pytest.raises(ValueError, match='lifted'):
             assets.inspect_app(tmp_path / 'app.zip', payload_zip(tmp_path), binary_checks=True)
+
+
+# ---- Windows: the program with the payload built in (resource 101) ---------------------------------
+
+def test_windows_names_are_the_setup_triple_plus_the_app_triple():
+    setup = ['DefJamSetup-0.13.0-windows-x64' + ext for ext in ('.exe', '.sha256', '.provenance.json')]
+    app = ['DefJamRecompiled-0.13.0-windows-x64' + ext for ext in ('.exe', '.sha256', '.provenance.json')]
+    assets.validate_asset_names('0.13.0', setup + app, 'windows-x64', app=True)
+    with pytest.raises(ValueError):
+        assets.validate_asset_names('0.13.0', setup + app[:2], 'windows-x64', app=True)
+
+
+def windows_program(tmp_path, payload, extra=b''):
+    from test_app_updates import synthetic_pe
+    program = tmp_path / 'DefJamRecompiled.exe'
+    program.write_bytes(synthetic_pe({assets.releases.PAYLOAD_RESOURCE: payload}) + extra)
+    return program
+
+
+def test_the_windows_app_carries_exactly_the_inspected_payload(tmp_path):
+    archive = payload_zip(tmp_path)
+    assets.inspect_app_windows(windows_program(tmp_path, archive.read_bytes()), archive)
+    with pytest.raises(ValueError):                                     # another payload
+        assets.inspect_app_windows(windows_program(tmp_path, archive.read_bytes() + b'x'), archive)
+    with pytest.raises(ValueError):                                     # lifted code
+        assets.inspect_app_windows(windows_program(tmp_path, archive.read_bytes(), b'sub_0001A4E0'), archive)
+
+
+@pytest.mark.skipif(sys.platform != 'win32', reason='reads a Windows system program')
+def test_pe_imports_lists_a_real_programs_libraries():
+    names = assets.pe_imports((Path(os.environ['SystemRoot']) / 'System32/cmd.exe').read_bytes())
+    assert 'kernel32.dll' in names or any(n.startswith('api-ms-win-') for n in names)

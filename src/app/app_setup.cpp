@@ -4,20 +4,19 @@
 // The work is setup/engine.py's, run from the app's setup payload with that payload's Python, as
 // the setup wizards run it: the same choices on its command line, its one-line progress in a status
 // file the screen reads every frame, and a cancel file it looks for between steps. Its exit code
-// says how it ended (0 done, 2 a choice it refuses, 3 the Command Line Tools are missing, 4 failed,
-// 5 busy, 6 cancelled) and its last status line why. The previous build stays playable until the
+// says how it ended (0 done, 2 a choice it refuses, 3 the build tools are missing, 4 failed,
+// 5 busy, 6 cancelled, and on Windows 3010 when the Build Tools it installed need a restart) and its
+// last status line why. On Windows the app first asks the engine whether Microsoft's C++ Build
+// Tools are there (--check-toolchain), and when they are not it offers to install them with the
+// setup (--install-prerequisites; Windows asks the player for permission). The previous build stays playable until the
 // new one is activated, so a failed or cancelled Repair leaves the game as it was.
 
 #define _CRT_SECURE_NO_WARNINGS
 #include <errno.h>
-#include <signal.h>
-#include <spawn.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/wait.h>
 #include <time.h>
-#include <unistd.h>
 
 #include <algorithm>
 #include <filesystem>
@@ -32,11 +31,10 @@
 #include "imgui.h"
 
 #include "app.h"
+#include "app_os.h"
 #include "pc_ui_actions.h"
 #include "pc_ui_internal.h"
 #include "pc_ui_theme.h"
-
-extern char **environ;
 
 namespace fs = std::filesystem;
 
@@ -59,12 +57,13 @@ enum class Screen
 struct Stage
 {
     const char *name;
-    const char *prefixes[3];
+    const char *prefixes[4];
 };
 const Stage k_stages[] = {
     {"Prepare the setup files", {"Preparing verified release source", nullptr}},
     {"Verify your dump", {"Verifying and preparing your dump", "Verified installed dump", "Verified extraction"}},
-    {"Check the build tools", {"Checking the", "Preparing the build container", "Building with this computer"}},
+    {"Check the build tools", {"Checking ", "Installing Microsoft Build Tools", "Preparing the build container",
+                               "Building with this computer"}},
     {"Analyse the game's code", {"Analysis ", nullptr}},
     {"Translate it to C", {"Lift ", nullptr}},
     {"Compile the game", {"Build ", "Building in the build container", nullptr}},
@@ -75,12 +74,12 @@ const int k_stage_count = (int)(sizeof k_stages / sizeof k_stages[0]);
 
 struct Run
 {
-    pid_t pid = 0;
+    os::Process process;
     std::string operation, title;
     fs::path scratch, status, cancel, log;
     unsigned long long started_ms = 0, ended_ms = 0;
     std::string line;                   // the last status line
-    std::streamoff log_read = 0;        // how much of setup's log the stage list has read
+    uint64_t log_read = 0;              // how much of setup's log the stage list has read
     int stage = -1;                     // the furthest stage reported
     bool reused[k_stage_count] = {};
     bool hd = false;
@@ -95,6 +94,18 @@ char g_dump[2048], g_root[2048], g_data[2048];
 bool g_hd = false;
 bool g_confirm_cancel = false;
 std::string g_form_error;
+
+// What the last operation was started with, to start it again with the Build Tools (Windows).
+struct Request
+{
+    std::string operation, title, root, data, dump;
+    bool hd = false;
+} g_request;
+
+// Windows: whether Microsoft's C++ Build Tools are missing (asked of the engine when the app starts),
+// and whether setup should install them first.
+os::Process g_tools_check;
+bool g_tools_missing = false, g_install_tools = true;
 
 // A folder or file chosen in the system's dialog arrives on another thread.
 std::mutex g_pick_lock;
@@ -132,10 +143,7 @@ void take_pick()
 
 std::string read_text(const fs::path &path)
 {
-    std::ifstream f(path, std::ios::binary);
-    std::stringstream text;
-    text << f.rdbuf();
-    std::string s = text.str();
+    std::string s = os::read_shared(path);
     while (!s.empty() && (s.back() == '\n' || s.back() == '\r')) s.pop_back();
     return s;
 }
@@ -143,6 +151,7 @@ std::string read_text(const fs::path &path)
 fs::path python_in(const fs::path &payload)
 {
     std::error_code ec;
+    if (fs::is_regular_file(payload / "python/python.exe", ec)) return payload / "python/python.exe";
     if (fs::is_regular_file(payload / "python/bin/python3", ec)) return payload / "python/bin/python3";
     // The Linux payload keeps one real executable, python3.N.
     for (const auto &entry : fs::directory_iterator(payload / "python/bin", ec)) {
@@ -154,7 +163,7 @@ fs::path python_in(const fs::path &payload)
 
 } // namespace
 
-bool spawn_engine(const std::vector<std::string> &engine_args, pid_t *pid, std::string *error)
+bool spawn_engine(const std::vector<std::string> &engine_args, os::Process *process, std::string *error)
 {
     fs::path payload = app::payload();
     fs::path python = python_in(payload);
@@ -165,30 +174,22 @@ bool spawn_engine(const std::vector<std::string> &engine_args, pid_t *pid, std::
     std::vector<std::string> args = {python.string(), "-B", (payload / "engine/engine.py").string(),
                                      "--payload", payload.string()};
     args.insert(args.end(), engine_args.begin(), engine_args.end());
-    std::vector<char *> argv;
-    for (auto &a : args) argv.push_back(a.data());
-    argv.push_back(nullptr);
 
     // As the macOS wizard runs it: a plain environment, so nothing from a package manager or a
     // development shell changes the build. Elsewhere the engine may need the session's own
-    // (the build container's runtime folder, the display for Steam).
+    // (the build container's runtime folder, the display for Steam; on Windows the user's folders).
     std::vector<std::string> env_text;
-    std::vector<char *> envp;
+    const std::vector<std::string> *env = nullptr;
 #if defined(__APPLE__)
     const char *home = getenv("HOME");
     const char *tmp = getenv("TMPDIR");
     env_text = {std::string("HOME=") + (home ? home : ""), "PATH=/usr/bin:/bin:/usr/sbin:/sbin",
                 std::string("TMPDIR=") + (tmp ? tmp : "/tmp"), "LANG=en_US.UTF-8"};
-    for (auto &e : env_text) envp.push_back(e.data());
-    envp.push_back(nullptr);
-    char **env = envp.data();
-#else
-    char **env = environ;
+    env = &env_text;
 #endif
-    int rc = posix_spawn(pid, python.c_str(), nullptr, nullptr, argv.data(), env);
-    if (rc != 0) {
-        *pid = 0;
-        *error = std::string("Setup could not start: ") + strerror(rc);
+    std::string why;
+    if (!os::start(args, env, process, &why)) {
+        *error = "Setup could not start: " + why;
         return false;
     }
     return true;
@@ -199,12 +200,13 @@ namespace
 
 // Start the engine for `operation`. Returns false with g_form_error set when it could not start.
 bool start(const std::string &operation, const std::string &title, const std::string &root,
-           const std::string &data, const std::string &dump, bool hd)
+           const std::string &data, const std::string &dump, bool hd, bool install_tools = false)
 {
     if (app::payload().empty()) {
         g_form_error = "This copy of the app has no setup files. Start it with --payload <setup payload folder>.";
         return false;
     }
+    g_request = {operation, title, root, data, dump, hd};
     g_run = Run();
     g_run.operation = operation;
     g_run.title = title;
@@ -213,7 +215,7 @@ bool start(const std::string &operation, const std::string &title, const std::st
     time_t now = time(nullptr);
     strftime(stamp, sizeof stamp, "%Y%m%d-%H%M%S", localtime(&now));
     std::error_code ec;
-    g_run.scratch = fs::temp_directory_path(ec) / ("DefJamRecompiled-setup-" + std::to_string(getpid()) + "-" + stamp);
+    g_run.scratch = fs::temp_directory_path(ec) / ("DefJamRecompiled-setup-" + std::to_string(os::process_id()) + "-" + stamp);
     fs::create_directories(g_run.scratch, ec);
     g_run.status = g_run.scratch / "status.txt";
     g_run.cancel = g_run.scratch / "cancel";
@@ -229,12 +231,19 @@ bool start(const std::string &operation, const std::string &title, const std::st
     // shortcut (it would otherwise make them again after every operation). The player moves the
     // app wherever they like.
     args.push_back("--no-shortcuts");
-    fprintf(stderr, "[APP] setup: %s (%s), log %s\n", operation.c_str(), root.c_str(), g_run.log.c_str());
+#if defined(_WIN32)
+    // Microsoft's Build Tools, when the check found them missing and the player kept the box ticked
+    // (or chose Install Build Tools after setup stopped for them).
+    if (install_tools || (g_tools_missing && g_install_tools)) args.push_back("--install-prerequisites");
+#else
+    (void)install_tools;
+#endif
+    fprintf(stderr, "[APP] setup: %s (%s), log %s\n", operation.c_str(), root.c_str(), g_run.log.string().c_str());
     fflush(stderr);
     // Setup takes play.lock itself, to keep the game from starting while it works; finish() takes it
     // back for the app.
     app::unlock_install();
-    if (!spawn_engine(args, &g_run.pid, &g_form_error)) {
+    if (!spawn_engine(args, &g_run.process, &g_form_error)) {
         app::lock_install();
         return false;
     }
@@ -259,15 +268,15 @@ void note_stage(const std::string &line)
 // list reads as it grows. The status file is what the screen shows.
 void note_status(const std::string &line)
 {
-    std::ifstream log(g_run.log, std::ios::binary);
-    if (log && log.seekg(g_run.log_read)) {
-        std::string text;
-        while (std::getline(log, text)) {
-            if (log.eof()) break;                                   // a line still being written
-            g_run.log_read = log.tellg();
-            note_stage(text);
-        }
+    std::string chunk = os::read_shared(g_run.log, g_run.log_read, 1 << 20);
+    size_t used = 0, end;
+    while ((end = chunk.find('\n', used)) != std::string::npos) {   // a line still being written waits
+        std::string text = chunk.substr(used, end - used);
+        if (!text.empty() && text.back() == '\r') text.pop_back();
+        note_stage(text);
+        used = end + 1;
     }
+    g_run.log_read += used;
     if (line.empty() || line == g_run.line) return;
     g_run.line = line;
     note_stage(line);
@@ -284,26 +293,53 @@ void finish(int code)
     // Back to the install as it now is: the new build, or the old one after a failure.
     std::string why;
     if (app::lock_install() && app::load_install(&why))
-        fprintf(stderr, "[APP] install %s, version %s\n", app::install().root.c_str(), app::install().version.c_str());
+        fprintf(stderr, "[APP] install %s, version %s\n", app::install().root.string().c_str(), app::install().version.c_str());
     else if (!why.empty())
         fprintf(stderr, "[APP] %s\n", why.c_str());
     fflush(stderr);
+    if (code == 0) g_tools_missing = false;                 // setup found or installed them
     g_screen = Screen::Finished;
 }
 
 void poll()
 {
-    if (!g_run.pid) return;
+    if (!g_run.process.id) return;
     note_status(read_text(g_run.status));
-    int status = 0;
-    pid_t done = waitpid(g_run.pid, &status, WNOHANG);
-    if (done == g_run.pid) {
-        g_run.pid = 0;
-        finish(WIFEXITED(status) ? WEXITSTATUS(status) : 4);
-    } else if (done < 0 && errno != EINTR) {
-        g_run.pid = 0;
-        finish(4);
-    }
+    int code = os::finished(g_run.process);
+    if (code >= 0) finish(code);
+}
+
+// Windows: ask the engine whether the Build Tools are there (it answers in about a second), and
+// read the answer when it comes. Elsewhere setup checks its own tools as it goes.
+void start_tools_check()
+{
+#if defined(_WIN32)
+    fs::path python = python_in(app::payload());
+    if (python.empty()) return;
+    std::string error;
+    if (!os::start({python.string(), "-B", (app::payload() / "engine/engine.py").string(), "--payload",
+                    app::payload().string(), "--check-toolchain"}, nullptr, &g_tools_check, &error))
+        fprintf(stderr, "[APP] Build Tools check: %s\n", error.c_str());
+#endif
+}
+
+void poll_tools_check()
+{
+    int code = os::finished(g_tools_check);
+    if (code < 0) return;
+    g_tools_missing = code == 3;
+    fprintf(stderr, "[APP] Microsoft C++ Build Tools: %s\n", g_tools_missing ? "missing" : "installed");
+}
+
+// The Build Tools choice, when they are missing (Windows).
+void tools_row()
+{
+    if (!g_tools_missing) return;
+    ImGui::Checkbox("Install Microsoft's C++ Build Tools first (needed to build the game; a few GB from "
+                    "Microsoft, and Windows asks for your permission)", &g_install_tools);
+    ui_target("setup.tools");
+    if (!g_install_tools)
+        ImGui::TextDisabled("Without them setup stops before it builds the game.");
 }
 
 std::string elapsed(unsigned long long ms)
@@ -365,6 +401,7 @@ void first_run_page(float width, float height, UiResult *result)
     ImGui::Spacing();
     ImGui::Checkbox("Generate HD textures (adds several minutes and about 15 GB)", &g_hd);
     ui_target("setup.hd");
+    tools_row();
     ImGui::Spacing();
     if (!g_form_error.empty()) ImGui::TextColored(ImVec4(1, 0.45f, 0.4f, 1), "%s", g_form_error.c_str());
     bool ready = g_dump[0] && g_root[0] && g_data[0];
@@ -387,10 +424,11 @@ void maintenance_page(float width, float height, UiResult *result)
 {
     const Install &in = app::install();
     page_begin(width, height, "MAINTENANCE");
-    ImGui::TextWrapped("Installed: v%s in %s", in.version.c_str(), in.root.c_str());
-    ImGui::TextWrapped("Data: %s", in.data.c_str());
+    ImGui::TextWrapped("Installed: v%s in %s", in.version.c_str(), in.root.string().c_str());
+    ImGui::TextWrapped("Data: %s", in.data.string().c_str());
     ImGui::Spacing();
     ImGui::Checkbox("Also generate HD textures", &g_hd);
+    tools_row();
     ImGui::Spacing();
     if (!g_form_error.empty()) ImGui::TextColored(ImVec4(1, 0.45f, 0.4f, 1), "%s", g_form_error.c_str());
     ImGui::SeparatorText("Repair");
@@ -498,9 +536,18 @@ void finished_page(float width, float height, UiResult *result)
                            app::install().version.c_str());
     else {
         ImGui::TextWrapped("%s", g_run.line.empty() ? "Setup stopped." : g_run.line.c_str());
+#if defined(_WIN32)
+        if (g_run.exit_code == 3)
+            ImGui::TextWrapped("Building the game needs Microsoft's C++ Build Tools. Install Build Tools downloads "
+                               "them from Microsoft (a few GB; Windows asks for your permission) and then carries on.");
+        if (g_run.exit_code == 3010)
+            ImGui::TextWrapped("The Build Tools are installed. Restart Windows, then open Def Jam Recompiled "
+                               "again: setup carries on from where it stopped.");
+#else
         if (g_run.exit_code == 3)
             ImGui::TextWrapped("Install Apple's Command Line Tools (Install Tools, or run xcode-select --install "
                                "in Terminal), then try again.");
+#endif
         if (app::install().installed)
             ImGui::TextWrapped("The installed game is unchanged and still playable.");
     }
@@ -520,10 +567,21 @@ void finished_page(float width, float height, UiResult *result)
     if (g_run.exit_code == 3) {
         ImGui::SameLine();
         if (ImGui::Button("Install Tools")) {
-            const char *argv[] = {"/usr/bin/xcode-select", "--install", nullptr};
-            pid_t pid;
-            if (posix_spawn(&pid, argv[0], nullptr, nullptr, (char *const *)argv, environ) == 0) waitpid(pid, nullptr, 0);
+            os::Process tools;
+            std::string error;
+            if (os::start({"/usr/bin/xcode-select", "--install"}, nullptr, &tools, &error)) os::wait(tools);
         }
+    }
+#elif defined(_WIN32)
+    if (g_run.exit_code == 3) {
+        ImGui::SameLine();
+        if (ImGui::Button("Install Build Tools")) {
+            Request again = g_request;
+            if (!start(again.operation, again.title, again.root, again.data, again.dump, again.hd, true))
+                g_screen = app::install().installed || !app::install().problem.empty() ? Screen::Maintenance
+                                                                                        : Screen::FirstRun;
+        }
+        ui_target("setup.install-tools");
     }
 #endif
     ImGui::SameLine();
@@ -551,9 +609,14 @@ bool screen_draw(float width, float height, UiResult *result)
         } else if (app::just_updated() && app::newer(app::payload_version(), in.version)) {
             g_screen = Screen::UpdateReady;
         }
+        start_tools_check();
     }
     take_pick();
+    poll_tools_check();
     poll();
+#if defined(_WIN32)
+    if (install_screen_draw(width, height, result)) return true;
+#endif
     if (update_screen_draw(width, height, result)) return true;
     switch (g_screen) {
     case Screen::None: return false;
@@ -580,12 +643,16 @@ void start_update_build()
         g_screen = Screen::Maintenance;                     // which shows why
 }
 
-bool screen_busy() { return g_run.pid != 0 || update_busy(); }
+#if defined(_WIN32)
+bool screen_busy() { return g_run.process.id != 0 || update_busy() || install_busy(); }
+#else
+bool screen_busy() { return g_run.process.id != 0 || update_busy(); }
+#endif
 
 void screen_request_cancel()
 {
     update_request_cancel();
-    if (!g_run.pid || g_run.cancelling) return;
+    if (!g_run.process.id || g_run.cancelling) return;
     std::ofstream(g_run.cancel) << "cancel";
     g_run.cancelling = true;
     fprintf(stderr, "[APP] setup: cancel requested\n");

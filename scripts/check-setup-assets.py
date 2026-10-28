@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """Validate the narrow game-free setup release exception, never game binaries.
 
-With --app (macOS), also the app that sets up, launches and updates the game (src/app, D215):
-the archive scripts/package-app.py makes, checked file by file against the inspected payload,
-published as DefJamRecompiled-<version>-macos-arm64.zip with its checksum and a kind: app
-provenance that setup/releases.py select_app verifies before the app replaces itself."""
+With --app, also the app that sets up, launches and updates the game (src/app, D215): on macOS
+the archive scripts/package-app.py makes, checked file by file against the inspected payload; on
+Windows the program DefJamRecompiled.exe, whose built-in payload (resource 101) must be the
+inspected payload byte for byte. Published as DefJamRecompiled-<version>-macos-arm64.zip or
+-windows-x64.exe with its checksum and a kind: app provenance that setup/releases.py select_app
+verifies before the app replaces itself."""
 import argparse
 import hashlib
 import importlib.util
@@ -107,6 +109,70 @@ APP_FILES = {'Contents/Info.plist', 'Contents/MacOS/' + releases.APP_PROGRAM, 'C
              'Contents/_CodeSignature/CodeResources'}
 
 
+APP_PLATFORMS = ('macos-arm64', 'windows-x64')
+# What the Windows app may load: Windows' own libraries only (it is linked with the static C runtime
+# and a static SDL3), never a Visual C++ runtime, a game library or anything carried beside it.
+WINDOWS_SYSTEM_DLLS = {
+    'kernel32.dll', 'user32.dll', 'gdi32.dll', 'shell32.dll', 'ole32.dll', 'oleaut32.dll', 'advapi32.dll',
+    'imm32.dll', 'setupapi.dll', 'version.dll', 'winmm.dll', 'cfgmgr32.dll', 'hid.dll', 'shlwapi.dll',
+    'bcrypt.dll', 'comdlg32.dll', 'uxtheme.dll', 'dwmapi.dll', 'd3d11.dll', 'dxgi.dll', 'd3dcompiler_47.dll',
+    'xinput1_4.dll', 'dinput8.dll', 'comctl32.dll', 'shcore.dll', 'winhttp.dll', 'rpcrt4.dll', 'ntdll.dll',
+    'combase.dll', 'mfplat.dll', 'mf.dll', 'mfreadwrite.dll', 'powrprof.dll', 'avrt.dll',
+}
+
+
+def pe_imports(data):
+    """The DLL names a PE image imports (its import directory), lower case."""
+    def u16(at):
+        return int.from_bytes(data[at:at + 2], 'little')
+
+    def u32(at):
+        if at + 4 > len(data):
+            raise ValueError('Not a complete Windows program')
+        return int.from_bytes(data[at:at + 4], 'little')
+    if data[:2] != b'MZ':
+        raise ValueError('Not a Windows program')
+    pe = u32(0x3C)
+    if data[pe:pe + 4] != b'PE\0\0':
+        raise ValueError('Not a Windows program')
+    sections, optional_size, optional = u16(pe + 6), u16(pe + 20), pe + 24
+    directories = optional + (96 if u16(optional) == 0x10B else 112)
+    table = optional + optional_size
+
+    def offset(rva):
+        for s in range(sections):
+            at = table + 40 * s
+            size, address, raw = max(u32(at + 8), u32(at + 16)), u32(at + 12), u32(at + 20)
+            if address <= rva < address + size:
+                return rva - address + raw
+        raise ValueError('Import table outside the program file')
+    names, rva = [], u32(directories + 8)
+    if not rva:
+        return names
+    at = offset(rva)
+    while u32(at + 12):                                     # a descriptor's name; zero ends the table
+        start = offset(u32(at + 12))
+        names.append(data[start:data.index(b'\0', start)].decode('ascii').lower())
+        at += 20
+    return names
+
+
+def inspect_app_windows(program, archive):
+    """The Windows app's built-in payload is the inspected payload, byte for byte; it loads only
+    Windows' own libraries, and no lifted game code is in it."""
+    data = Path(program).read_bytes()
+    if releases.pe_resource(data, *releases.PAYLOAD_RESOURCE) != Path(archive).read_bytes():
+        raise ValueError('The payload inside the app does not match the inspected payload')
+    for name in pe_imports(data):
+        if name not in WINDOWS_SYSTEM_DLLS and not name.startswith(('api-ms-win-', 'ext-ms-win-')):
+            raise ValueError('The app program loads a library it does not carry: ' + name)
+    # Lifted functions are named sub_XXXXXXXX; the payload ZIP itself is compressed source.
+    payload = Path(archive).read_bytes()
+    rest = data.replace(payload, b'')
+    if re.search(rb'sub_[0-9A-Fa-f]{8}', rest) or b'recomp_dispatch' in rest:
+        raise ValueError('The app program contains lifted game code')
+
+
 def app_stem(version, platform):
     return releases.APP_ASSETS[platform].format(v=version).rsplit('.', 1)[0]
 
@@ -118,8 +184,8 @@ def validate_asset_names(version, names, platform='windows-x64', app=False):
     extension = INSTALLER_EXTENSION[platform]
     expected = {stem + extension, stem + '.sha256', stem + '.provenance.json'}
     if app:
-        if platform != 'macos-arm64':
-            raise ValueError('Only the macOS app is published so far')
+        if platform not in APP_PLATFORMS:
+            raise ValueError('The app is published for macOS and Windows only so far')
         a = app_stem(version, platform)
         expected |= {releases.APP_ASSETS[platform].format(v=version), a + '.sha256', a + '.provenance.json'}
     if set(names) != expected:
@@ -240,7 +306,8 @@ def main(argv=None):
     parser.add_argument('--payload', type=Path, required=True)
     parser.add_argument('--installer', type=Path, required=True)
     parser.add_argument('--output-dir', type=Path, required=True)
-    parser.add_argument('--app', type=Path, help='macOS: the app archive from scripts/package-app.py --zip')
+    parser.add_argument('--app', type=Path, help='The app: macOS, the archive from scripts/package-app.py --zip; '
+                                                 'Windows, DefJamRecompiled.exe built with its payload')
     parser.add_argument('--development', action='store_true')
     args = parser.parse_args(argv)
     manifest = inspect_payload(args.payload)
@@ -259,9 +326,12 @@ def main(argv=None):
     (args.output_dir / (stem + '.provenance.json')).write_text(json.dumps(
         {'installer_sha256': sha, 'payload_sha256': engine.digest(args.payload), **manifest}, indent=2) + '\n', encoding='utf-8')
     if args.app:
-        if platform != 'macos-arm64':
-            raise ValueError('Only the macOS app is published so far')
-        inspect_app(args.app, args.payload)
+        if platform not in APP_PLATFORMS:
+            raise ValueError('The app is published for macOS and Windows only so far')
+        if platform == 'windows-x64':
+            inspect_app_windows(args.app, args.payload)
+        else:
+            inspect_app(args.app, args.payload)
         app = args.output_dir / releases.APP_ASSETS[platform].format(v=manifest['version'])
         shutil.copyfile(args.app, app)
         app_sha = engine.digest(app)

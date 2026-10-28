@@ -15,7 +15,8 @@
 //   Named controls: "<ms>:ui:<id>" clicks; "<ms>:hover:<id>" hovers, revealing scrolled controls.
 //   "<ms>:uiopt:<id>" clicks it if it is there and says nothing if not: a control that only exists in
 //   one layout, such as the On/Off item of an on/off choice (`<section>.<key>.on`), which a narrow or
-//   large-text window shows in place of a checkbox.
+//   large-text window shows in place of a checkbox. "<ms>:uiwait:<id>" clicks it once it appears,
+//   waiting up to half an hour (the app's setup and update screens, which follow minutes of work).
 //   RECOMP_WINDOW_SHOT       a file to write the first full frame to, as a BMP
 
 #define _CRT_SECURE_NO_WARNINGS
@@ -68,6 +69,7 @@ struct ScriptStep {
     bool done;
     unsigned attempts = 0;
     bool optional = false;
+    unsigned max_attempts = 12;
 };
 
 std::vector<ScriptStep> parse_script(const char *text)
@@ -87,12 +89,13 @@ std::vector<ScriptStep> parse_script(const char *text)
             st.at_ms = ms;
             st.x = x;
             st.y = y;
-            if ((!strcmp(kind, "ui") || !strcmp(kind, "uiopt") || !strcmp(kind, "hover")) &&
+            if ((!strcmp(kind, "ui") || !strcmp(kind, "uiopt") || !strcmp(kind, "uiwait") || !strcmp(kind, "hover")) &&
                 sscanf(item.c_str(), "%llu:%*[^:]:%511[^;]", &ms, file) == 2)
             {
                 st.kind = !strcmp(kind, "hover") ? ScriptStep::HOVER : ScriptStep::TARGET;
                 st.file = file;
                 st.optional = !strcmp(kind, "uiopt");
+                if (!strcmp(kind, "uiwait")) st.max_attempts = 9000;     // 200 ms apart: half an hour
             }
             else if (!strcmp(kind, "resize"))
                 st.kind = ScriptStep::RESIZE;
@@ -147,6 +150,15 @@ extern "C" int pc_launcher_window(int *open_setup_out)
     }
     SDL_SetRenderVSync(renderer, 1);
     SDL_SetWindowMinimumSize(window, 640, 480);
+#if defined(_WIN32)
+    // Windows measures the window in pixels: make it as big on a scaled display as it is elsewhere.
+    float scale = SDL_GetWindowDisplayScale(window);
+    if (scale > 1.0f) {
+        SDL_SetWindowMinimumSize(window, (int)(640 * scale), (int)(480 * scale));
+        SDL_SetWindowSize(window, (int)(1100 * scale), (int)(720 * scale));
+        SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+    }
+#endif
 
     ui_lock();
     ui_context_begin(window);
@@ -225,7 +237,7 @@ extern "C" int pc_launcher_window(int *open_setup_out)
                 ui_unlock();
                 if (!found)
                 {
-                    if (++st.attempts < 12)
+                    if (++st.attempts < st.max_attempts)
                     {
                         st.done = false;
                         st.at_ms = now + 200;

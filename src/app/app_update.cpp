@@ -9,23 +9,24 @@
 //    agree (releases.select_app). It is unpacked beside this app, hidden, on the same volume.
 // 3. Swap. This bundle is renamed aside and the verified one renamed into its place; a failure
 //    renames it back. The window closes and the new app is started in this process with
-//    --updated. The new app removes the old bundle.
+//    --updated. The new app removes the old bundle. On Windows the app is a folder holding the
+//    program and its payload (DefJamRecompiled.exe, payload\), and a folder with a running program
+//    in it cannot be renamed: the program (which Windows lets be renamed while it runs) and the
+//    payload are renamed aside one by one, each undone if a later step fails, the new app is
+//    started and this one exits, and the new one removes the .old program and payload.
 // 4. Build. The new app carries the new release's setup payload. Home offers to build it (after an
 //    update it asks at once): a Clean Update of the installed game, while Play keeps the previous
 //    build until the new one is activated.
 //
-// Only an app in a macOS bundle replaces itself for now; any other copy (a development build)
-// points to the release page instead.
+// Only an installed app (a macOS bundle, or on Windows the program with its payload beside it)
+// replaces itself; any other copy (a development build) points to the release page instead.
 
 #define _CRT_SECURE_NO_WARNINGS
 #include <errno.h>
-#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/wait.h>
 #include <time.h>
-#include <unistd.h>
 
 #include <filesystem>
 #include <fstream>
@@ -72,12 +73,12 @@ enum class Stage
 };
 
 Check g_check = Check::Idle;
-pid_t g_check_pid = 0;
+os::Process g_check_process;
 fs::path g_check_file;
 std::string g_tag, g_version, g_url;    // the newer app, when there is one
 
 Stage g_stage = Stage::None;
-pid_t g_stage_pid = 0;
+os::Process g_stage_process;
 fs::path g_staged, g_scratch, g_status, g_cancel, g_log;
 std::string g_line, g_error;
 unsigned long long g_started_ms = 0;
@@ -85,10 +86,15 @@ bool g_cancelling = false, g_leave = false;
 
 fs::path cache_dir()
 {
+#if defined(_WIN32)
+    fs::path base = os::user_base();
+    return base.empty() ? base : base / "DefJamRecompiled" / "cache";
+#else
     const char *home = getenv("HOME");
+#endif
 #if defined(__APPLE__)
     return home ? fs::path(home) / "Library/Caches/DefJamRecompiled" : fs::path();
-#else
+#elif !defined(_WIN32)
     const char *cache = getenv("XDG_CACHE_HOME");
     if (cache && *cache) return fs::path(cache) / "DefJamRecompiled";
     return home ? fs::path(home) / ".cache/DefJamRecompiled" : fs::path();
@@ -97,8 +103,15 @@ fs::path cache_dir()
 
 } // namespace
 
+// The bundle this program is in (…/Def Jam Recompiled.app/Contents/MacOS/defjam_app), or empty.
+// On Windows the folder holding the program and, beside it, the payload it runs setup from.
 fs::path bundle_path()
 {
+#if defined(_WIN32)
+    std::error_code ec;
+    fs::path home = app::program().parent_path();
+    return !app::payload().empty() && fs::equivalent(app::payload(), home / "payload", ec) ? home : fs::path();
+#endif
     fs::path p = app::program();
     fs::path contents = p.parent_path().parent_path();
     if (p.parent_path().filename() != "MacOS" || contents.filename() != "Contents" ||
@@ -111,6 +124,11 @@ namespace
 {
 
 fs::path bundle() { return bundle_path(); }
+
+#if defined(_WIN32)
+// The program inside a staged Windows app (setup/releases.py: APP_PROGRAM_WINDOWS).
+const char *releases_program() { return "DefJamRecompiled.exe"; }
+#endif
 
 fs::path beside(const fs::path &bundle, const char *suffix)
 {
@@ -129,12 +147,13 @@ std::map<std::string, std::string> read_keys(const fs::path &path)
     return keys;
 }
 
+// The first line of the engine's status file, read so that it may replace the file meanwhile.
 std::string read_line(const fs::path &path)
 {
-    std::ifstream f(path);
-    std::string line;
-    std::getline(f, line);
-    return line;
+    std::string text = os::read_shared(path);
+    text = text.substr(0, text.find('\n'));
+    if (!text.empty() && text.back() == '\r') text.pop_back();
+    return text;
 }
 
 void take_answer(std::map<std::string, std::string> &keys)
@@ -165,7 +184,7 @@ void start_check()
     fs::path result = g_check_file.string() + ".new";
     fs::remove(result, ec);
     if (!spawn_engine({"--check-app-update", result.string(), "--log", (app::log_dir() / "update-check.log").string()},
-                      &g_check_pid, &error)) {
+                      &g_check_process, &error)) {
         fprintf(stderr, "[APP] update check: %s\n", error.c_str());
         return;
     }
@@ -175,13 +194,12 @@ void start_check()
 void poll_check()
 {
     if (g_check != Check::Running) return;
-    int status = 0;
-    if (waitpid(g_check_pid, &status, WNOHANG) != g_check_pid) return;
+    int code = os::finished(g_check_process);
+    if (code < 0) return;
     g_check = Check::Done;
-    g_check_pid = 0;
     fs::path result = g_check_file.string() + ".new";
     std::error_code ec;
-    if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
+    if (code != 0) {
         fprintf(stderr, "[APP] update check failed (see update-check.log); nothing shown\n");
         fs::remove(result, ec);
         return;
@@ -203,10 +221,16 @@ void start_download()
         return;
     }
     std::error_code ec;
+#if defined(_WIN32)
+    fs::path folder = here;                             // the app's own folder holds the new copy
+    g_staged = here / ".update";
+#else
+    fs::path folder = here.parent_path();
     g_staged = beside(here, ".update");
+#endif
     fs::remove_all(g_staged, ec);                       // a download an earlier run left unfinished
-    if (access(here.parent_path().c_str(), W_OK) != 0) {
-        g_error = "This app cannot be replaced where it is (" + here.parent_path().string() +
+    if (!os::writable(folder)) {
+        g_error = "This app cannot be replaced where it is (" + folder.string() +
                   " is not writable). Download v" + g_version + " from the release page instead.";
         g_stage = Stage::Failed;
         return;
@@ -214,7 +238,7 @@ void start_download()
     char stamp[32];
     time_t now = time(nullptr);
     strftime(stamp, sizeof stamp, "%Y%m%d-%H%M%S", localtime(&now));
-    g_scratch = fs::temp_directory_path(ec) / ("DefJamRecompiled-update-" + std::to_string(getpid()) + "-" + stamp);
+    g_scratch = fs::temp_directory_path(ec) / ("DefJamRecompiled-update-" + std::to_string(os::process_id()) + "-" + stamp);
     fs::create_directories(g_scratch, ec);
     g_status = g_scratch / "status.txt";
     g_cancel = g_scratch / "cancel";
@@ -223,10 +247,11 @@ void start_download()
     g_line.clear();
     g_error.clear();
     g_cancelling = false;
-    fprintf(stderr, "[APP] update: downloading %s into %s, log %s\n", g_tag.c_str(), g_staged.c_str(), g_log.c_str());
+    fprintf(stderr, "[APP] update: downloading %s into %s, log %s\n", g_tag.c_str(), g_staged.string().c_str(),
+            g_log.string().c_str());
     if (!spawn_engine({"--stage-app", g_tag, "--stage-dir", g_staged.string(), "--status-file", g_status.string(),
                        "--cancel-file", g_cancel.string(), "--log", g_log.string()},
-                      &g_stage_pid, &g_error)) {
+                      &g_stage_process, &g_error)) {
         g_stage = Stage::Failed;
         return;
     }
@@ -238,6 +263,41 @@ void start_download()
 // window closes, and the window is asked to close.
 void swap()
 {
+#if defined(_WIN32)
+    // The program and the payload, each renamed aside and the new one renamed in; every step undone
+    // in reverse when a later one fails.
+    fs::path home = bundle(), program = app::program();
+    std::vector<std::pair<fs::path, fs::path>> done;    // renames made, to undo
+    auto undo = [&] {
+        std::error_code back;
+        for (auto it = done.rbegin(); it != done.rend(); ++it) fs::rename(it->second, it->first, back);
+    };
+    std::error_code ec;
+    fs::remove(program.string() + ".old", ec);
+    fs::remove_all(home / "payload.old", ec);
+    const std::pair<fs::path, fs::path> steps[] = {
+        {program, program.string() + ".old"},
+        {home / "payload", home / "payload.old"},
+        {g_staged / releases_program(), program},
+        {g_staged / "payload", home / "payload"},
+        {g_staged / "payload.sha256", home / "payload.sha256.new"},
+    };
+    for (const auto &step : steps) {
+        fs::rename(step.first, step.second, ec);
+        if (ec) {
+            undo();
+            g_error = "The new app could not be put in place (" + ec.message() + "). This version is still installed.";
+            g_stage = Stage::Failed;
+            return;
+        }
+        done.push_back(step);
+    }
+    // Which built-in payload payload\ now holds (app_install.cpp), so the new copy keeps it.
+    fs::remove(home / "payload.sha256", ec);
+    fs::rename(home / "payload.sha256.new", home / "payload.sha256", ec);
+    fs::remove_all(g_staged, ec);
+    fs::path here = home;
+#else
     fs::path here = bundle(), old = beside(here, ".old");
     std::error_code ec;
     fs::remove_all(old, ec);
@@ -255,9 +315,14 @@ void swap()
         g_stage = Stage::Failed;
         return;
     }
-    fprintf(stderr, "[APP] update: v%s is in place at %s; starting it\n", g_version.c_str(), here.c_str());
+#endif
+    fprintf(stderr, "[APP] update: v%s is in place at %s; starting it\n", g_version.c_str(), here.string().c_str());
     auto &next = app::relaunch();
+#if defined(_WIN32)
+    next = {app::program().string()};
+#else
     next = {(here / "Contents/MacOS/defjam_app").string()};
+#endif
     for (const std::string &a : app::arguments())
         if (a != "--updated") next.push_back(a);
     next.push_back("--updated");
@@ -269,10 +334,8 @@ void poll_download()
     if (g_stage != Stage::Downloading) return;
     std::string line = read_line(g_status);
     if (!line.empty()) g_line = line;
-    int status = 0;
-    if (waitpid(g_stage_pid, &status, WNOHANG) != g_stage_pid) return;
-    g_stage_pid = 0;
-    int code = WIFEXITED(status) ? WEXITSTATUS(status) : 4;
+    int code = os::finished(g_stage_process);
+    if (code < 0) return;
     line = read_line(g_status);
     if (!line.empty()) g_line = line;
     std::error_code ec;
@@ -301,17 +364,31 @@ void update_cleanup()
     fs::path here = bundle();
     if (here.empty()) return;
     std::error_code ec;
+#if defined(_WIN32)
+    // The previous program may still be exiting for a moment after it started this one.
+    fs::path old = app::program().string() + ".old";
+    for (int tries = 0; tries < 30 && fs::exists(old, ec); tries++) {
+        if (fs::remove(old, ec)) break;
+        SDL_Delay(100);
+    }
+    if (fs::exists(here / "payload.old", ec)) {
+        fs::remove_all(here / "payload.old", ec);
+        fprintf(stderr, "[APP] update: removed the previous app\n");
+    }
+    fs::remove_all(here / ".update", ec);
+    return;
+#endif
     if (fs::exists(beside(here, ".old"), ec)) {
         fs::remove_all(beside(here, ".old"), ec);
         fprintf(stderr, "[APP] update: removed the previous app\n");
     }
 }
 
-bool update_busy() { return g_stage_pid != 0; }
+bool update_busy() { return g_stage_process.id != 0; }
 
 void update_request_cancel()
 {
-    if (!g_stage_pid || g_cancelling) return;
+    if (!g_stage_process.id || g_cancelling) return;
     std::ofstream(g_cancel) << "cancel";
     g_cancelling = true;
 }

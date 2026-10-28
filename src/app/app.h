@@ -2,11 +2,11 @@
 // launcher, setup and maintenance (app_setup.cpp).
 #pragma once
 
-#include <sys/types.h>
-
 #include <filesystem>
 #include <string>
 #include <vector>
+
+#include "app_os.h"
 
 struct UiResult;
 
@@ -85,6 +85,25 @@ void screen_open_maintenance();
 bool screen_busy();
 void screen_request_cancel();
 
+// ---- Windows: the app installs itself (app_install.cpp) --------------------------------------------
+
+// Where this program stands, decided before anything else when it was started without --payload.
+enum class Placement
+{
+    Development,    // no setup payload built in: a development build, run as it is
+    Installed,      // the copy in the app's home folder
+    HandOver,       // another copy (the download): relaunch() holds the installed copy to start
+    NeedsInstall    // no home yet: the window opens on the install page
+};
+Placement place_app(std::string *error);
+
+// The installed copy: make sure payload\ beside it is the one built into it. False with the reason.
+bool ensure_payload(std::string *error);
+
+// The install page, while it is up; drawn before anything else. And whether it is copying files.
+bool install_screen_draw(float width, float height, UiResult *result);
+bool install_busy();
+
 // ---- the app's own updates (app_update.cpp) ----------------------------------------------------
 
 // Remove what a finished update left beside the app, once it has started again. At start.
@@ -100,6 +119,6 @@ void update_request_cancel();
 
 // Start setup/engine.py from the app's payload with its Python and these arguments (after
 // --payload), in the plain environment the setup wizards give it (app_setup.cpp).
-bool spawn_engine(const std::vector<std::string> &engine_args, pid_t *pid, std::string *error);
+bool spawn_engine(const std::vector<std::string> &engine_args, os::Process *process, std::string *error);
 
 } // namespace app
