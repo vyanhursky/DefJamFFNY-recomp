@@ -1,5 +1,11 @@
 # UI reconstruction: native pilot and first family batch — 2026-10-27
 
+**Later owner feedback:** the twelve-family direction is approved for expansion.
+Native Main Menu v5 needs thinner strokes/open A; dark Capone v2 needs its added
+rim/depth removed; startup Continue v3 is good. See the [next wave and corrected
+masters](menu-ui-reconstruction-wave-01-2026-10-27.md). The pending statements
+below describe this earlier checkpoint, not the latest acceptance state.
+
 The owner approved the [production plan](menu-ui-reconstruction-plan-2026-10-27.md)
 and added green-edge cleanup from [issue #142](https://github.com/vyanhursky/DefJamFFNY-recomp/issues/142).
 Main Menu v5, Continue v3 and dark Capone v2 establish the accepted sample direction.

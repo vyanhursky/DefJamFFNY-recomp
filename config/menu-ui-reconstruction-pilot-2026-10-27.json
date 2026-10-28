@@ -4316,5 +4316,12 @@
       "unresolved_calls": 0
     }
   ],
-  "next": "Owner reviews native pilot and family direction; then extend calibrated families, handle tiled/glyph/language cases, and complete retained-art green-edge work before packaging. Future PR milestone v0.12.2. No source push or catalogue publication in this checkpoint."
+  "next": "Owner reviews native pilot and family direction; then extend calibrated families, handle tiled/glyph/language cases, and complete retained-art green-edge work before packaging. Future PR milestone v0.12.2. No source push or catalogue publication in this checkpoint.",
+  "later_owner_feedback": {
+    "superseding_record": "config/menu-ui-reconstruction-wave-01-2026-10-27.json",
+    "family_direction": "Approved for expansion",
+    "main_menu_v5": "Native feedback rejects excess M/N/A weight; revised v6 awaits review",
+    "continue_v3": "Accepted in-game; preserve exact PNG",
+    "dark_capone_v2": "Remove added outer edge/depth; revised v3 awaits review"
+  }
 }

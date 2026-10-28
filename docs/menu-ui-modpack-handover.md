@@ -1,5 +1,15 @@
 # Menu/UI modpack implementation handover
 
+**Next production set — 2026-10-27:** [wave and corrected-master report](research/menu-ui-reconstruction-wave-01-2026-10-27.md).
+Owner approved the twelve-family direction and requested the next set ready for
+tomorrow. Native feedback overrides earlier browser approval: Main Menu v5 is
+too heavy and needs thinner M/N/A/open A; dark Capone v2 needs its added outer
+rim/depth removed; startup Continue v3 is accepted and remains byte-identical.
+New Main Menu v6/Capone v3 and 25 further control/option labels are at
+`http://127.0.0.1:51742/next-review/review.html`. These particular new drafts await
+review. Published1.2/catalogue5 unchanged; no push or release requested.
+Earlier checkpoints below retain their historical pending/acceptance states.
+
 **Native pilot / family batch — 2026-10-27:** [results and continuation](research/menu-ui-reconstruction-pilot-2026-10-27.md).
 Owner approved the production plan and added issue #142 green-edge cleanup. Three
 accepted samples are captured natively at 1440p; 12 family drafts await review at
