@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "date": "2026-10-29",
+  "recovery_path": "/Users/vlad/Code/defjam-data/scratch/menu-ui-wave09-final-approved-20261029",
+  "manifest_sha256": "ea556b910134d0ae5224a0215be6462ced3549b2de5d59771eb3d1b0e1060173",
+  "files": 4,
+  "accepted_distinct_sources": 705,
+  "raw_artwork_recovery": "Chained to all three immutable parent checkpoints",
+  "publication": "unchanged"
+}
