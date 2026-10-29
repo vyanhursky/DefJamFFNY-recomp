@@ -1,5 +1,7 @@
 # Menu/UI modpack implementation handover
 
+**Batch six approved — 2026-10-28:** Vlad: “Approve those 60 textures, all look great”. All 60 selected raw/preview hashes reverified and recorded in `config/menu-ui-reconstruction-wave06-approval-2026-10-28.json`. These 30 select and 30 loading variants are accepted for the next pack update. The immutable uploaded 1.3.0 package remains its frozen 390-mapping selection; publication checks are still in progress. Wave seven has 50 standalone labels/music textures assigned to three artwork workers. Historical review-pending statements below are superseded by this approval.
+
 **Final ordinary banner variants, batch six — 2026-10-28:** [report](research/menu-ui-reconstruction-wave-06-2026-10-28.md).
 The owner approved all prior 100, including disclosed Ice-T edges; pins in
 `config/menu-ui-reconstruction-wave05-approval-2026-10-28.json`.
