@@ -8,6 +8,9 @@ The owner then accepted all 104 wave-three review entries and requested the next
 batch. Wave four covers 100 new three-fighter banner sources and three earlier
 material corrections. Each generation now has an immutable request record saved
 before its call, then a matching versioned result record and raw PNG hash.
+The owner subsequently accepted all 103 wave-four entries and requested continued
+production. Wave five covers 100 new sources: 22 remaining three-fighter and
+78 four-fighter variants. Each layout remains independently tied to its original.
  On 2026-10-28 the owner accepted the
 [next 27 review textures](menu-ui-reconstruction-wave-01-2026-10-27.md), including
 Main Menu v6 and flat dark Capone v3, and requested **at least 50 textures per

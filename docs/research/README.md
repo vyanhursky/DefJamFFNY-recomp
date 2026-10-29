@@ -177,7 +177,8 @@ The plan built from these is in [docs/widescreen](../widescreen/README.md), whic
 - [UI sharpness samples](menu-ui-sharpness-samples-2026-10-27.md) — three contour reconstructions beyond 1.2; accepted visual direction, exact prompts, corrected banner contexts and native-integration limits.
 - [Remaining UI reconstruction plan](menu-ui-reconstruction-plan-2026-10-27.md) — production scope, complete prompt set, family batches, atlas assembly, native checks and release approach.
 
-- [UI reconstruction next hundred variants](menu-ui-reconstruction-wave-04-2026-10-28.md) — previous 104 approved; 100 new three-fighter banner sources plus Bo, Cruz and WC material corrections, with three isolated generation workers.
+- [UI reconstruction hundred-banner batch five](menu-ui-reconstruction-wave-05-2026-10-28.md) — previous 103 approved; 100 new source variants, split into 22 three-fighter and 78 four-fighter banners.
+- [UI reconstruction next hundred variants](menu-ui-reconstruction-wave-04-2026-10-28.md) — all 103 subsequently approved; 100 new three-fighter banner sources plus Bo, Cruz and WC material corrections.
 - [UI reconstruction 100-source parallel batch](menu-ui-reconstruction-wave-03-2026-10-28.md) — all 104 subsequently approved; 100 new select/loading/layout sources plus four earlier transparency corrections.
 - [UI reconstruction 50-wordmark batch](menu-ui-reconstruction-wave-02-2026-10-28.md) — paired select/loading originals for25characters, 50newdrafts, fast grid/detail review; previous27 accepted.
 - [UI reconstruction first production wave](menu-ui-reconstruction-wave-01-2026-10-27.md) — approved family expansion, 25 new labels and Main Menu/Capone native-feedback corrections; Continue preserved.

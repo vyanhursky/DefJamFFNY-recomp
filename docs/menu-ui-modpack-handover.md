@@ -1,5 +1,31 @@
 # Menu/UI modpack implementation handover
 
+**100 new banner variants, batch five — 2026-10-28:** [batch report](research/menu-ui-reconstruction-wave-05-2026-10-28.md).
+The owner approved all previous 103; pins in
+`config/menu-ui-reconstruction-wave04-approval-2026-10-28.json`.
+New review `http://127.0.0.1:51746/review.html#overview` covers 100 distinct new
+sources: 22 remaining three-fighter and 78 four-fighter, 50 select / 50 loading.
+Three isolated workers saved 129 built-in outputs; 100 selected,
+29 held. Literal pre-call/result records and all attempts are preserved;
+unissued preparations remain separate from successful output counts.
+Source RGBA and pale/blue checks distinguish true holes, opaque faces and partial
+ink; genuine colour remains, without amplified sampling stripes or new cream rims.
+Parent inspected all 100 matched blue and pale/dark comparisons. Source-tail exceptions, if any,
+keep full originals and explicit source-specific notes/bounds in the ledger.
+All 100 exports preserve raw alpha and RGB >16 exactly; bounded near-pure neon
+checks pass. Previous 103/104/50/27 preview entries remain byte-identical.
+Browser: 100 details, 200 grid canvases, filters/search/1×/3×/6×/raw/ghost/backdrops,
+zero console errors or page overflow. New drafts await owner review. No native
+run, atlas assembly, installation, publication or push is claimed. Published 1.2 /
+catalogue 5, backgrounds/map, game and toolkit remain unchanged.
+Ledger `config/menu-ui-reconstruction-wave-05-2026-10-28.json`; workspace
+`logs/menu-ui-wave05-20261028/`, server 51746. Recovery `/Users/vlad/Code/defjam-data/scratch/menu-ui-wave05-review-20261028`;
+manifest pin `config/menu-ui-reconstruction-wave-05-checkpoint-2026-10-28.json`.
+Next: review 100, resolve exceptions, then 60 remaining non-99 banner candidates, held ID99 resources and
+other label families in 100+ batches. Native atlas/blending/placement/clipping/
+sampling validation follows assembly. Future PRs milestone v0.12.2. Historical
+pending statements below retain their original dates.
+
 **Next 100 banner variants + three material corrections — 2026-10-28:** [batch report](research/menu-ui-reconstruction-wave-04-2026-10-28.md).
 The owner approved all previous 104; approval pins are in
 `config/menu-ui-reconstruction-wave03-approval-2026-10-28.json`.

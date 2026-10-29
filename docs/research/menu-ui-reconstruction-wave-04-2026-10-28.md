@@ -1,5 +1,8 @@
 # UI reconstruction: next hundred variants — 2026-10-28
 
+Subsequent owner approval: all 103 entries accepted; hashes pinned in
+`config/menu-ui-reconstruction-wave04-approval-2026-10-28.json`. Historical review-pending statements below describe the completed checkpoint.
+
 The owner accepted all 104 wave-three studies and requested the next batch.
 Approval is pinned to their selected preview hashes in
 `config/menu-ui-reconstruction-wave03-approval-2026-10-28.json`. Previous artwork,
