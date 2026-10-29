@@ -1,5 +1,7 @@
 # Menu/UI modpack implementation handover
 
+**1.3.0 published — 2026-10-28:** [publication report](research/menu-ui-v1.3-publication-2026-10-28.md), pins `config/menu-ui-v1.3-release.json`. Cloudflare archive `82ad6d53f3161b612110cdd84e3f9d0bde2f517a9a9f6410f9e52afcf963de24`, signed catalogue revision 7, PR [mods#7](https://github.com/vyanhursky/DefJamFFNY-mods/pull/7), milestone v0.12.2. Frozen390 approved mappings;178 additional texture mappings;1,482native/80wide/1,704PNGs. Six serial native routes/39captures and released0.12.1 real network update/rollback pass; no reinstall needed. All80wide and1,314nonmetadata1.2files exact. Newly approved60wave06 queued for next update;50wave07 standalone labels/music drafts in production, not published. Historical pending publication statements below are superseded.
+
 **Batch six approved — 2026-10-28:** Vlad: “Approve those 60 textures, all look great”. All 60 selected raw/preview hashes reverified and recorded in `config/menu-ui-reconstruction-wave06-approval-2026-10-28.json`. These 30 select and 30 loading variants are accepted for the next pack update. The immutable uploaded 1.3.0 package remains its frozen 390-mapping selection; publication checks are still in progress. Wave seven has 50 standalone labels/music textures assigned to three artwork workers. Historical review-pending statements below are superseded by this approval.
 
 **Final ordinary banner variants, batch six — 2026-10-28:** [report](research/menu-ui-reconstruction-wave-06-2026-10-28.md).

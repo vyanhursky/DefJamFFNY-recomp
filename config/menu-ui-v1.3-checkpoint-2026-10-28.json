@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "version": "1.3.0",
+  "recovery_path": "/Users/vlad/Code/defjam-data/scratch/menu-ui-v1.3-published-20261028",
+  "manifest": "CHECKPOINT.json",
+  "manifest_sha256": "67a6be4933d721be56fba7806b07037f346dc893520d8667138eac28e264d8c5",
+  "file_count": 85,
+  "bytes": 873974970
+}
