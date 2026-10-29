@@ -29,6 +29,7 @@ cite other development notes, logs and captures that are not published.
 
 ## Front end and movies
 
+- [Menu/UI reconstruction batch seven](menu-ui-reconstruction-wave-07-2026-10-28.md): 50 standalone label/music/player-indicator drafts, exact generation history and qualified plain-font fidelity review.
 - [HD Widescreen Menus 1.3 publication](menu-ui-v1.3-publication-2026-10-28.md): 390 accepted reconstructed mappings, signed catalogue revision 7, six native routes and released 0.12.1 managed update/rollback.
 - [Mod system design](mod-system-design.md): signed catalogue architecture and future override types (PR17).
 - [Integrated launcher/menu RC](integrated-menu-launcher-rc-2026-10-23.md): combined candidate, hosted delivery and acceptance evidence.
