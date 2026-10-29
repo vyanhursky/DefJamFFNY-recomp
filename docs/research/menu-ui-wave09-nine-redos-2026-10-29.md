@@ -1,0 +1,29 @@
+# Nine source-based UI redos — 2026-10-29
+
+Vlad rejected the nine pictured sources from the19-texture revision review: WINNER, READY!, GAGNANT, promotional OPTIONS/BEATBOX/EXTRAS/ONLINE/BATTLE and the red YOU DON'T HAVE ENOUGH POINTS stamp. “The rest are good” approves the other10 in that review. Exact selected raw/preview pins are recorded in `config/menu-ui-wave09-revisions-approval-2026-10-29.json`, bringing accepted sources to614. An asynchronous clarification asks whether this also approves the separate82 original-batch drafts; absent an answer they remain pending. No release/catalogue update is inferred.
+
+[Review the nine new candidates](http://127.0.0.1:51754/review.html#overview). Original / rejected previous revision / new comparisons support1×,3×,6×, raw aspect, original ghost, neutral/context backdrops and saved superseded attempts. Both supplied feedback screenshots are retained privately. Previous viewers and artwork remain intact.
+
+## Original-driven pass
+
+The feedback shows continuing glyph/spacing and ink drift, not just insufficient output resolution. The new first pass uses faithful6× neutral-gray/blue/pale composites of the actual original RGBA. Raw original RGB beneath transparent pixels includes matte colours; composite references reveal the actual visible print without teaching the generator to restore those hidden pixels. The original files/crops/alpha are unchanged. Nine earlier RGBA-based preparations were retained but never invoked. No previous generated font was a first-pass design authority.
+
+Prompts describe original per-glyph terminal/counter/junction shapes, original face height/spacing and muted cream/gold wear; no generic replacement western/stencil font. Result-stamp prompts distinguish quiet gray frame/spray from luminous white outlines, while retaining genuinely transparent fields. The red warning follows original narrow regular lettering, source row placement and faded ink instead of the heavy bold poster treatment. Existing technical exports do not procedurally repair generated typography, colour or opacity.
+
+Five promotional words and GAGNANT received bounded edge-only refinements after the source pass retained a stronger dark keyline. READY!v8 was a guard-only attempt, but it changed the rim/letter style; it is superseded. The closer original-driven READY!v7 is selected. Sixteen actual built-in calls produced16saved PNGs:9selected and7superseded, with0failed calls. Nine preparations were never invoked; all25literal requests are accounted for. Calls were issued directly by the parent, without subagents or API/CLI fallback.
+
+Selected: WINNERv7, READY!v7, GAGNANTv8, OPTIONSv7, BEATBOXv7, EXTRASv7, ONLINEv7, BATTLEv7, redwarningv6. These remain **unapproved reconstruction candidates**. Glyph contours/widths, serif proportions, spacing, grunge, cream/gold balance, frame/spray opacity and shadows still differ from originals. No exact-font or exact-original-alpha claim. Bounds fitting is unchanged: complete alpha16 shadow envelopes for promotional words, alpha128 for other families; all three panels use the same rule. This preview registration does not prove native atlas size or placement.
+
+## Checks and retained limitation
+
+Parent inspected all9 original/previous/new pairs at native1× and magnified blue/pale, plus the six edge refinements and rejected READY! guard attempt. All9 original source pins,16default/workspace/request pins and16export alpha/RGB contracts verify. Exports use established low-alpha RGB bleed while retaining every generated alpha byte and RGB above alpha16; no artistic threshold/recolour/sharpen/morphology repair. Selected exports contain no near-pure neon green. Intentional source colours remain references.
+
+Eight selected borders have alpha≤16. READY!v7 retains partial spray at its canvas boundary, maximum89/255; no alpha128 ink touches an edge. The altered guard attempt is not selected merely to pass this numeric check. Source-style fidelity takes priority for this review; atlas gutter/framing and native sampling remain an explicit later integration task. No claim of a perfect transparent guard or release-ready native validation.
+
+Vision processed18initial source/draft images plus2READY!v7 replacements. The18final records cover all9selected pairs. BEATBON and BATI were false readings; actual BEATBOX/X crossing and all six BATTLE letters were visually confirmed. OCR is a flagger, not font/text proof. Browser validation covers9details at all3scales (27cases),18overviewcanvases and11focused controls, with0console warnings/errors or document overflow. Copied controls already checked in the prior viewer were not broadly retested without a new concern.
+
+All101 original batch9raw/previews and all19previous revision raw/previews remain unchanged. The614accepted source IDs, previous approval pins and published1.3ZIP remain intact and disjoint from these9pending IDs. No new game run, installation, native capture, publication or push.
+
+Source ledger: `config/menu-ui-wave09-nine-redos-2026-10-29.json`. Private artwork/literal prompt set/viewer: `logs/menu-ui-wave09-nine-redos-20261029/`. Additive recovery: `/Users/vlad/Code/defjam-data/scratch/menu-ui-wave09-nine-redos-20261029`, chained to the previous19-revision checkpoint and pinned by `config/menu-ui-wave09-nine-redos-checkpoint-2026-10-29.json`. Original full inputs and rejected prior HD sources are copied for recovery; artwork/captures remain outside Git.
+
+Next: owner reviews these9 and clarifies the82approval scope. On explicit approval pin exact selected hashes; do not silently select superseded attempts. Remaining unassigned inventory is629mappings plus prior held/effect-role investigation. Atlas assembly/layers/sampling/gutters and serial native checks follow approved-art integration. Future PR milestone remains **v0.12.2**.

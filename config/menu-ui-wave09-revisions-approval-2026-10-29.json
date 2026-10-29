@@ -1,0 +1,95 @@
+{
+  "schema": 1,
+  "date": "2026-10-29",
+  "owner_message": "These 9 still look off to me. The rest are good",
+  "approved_review": "http://127.0.0.1:51753/review.html#overview",
+  "approved_source_record": "config/menu-ui-wave09-revisions-2026-10-29.json",
+  "approved_source_record_sha256": "1f604a2fbc9ef014ad13016be3added99cf00ac87acfc88a3549e993877c897f",
+  "approved_count": 10,
+  "total_distinct_accepted_sources": 614,
+  "approved_records": [
+    {
+      "key": "u039-248432cb",
+      "revision": "v5",
+      "raw_sha256": "29a1c9dafa7755aedee657bc8edbbbd6e5a59de17b352227d077d1ed494db93c",
+      "preview_sha256": "09fe41de20f83fd3dc6f03891732a1c9f0d5c4d3bc828467bb4c6c060a00b517",
+      "source_id": "248432cb4f41400cc5d5c61b1cbc4c8acad31316f499f81b02f10f5b01c2e689"
+    },
+    {
+      "key": "u025-e869c1ba",
+      "revision": "v5",
+      "raw_sha256": "eb11dc1de8769cd2e6877b479153c95176268ba74ea5347781d1d3c3554e0730",
+      "preview_sha256": "84b2baa0e34adbff57c36c9ff79dee0486499763d214e39080919b0a3f726633",
+      "source_id": "e869c1ba475723aa79da9fc73bd388c5791a4f4f3176cb37b3491bc2d2704d22"
+    },
+    {
+      "key": "u031-3beb87c7",
+      "revision": "v5",
+      "raw_sha256": "0c0722b94103ddf850645ccbf7453c78a7382fd7e3c298eca406e5886ea76b1e",
+      "preview_sha256": "321edb9ff382c32d7f9c7fbea1ec9a8a7c58f78ec4d2ebe784af42afe6a5980b",
+      "source_id": "3beb87c70fc0eefb0fd7e65cd64b056dfe8d8213cb20571424d866568417fce3"
+    },
+    {
+      "key": "u032-0f950b65",
+      "revision": "v3",
+      "raw_sha256": "34285dd1748c73d356e0603cbb9ccc8c55605695f7fdc8787dd9674f39a71591",
+      "preview_sha256": "49ae66d4324c16d0ad53e05172c735669099b84ee3ea5f75857185663e3246e9",
+      "source_id": "0f950b65ff8e355a2ba19ae68169d37513e9023bbf7524a5ce6c86cfcfd3f342"
+    },
+    {
+      "key": "u037-91a0830f",
+      "revision": "v5",
+      "raw_sha256": "8b9697bb24fc6e4f73f77d946783a7e22078747ba642bd7fd6261b8362506a1b",
+      "preview_sha256": "c213468ea1dbfdbf00ed346203eb419660c8f4e8b66442c9e6c4f5bebec4f2bd",
+      "source_id": "91a0830ff5b3b65cae94a660a8df357bc1c6be9ecc3677d0695a6acc5ed1f760"
+    },
+    {
+      "key": "u043-486e1b78",
+      "revision": "v5",
+      "raw_sha256": "72f5d13ded8ebd4924217e99d2780916cc4e4fb38d6de228272cd2fa801dabba",
+      "preview_sha256": "d24239f06548664048e51491fc1b65a58f320bdecdb9a1ab23ad0ca4c3223308",
+      "source_id": "486e1b7847b5ce1930a514eac5c5337bc86520cf458da48c1c46e302bdafd0e5"
+    },
+    {
+      "key": "u046-d707fd92",
+      "revision": "v3",
+      "raw_sha256": "6f7f2aa8b311eca1ba63068bab857d42b430df8aa8076f4814c7ee601120bcdd",
+      "preview_sha256": "35b6c2c275d1de7890a03bd4eba0877ce44f234a97401e0d4f3966a1b22b7a52",
+      "source_id": "d707fd9281fb93970b0bb3b37c223a53c9497eb24130d3237c36d46dc6614b80"
+    },
+    {
+      "key": "u051-bd5522f4",
+      "revision": "v3",
+      "raw_sha256": "c788587ea7e794a460fdeebd0aa912dceeaadc8a51bb462143633066d1120707",
+      "preview_sha256": "d32a276e88496e49c0e3613d8a2559633bdfe13d9fb2bba29506092b7ca0a690",
+      "source_id": "bd5522f4c3e4960601ed4518d97a9998654cb863ef1707c27cd6bb0c351ac15d"
+    },
+    {
+      "key": "u061-d1a7201e",
+      "revision": "v5",
+      "raw_sha256": "77d26abdc5f4f6a76f69f45dd73b4511644a7a34a7cfcef56ab393e70530f5fb",
+      "preview_sha256": "0520d385ab9048753a50a4771ea8dde0a9a5d3e017ca4cbc98bfe44b5fad45fc",
+      "source_id": "d1a7201ecdfcdfb49c525fc7ddb37b3bdabc1ba6a9916ae069166c8aad877f62"
+    },
+    {
+      "key": "u067-0f2fec88",
+      "revision": "v4",
+      "raw_sha256": "25f27c4ee9f601d5abcd8e3c85e8b3af41b73898740dc65f947476f06827fdad",
+      "preview_sha256": "bc31c40d7d5356b0fba724a26fb14c3fc0342cebb0460075fc1a086d2cc3a188",
+      "source_id": "0f2fec88cc5c57057c1b0d3d61a8e3154b06afb24696083662ce5e8d0bba5764"
+    }
+  ],
+  "excluded_for_revision": [
+    "u068-0fdad2b7",
+    "u071-1378b522",
+    "u074-30fad9eb",
+    "u076-3e9dd51b",
+    "u081-5af60ba3",
+    "u085-6e626288",
+    "u087-7017f637",
+    "u095-885bd6a6",
+    "u097-91247b8f"
+  ],
+  "interpretation": "The other10 in the19-source revision viewer. Separate82 original-batch drafts remain pending unless the owner broadens this approval.",
+  "release_disposition": "Queued for future update; published1.3/catalogue7 unchanged."
+}
