@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "date": "2026-10-29",
+  "owner_message": "Approve the 4 textures.",
+  "approved_review": "http://127.0.0.1:51751/review.html#overview",
+  "approved_source_record": "config/menu-ui-stencil-corrections-2026-10-29.json",
+  "approved_source_record_sha256": "26ed3ef0f5bdb322d14ebd06bdd1e6950b3375694ec84a0fb1a303f97b44133e",
+  "approved_count": 4,
+  "total_distinct_accepted_sources": 604,
+  "approved_records": [
+    {
+      "key": "u043-887c3f59",
+      "source_id": "887c3f599cef30f2137bf6b19d992e76bee50adcf301ad0597821d6dab682d29",
+      "revision": "v3",
+      "raw_sha256": "9aa6abc21364dc7cd14c1cfb148854e6b81ef5523338923fa09ff9bc56b9914a",
+      "preview_sha256": "609c40fcf3af1c3e931fb1e41fbbeeab14bd7709c3aa22282255becbe1af8bda"
+    },
+    {
+      "key": "u032-b884c774",
+      "source_id": "b884c774e2ff8a2df5e27438e99271964069ba27fae99d28a5750a87e14b32cc",
+      "revision": "v3",
+      "raw_sha256": "461f2a64e451e024dea37fc9404190f8e2b1bba504e08f5fa403b719a894813e",
+      "preview_sha256": "6c6d12d5598f14be0cb9464bdcc8d3734911922b839a1b4651d244700e76487f"
+    },
+    {
+      "key": "u101-6c73af6d",
+      "source_id": "6c73af6d79c21ceaf07947f8018162cd9b6647ddf172a230146411ed6dc9666b",
+      "revision": "v4",
+      "raw_sha256": "42dc7e9922b4bcfd596ec5bf95438f19a5b18bc59a5a815b6f8ac24caac387fc",
+      "preview_sha256": "b78100f9fdd3fc6d8064278fa0fdc114593e48c86574669f0ad88c00d81cefc5"
+    },
+    {
+      "key": "u105-130e81b9",
+      "source_id": "130e81b94bdcbd6c3cfc1094a32b01b72624f81cd67a3ecef17f9f1d7f936ef0",
+      "revision": "v5",
+      "raw_sha256": "b78a0bd4163b6d9323ece984942de83ef8326c4fd3a8587c521bf343e6609ac2",
+      "preview_sha256": "406cc4420cb6ba50c956f69b61af1d6d5ac37e8b8b3bd2a7d643cff765a8a2fe"
+    }
+  ],
+  "interpretation": "The four revised stencil candidates only. No approval of batch9 remaining82 or its19 requested revisions is inferred.",
+  "release_disposition": "Queued for future update; published1.3/catalogue7 remain unchanged."
+}

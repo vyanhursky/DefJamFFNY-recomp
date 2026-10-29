@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "path": "/Users/vlad/Code/defjam-data/scratch/menu-ui-wave09-revisions-20261029",
+  "files": 445,
+  "bytes": 149581891,
+  "manifest_sha256": "33ddf0e128cb188140991ec2ab03b006b171ccab368fe0a923b9a49de44de11e",
+  "every_copy_verified": true,
+  "parent_checkpoint": "/Users/vlad/Code/defjam-data/scratch/menu-ui-wave09-review-20261029/recovery-manifest.json",
+  "parent_sha256": "d60c80f455c73b24ac33b1631b948ae9508b04121bb348c42b55ddcfba0a21ce"
+}
