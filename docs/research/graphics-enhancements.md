@@ -97,19 +97,50 @@ the warm, sepia grade of every fight is this tint. Transitions interpolate other
 
 - `color_tint` (0-100): `sub_000D9AF0_enter` (the tint draw that also carries the vignette) moves the six
   colour arguments towards no tint in proportion: modulate towards 255, fill towards 0. 0 in a fight gives the
-  untinted picture (blue denim reads blue).
+  untinted picture (blue denim reads blue). The modulate also darkens, so less tint is also a brighter
+  picture; the brightness option can take it back down.
 - `scratches`: `sub_000D8AD0` is the film-scratch overlay's draw (thiscall, no arguments); a manual wrapper
-  returns without drawing when off. The default fight's variance asks for scratches but its overlay byte
-  (`this+0x98`) is clear, so the draw is never reached there; scenes that do draw them still need finding
-  (Story flashbacks are the candidates). The option is wired and logs `[PICTURE] film scratches removed` the
-  first time it skips one.
+  returns without drawing when off, and logs `[PICTURE] film scratches removed` the first time it skips one.
+  The draw also needs the overlay byte `this+0x98`, so not every fight reaches it: the harness's default
+  One on One did (all-on run), the seeded fixture fight did not.
 - Glow was not made an option: `GlowEnable` only copies an intensity to `this+0x54`, and the pass that uses it
   is somewhere else. Mapping it belongs to the restoration pass below, because the translator has no
   render-to-texture and a glow that renders off screen may already be drawing into the main target.
 
+## Measurements (macOS, M1 Pro, Vulkan)
+
+Seeded One on One fights: `scenario_suite.py run fight --step-input default --rng-seed 20261006 --no-unlock
+--fixture <mac-profiles> --step-shots 300,900,1500 --settings <json>`. Fighters, HUD and arena repeat; the
+crowd is not seeded. Captures are the title's target scaled to 640x480.
+
+| Run | Settings | Result |
+|---|---|---|
+| base1 | scale 1 | reference; 7 of 100 two-second windows under 59 fps (the same in every run below) |
+| mips1 | + `texture_mips` | 22-28% of pixels differ by more than 3 levels; the rope-wrapped post goes from moire noise to its woven texture; fighters unchanged |
+| af1 | + `anisotropy` 16 | floor tile edges a little crisper than mips alone at the fight camera's height; `anisotropic filtering: up to 16x` |
+| tint0 | `color_tint` 0 | the venue grade is a greenish darkening multiply: fighter region mean RGB 19/25/24 -> 34/35/35 at step 300 |
+| base2 / msaa2 | scale 2, then + `msaa` 4 | `MSAA: 4x asked, 4x used`; correct picture, smoother outlines (faint in 640x480 captures); fps unchanged |
+| base4 | scale 4 | 60 fps; see the restoration pass |
+| all on | scale 4, MSAA 4x, mips, 16x, tint 50, scratches off, HQ filter, 640x400 window | median 120 presents per 2 s; 2560x1920 target into a 1280x800 swap chain: one exact halving, then 1280x960 -> 1067x800; `film scratches removed` logged (the default venue does draw them) |
+
+Regressions on this branch with the defaults: `regress.py --quick` 5 of 5; `--only
+fight,ffa,launcher,overlay,unlockopt,picture` all pass; `visual` blocked (no approved baselines on this Mac).
+Unit tests 638 passed. Toolkit fixtures `nv2a_ffp_backend`, `nv2a_host_clip`, `nv2a_raster_batch`,
+`nv2a_small_capture`, `nv2a_ws_left_tag`, `d3d8_present_fit` pass.
+
 ## Restoration pass (1x / 2x / 4x)
 
-<!-- filled from the A/B runs -->
+Same seeded fight at render scale 1, 2 and 4, mean luminance per region at steps 300, 900 and 1500:
+
+| Region | Agreement across 1x / 2x / 4x |
+|---|---|
+| floor (two patches) | within 1.6 levels |
+| top edge (vignette) | within 0.3 levels |
+| HUD bars | 1x is 1.5-2.7 levels brighter: the capture's downscale of thin bright lines, not an effect |
+
+Shadows, the vignette, the tint and the HUD draw the same at every scale; nothing in a One on One fight is lost
+or misplaced at high resolution. Not covered yet: Story cutscenes, venue transitions, Blazin' moves, and the
+glow pass (still unmapped; see above). Those are the next places to look, with `RECOMP_POSTFX_TRACE=1`.
 
 ## Frame rates above 60: feasibility
 

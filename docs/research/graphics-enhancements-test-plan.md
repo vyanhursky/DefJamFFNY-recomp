@@ -39,6 +39,10 @@ python scripts/regress.py --only fight,ffa,visual,launcher,overlay,unlockopt,pic
 Pass: every row passes, including the three golden frames and `visual`. On the Deck run them under headless
 gamescope as `docs/build-macos-linux.md` describes.
 
+Every run's log (`logs/run-*.log.err`) now has one line saying which options are on; with the defaults it reads
+`[DISPLAY] filter smooth, texture levels off, anisotropy 1x, MSAA 1x asked`. Linux also logs
+`[D3D8-VK] anisotropic filtering: up to 16x` (the GPU's limit, whatever the setting).
+
 Also check the first `settings.ini` the build writes (rename yours first, or point `RECOMP_SETTINGS` at a new
 path): `[display]` has `msaa = off`, `texture_mips = false`, `anisotropy = off`, `color_tint = 100`,
 `scratches = true`, each with its comment, and `filter` lists `smooth (high quality)`.
@@ -117,7 +121,10 @@ screen on the Deck's 800-line panel), stand in a fight, and switch Display, "Sca
   smooth has. With render scale 1 or 2 in that window the two look the same.
 - Also: resize the window, switch full screen (F11), and use 4:3 and widescreen: no stretched, offset or black
   picture.
-- `RECOMP_WINDOW_SHOT` writes the window picture (after scaling) if a screenshot is wanted for the report.
+- For a screenshot use the OS's own (Win+Shift+S, the Deck's screenshot button); the harness captures are taken
+  before scaling and show no difference.
+- macOS check that ran: a 2560x1920 target (scale 4, 4:3) in a 1280x800 drawable took one exact halving, then a
+  bilinear step to 1067x800. On Windows the same case uses the shader path (3x3 taps at that ratio).
 
 ### B5. Colour tint (`color_tint`)
 
@@ -131,9 +138,10 @@ screen on the Deck's 800-line panel), stand in a fight, and switch Display, "Sca
 
 ### B6. Film scratches (`scratches`)
 
-The default fight does not draw them. Play one or two Story flashback scenes with `scratches = false` and
-`RECOMP_POSTFX_TRACE=1`; send the `[POSTFX]` and `[PICTURE]` lines. Pass: `[PICTURE] film scratches removed`
-appears and no scratches show; with `true` they show as before.
+The harness's default One on One draws them (macOS); not every venue does. Run
+`python scripts/harness.py run fight --env RECOMP_SCRATCHES=0 --env RECOMP_POSTFX_TRACE=1` and send the
+`[POSTFX]` and `[PICTURE]` lines. Pass: `[PICTURE] film scratches removed` appears and no scratches show in a live
+fight with the option off; with it on they show as before.
 
 ## C. Launcher and overlay
 
