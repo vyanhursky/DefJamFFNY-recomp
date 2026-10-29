@@ -31,7 +31,7 @@ remains in Interface. Display DPI and the existing text/control size setting sti
 
 | Page | Contents |
 |---|---|
-| Display | Fullscreen, window dimensions, picture shape, filter, VSync, render scale; widescreen HUD/cutscene/side-fill/FOV options; brightness, game brightness curve and vignette |
+| Display | Fullscreen, window dimensions, picture shape, filter, VSync, render scale, anti-aliasing (MSAA), game texture levels, anisotropic filtering; widescreen HUD/cutscene/side-fill/FOV options; brightness, game brightness curve, vignette, colour tint and film scratches |
 | Controls | Players/devices and live stick/button feedback, rumble test, keyboard player, startup controller count/backend, dead zones, thresholds, rumble and pointer behavior; expand Gamepad button mapping or Keyboard and mouse bindings for Detect/Add/Clear/Default |
 | Mods | Installed local/project packs, enablement and overlap winners; shared Load Order window; verified project catalogue downloads/updates, rollback and removal; Refresh local mods, Open Mods Folder, Memory and manual pack list |
 | Interface | Launcher skip, startup movies, overlay key/pad chord, text/control size |
@@ -49,9 +49,9 @@ pane follows the focused or hovered setting. Existing INI names and saved values
 Mods lists selected packs first, including missing selections, then other local folders. The origin badge
 distinguishes manually installed packs from catalogue-managed downloads. Refresh local mods finds new
 folders without enabling them. Unchecking keeps files. **Load Order...** shows all enabled local and
-project packs together: low priority at the top, high priority at the bottom. Earlier/Later moves a pack;
+project packs together: highest priority at the top. Higher/Lower moves a pack;
 the overlap readout names which final pack wins the same texture ID. Changes apply on the next launch.
-Place HD Widescreen Menus after optional Faithful HD components. The advanced pack-list field and
+Place HD Widescreen Menus above the optional Recomp HD baseline in the priority window. The advanced pack-list field and
 `RECOMP_TEXTURE_PACKS` environment locks remain available; overly long lists are rejected visibly.
 
 The **Project catalogue** uses a separate Python helper for network operations. Refresh verifies the
@@ -67,8 +67,9 @@ installation unless its short final commit has already completed. An OS-held loc
 started without the launcher. An interrupted commit is recovered before Play; if recovery cannot safely
 recognize files, it preserves them and offers Retry recovery. A saved skip-launcher preference is
 bypassed for recovery without changing the preference. Old installations without the helper keep local
-mod controls and Play. The signing catalogue is not publicly deployed yet; no public menu download is
-advertised by this source change. See [mod manager implementation](mod-manager.md).
+mod controls and Play. The signed project catalogue provides compatible reviewed downloads.
+For authoring, see [Texture Modding — Getting Started](texture-modding-getting-started.md);
+for helper behavior, see [mod management](mod-manager.md).
 
 ### Folders, logs and setup
 
@@ -107,10 +108,11 @@ it; Esc/B also closes it when no popup or binding capture is open. The game sees
 while the overlay is open, but **keeps running**; it does not pause. On a Mac keyboard use fn+F1 if F1 is
 the brightness key, or change the shortcut in Interface. The pointer shows while the overlay is open.
 
-Fullscreen, window size, 4:3/stretch, filter, VSync, brightness and vignette apply live. Widescreen,
-render scale, brightness curve and other startup settings apply at the next launch; the footer lists
-pending changes. Settings in the launcher say **on Play** instead. Widescreen transitions into or out of
-a wide canvas are tracked separately from the two live picture shapes.
+Fullscreen, window size, 4:3/stretch, filter, VSync, texture levels, anisotropic filtering, brightness,
+vignette, colour tint and film scratches apply live. Widescreen, render scale, anti-aliasing, the brightness
+curve and other startup settings apply at the next launch; the footer lists pending changes. Settings in
+the launcher say **on Play** instead. Widescreen transitions into or out of a wide canvas are tracked
+separately from the two live picture shapes.
 
 ## Keyboard and gamepad
 
