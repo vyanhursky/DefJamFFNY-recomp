@@ -1,5 +1,8 @@
 # UI reconstruction: hundred-banner batch five — 2026-10-28
 
+Subsequent owner approval: all 100 entries accepted, including the disclosed Ice-T edge treatment; hashes pinned in
+`config/menu-ui-reconstruction-wave05-approval-2026-10-28.json`. Historical review-pending statements below describe the completed checkpoint.
+
 The owner accepted all 103 wave-four entries and requested continuation:
 “Looking great - please continue with next batch.” Selected preview/raw hashes
 are pinned in `config/menu-ui-reconstruction-wave04-approval-2026-10-28.json`.

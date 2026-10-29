@@ -1,5 +1,32 @@
 # Menu/UI modpack implementation handover
 
+**Final ordinary banner variants, batch six — 2026-10-28:** [report](research/menu-ui-reconstruction-wave-06-2026-10-28.md).
+The owner approved all prior 100, including disclosed Ice-T edges; pins in
+`config/menu-ui-reconstruction-wave05-approval-2026-10-28.json`.
+Review `http://127.0.0.1:51747/review.html#overview`: 60 distinct new four-fighter
+banner sources, 30 select / 30 loading, three workers with final scopes of 24, 16 and 20 after four untouched sources were reassigned.
+79 actual saved built-in outputs, 60 selected and 19 held; literal pre-call/result
+records and all raw attempts preserved; 1 failed tool calls and unissued requests separately recorded.
+Parent reviewed all 60 source/draft pairs on blue and pale/dark backdrops.
+Actual RGBA controls true holes versus partial/opaque ink; genuine colours stay,
+without expanded sampling mosaics, new cream rims, bevels or frames. Exact alpha
+and RGB >16 preserved on export; bounded near-pure neon checks pass. Earlier
+100/103/104/50/27 preview entries remain byte-identical. Browser: 60 details,
+120 paired grid canvases, 32 control/filter checks, no console errors or overflow.
+Drafts await owner review; no new native run, atlas assembly/install/publish/push.
+Published 1.2/catalogue5, scenery/map, game and toolkit unchanged.
+Ledger `config/menu-ui-reconstruction-wave-06-2026-10-28.json`; workspace
+`logs/menu-ui-wave06-20261028/`; recovery `/Users/vlad/Code/defjam-data/scratch/menu-ui-wave06-review-20261028`;
+manifest pin `config/menu-ui-reconstruction-wave-06-checkpoint-2026-10-28.json`.
+Ordinary banner selector: zero unassigned. ID99 originals are LOCKED stamps,
+queued with remaining menu labels/stamps, including French variants. Remaining
+inventory is not all lettering: source-family classification and early pilot
+approval reconciliation remain. Local ID99 audit and conservative remaining
+inventory/reconciliation receipts are preserved in this checkpoint.
+Next: review60, other menu labels/stamps/venue wordmarks/headings, atlas assembly,
+native blending/placement/clipping/sampling. Future PRs milestone v0.12.2.
+Historical pending statements below retain their original dates.
+
 **100 new banner variants, batch five — 2026-10-28:** [batch report](research/menu-ui-reconstruction-wave-05-2026-10-28.md).
 The owner approved all previous 103; pins in
 `config/menu-ui-reconstruction-wave04-approval-2026-10-28.json`.

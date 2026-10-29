@@ -11,6 +11,9 @@ before its call, then a matching versioned result record and raw PNG hash.
 The owner subsequently accepted all 103 wave-four entries and requested continued
 production. Wave five covers 100 new sources: 22 remaining three-fighter and
 78 four-fighter variants. Each layout remains independently tied to its original.
+The owner then accepted all 100 wave-five drafts. Wave six finishes the remaining
+60 ordinary four-fighter banner sources (30 select / 30 loading); three ID99
+resources remain a separately disclosed source/context audit.
  On 2026-10-28 the owner accepted the
 [next 27 review textures](menu-ui-reconstruction-wave-01-2026-10-27.md), including
 Main Menu v6 and flat dark Capone v3, and requested **at least 50 textures per
