@@ -26,6 +26,7 @@
 
 #include "recomp_settings.h"
 #include "d3d8_present.h"
+#include "nv2a_pgraph_d3d11.h"
 #if !defined(_WIN32)
 #include "d3d8_vk.h"
 #endif
@@ -40,7 +41,9 @@
  * choices are indices 2.. and are read once at start-up (src/patches/widescreen.c). */
 static const char *const k_aspect[] = { "4:3", "stretch", "widescreen (auto)", "16:9", "16:10",
                                         "21:9 (experimental)", "32:9 (experimental)", NULL };
-static const char *const k_filter[] = { "smooth", "sharp", NULL };
+static const char *const k_filter[] = { "smooth", "sharp", "smooth (high quality)", NULL };
+static const char *const k_aniso[] = { "off", "2x", "4x", "8x", "16x", NULL };
+static const char *const k_msaa[] = { "off", "2x", "4x", "8x", NULL };
 static const char *const k_ws_hud[] = { "auto", "edges", "centered", NULL };
 static const char *const k_ws_cutscenes[] = { "authored", "fill", NULL };
 static const char *const k_ws_fill[] = { "blur", "black", NULL };
@@ -81,8 +84,18 @@ static RecompSetting g_display_settings[] = {
       "1080p output: 2x balances speed and clarity; 3x is sharper. 1440p output: 3x. "
       "Width follows Picture shape; window size is separate. Higher scales cost GPU time. "
       "Applies on Play/next launch." },
-    { "display", "filter", RECOMP_SETTING_ENUM, 0, 0, 0, k_filter, NULL, 0,
-      "How the picture is scaled to the window." },
+    { "display", "filter", RECOMP_SETTING_ENUM, 0, 0, 0, k_filter, "RECOMP_PRESENT_FILTER", 0,
+      "How the picture is scaled to the window. smooth (high quality) also averages a picture rendered "
+      "larger than the window instead of skipping pixels (render scale above the window's size)." },
+    { "display", "texture_mips", RECOMP_SETTING_BOOL, 0, 0, 0, NULL, "RECOMP_TEXTURE_MIPS", 0,
+      "Use the smaller texture levels the game ships, as the console does, so distant floors and "
+      "crowds do not shimmer." },
+    { "display", "anisotropy", RECOMP_SETTING_ENUM, 0, 0, 0, k_aniso, "RECOMP_ANISOTROPY", 0,
+      "Anisotropic filtering: keeps floors and walls seen at a low angle sharp. Works best with the "
+      "game's texture levels on." },
+    { "display", "msaa", RECOMP_SETTING_ENUM, 0, 0, 0, k_msaa, "RECOMP_MSAA", RECOMP_SETTING_RESTART,
+      "Multisample anti-aliasing: smooths the jagged edges of fighters and the arena, as the console's "
+      "own anti-aliasing did. Costs GPU time and memory; lowered to what the graphics card supports." },
     { "display", "vsync", RECOMP_SETTING_BOOL, 1, 0, 0, NULL, "RECOMP_PRESENT_VSYNC", 0,
       "Pace frames on the display for even motion. Used when the refresh rate is a multiple of 60 (60, 120, 180, 240 Hz); other displays use the game's own 60 fps timer." },
     { "display", "gamma", RECOMP_SETTING_BOOL, 1, 0, 0, NULL, "RECOMP_GAMMA",
@@ -95,6 +108,11 @@ static RecompSetting g_display_settings[] = {
       "The darkened screen edges that venues and scenes draw. Off removes them." },
     { "display", "vignette_strength", RECOMP_SETTING_INT, 100, 0, 100, NULL, "RECOMP_VIGNETTE_STRENGTH", 0,
       "How dark the vignette is, in percent of the game's own (100)." },
+    { "display", "color_tint", RECOMP_SETTING_INT, 100, 0, 100, NULL, "RECOMP_COLOR_TINT", 0,
+      "Strength of the colour tint venues and scenes put over the picture, in percent of the game's own "
+      "(100); 0 shows the picture untinted." },
+    { "display", "scratches", RECOMP_SETTING_BOOL, 1, 0, 0, NULL, "RECOMP_SCRATCHES", 0,
+      "The film scratches some scenes draw over the picture. Off removes them." },
 };
 #define DISPLAY_SETTING_COUNT (sizeof(g_display_settings) / sizeof(g_display_settings[0]))
 
@@ -366,7 +384,13 @@ void pc_settings_apply_display(void)
         d3d8_present_set_aspect(1, (unsigned)(ws_aspect() * 10000.0f + 0.5f), 10000);
     else
         d3d8_present_set_aspect(pc_display("aspect", 0) != 1, 4, 3);   /* only "stretch" fills the window */
-    d3d8_present_set_linear_filter(pc_display("filter", 0) == 0);
+    {
+        int filter = pc_display("filter", 0);        /* smooth, sharp, smooth (high quality) */
+        d3d8_present_set_filter_mode(filter == 1 ? 0 : filter == 2 ? 2 : 1);
+    }
+    d3d8_set_texture_anisotropy(1u << pc_display("anisotropy", 0));
+    d3d8_set_msaa(1u << pc_display("msaa", 0));     /* read when the device starts */
+    pgraph_d3d11_set_guest_mips(pc_display("texture_mips", 0));
     d3d8_present_set_vsync(pc_display("vsync", 1));
     picture_apply_settings();
 }
