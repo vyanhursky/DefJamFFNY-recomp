@@ -1,5 +1,7 @@
 # Research notes
 
+- [Menu/UI reconstruction batch 12](menu-ui-reconstruction-wave-12-2026-10-29.md) — 100 new drafts; 905 accepted; native placard recovery, faithful source geometry and opaque placeholder tiles.
+
 - [Menu/UI reconstruction batch11](menu-ui-reconstruction-wave-11-2026-10-29.md) —100newdrafts;805accepted;160calls/159outputs; source-specific controller geometry and transparent stamps.
 
 Selected investigations from the port's development, kept because they explain
