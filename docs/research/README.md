@@ -13,6 +13,8 @@ cite other development notes, logs and captures that are not published.
 
 ## Rendering
 
+- [Fighting-style stencil cuts](menu-ui-fighting-style-cuts-2026-10-29.md) — 30 exact approvals and three font corrections preserving original Def Jam letter gaps.
+
 - [Batch-ten UI corrections](menu-ui-wave10-revisions-2026-10-29.md) — 67 exact approvals; 33 revisions for source palette, transparent numerals, typography, button lines and the identified Disturbing Tha Peace emblem.
 
 - [v0.12.1 Story portraits and Power Plant](v0121-portrait-viewport-read.md) — logical versus AA surface clipping, verified portrait correction, and VY3 FFA performance measurements.

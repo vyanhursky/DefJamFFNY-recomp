@@ -1,0 +1,484 @@
+{
+  "schema": 1,
+  "date": "2026-10-29",
+  "status": "Three original-stencil restorations ready; selected art awaiting owner review",
+  "authorization": "Owner: SUBMISSIONS missing Def-Jam font gaps, including S/U top/bottom; same for WRESTLING/KICKBOXING. Rest approved.",
+  "review_url": "http://127.0.0.1:51757/review.html#overview",
+  "counts": {
+    "selected": 3,
+    "issued_calls": 3,
+    "saved_pngs": 3,
+    "failed": 0,
+    "prepared_unissued": 0,
+    "superseded_new_outputs": 0,
+    "new_approved": 30,
+    "total_accepted": 802,
+    "published": 390,
+    "queued": 412,
+    "unassigned": 525,
+    "held": 18,
+    "total_tracked": 1348
+  },
+  "parent": {
+    "source_record": "config/menu-ui-wave10-revisions-2026-10-29.json",
+    "sha256": "65f07049d8684d468d3aefd1c2996980f1fb93d9b76122cfa12d65ca9cffd7ad",
+    "recovery_checkpoint": "config/menu-ui-wave10-revisions-checkpoint-2026-10-29.json"
+  },
+  "approval": {
+    "source_record": "config/menu-ui-wave10-thirty-revisions-approval-2026-10-29.json",
+    "sha256": "51edde35ea1bd9d42367d8632d1034790542d0e9f4dd5feadd354ea4f4640a23",
+    "count": 30,
+    "exclusions": [
+      "n238-5620cd52",
+      "n239-e6f0d7ee",
+      "n235-44c70421"
+    ]
+  },
+  "sources": [
+    {
+      "key": "n238-5620cd52",
+      "source_id": "5620cd52b7e44da2a02557898532854d053581d106b161ec0dc204fbbf10ac2c",
+      "source_key": "n238-5620cd52",
+      "name": "SUBMISSIONS",
+      "text": "SUBMISSIONS",
+      "kind": "light",
+      "family": "outlined fighting style",
+      "context": "brick",
+      "input_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-fighting-style-cuts-20261029/source-originals/n238-5620cd52.png",
+      "input_sha256": "0557fb7e7b895c4ad1688e0e016c7c3cdc81c61a1d240d968ea43e59a15b0cf0",
+      "source_size": [
+        256,
+        32
+      ],
+      "source_crop": [
+        0,
+        0,
+        132,
+        23
+      ],
+      "source_alpha128_bbox": [
+        3,
+        3,
+        128,
+        19
+      ],
+      "aspect": 7.8125,
+      "reference_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-fighting-style-cuts-20261029/references/n238-5620cd52-gray-lanczos6x.png",
+      "reference_sha256": "c40c9ec63d5b61c6fa578e56002230ef39fa8ad365401c1b811586e3e94c1b67",
+      "transparency_references": [
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-fighting-style-cuts-20261029/references/n238-5620cd52-gray-lanczos6x.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-fighting-style-cuts-20261029/references/n238-5620cd52-blue-lanczos6x.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-fighting-style-cuts-20261029/references/n238-5620cd52-pale-lanczos6x.png"
+      ],
+      "source_opaque_rgb_median": [
+        74,
+        70,
+        63
+      ],
+      "inventory_label": "battle/demoCF",
+      "style_notes": "Restore original intentional Def Jam stencil bridge cuts, especially top/bottom of rounded letters. Previous no-stencil direction is superseded by explicit owner feedback.",
+      "native_status": "not tested",
+      "intentional_color_note": "Preserve intentional reds, cream and gray ink; remove only accidental neon-green edge contamination.",
+      "previous_revision": "v4",
+      "revision": "v5",
+      "previous_preview_sha256": "866f5c26ecb1cedc2d725b3dccad01207761461ab4dcd5252ed3f91717f3228a",
+      "previous_raw_sha256": "f70b34a035e789c59ca57dc9c381b0f66d0172ce112f874d27b097cc4638b87f",
+      "review_reason": "Original Def Jam stencil gaps restored across the lettering; retain subdued cream, original weight, spacing and black backing."
+    },
+    {
+      "key": "n239-e6f0d7ee",
+      "source_id": "e6f0d7eeb29e63a60377e7b49c661ee55c3164c4a3d72ec55a5c9246eef8b915",
+      "source_key": "n239-e6f0d7ee",
+      "name": "WRESTLING",
+      "text": "WRESTLING",
+      "kind": "light",
+      "family": "outlined fighting style",
+      "context": "brick",
+      "input_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-fighting-style-cuts-20261029/source-originals/n239-e6f0d7ee.png",
+      "input_sha256": "46022312f3dd5f8b6afef81590d95b549da8c156dcf8a293d635e34b7e99caf3",
+      "source_size": [
+        128,
+        32
+      ],
+      "source_crop": [
+        0,
+        0,
+        112,
+        23
+      ],
+      "source_alpha128_bbox": [
+        3,
+        3,
+        108,
+        19
+      ],
+      "aspect": 6.5625,
+      "reference_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-fighting-style-cuts-20261029/references/n239-e6f0d7ee-gray-lanczos6x.png",
+      "reference_sha256": "ff96857ccfd1bf900c0bb5baafc3cf308f58e20b962f3278b804901adf7f1e06",
+      "transparency_references": [
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-fighting-style-cuts-20261029/references/n239-e6f0d7ee-gray-lanczos6x.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-fighting-style-cuts-20261029/references/n239-e6f0d7ee-blue-lanczos6x.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-fighting-style-cuts-20261029/references/n239-e6f0d7ee-pale-lanczos6x.png"
+      ],
+      "source_opaque_rgb_median": [
+        74,
+        70,
+        63
+      ],
+      "inventory_label": "battle/demoCF",
+      "style_notes": "Restore original intentional Def Jam stencil bridge cuts, especially top/bottom of rounded letters. Previous no-stencil direction is superseded by explicit owner feedback.",
+      "native_status": "not tested",
+      "intentional_color_note": "Preserve intentional reds, cream and gray ink; remove only accidental neon-green edge contamination.",
+      "previous_revision": "v4",
+      "revision": "v5",
+      "previous_preview_sha256": "0247d03bc90b20598ee21088ffc690a615f110efda787b9218638d1936826aeb",
+      "previous_raw_sha256": "6fa2c225a75e07e9d5f5dbdbb83a4a665f241ea2847c54f93c61cc21d5ddff72",
+      "review_reason": "Original Def Jam stencil gaps restored across the lettering; retain subdued cream, original weight, spacing and black backing."
+    },
+    {
+      "key": "n235-44c70421",
+      "source_id": "44c7042142ec440440968f2d2b8e2565d1fd2ff1f187199c2d0d3df57db00a38",
+      "source_key": "n235-44c70421",
+      "name": "KICKBOXING",
+      "text": "KICKBOXING",
+      "kind": "light",
+      "family": "outlined fighting style",
+      "context": "brick",
+      "input_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-fighting-style-cuts-20261029/source-originals/n235-44c70421.png",
+      "input_sha256": "2f7841687f9034d1ca7b99862ce7f0416e5cb68177d045529a9090cacfebeb11",
+      "source_size": [
+        128,
+        32
+      ],
+      "source_crop": [
+        0,
+        0,
+        117,
+        23
+      ],
+      "source_alpha128_bbox": [
+        2,
+        3,
+        113,
+        19
+      ],
+      "aspect": 6.9375,
+      "reference_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-fighting-style-cuts-20261029/references/n235-44c70421-gray-lanczos6x.png",
+      "reference_sha256": "fc8a18bdbd9619ac1e715f3617e6beb39c912283719a84f19577c28ea70932c2",
+      "transparency_references": [
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-fighting-style-cuts-20261029/references/n235-44c70421-gray-lanczos6x.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-fighting-style-cuts-20261029/references/n235-44c70421-blue-lanczos6x.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-fighting-style-cuts-20261029/references/n235-44c70421-pale-lanczos6x.png"
+      ],
+      "source_opaque_rgb_median": [
+        37,
+        38,
+        32
+      ],
+      "inventory_label": "battle/demoCF",
+      "style_notes": "Restore original intentional Def Jam stencil bridge cuts, especially top/bottom of rounded letters. Previous no-stencil direction is superseded by explicit owner feedback.",
+      "native_status": "not tested",
+      "intentional_color_note": "Preserve intentional reds, cream and gray ink; remove only accidental neon-green edge contamination.",
+      "review_reason": "Original Def Jam stencil gaps restored across the lettering; retain subdued cream, original weight, spacing and black backing.",
+      "previous_revision": "v5",
+      "revision": "v6",
+      "previous_preview_sha256": "6fecac0742676be1995479a2aa6a64ff03b77aed25cd11424285d61af7d70e05",
+      "previous_raw_sha256": "58809b64dee303aebeeace752fc8386a30396e3d014e884904191bf7df4f10f3"
+    }
+  ],
+  "selected_exports": [
+    {
+      "source_opaque_rgb_median": [
+        74,
+        70,
+        63
+      ],
+      "raw_opaque_rgb_median": [
+        6.0,
+        5.0,
+        5.0
+      ],
+      "key": "n238-5620cd52",
+      "source_id": "5620cd52b7e44da2a02557898532854d053581d106b161ec0dc204fbbf10ac2c",
+      "revision": "v5",
+      "raw_png": "logs/menu-ui-fighting-style-cuts-20261029/n238-5620cd52-v5.png",
+      "raw_sha256": "87dab604e0feac6e955ee6cd46e3ef34ef1b20b3ef9d790081daabb164a50080",
+      "raw_size": [
+        2170,
+        725
+      ],
+      "preview_png": "logs/menu-ui-fighting-style-cuts-20261029/images/n238-5620cd52-draft.png",
+      "preview_sha256": "e18431bdae09877fdc15877b41c85560d03e0b85b23fe8898d4fa84a91bc93a0",
+      "alpha_exact": true,
+      "rgb_above_alpha16_exact": true,
+      "raw_height_error_percent": -0.47,
+      "green_dominant_visible_texels": 0,
+      "near_pure_green_visible": 0,
+      "near_pure_green_hidden": 0,
+      "published_or_original_sha256": "a857fd04cd3c591c49ffff443d7cadaa4041e30126ff13a8d379068b335af74a",
+      "prompt": "Use case: precise-object-edit. Faithful high-resolution restoration of the ORIGINAL Def Jam fighting-style text texture, with its distinctive BROKEN/STENCIL letter construction.\nExact text: \"SUBMISSIONS\". One single line, same original glyph widths, condensed proportions, baseline, letter spacing, weight and overall silhouette.\nInputs1-3: the SAME ORIGINAL native bitmap faithfully enlarged on gray/blue/pale inspection backdrops. These are the edit target, not design inspiration. Their differences identify actual transparency. Input4: the same original enlarged with nearest-neighbour sampling ONLY to help locate the deliberate narrow DARK GAPS in the cream letter strokes. Do NOT copy its pixel stairs or turn the output into pixel art.\nCRITICAL: the cuts in the cream glyphs are intentional original Def Jam typography, NOT compression damage. Restore those cuts precisely. For S, preserve the narrow vertical breaks interrupting the TOP and BOTTOM curved strokes at their original source positions; for U preserve the break in its bottom curve and the original open/stem construction. Carry the same SOURCE-SPECIFIC split/stencil construction through the other glyphs wherever it actually occurs: rounded bowls, corners, stroke joins and stems. Do not fill or heal these gaps. Do not substitute ordinary continuous sans-serif lettering. Do not invent a uniform horizontal stripe through the word; each cut follows that individual original glyph. Keep cuts fine and correctly located, readable at original native size, not exaggerated large trenches or decorative scratches. Do not add cuts to strokes where the source is continuous.\nOriginal materials: subdued warm cream face with only its fine source variation and original dark/black outline/backing. The dark cuts interrupt the cream face, exposing the genuine dark backing; preserve source alpha where genuinely transparent. No bright ivory, extra shadow, thicker cartoon border, bevel, depth lining, new grunge or added ornament.\nRestore smooth intended contours and clean HD antialias while preserving intentional sharp stencil corners. No raster-block texture or square sample grid. Return only the complete restored text with true transparency outside the artwork and generous empty transparent guard. Remove all inspection backdrops and avoid green/white matte fringe. The ORIGINAL cut shapes and original face/backing proportions control the result.",
+      "input_images": [
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-fighting-style-cuts-20261029/references/n238-5620cd52-gray-lanczos6x.png",
+          "sha256": "c40c9ec63d5b61c6fa578e56002230ef39fa8ad365401c1b811586e3e94c1b67"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-fighting-style-cuts-20261029/references/n238-5620cd52-blue-lanczos6x.png",
+          "sha256": "b13541fbc3d58cc8c2eb33fd3d9c131ef7bd0a37a8be8dd2def419576d73ba02"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-fighting-style-cuts-20261029/references/n238-5620cd52-pale-lanczos6x.png",
+          "sha256": "646b2384305d09e10949f7c538517594f90fcf60fc271a8501052c0eed011c47"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-fighting-style-cuts-20261029/n238-5620cd52-source-nearest12x.png",
+          "sha256": "368ab322132b899ceae8f875323882978c9b10599e173b8d0cafd511fd9858d7"
+        }
+      ]
+    },
+    {
+      "source_opaque_rgb_median": [
+        74,
+        70,
+        63
+      ],
+      "raw_opaque_rgb_median": [
+        5.0,
+        5.0,
+        4.0
+      ],
+      "key": "n239-e6f0d7ee",
+      "source_id": "e6f0d7eeb29e63a60377e7b49c661ee55c3164c4a3d72ec55a5c9246eef8b915",
+      "revision": "v5",
+      "raw_png": "logs/menu-ui-fighting-style-cuts-20261029/n239-e6f0d7ee-v5.png",
+      "raw_sha256": "a41360ae46b9c87cffd746f2e3e78973e585588d48ef7d7d8d736dbf9414379a",
+      "raw_size": [
+        2172,
+        724
+      ],
+      "preview_png": "logs/menu-ui-fighting-style-cuts-20261029/images/n239-e6f0d7ee-draft.png",
+      "preview_sha256": "c24e7189093aade1d405dac10bbe0f189dbd5b6dc65d632c50f513eb8060d8e8",
+      "alpha_exact": true,
+      "rgb_above_alpha16_exact": true,
+      "raw_height_error_percent": 2.61,
+      "green_dominant_visible_texels": 0,
+      "near_pure_green_visible": 0,
+      "near_pure_green_hidden": 0,
+      "published_or_original_sha256": "021b648f7a920f3865eb5701705a6626bd9152f4c9c33d5ae204f2ca7fa4cae0",
+      "prompt": "Use case: precise-object-edit. Faithful high-resolution restoration of the ORIGINAL Def Jam fighting-style text texture, with its distinctive BROKEN/STENCIL letter construction.\nExact text: \"WRESTLING\". One single line, same original glyph widths, condensed proportions, baseline, letter spacing, weight and overall silhouette.\nInputs1-3: the SAME ORIGINAL native bitmap faithfully enlarged on gray/blue/pale inspection backdrops. These are the edit target, not design inspiration. Their differences identify actual transparency. Input4: the same original enlarged with nearest-neighbour sampling ONLY to help locate the deliberate narrow DARK GAPS in the cream letter strokes. Do NOT copy its pixel stairs or turn the output into pixel art.\nCRITICAL: the cuts in the cream glyphs are intentional original Def Jam typography, NOT compression damage. Restore those cuts precisely. For S, preserve the narrow vertical breaks interrupting the TOP and BOTTOM curved strokes at their original source positions; for U preserve the break in its bottom curve and the original open/stem construction. Carry the same SOURCE-SPECIFIC split/stencil construction through the other glyphs wherever it actually occurs: rounded bowls, corners, stroke joins and stems. Do not fill or heal these gaps. Do not substitute ordinary continuous sans-serif lettering. Do not invent a uniform horizontal stripe through the word; each cut follows that individual original glyph. Keep cuts fine and correctly located, readable at original native size, not exaggerated large trenches or decorative scratches. Do not add cuts to strokes where the source is continuous.\nOriginal materials: subdued warm cream face with only its fine source variation and original dark/black outline/backing. The dark cuts interrupt the cream face, exposing the genuine dark backing; preserve source alpha where genuinely transparent. No bright ivory, extra shadow, thicker cartoon border, bevel, depth lining, new grunge or added ornament.\nRestore smooth intended contours and clean HD antialias while preserving intentional sharp stencil corners. No raster-block texture or square sample grid. Return only the complete restored text with true transparency outside the artwork and generous empty transparent guard. Remove all inspection backdrops and avoid green/white matte fringe. The ORIGINAL cut shapes and original face/backing proportions control the result.",
+      "input_images": [
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-fighting-style-cuts-20261029/references/n239-e6f0d7ee-gray-lanczos6x.png",
+          "sha256": "ff96857ccfd1bf900c0bb5baafc3cf308f58e20b962f3278b804901adf7f1e06"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-fighting-style-cuts-20261029/references/n239-e6f0d7ee-blue-lanczos6x.png",
+          "sha256": "35bc7ecdab060b256792fe032d7e50c12032d753d69099ab2171504683957576"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-fighting-style-cuts-20261029/references/n239-e6f0d7ee-pale-lanczos6x.png",
+          "sha256": "078008cee9e7f7f852bd0bae6bf16015201d5ced611c72d653d8bd2f6fd55636"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-fighting-style-cuts-20261029/n239-e6f0d7ee-source-nearest12x.png",
+          "sha256": "dddb59c6d1e8cf5888c8072efa40ad21754de18e062eff3e5df3e0408fa096a3"
+        }
+      ]
+    },
+    {
+      "source_opaque_rgb_median": [
+        37,
+        38,
+        32
+      ],
+      "raw_opaque_rgb_median": [
+        7.0,
+        6.0,
+        5.0
+      ],
+      "key": "n235-44c70421",
+      "source_id": "44c7042142ec440440968f2d2b8e2565d1fd2ff1f187199c2d0d3df57db00a38",
+      "revision": "v6",
+      "raw_png": "logs/menu-ui-fighting-style-cuts-20261029/n235-44c70421-v6.png",
+      "raw_sha256": "1f573c06c3eec91983109927ed2d0875d0e318f1ec8e12860901d608875f7959",
+      "raw_size": [
+        2169,
+        725
+      ],
+      "preview_png": "logs/menu-ui-fighting-style-cuts-20261029/images/n235-44c70421-draft.png",
+      "preview_sha256": "9a898a1db2640334e9f52a5bd71146695aa78d54a01cbc0b934fd9f2a62bf9e9",
+      "alpha_exact": true,
+      "rgb_above_alpha16_exact": true,
+      "raw_height_error_percent": -1.13,
+      "green_dominant_visible_texels": 0,
+      "near_pure_green_visible": 0,
+      "near_pure_green_hidden": 0,
+      "published_or_original_sha256": "5f66d38edf8e41ac602660391def7c19e647605c5b4a2a60c0c4bd19a25d8df4",
+      "prompt": "Use case: precise-object-edit. Faithful high-resolution restoration of the ORIGINAL Def Jam fighting-style text texture, with its distinctive BROKEN/STENCIL letter construction.\nExact text: \"KICKBOXING\". One single line, same original glyph widths, condensed proportions, baseline, letter spacing, weight and overall silhouette.\nInputs1-3: the SAME ORIGINAL native bitmap faithfully enlarged on gray/blue/pale inspection backdrops. These are the edit target, not design inspiration. Their differences identify actual transparency. Input4: the same original enlarged with nearest-neighbour sampling ONLY to help locate the deliberate narrow DARK GAPS in the cream letter strokes. Do NOT copy its pixel stairs or turn the output into pixel art.\nCRITICAL: the cuts in the cream glyphs are intentional original Def Jam typography, NOT compression damage. Restore those cuts precisely. For S, preserve the narrow vertical breaks interrupting the TOP and BOTTOM curved strokes at their original source positions; for U preserve the break in its bottom curve and the original open/stem construction. Carry the same SOURCE-SPECIFIC split/stencil construction through the other glyphs wherever it actually occurs: rounded bowls, corners, stroke joins and stems. Do not fill or heal these gaps. Do not substitute ordinary continuous sans-serif lettering. Do not invent a uniform horizontal stripe through the word; each cut follows that individual original glyph. Keep cuts fine and correctly located, readable at original native size, not exaggerated large trenches or decorative scratches. Do not add cuts to strokes where the source is continuous.\nOriginal materials: subdued warm cream face with only its fine source variation and original dark/black outline/backing. The dark cuts interrupt the cream face, exposing the genuine dark backing; preserve source alpha where genuinely transparent. No bright ivory, extra shadow, thicker cartoon border, bevel, depth lining, new grunge or added ornament.\nRestore smooth intended contours and clean HD antialias while preserving intentional sharp stencil corners. No raster-block texture or square sample grid. Return only the complete restored text with true transparency outside the artwork and generous empty transparent guard. Remove all inspection backdrops and avoid green/white matte fringe. The ORIGINAL cut shapes and original face/backing proportions control the result.",
+      "input_images": [
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-fighting-style-cuts-20261029/references/n235-44c70421-gray-lanczos6x.png",
+          "sha256": "fc8a18bdbd9619ac1e715f3617e6beb39c912283719a84f19577c28ea70932c2"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-fighting-style-cuts-20261029/references/n235-44c70421-blue-lanczos6x.png",
+          "sha256": "e7163e04fa9dd68360541fe4504a8c116194cfb347c8cda78e991e3b579b5699"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-fighting-style-cuts-20261029/references/n235-44c70421-pale-lanczos6x.png",
+          "sha256": "7bc31304dfd72df7e92e532592f0e67ca1fd5e5cf083be4f1ba262e0569f7c34"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-fighting-style-cuts-20261029/n235-44c70421-source-nearest12x.png",
+          "sha256": "f54b8ca7bec6048c3b1521051edf1d7c18735149fc78e17ae92ada10d69280b3"
+        }
+      ]
+    }
+  ],
+  "generation_records": [
+    {
+      "key": "n238-5620cd52",
+      "source_id": "5620cd52b7e44da2a02557898532854d053581d106b161ec0dc204fbbf10ac2c",
+      "revision": "v5",
+      "raw_png": "logs/menu-ui-fighting-style-cuts-20261029/n238-5620cd52-v5.png",
+      "raw_sha256": "87dab604e0feac6e955ee6cd46e3ef34ef1b20b3ef9d790081daabb164a50080",
+      "preview_png": "logs/menu-ui-fighting-style-cuts-20261029/images/n238-5620cd52-draft.png",
+      "preview_sha256": "e18431bdae09877fdc15877b41c85560d03e0b85b23fe8898d4fa84a91bc93a0",
+      "raw_default_sha256": "87dab604e0feac6e955ee6cd46e3ef34ef1b20b3ef9d790081daabb164a50080",
+      "request_sha256": "8121403c68cc9714a9fd3eba9a0fb4bf91d2f797c47abbefc27201a44988973b",
+      "result_sha256": "d631365c48b3df7fc3ecbb2e6f61880a4ad837ad30ed8aa09835b60ba58d382d",
+      "prompt": "Use case: precise-object-edit. Faithful high-resolution restoration of the ORIGINAL Def Jam fighting-style text texture, with its distinctive BROKEN/STENCIL letter construction.\nExact text: \"SUBMISSIONS\". One single line, same original glyph widths, condensed proportions, baseline, letter spacing, weight and overall silhouette.\nInputs1-3: the SAME ORIGINAL native bitmap faithfully enlarged on gray/blue/pale inspection backdrops. These are the edit target, not design inspiration. Their differences identify actual transparency. Input4: the same original enlarged with nearest-neighbour sampling ONLY to help locate the deliberate narrow DARK GAPS in the cream letter strokes. Do NOT copy its pixel stairs or turn the output into pixel art.\nCRITICAL: the cuts in the cream glyphs are intentional original Def Jam typography, NOT compression damage. Restore those cuts precisely. For S, preserve the narrow vertical breaks interrupting the TOP and BOTTOM curved strokes at their original source positions; for U preserve the break in its bottom curve and the original open/stem construction. Carry the same SOURCE-SPECIFIC split/stencil construction through the other glyphs wherever it actually occurs: rounded bowls, corners, stroke joins and stems. Do not fill or heal these gaps. Do not substitute ordinary continuous sans-serif lettering. Do not invent a uniform horizontal stripe through the word; each cut follows that individual original glyph. Keep cuts fine and correctly located, readable at original native size, not exaggerated large trenches or decorative scratches. Do not add cuts to strokes where the source is continuous.\nOriginal materials: subdued warm cream face with only its fine source variation and original dark/black outline/backing. The dark cuts interrupt the cream face, exposing the genuine dark backing; preserve source alpha where genuinely transparent. No bright ivory, extra shadow, thicker cartoon border, bevel, depth lining, new grunge or added ornament.\nRestore smooth intended contours and clean HD antialias while preserving intentional sharp stencil corners. No raster-block texture or square sample grid. Return only the complete restored text with true transparency outside the artwork and generous empty transparent guard. Remove all inspection backdrops and avoid green/white matte fringe. The ORIGINAL cut shapes and original face/backing proportions control the result.",
+      "input_images": [
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-fighting-style-cuts-20261029/references/n238-5620cd52-gray-lanczos6x.png",
+          "sha256": "c40c9ec63d5b61c6fa578e56002230ef39fa8ad365401c1b811586e3e94c1b67"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-fighting-style-cuts-20261029/references/n238-5620cd52-blue-lanczos6x.png",
+          "sha256": "b13541fbc3d58cc8c2eb33fd3d9c131ef7bd0a37a8be8dd2def419576d73ba02"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-fighting-style-cuts-20261029/references/n238-5620cd52-pale-lanczos6x.png",
+          "sha256": "646b2384305d09e10949f7c538517594f90fcf60fc271a8501052c0eed011c47"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-fighting-style-cuts-20261029/n238-5620cd52-source-nearest12x.png",
+          "sha256": "368ab322132b899ceae8f875323882978c9b10599e173b8d0cafd511fd9858d7"
+        }
+      ],
+      "alpha_exact": true,
+      "rgb_above16_exact": true
+    },
+    {
+      "key": "n239-e6f0d7ee",
+      "source_id": "e6f0d7eeb29e63a60377e7b49c661ee55c3164c4a3d72ec55a5c9246eef8b915",
+      "revision": "v5",
+      "raw_png": "logs/menu-ui-fighting-style-cuts-20261029/n239-e6f0d7ee-v5.png",
+      "raw_sha256": "a41360ae46b9c87cffd746f2e3e78973e585588d48ef7d7d8d736dbf9414379a",
+      "preview_png": "logs/menu-ui-fighting-style-cuts-20261029/images/n239-e6f0d7ee-draft.png",
+      "preview_sha256": "c24e7189093aade1d405dac10bbe0f189dbd5b6dc65d632c50f513eb8060d8e8",
+      "raw_default_sha256": "a41360ae46b9c87cffd746f2e3e78973e585588d48ef7d7d8d736dbf9414379a",
+      "request_sha256": "ae24c5b271c83b991bdf59c65f8d8869a6a6dbd5525375825dcf18c00dbe9d40",
+      "result_sha256": "4553fe37b19aee07b68b56af335e5531f05586fa6270b8ba396787b345ced7dc",
+      "prompt": "Use case: precise-object-edit. Faithful high-resolution restoration of the ORIGINAL Def Jam fighting-style text texture, with its distinctive BROKEN/STENCIL letter construction.\nExact text: \"WRESTLING\". One single line, same original glyph widths, condensed proportions, baseline, letter spacing, weight and overall silhouette.\nInputs1-3: the SAME ORIGINAL native bitmap faithfully enlarged on gray/blue/pale inspection backdrops. These are the edit target, not design inspiration. Their differences identify actual transparency. Input4: the same original enlarged with nearest-neighbour sampling ONLY to help locate the deliberate narrow DARK GAPS in the cream letter strokes. Do NOT copy its pixel stairs or turn the output into pixel art.\nCRITICAL: the cuts in the cream glyphs are intentional original Def Jam typography, NOT compression damage. Restore those cuts precisely. For S, preserve the narrow vertical breaks interrupting the TOP and BOTTOM curved strokes at their original source positions; for U preserve the break in its bottom curve and the original open/stem construction. Carry the same SOURCE-SPECIFIC split/stencil construction through the other glyphs wherever it actually occurs: rounded bowls, corners, stroke joins and stems. Do not fill or heal these gaps. Do not substitute ordinary continuous sans-serif lettering. Do not invent a uniform horizontal stripe through the word; each cut follows that individual original glyph. Keep cuts fine and correctly located, readable at original native size, not exaggerated large trenches or decorative scratches. Do not add cuts to strokes where the source is continuous.\nOriginal materials: subdued warm cream face with only its fine source variation and original dark/black outline/backing. The dark cuts interrupt the cream face, exposing the genuine dark backing; preserve source alpha where genuinely transparent. No bright ivory, extra shadow, thicker cartoon border, bevel, depth lining, new grunge or added ornament.\nRestore smooth intended contours and clean HD antialias while preserving intentional sharp stencil corners. No raster-block texture or square sample grid. Return only the complete restored text with true transparency outside the artwork and generous empty transparent guard. Remove all inspection backdrops and avoid green/white matte fringe. The ORIGINAL cut shapes and original face/backing proportions control the result.",
+      "input_images": [
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-fighting-style-cuts-20261029/references/n239-e6f0d7ee-gray-lanczos6x.png",
+          "sha256": "ff96857ccfd1bf900c0bb5baafc3cf308f58e20b962f3278b804901adf7f1e06"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-fighting-style-cuts-20261029/references/n239-e6f0d7ee-blue-lanczos6x.png",
+          "sha256": "35bc7ecdab060b256792fe032d7e50c12032d753d69099ab2171504683957576"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-fighting-style-cuts-20261029/references/n239-e6f0d7ee-pale-lanczos6x.png",
+          "sha256": "078008cee9e7f7f852bd0bae6bf16015201d5ced611c72d653d8bd2f6fd55636"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-fighting-style-cuts-20261029/n239-e6f0d7ee-source-nearest12x.png",
+          "sha256": "dddb59c6d1e8cf5888c8072efa40ad21754de18e062eff3e5df3e0408fa096a3"
+        }
+      ],
+      "alpha_exact": true,
+      "rgb_above16_exact": true
+    },
+    {
+      "key": "n235-44c70421",
+      "source_id": "44c7042142ec440440968f2d2b8e2565d1fd2ff1f187199c2d0d3df57db00a38",
+      "revision": "v6",
+      "raw_png": "logs/menu-ui-fighting-style-cuts-20261029/n235-44c70421-v6.png",
+      "raw_sha256": "1f573c06c3eec91983109927ed2d0875d0e318f1ec8e12860901d608875f7959",
+      "preview_png": "logs/menu-ui-fighting-style-cuts-20261029/images/n235-44c70421-draft.png",
+      "preview_sha256": "9a898a1db2640334e9f52a5bd71146695aa78d54a01cbc0b934fd9f2a62bf9e9",
+      "raw_default_sha256": "1f573c06c3eec91983109927ed2d0875d0e318f1ec8e12860901d608875f7959",
+      "request_sha256": "7a94ff95af5b6fbf7989d9dff5e2bf480e323c0178a62b7f10d255b3eee58cc0",
+      "result_sha256": "d76f41feadf1cc55638f14128a527cd4cd5301434bb09aac6cbe256fbc8f1acd",
+      "prompt": "Use case: precise-object-edit. Faithful high-resolution restoration of the ORIGINAL Def Jam fighting-style text texture, with its distinctive BROKEN/STENCIL letter construction.\nExact text: \"KICKBOXING\". One single line, same original glyph widths, condensed proportions, baseline, letter spacing, weight and overall silhouette.\nInputs1-3: the SAME ORIGINAL native bitmap faithfully enlarged on gray/blue/pale inspection backdrops. These are the edit target, not design inspiration. Their differences identify actual transparency. Input4: the same original enlarged with nearest-neighbour sampling ONLY to help locate the deliberate narrow DARK GAPS in the cream letter strokes. Do NOT copy its pixel stairs or turn the output into pixel art.\nCRITICAL: the cuts in the cream glyphs are intentional original Def Jam typography, NOT compression damage. Restore those cuts precisely. For S, preserve the narrow vertical breaks interrupting the TOP and BOTTOM curved strokes at their original source positions; for U preserve the break in its bottom curve and the original open/stem construction. Carry the same SOURCE-SPECIFIC split/stencil construction through the other glyphs wherever it actually occurs: rounded bowls, corners, stroke joins and stems. Do not fill or heal these gaps. Do not substitute ordinary continuous sans-serif lettering. Do not invent a uniform horizontal stripe through the word; each cut follows that individual original glyph. Keep cuts fine and correctly located, readable at original native size, not exaggerated large trenches or decorative scratches. Do not add cuts to strokes where the source is continuous.\nOriginal materials: subdued warm cream face with only its fine source variation and original dark/black outline/backing. The dark cuts interrupt the cream face, exposing the genuine dark backing; preserve source alpha where genuinely transparent. No bright ivory, extra shadow, thicker cartoon border, bevel, depth lining, new grunge or added ornament.\nRestore smooth intended contours and clean HD antialias while preserving intentional sharp stencil corners. No raster-block texture or square sample grid. Return only the complete restored text with true transparency outside the artwork and generous empty transparent guard. Remove all inspection backdrops and avoid green/white matte fringe. The ORIGINAL cut shapes and original face/backing proportions control the result.",
+      "input_images": [
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-fighting-style-cuts-20261029/references/n235-44c70421-gray-lanczos6x.png",
+          "sha256": "fc8a18bdbd9619ac1e715f3617e6beb39c912283719a84f19577c28ea70932c2"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-fighting-style-cuts-20261029/references/n235-44c70421-blue-lanczos6x.png",
+          "sha256": "e7163e04fa9dd68360541fe4504a8c116194cfb347c8cda78e991e3b579b5699"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-fighting-style-cuts-20261029/references/n235-44c70421-pale-lanczos6x.png",
+          "sha256": "7bc31304dfd72df7e92e532592f0e67ca1fd5e5cf083be4f1ba262e0569f7c34"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-fighting-style-cuts-20261029/n235-44c70421-source-nearest12x.png",
+          "sha256": "f54b8ca7bec6048c3b1521051edf1d7c18735149fc78e17ae92ada10d69280b3"
+        }
+      ],
+      "alpha_exact": true,
+      "rgb_above16_exact": true
+    }
+  ],
+  "method": "Built-in imagegen only, one asset per call, parent owns art. Original faithful6xreferences plus nearest12xgap-location support; no procedural glyph/colour/alpha repair. Prior no-stencil language superseded by explicit owner feedback.",
+  "verification": {
+    "path": "logs/menu-ui-fighting-style-cuts-20261029/verification.json",
+    "sha256": "c2bffa3fc02a59b76a6e2ba590ce2e651f12dbdfdf26be79faa9dff7dca49553",
+    "export_alpha_exact": true,
+    "export_rgb_above16_exact": true,
+    "all_original_previous_default_raw_pins_exact": true,
+    "all_30_approval_pins_exact": true,
+    "accepted_union": 802
+  },
+  "ocr": {
+    "records": 6,
+    "recognized_all_six_correctly": true,
+    "path": "logs/menu-ui-fighting-style-cuts-20261029/ocr-results.json",
+    "sha256": "828b6a9e3cb235ade2d65356cf2ef55a609e70b83bed36196c3fe4213fed82fd",
+    "limitation": "Wording check only, not typeface proof."
+  },
+  "browser": {
+    "overview_cards": 3,
+    "overview_canvases": 6,
+    "detail_scale_checks": 9,
+    "controls": [
+      "fourbackdrops",
+      "ghost on/off",
+      "bounds raw/fitted",
+      "dark/light/all filters",
+      "quickscale1/3",
+      "draft-only/original-new",
+      "searchKICKBOXINGreturned1card"
+    ],
+    "final": {
+      "canvases": 6,
+      "cards": 3,
+      "charset": "UTF-8",
+      "error": "",
+      "overflow": false
+    },
+    "warnings_errors": [],
+    "path": "logs/menu-ui-fighting-style-cuts-20261029/browser-qa.json",
+    "sha256": "cdf22513d9fe2e4148fa108da85634429e54ccea6659df4ad79f3fd423f2c501"
+  },
+  "native_validation": "No game run/install/new native capture. Cut geometry, glyphs, weight, spacing, palette and partial alpha approximate; later assembled UV/gutter/layer/sampling validation due.",
+  "release": "Published1.3/catalogue7 and all prior reviews unchanged. Thirty new approvals queued; three replacements unapproved.",
+  "future_pr_milestone": "v0.12.2",
+  "recovery_path": "/Users/vlad/Code/defjam-data/scratch/menu-ui-fighting-style-cuts-review-20261029"
+}
