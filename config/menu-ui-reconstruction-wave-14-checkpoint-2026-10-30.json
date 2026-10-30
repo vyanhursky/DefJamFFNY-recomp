@@ -1,0 +1,21 @@
+{
+  "schema": 2,
+  "date": "2026-10-30",
+  "recovery_path": "/Users/vlad/Code/defjam-data/scratch/menu-ui-wave14-review-20261030",
+  "manifest_sha256": "08b3a75347540a5c2564dd0939f591649147ed2be6e4c38b857b6440684f9890",
+  "files": 1227,
+  "bytes": 493581806,
+  "assigned_native_sources": 100,
+  "selected_native_sources": 100,
+  "complete_artworks": 49,
+  "issued_calls": 56,
+  "literal_raw_outputs": 56,
+  "selected_raw_masters": 49,
+  "derived_selected_pieces": 100,
+  "accepted_before_batch": 1105,
+  "new_approved": 0,
+  "parent_checkpoint_path": "config/menu-ui-reconstruction-wave-13-checkpoint-2026-10-30.json",
+  "parent_checkpoint_sha256": "a3e07cb15c69ed0dc38f8721a33d95af6b43414c2f7920f76adc638e2c6f812b",
+  "copy_verification": "Every copied file byte-identical, manifest reverified. APFS copy-on-write independent files with different inodes, not hard links. No older files deleted.",
+  "publication": "Published1.3/catalogue7 unchanged;100new mappings in49complete artworks await owner review."
+}
