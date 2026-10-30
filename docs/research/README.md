@@ -64,6 +64,8 @@ cite other development notes, logs and captures that are not published.
 - [Unlocking everything for playtests](unlock-everything.md): the unlock routine the retail image still carries, and the switch that calls it
 - [Why a scripted fight does not replay identically](fight-determinism.md)
 - [Why fight pictures do not repeat](crowd-nondeterminism.md)
+- [Why a pinned fight does not repeat on the Steam Deck (#98)](deck-determinism-98.md)
+- [Side findings from the #98 investigation](deck-determinism-98-side-findings.md)
 - [Launching a scenario by choice: fixtures, generated routes, the crowd, cutscenes](scenario-launching.md)
 
 ## HD textures
