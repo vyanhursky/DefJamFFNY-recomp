@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "date": "2026-10-29",
+  "recovery_path": "/Users/vlad/Code/defjam-data/scratch/menu-ui-wave10-review-20261029",
+  "manifest_sha256": "e2420c69ec09cc3e729057a0c7170ac79cabf33e6d07b698cfe06ea7a5933812",
+  "files": 1517,
+  "bytes": 388806805,
+  "assigned_sources": 104,
+  "selected_sources": 100,
+  "accepted_before_batch": 705,
+  "new_approved": 0,
+  "parent_checkpoint_path": "config/menu-ui-wave09-final-approvals-checkpoint-2026-10-29.json",
+  "parent_checkpoint_sha256": "72878c040cd69ed101630d373b510ec524b4a94770b03aa1ca7a07ddd9783ca3",
+  "copy_verification": "Every copied file byte-identical; manifest reverified after copy.",
+  "publication": "Published1.3/catalogue7 unchanged; these100await owner review."
+}

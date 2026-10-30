@@ -29,6 +29,7 @@ cite other development notes, logs and captures that are not published.
 
 ## Front end and movies
 
+- [Menu/UI reconstruction batch ten](menu-ui-reconstruction-wave-10-2026-10-29.md): 100 new candidates, final batch-nine approvals, 705 accepted sources and faithful smooth-reference corrections.
 - [Menu/UI reconstruction batch seven](menu-ui-reconstruction-wave-07-2026-10-28.md): 50 standalone label/music/player-indicator drafts, exact generation history and qualified plain-font fidelity review.
 - [HD Widescreen Menus 1.3 publication](menu-ui-v1.3-publication-2026-10-28.md): 390 accepted reconstructed mappings, signed catalogue revision 7, six native routes and released 0.12.1 managed update/rollback.
 - [Mod system design](mod-system-design.md): signed catalogue architecture and future override types (PR17).
