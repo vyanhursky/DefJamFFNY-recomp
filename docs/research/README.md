@@ -1,5 +1,7 @@
 # Research notes
 
+- [Menu/UI reconstruction batch11](menu-ui-reconstruction-wave-11-2026-10-29.md) —100newdrafts;805accepted;160calls/159outputs; source-specific controller geometry and transparent stamps.
+
 Selected investigations from the port's development, kept because they explain
 how the game or the runtime behaves. Each is a dated record: later work may have
 superseded its conclusions, and the current source is authoritative. Some notes
