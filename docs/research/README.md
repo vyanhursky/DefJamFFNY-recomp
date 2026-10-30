@@ -1,6 +1,8 @@
 # Research notes
 
 
+- [Held 20 UI review and lossless compression research](menu-ui-held-review-compression-2026-10-30.md) — focused held viewer; exact-pixel 36-image PNG benchmark and packaging recommendations.
+
 - [Final Menu/UI reconstruction batch: 143 remaining mappings accounted](menu-ui-reconstruction-wave-15-2026-10-30.md) — final 123 approved; 1,328 accepted, 20 retained exceptions; actual published and queued artwork sizes measured.
 - [Menu/UI reconstruction batch 14](menu-ui-reconstruction-wave-14-2026-10-30.md) — 100 new mappings in 49 complete artworks; 1,105 accepted, 143 still to restore or resolve after this batch.
 
