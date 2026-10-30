@@ -1,0 +1,149 @@
+{
+  "schema": 1,
+  "date": "2026-10-30",
+  "approved_sources": 1328,
+  "published_approved_sources": 390,
+  "queued_approved_sources": 938,
+  "retained_unrestored_sources": 20,
+  "published_package": {
+    "version": "1.3.0",
+    "path": "logs/menu-ui-v1.3/publication/menu-ui-hd-wide-v1.3.0.zip",
+    "sha256": "82ad6d53f3161b612110cdd84e3f9d0bde2f517a9a9f6410f9e52afcf963de24",
+    "archive_bytes": 679627331,
+    "unpacked_file_bytes": 683803577,
+    "file_count": 1706
+  },
+  "queued_approved_preview_pngs": {
+    "count": 938,
+    "bytes": 641883992,
+    "policy": "Exact approved preview PNG footprint. Variable resolution crop assets, not final native atlases or an installable release. Excludes original/reference/raw/superseded/rejected files and backups. This byte total is not the future archive or installed size."
+  },
+  "final_pack_size": "Not yet measurable: full native canvas/context/gutter/layer/sampling assembly and validation remain due. Published1.3unchanged.",
+  "approval_pins": [
+    {
+      "path": "config/menu-ui-fighting-style-cuts-approval-2026-10-29.json",
+      "sha256": "206642662df3c79cd9ab95baf0ac89c100d073f6fd0e04fbee51397b5d659867",
+      "source": "config/menu-ui-fighting-style-cuts-2026-10-29.json",
+      "source_sha256": "9f0ef7e36731320d714cc6e60947f6cbbf3290a6ba97310afbacda16b42b8d49"
+    },
+    {
+      "path": "config/menu-ui-reconstruction-approvals-2026-10-28.json",
+      "sha256": "3db116c70a6d72d85806d41c3f9374cfe57a7438d76880c24c7703a01ac40d07",
+      "source": "config/menu-ui-reconstruction-wave-01-2026-10-27.json",
+      "source_sha256": "35bdbaa76ca2041dd58a9e06987dfeecac3f44578199e246034ceb9f536f4822"
+    },
+    {
+      "path": "config/menu-ui-reconstruction-wave02-approval-2026-10-28.json",
+      "sha256": "8f14aaf41ff41f9a756b03bd289ecadb6b0ea6b86b3bbdf51ecfd17c985dcb71",
+      "source": "config/menu-ui-reconstruction-wave-02-2026-10-28.json",
+      "source_sha256": "73c08b5bc72876bf23fb21cf7cca123fb84acca2fad9b7596a3d60dcb37f4967"
+    },
+    {
+      "path": "config/menu-ui-reconstruction-wave03-approval-2026-10-28.json",
+      "sha256": "32dbe02a559a3ba1ddfdf05f38b4db38d6a7d3f32015f65a8a8bf2d6d9090584",
+      "source": "config/menu-ui-reconstruction-wave-03-2026-10-28.json",
+      "source_sha256": "f748d08b4ad19985da1f20035415eee4f1b88851d9cfaff0b8f84e33004000a2"
+    },
+    {
+      "path": "config/menu-ui-reconstruction-wave04-approval-2026-10-28.json",
+      "sha256": "0c2b0b949f820d1fec4381de5a203f481281efc48fb5a97ff1ccdb7b4bed50c4",
+      "source": "config/menu-ui-reconstruction-wave-04-2026-10-28.json",
+      "source_sha256": "091ad5c4c95c3e336aecf3f2376bbf60bdfda931e14c6c22fd2662e504c3c141"
+    },
+    {
+      "path": "config/menu-ui-reconstruction-wave05-approval-2026-10-28.json",
+      "sha256": "ea6a0877da4e5167dfefe3631d18904578cb66c56343937d98d4d7efa08a209a",
+      "source": "config/menu-ui-reconstruction-wave-05-2026-10-28.json",
+      "source_sha256": "e3b8deff8b5448553e02a8ea15c6fff0ac2ca5171938dd518753b15d6e2f63e0"
+    },
+    {
+      "path": "config/menu-ui-reconstruction-wave06-approval-2026-10-28.json",
+      "sha256": "6d8de7a8719133f641c262fe874e41e2f719d809a8f2340a88d58ebffa7b9305",
+      "source": "config/menu-ui-reconstruction-wave-06-2026-10-28.json",
+      "source_sha256": "d2e7ebe5402b5b052406fc2b78f53796085d88a319a4eed1ef38f7f59a204072"
+    },
+    {
+      "path": "config/menu-ui-reconstruction-wave07-approval-2026-10-29.json",
+      "sha256": "f865010505d29b4ec7e408cb5371b3ec674a8f9203ad2b41e4ce71fbebf5cb24",
+      "source": "config/menu-ui-music-weight-revision-2026-10-29.json",
+      "source_sha256": "6fb7c65a7fb1ffbc46ebea642490df082f2cde0305eb46b9de732c7fcf262779"
+    },
+    {
+      "path": "config/menu-ui-reconstruction-wave08-approval-2026-10-29.json",
+      "sha256": "097be613a7ae5d14c78de059464de6300b33c51e8c70515aa05f9e44ae77eaa7",
+      "source": "config/menu-ui-reconstruction-wave-08-2026-10-29.json",
+      "source_sha256": "4d4638e67b27f9442517362162b6774e7f6e87bf272d6375fd3b9e4d8973c700"
+    },
+    {
+      "path": "config/menu-ui-stencil-approval-2026-10-29.json",
+      "sha256": "6a7f260cc93d0144a7581452d7c0c8ddb0334d63de0955674107bc1c57889c67",
+      "source": "config/menu-ui-stencil-corrections-2026-10-29.json",
+      "source_sha256": "26ed3ef0f5bdb322d14ebd06bdd1e6950b3375694ec84a0fb1a303f97b44133e"
+    },
+    {
+      "path": "config/menu-ui-wave09-nine-redos-approval-2026-10-29.json",
+      "sha256": "13f227d7beea38d678bbe0caac4c554a2dca24e94940f7d68e8e85b48d6bd354",
+      "source": "config/menu-ui-wave09-nine-redos-2026-10-29.json",
+      "source_sha256": "6b69ef7c61426491036390567f183d70eec07e9d0c87f71893ef43986f41469f"
+    },
+    {
+      "path": "config/menu-ui-wave09-original-rest-approval-2026-10-29.json",
+      "sha256": "7383a7c4ed7947c62bae579926e346f8bcb80a5d492038267c69b9cee3f54786",
+      "source": "config/menu-ui-reconstruction-wave-09-2026-10-29.json",
+      "source_sha256": "b24dfc42282aa6b9334853cdd26b3611260fae0ec6dfef0392e7ee4f66a7e70f"
+    },
+    {
+      "path": "config/menu-ui-wave09-revisions-approval-2026-10-29.json",
+      "sha256": "f995e2fb856ad8ecdb0828fa95825887db799118ac28f055ec955cec1bf3dfc4",
+      "source": "config/menu-ui-wave09-revisions-2026-10-29.json",
+      "source_sha256": "1f604a2fbc9ef014ad13016be3added99cf00ac87acfc88a3549e993877c897f"
+    },
+    {
+      "path": "config/menu-ui-wave10-thirty-revisions-approval-2026-10-29.json",
+      "sha256": "51edde35ea1bd9d42367d8632d1034790542d0e9f4dd5feadd354ea4f4640a23",
+      "source": "config/menu-ui-wave10-revisions-2026-10-29.json",
+      "source_sha256": "65f07049d8684d468d3aefd1c2996980f1fb93d9b76122cfa12d65ca9cffd7ad"
+    },
+    {
+      "path": "config/menu-ui-wave10-unaffected-approval-2026-10-29.json",
+      "sha256": "74fe916ca03e2feaf241b6dc51e80bbd7ef7a02b4a72b61c922781c405dc28f8",
+      "source": "config/menu-ui-reconstruction-wave-10-2026-10-29.json",
+      "source_sha256": "a74b74467990a43c9da4ab465a79d92d859e4c3c912b6ba638ed10c8bec3d377"
+    },
+    {
+      "path": "config/menu-ui-wave11-approval-2026-10-29.json",
+      "sha256": "30e6fdb19f008cfc0ff1473f77557e0058f8f4904be2e9676b5548767feebb42",
+      "source": "config/menu-ui-reconstruction-wave-11-2026-10-29.json",
+      "source_sha256": "20e0dec70f8bd8c54892e1fe585d0da79016df983f88dc9b0b2eaf63a0f21daa"
+    },
+    {
+      "path": "config/menu-ui-wave12-approval-2026-10-30.json",
+      "sha256": "2816fa848e86aafbb7f132c89d6fd4f69de74b0223a7080189a5ee207bb39d0f",
+      "source": "config/menu-ui-reconstruction-wave-12-2026-10-29.json",
+      "source_sha256": "ace7b52ebf216e1973b9ffdbea794f4e9c0ff5ce10e4d318358066e234edbec4"
+    },
+    {
+      "path": "config/menu-ui-wave13-approval-2026-10-30.json",
+      "sha256": "35b00059d5181b33f3846f0be6ecf5aee3c0d3d46a0e5cf762665ff0eb8c15cc",
+      "source": "config/menu-ui-reconstruction-wave-13-2026-10-30.json",
+      "source_sha256": "f05a64c6b8b75acee53b16fdde5d525198b8cd158d0b114e69cab9a609af5ce2"
+    },
+    {
+      "path": "config/menu-ui-wave14-approval-2026-10-30.json",
+      "sha256": "f73e9ac9eacef5ea1269a22852cffe224bbd8251ca91df367643d1f5cbdc8432",
+      "source": "config/menu-ui-reconstruction-wave-14-2026-10-30.json",
+      "source_sha256": "48d5e97e15c023112621127841f53d413d71d53895cd100111ae8f2c8647ea95"
+    },
+    {
+      "path": "config/menu-ui-wave15-approval-2026-10-30.json",
+      "sha256": "544dd341ba1f226cd8ee5767ad523275f84c2fdd85c98358d43ccbb936c8e170",
+      "source": "config/menu-ui-reconstruction-wave-15-2026-10-30.json",
+      "source_sha256": "be7ad2118f88259150cb01cca4003db22f18028e55c57e6e6fdc6aefbcfc0f3e"
+    }
+  ],
+  "private_receipt_path": "logs/menu-ui-final-approval-20261030/size-receipt.json",
+  "private_receipt_sha256": "4c8f7f358d25129abbb2e70355e16b331215e3d515de13089d2cd976af3b43ed",
+  "method_script_path": "logs/menu-ui-final-approval-20261030/measure.py",
+  "method_script_sha256": "4793923bf065cd2b9e9362f3dc8ca9af7cdc17bf8561654660bbca8e261c6160",
+  "units": "MB=1,000,000 bytes; MiB=1,048,576 bytes. Published ZIP and uncompressed file sizes measured from actual archive, SHA256 verified."
+}

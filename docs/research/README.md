@@ -1,7 +1,7 @@
 # Research notes
 
 
-- [Final Menu/UI reconstruction batch: 143 remaining mappings accounted](menu-ui-reconstruction-wave-15-2026-10-30.md) — batch fourteen approved; 123 new candidates and 20 retained exceptions.
+- [Final Menu/UI reconstruction batch: 143 remaining mappings accounted](menu-ui-reconstruction-wave-15-2026-10-30.md) — final 123 approved; 1,328 accepted, 20 retained exceptions; actual published and queued artwork sizes measured.
 - [Menu/UI reconstruction batch 14](menu-ui-reconstruction-wave-14-2026-10-30.md) — 100 new mappings in 49 complete artworks; 1,105 accepted, 143 still to restore or resolve after this batch.
 
 

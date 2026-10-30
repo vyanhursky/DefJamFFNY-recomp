@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "date": "2026-10-30",
+  "recovery_path": "/Users/vlad/Code/defjam-data/scratch/menu-ui-wave15-approved-20261030",
+  "manifest_sha256": "71f87a95cbc19804b05deca7c65be4818c3d28f4cc65604e639d9d74fea272be",
+  "files": 8,
+  "bytes": 571530,
+  "accepted_distinct_sources": 1328,
+  "new_approved": 123,
+  "queued_approved": 938,
+  "retained_unrestored": 20,
+  "parent_checkpoint_path": "config/menu-ui-reconstruction-wave-15-checkpoint-2026-10-30.json",
+  "parent_checkpoint_sha256": "37b1c1911343f5cc53d5975a4c4a1112da84426c0740f6be427ea2fe1011ee5b",
+  "publication": "No package/upload/catalogue change. Published1.3remains679627331bytes;finalnativeassemblydue."
+}
