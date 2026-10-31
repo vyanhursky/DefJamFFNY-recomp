@@ -72,6 +72,8 @@
 | Launcher mod catalogue | ✅ v0.11.0 stable/latest — Mod Support Beta | D198 owner Steam Deck acceptance. Release5775f3c/nine assets unchanged; catalogue PR3 merged5b4de77, signed publication40115951254 passed. Client verifies revision3 and default-channel1.0.0 with testing off; archive43bbb22c unchanged.13local tests/22subtests plus full Linux CI pass. Docs PR99 records stable promotion. |
 
 | Texture modding getting started | ✅ owner-approved and merged PR148 | D232: human-readable first-pack guide links runtime capture, archive extraction/gallery, original IDs, PNG/atlas/alpha rules, manifest/ZIP, current priority UI, testing/sharing and troubleshooting. README/index/reference links refreshed; synthetic CLI/manifest/ZIP smoke pass,89local links and23focused tests pass; CI green, owner approved, PR148 merged852aa43. Docs only; no game/artwork/workspace changes. |
+| v0.13.0 candidate (D233-D245) | ⏳ prepared; full platform gates pending | PRs #156/#153/#158 combined on release/v0.13.0; toolkit d569ca1. Fresh Windows analyze/lift/build complete, units739pass/28skip/1slow deselected, focused80pass/1skip, six toolkit fixture suites pass. Both requested HD mods downloaded and verified. Windows full suite16/17pass (44min),4SKIP: combat memory growth265.7MiB vs64MiB fails; targeted confirmation running. French/English subtitles visually pass, input tracing passes. Owner runs Mac/Linux. Both source branches published; draft release PR #160 open, CI running. |
+
 
 ## 1. Decisions log
 
@@ -375,6 +377,20 @@ D138–D140 were allocated independently on main and the launcher branch. Their 
 | D230 | 2026-10-27 | C++20 build (PR #139, issue #138): convert `path::u8string()` through `pcui::path_utf8()` in `pc_mods.cpp` and guard raw `.u8string()` under `src/` with a compiler-free unit test, rather than pin `CMAKE_CXX_STANDARD`. | The code supports both C++17 and C++20 (#90); a pin would hide the problem for one compiler setup. |
 | D231 | 2026-10-27 | v0.12.3 release train: PRs #139 and #143 on `release/v0.12.3`, merged in PR order, then docs PR #149 (#98 record corrections) after the Windows gate; #146 (`--isolate-crowd`, #98) moves to v0.12.4. No toolkit change: fork branch `defjam/release-0.12.3` = `be83eb9` (the v0.12.2 pin). Issue #141 (HD menu side bars, 512 MiB texture budget) is in the milestone without a PR and is not in this release. | Only the two PRs are queued; #143 adds an entry hook, so the candidate needs a fresh re-lift. |
 | D232 | 2026-10-28 | Vlad requests a human-readable Texture Modding — Getting Started guide covering originals/atlases, IDs, pack format/archive/manifests, mod manager/load order/locations and supporting docs. | Put the public first-pack walkthrough in docs/texture-modding-getting-started.md, with runtime capture as the small initial route and optional standalone extraction/corpus commands. Keep original IDs separate from edited-file hashes, ordinary packs separate from widescreen registration and shared ZIPs separate from catalogue metadata. Verify current highest-first GUI versus last-wins stored INI order. Correct stale linked docs rather than repeat outdated RC/proposed wording; scope is Markdown only. Owner approved and PR148 merged852aa43 after green CI; public main guide available. |
+| D233 | 2026-10-31 | v0.13.0 candidate combines only PRs #156, #153 and #158; rename milestone 3 v0.13.0 to v0.14.0, then milestone 6 v0.12.4 to v0.13.0, preserving assignments. | Owner request October 31. PR #146 and issue #141 remain queued but are excluded from this candidate. |
+| D234 | 2026-10-31 | PR #156: heap pages below 64 MB use first-mirror physical aliases; window buffers keep their low physical names. | Prevents heap/window collisions after language-table layout changes; RECOMP_PHYS_RAM_ALIAS=0 retains comparison behavior. |
+| D235 | 2026-10-31 | PR #153: language mods are deltas rebuilt from the player dump into a cache and served by the toolkit file redirect. | No original or translated game files ship with the port; dump bytes stay unchanged. |
+| D236 | 2026-10-31 | PR #153: select one language mod on Mods, separately from texture load order, under language-v1. | Language data applies beneath texture replacements; launcher saves [language] pack. |
+| D237 | 2026-10-31 | PR #153: append rebuilt archive entries, literal RefPack when originally compressed. | Preserve untouched archive offsets and bytes. |
+| D238 | 2026-10-31 | PR #153: language packs may patch only XBE data sections. | Lifted code cannot consume an on-disk code delta. |
+| D239 | 2026-10-31 | PR #153: [language] game=french selects the disc French at boot, unless a language mod is active. | Built-in French needs no download; packs translate the English slot. |
+| D240 | 2026-10-31 | PR #153: [language] story_subtitles controls the existing subtitle state after NIS setup, with auto unchanged by default. | English players may opt into all Story cutscenes; no guest code patch is distributed. |
+| D241 | 2026-10-31 | PR #158: retain bounded ordered controller transitions until guest consumption with generation-bound acknowledgement. | Avoid merging rapid presses; reset/expiry/overflow resynchronize stale work. |
+| D242 | 2026-10-31 | PR #158: target 1 ms host acquisition without changing simulation/combat rules. | Higher sampling resolution does not mean 1000 simulation steps or physical latency guarantees. |
+| D243 | 2026-10-31 | PR #158: late report refresh remains optional and uses opportunistic dispatch/lifecycle ownership. | Preserve the normal report under contention; measure software delivery separately from physical display response. |
+| D244 | 2026-10-31 | PR #158: move macOS setup CI to macos-15. | The macos-14 runner retirement interrupts required setup checks. |
+| D245 | 2026-10-31 | Candidate full regressions use explicit 16:9 and verified HD Widescreen Menus 1.4.0 + HD Fighters 1.0.0, with 2048 MiB texture cache; stock frame goldens remain separate. | Owner requests HD widescreen regression plus French interface, English subtitles and controller tracing. Mac/Linux runs belong to the owner; Windows runs here. Visual review remains separate from state/log checks. |
+
 
 ## 2. Environment inventory (2026-09-17)
 
@@ -469,46 +485,36 @@ defjam-recomp/
 
 > Recent entries only; older entries remain unchanged in the local `docs/worklog/` archive.
 
-- 2026-10-27 10:40 — D228: Windows gates on the v0.12.2 candidate (`8152382`, toolkit `be83eb9`, fresh re-lift: analyze 159 s, recomp 71 s, build 109 s; 18,440/18,446 functions). Full regression **14/14** in 37 min (`logs/regress-20261027-055128.txt`; fight/FFA/Terrordome median 120 presents per 2 s, minimum 113/105/102, combat 27/27, versus 26/26, replay hash unchanged, soak 3/3), `repeat` 2/2 (`logs/regress-20261027-055832.txt`, `-060517.txt`), `visual` 4/4 on `vy2-hour-v1` (`logs/regress-20261027-060657.txt`); save area identical to its pre-run backup. Owner: Steam Deck/Linux regression passed. CI 32/32 on `8152382`. Fork branch `defjam/release-0.12.2` created at `be83eb9`. Setup install/Clean Update not run: both the candidate (CI run 40459960068, sha256 `0bd5b000…`) and the published v0.12.1 setup stop with "create_directories: Access is denied" on `%LOCALAPPDATA%\DefJamSetup\{GUID}` from the agent session (cmd can create it; Defender CFA off, no ASR rules). Owner chose to publish before his play-test (D228).
-- 2026-10-27 10:55 — D228 publication completed: PR #136 merged `4fc0f24`, annotated tag v0.12.2 at the merge, Source release run 40551893568 success; nine asset SHA-256 digests, three checksum files and three provenance records verified (version 0.12.2, toolkit `be83eb9`, source `4fc0f24`). Published stable/latest. Milestone v0.12.2 closed; fork `defjam/upstream-v0.16` fast-forwarded `7a0f2f6` -> `be83eb9`. CI on the release head needed one re-run (no macOS arm64 runner picked up the setup job). Owner play-test and a local Windows setup install follow (D228).
-- 2026-10-27 21:11 — D229-D231: v0.12.3 release train cut. `release/v0.12.3` from `main` (`b94fde6`) merges #139 and #143 cleanly; toolkit unchanged (`be83eb9`, fork `defjam/release-0.12.3`). #141 has no PR and is not included. Version 0.12.3, release notes, README.
-- 2026-10-28 02:40 — D231: Windows gates on the v0.12.3 candidate (`d94138b`, toolkit `be83eb9`, fresh re-lift). Full regression **14/14** in 37 min (`logs/regress-20261027-215455.txt`). Opt-in: `skipintro`, `fight-terrordome`, `ffa-result`, `repeat` x2 pass; `two-matches` 34/35 once (`combat.eliminations.match2`, a fighter out with health left, the v0.12.1 `ffa-result` flake), 35/35 on a rerun; `visual` 3/4 once (crib `story-tour-9s`: a long random "now playing" title ran past the baseline mask), then 4/4 on four reruns, two with `RECOMP_TEST_FRAME_CLOCK_LOCK=0`, same results. CI 32/32 (run 40631051279). Setup from the CI artifact (sha256 `9321e4cd…`, provenance 0.12.3/`be83eb9`/`6eb7d5e`, tree = `d94138b`): silent install 397 s, boot 75 s clean; v0.12.2 install 396 s, Clean Update 392 s, data folder 120 files byte-identical, boot clean; both uninstalled (shortcuts the update made were removed), no junctions left. Evidence in the data folder `release-evidence-0.12.3`. Note: `--operation update` without `--no-shortcuts` creates Start Menu and desktop shortcuts while the receipt lists none.
-- 2026-10-28 09:32 — D232: wrote Texture Modding — Getting Started, linked from README/docs index and supporting guides; verified current source priority UI (highest first/Higher-Lower) vs stored INI last-wins, capture original IDs, strict schema1 pack/ZIP and authoring CLI. Corrected stale catalogue/RC/Textures-tab/cache reference wording. Synthetic inventory1image/corpus4x + serve-help PASS; exact guide manifest +3file ZIP validates/unpacks in current helper (logs/guide-smoke/receipt.json);89local link targets/anchors and23progress/CI-digest tests pass. Markdown-only; no live gallery/art/corpus/game/runtime/save/settings changes.
 - 2026-10-28 09:41 — D232: owner approves guide; PR148 merged to main852aa43407c329baaa7b37ccccc458e5bbbd23e4 with head lockf8204c9 and CI40727659902 green. Merge tree exactly equals tested head. Public guide/README/index links on main; remote head auto-deleted, fetch/prune and local merged branch cleanup complete. Docs-only acceptance record, no runtime/art/game/save changes.
 - 2026-10-28 10:30 — D231: owner reports macOS and Steam Deck/Linux full regressions and the play-test passed on the v0.12.3 candidate; all gates complete. Docs PR #149 (#98 record corrections) merged into `release/v0.12.3` (`2b82258`) and `main` merged in (#148 texture guide; its decision renumbered D229 -> D232, since this train holds D229-D231). Only docs changed after the tested head `d94138b`. #146 moved to new milestone v0.12.4 (not merged).
 - 2026-10-28 11:20 — D231 publication completed: PR #145 merged `65038d0`, annotated tag v0.12.3 at the merge, Source release run 40744335843 success; nine asset SHA-256 digests, three checksum files and three provenance records verified (version 0.12.3, toolkit `be83eb9`, source `65038d0`). Published stable/latest. Milestone v0.12.3 closed (#138 closed by #139, #140 closed as fixed by #143); #141 and #146 moved to new milestone v0.12.4. Fork branches already equal at `be83eb9`.
+- 2026-10-31 11:06 — D233/D234, PR156: renamed GitHub milestones3→v0.14.0 and6→v0.13.0 (memberships preserved); merged audio fix into candidate, integrated toolkit7d98332. Combined apu_phys2/2 passes; logs/toolkit-apu_phys-test.txt.
+- 2026-10-31 11:06 — D235-D240, PR153: merged language mods/French/subtitles, toolkit redirect cherry-picked efde320→2a84422; Windows kernel_path1/1 passes with valid TEMP (initial fixture exited2 before assertions). logs/toolkit-kernel_path-retest.txt.
+- 2026-10-31 11:06 — D241-D244, PR158: merged controller transitions/tracing and macos-15 CI; toolkit input b7db8c1→d569ca1. Native input_edges10/10, input_host_edges1/1, usb_transfer2/2, kernel_irql_abi2/2 pass. Fresh candidate build,739unit pass/28skip/1slow deselected; logs/rc-unit.txt.
+- 2026-10-31 11:06 — D245: verified/downloaded Menus1.4.0 (1746 files) and Fighters1.0.0 (221 files); added explicit HD16:9 profile and French/English-subtitle/controller rows. Focused80pass/1skip and final14pass. Full Windows regression started, unit739pass and m2 pass so far (logs/rc-full-windows.txt). Owner runs Mac/Linux. Source audit608files/0failures; branch pushes/release PR blocked by automatic approval review, explicit user permission requested; no release/tag/main merge.
+- 2026-10-31 14:13 — D245 Windows full HD16:9 regression completed in44min on7be9133:16/17pass,4Windows-inapplicable SDL UI skips; logs/regress-20261031-115227.txt. Only combat performance.memory_growth fails:265.7MiB vs64MiB limit, baseline2398.0MiB/peak2663.7MiB,31samples/180.7s; gameplay26/27overall with all7combat assertions passing. Profile verifies1962entries/bothmods. French MENU PRINCIPAL/CHOISIR/RETOUR and English sc05 subtitle captures16s/24s visually reviewed/pass. Input trace refresh0/1 passes; replay80/80, soak3/3. Targeted combat confirmation running in logs/rc-combat-confirm.txt; do not waive the memory failure or claim leak causation without confirmation. Mac/Linux owner-run; source publication still awaits requested explicit push approval.
 
 ## 7. Hand-off
 
-### v0.12.3 published — 2026-10-28
+### v0.13.0 release candidate — 2026-10-31
 
-- v0.12.3 is stable/latest: release PR #145 merged `65038d0`, annotated tag `v0.12.3` at the merge, Source release
-  run 40744335843; nine assets verified (GitHub digests, `.sha256`, provenance: version 0.12.3, toolkit `be83eb9`,
-  source `65038d0`). Milestone v0.12.3 closed; issues #138 (by #139) and #140 (fixed by #143) closed.
-- Toolkit unchanged; fork `defjam/upstream-v0.16` already equals `defjam/release-0.12.3` (`be83eb9`).
-- Next: milestone v0.12.4 holds #146 (`--isolate-crowd`, #98; draft, not merged) and #141 (HD menu side bars,
-  no PR). v0.13.0 holds the cheat menu (#97) and the unified-app stack.
-- The release worktree `code/defjam-release-0.12.3` is removed after this record merges (unlink its `game`
-  junction first with `cmd /c rmdir game`).
-- Setup gotcha seen in the Windows gate: `--operation update` without `--no-shortcuts` writes Start Menu and
-  desktop shortcuts to the test folder; uninstall removes them.
-- Upstream PRs #255/#256/#261/#264 remain open with sp00nznet; preserve their heads.
-
-Decisions are read by number or keyword: `decision D<n>`, `decisions --grep TEXT`.
-
-### Texture modding guide merged — 2026-10-28
-
-- Owner approved PR148; merged to main as852aa43407c329baaa7b37ccccc458e5bbbd23e4.
-  Merge tree equals tested headf8204c9; CI40727659902 passes (docs-only skips
-  runtime/setup builds). Remote head auto-deleted; fetch/prune and local merged
-  branch cleanup complete. Public guide: https://github.com/vyanhursky/DefJamFFNY-recomp/blob/main/docs/texture-modding-getting-started.md.
-  New docs/texture-modding-getting-started.md is the public beginner entry point;
-  README/docs index/texture reference/manager/launcher pages link it. Current UI
-  highest-first/Higher-Lower and stored INI last-wins are explained consistently.
-- Synthetic CLI inventory/corpus build and serve-help pass; manifest from guide
-  and three-file ZIP round-trip pass actual setup/mods.py validation. Receipt
-  logs/guide-smoke/receipt.json (private, synthetic only). No corpus/art generation,
-  real-game test/build, installed pack/save/settings or live8768writer change.
-- Local links89/89, focused progress/CI-digest tests23/23, whitespace clean.
-  Publication is complete on main, with no release-train or runtime changes. Read linked technical references for advanced wide registration;
-  the guide does not claim new-fighter/gameplay import support.
+- Branch `release/v0.13.0`, isolated Windows checkout `code/defjam-release-0.13.0`.
+  Base `6414027`; merge commits for #156/#153/#158; toolkit `d569ca1` combines
+  `7d98332`, `efde320` and `b7db8c1` on `defjam/release-0.13.0`.
+- Milestone 3 renamed v0.14.0, milestone 6 renamed v0.13.0. Existing memberships
+  preserved. #146 and #141 are outside this candidate, pending their own resolution.
+- Fresh Windows analysis/lift/build complete: 18,446 functions, 21 C files,
+  64 manual addresses/0 missing. Unit suite739pass/28skip/1slow deselected;
+  focused80pass/1skip. Native toolkit apu_phys2/2, kernel_path1/1,
+  input_edges, input_host_edges, usb_transfer and kernel_irql_abi pass.
+  kernel_path first exited2 before assertions because inherited TEMP did not
+  exist; rerun with logs/native-tmp passes. Logs: logs/rc-unit.txt,
+  logs/rc-focused-tests.txt, logs/toolkit-*-test.txt and kernel_path-retest.txt.
+- Windows full regression finished on7be9133:16/17pass,4Windows-inapplicable skips,44min; logs/regress-20261031-115227.txt. Only combat memory growth fails (265.7MiB vs64MiB); all gameplay assertions pass. Confirmation running in logs/rc-combat-confirm.txt. French menu and English sc05 subtitle captures16s/24s visually reviewed/pass; input-trace refresh0/1 passes. Mac/Linux owner-run. Owner explicitly approved both branch pushes; published toolkit d569ca1 and game release/v0.13.0. Draft release PR #160 is open with full platform commands and result table; CI started (run41242529320). See docs/regression-v0.13.0.md for commands.
+- Both HD mods verified/installed in the disposable data root: Menus1.4.0
+  archive f3d79f86a024b5786919ef2d6f38b1f599cb49a151d031b4a85023a5f480848d;
+  Fighters1.0.0 archive1bea1239abb8e6b86fff85ecb9fbd0d805df2b1567183e6e8a16b6f131725e0f.
+- Do not publish a tag/release until platform regressions, French/subtitle visual
+  review, setup install/Clean Update and combined owner playtest are accepted.
+  The release candidate is prepared, not accepted. No binaries/assets/logs/saves
+  enter commits. Stable download links still identify published v0.12.3.
