@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "date": "2026-10-29",
+  "owner_message": "I approve these drafts. Now go ahead and start the next100.",
+  "approved_review": "http://127.0.0.1:51757/review.html#overview",
+  "approved_source_record": "config/menu-ui-fighting-style-cuts-2026-10-29.json",
+  "approved_source_record_sha256": "9f0ef7e36731320d714cc6e60947f6cbbf3290a6ba97310afbacda16b42b8d49",
+  "approved_count": 3,
+  "total_distinct_accepted_sources": 805,
+  "approved_records": [
+    {
+      "key": "n238-5620cd52",
+      "source_id": "5620cd52b7e44da2a02557898532854d053581d106b161ec0dc204fbbf10ac2c",
+      "revision": "v5",
+      "raw_sha256": "87dab604e0feac6e955ee6cd46e3ef34ef1b20b3ef9d790081daabb164a50080",
+      "preview_sha256": "e18431bdae09877fdc15877b41c85560d03e0b85b23fe8898d4fa84a91bc93a0"
+    },
+    {
+      "key": "n239-e6f0d7ee",
+      "source_id": "e6f0d7eeb29e63a60377e7b49c661ee55c3164c4a3d72ec55a5c9246eef8b915",
+      "revision": "v5",
+      "raw_sha256": "a41360ae46b9c87cffd746f2e3e78973e585588d48ef7d7d8d736dbf9414379a",
+      "preview_sha256": "c24e7189093aade1d405dac10bbe0f189dbd5b6dc65d632c50f513eb8060d8e8"
+    },
+    {
+      "key": "n235-44c70421",
+      "source_id": "44c7042142ec440440968f2d2b8e2565d1fd2ff1f187199c2d0d3df57db00a38",
+      "revision": "v6",
+      "raw_sha256": "1f573c06c3eec91983109927ed2d0875d0e318f1ec8e12860901d608875f7959",
+      "preview_sha256": "9a898a1db2640334e9f52a5bd71146695aa78d54a01cbc0b934fd9f2a62bf9e9"
+    }
+  ],
+  "interpretation": "All3selected source-specific stencil corrections explicitly approved; superseded continuous-font versions excluded.",
+  "release_disposition": "Queued for future pack; published1.3/catalogue7unchanged."
+}

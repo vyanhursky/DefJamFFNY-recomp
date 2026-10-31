@@ -1,0 +1,4327 @@
+{
+  "schema": 1,
+  "date": "2026-10-27",
+  "status": "Plan authorized; three accepted samples integrated; 12 new family drafts awaiting review; not a release",
+  "review_url": "http://127.0.0.1:51742/review/review.html#capone-loading",
+  "baseline_archive_sha256": "bb9109ef1fa77f78796afd051c4d6c602f5dbfa0554e698f3b8746be4cbd3589",
+  "scope": {
+    "previous_text_mappings": 1140,
+    "additional_light_loading_mappings": 208,
+    "total_text_mappings": 1348,
+    "previous_exact_crop_rgba_groups": 1137,
+    "loading_visual_census": "All 208 inspected across five contact sheets; lettering resources confirmed, including alternate names/logos and layout variants; native visibility not claimed for each",
+    "full_private_inventory_sha256": "6a8510fc9bec62273249a2cee8b2a479edd31bc8798bb26dcde5920a70bc8c33",
+    "loading_inventory_sha256": "3040d2ff8d72b64e6d7fe08c621d6e7f67795205fcca3a66f9c287e0bb64852c"
+  },
+  "green_edge": {
+    "issue": "https://github.com/vyanhursky/DefJamFFNY-recomp/issues/142",
+    "pngs_scanned": 1526,
+    "hidden_green_candidates": 604,
+    "green_edge_candidates": 813,
+    "census_sha256": "cff5dea3b2dc7b4fc38dfdd6587d62f7129ed7ce1b8b3d678ba41c2169691b16",
+    "scan_definition": "Green dominance G-R>40 and G-B>40. Edge=nonzero alpha 4-neighbour of alpha0. Hidden near-pure green R/B<=8,G>=247. Candidates require interpretation; preserve intentional green art.",
+    "preview_export_policy": "RGB bleed from alpha>16 into alpha<=16 via existing tool; restore original alpha. All raw images immutable. This preview cleanup is not visible-edge de-matting for retained artwork.",
+    "preview_alpha_all_exact": true,
+    "preview_rgb_above_alpha16_all_exact": true,
+    "preview_green_dominant_visible_texels": 0,
+    "retained_artwork_visible_edge_cleanup": "Not implemented globally; per-source confirmation and tests pending"
+  },
+  "pilot": {
+    "assembly_receipt_sha256": "3dd60b307561f19bc1052a77e773c45e64fd7921d1d263edaa28ffbddc2a8d86",
+    "unchanged_nonmetadata_files": 1523,
+    "wide_manifest_exact": true,
+    "records": [
+      {
+        "key": "main-menu",
+        "source_id": "704503561725bca42e9c4f7489ff018dcbb3808b5ee2c23755b02cb06508ee64",
+        "revision": "v5",
+        "raw_sha256": "405f8375df10bec9e1de980da1cadec8bdd92311b19fde0e47cfe281cfec2841",
+        "published_sha256": "4a4eac83054b1d33f730681911fecaa2d6a3fb29bdeb53fadf4a87549b8e0ea1",
+        "output_sha256": "713c3f5f195c8e3e774c21633579f3fc82c4a3ee2493cd16258e169d67c0c23e",
+        "atlas_size": [
+          2048,
+          256
+        ],
+        "target_alpha128_bbox": [
+          19,
+          44,
+          899,
+          155
+        ],
+        "actual_alpha128_bbox": [
+          19,
+          44,
+          900,
+          155
+        ],
+        "raw_alpha128_bbox": [
+          26,
+          283,
+          1885,
+          523
+        ],
+        "raw_soft_bbox": [
+          23,
+          29,
+          1888,
+          676
+        ],
+        "resize": [
+          883,
+          299
+        ],
+        "paste_xy": [
+          18,
+          -73
+        ],
+        "scale_xy": [
+          0.47337278106508873,
+          0.4625
+        ],
+        "hidden_rgb_bleed": "existing tools hd_assets.bleed_rgb; alpha and visible RGB unchanged",
+        "alpha_unchanged_by_bleed": true,
+        "visible_rgb_unchanged_by_bleed": true
+      },
+      {
+        "key": "capone",
+        "source_id": "925d89ba2f90cd7a1ff3555da16ff84a580a2379cad0c7706dc762cbb53cc35d",
+        "revision": "v2",
+        "raw_sha256": "3594b47ad9f3c1f1149378b8173a6b10e89b46f6c0273d7a3a716e3daa6b6a01",
+        "published_sha256": "a0010d129fa4c9c5b7cacfe30188fde5082ed823f88415f25f94f7c2f4809727",
+        "output_sha256": "88bd8e26fdca26081a43e9b088dd8a787faf7690b0191bc16516e632ded5f18d",
+        "atlas_size": [
+          2048,
+          256
+        ],
+        "target_alpha128_bbox": [
+          420,
+          96,
+          1032,
+          212
+        ],
+        "actual_alpha128_bbox": [
+          420,
+          96,
+          1032,
+          212
+        ],
+        "raw_alpha128_bbox": [
+          48,
+          183,
+          1948,
+          565
+        ],
+        "raw_soft_bbox": [
+          45,
+          9,
+          1951,
+          755
+        ],
+        "resize": [
+          614,
+          227
+        ],
+        "paste_xy": [
+          419,
+          43
+        ],
+        "scale_xy": [
+          0.32210526315789473,
+          0.3036649214659686
+        ],
+        "hidden_rgb_bleed": "existing tools hd_assets.bleed_rgb; alpha and visible RGB unchanged",
+        "alpha_unchanged_by_bleed": true,
+        "visible_rgb_unchanged_by_bleed": true
+      },
+      {
+        "key": "continue",
+        "source_id": "a7f7e7d0c4a3ad944848c9b5e57ca9caae37286c944abd33d0785085fb1b7ff7",
+        "revision": "v3",
+        "raw_sha256": "76314ebd19bc08d710db5681bfe73ba97327997f216e661fc93f426a3b5da9ae",
+        "published_sha256": "0bac4bef4bd01d96a4f0e2dcbd30ae169605b97bf4a29bfd643a8f5dd1e33538",
+        "output_sha256": "6fffddd0a195e957c85c227f8edd4479ca05498815e8aab141b890769d393bd3",
+        "atlas_size": [
+          512,
+          128
+        ],
+        "target_alpha128_bbox": [
+          10,
+          20,
+          256,
+          64
+        ],
+        "actual_alpha128_bbox": [
+          10,
+          20,
+          256,
+          64
+        ],
+        "raw_alpha128_bbox": [
+          91,
+          182,
+          2076,
+          527
+        ],
+        "raw_soft_bbox": [
+          59,
+          9,
+          2122,
+          702
+        ],
+        "resize": [
+          256,
+          88
+        ],
+        "paste_xy": [
+          6,
+          -2
+        ],
+        "scale_xy": [
+          0.1239294710327456,
+          0.12753623188405797
+        ],
+        "hidden_rgb_bleed": "existing tools hd_assets.bleed_rgb; alpha and visible RGB unchanged",
+        "alpha_unchanged_by_bleed": true,
+        "visible_rgb_unchanged_by_bleed": true
+      }
+    ],
+    "native": "Main Menu v5, Continue v3 and dark Capone v2 captured at 2560x1440,16:9,render3. Technical placement/load evidence; native visual feedback pending. Pilot uses alpha0 bleed; new family preview cleanup is alpha<=16, not yet installed.",
+    "inherited_heading_mismatch": "SELECT USER ID appears above choose-fighter in published, candidate and no-pack runs. Cause unassigned; no runtime change made."
+  },
+  "generation": {
+    "tool": "built-in image_gen",
+    "calls": 14,
+    "distinct_assets": 12,
+    "held_trials": 2,
+    "quality_receipt_sha256": "7755f9d39f74385296fa069d1acc7ce234d38ff58388f2f5c5f947af4b658790",
+    "outputs": [
+      {
+        "key": "back",
+        "source_id": "389626dd9fed986d0b4f7144d15c2bf4341666552acf677ca6f9c4df8dbcfbc6",
+        "revision": "v1",
+        "sha256": "b3dd0d1856c13c8fe9b4ff3fc826579fe145bf9caff5bfa3f89655fec8b885cc",
+        "size": [
+          2134,
+          737
+        ],
+        "alpha128_bbox": [
+          158,
+          62,
+          1900,
+          658
+        ],
+        "transparent_texels": 674581,
+        "partial_alpha_texels": 896680,
+        "prompt": "Use case: precise-object-edit. Asset type: transparent HD replacement for a Def Jam: Fight for NY UI texture.\nEdit the supplied Image 1. Restore this EXACT original wordmark with smooth clean high-resolution contours for a 2560x1440 display. Image 1 is the lettering authority, not a loose style suggestion.\nText verbatim, preserving case, punctuation and line breaks: \"BACK\".\nKeep the source's individual letter skeletons, widths, heights, baseline, spacing, stroke weight, line arrangement, face colours, deliberate wear and distinctive cuts. Reconstruct intended curves and straight cuts rather than following pixel stairs.\nMeasured visible ink rectangle: width139, height48, aspect2.89583:1. Preserve that rectangle's proportions and original per-letter positions. Measurements are layout constraints, not text to print. At identical word width do not make the letters taller, wider-spaced or heavier.\nThis is slender condensed sans-serif text. Preserve the source thin strokes, modest rounded corners and open counters, white faces and restrained dark shadow. Do not substitute bold athletic, varsity or stencil lettering. Keep all letters at the source cap height and spacing.\nThe original may contain bright GREEN chroma backing and green/red specks on antialiased edges. Those are unwanted matte contamination, NOT intentional lettering colour or wear. Remove that contamination while preserving the original face and dark edge colours. Never paint a green fringe, coloured halo or coloured speckles. Colours outside the source lettering palette are forbidden. Preserve clean continuous antialiasing without a fuzzy surround.\nChange only contour resolution and clarity of existing surface detail. No font substitution, invented strokes, new chips, extra ornament, broad bright outline, fog, loose flecks or filled counters. Keep every original letter and punctuation mark visible.\nFlat front-facing horizontal UI texture, entire word or specified multiline group visible with an even transparent guard margin, no clipping. Genuine transparent alpha outside the lettering and in counters. No paper, portrait, scenery, brick, checkerboard or background plate baked into the image. Aim for at least roughly 2000 pixels across the actual visible word for long text, with ample height for the original ratio; use extra transparent canvas rather than stretch or wrap a one-line wordmark.",
+        "input_images": [
+          {
+            "sha256": "d3c7dcf19afe9f614d5009f353b5a2cc4263a5225df49055920cc1bd866532b4",
+            "role": "original visible lettering reference"
+          }
+        ],
+        "selected_for_family_review": false,
+        "status": "HELD font/weight drift; retained history"
+      },
+      {
+        "key": "back",
+        "source_id": "389626dd9fed986d0b4f7144d15c2bf4341666552acf677ca6f9c4df8dbcfbc6",
+        "revision": "v2",
+        "sha256": "97ef8d63574738a8e2d9d6108241c115af327c5da2d02f2fb38e4226a1a56bab",
+        "size": [
+          2135,
+          737
+        ],
+        "alpha128_bbox": [
+          124,
+          157,
+          1240,
+          546
+        ],
+        "transparent_texels": 1265160,
+        "partial_alpha_texels": 306860,
+        "prompt": "Image 1 is the original lettering composited onto a plain reference backdrop so only visible alpha coverage is shown. The backdrop is reference-only and must be removed from the output. Use case: precise-object-edit. Asset type: transparent HD replacement for a Def Jam: Fight for NY UI texture.\nEdit the supplied Image 1. Restore this EXACT original wordmark with smooth clean high-resolution contours for a 2560x1440 display. Image 1 is the lettering authority, not a loose style suggestion.\nText verbatim, preserving case, punctuation and line breaks: \"BACK\".\nKeep the source's individual letter skeletons, widths, heights, baseline, spacing, stroke weight, line arrangement, face colours, deliberate wear and distinctive cuts. Reconstruct intended curves and straight cuts rather than following pixel stairs.\nMeasured visible ink rectangle: width139, height48, aspect2.89583:1. Preserve that rectangle's proportions and original per-letter positions. Measurements are layout constraints, not text to print. At identical word width do not make the letters taller, wider-spaced or heavier.\nThis is slender condensed sans-serif text. Preserve the source thin strokes, modest rounded corners and open counters, white faces and restrained dark shadow. Do not substitute bold athletic, varsity or stencil lettering. Keep all letters at the source cap height and spacing.\nThe original may contain bright GREEN chroma backing and green/red specks on antialiased edges. Those are unwanted matte contamination, NOT intentional lettering colour or wear. Remove that contamination while preserving the original face and dark edge colours. Never paint a green fringe, coloured halo or coloured speckles. Colours outside the source lettering palette are forbidden. Preserve clean continuous antialiasing without a fuzzy surround.\nChange only contour resolution and clarity of existing surface detail. No font substitution, invented strokes, new chips, extra ornament, broad bright outline, fog, loose flecks or filled counters. Keep every original letter and punctuation mark visible.\nFlat front-facing horizontal UI texture, entire word or specified multiline group visible with an even transparent guard margin, no clipping. Genuine transparent alpha outside the lettering and in counters. No paper, portrait, scenery, brick, checkerboard or background plate baked into the image. Aim for at least roughly 2000 pixels across the actual visible word for long text, with ample height for the original ratio; use extra transparent canvas rather than stretch or wrap a one-line wordmark. Image 2 is the accepted CONTINUE sample: use its clean slender condensed sans-serif character and smooth edge quality, while Image 1 alone controls the actual word, original glyph proportions and spacing. Text must read B A C K, with a C open on the right and no G crossbar. Absolutely no distress, speckled chips, stencil gaps, chunky varsity weight, external dots, duplicate strokes, decorative caps or serifs. The low-alpha white ghost pixels in earlier references are not part of the letters. Keep only the clean original central letter shapes. Original light-medium weight, precise counters, modest rounded corners, source-like thin shadow.",
+        "input_images": [
+          {
+            "sha256": "fc975e3f547b0e4bae204cd73610cc0ce981a339f835f4fe7633ef96c01d1a45",
+            "role": "original visible lettering reference"
+          },
+          {
+            "sha256": "76314ebd19bc08d710db5681bfe73ba97327997f216e661fc93f426a3b5da9ae",
+            "role": "accepted Continue quality reference; original controls word geometry"
+          }
+        ],
+        "selected_for_family_review": true,
+        "status": "Family draft; owner judgment pending",
+        "preview_export": {
+          "raw_sha256": "97ef8d63574738a8e2d9d6108241c115af327c5da2d02f2fb38e4226a1a56bab",
+          "raw_size": [
+            2135,
+            737
+          ],
+          "export_preview_sha256": "2ab2b425e11098cf0436d5cf5e5b9d4b0ff78d9a205a8552cbf682efdd1150a4",
+          "alpha_exact": true,
+          "rgb_above_alpha16_exact": true,
+          "low_alpha_rgb_texels_changed": 1278189,
+          "raw_green_visible": 15,
+          "export_green_visible": 0,
+          "export_green_alpha_ge17": 0,
+          "export_hidden_green": 0
+        }
+      },
+      {
+        "key": "capone-loading",
+        "source_id": "b895966af5c82b161044549bcf8838e10a6ffd13c6a321267543d87084182d53",
+        "revision": "v1",
+        "sha256": "bc8268a06746770f58cb8d1673f97b0de51dc5a34ad376b0b46bac275b3018ab",
+        "size": [
+          2132,
+          737
+        ],
+        "alpha128_bbox": [
+          49,
+          143,
+          2043,
+          566
+        ],
+        "transparent_texels": 822043,
+        "partial_alpha_texels": 745314,
+        "prompt": "Use case: precise-object-edit. Asset type: transparent HD replacement for a Def Jam: Fight for NY UI texture.\nEdit the supplied Image 1. Restore this EXACT original wordmark with smooth clean high-resolution contours for a 2560x1440 display. Image 1 is the lettering authority, not a loose style suggestion.\nText verbatim, preserving case, punctuation and line breaks: \"CAPONE\".\nKeep the source's individual letter skeletons, widths, heights, baseline, spacing, stroke weight, line arrangement, face colours, deliberate wear and distinctive cuts. Reconstruct intended curves and straight cuts rather than following pixel stairs.\nMeasured visible ink rectangle: width728, height160, aspect4.55000:1. Preserve that rectangle's proportions and original per-letter positions. Measurements are layout constraints, not text to print. At identical word width do not make the letters taller, wider-spaced or heavier.\nPreserve the original CAPONE slab-serif letter skeleton, spacing and horizontal arrangement. Keep the ivory/tan broad faces with restrained warm charcoal/brown outline and source wear so the word reads clearly over a fighter portrait. This is the LIGHT loading version, not the dark select version. No enlarged bevel or new ornament.\nThe original may contain bright GREEN chroma backing and green/red specks on antialiased edges. Those are unwanted matte contamination, NOT intentional lettering colour or wear. Remove that contamination while preserving the original face and dark edge colours. Never paint a green fringe, coloured halo or coloured speckles. Colours outside the source lettering palette are forbidden. Preserve clean continuous antialiasing without a fuzzy surround.\nChange only contour resolution and clarity of existing surface detail. No font substitution, invented strokes, new chips, extra ornament, broad bright outline, fog, loose flecks or filled counters. Keep every original letter and punctuation mark visible.\nFlat front-facing horizontal UI texture, entire word or specified multiline group visible with an even transparent guard margin, no clipping. Genuine transparent alpha outside the lettering and in counters. No paper, portrait, scenery, brick, checkerboard or background plate baked into the image. Aim for at least roughly 2000 pixels across the actual visible word for long text, with ample height for the original ratio; use extra transparent canvas rather than stretch or wrap a one-line wordmark.",
+        "input_images": [
+          {
+            "sha256": "0dce15d9d36b429c5fa0f005fa1c7cc5f4d9e3b28394a396536aa8f0ab32fa26",
+            "role": "original visible lettering reference"
+          }
+        ],
+        "selected_for_family_review": true,
+        "status": "Family draft; owner judgment pending",
+        "preview_export": {
+          "raw_sha256": "bc8268a06746770f58cb8d1673f97b0de51dc5a34ad376b0b46bac275b3018ab",
+          "raw_size": [
+            2132,
+            737
+          ],
+          "export_preview_sha256": "51adcf175869598452bf1e491f4c5362cae8bdca7ff969e8219d3abca0a000c3",
+          "alpha_exact": true,
+          "rgb_above_alpha16_exact": true,
+          "low_alpha_rgb_texels_changed": 835810,
+          "raw_green_visible": 57,
+          "export_green_visible": 0,
+          "export_green_alpha_ge17": 0,
+          "export_hidden_green": 0
+        }
+      },
+      {
+        "key": "choose-match-type",
+        "source_id": "3b134347309d63879072eabe1e4eeb21ae84756a4a591c89465bef2a22d63445",
+        "revision": "v1",
+        "sha256": "87286e7517fa7624f9a2c0f8739b3a63dce8c930ec95ddc683ce67e7758d1652",
+        "size": [
+          2171,
+          724
+        ],
+        "alpha128_bbox": [
+          29,
+          270,
+          2108,
+          429
+        ],
+        "transparent_texels": 1323708,
+        "partial_alpha_texels": 246280,
+        "prompt": "Use case: precise-object-edit. Asset type: transparent HD replacement for a Def Jam: Fight for NY UI texture.\nEdit the supplied Image 1. Restore this EXACT original wordmark with smooth clean high-resolution contours for a 2560x1440 display. Image 1 is the lettering authority, not a loose style suggestion.\nText verbatim, preserving case, punctuation and line breaks: \"CHOOSE MATCH TYPE\".\nKeep the source's individual letter skeletons, widths, heights, baseline, spacing, stroke weight, line arrangement, face colours, deliberate wear and distinctive cuts. Reconstruct intended curves and straight cuts rather than following pixel stairs.\nMeasured visible ink rectangle: width1572, height111, aspect14.16216:1. Preserve that rectangle's proportions and original per-letter positions. Measurements are layout constraints, not text to print. At identical word width do not make the letters taller, wider-spaced or heavier.\nRetain the exact serif/stencil cuts and interruptions, narrow I and T forms, source-shaped U and M, ivory faces and original spacing. Keep broad faces source-flat and the charcoal edge restrained; no thick new bevel or extrusion. Original source cuts remain open.\nThe original may contain bright GREEN chroma backing and green/red specks on antialiased edges. Those are unwanted matte contamination, NOT intentional lettering colour or wear. Remove that contamination while preserving the original face and dark edge colours. Never paint a green fringe, coloured halo or coloured speckles. Colours outside the source lettering palette are forbidden. Preserve clean continuous antialiasing without a fuzzy surround.\nChange only contour resolution and clarity of existing surface detail. No font substitution, invented strokes, new chips, extra ornament, broad bright outline, fog, loose flecks or filled counters. Keep every original letter and punctuation mark visible.\nFlat front-facing horizontal UI texture, entire word or specified multiline group visible with an even transparent guard margin, no clipping. Genuine transparent alpha outside the lettering and in counters. No paper, portrait, scenery, brick, checkerboard or background plate baked into the image. Aim for at least roughly 2000 pixels across the actual visible word for long text, with ample height for the original ratio; use extra transparent canvas rather than stretch or wrap a one-line wordmark.",
+        "input_images": [
+          {
+            "sha256": "c6376f39e37dbe5733806aee991449039a3138b66bde5ece92f3859219c81eb8",
+            "role": "original visible lettering reference"
+          }
+        ],
+        "selected_for_family_review": true,
+        "status": "Family draft; owner judgment pending",
+        "preview_export": {
+          "raw_sha256": "87286e7517fa7624f9a2c0f8739b3a63dce8c930ec95ddc683ce67e7758d1652",
+          "raw_size": [
+            2171,
+            724
+          ],
+          "export_preview_sha256": "a294fb845319f41ee643e9f4f65fcf7021bfdbb3e85b49a348fa78debcfa2bcb",
+          "alpha_exact": true,
+          "rgb_above_alpha16_exact": true,
+          "low_alpha_rgb_texels_changed": 1372067,
+          "raw_green_visible": 148,
+          "export_green_visible": 0,
+          "export_green_alpha_ge17": 0,
+          "export_hidden_green": 0
+        }
+      },
+      {
+        "key": "choose-teams",
+        "source_id": "e8d1f62de7416e15d5bfb2d84d681a48b029e08b7d9937f43fd507260a7cefde",
+        "revision": "v1",
+        "sha256": "7926ce7e8b08f0b65fbad56e80e4fbb2cc99bcc1b41b60d68985ed36af2b7fd1",
+        "size": [
+          2172,
+          724
+        ],
+        "alpha128_bbox": [
+          22,
+          237,
+          2124,
+          457
+        ],
+        "transparent_texels": 1218720,
+        "partial_alpha_texels": 348032,
+        "prompt": "Use case: precise-object-edit. Asset type: transparent HD replacement for a Def Jam: Fight for NY UI texture.\nEdit the supplied Image 1. Restore this EXACT original wordmark with smooth clean high-resolution contours for a 2560x1440 display. Image 1 is the lettering authority, not a loose style suggestion.\nText verbatim, preserving case, punctuation and line breaks: \"CHOOSE TEAMS\".\nKeep the source's individual letter skeletons, widths, heights, baseline, spacing, stroke weight, line arrangement, face colours, deliberate wear and distinctive cuts. Reconstruct intended curves and straight cuts rather than following pixel stairs.\nMeasured visible ink rectangle: width1141, height111, aspect10.27928:1. Preserve that rectangle's proportions and original per-letter positions. Measurements are layout constraints, not text to print. At identical word width do not make the letters taller, wider-spaced or heavier.\nRetain the exact serif/stencil cuts and interruptions, narrow I and T forms, source-shaped U and M, ivory faces and original spacing. Keep broad faces source-flat and the charcoal edge restrained; no thick new bevel or extrusion. Original source cuts remain open.\nThe original may contain bright GREEN chroma backing and green/red specks on antialiased edges. Those are unwanted matte contamination, NOT intentional lettering colour or wear. Remove that contamination while preserving the original face and dark edge colours. Never paint a green fringe, coloured halo or coloured speckles. Colours outside the source lettering palette are forbidden. Preserve clean continuous antialiasing without a fuzzy surround.\nChange only contour resolution and clarity of existing surface detail. No font substitution, invented strokes, new chips, extra ornament, broad bright outline, fog, loose flecks or filled counters. Keep every original letter and punctuation mark visible.\nFlat front-facing horizontal UI texture, entire word or specified multiline group visible with an even transparent guard margin, no clipping. Genuine transparent alpha outside the lettering and in counters. No paper, portrait, scenery, brick, checkerboard or background plate baked into the image. Aim for at least roughly 2000 pixels across the actual visible word for long text, with ample height for the original ratio; use extra transparent canvas rather than stretch or wrap a one-line wordmark.",
+        "input_images": [
+          {
+            "sha256": "f5a0a64001b5bad1133b7ea4a9b2c436384af1e312f4338c3402e9268f4c5984",
+            "role": "original visible lettering reference"
+          }
+        ],
+        "selected_for_family_review": true,
+        "status": "Family draft; owner judgment pending",
+        "preview_export": {
+          "raw_sha256": "7926ce7e8b08f0b65fbad56e80e4fbb2cc99bcc1b41b60d68985ed36af2b7fd1",
+          "raw_size": [
+            2172,
+            724
+          ],
+          "export_preview_sha256": "e1fd177e4df655a0e431e934c2e054d1821cbde7a82085ee8fb76828b0916ee3",
+          "alpha_exact": true,
+          "rgb_above_alpha16_exact": true,
+          "low_alpha_rgb_texels_changed": 1240361,
+          "raw_green_visible": 34,
+          "export_green_visible": 0,
+          "export_green_alpha_ge17": 0,
+          "export_hidden_green": 0
+        }
+      },
+      {
+        "key": "choose-venue",
+        "source_id": "397df2b795f12a9d18ae4ad3dba3ce7012abef3a4e8757ee77cba78ede6154ee",
+        "revision": "v1",
+        "sha256": "c82e45fc66b088d5e74a4edcaabe0fa01e37c4626ff31b734119344a6a222286",
+        "size": [
+          2170,
+          725
+        ],
+        "alpha128_bbox": [
+          46,
+          232,
+          2109,
+          454
+        ],
+        "transparent_texels": 1229979,
+        "partial_alpha_texels": 339105,
+        "prompt": "Use case: precise-object-edit. Asset type: transparent HD replacement for a Def Jam: Fight for NY UI texture.\nEdit the supplied Image 1. Restore this EXACT original wordmark with smooth clean high-resolution contours for a 2560x1440 display. Image 1 is the lettering authority, not a loose style suggestion.\nText verbatim, preserving case, punctuation and line breaks: \"CHOOSE VENUE\".\nKeep the source's individual letter skeletons, widths, heights, baseline, spacing, stroke weight, line arrangement, face colours, deliberate wear and distinctive cuts. Reconstruct intended curves and straight cuts rather than following pixel stairs.\nMeasured visible ink rectangle: width1116, height112, aspect9.96429:1. Preserve that rectangle's proportions and original per-letter positions. Measurements are layout constraints, not text to print. At identical word width do not make the letters taller, wider-spaced or heavier.\nRetain the exact serif/stencil cuts and interruptions, narrow I and T forms, source-shaped U and M, ivory faces and original spacing. Keep broad faces source-flat and the charcoal edge restrained; no thick new bevel or extrusion. Original source cuts remain open.\nThe original may contain bright GREEN chroma backing and green/red specks on antialiased edges. Those are unwanted matte contamination, NOT intentional lettering colour or wear. Remove that contamination while preserving the original face and dark edge colours. Never paint a green fringe, coloured halo or coloured speckles. Colours outside the source lettering palette are forbidden. Preserve clean continuous antialiasing without a fuzzy surround.\nChange only contour resolution and clarity of existing surface detail. No font substitution, invented strokes, new chips, extra ornament, broad bright outline, fog, loose flecks or filled counters. Keep every original letter and punctuation mark visible.\nFlat front-facing horizontal UI texture, entire word or specified multiline group visible with an even transparent guard margin, no clipping. Genuine transparent alpha outside the lettering and in counters. No paper, portrait, scenery, brick, checkerboard or background plate baked into the image. Aim for at least roughly 2000 pixels across the actual visible word for long text, with ample height for the original ratio; use extra transparent canvas rather than stretch or wrap a one-line wordmark.",
+        "input_images": [
+          {
+            "sha256": "f02a75e3c5fd8bf6b7f275fc1c34905ffcd586b1514de54c3ed49f7ae978ad18",
+            "role": "original visible lettering reference"
+          }
+        ],
+        "selected_for_family_review": true,
+        "status": "Family draft; owner judgment pending",
+        "preview_export": {
+          "raw_sha256": "c82e45fc66b088d5e74a4edcaabe0fa01e37c4626ff31b734119344a6a222286",
+          "raw_size": [
+            2170,
+            725
+          ],
+          "export_preview_sha256": "18d64dfd5b5224deb7d11f128c41f3b155c983f7a588f2dd047bfd44663ae090",
+          "alpha_exact": true,
+          "rgb_above_alpha16_exact": true,
+          "low_alpha_rgb_texels_changed": 1259224,
+          "raw_green_visible": 73,
+          "export_green_visible": 0,
+          "export_green_alpha_ge17": 0,
+          "export_hidden_green": 0
+        }
+      },
+      {
+        "key": "method-man-loading",
+        "source_id": "465f47b120f04206afcc0906dbc58d2c988451bffca5a399c557999cbf05dc13",
+        "revision": "v1",
+        "sha256": "3749c72d3046a2df87137136a69a9f54378d27cab38bc99f2f086c702a15b36d",
+        "size": [
+          2098,
+          749
+        ],
+        "alpha128_bbox": [
+          41,
+          38,
+          1996,
+          729
+        ],
+        "transparent_texels": 625439,
+        "partial_alpha_texels": 943172,
+        "prompt": "Use case: precise-object-edit. Asset type: transparent HD replacement for a Def Jam: Fight for NY UI texture.\nEdit the supplied Image 1. Restore this EXACT original wordmark with smooth clean high-resolution contours for a 2560x1440 display. Image 1 is the lettering authority, not a loose style suggestion.\nText verbatim, preserving case, punctuation and line breaks: \"METHOD MAN\\nas BLAZE\".\nKeep the source's individual letter skeletons, widths, heights, baseline, spacing, stroke weight, line arrangement, face colours, deliberate wear and distinctive cuts. Reconstruct intended curves and straight cuts rather than following pixel stairs.\nMeasured visible ink rectangle: width766, height273, aspect2.80586:1. Preserve that rectangle's proportions and original per-letter positions. Measurements are layout constraints, not text to print. At identical word width do not make the letters taller, wider-spaced or heavier.\nPreserve this fighter-specific irregular handwritten/brush wordmark exactly, including punctuation, angles, stroke endings, line arrangement and relative sizes of the lines. Keep original ivory/tan light faces and its restrained warm dark border for contrast over a portrait. This is the LIGHT loading version. Do not turn it into dark select ink or a regular font.\nThe original may contain bright GREEN chroma backing and green/red specks on antialiased edges. Those are unwanted matte contamination, NOT intentional lettering colour or wear. Remove that contamination while preserving the original face and dark edge colours. Never paint a green fringe, coloured halo or coloured speckles. Colours outside the source lettering palette are forbidden. Preserve clean continuous antialiasing without a fuzzy surround.\nChange only contour resolution and clarity of existing surface detail. No font substitution, invented strokes, new chips, extra ornament, broad bright outline, fog, loose flecks or filled counters. Keep every original letter and punctuation mark visible.\nFlat front-facing horizontal UI texture, entire word or specified multiline group visible with an even transparent guard margin, no clipping. Genuine transparent alpha outside the lettering and in counters. No paper, portrait, scenery, brick, checkerboard or background plate baked into the image. Aim for at least roughly 2000 pixels across the actual visible word for long text, with ample height for the original ratio; use extra transparent canvas rather than stretch or wrap a one-line wordmark.",
+        "input_images": [
+          {
+            "sha256": "e638470128a6cb63716261a50a43ba9e702cfbd4fcb7eb3f2d70b84bc1c67de2",
+            "role": "original visible lettering reference"
+          }
+        ],
+        "selected_for_family_review": true,
+        "status": "Family draft; owner judgment pending",
+        "preview_export": {
+          "raw_sha256": "3749c72d3046a2df87137136a69a9f54378d27cab38bc99f2f086c702a15b36d",
+          "raw_size": [
+            2098,
+            749
+          ],
+          "export_preview_sha256": "043c1e0e05f553ed3b3f85d61fe66324b6f55adc0376aa3971cea261cb9865d7",
+          "alpha_exact": true,
+          "rgb_above_alpha16_exact": true,
+          "low_alpha_rgb_texels_changed": 651060,
+          "raw_green_visible": 135,
+          "export_green_visible": 0,
+          "export_green_alpha_ge17": 0,
+          "export_hidden_green": 0
+        }
+      },
+      {
+        "key": "method-man-select",
+        "source_id": "3b0aa865be4e6fd0e074eacb94763cd7ebdf6fe5a40510182b7c06136ad6840e",
+        "revision": "v1",
+        "sha256": "b2e1e770eef252ecac373c6db7d48672abbc7a9c8b664392e6d8e5732e21e009",
+        "size": [
+          2134,
+          737
+        ],
+        "alpha128_bbox": [
+          77,
+          40,
+          2054,
+          715
+        ],
+        "transparent_texels": 1037707,
+        "partial_alpha_texels": 531422,
+        "prompt": "Image 1 is the original lettering composited onto a plain reference backdrop so only visible alpha coverage is shown. The backdrop is reference-only and must be removed from the output. Use case: precise-object-edit. Asset type: transparent HD replacement for a Def Jam: Fight for NY UI texture.\nEdit the supplied Image 1. Restore this EXACT original wordmark with smooth clean high-resolution contours for a 2560x1440 display. Image 1 is the lettering authority, not a loose style suggestion.\nText verbatim, preserving case, punctuation and line breaks: \"METHOD MAN\\nas BLAZE\".\nKeep the source's individual letter skeletons, widths, heights, baseline, spacing, stroke weight, line arrangement, face colours, deliberate wear and distinctive cuts. Reconstruct intended curves and straight cuts rather than following pixel stairs.\nMeasured visible ink rectangle: width672, height232, aspect2.89655:1. Preserve that rectangle's proportions and original per-letter positions. Measurements are layout constraints, not text to print. At identical word width do not make the letters taller, wider-spaced or heavier.\nPreserve this fighter-specific irregular brush/handwritten wordmark exactly, including uneven stroke endings, deliberate distress, letter angles, punctuation and line arrangement. Keep near-black warm ink with restrained original edge shading on pale fighter-select paper. Do not substitute a regular font or add Capone-style slab serifs or a bright rim.\nThe original may contain bright GREEN chroma backing and green/red specks on antialiased edges. Those are unwanted matte contamination, NOT intentional lettering colour or wear. Remove that contamination while preserving the original face and dark edge colours. Never paint a green fringe, coloured halo or coloured speckles. Colours outside the source lettering palette are forbidden. Preserve clean continuous antialiasing without a fuzzy surround.\nChange only contour resolution and clarity of existing surface detail. No font substitution, invented strokes, new chips, extra ornament, broad bright outline, fog, loose flecks or filled counters. Keep every original letter and punctuation mark visible.\nFlat front-facing horizontal UI texture, entire word or specified multiline group visible with an even transparent guard margin, no clipping. Genuine transparent alpha outside the lettering and in counters. No paper, portrait, scenery, brick, checkerboard or background plate baked into the image. Aim for at least roughly 2000 pixels across the actual visible word for long text, with ample height for the original ratio; use extra transparent canvas rather than stretch or wrap a one-line wordmark.",
+        "input_images": [
+          {
+            "sha256": "34c9afea9cd8eeede0ff604aa40d7e22deeed27ebbe657803d4c4f80bc03b538",
+            "role": "original visible lettering reference"
+          }
+        ],
+        "selected_for_family_review": true,
+        "status": "Family draft; owner judgment pending",
+        "preview_export": {
+          "raw_sha256": "b2e1e770eef252ecac373c6db7d48672abbc7a9c8b664392e6d8e5732e21e009",
+          "raw_size": [
+            2134,
+            737
+          ],
+          "export_preview_sha256": "4b27b858ed967c2733e03eb688b5388a8317e62c1ccb6a60bc1e350fb29deebf",
+          "alpha_exact": true,
+          "rgb_above_alpha16_exact": true,
+          "low_alpha_rgb_texels_changed": 1100617,
+          "raw_green_visible": 160,
+          "export_green_visible": 0,
+          "export_green_alpha_ge17": 0,
+          "export_hidden_green": 0
+        }
+      },
+      {
+        "key": "nore-loading",
+        "source_id": "f6173df976737cc04c2b2af9a510fec42253b0bdd4b050d5e32137c74c184bc7",
+        "revision": "v1",
+        "sha256": "b0c141166a1d1c28289d1f3266963584ad70cde3e9192eeb806d24618a4bb892",
+        "size": [
+          1928,
+          815
+        ],
+        "alpha128_bbox": [
+          56,
+          137,
+          1846,
+          694
+        ],
+        "transparent_texels": 894040,
+        "partial_alpha_texels": 674599,
+        "prompt": "Use case: precise-object-edit. Asset type: transparent HD replacement for a Def Jam: Fight for NY UI texture.\nEdit the supplied Image 1. Restore this EXACT original wordmark with smooth clean high-resolution contours for a 2560x1440 display. Image 1 is the lettering authority, not a loose style suggestion.\nText verbatim, preserving case, punctuation and line breaks: \"N.O.R.E.\".\nKeep the source's individual letter skeletons, widths, heights, baseline, spacing, stroke weight, line arrangement, face colours, deliberate wear and distinctive cuts. Reconstruct intended curves and straight cuts rather than following pixel stairs.\nMeasured visible ink rectangle: width744, height228, aspect3.26316:1. Preserve that rectangle's proportions and original per-letter positions. Measurements are layout constraints, not text to print. At identical word width do not make the letters taller, wider-spaced or heavier.\nPreserve this fighter-specific irregular handwritten/brush wordmark exactly, including punctuation, angles, stroke endings, line arrangement and relative sizes of the lines. Keep original ivory/tan light faces and its restrained warm dark border for contrast over a portrait. This is the LIGHT loading version. Do not turn it into dark select ink or a regular font.\nThe original may contain bright GREEN chroma backing and green/red specks on antialiased edges. Those are unwanted matte contamination, NOT intentional lettering colour or wear. Remove that contamination while preserving the original face and dark edge colours. Never paint a green fringe, coloured halo or coloured speckles. Colours outside the source lettering palette are forbidden. Preserve clean continuous antialiasing without a fuzzy surround.\nChange only contour resolution and clarity of existing surface detail. No font substitution, invented strokes, new chips, extra ornament, broad bright outline, fog, loose flecks or filled counters. Keep every original letter and punctuation mark visible.\nFlat front-facing horizontal UI texture, entire word or specified multiline group visible with an even transparent guard margin, no clipping. Genuine transparent alpha outside the lettering and in counters. No paper, portrait, scenery, brick, checkerboard or background plate baked into the image. Aim for at least roughly 2000 pixels across the actual visible word for long text, with ample height for the original ratio; use extra transparent canvas rather than stretch or wrap a one-line wordmark.",
+        "input_images": [
+          {
+            "sha256": "a0200a583caf915b7be3d86481585092d6ae217fff01476f2da1c7988e2bc854",
+            "role": "original visible lettering reference"
+          }
+        ],
+        "selected_for_family_review": true,
+        "status": "Family draft; owner judgment pending",
+        "preview_export": {
+          "raw_sha256": "b0c141166a1d1c28289d1f3266963584ad70cde3e9192eeb806d24618a4bb892",
+          "raw_size": [
+            1928,
+            815
+          ],
+          "export_preview_sha256": "81287ef1e4b1b8f866de83d67316e107b4c91f051bf12e3a21fb9346d979a2f1",
+          "alpha_exact": true,
+          "rgb_above_alpha16_exact": true,
+          "low_alpha_rgb_texels_changed": 917017,
+          "raw_green_visible": 57,
+          "export_green_visible": 0,
+          "export_green_alpha_ge17": 0,
+          "export_hidden_green": 0
+        }
+      },
+      {
+        "key": "nore-select",
+        "source_id": "899c6931a9d295f68ba03098a1b8b2eccc43c21f8f8b42da88c69c5202bc85d6",
+        "revision": "v1",
+        "sha256": "d09f61881b10b04c859e3bafa00d2199067d9c01f548f7ca4a5877fdd4f643bf",
+        "size": [
+          2170,
+          725
+        ],
+        "alpha128_bbox": [
+          88,
+          98,
+          2085,
+          675
+        ],
+        "transparent_texels": 1052446,
+        "partial_alpha_texels": 516748,
+        "prompt": "Image 1 is the original lettering composited onto a plain reference backdrop so only visible alpha coverage is shown. The backdrop is reference-only and must be removed from the output. Use case: precise-object-edit. Asset type: transparent HD replacement for a Def Jam: Fight for NY UI texture.\nEdit the supplied Image 1. Restore this EXACT original wordmark with smooth clean high-resolution contours for a 2560x1440 display. Image 1 is the lettering authority, not a loose style suggestion.\nText verbatim, preserving case, punctuation and line breaks: \"N.O.R.E.\".\nKeep the source's individual letter skeletons, widths, heights, baseline, spacing, stroke weight, line arrangement, face colours, deliberate wear and distinctive cuts. Reconstruct intended curves and straight cuts rather than following pixel stairs.\nMeasured visible ink rectangle: width640, height182, aspect3.51648:1. Preserve that rectangle's proportions and original per-letter positions. Measurements are layout constraints, not text to print. At identical word width do not make the letters taller, wider-spaced or heavier.\nPreserve this fighter-specific irregular brush/handwritten wordmark exactly, including uneven stroke endings, deliberate distress, letter angles, punctuation and line arrangement. Keep near-black warm ink with restrained original edge shading on pale fighter-select paper. Do not substitute a regular font or add Capone-style slab serifs or a bright rim.\nThe original may contain bright GREEN chroma backing and green/red specks on antialiased edges. Those are unwanted matte contamination, NOT intentional lettering colour or wear. Remove that contamination while preserving the original face and dark edge colours. Never paint a green fringe, coloured halo or coloured speckles. Colours outside the source lettering palette are forbidden. Preserve clean continuous antialiasing without a fuzzy surround.\nChange only contour resolution and clarity of existing surface detail. No font substitution, invented strokes, new chips, extra ornament, broad bright outline, fog, loose flecks or filled counters. Keep every original letter and punctuation mark visible.\nFlat front-facing horizontal UI texture, entire word or specified multiline group visible with an even transparent guard margin, no clipping. Genuine transparent alpha outside the lettering and in counters. No paper, portrait, scenery, brick, checkerboard or background plate baked into the image. Aim for at least roughly 2000 pixels across the actual visible word for long text, with ample height for the original ratio; use extra transparent canvas rather than stretch or wrap a one-line wordmark.",
+        "input_images": [
+          {
+            "sha256": "0996989f606e254d1a47f2aaa4bc99b4e123d65e2f420291b9ff9a6adf6dd491",
+            "role": "original visible lettering reference"
+          }
+        ],
+        "selected_for_family_review": true,
+        "status": "Family draft; owner judgment pending",
+        "preview_export": {
+          "raw_sha256": "d09f61881b10b04c859e3bafa00d2199067d9c01f548f7ca4a5877fdd4f643bf",
+          "raw_size": [
+            2170,
+            725
+          ],
+          "export_preview_sha256": "552427e074ae0ae45f63e8870b85d17a76844f21ec0d764217b0600ae03523aa",
+          "alpha_exact": true,
+          "rgb_above_alpha16_exact": true,
+          "low_alpha_rgb_texels_changed": 1086077,
+          "raw_green_visible": 109,
+          "export_green_visible": 0,
+          "export_green_alpha_ge17": 0,
+          "export_hidden_green": 0
+        }
+      },
+      {
+        "key": "options",
+        "source_id": "27fd9bb0802e44ef27a0051e00bfcd414594114791193dcef3f9540ae31b786c",
+        "revision": "v1",
+        "sha256": "45ceb71c79ebb2f55fb0ed36bac367c3177e12dcdfd8b81c147347d58687b178",
+        "size": [
+          2170,
+          725
+        ],
+        "alpha128_bbox": [
+          42,
+          145,
+          2101,
+          544
+        ],
+        "transparent_texels": 1026701,
+        "partial_alpha_texels": 541909,
+        "prompt": "Use case: precise-object-edit. Asset type: transparent HD replacement for a Def Jam: Fight for NY UI texture.\nEdit the supplied Image 1. Restore this EXACT original wordmark with smooth clean high-resolution contours for a 2560x1440 display. Image 1 is the lettering authority, not a loose style suggestion.\nText verbatim, preserving case, punctuation and line breaks: \"OPTIONS\".\nKeep the source's individual letter skeletons, widths, heights, baseline, spacing, stroke weight, line arrangement, face colours, deliberate wear and distinctive cuts. Reconstruct intended curves and straight cuts rather than following pixel stairs.\nMeasured visible ink rectangle: width621, height111, aspect5.59459:1. Preserve that rectangle's proportions and original per-letter positions. Measurements are layout constraints, not text to print. At identical word width do not make the letters taller, wider-spaced or heavier.\nRetain the exact serif/stencil cuts and interruptions, narrow I and T forms, source-shaped U and M, ivory faces and original spacing. Keep broad faces source-flat and the charcoal edge restrained; no thick new bevel or extrusion. Original source cuts remain open.\nThe original may contain bright GREEN chroma backing and green/red specks on antialiased edges. Those are unwanted matte contamination, NOT intentional lettering colour or wear. Remove that contamination while preserving the original face and dark edge colours. Never paint a green fringe, coloured halo or coloured speckles. Colours outside the source lettering palette are forbidden. Preserve clean continuous antialiasing without a fuzzy surround.\nChange only contour resolution and clarity of existing surface detail. No font substitution, invented strokes, new chips, extra ornament, broad bright outline, fog, loose flecks or filled counters. Keep every original letter and punctuation mark visible.\nFlat front-facing horizontal UI texture, entire word or specified multiline group visible with an even transparent guard margin, no clipping. Genuine transparent alpha outside the lettering and in counters. No paper, portrait, scenery, brick, checkerboard or background plate baked into the image. Aim for at least roughly 2000 pixels across the actual visible word for long text, with ample height for the original ratio; use extra transparent canvas rather than stretch or wrap a one-line wordmark.",
+        "input_images": [
+          {
+            "sha256": "3826e86312cb6409c1fa18e696bc6c0593593baa6a43252b8d2f5435a073ccbc",
+            "role": "original visible lettering reference"
+          }
+        ],
+        "selected_for_family_review": true,
+        "status": "Family draft; owner judgment pending",
+        "preview_export": {
+          "raw_sha256": "45ceb71c79ebb2f55fb0ed36bac367c3177e12dcdfd8b81c147347d58687b178",
+          "raw_size": [
+            2170,
+            725
+          ],
+          "export_preview_sha256": "a384dcf6ceb564adc1ec92682e92320bbe36c82cf95897914bbf953eabaebe91",
+          "alpha_exact": true,
+          "rgb_above_alpha16_exact": true,
+          "low_alpha_rgb_texels_changed": 1055663,
+          "raw_green_visible": 29,
+          "export_green_visible": 0,
+          "export_green_alpha_ge17": 0,
+          "export_hidden_green": 0
+        }
+      },
+      {
+        "key": "select-user-id",
+        "source_id": "3a0d7988ecf41040ce5d04991a23930051555a66c0c5cb110803fec199c0a582",
+        "revision": "v1",
+        "sha256": "1ac2b80a7e865339d3e93bfdddcbb1425208fc040d157e9c4022852c5a6edb0a",
+        "size": [
+          2170,
+          725
+        ],
+        "alpha128_bbox": [
+          25,
+          236,
+          2095,
+          456
+        ],
+        "transparent_texels": 1274247,
+        "partial_alpha_texels": 294758,
+        "prompt": "Use case: precise-object-edit. Asset type: transparent HD replacement for a Def Jam: Fight for NY UI texture.\nEdit the supplied Image 1. Restore this EXACT original wordmark with smooth clean high-resolution contours for a 2560x1440 display. Image 1 is the lettering authority, not a loose style suggestion.\nText verbatim, preserving case, punctuation and line breaks: \"SELECT USER ID\".\nKeep the source's individual letter skeletons, widths, heights, baseline, spacing, stroke weight, line arrangement, face colours, deliberate wear and distinctive cuts. Reconstruct intended curves and straight cuts rather than following pixel stairs.\nMeasured visible ink rectangle: width1135, height112, aspect10.13393:1. Preserve that rectangle's proportions and original per-letter positions. Measurements are layout constraints, not text to print. At identical word width do not make the letters taller, wider-spaced or heavier.\nRetain the exact serif/stencil cuts and interruptions, narrow I and T forms, source-shaped U and M, ivory faces and original spacing. Keep broad faces source-flat and the charcoal edge restrained; no thick new bevel or extrusion. Original source cuts remain open.\nThe original may contain bright GREEN chroma backing and green/red specks on antialiased edges. Those are unwanted matte contamination, NOT intentional lettering colour or wear. Remove that contamination while preserving the original face and dark edge colours. Never paint a green fringe, coloured halo or coloured speckles. Colours outside the source lettering palette are forbidden. Preserve clean continuous antialiasing without a fuzzy surround.\nChange only contour resolution and clarity of existing surface detail. No font substitution, invented strokes, new chips, extra ornament, broad bright outline, fog, loose flecks or filled counters. Keep every original letter and punctuation mark visible.\nFlat front-facing horizontal UI texture, entire word or specified multiline group visible with an even transparent guard margin, no clipping. Genuine transparent alpha outside the lettering and in counters. No paper, portrait, scenery, brick, checkerboard or background plate baked into the image. Aim for at least roughly 2000 pixels across the actual visible word for long text, with ample height for the original ratio; use extra transparent canvas rather than stretch or wrap a one-line wordmark.",
+        "input_images": [
+          {
+            "sha256": "0c38d647dfc0cdfec3361d44e214fd66e353493b2e030fb63538d3597587c4f0",
+            "role": "original visible lettering reference"
+          }
+        ],
+        "selected_for_family_review": true,
+        "status": "Family draft; owner judgment pending",
+        "preview_export": {
+          "raw_sha256": "1ac2b80a7e865339d3e93bfdddcbb1425208fc040d157e9c4022852c5a6edb0a",
+          "raw_size": [
+            2170,
+            725
+          ],
+          "export_preview_sha256": "5919380f93cbfa6f0fe1fea2c4b9e6f84ca77ea350d00fc4b0b59bcf9e99ddbc",
+          "alpha_exact": true,
+          "rgb_above_alpha16_exact": true,
+          "low_alpha_rgb_texels_changed": 1314618,
+          "raw_green_visible": 130,
+          "export_green_visible": 0,
+          "export_green_alpha_ge17": 0,
+          "export_hidden_green": 0
+        }
+      },
+      {
+        "key": "select",
+        "source_id": "6ac530635b497984fa623cbb489a61c30edbeb97022e4e95ee6d4df478822c5a",
+        "revision": "v1",
+        "sha256": "e4906138bd401acd5e5db538b9af253528701355df225bc9270ef1de973ca775",
+        "size": [
+          1983,
+          793
+        ],
+        "alpha128_bbox": [
+          24,
+          83,
+          1923,
+          706
+        ],
+        "transparent_texels": 692504,
+        "partial_alpha_texels": 876333,
+        "prompt": "Use case: precise-object-edit. Asset type: transparent HD replacement for a Def Jam: Fight for NY UI texture.\nEdit the supplied Image 1. Restore this EXACT original wordmark with smooth clean high-resolution contours for a 2560x1440 display. Image 1 is the lettering authority, not a loose style suggestion.\nText verbatim, preserving case, punctuation and line breaks: \"SELECT\".\nKeep the source's individual letter skeletons, widths, heights, baseline, spacing, stroke weight, line arrangement, face colours, deliberate wear and distinctive cuts. Reconstruct intended curves and straight cuts rather than following pixel stairs.\nMeasured visible ink rectangle: width191, height48, aspect3.97917:1. Preserve that rectangle's proportions and original per-letter positions. Measurements are layout constraints, not text to print. At identical word width do not make the letters taller, wider-spaced or heavier.\nThis is slender condensed sans-serif text. Preserve the source thin strokes, modest rounded corners and open counters, white faces and restrained dark shadow. Do not substitute bold athletic, varsity or stencil lettering. Keep all letters at the source cap height and spacing.\nThe original may contain bright GREEN chroma backing and green/red specks on antialiased edges. Those are unwanted matte contamination, NOT intentional lettering colour or wear. Remove that contamination while preserving the original face and dark edge colours. Never paint a green fringe, coloured halo or coloured speckles. Colours outside the source lettering palette are forbidden. Preserve clean continuous antialiasing without a fuzzy surround.\nChange only contour resolution and clarity of existing surface detail. No font substitution, invented strokes, new chips, extra ornament, broad bright outline, fog, loose flecks or filled counters. Keep every original letter and punctuation mark visible.\nFlat front-facing horizontal UI texture, entire word or specified multiline group visible with an even transparent guard margin, no clipping. Genuine transparent alpha outside the lettering and in counters. No paper, portrait, scenery, brick, checkerboard or background plate baked into the image. Aim for at least roughly 2000 pixels across the actual visible word for long text, with ample height for the original ratio; use extra transparent canvas rather than stretch or wrap a one-line wordmark.",
+        "input_images": [
+          {
+            "sha256": "045f542be34e6af87b3717e70244c374486d7ba9d708c968294705161e773e37",
+            "role": "original visible lettering reference"
+          }
+        ],
+        "selected_for_family_review": false,
+        "status": "HELD font/weight drift; retained history"
+      },
+      {
+        "key": "select",
+        "source_id": "6ac530635b497984fa623cbb489a61c30edbeb97022e4e95ee6d4df478822c5a",
+        "revision": "v2",
+        "sha256": "b901c028713c33f19b38aaf4d5b348794c0b9f0cce39b16b2a0aa0a24f3bf052",
+        "size": [
+          1983,
+          793
+        ],
+        "alpha128_bbox": [
+          254,
+          230,
+          1733,
+          565
+        ],
+        "transparent_texels": 1247644,
+        "partial_alpha_texels": 322053,
+        "prompt": "Image 1 is the original lettering composited onto a plain reference backdrop so only visible alpha coverage is shown. The backdrop is reference-only and must be removed from the output. Use case: precise-object-edit. Asset type: transparent HD replacement for a Def Jam: Fight for NY UI texture.\nEdit the supplied Image 1. Restore this EXACT original wordmark with smooth clean high-resolution contours for a 2560x1440 display. Image 1 is the lettering authority, not a loose style suggestion.\nText verbatim, preserving case, punctuation and line breaks: \"SELECT\".\nKeep the source's individual letter skeletons, widths, heights, baseline, spacing, stroke weight, line arrangement, face colours, deliberate wear and distinctive cuts. Reconstruct intended curves and straight cuts rather than following pixel stairs.\nMeasured visible ink rectangle: width191, height48, aspect3.97917:1. Preserve that rectangle's proportions and original per-letter positions. Measurements are layout constraints, not text to print. At identical word width do not make the letters taller, wider-spaced or heavier.\nThis is slender condensed sans-serif text. Preserve the source thin strokes, modest rounded corners and open counters, white faces and restrained dark shadow. Do not substitute bold athletic, varsity or stencil lettering. Keep all letters at the source cap height and spacing.\nThe original may contain bright GREEN chroma backing and green/red specks on antialiased edges. Those are unwanted matte contamination, NOT intentional lettering colour or wear. Remove that contamination while preserving the original face and dark edge colours. Never paint a green fringe, coloured halo or coloured speckles. Colours outside the source lettering palette are forbidden. Preserve clean continuous antialiasing without a fuzzy surround.\nChange only contour resolution and clarity of existing surface detail. No font substitution, invented strokes, new chips, extra ornament, broad bright outline, fog, loose flecks or filled counters. Keep every original letter and punctuation mark visible.\nFlat front-facing horizontal UI texture, entire word or specified multiline group visible with an even transparent guard margin, no clipping. Genuine transparent alpha outside the lettering and in counters. No paper, portrait, scenery, brick, checkerboard or background plate baked into the image. Aim for at least roughly 2000 pixels across the actual visible word for long text, with ample height for the original ratio; use extra transparent canvas rather than stretch or wrap a one-line wordmark. Image 2 is the accepted CONTINUE sample: use its clean slender condensed sans-serif character and smooth edge quality, while Image 1 alone controls the actual word, original glyph proportions and spacing. Text must read S E L E C T, exactly six letters. Absolutely no distress, speckled chips, stencil gaps, chunky varsity weight, external dots, duplicate strokes, decorative caps or serifs. The low-alpha white ghost pixels in earlier references are not part of the letters. Keep only the clean original central letter shapes. Original light-medium weight, precise counters, modest rounded corners, source-like thin shadow.",
+        "input_images": [
+          {
+            "sha256": "ec931a7832f8c6249c44eba67c73ec03d390bc3fda2e6e1cb1c1d507c48f8dd3",
+            "role": "original visible lettering reference"
+          },
+          {
+            "sha256": "76314ebd19bc08d710db5681bfe73ba97327997f216e661fc93f426a3b5da9ae",
+            "role": "accepted Continue quality reference; original controls word geometry"
+          }
+        ],
+        "selected_for_family_review": true,
+        "status": "Family draft; owner judgment pending",
+        "preview_export": {
+          "raw_sha256": "b901c028713c33f19b38aaf4d5b348794c0b9f0cce39b16b2a0aa0a24f3bf052",
+          "raw_size": [
+            1983,
+            793
+          ],
+          "export_preview_sha256": "ca494028c9cdf1a6ef4eb8c4b731d38a6fee5ad2e4188fc0783946474d5c0da7",
+          "alpha_exact": true,
+          "rgb_above_alpha16_exact": true,
+          "low_alpha_rgb_texels_changed": 1268761,
+          "raw_green_visible": 28,
+          "export_green_visible": 0,
+          "export_green_alpha_ge17": 0,
+          "export_hidden_green": 0
+        }
+      }
+    ]
+  },
+  "loading_source_pins": [
+    {
+      "source_id": "cf5b701279bed145a8780aa526ff279639073f413495cd28ab0a8ee87e46e7de",
+      "input_png_sha256": "f9680cc0cf55f26b69bb40b7a1da6e74caeb97c24b96969e7943925db6cf40e9",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_0_2p.big::l_ML_0_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "0a86c4772a6c402bf17268ed3e4c869a45ba490895545a98937c561ff6620c14",
+      "input_png_sha256": "94c8d15cbed7fdea94a527869ea3788b616d39c2cc440ba11944bd4d039fdbd9",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_0_3p.big::l_ML_0_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "26203eb69dd17c35c63a3447eb75591b3171129e6428fafdbca7b64a3c91da97",
+      "input_png_sha256": "02326ba5f092e36ed67c9b1c457e135882d19845bfa1a46aa771c769f2e85f82",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_0_4p.big::l_ML_0_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "38e561f2aea5c61271a6d0170ce96f1eeed5bcdb309fb38e1f26467a1401dada",
+      "input_png_sha256": "6c7dd220e35d0582876163dbc602fb50456363eab64e2aed5f295225a9c7bf34",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_10_2p.big::l_ML_10_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "7a8ae737d0d09143a4d3839a817343fdb702e254fa3aa590ee1bfe69bdde3325",
+      "input_png_sha256": "48440fa88c454e97ebcfb57417759a0fee06f3fee681fa5479849ed2e795e2ce",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_10_3p.big::l_ML_10_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "2a915a68f8f758ae8a355b7106e6ba01880e2282ceb77b8ab9f988a3e4295b5f",
+      "input_png_sha256": "76fec76bc9f3aa9e677a56c01508601915a25c07ace8956c93c260602c7132d7",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_10_4p.big::l_ML_10_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "e6bca6d8b7bbdc3e73823a010708c28956b60d8b4686d2ff1eb730a1324bc24f",
+      "input_png_sha256": "61ac213728a84bb61facfe3a9aaf788294e6acfa8d845069bf760dfea5195037",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_11_2p.big::l_ML_11_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "5ed3be1c947973004ea4d76c5ba3a7bfb0d91534db0d4ce6ac486b89ee7e214e",
+      "input_png_sha256": "ece9313602c4761972a0b85d8f8afb2cd7ab02a7ea582bfd00a316b808c27328",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_11_3p.big::l_ML_11_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "419eec76c3a1d234a918f4d7b0ab1f4b86a8c74f78bab24c470997344b5a8f2a",
+      "input_png_sha256": "8035285e0d48e579a43e05f6adb1e19efafc035c999ab4711d242e3a6507b6fd",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_11_4p.big::l_ML_11_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "8f7c1161fefd4873a94a74261422d48b0ffaa968920b7c46a9f4d2f9fa947c58",
+      "input_png_sha256": "81c6a0aa9eaa448e5d3ed080c03819b41bab8494a300ea7ec6c8d298c3f58832",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_12_2p.big::l_ML_12_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "228a3586b9a02be5352816b60b78a8273251f735f817a13915cdeb7e7a6df4cf",
+      "input_png_sha256": "1a18f55915245abe20175cd5f6d28f93ab6bb2b8850d1d20a7325a3071e3c4a5",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_12_3p.big::l_ML_12_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "ac2513066ec66b09cac6eaef15ffc2a048bb2a829419114221daa7410a12a58e",
+      "input_png_sha256": "7961179cdd96a867ea33cfe655976310810f594f84e75140b541d151c0bcc384",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_12_4p.big::l_ML_12_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "a9db55310420fd41f71bc9081c37c79a2d8daafd5da5cec2d385d6b10deefa45",
+      "input_png_sha256": "b5d5c7ab9110565db5a067b57e4f26fab03d3f5da02dfbd6b70274e515d32283",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_13_2p.big::l_ML_13_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "995d013e4bb84944eac1b53e92a94cf7c5231176c0882890b3a283dac8e3806c",
+      "input_png_sha256": "f345a60338e44aab2ec03dcad1d9b8bf8416632fa48217d83a0ecf75b48149fe",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_13_3p.big::l_ML_13_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "cb8d679da0e2a773e3641fca62d9cab2d79420ab8c48e46f38a8c684bc3b9f79",
+      "input_png_sha256": "3df9c6953d78b46bbf303cd0e2ff9716c6cec8b2ccc7edeb4f6af8512ab68e9a",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_13_4p.big::l_ML_13_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "52226592327f3068c4076a841636c59bc1feadffe0bb02c88ea8542542db03e5",
+      "input_png_sha256": "911d1a642f4726289d55ebeb77ae944faf0cde0c27c15c858b99bae096463a53",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_14_2p.big::l_ML_14_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "84c47159a2f1143b1e16b7bab15eaa268be2f19a4edf5330fc3917b9a0a19f36",
+      "input_png_sha256": "d7d25de4b8b9569591dca8836f73f87dca27db2ca156643a115c1dd771a8afe1",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_14_3p.big::l_ML_14_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "24e86ae9e00d3c6ecd841060451a06e2d225f4bf653b87e3c4a1d3e02283220a",
+      "input_png_sha256": "bf8e6eefe96b5e3f686ae7ea15b4616a40310d617a3227829e687fb30fa876ad",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_14_4p.big::l_ML_14_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "314b019a051f145547075f698aacc4fda2e600877a2225f4cda6a4c39f9643bf",
+      "input_png_sha256": "7fe7218d2ae1443861e55d096efaaef8a5e852921b64886df0fdeced8f71d5ef",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_16_2p.big::l_ML_16_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "44b112e6b06230b76c5951e50eae86fb63fd6d39032e258615404b95ac5db6d1",
+      "input_png_sha256": "a9c2a5bfad15acec0619d61b56cc7826677f4a4aeb24848b7bf519b53a72b4c4",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_16_3p.big::l_ML_16_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "29d316ecd07b213a3fe937245d9bf0d03ebb0f1cbde54436bed6c99efab0729a",
+      "input_png_sha256": "3b2f0b0a0928522264ef20ffba4c671af27ae3543aff35c43d236b266630352d",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_16_4p.big::l_ML_16_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "10c4ed82251681d8f8ddb45e276e32f526af569e4a8412a1456df4358c6c7834",
+      "input_png_sha256": "f0aaa36962f656447aa0f6494215a155bb4700b1015d4f53325d053dcdf18e1d",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_17_2p.big::l_ML_17_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "d93045dcab76f830daf714472f37872eb7b54375d954394604a20e43dbcec8e0",
+      "input_png_sha256": "449e1d57904894f798ce0b0381554cb65175512760f59b4bdf1304b10302102b",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_17_3p.big::l_ML_17_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "349e52400ce337a5e7551b6169dabaa9726791cf2898f1a50b4ed36135d5e969",
+      "input_png_sha256": "d3f34c359b6ab8417a82ddffa5009bbf59ebb8b0afa9af2e476fcbffbec3e168",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_17_4p.big::l_ML_17_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "6ad39b3ff01681554f10c9f0b15a86acfa486463638fae7bab2d65c5b241697c",
+      "input_png_sha256": "f3289334b7e30c28258574811ff36c8662d7cd095ea70561c7c0c5f099120649",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_18_2p.big::l_ML_18_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "abec5fe3e511ee69b51ef1d1819862d8e6b3173ee6f7be2d49facbfd61474142",
+      "input_png_sha256": "3f8b67e4e6b1c93ce2a402441f013b9bb2a0db6d7c1028575df601fac4cd67b7",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_18_3p.big::l_ML_18_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "85f5ca2d6201534ac3f6efa3428eceea04188d2e3e51bdd021a44c750390f7e4",
+      "input_png_sha256": "3ceb0bf18d8da32da31b7c33d0fe281a6eaf33e5dbb6e1a38986de289ecba541",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_18_4p.big::l_ML_18_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "0803e96d5b56050467ebae9b3ca12a6697f7403e9e29eb8069c277bfa71fe6ad",
+      "input_png_sha256": "6cf6c9e4183e7399e74e50b637aa0df43ffddf32a79c1b274d76f232d3d6abd6",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_19_2p.big::l_ML_19_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "4f68cb02066b41537087dba356a39bb0d6baa4aad88f376a6900d49bb364576f",
+      "input_png_sha256": "9a67c109e51f758837caa230dafa5addc880340ede01dad633d7e6de0bdeb5cf",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_19_3p.big::l_ML_19_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "afde054c27d9841b1e00fbdc68dd6c4d8d98488bc4b9789a730f7824a0eed31e",
+      "input_png_sha256": "8a047e98fcc020ea484c2729f144e188842afef795d5a58069932e4c7ab0eb9e",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_19_4p.big::l_ML_19_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "3f6ef7ff80e60da5fbc220d401071e2f951c7d6fc1880d93485c05813b90ce2d",
+      "input_png_sha256": "d6a5f99c6b4d9cc272a2af6dbca10e0b0afef6fc2dd5a5282a23640faa863236",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_1_2p.big::l_ML_1_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "7fa981fd815fe07902195e7981b4465c5825dc1679afd65a1103aec04eb3d341",
+      "input_png_sha256": "6de41c35b79891b43e0e246859d74972fecdeacf657d0ce7e41a08f8f6860b5d",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_1_3p.big::l_ML_1_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "3e05686d67927525bd9ace11fd4ad64e7733c006f0fe8e82ca80569a3b360652",
+      "input_png_sha256": "025b0e3c6f089d07bfa27e3c9a079bad1dbd353ef16d56dd5c9557420667e505",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_1_4p.big::l_ML_1_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "c13f3b2888bb4da1668be1cdb5c14a69423cfc05bf059f8894640300e1cb11a6",
+      "input_png_sha256": "470ccc16b531fc3e8359a5d1bbca7af9916e7f10d64a5b6b1ed05582a135090a",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_20_2p.big::l_ML_20_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "3a2dbcbb69ab519e0c93b6b1b2b5c7bc6d7c754bdcb31dbb2336de91945e220f",
+      "input_png_sha256": "2adb191e22b51f0980f41781a248bad14865af632c1a9421dd1ad6f3b0adf2bd",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_20_3p.big::l_ML_20_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "831e949a11d078344a00dae585766893ed39fa0ff962374c7bb6602b9754a4c3",
+      "input_png_sha256": "c5ee4fc7b73bbf0e6ed1940562f1c7ca76bba7b3086dfe87d8fed42067fa1879",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_20_4p.big::l_ML_20_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "b64bd77c1ecb821e3b3f7efca815e18a3d1c13673c54a7ee87a6cd512ee99e1d",
+      "input_png_sha256": "2eb6858564d2cf839df075c9ca3a76e19f05ddd1fd8bf66fd22be43a5cef59cf",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_21_2p.big::l_ML_21_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "4c9c7635da6e8cbc9bd4829a8e79d5398d792cf316f62d723a5d20779b3c5c1d",
+      "input_png_sha256": "1364724e3f7d06dc1616aef737ac9931410fc896f7b57316ceccf4fb1ef490a9",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_21_3p.big::l_ML_21_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "2c30213081fc55f1e890149a1febddf0e5dae0882119aa7528714b2983d319a3",
+      "input_png_sha256": "9e2e7b8b3aab421b7bcc9d146b699992109ff713420909748d461b5566cf7b58",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_21_4p.big::l_ML_21_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "7a3c5da120512fe1c55511978cff6d56ba3139238bae1eedeb5ac5b7cd883be6",
+      "input_png_sha256": "01d49b1eef1bd0132712096f944661e9c8a1d4b4753ba0b069f541dee3ecc871",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_22_2p.big::l_ML_22_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "cfb3a9e255529d1a42808ae62ca7941d5442c02f364642f41f3a6f644fa1d42a",
+      "input_png_sha256": "81c41cba76e77775bffd3525a4e7b522976031a810837084679d807b28e18150",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_22_3p.big::l_ML_22_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "afb2c8b10e5455c878cd0a6a0cd70e7fa57d9d3bbe3e418bb58692dea936fa46",
+      "input_png_sha256": "f761c160d3b0ce2ab11bfbb8f886d9e7b362567da7c6b32cd499bb53d580333e",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_22_4p.big::l_ML_22_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "ed5abf915e801dc30dad22bbd1dc497f653bd706bfb1b115149476ba2747c9c7",
+      "input_png_sha256": "30a16609882f8a6aad51e90679feb9447f2f69c2fae0b8a6c346c8f8bbfc0633",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_23_2p.big::l_ML_23_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "da54a6b6c1a713b20068a6fe1ebb3b29d1da1228a1869c808e943d6f5167b80c",
+      "input_png_sha256": "ca742667692bf1a5958f13d0a9adf5519f620a103edeb6fe0cdd404124a0c52c",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_23_3p.big::l_ML_23_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "0937124cc2f4fc8d2e2201607e3aeef3397ebe18a0cdc84f15de10885fdec30d",
+      "input_png_sha256": "d1e0b7bd25551c54f589b86ec78757993b1f352c10930f103ed2f0393fef85a7",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_23_4p.big::l_ML_23_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "4a50778b454e0193f414288c7fbea6beb4f05e53a90b1211577f3cb6f1bbe155",
+      "input_png_sha256": "69659676882f4f96cbbace8eb8a9213480fb66bf724724b0e796721b084197fb",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_24_2p.big::l_ML_24_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "bbc2ab8d142dc20ed610745e18f6ee52966455d854554431605380f9f94027b9",
+      "input_png_sha256": "eb05547dca5da69980abb1406994a432d3d40705b5b7302cb0ee11b526f1627b",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_24_3p.big::l_ML_24_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "6bef90873ca6cd1fe229b8888747dafbe2531b9be3e891d3038e5d5c5d4d99cb",
+      "input_png_sha256": "759e87ee54eab7dc3d4fcbc749895b71a4afda42f0c549a037ac3171225e278b",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_24_4p.big::l_ML_24_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "e8f30d1baf1274315ee438e0c690fdb0ab2fe59237a5da2578737e794ee07c94",
+      "input_png_sha256": "03cfabbde9ebdd9315eda7dc0b729513f885c05b8dfcf9bd7fd32fcd1ad85792",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_25_2p.big::l_ML_25_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "2f70206407fe4003caeae471ea46bf485ef4744ca9ed2b27e717b87f2eded331",
+      "input_png_sha256": "d5ea45ea1544d801efb778e4ea751397b5bb1617f930e09ed712792289947d50",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_25_3p.big::l_ML_25_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "7c6005ee2f9337fd6c012f16be39a90e378cb61648e9b4655a410c30db37484b",
+      "input_png_sha256": "1a4e992a3be19055d9b964f93bf691f88b56fb55d92a7591ad5141fcbbaee070",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_25_4p.big::l_ML_25_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "8fddc27dc065425e8910cc3a4a90f28ec2a6e14ebc29963a63d017b4e5c95e0b",
+      "input_png_sha256": "5ffabd506517271757a466f259aeaa01a3fec6bc98fde66b378952cf489c9d7b",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_26_2p.big::l_ML_26_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "fe942abec302ffe13eca5429378d86626899e2541778356185b579b2161fed7f",
+      "input_png_sha256": "c5ae8154983a478c371b2ec84e873edc9562fb0e9a967b7f028733d8f941da1a",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_26_3p.big::l_ML_26_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "21d36704fd2ce8e4ba474ce683c5e66723ac098cd7f604d4530dafb36a907e97",
+      "input_png_sha256": "3fad74c34fd7e45ae50337a117dd6be04b0ef73665de003d467f222ad8bcd336",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_26_4p.big::l_ML_26_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "adf6865ae16d02c89f8a08bc68407e065a6c30708cebede200c14ed4f1027d30",
+      "input_png_sha256": "dca7d0ae5c482f60459cb1a4f52079d9a52c40c477d417baf556b903701a9fbe",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_27_2p.big::l_ML_27_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "a0a42fe3da793653c5d46d79a35b3bc7eddbf770220e31996a9e47210fdfd434",
+      "input_png_sha256": "3f1c4b7eb5737e3a5e2dbbac2da9872098a3d63125c06477131bed6893ee7b3d",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_27_3p.big::l_ML_27_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "1277fea5ccd5ce37361cb210292c808eabd6c859117d18b1398a18423b187a25",
+      "input_png_sha256": "057bd8239db1bfa6dacdd032bfee36257a4f534aa4538d0d287a2f35b96bf0fc",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_27_4p.big::l_ML_27_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "8ce387ea4dce3c28f2389db74e1c1342f8b43ff87fd0b8a70aaa528c7de41df7",
+      "input_png_sha256": "83ec1620ae21d67f86872f68bb4343e1f9731fbe9b113598fa213c1aee7a8820",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_28_2p.big::l_ML_28_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "953f1e877d7b6be02fbf4ab78aafb4824354e3ac12ad04363dc47a5840414744",
+      "input_png_sha256": "01139b1cfcd245ac45951c92f5330ab170983662e9c0b2931a0c28bd96921278",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_28_3p.big::l_ML_28_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "1c2e5b1199e6ce18bf7f48d0dfb18861b9bc3ed4a7b9bf3568897cfd0f3c7336",
+      "input_png_sha256": "a37280a62b79765fb2cc424d333f580f306bfa42357c0008f01644ea85840bc9",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_28_4p.big::l_ML_28_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "83db47ebed89762edea2a1c2827e1235df9de15a96fcea357d26153941d24862",
+      "input_png_sha256": "248ef9d557dbb0121ad7b3b30a251bf116c903a0b31c1253d34b1ca526621ebf",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_2_2p.big::l_ML_2_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "6b7f003e9a8da943c1df1a2744332c6110ac9815b7240db25c871db1bb1ab37a",
+      "input_png_sha256": "3b2269b22d49c8541e29792dbaf1a8cf802a0f589eb83e0ef44a6860910eb174",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_2_3p.big::l_ML_2_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "2f7505a4edac374a68549148a0244abc84aaf915fe7f6d73768356fb5aaec85c",
+      "input_png_sha256": "2a2b64425fe56f08426e2c0b4bf5f9761335da65d6b7cf5f1d5294d344c86314",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_2_4p.big::l_ML_2_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "47475dc8c4850a3a1d27feac4afab03303ccc4c91dd1904694d7a3019b95838b",
+      "input_png_sha256": "171508e2d6ffec7502fb3cf92de0162b2525930aa9b32479edac4f2e5fc8e8be",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_30_2p.big::l_ML_30_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "9d87b0b5f3d25e75d472e94f1f442422a2a10a4e4e5da7e718820df50ac0ddee",
+      "input_png_sha256": "89d3ae502821dbce07058a81c641f6851334181d183ca5e2e1f27704f429f72c",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_30_3p.big::l_ML_30_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "585e4ec53634aad0f7c66ff241db29eeb99e36af94aeffd4c20c429955cfc532",
+      "input_png_sha256": "b774113fc28f30a0298cc5e8879bb292356f01c9a08f291c0bd9e77d8c2dbbe2",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_30_4p.big::l_ML_30_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "44b88ef4234da44a37be4c9b67e7b1d7914a46305328ddcfe900cfa2acc5b384",
+      "input_png_sha256": "5f19e04577c24ea10924591a979e5951dc014ac977effb466cd3a5c186f51d8a",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_31_2p.big::l_ML_31_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "6a5f0f99ab57caa0b61933f980e6fb9fdf62285558ab024428dc9906bcc56d18",
+      "input_png_sha256": "2a1d3415ea82f469c0ae9d55eaf019dc1a4fe58c6abdf72b27ccde4103f508ae",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_31_3p.big::l_ML_31_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "f1582a4fe34174e15283d3ad5c5ea192ec26f5fd9c068b51758df6adaceb2737",
+      "input_png_sha256": "6246fb461c6fe3cabac8dcffa15424d9588594ea829e18e784089cfc0caa582a",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_31_4p.big::l_ML_31_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "7acebac37ae2cbcb3cf2421a1d5ad9e69e4656ac562e2099b994d1d48cbf5210",
+      "input_png_sha256": "962b17aba0b7a0c021a3acf2f4df1b869d1a69f3fc9f79150a29d807dfdcabdc",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_32_2p.big::l_ML_32_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "4cfc0f7b680c9d0a3841bf548a7144ac705f60ae5197c726f3ca093c42842e6b",
+      "input_png_sha256": "abb1e28714308a85d66fc38b1015ef4fd87f27a5b6038a226d34f3ac1c6c187f",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_32_3p.big::l_ML_32_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "21f3cc38f56cb1c907f637787b0cb783804a2684c1c4853afaf350cb45deaf07",
+      "input_png_sha256": "7d0335016fde0eb07e4d6427e9ad7cc6d97142191592da9235b5b9285f2cd470",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_32_4p.big::l_ML_32_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "f44a3fc0ca3fbfb13e05d3d4758163e8b83ee6d4e0a8da85cdf0ea92c404acb7",
+      "input_png_sha256": "eaf06dbc42ddf1eece1923930b38e1455a37c02d4ecf3966bb79d75ce2c8c9f3",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_33_2p.big::l_ML_33_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "6ada8da98924d0478ac6fc0d870ef888b62a57a3d9c97b6af0fb724f69d3e867",
+      "input_png_sha256": "62656f1e8021245a3ea2c775b920d3681a75b303b4633ca67c6080b72dd0df23",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_33_3p.big::l_ML_33_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "3c8eca20f49266be1245c8279f1bd25a5bf22da9cedd5f1d07ec62c51693c01f",
+      "input_png_sha256": "2e4691f7ceb1a85ce7550b08d60a328c5354f4f6ea31c5fbb30a411e79ea2e27",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_33_4p.big::l_ML_33_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "4856686a28204e6c8eef8ea2bf278751b2aa89e72c570816558e448570ffe004",
+      "input_png_sha256": "1478d2d4cacf6bb684916a27143bb02dc12b109cc3f6fa0d3dfd219c17f3c61e",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_34_2p.big::l_ML_34_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "d557b546877782bd5af07e4a498d4ab7edf507780b1a6eeeec42096fb93ac634",
+      "input_png_sha256": "62169977836807c31a2fda6af7b714892e2dc883183bab68fcecc64a8ce6f7b1",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_34_3p.big::l_ML_34_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "5b0706a99aeec54ff095138a8da7aabd83210df4511af404e8a03f74333088a7",
+      "input_png_sha256": "24479c4960be75f5273b63bb7cbdb663f04bebc2b25db2f443655af3966c1e97",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_34_4p.big::l_ML_34_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "f72a7c585ceb6002b412b9e865951b8df12c8d4fc6b9a90edd8afae5fa293b8b",
+      "input_png_sha256": "505058fdce4271f0b4c377c9d8755887636dcfb5468cb670ee0b0885f46bf9aa",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_35_2p.big::l_ML_35_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "c29ad67ee284745bd24f83e87664b235650aac73ee398aeea2de045ec64d4471",
+      "input_png_sha256": "6a1522cc72dc649ef625f017cace3b948fa4d2e00a110bc22dba512ee5c412ef",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_35_3p.big::l_ML_35_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "8ff62a48a1740920aaf1363a371e70fed9b390f2ad897d8c8de9b60a69dac8b3",
+      "input_png_sha256": "738d9b60b1eb4bd37a238972b584faf6549315ac2ae6eb64afa97aa2dc47fe7e",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_35_4p.big::l_ML_35_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "fdfb0ffb87f47347978429b9da5c93bda8a881fb05b6a53d45f00e07f0091642",
+      "input_png_sha256": "b1ad9339e7a65b41f943739f162c6734f73a4833cf167e016b55d287d7b9f5d9",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_36_2p.big::l_ML_36_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "05ea3a38b18d3fd88ab17d2df5cbe26a287b0b335dc1d523951825ff93236297",
+      "input_png_sha256": "f76cc9c3cffe81248d5b80594da29e36ee7874943447b5ebc98972dfe571f009",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_36_3p.big::l_ML_36_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "c0b103ecd28bc630032ddd4f2f454f2d53c7ea07e862b550d07e0853c0b956e7",
+      "input_png_sha256": "7fdaf7fbcb368e18bc40fd2f348fe68e81837c4552426cc4800d306c5c72792f",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_36_4p.big::l_ML_36_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "a281b65d4deeec8d003ce38b5ade601994c947ecf30e3f0934b1b62cbf127e1c",
+      "input_png_sha256": "8feec96ebe493893af2d0f6e502b3a3fe60993e8ebb606b0d6ddd29c965507d4",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_38_2p.big::l_ML_38_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "ded79e37e8f91a42411a80ead6ad35a3d61502616ccf720b0b0ceb3e1447a052",
+      "input_png_sha256": "741886721aae0703a560e851dc15d72b77113467ea16e90147dc1c8f9ceb4081",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_38_3p.big::l_ML_38_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "2ed80890c6fbb0bda281bafa9b84322bbef21baca7c81f97e777ea1c9e32a455",
+      "input_png_sha256": "842949cdfc659a12835d462d38000b7e0577fa10de0e8f059404b5150cf04e4a",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_38_4p.big::l_ML_38_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "bea656c33f6a616640f5bea479c5d98a3cd9c271c7f5f482ad83d104958dee6b",
+      "input_png_sha256": "e09e74536b874b8516783b6486386623c1514d6f66dfa86c7461d10cec035a3a",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_3_2p.big::l_ML_3_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "ed5e7018075bc3efa65dab1bd70418a0dcc6a9dccd919c60d01bb686c6e8e603",
+      "input_png_sha256": "16ad59dc12a9fc630b0b51dac1d27aaed29ec2ba57a65674c44f116d3061c99b",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_3_3p.big::l_ML_3_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "4cd7fa77b850450bfbb62dca49d461a9af9adb168e2f0d33e705f003a3402282",
+      "input_png_sha256": "b662d2e153c5e96a6fdc9cb13345ad00cfdde416ff860d92944d594762c0d01f",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_3_4p.big::l_ML_3_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "223fc908556aab0a67e9f1e682f96015ced5bc128fc78da422bb1002349cdbb1",
+      "input_png_sha256": "ed8d4adcd994f7323593402ad4d208c7d0189aa6e66f2ffb4bcc43ce28bc0165",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_43_2p.big::l_ML_43_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "4da95680420bfd639ab5571d117b47e941cb131304eac7e7667a000fe5646338",
+      "input_png_sha256": "e0f41edc858656730ae67a58773133404ea872b1febbd1419ddf6b969b0900ad",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_43_3p.big::l_ML_43_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "6cb7e3bd8a247a4ebbb97b1188835aebed996140ab111ee3d5c022b13bb3026c",
+      "input_png_sha256": "74cb2e1f4b39680ded656958f1e33440ae69dede5a83164925fdc0f39a0987e6",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_43_4p.big::l_ML_43_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "ebdc325f984e3b82f24086fabc1dd794761361820903306ace9c91f02f11ad15",
+      "input_png_sha256": "1fcd6ea92df268d8e7b1539ffdb242b621f4992e700d89f44270c6d810614137",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_44_2p.big::l_ML_44_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "ebe3bf90b5d523d0ff0459c8b647b3170212da8ff1ce6fa6376e5454d277bfaf",
+      "input_png_sha256": "377f89c0d968a4d521c00781d4ee6672e9c1219a6c76d83a0ac366318e12a0bc",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_44_3p.big::l_ML_44_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "31a1a26924ceac36730403c3a88ca05c53adfa92d5826d8302d84c0b5c98da40",
+      "input_png_sha256": "14a8274635178ed39e9f7508b6f6199a6d9b300adcd18b955ce94dab586a35ea",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_44_4p.big::l_ML_44_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "92ed709601508c9245c025eb2281b4894abc273539cafb156c661d573bc6acce",
+      "input_png_sha256": "f1a15aa3373fc6802d64de7bae2e5d717d33c706cb26d42ec12fcdf42e097e0e",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_45_2p.big::l_ML_45_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "ed4b97136df01b6e9c862e1688a9d3aa84c3b8161a6e1afdb2340db838ca6e63",
+      "input_png_sha256": "508f60035037f4263600a1757dec5f5dab6949bccad6ee5ed2e3c33908ecfd1b",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_45_3p.big::l_ML_45_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "d2cf30f89f7f913b1f7a64c93a226361d70c0d27af9f2d760ca63d011dd3adce",
+      "input_png_sha256": "36a0263c81f4ec75c1d818fe6f783c3fc720b55a4bdab33fa2f5d776b29f5df3",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_45_4p.big::l_ML_45_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "e0230d4d629916b872817127ad70158fede3c72ad5a452734e1fa6eed3ae04a6",
+      "input_png_sha256": "2a9c01fe07c74ef0a534acc85ce32cf8c4d07d34bd0bb29265b74569e9bd6c1d",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_46_2p.big::l_ML_46_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "2e8bf1867273402a77306579e9175e208f9d4948e78a72914e71ab086e5a235b",
+      "input_png_sha256": "28921103726959e883725d714a4d68031f7d508de985b0103637232b5d6dfeb2",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_46_3p.big::l_ML_46_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "40c8b5b51f80c1426e0d222fed1f78208b7db51509125954b9c127b91381b947",
+      "input_png_sha256": "efbdc53916b56c7bb991132cc8ede8e6332a4bc4f3fa33525b405f294da66f4e",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_46_4p.big::l_ML_46_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "b895966af5c82b161044549bcf8838e10a6ffd13c6a321267543d87084182d53",
+      "input_png_sha256": "c8c833f4ae4ad0505f7791435c7a5bd6a9d0f0e7ff5313dac4f6f31c351ec85c",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_47_2p.big::l_ML_47_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "ee6bdee33977cb32c580e9e3275db4a414d1c8b04ea4293e29754d269a83a8c0",
+      "input_png_sha256": "3c201e09e7ea7a090b04451f198bf06ef39949a3504b67d179be8210617a6c5d",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_47_3p.big::l_ML_47_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "d2e4e9e2f5dee503fa3550045c30d02ec3689094445db923773c2a2d193aade4",
+      "input_png_sha256": "756d2e5d66f1626b4bdfd105efe81eaf14d47c4314a77b3b1df45762495fd74f",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_47_4p.big::l_ML_47_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "f6173df976737cc04c2b2af9a510fec42253b0bdd4b050d5e32137c74c184bc7",
+      "input_png_sha256": "c454b9bccfd4f1af20bb45be89f1e5b197cd6c656c61424630fca0dfd0e75b06",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_48_2p.big::l_ML_48_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "424f66ea8e6e29e19296648312c500122f8473d7bc86a6ddfe6270923da63dd4",
+      "input_png_sha256": "736d5b9c07aee733c482a435978a9b1efcc3cf7e3dceefbf73b9616bd31eeab9",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_48_3p.big::l_ML_48_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "a839c7ebce3bd9da0258ef6e0ee78e26daf1c2ebf777df52d6c8fefdea8481fa",
+      "input_png_sha256": "e60e1fbe9746e684c4124cc89142208e4626659cdcd6247f18d5fd8d39080956",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_48_4p.big::l_ML_48_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "d7c5b188d5aec31f1c7dba009494ed66eb498b7cd9366e85c06bf7b313b801c6",
+      "input_png_sha256": "73d46f7e0fa31ee1fc32ef05f3cc3bb69283ddba6e54a526e3d12dc95a6885c3",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_4_2p.big::l_ML_4_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "9109fc6770e76629f949d837986aa69040f09b0544f55eb1daa0600cf49f3e59",
+      "input_png_sha256": "843c0176ea1766d195487b96238208e684f06cf154d8fbd6463e71772c02a359",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_4_3p.big::l_ML_4_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "b762b4d3831552f75ab7361bc62b2399063f4be239bafacf5c0302c29769ae23",
+      "input_png_sha256": "d72e3439933a62f6b0572963d87878a5aa42980cb7f8d860aab12f93fc4d2d2a",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_4_4p.big::l_ML_4_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "a911dcf337f3ea26c93aba2f7d17d84deb41f0e00df690fbb27345e8adb82489",
+      "input_png_sha256": "f867892f210b95ebf7a2d956590e93af4f96895431fcfd745e266953d9156618",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_50_2p.big::l_ML_50_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "04806e8d5860679e3d8ea20e41b846a0f57d4d608bc1e20ed9b637595470e3d1",
+      "input_png_sha256": "c3fa7420bcff20ea235f7e38db5e08c557a815c794ebd6d563e2a7bf453764a9",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_50_3p.big::l_ML_50_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "735263071ad00ffb81f7ff6d8fcdc28ce8c8121939a6b8eb358987edc2a5c554",
+      "input_png_sha256": "4f912284c42dfff09997c19c18bc8b5f1d2225a0e248b986f05499f083040c40",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_50_4p.big::l_ML_50_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "50177a559c93f51fa83b6d4b7ed62205ec0cb9f7257890fba3ad5557e204847d",
+      "input_png_sha256": "d59f7d2e6067cbb5b80142a9ddd51d42912412b1d87e15c8e5c3331d39706df0",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_51_2p.big::l_ML_51_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "e5a3fdfbfd761677d76e0005c9c48bab1bdb58a355656aae50d5d2f9b1054fc5",
+      "input_png_sha256": "723efff2e393100e4d1642a4262789075923c2c5ea0097f6240c62c17aba9d8b",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_51_3p.big::l_ML_51_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "24ab8daa97dc0381ee240cb8b968e4f8880cbb05709f8346894586a5794f176b",
+      "input_png_sha256": "0fe21945beaf83a8f0aacd9aa3bb2b47cd91295422729910f3ddf993cd5ec3d0",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_51_4p.big::l_ML_51_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "c24d17b6d45dac91e42f2398822ee8987a96d38d3bf0fdcfdb31e003f141767e",
+      "input_png_sha256": "132fe1b086684f40de2ce6b949fe1fe097712e32a830aee166eab4d96854f244",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_54_2p.big::l_ML_54_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "1200e1e04b0d32e3393e3cc550cb3dd193b731e7f94be6dcab81eee57e7d0b42",
+      "input_png_sha256": "427e602d28869825b96bb163e6fd2d7189b405198b387c7d307e95339ddb7f9c",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_54_3p.big::l_ML_54_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "ad83f21aa292d39ff517662880ee5137ab08a1f5b75c6752896dc5d532485c87",
+      "input_png_sha256": "afeaaa124da993ed4e196daccd37c37e1e56a52302602a101b5ac7c42d106826",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_54_4p.big::l_ML_54_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "35e4b91efc3c2af3692e013f6b71d1e96c361bfe7debcb7c03fd2225ec984dee",
+      "input_png_sha256": "f958241d6b5254893092dc7fb6491abc568a63ac1579b77e70d8c96d7486a42a",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_55_2p.big::l_ML_55_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "a76cd89ef17edbd5b952d5ced930f141cb41b0e6292e18ac0be993e6691fa6c4",
+      "input_png_sha256": "f2af5a3822deddc4f368662e5725971b38d36f896a6ad3babf3fa8fb4f4bbe32",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_55_3p.big::l_ML_55_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "3727dda40450655fd603d73c7b8fa847d79896a4cf06cd9ce1b8a35d3dbce656",
+      "input_png_sha256": "db5de05651ec81dda46612dde09a8f8cb4ab4b68c34bf3ef0985419b593409f5",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_55_4p.big::l_ML_55_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "465f47b120f04206afcc0906dbc58d2c988451bffca5a399c557999cbf05dc13",
+      "input_png_sha256": "746427be1370fdeadee9e4ae0cad858ee42af9ebe3fefa762d6a6369ce4cd6d4",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_56_2p.big::l_ML_56_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "9108d3ea9f62707608c8d9790f42bca69593aa10ee144b49c0df61bce778ade4",
+      "input_png_sha256": "989e80ab734a8314af02568d73814d3c543d2674b348b402f9386d2c09286a97",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_56_3p.big::l_ML_56_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        },
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_81_3p.big::l_ML_81_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        },
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_82_3p.big::l_ML_82_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "b35bf41abb5194cd9ebe2066b22f18a50ac3ddf46b3ab313818b80fb797d8516",
+      "input_png_sha256": "8af932ccf78f21b811559b6937ccd369a7b33b8464e17695ee5b3a460ce5603c",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_56_4p.big::l_ML_56_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        },
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_81_4p.big::l_ML_81_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        },
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_82_4p.big::l_ML_82_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "1b2f53109b36dcdda3e18d8fb4546b623135b161dc6a1010e5dd152a6ee7133b",
+      "input_png_sha256": "110c0bfbd31412dfbd18c71c537256810df4ada1f7947777a920221e59ac1ccf",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_57_2p.big::l_ML_57_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        },
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_80_2p.big::l_ML_80_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "b0995020030ac2a3dbedfe13e2c01e2f58498fee0dc68ac220ade2dec163691a",
+      "input_png_sha256": "c811e3e94a2b9654bfbc7c2a385cf234f0024b115246d8c28b6a2a31ac8fa2ee",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_57_3p.big::l_ML_57_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        },
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_80_3p.big::l_ML_80_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "c3cdd37534f0c356bbc03814566d633b7f69bfc20227e93192e3dffe03f6790b",
+      "input_png_sha256": "537b2025bf1937704a4d6d639f979edb4bbe5182b0086cf10d335737faa90aa5",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_57_4p.big::l_ML_57_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        },
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_80_4p.big::l_ML_80_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "4ee664db0c64b3075f5e2ffc6de7d674679790b6923d933020ee3a898c2859de",
+      "input_png_sha256": "85facb0fa62a0721967bca2ca4ee86d69d6ce84f3b91ce63248d9fe0fea839f3",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_58_2p.big::l_ML_58_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "df824b9825fe2c349c3befd456b05c418080b77a56c7054564a30a179a2a6496",
+      "input_png_sha256": "5d9feab14b59e7972db7462e094d999ddbdd6d2bf8bfe8c4ebd8de462424017b",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_58_3p.big::l_ML_58_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "7a28f90845a0680a567e693ffe8f66adc6811b7fbba64e05b7d616eedf566239",
+      "input_png_sha256": "705fbfadbbea33c16c9b8ca4babbab89dcdcbddcc9dd9f059b7470d2eb4bdc02",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_58_4p.big::l_ML_58_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "7ffa4061f4039db56e6c58eb74cfeb13420b1949c90e48f49da7e48af4b861fe",
+      "input_png_sha256": "82e50422408780dc3424f8d1679c52c5d842ce41b88f0de466964e9826b2c0e9",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_59_2p.big::l_ML_59_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        },
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_83_2p.big::l_ML_83_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        },
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_84_2p.big::l_ML_84_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "feeb133230a4367a86a3bc9625b75038b3a0bb1c2782c4849d284fe22b962e16",
+      "input_png_sha256": "aef8b49f34154b5eab89f21c5b5f6f9295d6dfdb363fd176699e5040e967343e",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_59_3p.big::l_ML_59_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        },
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_83_3p.big::l_ML_83_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        },
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_84_3p.big::l_ML_84_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "2fc6e5c7ddd754395de774d9137acd0bf695372d17239d40f0c9bc0273cae456",
+      "input_png_sha256": "85e0ead47510a85a86ad5a47c0698d100e75f233aff392029766623109a4b4ad",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_59_4p.big::l_ML_59_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        },
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_83_4p.big::l_ML_83_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        },
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_84_4p.big::l_ML_84_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "c20ae9f016dca83a1ccbd5060e7c060e5028d7c16ddffea20d64cbb33e3ff7e0",
+      "input_png_sha256": "c86f0d45059f818cb8c60d319cad7890200e40ced47b5b7ff7a61b6e0ddcf4e0",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_60_2p.big::l_ML_60_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "a22b8222e8de0f0fc7c3020e22d6ae79276cc1d9c5b47b3b56d5aeaa2b695f87",
+      "input_png_sha256": "581e41182ed7ab8ec60a5d1cf9448d2d60b50b8d33184036153f8477b63500fa",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_60_3p.big::l_ML_60_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "b84818ea537abb2bebf418f35a774b7f4038242bfc8b4a9d6fd6d2f4da016a01",
+      "input_png_sha256": "5e0fd706c0ad7fb76043fbcc9e4d6f4c8ba793c151abe77111c911bae827f753",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_60_4p.big::l_ML_60_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "1846d7fd25505d420a167de32333588628f733507f9f9506f7929f040a19e463",
+      "input_png_sha256": "796e020b67e234aff398eabced666de17fcf59313945ff8d2be3bf837a20b0fe",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_61_2p.big::l_ML_61_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "59e7572fb5f1f5054c4d2895a8f71976619a832f946fca42fddb35d53ee3bd6e",
+      "input_png_sha256": "d3a65df0be525b30b809f7f817e71031589cfb50b259b7285b44f20d0db0b5f0",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_61_3p.big::l_ML_61_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "dafc3ad150517646610156f329b0978dabe2cac32b8f915ef595d092a5f4daf3",
+      "input_png_sha256": "2ec26444cbd2b407d43afa659d038a4d4e8b407eaa6eb1dda0f8d0046b8113e3",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_61_4p.big::l_ML_61_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "8812fe4b782ab03b33c294d5fe7f6d034feeb18453436f654d3d771473d36422",
+      "input_png_sha256": "9561d490d32224f51ae618ab058a51de4362bced73709604576adec9daeb4159",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_62_2p.big::l_ML_62_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "758b1593cd67ca7b2cbc221d34a2eb1f3b64dbfa16fb87f66bf6715d4db7ddad",
+      "input_png_sha256": "1f836393eedd0443da147d7ae7ce81237d25bf01834023b2cc3741dc42678f02",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_62_3p.big::l_ML_62_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "9fc5eb21c9ab7ecacb69a36e8df64c3933580c9cfa8507ba0ec738aaf67871a0",
+      "input_png_sha256": "308376a888c52e4f2ee7a6bcad15de70aa9e8dd92904a2b84f9bc739e92bd5c0",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_62_4p.big::l_ML_62_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "c0ab354e109304dd58c897e15822c6e3f1dd7582eaa98b1d6d7f72daf95552fc",
+      "input_png_sha256": "1e1af1adf5b1f3b75f8ca07136e1b992ebc39f483f750c3e8fa50d596385f00f",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_64_2p.big::l_ML_64_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "d3143192b0c628fd1d4c009a699a6cc7803432b23df0261a042778021c2499a1",
+      "input_png_sha256": "53beb2cc20a8512bec720bf7a36f0e6c906dcb4761f6a9ab6e9f0499f7a4f12f",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_64_3p.big::l_ML_64_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "012d043690fded9fb2668e73d4938466de1f5ddfa967e09b149bb63885c77dc8",
+      "input_png_sha256": "e6d6ffcef99ea9709c75abb3678a8452be5c42869d20f1a9c45fa5b24f6370d8",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_64_4p.big::l_ML_64_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "cfcb09f93c1fcf6dcddc18b079c9a394ccae1c13ce228ef05397e952fcfd7de0",
+      "input_png_sha256": "09cc3e89ddb056145682dc80b122c79ec6199e56b0fdbf37a0befbee135d76ca",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_65_2p.big::l_ML_65_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "76fca412c45f5aba43719af5d84484108b6439a646a27898c3cbdec61e63ab07",
+      "input_png_sha256": "7b519aec43bf4893b194b87a4135be3edefaab0b478a01faddbde1fff6871934",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_65_3p.big::l_ML_65_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "1c72cbe00c6784d09f687cc51b2c76907e4dbcd8150dffe1d4c051e4df4b267b",
+      "input_png_sha256": "a55b7fc442ec0576b21767effb3c96ba524c2ac3772c85ebee9be21a1f3a25d7",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_65_4p.big::l_ML_65_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "4431ae07273c443dc792d1e44afcd6ab630203aa9e635e1fa6c7ab12e316bc3d",
+      "input_png_sha256": "725625b54506d22280a4403ae1ca921686c189e58a4e62e713c58da1eade1b1d",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_67_2p.big::l_ML_67_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "4deb6cf042e0cd8d36cd7ae99c926afb79136dd82a5504c79dbae1e6c23455e5",
+      "input_png_sha256": "27bad4c3094aa948fb870d81ab48508bd6b9c69a9616f54c4179026e2ba97d52",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_67_3p.big::l_ML_67_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "748987e4db1b2ef18edc63d6f7bcf21d90c19895faa452a73b92f3dd660a08b4",
+      "input_png_sha256": "e077437e912e939947d390617851d6826af36a05a59cbc0f4614111053a83f0b",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_67_4p.big::l_ML_67_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "86134abea77243218bda7078b4c8dd378a137875207fd7cc4fde1d7d8f746eae",
+      "input_png_sha256": "31509dd2bd3ed318a0018942a12eb609cd6cbc1f0c95577e290f884a3705cbdc",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_68_2p.big::l_ML_68_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "7c86d252ccbe33da90a1e642978f0fbbc3133118443cd176c2ad4ade0d070fd3",
+      "input_png_sha256": "1247694855ca969a5741c6a51dc02a73afc81ddd89f375b4d06bf027a2b395fe",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_68_3p.big::l_ML_68_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "bc34738540e51048e2c70154cc565e894bfbb7cf809dfbc8df3ae1307597ec61",
+      "input_png_sha256": "43bb835f36f7a80f36e7e47e04cd9d340720cfa1adbd9643502cf3c91d7890c3",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_68_4p.big::l_ML_68_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "359e5add0f8e2e82c9f8bd49d9a24f411cbb31066d57682655be6088578b0dbe",
+      "input_png_sha256": "6682451d1eef8a9baa16437b43edb3458c5dea283c0ed3a1e7cac033991377ed",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_69_2p.big::l_ML_69_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "2c60fefef96f9f12251e4c8ab33df3737546ee4eaa1bd1c1f0ebca33a973e466",
+      "input_png_sha256": "385fac1ebb3d0b5c278800304bbeb4727f5a4d27140146eeb1eb6cf92946c1a5",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_69_3p.big::l_ML_69_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "298429502b5e1b36fc0699537b2fe4ff97870db87218c6275a1b8ee658e413a8",
+      "input_png_sha256": "ed9df689e8ddd9a4fc63d785113f54b002e068ae36b12df0518a40ed05ae59b4",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_69_4p.big::l_ML_69_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "e3cb09fabe08854fbbbe1fb6114da6a426cfac5b64566024619426c227b363d5",
+      "input_png_sha256": "de44a0b43e6ecc57bed2eaed11d5902248be050e4175959ae0bd9d246967479e",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_6_2p.big::l_ML_6_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "14c208be18e11cba576f6f43fa72172330f1e1438fcd5402497ff88ec69ab6c3",
+      "input_png_sha256": "1b2be1fbf65d573e8cbcb680eac75e0fdcc00ae059bcbe48edf550311a37005a",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_6_3p.big::l_ML_6_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "36d2b982e4b45bd09902621bec65405ebd054d4a5b42b459c58fc1f02d906475",
+      "input_png_sha256": "48d81189141a8aad9e1bea22a50d76805a9d802c74d635d8afeb09089521d5eb",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_6_4p.big::l_ML_6_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "6c92774b58ec841cd105df348d62e165762846c2316a07fdc7380dd65b58a619",
+      "input_png_sha256": "e7c89d42f55de28e42bbb51a965eae5cf76cfa74d7defd9127f429ef31fb1490",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_70_2p.big::l_ML_70_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "e6498638f940bcc4fc33160b0d153a42a6bdd43104cef4f58c2a27d024e30bd9",
+      "input_png_sha256": "953c2303ad9bbaa04edde9f4c113538ac7f10e0f8631e12c76ae5fb307d800dc",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_70_3p.big::l_ML_70_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "6a883d8a65029701d06fc9f55b04f6e7c9f3d57aa079e40315601f64a3b7b73a",
+      "input_png_sha256": "db33e9de4c2279268e8f7537a06c582bd7f820eed1ef85a06a9b72773f45caa6",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_70_4p.big::l_ML_70_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "9fba9893de20191fe7b3340ee981fee2517dfad0eba0ea6db8d95864f8ba4329",
+      "input_png_sha256": "65d1e410a0df78f10891b1e2084fbe571b78668c63362efa26fb08eeb796adfe",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_71_2p.big::l_ML_71_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "9119ef0cf7b0ad5563c93dc4c094d0f5d396ea32ba16b9b2ee57321781986a12",
+      "input_png_sha256": "75a9526d0be88e26411e793de909ebac8af39d75d4fd03c3a360c8098d643093",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_71_3p.big::l_ML_71_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "2acc6997378adcfd438d0d0c654d339dc77f85779200d1c177dc6cb304138308",
+      "input_png_sha256": "851c7eb46e75d5fba8bd3d8b3863ccae61257700e9383b245e69803ca5e340d2",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_71_4p.big::l_ML_71_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "14976fc893ed1e9c11fe3466e7adf79facc192e801660c4bddc0ba468f03d18a",
+      "input_png_sha256": "c40ae6fbf47ee339a06796a4ce3de90e1bd8ab3b04b78c7c14b78ddea1e20da5",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_72_2p.big::l_ML_72_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "cc40627cf4c1c64647f08d38d910c167687e96afa1edc7511a88c53aacf41318",
+      "input_png_sha256": "d292195c41b2052db54c026a2e5ea6b251c134b8f23d5a9452c96a41cfec2aea",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_72_3p.big::l_ML_72_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "e0ad49fa7253483e3c7c5b8b72473cdca971a669216b3ce9e6f412ca10b9eadf",
+      "input_png_sha256": "b17a65259cd2e257c2e62a1645638b50948ff150014d3a3e9654b5790cab895b",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_72_4p.big::l_ML_72_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "b25133619279c5ab4ff1372dc0c478a31e10e450f3acd5b1fcbbeea0d9c499db",
+      "input_png_sha256": "0182beec1cd69b8f99d5006559b9249b3bd1209a5f71efc5a02cf6a7cd610a35",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_73_2p.big::l_ML_73_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "299c5c6b80e77d52ed9eec0795efb7e91b26e1780a3e8419aa6933b0d1a0d0ff",
+      "input_png_sha256": "332910bce3c16e6bf2f45e3eb43591a4ebe76649403ce9cf6d2eedd575f9d72d",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_73_3p.big::l_ML_73_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "590d8851bde54b5e6f7c8a86f6562954b536388913a2e8781fc0ffa706e0476c",
+      "input_png_sha256": "0a05d3d448cba6f502917ba3bb9b2daa79775f87e6634a553c6d482fbf0b3f91",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_73_4p.big::l_ML_73_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "1b6b0c4bd3fd01ec227dda9b364ec6dd2fbd076789caf03d011fe035d1cdd147",
+      "input_png_sha256": "63a515bee94ae8f644e414aaf3984bc2578b7783da3c2c4cb6e8c607d2f2f1de",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_74_2p.big::l_ML_74_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "a864db16e95fcdc9d76284fa680deb47981c557fa6db80c57efd317201a9e301",
+      "input_png_sha256": "11f93ab001776c02b3d8834bcaa3ac68c7359798ba9694945586c610058d72a4",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_74_3p.big::l_ML_74_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "566ff82130d6acc87d7c08faa6e7c3b73a04fa2c60d7bb53d4303010967667aa",
+      "input_png_sha256": "53970def7c5e993181940118ad4da33784ad60468dbe7abf757be3e0164177d4",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_74_4p.big::l_ML_74_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "29a8e1310195fa44daed70eebc94591755af48394f2f06add5eea698a00b33bf",
+      "input_png_sha256": "c69a81471834185f8d445c74fb44bfa53d87eb65b18c17a3b26e7d3d8484144a",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_75_2p.big::l_ML_75_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "70e011f1a125b28fea678063cddeedfe9eb21df3f5dbda3a819c58050fca7d97",
+      "input_png_sha256": "a7fd642104a7ac6c4d06e0ab764a1ecb2b4e8c4eae4986f419325d981d28bbf3",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_75_3p.big::l_ML_75_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "85a67aa83d46f8f51755ae22175a27cab2402cb3205d5c2b88aaed5e04643b10",
+      "input_png_sha256": "0db2e2c20eb78b1f1c1fa0eae5ad923ff5b32c03ff2a4177cd9f9d1a4db0b722",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_75_4p.big::l_ML_75_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "eb0014a5e69a371e55f748b58006c58e9103f1b1fc0772af78a7b702f177bcf5",
+      "input_png_sha256": "4bc9ce2311fb50728521de9c48ce16aab62ad4c74d56a279c51b659ad0f29cb1",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_76_2p.big::l_ML_76_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "cbe485c691707310cd432b89d2058c76c26422fb24c8a95e4d772b43fc8762e0",
+      "input_png_sha256": "a9c205a8f5262d3bf3476069f54d815eff96e31f656d9663f95d057727707076",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_76_3p.big::l_ML_76_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "370fb77bba84bc6ac6e9f03a72fc56d7cbfd468926051a5dbbc69c46749b9d63",
+      "input_png_sha256": "87525841c61fcc433d68a133e3fd61a83e1ae39fa56e4e2f3d253188a33ed755",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_76_4p.big::l_ML_76_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "976d1e7e3abf8ebc3c65329a30239ffeca32bb97150b6212799a0f0534c542ac",
+      "input_png_sha256": "09c5448d281d061a4a6e552b9cfd6286a9c515a11c49ec5916b942ed4e1289ce",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_77_2p.big::l_ML_77_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "b2c691f338f0b285740655ad5e6241668b8250d7538e807b736f5775ef04f542",
+      "input_png_sha256": "272d52a038de8a7e325f0e2b7bdc80855b732e42c5e9682b16cd3f8c54a37c5e",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_77_3p.big::l_ML_77_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "d1ab3cee9291bca3b9fc8fc32b4908d3a2255ffb15f292112b875a3e3b4fa2db",
+      "input_png_sha256": "5d8ed3d753d5b1132edea14545494a04414d558ecc97e855d6b3af25bb126be3",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_77_4p.big::l_ML_77_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "84c679ed4a022ab3bdac7f23347a1e3696ce9bef24ded20583708f9611bbc3d7",
+      "input_png_sha256": "21c2c29220362868dd95038ff245930aa197662e0cc51393961f6d5a62527594",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_7_2p.big::l_ML_7_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "5797b34fbfbd450af1b149ec43bdd7aad525722dc3f6d35488b40bb8c7da344a",
+      "input_png_sha256": "4e8c25d3ddf9ace3670da71b4636b50c0d263f031e9bff50c977addd5a40afd6",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_7_3p.big::l_ML_7_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "b71cab4df544d4240d1303c84a8c03f6144e2931e0a51f938010ba3e617f3b80",
+      "input_png_sha256": "a15f50cbb6deef1762cdab8c866aa95f34b50812738889b78463d63338b28b3c",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_7_4p.big::l_ML_7_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "10301f900423d1a11b65cf927b5b425ab2311d854f8a7e4fb21c634561c79eda",
+      "input_png_sha256": "c19100e9965f24d46cc9368d6841a629a3c2f7999509c7a98d32322d9e04c1c6",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_81_2p.big::l_ML_81_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        },
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_82_2p.big::l_ML_82_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "a8c73d6ce60ce24baaa48111004143ac0e37d25b298583256c0caa6b566d0a72",
+      "input_png_sha256": "fa114ca5101926973428f6c07f8dbf327a349ff73c83eb605b7c64245cbd3bb8",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_85_2p.big::l_ML_85_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "e2b6ad3f2ab3e59b183adc25b3898110f97b5de79b4f94b5c63b630cc3c72924",
+      "input_png_sha256": "6a163ea8cd675ddb1c3d6fa6a28626ae7918c2330f053806e26f5c02d4129d52",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_85_3p.big::l_ML_85_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "5a7e45b2d45a823e6885ded6d5220900e6369570436ba258d28f4cbb25409913",
+      "input_png_sha256": "1684c66d48bf13956ac0dc6ce999ed1793872298df803ca2b7f02284c3372bc4",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_85_4p.big::l_ML_85_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "87b12720b648feff1c875718abd49f2bc9f11ce4fe71f7b809cab456c07329ec",
+      "input_png_sha256": "08c7b9ba916d5342aec8ecc7ba80cc678429f81343db46e11087e3004405602d",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_8_2p.big::l_ML_8_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "cb484d402b10bb4f25e1f5b447b32326fa9af255f8fbe3ae0d97fae00561b7ed",
+      "input_png_sha256": "01329dc2e4c547bedb0026f9c69889f87e4466ebee4f8b5154dcaae3984dce22",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_8_3p.big::l_ML_8_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "c599566814bdeaabad234323e3bfa661badd779203e5e3237e1f5abb251db695",
+      "input_png_sha256": "a1a30641f0e6100a7f87d3b3d394584d9005b700ccb9dcf687a699a2bc4e8eac",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_8_4p.big::l_ML_8_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "0f80fab135b9611d1ef2da31d3d76fc1106f80543830a55098fa5043b9b8cdbd",
+      "input_png_sha256": "ce833983785d78bd6aa5132798387b834ec17121e94532f291167c7e284e8e5a",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_91_2p.big::l_ML_91_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "96ec1f70e3bc129a65b3ba5a7544334aec6409ba6bdcbc90e14eb1173f8fc542",
+      "input_png_sha256": "eb0cbcad29f5776041d95db93577c1b51cf1d7444f192505fbd4a8574fe5f9f1",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_91_3p.big::l_ML_91_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "6f77acadb34be615b8407570ca55c6a79fb2762e11f29cc2bd5483bae18a38d5",
+      "input_png_sha256": "2aef57bb07aee157c050e593c8e231910d8dcd2675a47d09cc097b067ad065c9",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_91_4p.big::l_ML_91_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "2feb57f6ca9988c77ac11c8af40acba6813f8ef6a77ea3675f02d1b2776295b3",
+      "input_png_sha256": "0374401e5349a7cb5f1c3ff975c08ec963654f687963058b637f4e382cc73759",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_92_2p.big::l_ML_92_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "0726972d65b0179a68f846c5f3dceb67211d54426d777bb1e37829fada4768ed",
+      "input_png_sha256": "9c50aa6ca50288f027135d7f0550631b153be6100ef50b842c08ea72eaed6ac7",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_92_3p.big::l_ML_92_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "472beb256e52d5ccb8b35af4cdb63fd7e3b30ff59907ec06b34e5ff6bc5d1a2e",
+      "input_png_sha256": "9e2ef179e799115faa116b15e2a63bed235115c08214494868c765cd382b1545",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_92_4p.big::l_ML_92_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "15ef8589758a2abc9442ca820b3d564de15daa5e7b5d0f855bc3b5f205b4f2de",
+      "input_png_sha256": "a03047e0296fa1d9ed89191fbb65c69a0693196e8f843e6594af9149ec1fec48",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_93_2p.big::l_ML_93_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "45f6e23d3e16a9ad8bb6bcfb94399d94210a960a692ac3d1af4632af17ca5ee1",
+      "input_png_sha256": "6cab8606e6ab20bd05d1ab0951340792f36f452652871d08bb9ef0c4c866e889",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_93_3p.big::l_ML_93_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "f914278c4ab52927129dfcced582020e23259e08f7bec8788d543348c1246e4e",
+      "input_png_sha256": "67171825224a951c88e3c7497d249a1680c6f1adb1b187a28c8663da5e96b6f9",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_93_4p.big::l_ML_93_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "377f75e0c4e92f5b08fa540aeab1749e359d4e233471d2d88c30fe9b5c3a783b",
+      "input_png_sha256": "692e8655c8318f55411592b65f2a1040014b7f874deb49b2af07978fe1e09ca0",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_9_2p.big::l_ML_9_2p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "37b13ba6b9d3d2887c1ff800491191a3a63966853cb9189d68949ca8ca5c9de7",
+      "input_png_sha256": "6d59f4d845849f5055ed2d3994ea1de48993249b8b50d8cb7813b1d1e29b1f9c",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_9_3p.big::l_ML_9_3p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    },
+    {
+      "source_id": "803934b48fe12f99cb2cd3f6f02833714c9c7a93ca2362f9d44f44237effe1f0",
+      "input_png_sha256": "b92507069a565328baac0c5f8c25640ec6cde9a6d369d661e934e46aff4ed76e",
+      "source_size": [
+        256,
+        128
+      ],
+      "aliases": [
+        {
+          "source": "screens/screens.viv::screens/match/3_fighters/l_ML_9_4p.big::l_ML_9_4p.xsh",
+          "index": 0,
+          "name": "1   ",
+          "category": "UI and menus"
+        }
+      ]
+    }
+  ],
+  "native_runs": [
+    {
+      "receipt": "native-continue-candidate-receipt.json",
+      "log": "run-20261027-203446.log.err",
+      "save_restored_equal": true,
+      "missing_anchor": null,
+      "captures": 1,
+      "present_intervals": 12,
+      "minimum_presents": 102,
+      "median_presents": 120.0,
+      "faults": [],
+      "baseline_optional_omissions": 10,
+      "crashes": 0,
+      "watchdogs": 0,
+      "unresolved_calls": 0
+    },
+    {
+      "receipt": "native-continue-published-receipt.json",
+      "log": "run-20261027-203522.log.err",
+      "save_restored_equal": true,
+      "missing_anchor": null,
+      "captures": 1,
+      "present_intervals": 12,
+      "minimum_presents": 102,
+      "median_presents": 120.0,
+      "faults": [],
+      "baseline_optional_omissions": 10,
+      "crashes": 0,
+      "watchdogs": 0,
+      "unresolved_calls": 0
+    },
+    {
+      "receipt": "native-original-check-original-receipt.json",
+      "log": "run-20261027-203237.log.err",
+      "save_restored_equal": true,
+      "missing_anchor": null,
+      "captures": 9,
+      "present_intervals": 41,
+      "minimum_presents": 95,
+      "median_presents": 120.0,
+      "faults": [],
+      "baseline_optional_omissions": 10,
+      "crashes": 0,
+      "watchdogs": 0,
+      "unresolved_calls": 0
+    },
+    {
+      "receipt": "native-published-receipt.json",
+      "log": "run-20261027-201823.log.err",
+      "save_restored_equal": true,
+      "missing_anchor": null,
+      "captures": 1,
+      "present_intervals": 41,
+      "minimum_presents": 101,
+      "median_presents": 121.0,
+      "faults": [],
+      "baseline_optional_omissions": 10,
+      "crashes": 0,
+      "watchdogs": 0,
+      "unresolved_calls": 0
+    },
+    {
+      "receipt": "native-v2-candidate-receipt.json",
+      "log": "run-20261027-202222.log.err",
+      "save_restored_equal": true,
+      "missing_anchor": null,
+      "captures": 8,
+      "present_intervals": 41,
+      "minimum_presents": 96,
+      "median_presents": 120.0,
+      "faults": [],
+      "baseline_optional_omissions": 10,
+      "crashes": 0,
+      "watchdogs": 0,
+      "unresolved_calls": 0
+    },
+    {
+      "receipt": "native-v2-published-receipt.json",
+      "log": "run-20261027-202034.log.err",
+      "save_restored_equal": true,
+      "missing_anchor": null,
+      "captures": 8,
+      "present_intervals": 41,
+      "minimum_presents": 99,
+      "median_presents": 120.0,
+      "faults": [],
+      "baseline_optional_omissions": 10,
+      "crashes": 0,
+      "watchdogs": 0,
+      "unresolved_calls": 0
+    },
+    {
+      "receipt": "native-v3-candidate-receipt.json",
+      "log": "run-20261027-202546.log.err",
+      "save_restored_equal": true,
+      "missing_anchor": "getscreeninfo(battle/choosef2",
+      "captures": 2,
+      "present_intervals": 107,
+      "minimum_presents": 99,
+      "median_presents": 120.0,
+      "faults": [
+        "never reached getscreeninfo(battle/choosef2"
+      ],
+      "baseline_optional_omissions": 10,
+      "crashes": 0,
+      "watchdogs": 0,
+      "unresolved_calls": 0
+    },
+    {
+      "receipt": "native-v4-candidate-receipt.json",
+      "log": "run-20261027-203041.log.err",
+      "save_restored_equal": true,
+      "missing_anchor": null,
+      "captures": 9,
+      "present_intervals": 39,
+      "minimum_presents": 101,
+      "median_presents": 120.0,
+      "faults": [],
+      "baseline_optional_omissions": 10,
+      "crashes": 0,
+      "watchdogs": 0,
+      "unresolved_calls": 0
+    },
+    {
+      "receipt": "native-v4-published-receipt.json",
+      "log": "run-20261027-205346.log.err",
+      "save_restored_equal": true,
+      "missing_anchor": null,
+      "captures": 9,
+      "present_intervals": 41,
+      "minimum_presents": 99,
+      "median_presents": 120.0,
+      "faults": [],
+      "baseline_optional_omissions": 10,
+      "crashes": 0,
+      "watchdogs": 0,
+      "unresolved_calls": 0
+    }
+  ],
+  "next": "Owner reviews native pilot and family direction; then extend calibrated families, handle tiled/glyph/language cases, and complete retained-art green-edge work before packaging. Future PR milestone v0.12.2. No source push or catalogue publication in this checkpoint.",
+  "later_owner_feedback": {
+    "superseding_record": "config/menu-ui-reconstruction-wave-01-2026-10-27.json",
+    "family_direction": "Approved for expansion",
+    "main_menu_v5": "Native feedback rejects excess M/N/A weight; revised v6 awaits review",
+    "continue_v3": "Accepted in-game; preserve exact PNG",
+    "dark_capone_v2": "Remove added outer edge/depth; revised v3 awaits review"
+  }
+}

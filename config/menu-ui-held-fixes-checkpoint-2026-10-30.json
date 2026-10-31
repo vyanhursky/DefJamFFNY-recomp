@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "date": "2026-10-30",
+  "recovery_path": "/Users/vlad/Code/defjam-data/scratch/menu-ui-held-fixes-20261030",
+  "manifest_sha256": "5ff30c70e52d34318c761653b4ba7192e5adede858432d6f3bfb8efd34d2df3f",
+  "files": 81,
+  "bytes": 26252353,
+  "accepted_sources": 1339,
+  "corrections_pending": 4,
+  "baseline_only": 5,
+  "new_approvals": 11,
+  "new_generations": 6,
+  "new_review_selections": 4,
+  "optimized_copies": "Private/reproducible;notduplicatedincheckpoint. Per-fileinputs/outputsRGBAmetadataandfilehashespinned.",
+  "parent_checkpoint_path": "config/menu-ui-held-review-checkpoint-2026-10-30.json",
+  "parent_checkpoint_sha256": "ca7b9fde60ce85ed5419ac40d56b95fbaecd54ff09f78a038771879dd1ec62c3",
+  "publication": "Published1.3/catalogue7 unchanged. No native installation, upload or push."
+}

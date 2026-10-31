@@ -1,0 +1,173 @@
+{
+  "schema": 1,
+  "date": "2026-10-28",
+  "owner_message": "You are spot-on with these, you can continue with the next batch. I recommend doing at least 50 at a time so I can review quickly",
+  "approved_review": "http://127.0.0.1:51742/next-review/review.html#main-menu",
+  "approved_source_record": "config/menu-ui-reconstruction-wave-01-2026-10-27.json",
+  "approved_records": [
+    {
+      "key": "capone",
+      "source_id": "925d89ba2f90cd7a1ff3555da16ff84a580a2379cad0c7706dc762cbb53cc35d",
+      "revision": "v3",
+      "preview_sha256": "93967af8c1742c0073c3b2bf42da9cc95ee6caa73bad1a5f843af22da6dbed48"
+    },
+    {
+      "key": "main-menu",
+      "source_id": "704503561725bca42e9c4f7489ff018dcbb3808b5ee2c23755b02cb06508ee64",
+      "revision": "v6",
+      "preview_sha256": "4748f3ea1c09377005b8c21455f5ae61514cc95320778328b1e98217a2b2dc15"
+    },
+    {
+      "key": "01-loading",
+      "source_id": "728c5f2f83bd20c149ca5124a9b72ad0df97a1b8616cd0d4198db5a34c71cdbc",
+      "revision": "v2",
+      "preview_sha256": "e267c2a149d99ce652ed71eaf815748b7014d50e157e8ef7c4a3d4429bd3df78"
+    },
+    {
+      "key": "02-artist",
+      "source_id": "cc7c9365467ec2f44ab523860aaa25131342cd5e412e6476b80a730a4ff4fedc",
+      "revision": "v2",
+      "preview_sha256": "44e0a8b00fa65255c78bb233e8c49c7684825458e19bb6aa3d856371111b62c9"
+    },
+    {
+      "key": "03-song-title",
+      "source_id": "d24a9eefac1f61272ce63f692efc8e901a3f30af75c13706d956b26181a85f9d",
+      "revision": "v2",
+      "preview_sha256": "aa52d5211cd583b5a44e940d9b2d0538533c15ef20e7e073c05beea1b9e2322c"
+    },
+    {
+      "key": "04-autosave-warning",
+      "source_id": "3d1101ccad75725b4aeb5f94ce3ee47b7814a88da1c46b1dc598e00685929077",
+      "revision": "v2",
+      "preview_sha256": "0a89fd0c865e91aae5bb8c663609a22f9f18c241723cb22ff859bba0a723dc38"
+    },
+    {
+      "key": "05-select",
+      "source_id": "1f0f48e76c00c18eeecf02b5cca3bfa8f2f28a892b377b785b9cb98a9d8898f5",
+      "revision": "v2",
+      "preview_sha256": "8a9be2c3fc1a41a58779bf4e306e643a7e26eec09f21f6ad3bd0d0f78c901975"
+    },
+    {
+      "key": "06-one-on-one",
+      "source_id": "27ca2e3b04b81a04e241150c352cc02937011f785fe8e2864599a4b92977a64c",
+      "revision": "v2",
+      "preview_sha256": "814177591bba0724cba9510d58afc9f7749895b0bf8a21a4e15f3c6e9d2a5b9c"
+    },
+    {
+      "key": "07-pick-your-rules",
+      "source_id": "00b85d9fd53240850d95c1bf6cbe8910292ff921b1a6b6b0eacd0b3fbcbe8962",
+      "revision": "v2",
+      "preview_sha256": "1324a34b48479c18b47725c1a4359eb2e5b552f8c85101ae0f93c3e7c1fdd4e7"
+    },
+    {
+      "key": "08-standard-rules",
+      "source_id": "7db6c6b78b512bb42d58a1919d2d5438df518bc3690bb90c7dc16f175afc4bdf",
+      "revision": "v2",
+      "preview_sha256": "b1ca3b4f7c9470c15be47c8635f56645812e8392cea1168ab85ac6bdf49629f6"
+    },
+    {
+      "key": "09-no-holds-barred,-anything-goes!",
+      "source_id": "c395bd442673fe7ca4401251b01ff3e15b4129400cef2efcecd0905ab62bee7a",
+      "revision": "v2",
+      "preview_sha256": "b2899d1d28283f35062bc883fc573591378d8b629f9d920d2161d582c28191e9"
+    },
+    {
+      "key": "10-select-number-of-fighters",
+      "source_id": "b9ba78cdaef3bbc7bd7ea5aa9fe40bed84d541cc1d9dcc9eeead5e25f55c75b2",
+      "revision": "v2",
+      "preview_sha256": "2f43adb4317940f64b52701268fbde3436e8556fda62e950dac24572b023be21"
+    },
+    {
+      "key": "11-continue",
+      "source_id": "e31ffef2f329c3a58ae0e027216bf7e94424ffeb28c7c423fae3927553c2001e",
+      "revision": "v2",
+      "preview_sha256": "6e8ed084b85e0a8368e34b20f16402a726bc21f898d2ad67b55d4bac12619d0d"
+    },
+    {
+      "key": "12-music",
+      "source_id": "729dbaf8dfc3e2056df6e07dc7fd5b70a23d60b60e2bee4af4da626c2b26b237",
+      "revision": "v2",
+      "preview_sha256": "64ccf0783e679f3b2f180950aa50f749e6af888a489a6bb485a8f6c413b2e7ca"
+    },
+    {
+      "key": "13-announcer",
+      "source_id": "b6a93ca285dbb9b67ce8b643cc3a107b2dca321957ce6674d9f7c90872ee3705",
+      "revision": "v2",
+      "preview_sha256": "0e3c176b4b4466ece9b528ffd71a2d5e28d4b07931b5028b64cb42f9a904f243"
+    },
+    {
+      "key": "14-sound-effects",
+      "source_id": "4258f0fb17c5331b5dbaae5751ee83973f2d1197bb9b71341311cf9f42b65905",
+      "revision": "v2",
+      "preview_sha256": "6cf9516bbae1b031c34eb108a12fbf13a93c793a851d7a740b78446b66697ac1"
+    },
+    {
+      "key": "15-vibration",
+      "source_id": "b729b8ea36bcffa485cc531c3558fd2d18f1a2181ad63380497d7e08a19c7d98",
+      "revision": "v2",
+      "preview_sha256": "89d53f2cfa4ca83204b7c704352a23956f3a492ee1b5007ebb46adcf22753306"
+    },
+    {
+      "key": "16-difficulty",
+      "source_id": "ae3d3dcabdfbfbc979bdbef7adc7460a65d235269299003b0af9981c76c2ea46",
+      "revision": "v2",
+      "preview_sha256": "72b1cb9c65c928655ad575caa25d5c908064e4fa08ee728a695bf4d219b98103"
+    },
+    {
+      "key": "17-delete-user-id",
+      "source_id": "2a129e1db1e124fc7fd403987a429b0dbd8f8d5470ae59e546f1d290d572d798",
+      "revision": "v2",
+      "preview_sha256": "c4c52bfbf1725389b8c4f02c98a9f5e1929132ee58940fe024d4f07b8ce89626"
+    },
+    {
+      "key": "18-accept-changes",
+      "source_id": "708b73bfa5766dc26fa8440250d52e4d2c7ed657d115add468100b849630d4b1",
+      "revision": "v2",
+      "preview_sha256": "2d92f9c65d8e6f860b978daf5967d0691d51494e5f6c00f8e047e07d3dc64a5b"
+    },
+    {
+      "key": "19-easy",
+      "source_id": "45ee7167c5a511d705346f20a9177ffd6e38c02c09d188c67b2e15f541d224f6",
+      "revision": "v2",
+      "preview_sha256": "844c41380e67dd61fad504e58a9cfc5607dc87ec700d94630ec33df2eac057a1"
+    },
+    {
+      "key": "20-med",
+      "source_id": "d8853366376a06c29b67723fcd8191b619179a7934959a50b985ef1a070c98a5",
+      "revision": "v2",
+      "preview_sha256": "3aafcb3b99e7082086ad941303591a42bb833efeddaaa6967f2d84e2662f4edb"
+    },
+    {
+      "key": "21-hard",
+      "source_id": "47abc62382b4157a2376a5672d8f4401601324411d25672b3b7395c7205835d0",
+      "revision": "v2",
+      "preview_sha256": "692d76a4dd07abef0ff64245e9137558c8073449301c681428d24d64d9c0b539"
+    },
+    {
+      "key": "22-off",
+      "source_id": "42badf61e51fb386c134526fd209ef2e06d29a268b59f19bd031ea4b1a4c203f",
+      "revision": "v2",
+      "preview_sha256": "5c3dfbb6d7eae84fb25df263d04d3b389020016e01247904bec91fe18ab31d3e"
+    },
+    {
+      "key": "23-on",
+      "source_id": "b349dbf67c6a924034a40215ca7e1719c4d64d3bf24c4efe4802cd26b16e0e0e",
+      "revision": "v2",
+      "preview_sha256": "0dc2aadfca1105d9526fe5b25c084ff11548a28dc4e14281781f6ec380944212"
+    },
+    {
+      "key": "24-autosave",
+      "source_id": "6396714c3ae6f2d7d6ecaf0055d4115ccbe30a4b67f5ba5df4328f1dd92623ea",
+      "revision": "v2",
+      "preview_sha256": "f618982542dc09c95eda113595c53580b5156d4757308d161311d6239f37ecbd"
+    },
+    {
+      "key": "25-cancel",
+      "source_id": "63d31831fa367ed2eca56f42cbcf13bc2466da8610b142edcf43e800f92f4a9b",
+      "revision": "v2",
+      "preview_sha256": "c3c34f6dcaa38dfbd0f0ce6f5532b3f5abb20351b6d5684c583ee862d66a16f9"
+    }
+  ],
+  "future_batch_size_minimum": 50,
+  "release_approval": false
+}

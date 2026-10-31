@@ -1,5 +1,19 @@
 # Research notes
 
+
+- [Held 20 UI review and lossless compression research](menu-ui-held-review-compression-2026-10-30.md) — focused held viewer; exact-pixel 36-image PNG benchmark and packaging recommendations.
+
+- [Final Menu/UI reconstruction batch: 143 remaining mappings accounted](menu-ui-reconstruction-wave-15-2026-10-30.md) — final 123 approved; 1,328 accepted, 20 retained exceptions; actual published and queued artwork sizes measured.
+- [Menu/UI reconstruction batch 14](menu-ui-reconstruction-wave-14-2026-10-30.md) — 100 new mappings in 49 complete artworks; 1,105 accepted, 143 still to restore or resolve after this batch.
+
+
+
+- [Menu/UI reconstruction batch 13](menu-ui-reconstruction-wave-13-2026-10-30.md) — 100 new native mappings in 50 joined labels; proven source UV groups, shared generated masters and lossless coherent pieces; 1005 accepted.
+
+- [Menu/UI reconstruction batch 12](menu-ui-reconstruction-wave-12-2026-10-29.md) — 100 new drafts; 905 accepted; native placard recovery, faithful source geometry and opaque placeholder tiles.
+
+- [Menu/UI reconstruction batch11](menu-ui-reconstruction-wave-11-2026-10-29.md) —100newdrafts;805accepted;160calls/159outputs; source-specific controller geometry and transparent stamps.
+
 Selected investigations from the port's development, kept because they explain
 how the game or the runtime behaves. Each is a dated record: later work may have
 superseded its conclusions, and the current source is authoritative. Some notes
@@ -12,6 +26,10 @@ cite other development notes, logs and captures that are not published.
 - [Toolkit bring-up notes](toolkit-bringup-notes.md): runtime diagnostics and environment variables
 
 ## Rendering
+
+- [Fighting-style stencil cuts](menu-ui-fighting-style-cuts-2026-10-29.md) — 30 exact approvals and three font corrections preserving original Def Jam letter gaps.
+
+- [Batch-ten UI corrections](menu-ui-wave10-revisions-2026-10-29.md) — 67 exact approvals; 33 revisions for source palette, transparent numerals, typography, button lines and the identified Disturbing Tha Peace emblem.
 
 - [v0.12.1 Story portraits and Power Plant](v0121-portrait-viewport-read.md) — logical versus AA surface clipping, verified portrait correction, and VY3 FFA performance measurements.
 - [v0.12.1 created-fighter thumbnails](v0121-created-fighter-thumbnail.md) — small guest capture surfaces and normal save/reload recovery for empty profile images.
@@ -29,6 +47,9 @@ cite other development notes, logs and captures that are not published.
 
 ## Front end and movies
 
+- [Menu/UI reconstruction batch ten](menu-ui-reconstruction-wave-10-2026-10-29.md): 100 new candidates, final batch-nine approvals, 705 accepted sources and faithful smooth-reference corrections.
+- [Menu/UI reconstruction batch seven](menu-ui-reconstruction-wave-07-2026-10-28.md): 50 standalone label/music/player-indicator drafts, exact generation history and qualified plain-font fidelity review.
+- [HD Widescreen Menus 1.3 publication](menu-ui-v1.3-publication-2026-10-28.md): 390 accepted reconstructed mappings, signed catalogue revision 7, six native routes and released 0.12.1 managed update/rollback.
 - [Mod system design](mod-system-design.md): signed catalogue architecture and future override types (PR17).
 - [Integrated launcher/menu RC](integrated-menu-launcher-rc-2026-10-23.md): combined candidate, hosted delivery and acceptance evidence.
 - [CachyOS setup compile failure, issue #83](issue83-cachyos-notes.md): C++20 UTF-8 paths and native regression checks
@@ -173,3 +194,20 @@ The plan built from these is in [docs/widescreen](../widescreen/README.md), whic
 - [Menu text 1.2 candidate](menu-ui-text-v1.2-2026-10-26.md) — Stronger treatment across the text census, 1,140 pinned outputs, standalone installer validation and native checks.
 
 - [Menu 1.2 publication](menu-ui-v1.2-publication-2026-10-26.md) — approved stable text pack, Cloudflare pins, signed catalogue and released-helper compatibility.
+
+- [UI sharpness samples](menu-ui-sharpness-samples-2026-10-27.md) — three contour reconstructions beyond 1.2; accepted visual direction, exact prompts, corrected banner contexts and native-integration limits.
+- [Remaining UI reconstruction plan](menu-ui-reconstruction-plan-2026-10-27.md) — production scope, complete prompt set, family batches, atlas assembly, native checks and release approach.
+
+- [UI reconstruction final ordinary banner variants](menu-ui-reconstruction-wave-06-2026-10-28.md) — previous 100 approved; 60 remaining four-fighter select/loading source variants.
+- [UI reconstruction hundred-banner batch five](menu-ui-reconstruction-wave-05-2026-10-28.md) — all 100 subsequently approved; 100 new source variants, split into 22 three-fighter and 78 four-fighter banners.
+- [UI reconstruction next hundred variants](menu-ui-reconstruction-wave-04-2026-10-28.md) — all 103 subsequently approved; 100 new three-fighter banner sources plus Bo, Cruz and WC material corrections.
+- [UI reconstruction 100-source parallel batch](menu-ui-reconstruction-wave-03-2026-10-28.md) — all 104 subsequently approved; 100 new select/loading/layout sources plus four earlier transparency corrections.
+- [UI reconstruction 50-wordmark batch](menu-ui-reconstruction-wave-02-2026-10-28.md) — paired select/loading originals for25characters, 50newdrafts, fast grid/detail review; previous27 accepted.
+- [UI reconstruction first production wave](menu-ui-reconstruction-wave-01-2026-10-27.md) — approved family expansion, 25 new labels and Main Menu/Capone native-feedback corrections; Continue preserved.
+- [UI reconstruction native pilot and family batch](menu-ui-reconstruction-pilot-2026-10-27.md) — 1,348-mapping corrected scope, 12 family drafts, native 1440p samples and bounded green-edge cleanup.
+
+- [Four held UI corrections and full lossless experiment](menu-ui-held-fixes-lossless-2026-10-30.md) — four revised drafts, remaining held approvals, full PNG/RGBA/metadata receipts and reusable Modding Tools compression procedure.
+
+- [Combined HD Widescreen Menus 1.4.0 candidate](menu-ui-v1.4-candidate-2026-10-31.md) — all approved art assembled and losslessly packaged, exact size/hash, native checks and PRs; awaiting owner Cloudflare approval.
+
+- [HD Widescreen Menus 1.4.0 publication](menu-ui-v1.4-publication-2026-10-31.md): combined 1,343 approved mappings, Cloudflare verification, protected signed catalogue and released 0.12.1 network update/rollback.

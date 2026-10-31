@@ -1,0 +1,21 @@
+{
+  "path": "/Users/vlad/Code/defjam-data/scratch/menu-ui-wave04-review-20261028",
+  "files": 1544,
+  "bytes": 648682225,
+  "manifest_sha256": "5b5ba28a51565971e85c724537c89a5205b2d166d65d0c1c952731772ce0e65e",
+  "every_copy_verified": true,
+  "schema": 1,
+  "date": "2026-10-28",
+  "review_mappings": 103,
+  "new_sources": 100,
+  "earlier_material_corrections": 3,
+  "raw_generations": 111,
+  "selected": 103,
+  "held": 8,
+  "prepared_unissued_requests": 13,
+  "status": "Frozen local artwork review; owner review pending; not published",
+  "source_ledger": "config/menu-ui-reconstruction-wave-04-2026-10-28.json",
+  "source_ledger_sha256": "091ad5c4c95c3e336aecf3f2376bbf60bdfda931e14c6c22fd2662e504c3c141",
+  "review_proof_sha256": "3974fe4a546c583fba2decd4846e1864c8bd454cf1d7023e1328a40a160e0ab6",
+  "restore": "Serve checkpoint root on 127.0.0.1:51745 and open /review.html. Full original inputs in preserved-inputs; source ledger holds literal prompts, hashes, material/bounds exceptions and native-validation limits."
+}

@@ -1,0 +1,181 @@
+{
+  "schema": 1,
+  "date": "2026-10-30",
+  "owner_message": "These 4 held textures look like they need to be fixed. The rest of them look fine.",
+  "approved_review": "http://127.0.0.1:51763/held-review.html#overview",
+  "approved_source_record": "config/menu-ui-held-review-compression-2026-10-30.json",
+  "approved_source_record_sha256": "336f401a15d4ae1aceaef16a1717c71c0ccb8333efe51dde644d1340a05c1299",
+  "approved_count": 11,
+  "approved_records": [
+    {
+      "key": "j075-battle-chsVenue-native",
+      "source_id": "d9b80a92af35e32e6e49cff2f38a7bdfef97bdbfacc5ffa8beb40c449053c0ca",
+      "revision": "v1",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave15-20261030/derived/z013-d9b80a92-v1-raw-slice.png",
+      "raw_sha256": "30bbac2d6f43360f67a6c2135e653da57b24527d4e22d28ed9343d69e44fdc2b",
+      "preview_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave15-20261030/images/z013-d9b80a92-v1-draft.png",
+      "preview_sha256": "eb5f976682a695a57b904fc93ee1c522bb945795ae728cfabe76bac357d0f1b0",
+      "raw_master_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave15-20261030/j075-battle-chsVenue-native-v1.png",
+      "raw_master_sha256": "f6a30329a6f663a3bd7753f5c230d95089ac918355ed595f5bf9432353caed5a",
+      "acceptance": "Owner visual acceptance; native atlas/glyph/mask fidelity checks remain due before integration."
+    },
+    {
+      "key": "j081-runtime-native",
+      "source_id": "05f828ffb24748401383b43b6e36f0b1dcf02b738bcbf32446444eb497c85dd4",
+      "revision": "v1",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave15-20261030/derived/z123-05f828ff-v1-raw-slice.png",
+      "raw_sha256": "10b10c3d5fd3be27544a683e4a6f3cb4716b09564d89d702875b274f0083ffc8",
+      "preview_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave15-20261030/images/z123-05f828ff-v1-draft.png",
+      "preview_sha256": "714cf9e36b195f24cc8e50bbfc1a620e10cf44587dc3ed0045f16b73df716420",
+      "raw_master_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave15-20261030/j081-runtime-native-v1.png",
+      "raw_master_sha256": "8bcbcede93fe3fd84c67b4acdfc686da57f42ccbc67e416a466412e30f5aabc0",
+      "acceptance": "Owner visual acceptance; native atlas/glyph/mask fidelity checks remain due before integration."
+    },
+    {
+      "key": "j086-runtime-native",
+      "source_id": "662af4913cec1858ccf4bfd7ec1319c5720d473cfd515e925ae16baf23e935f1",
+      "revision": "v1",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave15-20261030/derived/z128-662af491-v1-raw-slice.png",
+      "raw_sha256": "e2bc9a94d2d5e7b65dc522a0927ba6d2faa515453e0f9f7265a77c56eae5c3fc",
+      "preview_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave15-20261030/images/z128-662af491-v1-draft.png",
+      "preview_sha256": "ea9e10f6cdf04b0d12c4c39fe7f5b90823726ce91313f238c8cefc21be28710c",
+      "raw_master_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave15-20261030/j086-runtime-native-v1.png",
+      "raw_master_sha256": "8e2442f630f7b070ac3e4f3f56aff1dc66aaeafee1ef3398e930e7b85be76d4e",
+      "acceptance": "Owner visual acceptance; native atlas/glyph/mask fidelity checks remain due before integration."
+    },
+    {
+      "key": "j088-runtime-native",
+      "source_id": "9e1be2da3c8b36e11b9c5199944995b39bce104058ca6db4d25609221ef3a379",
+      "revision": "v1",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave15-20261030/derived/z130-9e1be2da-v1-raw-slice.png",
+      "raw_sha256": "1151083619650c7a6020d8abfd01b7654b1f8a0b044e8778ed48097dc9a70d17",
+      "preview_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave15-20261030/images/z130-9e1be2da-v1-draft.png",
+      "preview_sha256": "1cc00b888a7f4f45699dbeaca7d0d7e6e65fb000c3d8b15d2dbe0c079d3fa510",
+      "raw_master_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave15-20261030/j088-runtime-native-v1.png",
+      "raw_master_sha256": "1137a5aacdfe7e7b1c38903b01bab1803c6af96b1c995a0a6b41309cc37bab6a",
+      "acceptance": "Owner visual acceptance; native atlas/glyph/mask fidelity checks remain due before integration."
+    },
+    {
+      "key": "j090-runtime-native",
+      "source_id": "44f3789529ff7d17312784999d57e9cb6cbb2bf33efaeb7f14d6feda716fc961",
+      "revision": "v1",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave15-20261030/derived/z132-44f37895-v1-raw-slice.png",
+      "raw_sha256": "e522a1630f42bad18eb50349eea9b6028697e5e5e88f50c19381f93f21e770f9",
+      "preview_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave15-20261030/images/z132-44f37895-v1-draft.png",
+      "preview_sha256": "e89224f5dcaa1bba2fcca0020a10e1ef736ac01040d5155d746cae8410dd7791",
+      "raw_master_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave15-20261030/j090-runtime-native-v1.png",
+      "raw_master_sha256": "bf8fff8d880f895741ba1d14f1b578228eb721839052d0700efec988b767b89e",
+      "acceptance": "Owner visual acceptance; native atlas/glyph/mask fidelity checks remain due before integration."
+    },
+    {
+      "key": "j091-runtime-native",
+      "source_id": "4a54aae68252907f41b0eb4872e655f2cc1f8b1499df7690a70e54fb02ce15cc",
+      "revision": "v1",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave15-20261030/derived/z133-4a54aae6-v1-raw-slice.png",
+      "raw_sha256": "36ff72b8ccea232409f48f1283f53ab6a623cfb0516ce08bee2c9029b63717fb",
+      "preview_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave15-20261030/images/z133-4a54aae6-v1-draft.png",
+      "preview_sha256": "7356558e5c4cab368896d3f40a9b08b7e2db6d676bbc7d1c9da0371616a39ce1",
+      "raw_master_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave15-20261030/j091-runtime-native-v1.png",
+      "raw_master_sha256": "5a1574a83f422d2ac981f273c3c74e9bb525cf443eca23e017c876193f9c0d42",
+      "acceptance": "Owner visual acceptance; native atlas/glyph/mask fidelity checks remain due before integration."
+    },
+    {
+      "key": "j092-runtime-native",
+      "source_id": "da5645673d1c1f649c8fdc0c24425a3e4808cf385aec4b593ca9074df3f5dfce",
+      "revision": "v1",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave15-20261030/derived/z134-da564567-v1-raw-slice.png",
+      "raw_sha256": "32dace44a48f1880f98ab23977594f7b0faa47dbb60c6e502bb9540eadbc9af1",
+      "preview_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave15-20261030/images/z134-da564567-v1-draft.png",
+      "preview_sha256": "72ff324d45cc56718565b65c7c2b004c4fa998fb6b0616a4aafaee4e3b9c3714",
+      "raw_master_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave15-20261030/j092-runtime-native-v1.png",
+      "raw_master_sha256": "32d6c78bf35b81c645f053069459ee024d6bf757d90baed4555274ddd72cb488",
+      "acceptance": "Owner visual acceptance; native atlas/glyph/mask fidelity checks remain due before integration."
+    },
+    {
+      "key": "j094-runtime-native",
+      "source_id": "97b45aa3316b309a3833227df5e7eff5ed69edac6e8e33f2b1ffa9fe117acc6d",
+      "revision": "v1",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave15-20261030/derived/z136-97b45aa3-v1-raw-slice.png",
+      "raw_sha256": "a368650dd48859c0feefaf8316d4ebd9b2a100fc104fa6facbdfc7c1eeebd5e8",
+      "preview_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave15-20261030/images/z136-97b45aa3-v1-draft.png",
+      "preview_sha256": "f252f23cf46a0b96afc984dfe1a8ffb4604ec0cd0377ae0ad75ff9d388bb1c48",
+      "raw_master_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave15-20261030/j094-runtime-native-v1.png",
+      "raw_master_sha256": "038677944baef2b9a9e2da0653a2aece838520a01463a3cac324888919466811",
+      "acceptance": "Owner visual acceptance; native atlas/glyph/mask fidelity checks remain due before integration."
+    },
+    {
+      "key": "j095-runtime-native",
+      "source_id": "c66fbd60d20ea361d5df51f44ea81f75871f1453bc521df25d07c9628f760f64",
+      "revision": "v1",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave15-20261030/derived/z138-c66fbd60-v1-raw-slice.png",
+      "raw_sha256": "3ecf88a68d696de59db32871dddfc1dab065be239f012984031a00246fdecefd",
+      "preview_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave15-20261030/images/z138-c66fbd60-v1-draft.png",
+      "preview_sha256": "04beada67ecfa6967dcbd05fdb70d2e2d949db5e297ec7748bcf9e2843231a17",
+      "raw_master_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave15-20261030/j095-runtime-native-v1.png",
+      "raw_master_sha256": "71a5f9f088e7b1d8be60bf2bd312193087216762b4f9f29f9a050c0721b15e01",
+      "acceptance": "Owner visual acceptance; native atlas/glyph/mask fidelity checks remain due before integration."
+    },
+    {
+      "key": "j097-runtime-native",
+      "source_id": "aba96bb776ddad1f6290f9aa543ac804f5eb9a57aba60b243e29fa197e19b68f",
+      "revision": "v1",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave15-20261030/derived/z141-aba96bb7-v1-raw-slice.png",
+      "raw_sha256": "e94ddc823b791e645713291a0af89aa6237e83f89bd1c0f208a89288eaf0c490",
+      "preview_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave15-20261030/images/z141-aba96bb7-v1-draft.png",
+      "preview_sha256": "30fe9ac91fde8b149d43488d1b3b66f7303a26c353ad14675e377c7633283f79",
+      "raw_master_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave15-20261030/j097-runtime-native-v1.png",
+      "raw_master_sha256": "2af405604a3de783ba12bedf3bbe8fc90987f17278fbe05052495bb5e018f51d",
+      "acceptance": "Owner visual acceptance; native atlas/glyph/mask fidelity checks remain due before integration."
+    },
+    {
+      "key": "j098-runtime-native",
+      "source_id": "2e551d4a7d1ef988def9aad37ff246bde38e066d0521346ca04a86c39d61ce7a",
+      "revision": "v1",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave15-20261030/derived/z142-2e551d4a-v1-raw-slice.png",
+      "raw_sha256": "45e6b4b6e99d2ae9bf05bcd00dc4f877c1ec1612d89da050be3942be0864167a",
+      "preview_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave15-20261030/images/z142-2e551d4a-v1-draft.png",
+      "preview_sha256": "30fc2f62d1f833d4305cc82e904d7d3587a44bb1fa9c049da4e17c5cd035dd85",
+      "raw_master_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave15-20261030/j098-runtime-native-v1.png",
+      "raw_master_sha256": "87d2b5fda9ca121f4183d4a6182f26dfb722c4aa09d34af9f4fe7f3ba85a337a",
+      "acceptance": "Owner visual acceptance; native atlas/glyph/mask fidelity checks remain due before integration."
+    }
+  ],
+  "retained_baseline_acceptance": [
+    {
+      "source_id": "290ef8a0eafaebfd4641181f8810ebba1bd0f03f51bc48ffb579937817421dcd",
+      "name": "CREATE YOUR OWN FIGHTER \u00b7 NO NEW DRAFT",
+      "meaning": "Existing published baseline acceptable; no generated remaster exists and none newly counted."
+    },
+    {
+      "source_id": "4475da20aac1a9fae7589f8fdd6455c4e37dbc18604a992cab5629bcef60728f",
+      "name": "BARBER SHOP \u00b7 NO NEW DRAFT",
+      "meaning": "Existing published baseline acceptable; no generated remaster exists and none newly counted."
+    },
+    {
+      "source_id": "594022a2206dbb9ced7addd5e83bf1d465ecbcf8ac7eb150949fd9d0af860a0d",
+      "name": "RING OUT card \u00b7 NO NEW DRAFT",
+      "meaning": "Existing published baseline acceptable; no generated remaster exists and none newly counted."
+    },
+    {
+      "source_id": "8d3ac3cfe67bc515c1cdf605c662613381e77e100d72ef161c113e3c8a38f551",
+      "name": "Bless \u00b7 NO NEW DRAFT",
+      "meaning": "Existing published baseline acceptable; no generated remaster exists and none newly counted."
+    },
+    {
+      "source_id": "94e010a8bcd092c04018d4c31f5c264a1adc5f14fe84b408cc61a91f5f6f966f",
+      "name": "TATTOO SHOP \u00b7 NO NEW DRAFT",
+      "meaning": "Existing published baseline acceptable; no generated remaster exists and none newly counted."
+    }
+  ],
+  "requires_revision": [
+    "j062-options-userID-7",
+    "j074-battle-chsVenue-native",
+    "j042-battle-matchSm3-9",
+    "j077-battle-chsVenue-native"
+  ],
+  "total_distinct_accepted_sources": 1339,
+  "correction_mappings_pending": 4,
+  "retained_unrestored_sources": 5,
+  "release_disposition": "Visual acceptance only; no native/glyph UV, gray material or sampling check inferred; no publication.",
+  "future_pr_milestone": "v0.12.2"
+}

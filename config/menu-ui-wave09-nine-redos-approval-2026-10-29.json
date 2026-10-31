@@ -1,0 +1,77 @@
+{
+  "schema": 1,
+  "date": "2026-10-29",
+  "owner_message": "OK - all are good now - we can move on to the next 100 batch.",
+  "approved_review": "http://127.0.0.1:51754/review.html#overview",
+  "approved_source_record": "config/menu-ui-wave09-nine-redos-2026-10-29.json",
+  "approved_source_record_sha256": "6b69ef7c61426491036390567f183d70eec07e9d0c87f71893ef43986f41469f",
+  "approved_count": 9,
+  "total_distinct_accepted_sources": 705,
+  "approved_records": [
+    {
+      "key": "u068-0fdad2b7",
+      "revision": "v7",
+      "raw_sha256": "2b47e62d9debf6f024f243b006b0dc70153bf32d46784a54a85814a53c8f727a",
+      "preview_sha256": "fe736a95b26918fd4cd096978265c1242971fd317bd4019818b8979efd673e08",
+      "source_id": "0fdad2b78d8470675ba3e8524c134019e28548788a321687548a34d913c298e0"
+    },
+    {
+      "key": "u076-3e9dd51b",
+      "revision": "v7",
+      "raw_sha256": "73dbe6522f3b7d927fbf0fcf9582b464832da45815ce919b0a21321a072fb299",
+      "preview_sha256": "20161fa8b5762569674ed7529d8b67ccca1f80df9783791cde0821c5b9cf1506",
+      "source_id": "3e9dd51b84fa2b06504f4dbf43ba656c6f2ce48241854d0e9dabb0d3fd5833fb"
+    },
+    {
+      "key": "u081-5af60ba3",
+      "revision": "v8",
+      "raw_sha256": "6773752fda267118aeee1090f624fae149bb21110bb1fe08bbe1c073e0703795",
+      "preview_sha256": "28b4ff55615dbe6af2daab538908485424b126eb0b702be1fc78a751d5c26e8d",
+      "source_id": "5af60ba386eb7152e8616083f0712375dd9a56c1c4b8482e4ae72266184f254e"
+    },
+    {
+      "key": "u071-1378b522",
+      "revision": "v7",
+      "raw_sha256": "698706f4a72e380dd626bbdcbfef4b173694ac26b58a04103ac5a42584358099",
+      "preview_sha256": "94841a0cd3678d4f57aa6afba6a8b302cc61153666b345edf7ab1cd1e90ce58a",
+      "source_id": "1378b5222a7a4a9ebd1880031af03dba92796de9867b299960f18b3b26e8185d"
+    },
+    {
+      "key": "u085-6e626288",
+      "revision": "v7",
+      "raw_sha256": "f9ba3e76cdd0d5ec7909e8a76e76c524d08f5301b620e98b60a989e25fd5013a",
+      "preview_sha256": "839e37a459a4cad98f899cb3fbccbae09ef6b0a7e53389e731ec3bac8571bac5",
+      "source_id": "6e6262886e5b510df9d384a0e840ab9217b786a2b3f998a4f3b4c253296989cf"
+    },
+    {
+      "key": "u087-7017f637",
+      "revision": "v7",
+      "raw_sha256": "c7b80218e62a39d3fe348678324c73bb27803ccd0db6c96312d8881a9c0e93bb",
+      "preview_sha256": "d5f07fe830e4ffb5dd0edd08a3b563899cb9d763749a0581658c5196f3ba051b",
+      "source_id": "7017f637f22b4698e4acbeeb852324ef586cd5ddbd05395599790feb09648890"
+    },
+    {
+      "key": "u095-885bd6a6",
+      "revision": "v7",
+      "raw_sha256": "c653bf4ecf4250475e31b4f4f3c93d56462c7a8748c9cbc17fbb2cd73c02fbff",
+      "preview_sha256": "a1b233974b191b4d55dfe13f6f0b75ed8e5907ca2b003e7db283d8802949cf30",
+      "source_id": "885bd6a629436d2de778123a4232d0e9b981c58192a2363a968083d2a07582cd"
+    },
+    {
+      "key": "u097-91247b8f",
+      "revision": "v7",
+      "raw_sha256": "a22d5b8c7c34d5ee1133cffc335e496f6e086638fc60c9fe7c6358f6131d9966",
+      "preview_sha256": "5b6aa6fe2a189d2aee52e839abb7ab0aef6ca64e772bb2e881848a46ada25202",
+      "source_id": "91247b8f430634d8db111521b9bb6d5ae35d83d5de2c80557c78895bc75e24c1"
+    },
+    {
+      "key": "u074-30fad9eb",
+      "revision": "v6",
+      "raw_sha256": "0bba115a078986123b23d3081785aa3767e400edfe100016ac7c33702d0420cd",
+      "preview_sha256": "cf0b2829d74281baa351c64c114584794e76336dfbe1f38f2ad9ceb5fb9924ea",
+      "source_id": "30fad9eb6d75a6b390e84c76350b1429905c376bd05d730455005e2fbee23d3a"
+    }
+  ],
+  "interpretation": "Explicit owner approval of selected versions only; all superseded versions excluded.",
+  "release_disposition": "Queued for a future pack; published1.3 unchanged. No installation/publication authorized this turn."
+}

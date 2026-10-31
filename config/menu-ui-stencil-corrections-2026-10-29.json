@@ -1,0 +1,1202 @@
+{
+  "schema": 1,
+  "date": "2026-10-29",
+  "status": "Four revised stencil heading candidates awaiting owner review",
+  "owner_request": "\"Story Champs\" needs a redo - the font isn't right\nSame with BEATBOX\nCRIB looks wrong\nMAP looks wrong\n\nFix the above four\nRest are approved",
+  "approval_record": "config/menu-ui-reconstruction-wave08-approval-2026-10-29.json",
+  "approval_record_sha256": "097be613a7ae5d14c78de059464de6300b33c51e8c70515aa05f9e44ae77eaa7",
+  "counts": {
+    "other_wave08_approved": 100,
+    "total_distinct_accepted": 600,
+    "corrected_sources": 4,
+    "successful_calls_and_saved_outputs": 8,
+    "selected": 4,
+    "superseded": 4,
+    "failed_calls": 0,
+    "unissued_requests": 0
+  },
+  "tool": "Built-in imagegen only; one asset per call, four independent calls per pass; no subagents or CLI/API fallback",
+  "original_sources": [
+    {
+      "key": "u043-887c3f59",
+      "source_id": "887c3f599cef30f2137bf6b19d992e76bee50adcf301ad0597821d6dab682d29",
+      "name": "STORY CHAMPS",
+      "text": "STORY CHAMPS",
+      "text_status": "Actual source RGBA and blue/pale inspected; case/punctuation verified",
+      "kind": "light",
+      "family": "distressed stencil heading",
+      "context": "brick",
+      "aliases": [],
+      "source_context": "Observed native text texture",
+      "context_confidence": "Original inventory source identity verified; runtime placement unverified",
+      "input_png": "/Users/vlad/Code/defjam-data/scratch/menu-ui-v1.2-text-candidate-20261026/inputs/887c3f599cef30f2137bf6b19d992e76bee50adcf301ad0597821d6dab682d29.png",
+      "input_sha256": "ee2fedfe65a82501be7ce76146ffc988a1ad5f875d68d7deb91271a789700359",
+      "source_size": [
+        512,
+        64
+      ],
+      "source_crop": [
+        30,
+        7,
+        340,
+        45
+      ],
+      "source_alpha128_bbox": [
+        35,
+        12,
+        335,
+        41
+      ],
+      "aspect": 10.344827586206897,
+      "reference_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-20261029/references/u043-887c3f59-rgba.png",
+      "reference_sha256": "b5c3f00dffcb035376dd300d711e4e9e608523e664ade265d1ee490b6d88ba76",
+      "transparency_references": [
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-20261029/references/u043-887c3f59-rgba.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-20261029/references/u043-887c3f59-blue.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-20261029/references/u043-887c3f59-pale.png"
+      ],
+      "source_opaque_rgb_median": [
+        252,
+        240,
+        214
+      ],
+      "inventory_label": "STORY CHAMPS",
+      "inventory_order": 43,
+      "revision": "v1",
+      "review_reason": "Cream STORY CHAMPS stencil cuts/large masses retained with continuous HD contours. Cut widths/serif geometry and small alpha edge detail remain approximate.",
+      "native_status": "not tested",
+      "style_notes": "Keep original tall condensed stencil capitals, precise glyph width/spacing and source stroke weight, broken bars/stencil cuts and source distress layout. Preserve flat cream source material and actual partial ink. Sharpen contours without adding new chips, fill, depth, bevel, shadow, outline or frame. This stylized family must not receive music-font weight changes.",
+      "generation_status": "generated",
+      "selected_revision": "v1",
+      "reconstruction_status": "unapproved review draft; paired source comparison complete",
+      "verified_name": "STORY CHAMPS",
+      "confirmed_text": "STORY CHAMPS",
+      "weight_revision_review_note": "Cream STORY CHAMPS stencil cuts/large masses retained with continuous HD contours. Cut widths/serif geometry and small alpha edge detail remain approximate.",
+      "material_notes": "Source and generated RGBA statistics recorded in qa.json; source RGB/alpha governs. Generated tone, coverage and antialiasing remain an approximation.",
+      "bounds_note": "Original full source, size, crop and alpha128 bbox retained unchanged; no logical bounds exception."
+    },
+    {
+      "key": "u032-b884c774",
+      "source_id": "b884c774e2ff8a2df5e27438e99271964069ba27fae99d28a5750a87e14b32cc",
+      "name": "BEATBOX",
+      "text": "BEATBOX",
+      "text_status": "Verified against actual original RGBA and blue/pale references, inspected using exact nearest analysis expansion.",
+      "kind": "light",
+      "family": "distressed stencil heading",
+      "context": "brick",
+      "aliases": [],
+      "source_context": "Observed native text texture",
+      "context_confidence": "Original inventory source identity verified; runtime placement unverified",
+      "input_png": "/Users/vlad/Code/defjam-data/scratch/menu-ui-v1.2-text-candidate-20261026/inputs/b884c774e2ff8a2df5e27438e99271964069ba27fae99d28a5750a87e14b32cc.png",
+      "input_sha256": "0a625b4ba24c642c4466a2e52e7f23ab82c31f0e05a9dcaf1fc2b37185cbd0c4",
+      "source_size": [
+        512,
+        64
+      ],
+      "source_crop": [
+        0,
+        6,
+        174,
+        43
+      ],
+      "source_alpha128_bbox": [
+        5,
+        11,
+        170,
+        38
+      ],
+      "aspect": 6.111111111111111,
+      "reference_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-20261029/references/u032-b884c774-rgba.png",
+      "reference_sha256": "f439c5c3858c86da6cfff614827b74cdd88bb70d423009c53a8f41c1142abb2c",
+      "transparency_references": [
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-20261029/references/u032-b884c774-rgba.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-20261029/references/u032-b884c774-blue.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-20261029/references/u032-b884c774-pale.png"
+      ],
+      "source_opaque_rgb_median": [
+        228,
+        224,
+        211
+      ],
+      "inventory_label": "B\u0415ATB\u041e\u0425",
+      "inventory_order": 32,
+      "revision": "v1",
+      "review_reason": "Muted cream BEATBOX stencil with separated B/E/T/O/X cuts and original narrow caps. Native1x layout/cuts retained; alpha/material reconstruction at fine edges is approximate, without added source-independent wear.",
+      "native_status": "not tested",
+      "style_notes": "Keep original tall condensed stencil capitals, precise glyph width/spacing and source stroke weight, broken bars/stencil cuts and source distress layout. Preserve flat cream source material and actual partial ink. Sharpen contours without adding new chips, fill, depth, bevel, shadow, outline or frame. This stylized family must not receive music-font weight changes.",
+      "generation_status": "selected unapproved new preview",
+      "specific_source_observation": "Actual visible Latin BEATBOX, seven stencil capitals. Mostly clean flat muted cream RGB228,224,211; NO invented distressed chips. Preserve actual vertical stencil cuts: both B separate leftstem/rightbowls, E separated stem/three bars, T detached topbar/shaft, O split top/bottom joins, X narrow midcut. Narrow tall caps and source spacing, source original strokeweight, no music-font bolding.",
+      "source_rgba_evidence": {
+        "source_opaque_common": [
+          228,
+          224,
+          211,
+          252
+        ],
+        "source_near_white_alpha_gt128": 0,
+        "generated_near_white_alpha_17_to128": 0,
+        "generated_near_white_alpha_gt128": 0,
+        "generated_white_alpha1_to16": 33054,
+        "interpretation": "Visible analysis hairline is not evidence of opaque white rim; near-white matte is alpha<=16 only and remains raw for parent RGB bleed."
+      },
+      "selected_revision": "v1",
+      "reconstruction_status": "reviewed source/new native1x and3x on blue/pale plus HD contours",
+      "weight_revision_review_note": "Muted cream BEATBOX stencil with separated B/E/T/O/X cuts and original narrow caps. Native1x layout/cuts retained; alpha/material reconstruction at fine edges is approximate, without added source-independent wear.",
+      "original_navigation_name": "B\u0415ATB\u041e\u0425",
+      "original_navigation_text": "B\u0415ATB\u041e\u0425",
+      "verified_text": "BEATBOX",
+      "bounds_review": "Original full source, source_size, source_crop and source_alpha128_bbox unchanged. No logical bounds override.",
+      "human_review_note": "Muted cream BEATBOX stencil with separated B/E/T/O/X cuts and original narrow caps. Native1x layout/cuts retained; alpha/material reconstruction at fine edges is approximate, without added source-independent wear.",
+      "qa_notes": "Muted cream BEATBOX stencil with separated B/E/T/O/X cuts and original narrow caps. Native1x layout/cuts retained; alpha/material reconstruction at fine edges is approximate, without added source-independent wear.",
+      "selected_metrics": {
+        "key": "u032-b884c774",
+        "revision": "v1",
+        "native_size": [
+          165,
+          27
+        ],
+        "source_native_alpha_mean": 0.49079377654541056,
+        "new_native_alpha_mean": 0.5151259875442882,
+        "new_alpha128_bbox": [
+          75,
+          175,
+          2120,
+          538
+        ],
+        "raw_size": [
+          2172,
+          724
+        ],
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "alpha_gt16_bbox": [
+          74,
+          175,
+          2121,
+          539
+        ],
+        "new_raw_aspect": 5.633608815426998,
+        "source_aspect": 6.111111111111111,
+        "aspect_ratio": 0.921863260706236,
+        "rgba_median_alpha_gt16": [
+          227.0,
+          220.0,
+          206.0,
+          254.0
+        ],
+        "near_pure_green_alpha_gt16": 0
+      }
+    },
+    {
+      "key": "u101-6c73af6d",
+      "source_id": "6c73af6d79c21ceaf07947f8018162cd9b6647ddf172a230146411ed6dc9666b",
+      "name": "CRIB",
+      "text": "CRIB",
+      "text_status": "Verified against actual original RGBA and blue/pale references, inspected using exact nearest analysis expansion.",
+      "kind": "light",
+      "family": "distressed stencil heading",
+      "context": "brick",
+      "aliases": [],
+      "source_context": "Observed native text texture",
+      "context_confidence": "Original inventory source identity verified; runtime placement unverified",
+      "input_png": "/Users/vlad/Code/defjam-data/scratch/menu-ui-v1.2-text-candidate-20261026/inputs/6c73af6d79c21ceaf07947f8018162cd9b6647ddf172a230146411ed6dc9666b.png",
+      "input_sha256": "1f30bddaad42e7fd8a771bd8e6df025aeebc592b4fc74ffa8b091651b59231a6",
+      "source_size": [
+        512,
+        64
+      ],
+      "source_crop": [
+        0,
+        6,
+        91,
+        43
+      ],
+      "source_alpha128_bbox": [
+        4,
+        11,
+        87,
+        38
+      ],
+      "aspect": 3.074074074074074,
+      "reference_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-20261029/references/u101-6c73af6d-rgba.png",
+      "reference_sha256": "4b18c034ef86f523c84b3c3a3f32f94917e7faea81f6c5739fc5c41c6d87b80e",
+      "transparency_references": [
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-20261029/references/u101-6c73af6d-rgba.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-20261029/references/u101-6c73af6d-blue.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-20261029/references/u101-6c73af6d-pale.png"
+      ],
+      "source_opaque_rgb_median": [
+        228,
+        224,
+        211
+      ],
+      "inventory_label": "CRIB",
+      "inventory_order": 101,
+      "revision": "v1",
+      "review_reason": "Clean muted cream CRIB stencil after bounded removal of invented edge chips. Genuine C/R/B cuts and I bar retained; original alpha/contour detail is a reconstruction.",
+      "native_status": "not tested",
+      "style_notes": "Keep original tall condensed stencil capitals, precise glyph width/spacing and source stroke weight, broken bars/stencil cuts and source distress layout. Preserve flat cream source material and actual partial ink. Sharpen contours without adding new chips, fill, depth, bevel, shadow, outline or frame. This stylized family must not receive music-font weight changes.",
+      "generation_status": "selected unapproved new preview",
+      "specific_source_observation": "Exactly CRIB, four tall narrow stencil capitals, muted cream RGB228,224,211. Preserve original C detached terminalblocks, R separated leftstem/rightbowl/leg, I plain verticalbar and B separate leftstem/twobowls; source spacing and strokeweight. Mostly clean actual stencil, no new distress/chips or music-font weight.",
+      "selected_revision": "v2",
+      "reconstruction_status": "reviewed source/new native1x and3x on blue/pale plus HD contours",
+      "weight_revision_review_note": "Clean muted cream CRIB stencil after bounded removal of invented edge chips. Genuine C/R/B cuts and I bar retained; original alpha/contour detail is a reconstruction.",
+      "original_navigation_name": "CRIB",
+      "original_navigation_text": "CRIB",
+      "verified_text": "CRIB",
+      "bounds_review": "Original full source, source_size, source_crop and source_alpha128_bbox unchanged. No logical bounds override.",
+      "human_review_note": "Clean muted cream CRIB stencil after bounded removal of invented edge chips. Genuine C/R/B cuts and I bar retained; original alpha/contour detail is a reconstruction.",
+      "qa_notes": "Clean muted cream CRIB stencil after bounded removal of invented edge chips. Genuine C/R/B cuts and I bar retained; original alpha/contour detail is a reconstruction.",
+      "selected_metrics": {
+        "key": "u101-6c73af6d",
+        "revision": "v2",
+        "native_size": [
+          83,
+          27
+        ],
+        "source_native_alpha_mean": 0.5305334628273443,
+        "new_native_alpha_mean": 0.6108424985344428,
+        "new_alpha128_bbox": [
+          234,
+          50,
+          1948,
+          680
+        ],
+        "raw_size": [
+          2172,
+          724
+        ],
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "alpha_gt16_bbox": [
+          233,
+          49,
+          1949,
+          681
+        ],
+        "new_raw_aspect": 2.7206349206349207,
+        "source_aspect": 3.074074074074074,
+        "aspect_ratio": 0.8850258175559381,
+        "rgba_median_alpha_gt16": [
+          225.0,
+          219.0,
+          204.0,
+          254.0
+        ],
+        "near_pure_green_alpha_gt16": 0
+      }
+    },
+    {
+      "key": "u105-130e81b9",
+      "source_id": "130e81b94bdcbd6c3cfc1094a32b01b72624f81cd67a3ecef17f9f1d7f936ef0",
+      "name": "MAP",
+      "text": "MAP",
+      "text_status": "Actual source RGBA and blue/pale inspected; case/punctuation verified",
+      "kind": "light",
+      "family": "distressed stencil heading",
+      "context": "brick",
+      "aliases": [],
+      "source_context": "Observed native text texture",
+      "context_confidence": "Original inventory source identity verified; runtime placement unverified",
+      "input_png": "/Users/vlad/Code/defjam-data/scratch/menu-ui-v1.2-text-candidate-20261026/inputs/130e81b94bdcbd6c3cfc1094a32b01b72624f81cd67a3ecef17f9f1d7f936ef0.png",
+      "input_sha256": "5731cdcc3ae92f6cf2c90e881912eb399a898c892426ea881fb90e8c051121db",
+      "source_size": [
+        512,
+        64
+      ],
+      "source_crop": [
+        0,
+        7,
+        90,
+        43
+      ],
+      "source_alpha128_bbox": [
+        5,
+        11,
+        86,
+        38
+      ],
+      "aspect": 3.0,
+      "reference_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-20261029/references/u105-130e81b9-rgba.png",
+      "reference_sha256": "6b5a12ecdd43e9fae3113488e6b1d69d649909b27ae961bea935191b42d71048",
+      "transparency_references": [
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-20261029/references/u105-130e81b9-rgba.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-20261029/references/u105-130e81b9-blue.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-20261029/references/u105-130e81b9-pale.png"
+      ],
+      "source_opaque_rgb_median": [
+        228,
+        224,
+        211
+      ],
+      "inventory_label": "MAP",
+      "inventory_order": 105,
+      "revision": "v1",
+      "review_reason": "Distinct cream slab-serif stencil MAP retained. v3 reduces repeated new edge nicks from v2; remaining serif/cut widths and small edge detail approximate the source. v1 was prepared only, never called.",
+      "native_status": "not tested",
+      "style_notes": "Keep original tall condensed stencil capitals, precise glyph width/spacing and source stroke weight, broken bars/stencil cuts and source distress layout. Preserve flat cream source material and actual partial ink. Sharpen contours without adding new chips, fill, depth, bevel, shadow, outline or frame. This stylized family must not receive music-font weight changes.",
+      "generation_status": "generated",
+      "verified_name": "MAP",
+      "confirmed_text": "MAP",
+      "selected_revision": "v3",
+      "reconstruction_status": "unapproved review draft; paired source comparison complete",
+      "weight_revision_review_note": "Distinct cream slab-serif stencil MAP retained. v3 reduces repeated new edge nicks from v2; remaining serif/cut widths and small edge detail approximate the source. v1 was prepared only, never called.",
+      "material_notes": "Source and generated RGBA statistics recorded in qa.json; source RGB/alpha governs. Generated tone, coverage and antialiasing remain an approximation.",
+      "bounds_note": "Original full source, size, crop and alpha128 bbox retained unchanged; no logical bounds exception.",
+      "verified_style_notes": "Slab-serif stencil with actual source serif feet and split letter components, distinct from plain MAP."
+    }
+  ],
+  "attempts": [
+    {
+      "key": "u032-b884c774",
+      "source_id": "b884c774e2ff8a2df5e27438e99271964069ba27fae99d28a5750a87e14b32cc",
+      "revision": "v2",
+      "prompt": "Use case: precise-object-edit\nAsset type: faithful HD restoration of one original Def Jam menu text texture.\nPrimary request: Restore the EXACT original letterforms in the attached original, with clean resolved high-resolution contours. The previous batch was rejected for using the wrong font. Treat this as reconstruction of the attached shapes, NEVER replacement by a similar stencil typeface.\nInput images: Image1 is the original cropped RGBA edit target (tiny native source); Image2 is the exact same source expanded by nearest-neighbour on a blue inspection background, with NO artistic edits. Image2 exposes geometry/alpha, not a background to reproduce. No rejected generation is supplied: infer nothing from a modern font.\nText (verbatim): \"BEATBOX\". One line, all capitals.\nTypography/geometry: Visible word width:height165:27. Exact seven original glyph widths and gaps. B is a plain narrow upright separated by a full-height narrow slit from compact double bowls; both bowls meet at a distinct tight angular waist, not a broad rounded bulge. E is a long plain upright with three shorter detached bars to its right. A has a broad FLAT top and the small source triangular counter connected to its bottom through a narrow slit, no pointed apex, no enlarged arrow/triangle shape. T has a long detached top bar and a plain narrower shaft. The second B must match first B. O is a narrow vertically split oval, not a round wide O. X copies the original diagonal component intersections and small split, not a generic solid X. Original strokes are noticeably narrower and letters less inflated than a default bold stencil font.\nComposition: Center the complete original word/line on a transparent wide canvas with comfortable transparent guard on every side. Preserve the original visible width-to-height ratio before any browser fitting. Make the word large enough to resolve true HD curves; adding canvas pixels alone is not detail.\nMaterial/color: Flat source cream ink, approximately RGB(228, 224, 211). Preserve the source neutral/warm tone and solid letter interiors, with only smooth antialias at actual contour edges. Transparent gaps and counters stay transparent.\nConstraints: Original stroke weight, individual letter proportions, counter sizes, unique stencil interruptions, spacing and baseline are the authority. Resolve pixel stair-steps into smooth intended curves while retaining their outline positions; do not trace the stair-steps as chunky steps. No invented distress/chips. No extra outline, edge rim, relief, shadow, bevel, light gradient, metallic effect, paper, blue background, board, frame or decoration. No white/green matte. The final background is genuinely transparent. Do not turn source cream into bright white. Do not apply the heavier music-list font treatment to these headings.",
+      "referenced_image_paths": [
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-20261029/references/u032-b884c774-rgba.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-stencil-revisions-20261029/references/u032-b884c774-source-nearest.png"
+      ],
+      "transparent_background": true,
+      "raw_generated_path": "/Users/vlad/.codex/generated_images/01a1793b-e9e9-7cb0-9af8-db327635dd56/exec-b7f4d8e6-d5ad-47e9-8106-652b25565681.png",
+      "raw_workspace_png": "logs/menu-ui-wave08-stencil-revisions-20261029/u032-b884c774-v2.png",
+      "raw_sha256": "74487107acf0446a9c0952c533064a8edfb05938eb0f4246305b146745a5d0ee",
+      "size": [
+        2172,
+        724
+      ],
+      "source_request_sha256": "337d9dde09eb98cc348691a1e242b37278f17932641d80cefed47f3f69c8ea41",
+      "source_result_sha256": "3bd11380ffbc953d499547eb4ab84b28e2164989f6b6e2ad4ea6db1b6036883a",
+      "border_alpha_max": 1,
+      "selected": false,
+      "input_pins": [
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-20261029/references/u032-b884c774-rgba.png",
+          "sha256": "f439c5c3858c86da6cfff614827b74cdd88bb70d423009c53a8f41c1142abb2c"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-stencil-revisions-20261029/references/u032-b884c774-source-nearest.png",
+          "sha256": "b1a05fd5040ad050bb38c2ee79d65d1f405fb9b2496f8b87d00124ca1d308e17"
+        }
+      ]
+    },
+    {
+      "key": "u032-b884c774",
+      "source_id": "b884c774e2ff8a2df5e27438e99271964069ba27fae99d28a5750a87e14b32cc",
+      "revision": "v3",
+      "prompt": "Use case: precise-object-edit. Faithful high-resolution reconstruction of the ORIGINAL attached game lettering.\nImage1 is original RGBA; Image2 is the identical source enlarged by integer-nearest on blue only for reading its shapes. Restore Image1, using Image2 as exact geometry reference. Output only the restored lettering on real transparency.\nExact text: \"BEATBOX\" on one line.\nCritical font correction: This original has subtle terminal flares and slight stem modulation, NOT the broad smooth rounded stencil block font used by the rejected drafts. Copy each original glyph's silhouette, tiny flare, negative space, stencil interruption and spacing. Do not choose a replacement font. Reconstruct the original enlarged; preserve typography. Original E/B upright tips have tiny terminal flares; maintain them, not plain modern rectangles. T shaft has tiny foot flare. B bowls are compact with distinct narrow waist, not inflated circles; O counter is tall and narrow. Source visible165wide by27high.\nUse original source stroke thickness, keeping counters/gaps open. Render smooth intended contours in place of pixel stair steps, retaining original curve shapes and letter positions. Preserve visible aspect ratio and flat cream ink RGB(228, 224, 211). No thickening, rounded balloon bowls, new large serifs, arrow-shaped counters, added distress, chips, outlines, shadow, depth, relief, gradient or highlights. Transparent background, transparent stencil gaps, clean alpha-antialiased edges, no white fringe or surrounding particles. Leave transparent guards around complete line. The only intended change is high-resolution edge definition and original font fidelity.",
+      "referenced_image_paths": [
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-20261029/references/u032-b884c774-rgba.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-stencil-revisions-20261029/references/u032-b884c774-source-nearest.png"
+      ],
+      "transparent_background": true,
+      "raw_generated_path": "/Users/vlad/.codex/generated_images/01a1793b-e9e9-7cb0-9af8-db327635dd56/exec-9945f2a5-930f-4aac-8367-2be372533c71.png",
+      "raw_workspace_png": "logs/menu-ui-wave08-stencil-revisions-20261029/u032-b884c774-v3.png",
+      "raw_sha256": "461f2a64e451e024dea37fc9404190f8e2b1bba504e08f5fa403b719a894813e",
+      "size": [
+        2172,
+        724
+      ],
+      "source_request_sha256": "cb68b45c9d356d20b0dd026081b1b939e020554469f45a83b698b71530926016",
+      "source_result_sha256": "dc3f06229c67c87a74d0acfdaea4bc6614cce58f201c65a3751dfa3a3a5203d5",
+      "border_alpha_max": 0,
+      "selected": true,
+      "input_pins": [
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-20261029/references/u032-b884c774-rgba.png",
+          "sha256": "f439c5c3858c86da6cfff614827b74cdd88bb70d423009c53a8f41c1142abb2c"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-stencil-revisions-20261029/references/u032-b884c774-source-nearest.png",
+          "sha256": "b1a05fd5040ad050bb38c2ee79d65d1f405fb9b2496f8b87d00124ca1d308e17"
+        }
+      ]
+    },
+    {
+      "key": "u043-887c3f59",
+      "source_id": "887c3f599cef30f2137bf6b19d992e76bee50adcf301ad0597821d6dab682d29",
+      "revision": "v2",
+      "prompt": "Use case: precise-object-edit\nAsset type: faithful HD restoration of one original Def Jam menu text texture.\nPrimary request: Restore the EXACT original letterforms in the attached original, with clean resolved high-resolution contours. The previous batch was rejected for using the wrong font. Treat this as reconstruction of the attached shapes, NEVER replacement by a similar stencil typeface.\nInput images: Image1 is the original cropped RGBA edit target (tiny native source); Image2 is the exact same source expanded by nearest-neighbour on a blue inspection background, with NO artistic edits. Image2 exposes geometry/alpha, not a background to reproduce. No rejected generation is supplied: infer nothing from a modern font.\nText (verbatim): \"STORY CHAMPS\". One line, all capitals.\nTypography/geometry: Keep the original long low single-line silhouette, visible width:height300:29. Tall narrow rectangular stems, mostly flat square terminals and only the tiny feet actually visible in the source. S has the original two offset semi-curved halves separated by a narrow vertical cut; T is a long detached flat top bar over a narrow plain shaft; O is a narrow oval split at12 and6o'clock; R is a detached plain vertical stem beside a compact rounded-but-firm shoulder and diagonal leg with the source sharp waist junction (not a swollen round B shape). Y keeps its asymmetrical fork cuts. Preserve the wide inter-word gap. C's vertical cut passes through the top/bottom center, its right terminal blocks are square. H has its exact central horizontal bridge interruption. A has a broad FLAT apex and its source small triangular counter linked through a narrow vertical bottom stencil slit; do not make a pointed apex or enlarged arrow-shaped counter. M has the specific separated left diagonal ribbon and wide right upright of the reference; copy that geometry instead of a default broad M. P has a narrow separated stem/right shoulder. Do not thicken the letters or widen their bowls. All letter widths and individual gaps must track the original.\nComposition: Center the complete original word/line on a transparent wide canvas with comfortable transparent guard on every side. Preserve the original visible width-to-height ratio before any browser fitting. Make the word large enough to resolve true HD curves; adding canvas pixels alone is not detail.\nMaterial/color: Flat source cream ink, approximately RGB(252, 240, 214). Preserve the source neutral/warm tone and solid letter interiors, with only smooth antialias at actual contour edges. Transparent gaps and counters stay transparent.\nConstraints: Original stroke weight, individual letter proportions, counter sizes, unique stencil interruptions, spacing and baseline are the authority. Resolve pixel stair-steps into smooth intended curves while retaining their outline positions; do not trace the stair-steps as chunky steps. No invented distress/chips. No extra outline, edge rim, relief, shadow, bevel, light gradient, metallic effect, paper, blue background, board, frame or decoration. No white/green matte. The final background is genuinely transparent. Do not turn source cream into bright white. Do not apply the heavier music-list font treatment to these headings.",
+      "referenced_image_paths": [
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-20261029/references/u043-887c3f59-rgba.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-stencil-revisions-20261029/references/u043-887c3f59-source-nearest.png"
+      ],
+      "transparent_background": true,
+      "raw_generated_path": "/Users/vlad/.codex/generated_images/01a1793b-e9e9-7cb0-9af8-db327635dd56/exec-093016ca-6be0-4e25-a8eb-81a6bb3f5794.png",
+      "raw_workspace_png": "logs/menu-ui-wave08-stencil-revisions-20261029/u043-887c3f59-v2.png",
+      "raw_sha256": "0d8e5da0d70c3f3b50a52d46eaa8302e301112cffb2081c19a74b6d5491c184e",
+      "size": [
+        2173,
+        724
+      ],
+      "source_request_sha256": "ee3524d1cb53c7f080267f60bba7b9e0b71df57fe3d6d0973cb8cf8bfdfd3c5b",
+      "source_result_sha256": "a2cb2091c0567073a1655c648db9105981878c3394986988e56068e804dcc338",
+      "border_alpha_max": 0,
+      "selected": false,
+      "input_pins": [
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-20261029/references/u043-887c3f59-rgba.png",
+          "sha256": "b5c3f00dffcb035376dd300d711e4e9e608523e664ade265d1ee490b6d88ba76"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-stencil-revisions-20261029/references/u043-887c3f59-source-nearest.png",
+          "sha256": "3b66bc41a1c00d67751f6b7847c561c894a9f9c1ceca01e0c08d5fe7097180a5"
+        }
+      ]
+    },
+    {
+      "key": "u043-887c3f59",
+      "source_id": "887c3f599cef30f2137bf6b19d992e76bee50adcf301ad0597821d6dab682d29",
+      "revision": "v3",
+      "prompt": "Use case: precise-object-edit. Faithful high-resolution reconstruction of the ORIGINAL attached game lettering.\nImage1 is original RGBA; Image2 is the identical source enlarged by integer-nearest on blue only for reading its shapes. Restore Image1, using Image2 as exact geometry reference. Output only the restored lettering on real transparency.\nExact text: \"STORY CHAMPS\" on one line.\nCritical font correction: This original has subtle terminal flares and slight stem modulation, NOT the broad smooth rounded stencil block font used by the rejected drafts. Copy each original glyph's silhouette, tiny flare, negative space, stencil interruption and spacing. Do not choose a replacement font. Reconstruct the original enlarged; preserve typography. Original T shaft, R upright, H uprights, M left stem and P upright have subtle terminal flares visible in original pixels. Copy those small flares and source mild thickness modulation instead of plain thick rectangular uprights. Original narrow oval counters and firm angular shoulder junctions matter. Source visible300wide by29high, with a wide word gap.\nUse original source stroke thickness, keeping counters/gaps open. Render smooth intended contours in place of pixel stair steps, retaining original curve shapes and letter positions. Preserve visible aspect ratio and flat cream ink RGB(252, 240, 214). No thickening, rounded balloon bowls, new large serifs, arrow-shaped counters, added distress, chips, outlines, shadow, depth, relief, gradient or highlights. Transparent background, transparent stencil gaps, clean alpha-antialiased edges, no white fringe or surrounding particles. Leave transparent guards around complete line. The only intended change is high-resolution edge definition and original font fidelity.",
+      "referenced_image_paths": [
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-20261029/references/u043-887c3f59-rgba.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-stencil-revisions-20261029/references/u043-887c3f59-source-nearest.png"
+      ],
+      "transparent_background": true,
+      "raw_generated_path": "/Users/vlad/.codex/generated_images/01a1793b-e9e9-7cb0-9af8-db327635dd56/exec-0be8800f-1fba-49af-ae92-82bc3f068ad2.png",
+      "raw_workspace_png": "logs/menu-ui-wave08-stencil-revisions-20261029/u043-887c3f59-v3.png",
+      "raw_sha256": "9aa6abc21364dc7cd14c1cfb148854e6b81ef5523338923fa09ff9bc56b9914a",
+      "size": [
+        2170,
+        725
+      ],
+      "source_request_sha256": "f973db0ccb2a879a43c128113b100ba20490cec60748845be086b113b0348477",
+      "source_result_sha256": "3abee1d7d403dd02e7b08de2305b122007cf491c97ff2dd9ae636c3ce09d5a68",
+      "border_alpha_max": 1,
+      "selected": true,
+      "input_pins": [
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-20261029/references/u043-887c3f59-rgba.png",
+          "sha256": "b5c3f00dffcb035376dd300d711e4e9e608523e664ade265d1ee490b6d88ba76"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-stencil-revisions-20261029/references/u043-887c3f59-source-nearest.png",
+          "sha256": "3b66bc41a1c00d67751f6b7847c561c894a9f9c1ceca01e0c08d5fe7097180a5"
+        }
+      ]
+    },
+    {
+      "key": "u101-6c73af6d",
+      "source_id": "6c73af6d79c21ceaf07947f8018162cd9b6647ddf172a230146411ed6dc9666b",
+      "revision": "v3",
+      "prompt": "Use case: precise-object-edit\nAsset type: faithful HD restoration of one original Def Jam menu text texture.\nPrimary request: Restore the EXACT original letterforms in the attached original, with clean resolved high-resolution contours. The previous batch was rejected for using the wrong font. Treat this as reconstruction of the attached shapes, NEVER replacement by a similar stencil typeface.\nInput images: Image1 is the original cropped RGBA edit target (tiny native source); Image2 is the exact same source expanded by nearest-neighbour on a blue inspection background, with NO artistic edits. Image2 exposes geometry/alpha, not a background to reproduce. No rejected generation is supplied: infer nothing from a modern font.\nText (verbatim): \"CRIB\". One line, all capitals.\nTypography/geometry: Visible word width:height83:27. C is a narrow tall curve with the reference square upper/lower right terminal blocks and narrow vertical top/bottom-center stencil break. Do not make a wide round C or a long flared curved terminal. R has a plain narrow rectangular left upright, a narrow full-height separation slit to its right and a compact right shoulder/diagonal leg. Its bowl-to-leg waist has the source firm angled indent, not a fat rounded B join. I is a simple narrow plain vertical rectangle, no serif crossbars. B has a narrow upright separated from two compact curved right bowls by a full-height vertical slit. Match original glyph proportions and original spaces C-to-R,R-to-I,I-to-B. No new serif feet and no inflated curved bowls.\nComposition: Center the complete original word/line on a transparent wide canvas with comfortable transparent guard on every side. Preserve the original visible width-to-height ratio before any browser fitting. Make the word large enough to resolve true HD curves; adding canvas pixels alone is not detail.\nMaterial/color: Flat source cream ink, approximately RGB(228, 224, 211). Preserve the source neutral/warm tone and solid letter interiors, with only smooth antialias at actual contour edges. Transparent gaps and counters stay transparent.\nConstraints: Original stroke weight, individual letter proportions, counter sizes, unique stencil interruptions, spacing and baseline are the authority. Resolve pixel stair-steps into smooth intended curves while retaining their outline positions; do not trace the stair-steps as chunky steps. No invented distress/chips. No extra outline, edge rim, relief, shadow, bevel, light gradient, metallic effect, paper, blue background, board, frame or decoration. No white/green matte. The final background is genuinely transparent. Do not turn source cream into bright white. Do not apply the heavier music-list font treatment to these headings.",
+      "referenced_image_paths": [
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-20261029/references/u101-6c73af6d-rgba.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-stencil-revisions-20261029/references/u101-6c73af6d-source-nearest.png"
+      ],
+      "transparent_background": true,
+      "raw_generated_path": "/Users/vlad/.codex/generated_images/01a1793b-e9e9-7cb0-9af8-db327635dd56/exec-12f382cb-8c3f-4d4e-99c9-b4b5e078bb31.png",
+      "raw_workspace_png": "logs/menu-ui-wave08-stencil-revisions-20261029/u101-6c73af6d-v3.png",
+      "raw_sha256": "6a2fe27849c8b38d92f315cb6f2b37f4acba8a3308d06d34029889d8a3430a73",
+      "size": [
+        2200,
+        715
+      ],
+      "source_request_sha256": "9a931fe0ad5a10f8ec79e9ed61692404c9838116debf8211166ea095f41688a6",
+      "source_result_sha256": "0260fe85af5e8090ab51b2cdb7d57cb39288e296344691cf7b2bdcb15b706e82",
+      "border_alpha_max": 0,
+      "selected": false,
+      "input_pins": [
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-20261029/references/u101-6c73af6d-rgba.png",
+          "sha256": "4b18c034ef86f523c84b3c3a3f32f94917e7faea81f6c5739fc5c41c6d87b80e"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-stencil-revisions-20261029/references/u101-6c73af6d-source-nearest.png",
+          "sha256": "9a26250a86ade1294f05723b48bbb6f5aeeb0c7b4e70b53efb46656f43809dbe"
+        }
+      ]
+    },
+    {
+      "key": "u101-6c73af6d",
+      "source_id": "6c73af6d79c21ceaf07947f8018162cd9b6647ddf172a230146411ed6dc9666b",
+      "revision": "v4",
+      "prompt": "Use case: precise-object-edit. Faithful high-resolution reconstruction of the ORIGINAL attached game lettering.\nImage1 is original RGBA; Image2 is the identical source enlarged by integer-nearest on blue only for reading its shapes. Restore Image1, using Image2 as exact geometry reference. Output only the restored lettering on real transparency.\nExact text: \"CRIB\" on one line.\nCritical font correction: This original has subtle terminal flares and slight stem modulation, NOT the broad smooth rounded stencil block font used by the rejected drafts. Copy each original glyph's silhouette, tiny flare, negative space, stencil interruption and spacing. Do not choose a replacement font. Reconstruct the original enlarged; preserve typography. The I must have tiny flares at top/bottom: original I width8 at its first/last2 rows, body width6 over its middle23 rows, at native height27. It is NOT a plain rectangle and NOT a large slab-serif I. Original C width21, R20, I8, B20, with gaps5,4,5 at visible total83. Original R left stem width6, not a heavy wide stem; the lower leg bends into a subtly flared foot. Keep exact C terminal lengths and bowl sizes.\nUse original source stroke thickness, keeping counters/gaps open. Render smooth intended contours in place of pixel stair steps, retaining original curve shapes and letter positions. Preserve visible aspect ratio and flat cream ink RGB(228, 224, 211). No thickening, rounded balloon bowls, new large serifs, arrow-shaped counters, added distress, chips, outlines, shadow, depth, relief, gradient or highlights. Transparent background, transparent stencil gaps, clean alpha-antialiased edges, no white fringe or surrounding particles. Leave transparent guards around complete line. The only intended change is high-resolution edge definition and original font fidelity.",
+      "referenced_image_paths": [
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-20261029/references/u101-6c73af6d-rgba.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-stencil-revisions-20261029/references/u101-6c73af6d-source-nearest.png"
+      ],
+      "transparent_background": true,
+      "raw_generated_path": "/Users/vlad/.codex/generated_images/01a1793b-e9e9-7cb0-9af8-db327635dd56/exec-8b460fd5-cf82-4d0d-a75f-0f82112e814c.png",
+      "raw_workspace_png": "logs/menu-ui-wave08-stencil-revisions-20261029/u101-6c73af6d-v4.png",
+      "raw_sha256": "42dc7e9922b4bcfd596ec5bf95438f19a5b18bc59a5a815b6f8ac24caac387fc",
+      "size": [
+        1967,
+        800
+      ],
+      "source_request_sha256": "d29406ffcc746e2dd5c5268b8d5cc257a7cd49c9182a123de397f5e5056b6311",
+      "source_result_sha256": "8825679f8b0697fde775b5eec26b2c6cf5178b474075a625eb76a1a56209570a",
+      "border_alpha_max": 1,
+      "selected": true,
+      "input_pins": [
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-20261029/references/u101-6c73af6d-rgba.png",
+          "sha256": "4b18c034ef86f523c84b3c3a3f32f94917e7faea81f6c5739fc5c41c6d87b80e"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-stencil-revisions-20261029/references/u101-6c73af6d-source-nearest.png",
+          "sha256": "9a26250a86ade1294f05723b48bbb6f5aeeb0c7b4e70b53efb46656f43809dbe"
+        }
+      ]
+    },
+    {
+      "key": "u105-130e81b9",
+      "source_id": "130e81b94bdcbd6c3cfc1094a32b01b72624f81cd67a3ecef17f9f1d7f936ef0",
+      "revision": "v4",
+      "prompt": "Use case: precise-object-edit\nAsset type: faithful HD restoration of one original Def Jam menu text texture.\nPrimary request: Restore the EXACT original letterforms in the attached original, with clean resolved high-resolution contours. The previous batch was rejected for using the wrong font. Treat this as reconstruction of the attached shapes, NEVER replacement by a similar stencil typeface.\nInput images: Image1 is the original cropped RGBA edit target (tiny native source); Image2 is the exact same source expanded by nearest-neighbour on a blue inspection background, with NO artistic edits. Image2 exposes geometry/alpha, not a background to reproduce. No rejected generation is supplied: infer nothing from a modern font.\nText (verbatim): \"MAP\". One line, all capitals.\nTypography/geometry: Visible word width:height81:27. This is the source-specific stencil MAP, not the plain sans MAP variant. M is the peculiar narrow source stencil construction: a thin plain left upright beside a separate sloping diagonal ribbon, a deep descending central V and tall right upright; preserve exactly the long diagonal slit and unequal stem/diagonal proportions. Do not use a generic broad M or add slab serif feet. A has a broad FLAT top, sloping sides, a small narrow triangular counter linked through a thin bottom vertical stencil slit. Copy its original flat apex width, leg widths and short feet only where source shows them. Do not use a pointed peak, huge triangular counter or arrow-shaped aperture. P has a plain narrow left upright and a separate compact right shoulder/bowl with source open gap underneath. Keep exact M-A and A-P spaces and baseline. Avoid the oversized broad block capitals from the rejected version.\nComposition: Center the complete original word/line on a transparent wide canvas with comfortable transparent guard on every side. Preserve the original visible width-to-height ratio before any browser fitting. Make the word large enough to resolve true HD curves; adding canvas pixels alone is not detail.\nMaterial/color: Flat source cream ink, approximately RGB(228, 224, 211). Preserve the source neutral/warm tone and solid letter interiors, with only smooth antialias at actual contour edges. Transparent gaps and counters stay transparent.\nConstraints: Original stroke weight, individual letter proportions, counter sizes, unique stencil interruptions, spacing and baseline are the authority. Resolve pixel stair-steps into smooth intended curves while retaining their outline positions; do not trace the stair-steps as chunky steps. No invented distress/chips. No extra outline, edge rim, relief, shadow, bevel, light gradient, metallic effect, paper, blue background, board, frame or decoration. No white/green matte. The final background is genuinely transparent. Do not turn source cream into bright white. Do not apply the heavier music-list font treatment to these headings.",
+      "referenced_image_paths": [
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-20261029/references/u105-130e81b9-rgba.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-stencil-revisions-20261029/references/u105-130e81b9-source-nearest.png"
+      ],
+      "transparent_background": true,
+      "raw_generated_path": "/Users/vlad/.codex/generated_images/01a1793b-e9e9-7cb0-9af8-db327635dd56/exec-ec899861-c42f-431d-a32f-a8869230e3f6.png",
+      "raw_workspace_png": "logs/menu-ui-wave08-stencil-revisions-20261029/u105-130e81b9-v4.png",
+      "raw_sha256": "952f1694eb535aadc50ae8f138fbb26f54d592255b9b3b9d3e77d193a193147c",
+      "size": [
+        2172,
+        724
+      ],
+      "source_request_sha256": "2fdcee0696737fe40b199b2cdebd1c85782072da1ba15799789876de65770329",
+      "source_result_sha256": "8261bcc7bb0f889930c6c1170645a446bf3f2e0af005b8b728e90f3915ef7c59",
+      "border_alpha_max": 0,
+      "selected": false,
+      "input_pins": [
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-20261029/references/u105-130e81b9-rgba.png",
+          "sha256": "6b5a12ecdd43e9fae3113488e6b1d69d649909b27ae961bea935191b42d71048"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-stencil-revisions-20261029/references/u105-130e81b9-source-nearest.png",
+          "sha256": "69757f3f97a4975359fdde80dcfdae7017b17c35c96ec1e6f0db04f00fc1a01e"
+        }
+      ]
+    },
+    {
+      "key": "u105-130e81b9",
+      "source_id": "130e81b94bdcbd6c3cfc1094a32b01b72624f81cd67a3ecef17f9f1d7f936ef0",
+      "revision": "v5",
+      "prompt": "Use case: precise-object-edit. Faithful high-resolution reconstruction of the ORIGINAL attached game lettering.\nImage1 is original RGBA; Image2 is the identical source enlarged by integer-nearest on blue only for reading its shapes. Restore Image1, using Image2 as exact geometry reference. Output only the restored lettering on real transparency.\nExact text: \"MAP\" on one line.\nCritical font correction: This original has subtle terminal flares and slight stem modulation, NOT the broad smooth rounded stencil block font used by the rejected drafts. Copy each original glyph's silhouette, tiny flare, negative space, stencil interruption and spacing. Do not choose a replacement font. Reconstruct the original enlarged; preserve typography. Preserve the source tiny flares on upright tips. M retains a narrow left upright and its separate diagonal ribbon, not a broad full-width upright. A and P are narrow, tall; counter/negative space must not be swallowed by inflated strokes. Original visible81wide by27high.\nUse original source stroke thickness, keeping counters/gaps open. Render smooth intended contours in place of pixel stair steps, retaining original curve shapes and letter positions. Preserve visible aspect ratio and flat cream ink RGB(228, 224, 211). No thickening, rounded balloon bowls, new large serifs, arrow-shaped counters, added distress, chips, outlines, shadow, depth, relief, gradient or highlights. Transparent background, transparent stencil gaps, clean alpha-antialiased edges, no white fringe or surrounding particles. Leave transparent guards around complete line. The only intended change is high-resolution edge definition and original font fidelity.",
+      "referenced_image_paths": [
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-20261029/references/u105-130e81b9-rgba.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-stencil-revisions-20261029/references/u105-130e81b9-source-nearest.png"
+      ],
+      "transparent_background": true,
+      "raw_generated_path": "/Users/vlad/.codex/generated_images/01a1793b-e9e9-7cb0-9af8-db327635dd56/exec-a12a6225-48ee-41a9-8ea2-0e39f356c3ab.png",
+      "raw_workspace_png": "logs/menu-ui-wave08-stencil-revisions-20261029/u105-130e81b9-v5.png",
+      "raw_sha256": "b78a0bd4163b6d9323ece984942de83ef8326c4fd3a8587c521bf343e6609ac2",
+      "size": [
+        1983,
+        793
+      ],
+      "source_request_sha256": "f2d0a39da54cf2de165147b855ff4efa36d5b569fb0ca1b4bdf3991e2f08a63f",
+      "source_result_sha256": "94a02c79b1fa96f5da55b9e8bd1799e5b8f6b985a6b28b78171e6afc72f0c0ef",
+      "border_alpha_max": 0,
+      "selected": true,
+      "input_pins": [
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-20261029/references/u105-130e81b9-rgba.png",
+          "sha256": "6b5a12ecdd43e9fae3113488e6b1d69d649909b27ae961bea935191b42d71048"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-stencil-revisions-20261029/references/u105-130e81b9-source-nearest.png",
+          "sha256": "69757f3f97a4975359fdde80dcfdae7017b17c35c96ec1e6f0db04f00fc1a01e"
+        }
+      ]
+    }
+  ],
+  "selection": {
+    "u032-b884c774": "v3",
+    "u043-887c3f59": "v3",
+    "u101-6c73af6d": "v4",
+    "u105-130e81b9": "v5"
+  },
+  "selected_export_checks": [
+    {
+      "source_opaque_rgb_median": [
+        252,
+        240,
+        214
+      ],
+      "raw_opaque_rgb_median": [
+        252.0,
+        238.0,
+        208.0
+      ],
+      "key": "u043-887c3f59",
+      "source_id": "887c3f599cef30f2137bf6b19d992e76bee50adcf301ad0597821d6dab682d29",
+      "revision": "v3",
+      "raw_png": "logs/menu-ui-wave08-stencil-revisions-20261029/u043-887c3f59-v3.png",
+      "raw_sha256": "9aa6abc21364dc7cd14c1cfb148854e6b81ef5523338923fa09ff9bc56b9914a",
+      "raw_size": [
+        2170,
+        725
+      ],
+      "preview_png": "logs/menu-ui-wave08-stencil-revisions-20261029/images/u043-887c3f59-draft.png",
+      "preview_sha256": "609c40fcf3af1c3e931fb1e41fbbeeab14bd7709c3aa22282255becbe1af8bda",
+      "alpha_exact": true,
+      "rgb_above_alpha16_exact": true,
+      "raw_height_error_percent": 8.28,
+      "green_dominant_visible_texels": 0,
+      "near_pure_green_visible": 0,
+      "near_pure_green_hidden": 0,
+      "published_or_original_sha256": "30455f25b8c17db3854b2e6b727f3d5869b309e6e30793d2526073ac031026f9",
+      "prompt": "Use case: precise-object-edit. Faithful high-resolution reconstruction of the ORIGINAL attached game lettering.\nImage1 is original RGBA; Image2 is the identical source enlarged by integer-nearest on blue only for reading its shapes. Restore Image1, using Image2 as exact geometry reference. Output only the restored lettering on real transparency.\nExact text: \"STORY CHAMPS\" on one line.\nCritical font correction: This original has subtle terminal flares and slight stem modulation, NOT the broad smooth rounded stencil block font used by the rejected drafts. Copy each original glyph's silhouette, tiny flare, negative space, stencil interruption and spacing. Do not choose a replacement font. Reconstruct the original enlarged; preserve typography. Original T shaft, R upright, H uprights, M left stem and P upright have subtle terminal flares visible in original pixels. Copy those small flares and source mild thickness modulation instead of plain thick rectangular uprights. Original narrow oval counters and firm angular shoulder junctions matter. Source visible300wide by29high, with a wide word gap.\nUse original source stroke thickness, keeping counters/gaps open. Render smooth intended contours in place of pixel stair steps, retaining original curve shapes and letter positions. Preserve visible aspect ratio and flat cream ink RGB(252, 240, 214). No thickening, rounded balloon bowls, new large serifs, arrow-shaped counters, added distress, chips, outlines, shadow, depth, relief, gradient or highlights. Transparent background, transparent stencil gaps, clean alpha-antialiased edges, no white fringe or surrounding particles. Leave transparent guards around complete line. The only intended change is high-resolution edge definition and original font fidelity.",
+      "input_images": [
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-20261029/references/u043-887c3f59-rgba.png",
+          "sha256": "b5c3f00dffcb035376dd300d711e4e9e608523e664ade265d1ee490b6d88ba76"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-stencil-revisions-20261029/references/u043-887c3f59-source-nearest.png",
+          "sha256": "3b66bc41a1c00d67751f6b7847c561c894a9f9c1ceca01e0c08d5fe7097180a5"
+        }
+      ]
+    },
+    {
+      "source_opaque_rgb_median": [
+        228,
+        224,
+        211
+      ],
+      "raw_opaque_rgb_median": [
+        229.0,
+        223.0,
+        207.0
+      ],
+      "key": "u032-b884c774",
+      "source_id": "b884c774e2ff8a2df5e27438e99271964069ba27fae99d28a5750a87e14b32cc",
+      "revision": "v3",
+      "raw_png": "logs/menu-ui-wave08-stencil-revisions-20261029/u032-b884c774-v3.png",
+      "raw_sha256": "461f2a64e451e024dea37fc9404190f8e2b1bba504e08f5fa403b719a894813e",
+      "raw_size": [
+        2172,
+        724
+      ],
+      "preview_png": "logs/menu-ui-wave08-stencil-revisions-20261029/images/u032-b884c774-draft.png",
+      "preview_sha256": "6c6d12d5598f14be0cb9464bdcc8d3734911922b839a1b4651d244700e76487f",
+      "alpha_exact": true,
+      "rgb_above_alpha16_exact": true,
+      "raw_height_error_percent": 9.0,
+      "green_dominant_visible_texels": 0,
+      "near_pure_green_visible": 0,
+      "near_pure_green_hidden": 0,
+      "published_or_original_sha256": "60c0b0cfc29240429f16c2c0277ffb62bae039a13684f72c16caf4e0a377762b",
+      "prompt": "Use case: precise-object-edit. Faithful high-resolution reconstruction of the ORIGINAL attached game lettering.\nImage1 is original RGBA; Image2 is the identical source enlarged by integer-nearest on blue only for reading its shapes. Restore Image1, using Image2 as exact geometry reference. Output only the restored lettering on real transparency.\nExact text: \"BEATBOX\" on one line.\nCritical font correction: This original has subtle terminal flares and slight stem modulation, NOT the broad smooth rounded stencil block font used by the rejected drafts. Copy each original glyph's silhouette, tiny flare, negative space, stencil interruption and spacing. Do not choose a replacement font. Reconstruct the original enlarged; preserve typography. Original E/B upright tips have tiny terminal flares; maintain them, not plain modern rectangles. T shaft has tiny foot flare. B bowls are compact with distinct narrow waist, not inflated circles; O counter is tall and narrow. Source visible165wide by27high.\nUse original source stroke thickness, keeping counters/gaps open. Render smooth intended contours in place of pixel stair steps, retaining original curve shapes and letter positions. Preserve visible aspect ratio and flat cream ink RGB(228, 224, 211). No thickening, rounded balloon bowls, new large serifs, arrow-shaped counters, added distress, chips, outlines, shadow, depth, relief, gradient or highlights. Transparent background, transparent stencil gaps, clean alpha-antialiased edges, no white fringe or surrounding particles. Leave transparent guards around complete line. The only intended change is high-resolution edge definition and original font fidelity.",
+      "input_images": [
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-20261029/references/u032-b884c774-rgba.png",
+          "sha256": "f439c5c3858c86da6cfff614827b74cdd88bb70d423009c53a8f41c1142abb2c"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-stencil-revisions-20261029/references/u032-b884c774-source-nearest.png",
+          "sha256": "b1a05fd5040ad050bb38c2ee79d65d1f405fb9b2496f8b87d00124ca1d308e17"
+        }
+      ]
+    },
+    {
+      "source_opaque_rgb_median": [
+        228,
+        224,
+        211
+      ],
+      "raw_opaque_rgb_median": [
+        228.0,
+        222.0,
+        208.0
+      ],
+      "key": "u101-6c73af6d",
+      "source_id": "6c73af6d79c21ceaf07947f8018162cd9b6647ddf172a230146411ed6dc9666b",
+      "revision": "v4",
+      "raw_png": "logs/menu-ui-wave08-stencil-revisions-20261029/u101-6c73af6d-v4.png",
+      "raw_sha256": "42dc7e9922b4bcfd596ec5bf95438f19a5b18bc59a5a815b6f8ac24caac387fc",
+      "raw_size": [
+        1967,
+        800
+      ],
+      "preview_png": "logs/menu-ui-wave08-stencil-revisions-20261029/images/u101-6c73af6d-draft.png",
+      "preview_sha256": "b78100f9fdd3fc6d8064278fa0fdc114593e48c86574669f0ad88c00d81cefc5",
+      "alpha_exact": true,
+      "rgb_above_alpha16_exact": true,
+      "raw_height_error_percent": 5.7,
+      "green_dominant_visible_texels": 0,
+      "near_pure_green_visible": 0,
+      "near_pure_green_hidden": 0,
+      "published_or_original_sha256": "6481a3dc424af438181571036ebd15808b998ca6a06df1f9339b6b460cfeff23",
+      "prompt": "Use case: precise-object-edit. Faithful high-resolution reconstruction of the ORIGINAL attached game lettering.\nImage1 is original RGBA; Image2 is the identical source enlarged by integer-nearest on blue only for reading its shapes. Restore Image1, using Image2 as exact geometry reference. Output only the restored lettering on real transparency.\nExact text: \"CRIB\" on one line.\nCritical font correction: This original has subtle terminal flares and slight stem modulation, NOT the broad smooth rounded stencil block font used by the rejected drafts. Copy each original glyph's silhouette, tiny flare, negative space, stencil interruption and spacing. Do not choose a replacement font. Reconstruct the original enlarged; preserve typography. The I must have tiny flares at top/bottom: original I width8 at its first/last2 rows, body width6 over its middle23 rows, at native height27. It is NOT a plain rectangle and NOT a large slab-serif I. Original C width21, R20, I8, B20, with gaps5,4,5 at visible total83. Original R left stem width6, not a heavy wide stem; the lower leg bends into a subtly flared foot. Keep exact C terminal lengths and bowl sizes.\nUse original source stroke thickness, keeping counters/gaps open. Render smooth intended contours in place of pixel stair steps, retaining original curve shapes and letter positions. Preserve visible aspect ratio and flat cream ink RGB(228, 224, 211). No thickening, rounded balloon bowls, new large serifs, arrow-shaped counters, added distress, chips, outlines, shadow, depth, relief, gradient or highlights. Transparent background, transparent stencil gaps, clean alpha-antialiased edges, no white fringe or surrounding particles. Leave transparent guards around complete line. The only intended change is high-resolution edge definition and original font fidelity.",
+      "input_images": [
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-20261029/references/u101-6c73af6d-rgba.png",
+          "sha256": "4b18c034ef86f523c84b3c3a3f32f94917e7faea81f6c5739fc5c41c6d87b80e"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-stencil-revisions-20261029/references/u101-6c73af6d-source-nearest.png",
+          "sha256": "9a26250a86ade1294f05723b48bbb6f5aeeb0c7b4e70b53efb46656f43809dbe"
+        }
+      ]
+    },
+    {
+      "source_opaque_rgb_median": [
+        228,
+        224,
+        211
+      ],
+      "raw_opaque_rgb_median": [
+        227.0,
+        222.0,
+        206.0
+      ],
+      "key": "u105-130e81b9",
+      "source_id": "130e81b94bdcbd6c3cfc1094a32b01b72624f81cd67a3ecef17f9f1d7f936ef0",
+      "revision": "v5",
+      "raw_png": "logs/menu-ui-wave08-stencil-revisions-20261029/u105-130e81b9-v5.png",
+      "raw_sha256": "b78a0bd4163b6d9323ece984942de83ef8326c4fd3a8587c521bf343e6609ac2",
+      "raw_size": [
+        1983,
+        793
+      ],
+      "preview_png": "logs/menu-ui-wave08-stencil-revisions-20261029/images/u105-130e81b9-draft.png",
+      "preview_sha256": "406cc4420cb6ba50c956f69b61af1d6d5ac37e8b8b3bd2a7d643cff765a8a2fe",
+      "alpha_exact": true,
+      "rgb_above_alpha16_exact": true,
+      "raw_height_error_percent": -3.41,
+      "green_dominant_visible_texels": 0,
+      "near_pure_green_visible": 0,
+      "near_pure_green_hidden": 0,
+      "published_or_original_sha256": "99319a8c3f265fdd48d33d4f71e169897263682818d503c77e92774b5a00636e",
+      "prompt": "Use case: precise-object-edit. Faithful high-resolution reconstruction of the ORIGINAL attached game lettering.\nImage1 is original RGBA; Image2 is the identical source enlarged by integer-nearest on blue only for reading its shapes. Restore Image1, using Image2 as exact geometry reference. Output only the restored lettering on real transparency.\nExact text: \"MAP\" on one line.\nCritical font correction: This original has subtle terminal flares and slight stem modulation, NOT the broad smooth rounded stencil block font used by the rejected drafts. Copy each original glyph's silhouette, tiny flare, negative space, stencil interruption and spacing. Do not choose a replacement font. Reconstruct the original enlarged; preserve typography. Preserve the source tiny flares on upright tips. M retains a narrow left upright and its separate diagonal ribbon, not a broad full-width upright. A and P are narrow, tall; counter/negative space must not be swallowed by inflated strokes. Original visible81wide by27high.\nUse original source stroke thickness, keeping counters/gaps open. Render smooth intended contours in place of pixel stair steps, retaining original curve shapes and letter positions. Preserve visible aspect ratio and flat cream ink RGB(228, 224, 211). No thickening, rounded balloon bowls, new large serifs, arrow-shaped counters, added distress, chips, outlines, shadow, depth, relief, gradient or highlights. Transparent background, transparent stencil gaps, clean alpha-antialiased edges, no white fringe or surrounding particles. Leave transparent guards around complete line. The only intended change is high-resolution edge definition and original font fidelity.",
+      "input_images": [
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-20261029/references/u105-130e81b9-rgba.png",
+          "sha256": "6b5a12ecdd43e9fae3113488e6b1d69d649909b27ae961bea935191b42d71048"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-stencil-revisions-20261029/references/u105-130e81b9-source-nearest.png",
+          "sha256": "69757f3f97a4975359fdde80dcfdae7017b17c35c96ec1e6f0db04f00fc1a01e"
+        }
+      ]
+    }
+  ],
+  "all_revision_export_checks": [
+    {
+      "key": "u043-887c3f59",
+      "revision": "v2",
+      "raw_sha256": "0d8e5da0d70c3f3b50a52d46eaa8302e301112cffb2081c19a74b6d5491c184e",
+      "preview_sha256": "9564634283052d1e63a193b066068138be024dcaa53968717e2c5e71e2138de7",
+      "alpha_exact": true,
+      "rgb_above_alpha16_exact": true
+    },
+    {
+      "key": "u043-887c3f59",
+      "revision": "v3",
+      "raw_sha256": "9aa6abc21364dc7cd14c1cfb148854e6b81ef5523338923fa09ff9bc56b9914a",
+      "preview_sha256": "609c40fcf3af1c3e931fb1e41fbbeeab14bd7709c3aa22282255becbe1af8bda",
+      "alpha_exact": true,
+      "rgb_above_alpha16_exact": true
+    },
+    {
+      "key": "u032-b884c774",
+      "revision": "v2",
+      "raw_sha256": "74487107acf0446a9c0952c533064a8edfb05938eb0f4246305b146745a5d0ee",
+      "preview_sha256": "a961dea5ce529cf37ddb29c28e4e3697c6e8bff516278da774a8351f84cb33bf",
+      "alpha_exact": true,
+      "rgb_above_alpha16_exact": true
+    },
+    {
+      "key": "u032-b884c774",
+      "revision": "v3",
+      "raw_sha256": "461f2a64e451e024dea37fc9404190f8e2b1bba504e08f5fa403b719a894813e",
+      "preview_sha256": "6c6d12d5598f14be0cb9464bdcc8d3734911922b839a1b4651d244700e76487f",
+      "alpha_exact": true,
+      "rgb_above_alpha16_exact": true
+    },
+    {
+      "key": "u101-6c73af6d",
+      "revision": "v3",
+      "raw_sha256": "6a2fe27849c8b38d92f315cb6f2b37f4acba8a3308d06d34029889d8a3430a73",
+      "preview_sha256": "206c644a3da0394aeca66f00f986eb48de7cf85beaded787153914dc1ebdf212",
+      "alpha_exact": true,
+      "rgb_above_alpha16_exact": true
+    },
+    {
+      "key": "u101-6c73af6d",
+      "revision": "v4",
+      "raw_sha256": "42dc7e9922b4bcfd596ec5bf95438f19a5b18bc59a5a815b6f8ac24caac387fc",
+      "preview_sha256": "b78100f9fdd3fc6d8064278fa0fdc114593e48c86574669f0ad88c00d81cefc5",
+      "alpha_exact": true,
+      "rgb_above_alpha16_exact": true
+    },
+    {
+      "key": "u105-130e81b9",
+      "revision": "v4",
+      "raw_sha256": "952f1694eb535aadc50ae8f138fbb26f54d592255b9b3b9d3e77d193a193147c",
+      "preview_sha256": "afe82341a223a7bea29697197f9eae36eed8e968896699a0765cd6e6649e9c34",
+      "alpha_exact": true,
+      "rgb_above_alpha16_exact": true
+    },
+    {
+      "key": "u105-130e81b9",
+      "revision": "v5",
+      "raw_sha256": "b78a0bd4163b6d9323ece984942de83ef8326c4fd3a8587c521bf343e6609ac2",
+      "preview_sha256": "406cc4420cb6ba50c956f69b61af1d6d5ac37e8b8b3bd2a7d643cff765a8a2fe",
+      "alpha_exact": true,
+      "rgb_above_alpha16_exact": true
+    }
+  ],
+  "review": {
+    "owner_approval": "100 other batch8 selected textures approved; these four excluded and redone",
+    "approved_source_ids_total": 600,
+    "selected": {
+      "u043-887c3f59": "v3",
+      "u032-b884c774": "v3",
+      "u101-6c73af6d": "v4",
+      "u105-130e81b9": "v5"
+    },
+    "findings": {
+      "u043-887c3f59": "Restored small terminal flares on T/R/H/M/P and the source-style stem modulation. Narrow counters and the wide word gap retained. S/R bowl contours and individual letter widths remain approximate.",
+      "u032-b884c774": "Restored the small upright/shaft flares and more compact stencil construction. Source E bars, split B/O and A bottom slit retained; bowl contours and exact cut widths remain approximate.",
+      "u101-6c73af6d": "Restored the small top/bottom flares on I, plus the source-style R upright and foot. The original I measures8 pixels at its ends and6 through its middle; the new contour is a reconstruction, not a pixel-exact trace. C/R/B curves remain approximate.",
+      "u105-130e81b9": "Restored modest terminal flares and removed the broad slab-foot interpretation. The source-specific separated M diagonal, A slit and detached P remain. Exact diagonal widths and shoulder curvature remain approximate."
+    },
+    "reviewed": "Original/rejected/new at native1x and3x on blue contact sheets; viewer checks recorded separately",
+    "initial_redo_rejected_by_agent": "Still simplified tiny terminal flares and stroke modulation. Second bounded source-geometry pass selected.",
+    "exact_font_claim": false,
+    "native_validation": false,
+    "raw_height_error_percent": {
+      "u043-887c3f59": 8.28,
+      "u032-b884c774": 9.0,
+      "u101-6c73af6d": 5.7,
+      "u105-130e81b9": -3.41
+    },
+    "status": "four revised candidates awaiting owner approval"
+  },
+  "parent_contacts": [
+    {
+      "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-stencil-revisions-20261029/comparison-1x.png",
+      "sha256": "d90ff32d5065d48e24988717491e048766f472a9d42652d812b2f57548c4eee6"
+    },
+    {
+      "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-stencil-revisions-20261029/comparison-3x.png",
+      "sha256": "e21a6ac46827aeaadfa9df887bf96b35c645b0fa17891c24977393db5fd369f2"
+    },
+    {
+      "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave08-stencil-revisions-20261029/comparison-6x.png",
+      "sha256": "8e13190cc9c13c4e07471894b8fc4efb2c49b969f161b3e8f7ea619c1aa14acd"
+    }
+  ],
+  "browser": {
+    "url": "http://127.0.0.1:51751/review.html#overview",
+    "html_sha256": "7241ee788a78c17c9c3a7cdf1cedeb5be70da653f7b9682fac4f30b1a2438879",
+    "review_data_sha256": "ebc4c39bb189b01dec39f0a48a5e1cec4527da42bdc73b838863d7ed4d477579",
+    "proof_sha256": "e56f57fb9c4b34974198e764403f4ea4d2995f499e58c9ef4502034135139079",
+    "qa": {
+      "overview": {
+        "canvases": 8,
+        "cards": 4,
+        "error": "",
+        "loaded": true,
+        "overflow": false
+      },
+      "cases": [
+        {
+          "error": "",
+          "key": "u043-887c3f59",
+          "loaded": true,
+          "overflow": false,
+          "raw": false,
+          "revision": "v3",
+          "scale": "1",
+          "case": "fitted-scale"
+        },
+        {
+          "error": "",
+          "key": "u043-887c3f59",
+          "loaded": true,
+          "overflow": false,
+          "raw": false,
+          "revision": "v3",
+          "scale": "3",
+          "case": "fitted-scale"
+        },
+        {
+          "error": "",
+          "key": "u043-887c3f59",
+          "loaded": true,
+          "overflow": false,
+          "raw": false,
+          "revision": "v3",
+          "scale": "6",
+          "case": "fitted-scale"
+        },
+        {
+          "error": "",
+          "key": "u043-887c3f59",
+          "loaded": true,
+          "overflow": false,
+          "raw": true,
+          "revision": "v3",
+          "scale": "6",
+          "case": "raw"
+        },
+        {
+          "error": "",
+          "key": "u043-887c3f59",
+          "loaded": true,
+          "overflow": false,
+          "raw": false,
+          "revision": "v2",
+          "scale": "6",
+          "case": "revision"
+        },
+        {
+          "error": "",
+          "key": "u043-887c3f59",
+          "loaded": true,
+          "overflow": false,
+          "raw": false,
+          "revision": "v3",
+          "scale": "6",
+          "case": "revision"
+        },
+        {
+          "error": "",
+          "key": "u032-b884c774",
+          "loaded": true,
+          "overflow": false,
+          "raw": false,
+          "revision": "v3",
+          "scale": "1",
+          "case": "fitted-scale"
+        },
+        {
+          "error": "",
+          "key": "u032-b884c774",
+          "loaded": true,
+          "overflow": false,
+          "raw": false,
+          "revision": "v3",
+          "scale": "3",
+          "case": "fitted-scale"
+        },
+        {
+          "error": "",
+          "key": "u032-b884c774",
+          "loaded": true,
+          "overflow": false,
+          "raw": false,
+          "revision": "v3",
+          "scale": "6",
+          "case": "fitted-scale"
+        },
+        {
+          "error": "",
+          "key": "u032-b884c774",
+          "loaded": true,
+          "overflow": false,
+          "raw": true,
+          "revision": "v3",
+          "scale": "6",
+          "case": "raw"
+        },
+        {
+          "error": "",
+          "key": "u032-b884c774",
+          "loaded": true,
+          "overflow": false,
+          "raw": false,
+          "revision": "v2",
+          "scale": "6",
+          "case": "revision"
+        },
+        {
+          "error": "",
+          "key": "u032-b884c774",
+          "loaded": true,
+          "overflow": false,
+          "raw": false,
+          "revision": "v3",
+          "scale": "6",
+          "case": "revision"
+        },
+        {
+          "error": "",
+          "key": "u101-6c73af6d",
+          "loaded": true,
+          "overflow": false,
+          "raw": false,
+          "revision": "v4",
+          "scale": "1",
+          "case": "fitted-scale"
+        },
+        {
+          "error": "",
+          "key": "u101-6c73af6d",
+          "loaded": true,
+          "overflow": false,
+          "raw": false,
+          "revision": "v4",
+          "scale": "3",
+          "case": "fitted-scale"
+        },
+        {
+          "error": "",
+          "key": "u101-6c73af6d",
+          "loaded": true,
+          "overflow": false,
+          "raw": false,
+          "revision": "v4",
+          "scale": "6",
+          "case": "fitted-scale"
+        },
+        {
+          "error": "",
+          "key": "u101-6c73af6d",
+          "loaded": true,
+          "overflow": false,
+          "raw": true,
+          "revision": "v4",
+          "scale": "6",
+          "case": "raw"
+        },
+        {
+          "error": "",
+          "key": "u101-6c73af6d",
+          "loaded": true,
+          "overflow": false,
+          "raw": false,
+          "revision": "v3",
+          "scale": "6",
+          "case": "revision"
+        },
+        {
+          "error": "",
+          "key": "u101-6c73af6d",
+          "loaded": true,
+          "overflow": false,
+          "raw": false,
+          "revision": "v4",
+          "scale": "6",
+          "case": "revision"
+        },
+        {
+          "error": "",
+          "key": "u105-130e81b9",
+          "loaded": true,
+          "overflow": false,
+          "raw": false,
+          "revision": "v5",
+          "scale": "1",
+          "case": "fitted-scale"
+        },
+        {
+          "error": "",
+          "key": "u105-130e81b9",
+          "loaded": true,
+          "overflow": false,
+          "raw": false,
+          "revision": "v5",
+          "scale": "3",
+          "case": "fitted-scale"
+        },
+        {
+          "error": "",
+          "key": "u105-130e81b9",
+          "loaded": true,
+          "overflow": false,
+          "raw": false,
+          "revision": "v5",
+          "scale": "6",
+          "case": "fitted-scale"
+        },
+        {
+          "error": "",
+          "key": "u105-130e81b9",
+          "loaded": true,
+          "overflow": false,
+          "raw": true,
+          "revision": "v5",
+          "scale": "6",
+          "case": "raw"
+        },
+        {
+          "error": "",
+          "key": "u105-130e81b9",
+          "loaded": true,
+          "overflow": false,
+          "raw": false,
+          "revision": "v4",
+          "scale": "6",
+          "case": "revision"
+        },
+        {
+          "error": "",
+          "key": "u105-130e81b9",
+          "loaded": true,
+          "overflow": false,
+          "raw": false,
+          "revision": "v5",
+          "scale": "6",
+          "case": "revision"
+        },
+        {
+          "error": "",
+          "key": "u043-887c3f59",
+          "loaded": true,
+          "overflow": false,
+          "raw": false,
+          "revision": "v3",
+          "scale": "3",
+          "case": "background-grey"
+        },
+        {
+          "error": "",
+          "key": "u043-887c3f59",
+          "loaded": true,
+          "overflow": false,
+          "raw": false,
+          "revision": "v3",
+          "scale": "3",
+          "case": "background-dark"
+        },
+        {
+          "error": "",
+          "key": "u043-887c3f59",
+          "loaded": true,
+          "overflow": false,
+          "raw": false,
+          "revision": "v3",
+          "scale": "3",
+          "case": "background-light"
+        },
+        {
+          "error": "",
+          "key": "u043-887c3f59",
+          "loaded": true,
+          "overflow": false,
+          "raw": false,
+          "revision": "v3",
+          "scale": "3",
+          "case": "background-context"
+        },
+        {
+          "error": "",
+          "key": "u043-887c3f59",
+          "loaded": true,
+          "overflow": false,
+          "raw": false,
+          "revision": "v3",
+          "scale": "3",
+          "case": "ghost"
+        }
+      ],
+      "console": []
+    }
+  },
+  "scope": "Only four rejected stencil sources revised. Other100 approved batch8 outputs pinned unchanged; plain sansMAP remains approved. Prior10 held sources stay outside approval. Published1.3/catalogue7 unchanged; no native/game/install/publish/push.",
+  "export_contract": "Exact generated alpha and RGB above alpha16; existing low-alpha RGB bleed only. Source alpha/font is reconstructed, not byte-identical. Original bounds fitting is explicit preview positioning, not native validation.",
+  "recovery_path": "/Users/vlad/Code/defjam-data/scratch/menu-ui-wave08-stencil-revisions-20261029",
+  "future_pr_milestone": "v0.12.2"
+}

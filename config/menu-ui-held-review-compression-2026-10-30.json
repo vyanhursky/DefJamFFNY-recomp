@@ -1,0 +1,759 @@
+{
+  "schema": 1,
+  "date": "2026-10-30",
+  "review_url": "http://127.0.0.1:51763/held-review.html#overview",
+  "scope": "Focused review of20existing held sources;15technical holds show existing generated attempts,5earlier tool blocks show baseline only. No new generation, approval or production image changes.",
+  "accepted_sources": 1328,
+  "held_sources": 20,
+  "generated_draft_sources": 15,
+  "no_new_draft_sources": 5,
+  "held_rows": [
+    {
+      "key": "j042-battle-matchSm3-9",
+      "source_id": "37f7407241232da6d9c11df2320e2ad9358cf3c2a77d03fc67a744c099f9b3fb",
+      "name": "GAGNANT \u00b7 HELD",
+      "reason": "Rejected v1: stamp interior opacity changes and disconnected white source corner/gutter role remains unverified. Already approved neighbour context must not be silently replaced.",
+      "variants": [
+        "v1"
+      ]
+    },
+    {
+      "key": "j062-options-userID-7",
+      "source_id": "e56d6339c75c72074fd1e8590426a093cc0ebe34e16ecd8dc6dc43a4ce8cecd1",
+      "name": "NO USER IDS \u00b7 HELD",
+      "reason": "Rejected v1-v3: v1 added opaque paper; v2 restores transparent interior but red is too bright; v3 floods stamp interior with red alpha. Retain baseline.",
+      "variants": [
+        "v1",
+        "v2",
+        "v3"
+      ]
+    },
+    {
+      "key": "j074-battle-chsVenue-native",
+      "source_id": "00c20e99d8d81341eca58f0268817e1ed33361126916c5b53ace4fe398d3b144",
+      "name": "Venue symbol \u00b7 dark \u00b7 HELD",
+      "reason": "Rejected v1: transparent venue-symbol ink/atlas gutters were reinterpreted as a filled plaque or contaminated coloured detail. Irregular/repeated source UVs require native reconstruction.",
+      "variants": [
+        "v1"
+      ]
+    },
+    {
+      "key": "j075-battle-chsVenue-native",
+      "source_id": "d9b80a92af35e32e6e49cff2f38a7bdfef97bdbfacc5ffa8beb40c449053c0ca",
+      "name": "Venue symbol \u00b7 layered \u00b7 HELD",
+      "reason": "Rejected v1: transparent venue-symbol ink/atlas gutters were reinterpreted as a filled plaque or contaminated coloured detail. Irregular/repeated source UVs require native reconstruction.",
+      "variants": [
+        "v1"
+      ]
+    },
+    {
+      "key": "j077-battle-chsVenue-native",
+      "source_id": "9fc86ccb5176bd43ff97443d9ed7dcde2fd204ca1275abaa00cd8698acebcb06",
+      "name": "Venue symbol \u00b7 red \u00b7 HELD",
+      "reason": "Rejected v1: transparent venue-symbol ink/atlas gutters were reinterpreted as a filled plaque or contaminated coloured detail. Irregular/repeated source UVs require native reconstruction.",
+      "variants": [
+        "v1"
+      ]
+    },
+    {
+      "key": "j081-runtime-native",
+      "source_id": "05f828ffb24748401383b43b6e36f0b1dcf02b738bcbf32446444eb497c85dd4",
+      "name": "MAIN MENU \u00b7 HELD",
+      "reason": "Rejected v1: genuine fully opaque medium-gray source markings were lost or made transparent; original layer role/blending requires native validation.",
+      "variants": [
+        "v1"
+      ]
+    },
+    {
+      "key": "j086-runtime-native",
+      "source_id": "662af4913cec1858ccf4bfd7ec1319c5720d473cfd515e925ae16baf23e935f1",
+      "name": "SELECT USER ID \u00b7 HELD",
+      "reason": "Rejected v1: genuine fully opaque medium-gray source markings were lost or made transparent; original layer role/blending requires native validation.",
+      "variants": [
+        "v1"
+      ]
+    },
+    {
+      "key": "j088-runtime-native",
+      "source_id": "9e1be2da3c8b36e11b9c5199944995b39bce104058ca6db4d25609221ef3a379",
+      "name": "I \u00b7 HELD",
+      "reason": "Rejected v1-v3: added dark outline, serif or bevel/coloured edge instead of original simple thin vertical stroke. Retain baseline until a faithful candidate is available.",
+      "variants": [
+        "v1",
+        "v2",
+        "v3"
+      ]
+    },
+    {
+      "key": "j090-runtime-native",
+      "source_id": "44f3789529ff7d17312784999d57e9cb6cbb2bf33efaeb7f14d6feda716fc961",
+      "name": "CHOOSE VENUE \u00b7 HELD",
+      "reason": "Rejected v1: genuine fully opaque medium-gray source markings were lost or made transparent; original layer role/blending requires native validation.",
+      "variants": [
+        "v1"
+      ]
+    },
+    {
+      "key": "j091-runtime-native",
+      "source_id": "4a54aae68252907f41b0eb4872e655f2cc1f8b1499df7690a70e54fb02ce15cc",
+      "name": "BEATBOX \u00b7 HELD",
+      "reason": "Rejected v1: genuine fully opaque medium-gray source markings were lost or made transparent; original layer role/blending requires native validation.",
+      "variants": [
+        "v1"
+      ]
+    },
+    {
+      "key": "j092-runtime-native",
+      "source_id": "da5645673d1c1f649c8fdc0c24425a3e4808cf385aec4b593ca9074df3f5dfce",
+      "name": "HIGH SCORES \u00b7 HELD",
+      "reason": "Rejected v1: genuine fully opaque medium-gray source markings were lost or made transparent; original layer role/blending requires native validation.",
+      "variants": [
+        "v1"
+      ]
+    },
+    {
+      "key": "j094-runtime-native",
+      "source_id": "97b45aa3316b309a3833227df5e7eff5ed69edac6e8e33f2b1ffa9fe117acc6d",
+      "name": "Shared bitmap glyph page \u00b7 HELD",
+      "reason": "Rejected v1: bitmap atlas glyph spacing/cell geometry changes; exact per-glyph native UV/cell assembly remains unresolved.",
+      "variants": [
+        "v1"
+      ]
+    },
+    {
+      "key": "j095-runtime-native",
+      "source_id": "c66fbd60d20ea361d5df51f44ea81f75871f1453bc521df25d07c9628f760f64",
+      "name": "FIGHTER DESCRIPTION \u00b7 HELD",
+      "reason": "Rejected v1: genuine fully opaque medium-gray source markings were lost or made transparent; original layer role/blending requires native validation.",
+      "variants": [
+        "v1"
+      ]
+    },
+    {
+      "key": "j097-runtime-native",
+      "source_id": "aba96bb776ddad1f6290f9aa543ac804f5eb9a57aba60b243e29fa197e19b68f",
+      "name": "CHOOSE TEAMS \u00b7 HELD",
+      "reason": "Rejected v1: genuine fully opaque medium-gray source markings were lost or made transparent; original layer role/blending requires native validation.",
+      "variants": [
+        "v1"
+      ]
+    },
+    {
+      "key": "j098-runtime-native",
+      "source_id": "2e551d4a7d1ef988def9aad37ff246bde38e066d0521346ca04a86c39d61ce7a",
+      "name": "EXTRAS \u00b7 HELD",
+      "reason": "Rejected v1: genuine fully opaque medium-gray source markings were lost or made transparent; original layer role/blending requires native validation.",
+      "variants": [
+        "v1"
+      ]
+    },
+    {
+      "key": "kept-z137-290ef8a0",
+      "source_id": "290ef8a0eafaebfd4641181f8810ebba1bd0f03f51bc48ffb579937817421dcd",
+      "name": "CREATE YOUR OWN FIGHTER \u00b7 NO NEW DRAFT",
+      "reason": "No new draft exists: the image service previously blocked generation. Showing the original and unchanged published baseline for inspection.",
+      "variants": [
+        "retained"
+      ]
+    },
+    {
+      "key": "kept-z002-4475da20",
+      "source_id": "4475da20aac1a9fae7589f8fdd6455c4e37dbc18604a992cab5629bcef60728f",
+      "name": "BARBER SHOP \u00b7 NO NEW DRAFT",
+      "reason": "No new draft exists: the image service previously blocked generation. Showing the original and unchanged published baseline for inspection.",
+      "variants": [
+        "retained"
+      ]
+    },
+    {
+      "key": "kept-z021-594022a2",
+      "source_id": "594022a2206dbb9ced7addd5e83bf1d465ecbcf8ac7eb150949fd9d0af860a0d",
+      "name": "RING OUT card \u00b7 NO NEW DRAFT",
+      "reason": "No new draft exists: the image service previously blocked generation. Showing the original and unchanged published baseline for inspection.",
+      "variants": [
+        "retained"
+      ]
+    },
+    {
+      "key": "kept-z140-8d3ac3cf",
+      "source_id": "8d3ac3cfe67bc515c1cdf605c662613381e77e100d72ef161c113e3c8a38f551",
+      "name": "Bless \u00b7 NO NEW DRAFT",
+      "reason": "No new draft exists: the image service previously blocked generation. Showing the original and unchanged published baseline for inspection.",
+      "variants": [
+        "retained"
+      ]
+    },
+    {
+      "key": "kept-z003-94e010a8",
+      "source_id": "94e010a8bcd092c04018d4c31f5c264a1adc5f14fe84b408cc61a91f5f6f966f",
+      "name": "TATTOO SHOP \u00b7 NO NEW DRAFT",
+      "reason": "No new draft exists: the image service previously blocked generation. Showing the original and unchanged published baseline for inspection.",
+      "variants": [
+        "retained"
+      ]
+    }
+  ],
+  "review_html_sha256": "d0410c0d516682a057e10a30b94cd0f1938a9c6b74b2219f419811c804eb9e96",
+  "review_data_sha256": "4b63359221c683308fc20afbe0d31009810a7d5f8a79505f65659fb047414b47",
+  "proof_sha256": "d217ff4b9064b57909e6a84d51d88f3c34d7debd930e9d420f1a7c09aafab9a7",
+  "browser_qa_sha256": "48d77378e13747c9a7f0df6ba11b45ed332872e43a739db0946ccef0381e8205",
+  "browser_checks": {
+    "overview_cards": 20,
+    "loaded_canvases": 40,
+    "revision_scale_checks": 72,
+    "failures": 0,
+    "console_errors": 0
+  },
+  "image_pins": [
+    {
+      "row": "j042-battle-matchSm3-9",
+      "role": "original",
+      "path": "logs/menu-ui-wave15-20261030/images/j042-battle-matchSm3-9-original.png",
+      "sha256": "412e9fcb73ff63cdbbd0a657c04a5812b9df4b91dde41cc8cb8784122c27680f"
+    },
+    {
+      "row": "j042-battle-matchSm3-9",
+      "role": "current",
+      "path": "logs/menu-ui-wave15-20261030/images/j042-battle-matchSm3-9-current.png",
+      "sha256": "412e9fcb73ff63cdbbd0a657c04a5812b9df4b91dde41cc8cb8784122c27680f"
+    },
+    {
+      "row": "j042-battle-matchSm3-9",
+      "role": "draft",
+      "path": "logs/menu-ui-wave15-20261030/images/j042-battle-matchSm3-9-v1-draft.png",
+      "sha256": "7e70588074893f5055cfabf6ec5f8a9cb60c698b6eaf36590489ece3748e29b7"
+    },
+    {
+      "row": "j042-battle-matchSm3-9",
+      "role": "revision-v1",
+      "path": "logs/menu-ui-wave15-20261030/images/j042-battle-matchSm3-9-v1-draft.png",
+      "sha256": "7e70588074893f5055cfabf6ec5f8a9cb60c698b6eaf36590489ece3748e29b7"
+    },
+    {
+      "row": "j062-options-userID-7",
+      "role": "original",
+      "path": "logs/menu-ui-wave15-20261030/images/j062-options-userID-7-original.png",
+      "sha256": "72779c1056c7d6985f85e89237b48c911f35e1c4d228b8ae39367fd495305a81"
+    },
+    {
+      "row": "j062-options-userID-7",
+      "role": "current",
+      "path": "logs/menu-ui-wave15-20261030/images/j062-options-userID-7-current.png",
+      "sha256": "603e3a19a53c828d0b88aafac1ac917ad1f172f173051172cbb916f3fa9b8a76"
+    },
+    {
+      "row": "j062-options-userID-7",
+      "role": "draft",
+      "path": "logs/menu-ui-wave15-20261030/images/j062-options-userID-7-v2-draft.png",
+      "sha256": "fdc3436f108bf9b1f82862f1afaca91427bbc9be805a0084b160b13ad779f67f"
+    },
+    {
+      "row": "j062-options-userID-7",
+      "role": "revision-v1",
+      "path": "logs/menu-ui-wave15-20261030/images/j062-options-userID-7-v1-draft.png",
+      "sha256": "1fdbee2a83780a5ce687a4b4fa8c2dea216d6e3c8c1f3e1eaa5134c482a6bced"
+    },
+    {
+      "row": "j062-options-userID-7",
+      "role": "revision-v2",
+      "path": "logs/menu-ui-wave15-20261030/images/j062-options-userID-7-v2-draft.png",
+      "sha256": "fdc3436f108bf9b1f82862f1afaca91427bbc9be805a0084b160b13ad779f67f"
+    },
+    {
+      "row": "j062-options-userID-7",
+      "role": "revision-v3",
+      "path": "logs/menu-ui-wave15-20261030/images/j062-options-userID-7-v3-draft.png",
+      "sha256": "bb4b5798e84c04e632bdbfd4ff8d22b3d48a9e40f635df0257c090a4c07da438"
+    },
+    {
+      "row": "j074-battle-chsVenue-native",
+      "role": "original",
+      "path": "logs/menu-ui-wave15-20261030/images/j074-battle-chsVenue-native-original.png",
+      "sha256": "36bf9b824549e95161931b45783b654bce8b2b354c6ccafb4b81e445bf328a24"
+    },
+    {
+      "row": "j074-battle-chsVenue-native",
+      "role": "current",
+      "path": "logs/menu-ui-wave15-20261030/images/j074-battle-chsVenue-native-current.png",
+      "sha256": "b834eee2b0f885babf9fad3e3b32dd92f0b8c1f64ecc7b2ba2ba98b910866436"
+    },
+    {
+      "row": "j074-battle-chsVenue-native",
+      "role": "draft",
+      "path": "logs/menu-ui-wave15-20261030/images/j074-battle-chsVenue-native-v1-draft.png",
+      "sha256": "5dd6e5e4c866f450ec28390df3a17dac7300eead78b4788603dd264b8661e82a"
+    },
+    {
+      "row": "j074-battle-chsVenue-native",
+      "role": "revision-v1",
+      "path": "logs/menu-ui-wave15-20261030/images/j074-battle-chsVenue-native-v1-draft.png",
+      "sha256": "5dd6e5e4c866f450ec28390df3a17dac7300eead78b4788603dd264b8661e82a"
+    },
+    {
+      "row": "j075-battle-chsVenue-native",
+      "role": "original",
+      "path": "logs/menu-ui-wave15-20261030/images/j075-battle-chsVenue-native-original.png",
+      "sha256": "e94796feb6011badd256a4b84a02af8e918619f917b25b9ab5a0dc52da148a0d"
+    },
+    {
+      "row": "j075-battle-chsVenue-native",
+      "role": "current",
+      "path": "logs/menu-ui-wave15-20261030/images/j075-battle-chsVenue-native-current.png",
+      "sha256": "4432ea6d7121dc3b414d8607bb7eeec9260c07c851ef35902cfbe327d589c802"
+    },
+    {
+      "row": "j075-battle-chsVenue-native",
+      "role": "draft",
+      "path": "logs/menu-ui-wave15-20261030/images/j075-battle-chsVenue-native-v1-draft.png",
+      "sha256": "eb5f976682a695a57b904fc93ee1c522bb945795ae728cfabe76bac357d0f1b0"
+    },
+    {
+      "row": "j075-battle-chsVenue-native",
+      "role": "revision-v1",
+      "path": "logs/menu-ui-wave15-20261030/images/j075-battle-chsVenue-native-v1-draft.png",
+      "sha256": "eb5f976682a695a57b904fc93ee1c522bb945795ae728cfabe76bac357d0f1b0"
+    },
+    {
+      "row": "j077-battle-chsVenue-native",
+      "role": "original",
+      "path": "logs/menu-ui-wave15-20261030/images/j077-battle-chsVenue-native-original.png",
+      "sha256": "9c95f519ea37cedcd9bd66194360c9253a7a4cfcec1ec859d69c73376769580d"
+    },
+    {
+      "row": "j077-battle-chsVenue-native",
+      "role": "current",
+      "path": "logs/menu-ui-wave15-20261030/images/j077-battle-chsVenue-native-current.png",
+      "sha256": "aa554a87148215f1abe633a75a1d9955e3d32dd9c1bbba1d33cbc8cf2f478a12"
+    },
+    {
+      "row": "j077-battle-chsVenue-native",
+      "role": "draft",
+      "path": "logs/menu-ui-wave15-20261030/images/j077-battle-chsVenue-native-v1-draft.png",
+      "sha256": "a061323a77a89c2f690ca6e9098f3ac5bb694203fba0c4141dbad42bd7ed8a7e"
+    },
+    {
+      "row": "j077-battle-chsVenue-native",
+      "role": "revision-v1",
+      "path": "logs/menu-ui-wave15-20261030/images/j077-battle-chsVenue-native-v1-draft.png",
+      "sha256": "a061323a77a89c2f690ca6e9098f3ac5bb694203fba0c4141dbad42bd7ed8a7e"
+    },
+    {
+      "row": "j081-runtime-native",
+      "role": "original",
+      "path": "logs/menu-ui-wave15-20261030/images/j081-runtime-native-original.png",
+      "sha256": "2489db97846c07e97b4991ef681ce11c4f862f80bedfdf4ba22ac6a3b021c205"
+    },
+    {
+      "row": "j081-runtime-native",
+      "role": "current",
+      "path": "logs/menu-ui-wave15-20261030/images/j081-runtime-native-current.png",
+      "sha256": "8e76018d971e1d7e5648726a1a1da20583b493d25e874c8dc5b981f40af56f2d"
+    },
+    {
+      "row": "j081-runtime-native",
+      "role": "draft",
+      "path": "logs/menu-ui-wave15-20261030/images/j081-runtime-native-v1-draft.png",
+      "sha256": "714cf9e36b195f24cc8e50bbfc1a620e10cf44587dc3ed0045f16b73df716420"
+    },
+    {
+      "row": "j081-runtime-native",
+      "role": "revision-v1",
+      "path": "logs/menu-ui-wave15-20261030/images/j081-runtime-native-v1-draft.png",
+      "sha256": "714cf9e36b195f24cc8e50bbfc1a620e10cf44587dc3ed0045f16b73df716420"
+    },
+    {
+      "row": "j086-runtime-native",
+      "role": "original",
+      "path": "logs/menu-ui-wave15-20261030/images/j086-runtime-native-original.png",
+      "sha256": "a27aa573317858c55ef838e65188e609616e00ab568e144b98354adc7c83930c"
+    },
+    {
+      "row": "j086-runtime-native",
+      "role": "current",
+      "path": "logs/menu-ui-wave15-20261030/images/j086-runtime-native-current.png",
+      "sha256": "6fb5a9c64bad96029422fa624e78d5ab1b2f46f0687743e201458406bb9e99f5"
+    },
+    {
+      "row": "j086-runtime-native",
+      "role": "draft",
+      "path": "logs/menu-ui-wave15-20261030/images/j086-runtime-native-v1-draft.png",
+      "sha256": "ea9e10f6cdf04b0d12c4c39fe7f5b90823726ce91313f238c8cefc21be28710c"
+    },
+    {
+      "row": "j086-runtime-native",
+      "role": "revision-v1",
+      "path": "logs/menu-ui-wave15-20261030/images/j086-runtime-native-v1-draft.png",
+      "sha256": "ea9e10f6cdf04b0d12c4c39fe7f5b90823726ce91313f238c8cefc21be28710c"
+    },
+    {
+      "row": "j088-runtime-native",
+      "role": "original",
+      "path": "logs/menu-ui-wave15-20261030/images/j088-runtime-native-original.png",
+      "sha256": "b39f6983ae3488438a8c45cde77606001b68ea18f465eabd77580dfcae8688b7"
+    },
+    {
+      "row": "j088-runtime-native",
+      "role": "current",
+      "path": "logs/menu-ui-wave15-20261030/images/j088-runtime-native-current.png",
+      "sha256": "36057b9e477654c0aca2369739af6cb939144ef2674b9a2bea60c33bda1c01f6"
+    },
+    {
+      "row": "j088-runtime-native",
+      "role": "draft",
+      "path": "logs/menu-ui-wave15-20261030/images/j088-runtime-native-v1-draft.png",
+      "sha256": "1cc00b888a7f4f45699dbeaca7d0d7e6e65fb000c3d8b15d2dbe0c079d3fa510"
+    },
+    {
+      "row": "j088-runtime-native",
+      "role": "revision-v1",
+      "path": "logs/menu-ui-wave15-20261030/images/j088-runtime-native-v1-draft.png",
+      "sha256": "1cc00b888a7f4f45699dbeaca7d0d7e6e65fb000c3d8b15d2dbe0c079d3fa510"
+    },
+    {
+      "row": "j088-runtime-native",
+      "role": "revision-v2",
+      "path": "logs/menu-ui-wave15-20261030/images/j088-runtime-native-v2-draft.png",
+      "sha256": "c20cef275a4aed8b423d800d82c1602f0fdc3a008c849c3fe8764775d6cb0e4d"
+    },
+    {
+      "row": "j088-runtime-native",
+      "role": "revision-v3",
+      "path": "logs/menu-ui-wave15-20261030/images/j088-runtime-native-v3-draft.png",
+      "sha256": "03b830d17877324bf90a3ef85476b609fe5ff12b1d93390e0eb3a418535e4902"
+    },
+    {
+      "row": "j090-runtime-native",
+      "role": "original",
+      "path": "logs/menu-ui-wave15-20261030/images/j090-runtime-native-original.png",
+      "sha256": "7fefeb4eb1adb1fe958b0ee357b463d18030930078ae78d5f9e3c054f1857c54"
+    },
+    {
+      "row": "j090-runtime-native",
+      "role": "current",
+      "path": "logs/menu-ui-wave15-20261030/images/j090-runtime-native-current.png",
+      "sha256": "5ace2b1967145ce831d18b05d9d6609edf3c2a668a3ecdec31fce14883601e0e"
+    },
+    {
+      "row": "j090-runtime-native",
+      "role": "draft",
+      "path": "logs/menu-ui-wave15-20261030/images/j090-runtime-native-v1-draft.png",
+      "sha256": "e89224f5dcaa1bba2fcca0020a10e1ef736ac01040d5155d746cae8410dd7791"
+    },
+    {
+      "row": "j090-runtime-native",
+      "role": "revision-v1",
+      "path": "logs/menu-ui-wave15-20261030/images/j090-runtime-native-v1-draft.png",
+      "sha256": "e89224f5dcaa1bba2fcca0020a10e1ef736ac01040d5155d746cae8410dd7791"
+    },
+    {
+      "row": "j091-runtime-native",
+      "role": "original",
+      "path": "logs/menu-ui-wave15-20261030/images/j091-runtime-native-original.png",
+      "sha256": "c38f3a7b20ff4d14322e040df3dbdcbef8680bb7817171801f7d1259dbfeb9dd"
+    },
+    {
+      "row": "j091-runtime-native",
+      "role": "current",
+      "path": "logs/menu-ui-wave15-20261030/images/j091-runtime-native-current.png",
+      "sha256": "0e572839952c2c2a9ec90060d4766de6d6594167ed169b329a029897b17fa635"
+    },
+    {
+      "row": "j091-runtime-native",
+      "role": "draft",
+      "path": "logs/menu-ui-wave15-20261030/images/j091-runtime-native-v1-draft.png",
+      "sha256": "7356558e5c4cab368896d3f40a9b08b7e2db6d676bbc7d1c9da0371616a39ce1"
+    },
+    {
+      "row": "j091-runtime-native",
+      "role": "revision-v1",
+      "path": "logs/menu-ui-wave15-20261030/images/j091-runtime-native-v1-draft.png",
+      "sha256": "7356558e5c4cab368896d3f40a9b08b7e2db6d676bbc7d1c9da0371616a39ce1"
+    },
+    {
+      "row": "j092-runtime-native",
+      "role": "original",
+      "path": "logs/menu-ui-wave15-20261030/images/j092-runtime-native-original.png",
+      "sha256": "699de41e60ed6e387f8706772710b1c46b7519c88d139db48f259a9beb1540fd"
+    },
+    {
+      "row": "j092-runtime-native",
+      "role": "current",
+      "path": "logs/menu-ui-wave15-20261030/images/j092-runtime-native-current.png",
+      "sha256": "c1906a9da65125ce30ddec00234b66d9f4c2cf17de413f953f3018e75d87cc39"
+    },
+    {
+      "row": "j092-runtime-native",
+      "role": "draft",
+      "path": "logs/menu-ui-wave15-20261030/images/j092-runtime-native-v1-draft.png",
+      "sha256": "72ff324d45cc56718565b65c7c2b004c4fa998fb6b0616a4aafaee4e3b9c3714"
+    },
+    {
+      "row": "j092-runtime-native",
+      "role": "revision-v1",
+      "path": "logs/menu-ui-wave15-20261030/images/j092-runtime-native-v1-draft.png",
+      "sha256": "72ff324d45cc56718565b65c7c2b004c4fa998fb6b0616a4aafaee4e3b9c3714"
+    },
+    {
+      "row": "j094-runtime-native",
+      "role": "original",
+      "path": "logs/menu-ui-wave15-20261030/images/j094-runtime-native-original.png",
+      "sha256": "57802ef4d5638398790520e2b5b0d6468fcd34d444e78a28f577f53d5439b0dc"
+    },
+    {
+      "row": "j094-runtime-native",
+      "role": "current",
+      "path": "logs/menu-ui-wave15-20261030/images/j094-runtime-native-current.png",
+      "sha256": "16ceac6923cc0a23a638e13f4f00f6a59dbcd07ad44593227197b82f59d815bd"
+    },
+    {
+      "row": "j094-runtime-native",
+      "role": "draft",
+      "path": "logs/menu-ui-wave15-20261030/images/j094-runtime-native-v1-draft.png",
+      "sha256": "f252f23cf46a0b96afc984dfe1a8ffb4604ec0cd0377ae0ad75ff9d388bb1c48"
+    },
+    {
+      "row": "j094-runtime-native",
+      "role": "revision-v1",
+      "path": "logs/menu-ui-wave15-20261030/images/j094-runtime-native-v1-draft.png",
+      "sha256": "f252f23cf46a0b96afc984dfe1a8ffb4604ec0cd0377ae0ad75ff9d388bb1c48"
+    },
+    {
+      "row": "j095-runtime-native",
+      "role": "original",
+      "path": "logs/menu-ui-wave15-20261030/images/j095-runtime-native-original.png",
+      "sha256": "9b3a03da73b1bb4994a502e16eb5605676a1501439f46fe17b36a8888a5ebc4e"
+    },
+    {
+      "row": "j095-runtime-native",
+      "role": "current",
+      "path": "logs/menu-ui-wave15-20261030/images/j095-runtime-native-current.png",
+      "sha256": "15b23b4d10d5182d072740416927a47ae679c39b9a4559c45e62cedbd0a9c8ee"
+    },
+    {
+      "row": "j095-runtime-native",
+      "role": "draft",
+      "path": "logs/menu-ui-wave15-20261030/images/j095-runtime-native-v1-draft.png",
+      "sha256": "04beada67ecfa6967dcbd05fdb70d2e2d949db5e297ec7748bcf9e2843231a17"
+    },
+    {
+      "row": "j095-runtime-native",
+      "role": "revision-v1",
+      "path": "logs/menu-ui-wave15-20261030/images/j095-runtime-native-v1-draft.png",
+      "sha256": "04beada67ecfa6967dcbd05fdb70d2e2d949db5e297ec7748bcf9e2843231a17"
+    },
+    {
+      "row": "j097-runtime-native",
+      "role": "original",
+      "path": "logs/menu-ui-wave15-20261030/images/j097-runtime-native-original.png",
+      "sha256": "750e032fd1145eb2510cd80cd0e55403ee392058f6a516befa35b7bb55fb68f8"
+    },
+    {
+      "row": "j097-runtime-native",
+      "role": "current",
+      "path": "logs/menu-ui-wave15-20261030/images/j097-runtime-native-current.png",
+      "sha256": "2b76f199f42d02da32ca2ee0c143732a812ef29591d2eca83ab45ad56aabc731"
+    },
+    {
+      "row": "j097-runtime-native",
+      "role": "draft",
+      "path": "logs/menu-ui-wave15-20261030/images/j097-runtime-native-v1-draft.png",
+      "sha256": "30fe9ac91fde8b149d43488d1b3b66f7303a26c353ad14675e377c7633283f79"
+    },
+    {
+      "row": "j097-runtime-native",
+      "role": "revision-v1",
+      "path": "logs/menu-ui-wave15-20261030/images/j097-runtime-native-v1-draft.png",
+      "sha256": "30fe9ac91fde8b149d43488d1b3b66f7303a26c353ad14675e377c7633283f79"
+    },
+    {
+      "row": "j098-runtime-native",
+      "role": "original",
+      "path": "logs/menu-ui-wave15-20261030/images/j098-runtime-native-original.png",
+      "sha256": "db5c6aa53d28d4036a0256f1a7d0bcd204f96194be7b15763b2d319c4f7886eb"
+    },
+    {
+      "row": "j098-runtime-native",
+      "role": "current",
+      "path": "logs/menu-ui-wave15-20261030/images/j098-runtime-native-current.png",
+      "sha256": "85b0860c97f290f27deae8121e86cabc93119750909720054453f5089569268b"
+    },
+    {
+      "row": "j098-runtime-native",
+      "role": "draft",
+      "path": "logs/menu-ui-wave15-20261030/images/j098-runtime-native-v1-draft.png",
+      "sha256": "30fc2f62d1f833d4305cc82e904d7d3587a44bb1fa9c049da4e17c5cd035dd85"
+    },
+    {
+      "row": "j098-runtime-native",
+      "role": "revision-v1",
+      "path": "logs/menu-ui-wave15-20261030/images/j098-runtime-native-v1-draft.png",
+      "sha256": "30fc2f62d1f833d4305cc82e904d7d3587a44bb1fa9c049da4e17c5cd035dd85"
+    },
+    {
+      "row": "kept-z137-290ef8a0",
+      "role": "original",
+      "path": "logs/menu-ui-wave15-20261030/images/kept-z137-290ef8a0-original.png",
+      "sha256": "9dfad97cfca8afe00f9e491a6aa84de294ae3dbc9eec8c5c36eec6627f1e662d"
+    },
+    {
+      "row": "kept-z137-290ef8a0",
+      "role": "current",
+      "path": "logs/menu-ui-wave15-20261030/images/kept-z137-290ef8a0-current.png",
+      "sha256": "c5cfe42a293330f90efd749734b56cc0ff9b0016ffeeed4d1b9262aee9e79b13"
+    },
+    {
+      "row": "kept-z137-290ef8a0",
+      "role": "draft",
+      "path": "logs/menu-ui-wave15-20261030/images/kept-z137-290ef8a0-current.png",
+      "sha256": "c5cfe42a293330f90efd749734b56cc0ff9b0016ffeeed4d1b9262aee9e79b13"
+    },
+    {
+      "row": "kept-z137-290ef8a0",
+      "role": "revision-retained",
+      "path": "logs/menu-ui-wave15-20261030/images/kept-z137-290ef8a0-current.png",
+      "sha256": "c5cfe42a293330f90efd749734b56cc0ff9b0016ffeeed4d1b9262aee9e79b13"
+    },
+    {
+      "row": "kept-z002-4475da20",
+      "role": "original",
+      "path": "logs/menu-ui-wave15-20261030/images/kept-z002-4475da20-original.png",
+      "sha256": "93269f8c77b57ac60ce717160107a65e0b4a5b8e6ccc49d77768d6cbe0b08f7c"
+    },
+    {
+      "row": "kept-z002-4475da20",
+      "role": "current",
+      "path": "logs/menu-ui-wave15-20261030/images/kept-z002-4475da20-current.png",
+      "sha256": "0479bfedb67cb849ae27b15b7446cfaa9594d5653ccca80feeeb5d3859a7a038"
+    },
+    {
+      "row": "kept-z002-4475da20",
+      "role": "draft",
+      "path": "logs/menu-ui-wave15-20261030/images/kept-z002-4475da20-current.png",
+      "sha256": "0479bfedb67cb849ae27b15b7446cfaa9594d5653ccca80feeeb5d3859a7a038"
+    },
+    {
+      "row": "kept-z002-4475da20",
+      "role": "revision-retained",
+      "path": "logs/menu-ui-wave15-20261030/images/kept-z002-4475da20-current.png",
+      "sha256": "0479bfedb67cb849ae27b15b7446cfaa9594d5653ccca80feeeb5d3859a7a038"
+    },
+    {
+      "row": "kept-z021-594022a2",
+      "role": "original",
+      "path": "logs/menu-ui-wave15-20261030/images/kept-z021-594022a2-original.png",
+      "sha256": "d598ae94ff16143f8a4bef7a1a31dc31897a7fdfbd719f193e3b69d178f74264"
+    },
+    {
+      "row": "kept-z021-594022a2",
+      "role": "current",
+      "path": "logs/menu-ui-wave15-20261030/images/kept-z021-594022a2-current.png",
+      "sha256": "e47e4bbd93f8ec22521eb12160625c98dcbfaf94b350c4fe7c79a6e8e91394a1"
+    },
+    {
+      "row": "kept-z021-594022a2",
+      "role": "draft",
+      "path": "logs/menu-ui-wave15-20261030/images/kept-z021-594022a2-current.png",
+      "sha256": "e47e4bbd93f8ec22521eb12160625c98dcbfaf94b350c4fe7c79a6e8e91394a1"
+    },
+    {
+      "row": "kept-z021-594022a2",
+      "role": "revision-retained",
+      "path": "logs/menu-ui-wave15-20261030/images/kept-z021-594022a2-current.png",
+      "sha256": "e47e4bbd93f8ec22521eb12160625c98dcbfaf94b350c4fe7c79a6e8e91394a1"
+    },
+    {
+      "row": "kept-z140-8d3ac3cf",
+      "role": "original",
+      "path": "logs/menu-ui-wave15-20261030/images/kept-z140-8d3ac3cf-original.png",
+      "sha256": "58b8e9a9fa56417beb74130ac2ab54a1b4a8777d98fc4ab86e75799b8e9f75a1"
+    },
+    {
+      "row": "kept-z140-8d3ac3cf",
+      "role": "current",
+      "path": "logs/menu-ui-wave15-20261030/images/kept-z140-8d3ac3cf-current.png",
+      "sha256": "cd4df18337aa9ebbde3435ae1ae764c2f71a1289f6591aae28914688e0f5ed94"
+    },
+    {
+      "row": "kept-z140-8d3ac3cf",
+      "role": "draft",
+      "path": "logs/menu-ui-wave15-20261030/images/kept-z140-8d3ac3cf-current.png",
+      "sha256": "cd4df18337aa9ebbde3435ae1ae764c2f71a1289f6591aae28914688e0f5ed94"
+    },
+    {
+      "row": "kept-z140-8d3ac3cf",
+      "role": "revision-retained",
+      "path": "logs/menu-ui-wave15-20261030/images/kept-z140-8d3ac3cf-current.png",
+      "sha256": "cd4df18337aa9ebbde3435ae1ae764c2f71a1289f6591aae28914688e0f5ed94"
+    },
+    {
+      "row": "kept-z003-94e010a8",
+      "role": "original",
+      "path": "logs/menu-ui-wave15-20261030/images/kept-z003-94e010a8-original.png",
+      "sha256": "7235c897d1ce441e87b52001f7cfc46260e4ad724b0b2751df943c77b878d1c4"
+    },
+    {
+      "row": "kept-z003-94e010a8",
+      "role": "current",
+      "path": "logs/menu-ui-wave15-20261030/images/kept-z003-94e010a8-current.png",
+      "sha256": "eb7d1caae1206aea924e66f9ce098d659569d213d26160316b40cedc271e78f7"
+    },
+    {
+      "row": "kept-z003-94e010a8",
+      "role": "draft",
+      "path": "logs/menu-ui-wave15-20261030/images/kept-z003-94e010a8-current.png",
+      "sha256": "eb7d1caae1206aea924e66f9ce098d659569d213d26160316b40cedc271e78f7"
+    },
+    {
+      "row": "kept-z003-94e010a8",
+      "role": "revision-retained",
+      "path": "logs/menu-ui-wave15-20261030/images/kept-z003-94e010a8-current.png",
+      "sha256": "eb7d1caae1206aea924e66f9ce098d659569d213d26160316b40cedc271e78f7"
+    }
+  ],
+  "compression_benchmark": {
+    "path": "logs/menu-ui-held-review-20261030/compression-benchmark.json",
+    "sha256": "713e53dabc091315f94c3b96d3b4d7ca6583707439c443aad236c7d52e7224e6",
+    "pillow": "12.3.0",
+    "zlib": "1.2.12",
+    "selection": "12 evenly spaced file-size ranks per category, including extremes. Deliberately stratified sample, not a weighted full-pack estimate. Queued previews are not final native atlases.",
+    "categories": {
+      "published_textures": {
+        "samples": 12,
+        "before_bytes": 7540538,
+        "after_bytes": 7266348,
+        "saved_bytes": 274190,
+        "saved_percent": 3.636,
+        "rgba_exact": true,
+        "zip_level1_before": 7480399,
+        "zip_level9_before": 7474668,
+        "zip_level1_after": 7197852
+      },
+      "published_wide_backgrounds": {
+        "samples": 12,
+        "before_bytes": 23040061,
+        "after_bytes": 21752980,
+        "saved_bytes": 1287081,
+        "saved_percent": 5.586,
+        "rgba_exact": true,
+        "zip_level1_before": 22991359,
+        "zip_level9_before": 22986669,
+        "zip_level1_after": 21699719
+      },
+      "approved_queued_previews": {
+        "samples": 12,
+        "before_bytes": 9136436,
+        "after_bytes": 8815811,
+        "saved_bytes": 320625,
+        "saved_percent": 3.509,
+        "rgba_exact": true,
+        "zip_level1_before": 9111085,
+        "zip_level9_before": 9109512,
+        "zip_level1_after": 8788917
+      }
+    },
+    "limitations": "In-memory Pillow benchmark,36deliberately stratified images;notfullpackoroxipngforecast. Original encoded files and all decoded RGBA\u2014including hidden RGB\u2014unchanged."
+  },
+  "recommendation": "Final native atlases first; then copy-only lossless PNG optimization using pinned oxipng -o4 --strip safe, without --alpha. Decode before/after and demand exact RGBA/dimensions/colour metadata; keep smaller only. Standard ZIP after optimization; regenerate hashes/signature for new immutable release. No JPEG/palette quantization/BCn conversion for exact-quality UI.",
+  "publication": "Published1.3/catalogue7 unchanged;nooptimizerinstalled orfullpackmodified.",
+  "future_pr_milestone": "v0.12.2"
+}

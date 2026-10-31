@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "date": "2026-10-30",
+  "recovery_path": "/Users/vlad/Code/defjam-data/scratch/menu-ui-held-review-20261030",
+  "manifest_sha256": "be178ee67c8b9921b6ab6766bd1ebd0bbe77d1ca8cb9297cdea8a3b102a8a6bf",
+  "files": 14,
+  "bytes": 413148,
+  "accepted_sources": 1328,
+  "held_sources": 20,
+  "new_approvals": 0,
+  "new_generations": 0,
+  "compression": "36-image in-memory exact-RGBA benchmark only; no production image changes or optimizer install.",
+  "parent_checkpoint_path": "config/menu-ui-wave15-approved-checkpoint-2026-10-30.json",
+  "parent_checkpoint_sha256": "d9dade526f7388a7a12a82ccc34c4f561f923a073faed99a4216403fba7fa767",
+  "publication": "Published1.3/catalogue7 unchanged."
+}

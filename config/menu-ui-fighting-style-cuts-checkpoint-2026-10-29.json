@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "date": "2026-10-29",
+  "recovery_path": "/Users/vlad/Code/defjam-data/scratch/menu-ui-fighting-style-cuts-review-20261029",
+  "manifest_sha256": "178c65dcdfb99fce2ccaf777e81fba23eb0a904c7855128c70f476b3531324bc",
+  "files": 77,
+  "bytes": 15569460,
+  "new_approvals": 30,
+  "accepted_total": 802,
+  "pending_revisions": 3,
+  "parent_checkpoint_path": "config/menu-ui-wave10-revisions-checkpoint-2026-10-29.json",
+  "parent_checkpoint_sha256": "59d23e88b05c7cf7f4ba7e5682269fd4778ba85361c34070fa0b6a0e496a475d",
+  "copy_verification": "All copied files byte-identical; full manifest reverified after copy.",
+  "publication": "Published1.3/catalogue7 unchanged;3selectedrevisions unapproved."
+}

@@ -1,0 +1,20 @@
+{
+  "schema": 2,
+  "date": "2026-10-30",
+  "recovery_path": "/Users/vlad/Code/defjam-data/scratch/menu-ui-wave13-review-20261030",
+  "manifest_sha256": "5305df7a0fd99b5a48e3189148c98ea5c9cbf44d9fd8d783676e78ebc4d4007c",
+  "files": 1188,
+  "bytes": 497557282,
+  "assigned_native_sources": 100,
+  "selected_native_sources": 100,
+  "joined_labels": 50,
+  "issued_calls": 50,
+  "literal_raw_masters": 50,
+  "derived_selected_pieces": 100,
+  "accepted_before_batch": 1005,
+  "new_approved": 0,
+  "parent_checkpoint_path": "config/menu-ui-reconstruction-wave-12-checkpoint-2026-10-29.json",
+  "parent_checkpoint_sha256": "0d3f3deeff1685342bd3f564494b68f1b153dd0fe72ddc57fb0dc6f87ca54d6e",
+  "copy_verification": "APFS copy-on-write clones via cp -c; independent files, not hard links. Every copied file byte-identical; manifest reverified after copy. Full byte-copy guard failed at681MiB free for475MiB workspace; no existing files deleted.",
+  "publication": "Published1.3/catalogue7 unchanged;100newmappings in50joinedlabels awaitownerreview."
+}

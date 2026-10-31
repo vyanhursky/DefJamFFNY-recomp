@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "path": "/Users/vlad/Code/defjam-data/scratch/menu-ui-wave09-nine-redos-20261029",
+  "files": 246,
+  "bytes": 151118377,
+  "manifest_sha256": "85ea4f295fbd9a37a7c14b9c7290d8de11eb2ef5f41315ef121955e83a5b0adf",
+  "every_copy_verified": true,
+  "parent_checkpoint": "/Users/vlad/Code/defjam-data/scratch/menu-ui-wave09-revisions-20261029/recovery-manifest.json",
+  "parent_sha256": "33ddf0e128cb188140991ec2ab03b006b171ccab368fe0a923b9a49de44de11e"
+}

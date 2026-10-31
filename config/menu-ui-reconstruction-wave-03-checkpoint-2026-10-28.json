@@ -1,0 +1,15 @@
+{
+  "path": "/Users/vlad/Code/defjam-data/scratch/menu-ui-wave03-review-20261028",
+  "files": 1224,
+  "bytes": 517495057,
+  "manifest_sha256": "4e6eb96c5658fbf171825a1af7e1e74839efd29b4c8e053ee2b56e79be8afbbb",
+  "every_copy_verified": true,
+  "schema": 1,
+  "date": "2026-10-28",
+  "review_mappings": 104,
+  "new_sources": 100,
+  "earlier_material_corrections": 4,
+  "raw_generations": 130,
+  "status": "Frozen local artwork review; owner review pending; not published",
+  "restore": "Serve checkpoint root on127.0.0.1:51744 and open/review.html; full originals in preserved-inputs; source ledger contains all literal prompts and hashes"
+}

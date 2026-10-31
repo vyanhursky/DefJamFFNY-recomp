@@ -1,0 +1,2345 @@
+{
+  "schema": 1,
+  "date": "2026-10-29",
+  "status": "Other10 revised sources approved;9source-based redos await owner review",
+  "authorization": {
+    "owner_message": "These 9 still look off to me. The rest are good",
+    "approved_now": 10,
+    "accepted_distinct": 614,
+    "revisions": [
+      "u068-0fdad2b7",
+      "u071-1378b522",
+      "u074-30fad9eb",
+      "u076-3e9dd51b",
+      "u081-5af60ba3",
+      "u085-6e626288",
+      "u087-7017f637",
+      "u095-885bd6a6",
+      "u097-91247b8f"
+    ],
+    "other82": "Awaiting scope clarification; no approval inferred",
+    "art_direction": "Original-driven geometry, restrained original frame/spray and ink, exact size/spacing/palette; no drifted draft as primary reference.",
+    "publication_authorized": false
+  },
+  "approval_record": "config/menu-ui-wave09-revisions-approval-2026-10-29.json",
+  "approval_record_sha256": "f995e2fb856ad8ecdb0828fa95825887db799118ac28f055ec955cec1bf3dfc4",
+  "counts": {
+    "selected_sources": 9,
+    "successful_outputs": 16,
+    "superseded_saved_outputs": 7,
+    "tool_invocations": 16,
+    "failed_calls": 0,
+    "prepared_unissued_requests": 9,
+    "total_request_receipts": 25,
+    "approved_this_turn": 10,
+    "total_unique_accepted": 614,
+    "other_batch9_pending": 82
+  },
+  "tool": "Built-in imagegen only; parent direct calls, no subagents or API/CLI fallback",
+  "review_url": "http://127.0.0.1:51754/review.html#overview",
+  "sources": [
+    {
+      "key": "u068-0fdad2b7",
+      "source_key": "c006-0fdad2b7",
+      "source_id": "0fdad2b78d8470675ba3e8524c134019e28548788a321687548a34d913c298e0",
+      "name": "WINNER",
+      "text": "WINNER",
+      "kind": "light",
+      "family": "stamped result panel",
+      "context": "brick",
+      "input_png": "/Users/vlad/Code/defjam-data/scratch/menu-ui-v1.2-text-candidate-20261026/inputs/0fdad2b78d8470675ba3e8524c134019e28548788a321687548a34d913c298e0.png",
+      "input_sha256": "6f032819810fc05a120ffc4810e10934ec8479cb0dd829243f9a9a55b9f703ac",
+      "source_size": [
+        256,
+        128
+      ],
+      "source_crop": [
+        3,
+        5,
+        196,
+        98
+      ],
+      "source_alpha128_bbox": [
+        8,
+        10,
+        191,
+        93
+      ],
+      "aspect": 2.2048192771084336,
+      "reference_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-20261029/references/u068-0fdad2b7-rgba.png",
+      "reference_sha256": "7262ec6021aef9d0758bc95c4a8ec8b734ec4f08945180efe5faacabef45283d",
+      "transparency_references": [
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-20261029/references/u068-0fdad2b7-rgba.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-20261029/references/u068-0fdad2b7-blue.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-20261029/references/u068-0fdad2b7-pale.png"
+      ],
+      "source_opaque_rgb_median": [
+        241,
+        243,
+        241
+      ],
+      "inventory_label": "battle/matchSm2",
+      "text_status": "Agent reading checked by parent against actual source contacts; corrected mixed-case prompts, question mark, B vs lock, L-only icon and punctuation",
+      "style_notes": "Keep the tilted dark rectangular plaque, exact original white bold condensed capitals, integrated gray/white dusty/grunge halo and original rotation/placement. Preserve source letter widths and rim/halo distribution. Do not add new cracks, scratches, glow, frame, text or a pristine modern badge.",
+      "native_status": "not tested",
+      "intentional_color_note": "This source has deliberate red/orange/gray or black border/shadow art. Those are not fringe contamination; preserve genuine palette.",
+      "source_context": "Original battle/matchSm2 source; live UV/layer context unverified",
+      "previous_revision": "v5",
+      "previous_raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-revisions-20261029/u068-0fdad2b7-v5.png",
+      "previous_preview_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-revisions-20261029/images/u068-0fdad2b7-draft.png",
+      "previous_raw_sha256": "709542e9c383bfe594f7e78082f33e19fc4cee0920c12570b1e51de1742e3b60",
+      "previous_preview_sha256": "094bb9ed074ff48eb9763921b423b17ebf90484162780df19f736550df282008",
+      "previous_draft_bounds": [
+        130,
+        54,
+        1800,
+        811
+      ],
+      "original_bounds": [
+        5,
+        5,
+        188,
+        88
+      ],
+      "candidate_revision": "v7",
+      "correction_request": "Change only the overly pronounced dark outlines around letters and rectangle. Remove the crisp black sticker/keyline and heavy edge contrast; return to original soft, quiet gray shadow/edge. Letter faces, text, angle, spacing, rectangle, natural white dusty spray and transparent inner field stay. The original has a restrained blurred gray edge, not a sharp black tracing around each glyph or frame. Do not add a second contour, depth, bevel or dense opaque black field. Preserve transparency inside the rectangle and counters. Keep existing lettering weight; the requested correction concerns the outer lining.",
+      "targeted_edit_note": "Remove the crisp dark tracing around each white letter and around the rectangle. Reduce outer edge contrast by about70%; replace the heavy black/gray sticker/extrusion with ONLY the original extremely subtle soft neutral shadow. No continuous visible black stroke/keyline. Preserve white letter faces, lettering weight, exact text, placement, tilt, fine white frame, dusty white spray and the already transparent interior/counters. Do not turn the original faint shadow into a thick grey extrusion or blurry halo; there must be no pronounced outside lining.",
+      "review_note": "Original-based frame/overspray and glyph reconstruction. Compare restrained source gray edges and letter spacing; this is still a reconstruction, not exact original alpha."
+    },
+    {
+      "key": "u076-3e9dd51b",
+      "source_key": "c019-3e9dd51b",
+      "source_id": "3e9dd51b84fa2b06504f4dbf43ba656c6f2ce48241854d0e9dabb0d3fd5833fb",
+      "name": "READY!",
+      "text": "READY!",
+      "kind": "light",
+      "family": "stamped result panel",
+      "context": "brick",
+      "input_png": "/Users/vlad/Code/defjam-data/scratch/menu-ui-v1.2-text-candidate-20261026/inputs/3e9dd51b84fa2b06504f4dbf43ba656c6f2ce48241854d0e9dabb0d3fd5833fb.png",
+      "input_sha256": "c3e95c7f71c58c2ab42ee5368199bae966f3d05a777bc5248102de72de7b3d4e",
+      "source_size": [
+        256,
+        128
+      ],
+      "source_crop": [
+        4,
+        2,
+        230,
+        105
+      ],
+      "source_alpha128_bbox": [
+        9,
+        7,
+        225,
+        100
+      ],
+      "aspect": 2.3225806451612905,
+      "reference_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-20261029/references/u076-3e9dd51b-rgba.png",
+      "reference_sha256": "69510edca1e7a802e5b5633b0c050c55a78d74fec682eebd3e07d12287cbb8b3",
+      "transparency_references": [
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-20261029/references/u076-3e9dd51b-rgba.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-20261029/references/u076-3e9dd51b-blue.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-20261029/references/u076-3e9dd51b-pale.png"
+      ],
+      "source_opaque_rgb_median": [
+        238,
+        241,
+        238
+      ],
+      "inventory_label": "battle/chooseF2",
+      "text_status": "Agent reading checked by parent against actual source contacts; corrected mixed-case prompts, question mark, B vs lock, L-only icon and punctuation",
+      "style_notes": "Keep the tilted dark rectangular plaque, exact original white bold condensed capitals, integrated gray/white dusty/grunge halo and original rotation/placement. Preserve source letter widths and rim/halo distribution. Do not add new cracks, scratches, glow, frame, text or a pristine modern badge.",
+      "native_status": "not tested",
+      "intentional_color_note": "This source has deliberate red/orange/gray or black border/shadow art. Those are not fringe contamination; preserve genuine palette.",
+      "source_context": "Original battle/chooseF2 source; live UV/layer context unverified",
+      "previous_revision": "v5",
+      "previous_raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-revisions-20261029/u076-3e9dd51b-v5.png",
+      "previous_preview_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-revisions-20261029/images/u076-3e9dd51b-draft.png",
+      "previous_raw_sha256": "45fc42bc046f736b3f5bf7019f9e804c791a31446659e6b87882aa679669bf15",
+      "previous_preview_sha256": "97db794a4c4dbbc623eb2742364408aec3abc33998d10da3a59b7bf949fcc012",
+      "previous_draft_bounds": [
+        63,
+        62,
+        1866,
+        774
+      ],
+      "original_bounds": [
+        5,
+        5,
+        221,
+        98
+      ],
+      "candidate_revision": "v7",
+      "correction_request": "Change only the overly pronounced dark outlines around letters and rectangle. Remove the crisp black sticker/keyline and heavy edge contrast; return to original soft, quiet gray shadow/edge. Letter faces, text, angle, spacing, rectangle, natural white dusty spray and transparent inner field stay. The original has a restrained blurred gray edge, not a sharp black tracing around each glyph or frame. Do not add a second contour, depth, bevel or dense opaque black field. Preserve transparency inside the rectangle and counters. Keep existing lettering weight; the requested correction concerns the outer lining.",
+      "targeted_edit_note": "Remove the crisp dark tracing around each white letter and around the rectangle. Reduce outer edge contrast by about70%; replace the heavy black/gray sticker/extrusion with ONLY the original extremely subtle soft neutral shadow. No continuous visible black stroke/keyline. Preserve white letter faces, lettering weight, exact text, placement, tilt, fine white frame, dusty white spray and the already transparent interior/counters. Do not turn the original faint shadow into a thick grey extrusion or blurry halo; there must be no pronounced outside lining.",
+      "review_note": "Original-based lettering and quieter frame/spray; v8 guard-only attempt changed the rim/letter style and is superseded. Selected v7 retains some partial-opacity overspray at a canvas edge; native atlas gutter validation remains due."
+    },
+    {
+      "key": "u081-5af60ba3",
+      "source_key": "c031-5af60ba3",
+      "source_id": "5af60ba386eb7152e8616083f0712375dd9a56c1c4b8482e4ae72266184f254e",
+      "name": "GAGNANT",
+      "text": "GAGNANT",
+      "kind": "light",
+      "family": "stamped result panel",
+      "context": "brick",
+      "input_png": "/Users/vlad/Code/defjam-data/scratch/menu-ui-v1.2-text-candidate-20261026/inputs/5af60ba386eb7152e8616083f0712375dd9a56c1c4b8482e4ae72266184f254e.png",
+      "input_sha256": "f026e13a9dbc84e7f17ab49e6206c69006147e1b8ae4daa316a41a76b1209311",
+      "source_size": [
+        256,
+        128
+      ],
+      "source_crop": [
+        4,
+        6,
+        195,
+        99
+      ],
+      "source_alpha128_bbox": [
+        9,
+        11,
+        190,
+        94
+      ],
+      "aspect": 2.180722891566265,
+      "reference_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-20261029/references/u081-5af60ba3-rgba.png",
+      "reference_sha256": "33fa20b010d764bba0afb513dadf65ca16e1c2296378179dae89ac428077f71e",
+      "transparency_references": [
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-20261029/references/u081-5af60ba3-rgba.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-20261029/references/u081-5af60ba3-blue.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-20261029/references/u081-5af60ba3-pale.png"
+      ],
+      "source_opaque_rgb_median": [
+        239,
+        243,
+        239
+      ],
+      "inventory_label": "battle/matchSm2",
+      "text_status": "Agent reading checked by parent against actual source contacts; corrected mixed-case prompts, question mark, B vs lock, L-only icon and punctuation",
+      "style_notes": "Keep the tilted dark rectangular plaque, exact original white bold condensed capitals, integrated gray/white dusty/grunge halo and original rotation/placement. Preserve source letter widths and rim/halo distribution. Do not add new cracks, scratches, glow, frame, text or a pristine modern badge.",
+      "native_status": "not tested",
+      "intentional_color_note": "This source has deliberate red/orange/gray or black border/shadow art. Those are not fringe contamination; preserve genuine palette.",
+      "source_context": "Original battle/matchSm2 source; live UV/layer context unverified",
+      "previous_revision": "v5",
+      "previous_raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-revisions-20261029/u081-5af60ba3-v5.png",
+      "previous_preview_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-revisions-20261029/images/u081-5af60ba3-draft.png",
+      "previous_raw_sha256": "331e050a7028e353bfe8c2dd60b064c7c9823199394807cafdc937c6c933b245",
+      "previous_preview_sha256": "7f1358f89d08d26d378f2e8a5c1f2584807987a72691c52cda9869863237a641",
+      "previous_draft_bounds": [
+        83,
+        63,
+        1776,
+        793
+      ],
+      "original_bounds": [
+        5,
+        5,
+        186,
+        88
+      ],
+      "candidate_revision": "v8",
+      "correction_request": "Change only the overly pronounced dark outlines around letters and rectangle. Remove the crisp black sticker/keyline and heavy edge contrast; return to original soft, quiet gray shadow/edge. Letter faces, text, angle, spacing, rectangle, natural white dusty spray and transparent inner field stay. The original has a restrained blurred gray edge, not a sharp black tracing around each glyph or frame. Do not add a second contour, depth, bevel or dense opaque black field. Preserve transparency inside the rectangle and counters. Keep existing lettering weight; the requested correction concerns the outer lining.",
+      "targeted_edit_note": "Remove the crisp dark tracing around each white letter and around the rectangle. Reduce outer edge contrast by about70%; replace the heavy black/gray sticker/extrusion with ONLY the original extremely subtle soft neutral shadow. No continuous visible black stroke/keyline. Preserve white letter faces, lettering weight, exact text, placement, tilt, fine white frame, dusty white spray and the already transparent interior/counters. Do not turn the original faint shadow into a thick grey extrusion or blurry halo; there must be no pronounced outside lining.",
+      "review_note": "Original-based frame/overspray and glyph reconstruction. Compare restrained source gray edges and letter spacing; this is still a reconstruction, not exact original alpha."
+    },
+    {
+      "key": "u071-1378b522",
+      "source_key": "c009-1378b522",
+      "source_id": "1378b5222a7a4a9ebd1880031af03dba92796de9867b299960f18b3b26e8185d",
+      "name": "OPTIONS",
+      "text": "OPTIONS",
+      "kind": "light",
+      "family": "promotional distressed wordmark",
+      "context": "brick",
+      "input_png": "/Users/vlad/Code/defjam-data/scratch/menu-ui-v1.2-text-candidate-20261026/inputs/1378b5222a7a4a9ebd1880031af03dba92796de9867b299960f18b3b26e8185d.png",
+      "input_sha256": "6cbd9bca305f3f297d35c669435d57a8e7487c8e7594668a6132736b7b559a99",
+      "source_size": [
+        256,
+        64
+      ],
+      "source_crop": [
+        3,
+        0,
+        163,
+        53
+      ],
+      "source_alpha128_bbox": [
+        8,
+        2,
+        158,
+        48
+      ],
+      "aspect": 3.260869565217391,
+      "reference_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-20261029/references/u071-1378b522-rgba.png",
+      "reference_sha256": "a042d708ca7f42316051dc26e159203b4ee4af89a2fd5f6a832172f99f0aaa90",
+      "transparency_references": [
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-20261029/references/u071-1378b522-rgba.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-20261029/references/u071-1378b522-blue.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-20261029/references/u071-1378b522-pale.png"
+      ],
+      "source_opaque_rgb_median": [
+        90,
+        85,
+        77
+      ],
+      "inventory_label": "intMain/demoMenu",
+      "text_status": "Agent reading checked by parent against actual source contacts; corrected mixed-case prompts, question mark, B vs lock, L-only icon and punctuation",
+      "style_notes": "Copy original bold condensed slab-serif/stencil wordmark exactly, including actual feet, bowl proportions, original cuts, mottled cream/gold interior wear and black keyline/drop shadow already present. Respect staggered line starts on two-line titles. This is the source promotional wordmark font, not the thin stencil family recently corrected and not a modern sans substitute. No new distress pattern or inflated stems.",
+      "native_status": "not tested",
+      "intentional_color_note": "This source has deliberate red/orange/gray or black border/shadow art. Those are not fringe contamination; preserve genuine palette.",
+      "source_context": "Demo/promotional menu variant; actual live use unverified",
+      "previous_revision": "v4",
+      "previous_raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-revisions-20261029/u071-1378b522-v4.png",
+      "previous_preview_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-revisions-20261029/images/u071-1378b522-draft.png",
+      "previous_raw_sha256": "ff0810136b7d124d7590c2f8d4d9a0ba97d9d9253a48bbda077aafe1842bb51c",
+      "previous_preview_sha256": "d2d000156e31b763f97cab870fe3a70dbea98d93a4396939a4ced068fce0f2c3",
+      "previous_draft_bounds": [
+        68,
+        77,
+        2114,
+        605
+      ],
+      "original_bounds": [
+        5,
+        2,
+        155,
+        48
+      ],
+      "source_face_bbox": [
+        8,
+        5,
+        152,
+        39
+      ],
+      "source_face_rgb_median": [
+        247,
+        243,
+        222
+      ],
+      "candidate_revision": "v7",
+      "correction_request": "Owner says the previous wordmark looked too large. Rebuild the ORIGINAL glyph size relative to its full asset/shadow footprint. Source logical canvas 160×53; cream lettering face approximately x=8..152, y=5..39. These are reference proportions, not text to render. Keep the upper compact cream word, narrow black source outline and original SOFT translucent drop shadow extending BELOW the letters. In the original the face uses only about 64% of the full source canvas height; do not enlarge glyphs to fill the entire outer-shadow box. Keep the original lower shadow margin and top/bottom placement, full canvas aspect and all letter widths/counters/serifs. Reduce face height relative to previous filling/bulky drafts. Do not merely add huge transparent padding around an unchanged oversized word. Preserve original worn cream/gold palette, face median near RGB(247, 243, 222), subtle source distress. Do not turn source muted gold into bright white, enlarge serifs, remove original shadow, thicken black keylines, add depth or invent a backing plate.",
+      "targeted_edit_note": "The word looks too large relative to its original full art footprint. Keep the existing smooth HD letterforms, serifs, spacing and distress, but reduce the cream face HEIGHT about17% relative to the full shadow footprint, anchored at its original upper baseline. Restore the original soft translucent shadow below the word instead of using that shadow margin for oversized faces. Preserve source narrow black outline; no thick new keyline. Full artwork visible aspect/proportions should match Image2. Do not simply add arbitrary blank borders around an unchanged large word, and do not enlarge the letters to fill the entire outer-shadow height. Original face palette is muted cream/gold, not bright white; match Images2/3/4. Keep high-resolution contours smooth, do not copy chunky source pixel stairs into the HD outlines.",
+      "review_note": "Original-based letterforms, serif terminals, spacing and muted cream/gold material. Compare source silhouette and face size; shadow/contour details remain approximate."
+    },
+    {
+      "key": "u085-6e626288",
+      "source_key": "c036-6e626288",
+      "source_id": "6e6262886e5b510df9d384a0e840ab9217b786a2b3f998a4f3b4c253296989cf",
+      "name": "BEATBOX",
+      "text": "BEATBOX",
+      "kind": "light",
+      "family": "promotional distressed wordmark",
+      "context": "brick",
+      "input_png": "/Users/vlad/Code/defjam-data/scratch/menu-ui-v1.2-text-candidate-20261026/inputs/6e6262886e5b510df9d384a0e840ab9217b786a2b3f998a4f3b4c253296989cf.png",
+      "input_sha256": "13c83e7b9c5d0fae71718803c3151ba041fbd9bff811e2136eb75bfc4d34f836",
+      "source_size": [
+        256,
+        64
+      ],
+      "source_crop": [
+        3,
+        0,
+        169,
+        53
+      ],
+      "source_alpha128_bbox": [
+        8,
+        3,
+        164,
+        48
+      ],
+      "aspect": 3.466666666666667,
+      "reference_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-20261029/references/u085-6e626288-rgba.png",
+      "reference_sha256": "c1181320732e1fe6642e07886e96d7189b24a285c2790231ea3459d2a8471d75",
+      "transparency_references": [
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-20261029/references/u085-6e626288-rgba.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-20261029/references/u085-6e626288-blue.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-20261029/references/u085-6e626288-pale.png"
+      ],
+      "source_opaque_rgb_median": [
+        90,
+        85,
+        68
+      ],
+      "inventory_label": "intMain/demoMenu",
+      "text_status": "Agent reading checked by parent against actual source contacts; corrected mixed-case prompts, question mark, B vs lock, L-only icon and punctuation",
+      "style_notes": "Copy original bold condensed slab-serif/stencil wordmark exactly, including actual feet, bowl proportions, original cuts, mottled cream/gold interior wear and black keyline/drop shadow already present. Respect staggered line starts on two-line titles. This is the source promotional wordmark font, not the thin stencil family recently corrected and not a modern sans substitute. No new distress pattern or inflated stems.",
+      "native_status": "not tested",
+      "intentional_color_note": "This source has deliberate red/orange/gray or black border/shadow art. Those are not fringe contamination; preserve genuine palette.",
+      "source_context": "Demo/promotional menu variant; actual live use unverified",
+      "previous_revision": "v4",
+      "previous_raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-revisions-20261029/u085-6e626288-v4.png",
+      "previous_preview_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-revisions-20261029/images/u085-6e626288-draft.png",
+      "previous_raw_sha256": "8a3fb096a49ee589ab7a8c22dc4cb914aece2aab2603b858e724f15a9b415bf0",
+      "previous_preview_sha256": "595a3f9b23768b0e7a836881725e9cfc0eb8ecfd01e60d3bd1201673980f81e2",
+      "previous_draft_bounds": [
+        56,
+        103,
+        2116,
+        596
+      ],
+      "original_bounds": [
+        5,
+        3,
+        161,
+        48
+      ],
+      "source_face_bbox": [
+        8,
+        6,
+        158,
+        40
+      ],
+      "source_face_rgb_median": [
+        247,
+        241,
+        222
+      ],
+      "candidate_revision": "v7",
+      "correction_request": "Owner says the previous wordmark looked too large. Rebuild the ORIGINAL glyph size relative to its full asset/shadow footprint. Source logical canvas 166×53; cream lettering face approximately x=8..158, y=6..40. These are reference proportions, not text to render. Keep the upper compact cream word, narrow black source outline and original SOFT translucent drop shadow extending BELOW the letters. In the original the face uses only about 64% of the full source canvas height; do not enlarge glyphs to fill the entire outer-shadow box. Keep the original lower shadow margin and top/bottom placement, full canvas aspect and all letter widths/counters/serifs. Reduce face height relative to previous filling/bulky drafts. Do not merely add huge transparent padding around an unchanged oversized word. Preserve original worn cream/gold palette, face median near RGB(247, 241, 222), subtle source distress. Do not turn source muted gold into bright white, enlarge serifs, remove original shadow, thicken black keylines, add depth or invent a backing plate.",
+      "targeted_edit_note": "The word looks too large relative to its original full art footprint. Keep the existing smooth HD letterforms, serifs, spacing and distress, but reduce the cream face HEIGHT about17% relative to the full shadow footprint, anchored at its original upper baseline. Restore the original soft translucent shadow below the word instead of using that shadow margin for oversized faces. Preserve source narrow black outline; no thick new keyline. Full artwork visible aspect/proportions should match Image2. Do not simply add arbitrary blank borders around an unchanged large word, and do not enlarge the letters to fill the entire outer-shadow height. Original face palette is muted cream/gold, not bright white; match Images2/3/4. Keep high-resolution contours smooth, do not copy chunky source pixel stairs into the HD outlines.",
+      "review_note": "Original-based letterforms, serif terminals, spacing and muted cream/gold material. Compare source silhouette and face size; shadow/contour details remain approximate."
+    },
+    {
+      "key": "u087-7017f637",
+      "source_key": "c038-7017f637",
+      "source_id": "7017f637f22b4698e4acbeeb852324ef586cd5ddbd05395599790feb09648890",
+      "name": "EXTRAS",
+      "text": "EXTRAS",
+      "kind": "light",
+      "family": "promotional distressed wordmark",
+      "context": "brick",
+      "input_png": "/Users/vlad/Code/defjam-data/scratch/menu-ui-v1.2-text-candidate-20261026/inputs/7017f637f22b4698e4acbeeb852324ef586cd5ddbd05395599790feb09648890.png",
+      "input_sha256": "6f36d3ae1aca3d8def476d6176ad8c789a7b872bfc36961f9f21047b80b56b3a",
+      "source_size": [
+        256,
+        64
+      ],
+      "source_crop": [
+        2,
+        0,
+        144,
+        53
+      ],
+      "source_alpha128_bbox": [
+        7,
+        2,
+        139,
+        48
+      ],
+      "aspect": 2.869565217391304,
+      "reference_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-20261029/references/u087-7017f637-rgba.png",
+      "reference_sha256": "04b8c6b23c3decf07f0c2a8d15706af929ef409b3206ca1eece7426d49cdf6fc",
+      "transparency_references": [
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-20261029/references/u087-7017f637-rgba.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-20261029/references/u087-7017f637-blue.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-20261029/references/u087-7017f637-pale.png"
+      ],
+      "source_opaque_rgb_median": [
+        90,
+        83,
+        75
+      ],
+      "inventory_label": "intMain/demoMenu",
+      "text_status": "Agent reading checked by parent against actual source contacts; corrected mixed-case prompts, question mark, B vs lock, L-only icon and punctuation",
+      "style_notes": "Copy original bold condensed slab-serif/stencil wordmark exactly, including actual feet, bowl proportions, original cuts, mottled cream/gold interior wear and black keyline/drop shadow already present. Respect staggered line starts on two-line titles. This is the source promotional wordmark font, not the thin stencil family recently corrected and not a modern sans substitute. No new distress pattern or inflated stems.",
+      "native_status": "not tested",
+      "intentional_color_note": "This source has deliberate red/orange/gray or black border/shadow art. Those are not fringe contamination; preserve genuine palette.",
+      "source_context": "Demo/promotional menu variant; actual live use unverified",
+      "previous_revision": "v4",
+      "previous_raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-revisions-20261029/u087-7017f637-v4.png",
+      "previous_preview_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-revisions-20261029/images/u087-7017f637-draft.png",
+      "previous_raw_sha256": "a1bf7a778d999941349801cf2a1e352b6edd68f0a86aeef35187540fda519de7",
+      "previous_preview_sha256": "ea646d6925541d287244769b18beef8deb22ebd2fdcfe10edd2fad8f8820d338",
+      "previous_draft_bounds": [
+        49,
+        87,
+        2008,
+        634
+      ],
+      "original_bounds": [
+        5,
+        2,
+        137,
+        48
+      ],
+      "source_face_bbox": [
+        8,
+        5,
+        134,
+        39
+      ],
+      "source_face_rgb_median": [
+        247,
+        243,
+        231
+      ],
+      "candidate_revision": "v7",
+      "correction_request": "Owner says the previous wordmark looked too large. Rebuild the ORIGINAL glyph size relative to its full asset/shadow footprint. Source logical canvas 142×53; cream lettering face approximately x=8..134, y=5..39. These are reference proportions, not text to render. Keep the upper compact cream word, narrow black source outline and original SOFT translucent drop shadow extending BELOW the letters. In the original the face uses only about 64% of the full source canvas height; do not enlarge glyphs to fill the entire outer-shadow box. Keep the original lower shadow margin and top/bottom placement, full canvas aspect and all letter widths/counters/serifs. Reduce face height relative to previous filling/bulky drafts. Do not merely add huge transparent padding around an unchanged oversized word. Preserve original worn cream/gold palette, face median near RGB(247, 243, 231), subtle source distress. Do not turn source muted gold into bright white, enlarge serifs, remove original shadow, thicken black keylines, add depth or invent a backing plate.",
+      "targeted_edit_note": "The word looks too large relative to its original full art footprint. Keep the existing smooth HD letterforms, serifs, spacing and distress, but reduce the cream face HEIGHT about17% relative to the full shadow footprint, anchored at its original upper baseline. Restore the original soft translucent shadow below the word instead of using that shadow margin for oversized faces. Preserve source narrow black outline; no thick new keyline. Full artwork visible aspect/proportions should match Image2. Do not simply add arbitrary blank borders around an unchanged large word, and do not enlarge the letters to fill the entire outer-shadow height. Original face palette is muted cream/gold, not bright white; match Images2/3/4. Keep high-resolution contours smooth, do not copy chunky source pixel stairs into the HD outlines.",
+      "review_note": "Original-based letterforms, serif terminals, spacing and muted cream/gold material. Compare source silhouette and face size; shadow/contour details remain approximate."
+    },
+    {
+      "key": "u095-885bd6a6",
+      "source_key": "c047-885bd6a6",
+      "source_id": "885bd6a629436d2de778123a4232d0e9b981c58192a2363a968083d2a07582cd",
+      "name": "ONLINE",
+      "text": "ONLINE",
+      "kind": "light",
+      "family": "promotional distressed wordmark",
+      "context": "brick",
+      "input_png": "/Users/vlad/Code/defjam-data/scratch/menu-ui-v1.2-text-candidate-20261026/inputs/885bd6a629436d2de778123a4232d0e9b981c58192a2363a968083d2a07582cd.png",
+      "input_sha256": "644450b5e3370520c1fe969db7534c7e90f4f792df093c1d1faff0b91513c82e",
+      "source_size": [
+        256,
+        64
+      ],
+      "source_crop": [
+        3,
+        0,
+        139,
+        53
+      ],
+      "source_alpha128_bbox": [
+        8,
+        3,
+        134,
+        48
+      ],
+      "aspect": 2.8,
+      "reference_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-20261029/references/u095-885bd6a6-rgba.png",
+      "reference_sha256": "496b8a462881d89d2939b42d6ce48c6ed73bf2ecd9b38ae641af38d4d29a94b4",
+      "transparency_references": [
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-20261029/references/u095-885bd6a6-rgba.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-20261029/references/u095-885bd6a6-blue.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-20261029/references/u095-885bd6a6-pale.png"
+      ],
+      "source_opaque_rgb_median": [
+        85,
+        81,
+        68
+      ],
+      "inventory_label": "intMain/demoMenu",
+      "text_status": "Agent reading checked by parent against actual source contacts; corrected mixed-case prompts, question mark, B vs lock, L-only icon and punctuation",
+      "style_notes": "Copy original bold condensed slab-serif/stencil wordmark exactly, including actual feet, bowl proportions, original cuts, mottled cream/gold interior wear and black keyline/drop shadow already present. Respect staggered line starts on two-line titles. This is the source promotional wordmark font, not the thin stencil family recently corrected and not a modern sans substitute. No new distress pattern or inflated stems.",
+      "native_status": "not tested",
+      "intentional_color_note": "This source has deliberate red/orange/gray or black border/shadow art. Those are not fringe contamination; preserve genuine palette.",
+      "source_context": "Demo/promotional menu variant; actual live use unverified",
+      "previous_revision": "v4",
+      "previous_raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-revisions-20261029/u095-885bd6a6-v4.png",
+      "previous_preview_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-revisions-20261029/images/u095-885bd6a6-draft.png",
+      "previous_raw_sha256": "792de7aba05e5e0108108495fe432d1405bff4caf68aa2b74ae368beddd504e1",
+      "previous_preview_sha256": "1a4954a74c2eef0aec89ac9f62b3d29528367198bd0bf5238205ef6a10a1bdd5",
+      "previous_draft_bounds": [
+        90,
+        125,
+        1886,
+        676
+      ],
+      "original_bounds": [
+        5,
+        3,
+        131,
+        48
+      ],
+      "source_face_bbox": [
+        8,
+        6,
+        128,
+        40
+      ],
+      "source_face_rgb_median": [
+        247,
+        243,
+        225
+      ],
+      "candidate_revision": "v7",
+      "correction_request": "Owner says the previous wordmark looked too large. Rebuild the ORIGINAL glyph size relative to its full asset/shadow footprint. Source logical canvas 136×53; cream lettering face approximately x=8..128, y=6..40. These are reference proportions, not text to render. Keep the upper compact cream word, narrow black source outline and original SOFT translucent drop shadow extending BELOW the letters. In the original the face uses only about 64% of the full source canvas height; do not enlarge glyphs to fill the entire outer-shadow box. Keep the original lower shadow margin and top/bottom placement, full canvas aspect and all letter widths/counters/serifs. Reduce face height relative to previous filling/bulky drafts. Do not merely add huge transparent padding around an unchanged oversized word. Preserve original worn cream/gold palette, face median near RGB(247, 243, 225), subtle source distress. Do not turn source muted gold into bright white, enlarge serifs, remove original shadow, thicken black keylines, add depth or invent a backing plate.",
+      "targeted_edit_note": "The word looks too large relative to its original full art footprint. Keep the existing smooth HD letterforms, serifs, spacing and distress, but reduce the cream face HEIGHT about17% relative to the full shadow footprint, anchored at its original upper baseline. Restore the original soft translucent shadow below the word instead of using that shadow margin for oversized faces. Preserve source narrow black outline; no thick new keyline. Full artwork visible aspect/proportions should match Image2. Do not simply add arbitrary blank borders around an unchanged large word, and do not enlarge the letters to fill the entire outer-shadow height. Original face palette is muted cream/gold, not bright white; match Images2/3/4. Keep high-resolution contours smooth, do not copy chunky source pixel stairs into the HD outlines.",
+      "review_note": "Original-based letterforms, serif terminals, spacing and muted cream/gold material. Compare source silhouette and face size; shadow/contour details remain approximate."
+    },
+    {
+      "key": "u097-91247b8f",
+      "source_key": "c049-91247b8f",
+      "source_id": "91247b8f430634d8db111521b9bb6d5ae35d83d5de2c80557c78895bc75e24c1",
+      "name": "BATTLE",
+      "text": "BATTLE",
+      "kind": "light",
+      "family": "promotional distressed wordmark",
+      "context": "brick",
+      "input_png": "/Users/vlad/Code/defjam-data/scratch/menu-ui-v1.2-text-candidate-20261026/inputs/91247b8f430634d8db111521b9bb6d5ae35d83d5de2c80557c78895bc75e24c1.png",
+      "input_sha256": "e1f8a0db3539b1f76e71381ad485dcc904eeea2e199648c2417df1096b55e236",
+      "source_size": [
+        256,
+        64
+      ],
+      "source_crop": [
+        3,
+        0,
+        143,
+        52
+      ],
+      "source_alpha128_bbox": [
+        8,
+        2,
+        138,
+        47
+      ],
+      "aspect": 2.888888888888889,
+      "reference_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-20261029/references/u097-91247b8f-rgba.png",
+      "reference_sha256": "bce64f82991ac6f66fb1d70fb8a26f56e98f9ba79c4d21dae47c62603bdb01f8",
+      "transparency_references": [
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-20261029/references/u097-91247b8f-rgba.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-20261029/references/u097-91247b8f-blue.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-20261029/references/u097-91247b8f-pale.png"
+      ],
+      "source_opaque_rgb_median": [
+        85,
+        78,
+        60
+      ],
+      "inventory_label": "intMain/demoMenu",
+      "text_status": "Agent reading checked by parent against actual source contacts; corrected mixed-case prompts, question mark, B vs lock, L-only icon and punctuation",
+      "style_notes": "Copy original bold condensed slab-serif/stencil wordmark exactly, including actual feet, bowl proportions, original cuts, mottled cream/gold interior wear and black keyline/drop shadow already present. Respect staggered line starts on two-line titles. This is the source promotional wordmark font, not the thin stencil family recently corrected and not a modern sans substitute. No new distress pattern or inflated stems.",
+      "native_status": "not tested",
+      "intentional_color_note": "This source has deliberate red/orange/gray or black border/shadow art. Those are not fringe contamination; preserve genuine palette.",
+      "source_context": "Demo/promotional menu variant; actual live use unverified",
+      "previous_revision": "v4",
+      "previous_raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-revisions-20261029/u097-91247b8f-v4.png",
+      "previous_preview_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-revisions-20261029/images/u097-91247b8f-draft.png",
+      "previous_raw_sha256": "155dbc42d725eddc7ff906cf285ae28628d79f505e07f93074543c5b43d27aa1",
+      "previous_preview_sha256": "2938524abbf279003e71343463d2a1821df3a0e973686738fd24ba5d246b654e",
+      "previous_draft_bounds": [
+        82,
+        91,
+        2022,
+        646
+      ],
+      "original_bounds": [
+        5,
+        2,
+        135,
+        47
+      ],
+      "source_face_bbox": [
+        8,
+        5,
+        132,
+        39
+      ],
+      "source_face_rgb_median": [
+        239,
+        227,
+        198
+      ],
+      "candidate_revision": "v7",
+      "correction_request": "Owner says the previous wordmark looked too large. Rebuild the ORIGINAL glyph size relative to its full asset/shadow footprint. Source logical canvas 140×52; cream lettering face approximately x=8..132, y=5..39. These are reference proportions, not text to render. Keep the upper compact cream word, narrow black source outline and original SOFT translucent drop shadow extending BELOW the letters. In the original the face uses only about 65% of the full source canvas height; do not enlarge glyphs to fill the entire outer-shadow box. Keep the original lower shadow margin and top/bottom placement, full canvas aspect and all letter widths/counters/serifs. Reduce face height relative to previous filling/bulky drafts. Do not merely add huge transparent padding around an unchanged oversized word. Preserve original worn cream/gold palette, face median near RGB(239, 227, 198), subtle source distress. Do not turn source muted gold into bright white, enlarge serifs, remove original shadow, thicken black keylines, add depth or invent a backing plate.",
+      "targeted_edit_note": "The word looks too large relative to its original full art footprint. Keep the existing smooth HD letterforms, serifs, spacing and distress, but reduce the cream face HEIGHT about17% relative to the full shadow footprint, anchored at its original upper baseline. Restore the original soft translucent shadow below the word instead of using that shadow margin for oversized faces. Preserve source narrow black outline; no thick new keyline. Full artwork visible aspect/proportions should match Image2. Do not simply add arbitrary blank borders around an unchanged large word, and do not enlarge the letters to fill the entire outer-shadow height. Original face palette is muted cream/gold, not bright white; match Images2/3/4. Keep high-resolution contours smooth, do not copy chunky source pixel stairs into the HD outlines.",
+      "review_note": "Original-based letterforms, serif terminals, spacing and muted cream/gold material. Compare source silhouette and face size; shadow/contour details remain approximate."
+    },
+    {
+      "key": "u074-30fad9eb",
+      "source_key": "c016-30fad9eb",
+      "source_id": "30fad9eb6d75a6b390e84c76350b1429905c376bd05d730455005e2fbee23d3a",
+      "name": "YOU DON'T HAVE ENOUGH POINTS",
+      "text": "YOU DON'T\nHAVE ENOUGH\nPOINTS",
+      "kind": "light",
+      "family": "red points warning stamp",
+      "context": "brick",
+      "input_png": "/Users/vlad/Code/defjam-data/scratch/menu-ui-v1.2-text-candidate-20261026/inputs/30fad9eb6d75a6b390e84c76350b1429905c376bd05d730455005e2fbee23d3a.png",
+      "input_sha256": "28039b143b6586d295e70328453a431adf168517533c2596183f5aa9578e980d",
+      "source_size": [
+        256,
+        256
+      ],
+      "source_crop": [
+        8,
+        6,
+        215,
+        142
+      ],
+      "source_alpha128_bbox": [
+        13,
+        11,
+        210,
+        137
+      ],
+      "aspect": 1.5634920634920635,
+      "reference_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-20261029/references/u074-30fad9eb-rgba.png",
+      "reference_sha256": "53ce8a4511fda5b1ed36a2296afdebfe7eebf4e83ca533fdfd9d0fb83dfdb3c1",
+      "transparency_references": [
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-20261029/references/u074-30fad9eb-rgba.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-20261029/references/u074-30fad9eb-blue.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-20261029/references/u074-30fad9eb-pale.png"
+      ],
+      "source_opaque_rgb_median": [
+        236,
+        2,
+        2
+      ],
+      "inventory_label": "battle/unlockven",
+      "text_status": "Agent reading checked by parent against actual source contacts; corrected mixed-case prompts, question mark, B vs lock, L-only icon and punctuation",
+      "style_notes": "Preserve original red warning stamp: red rough rectangular frame and exact three-line red sans message, native row sizes and baseline positions, source scuffed edge/alpha. Keep background/counters transparent; do not fill stamp background, add a white border or alter wording.",
+      "native_status": "not tested",
+      "intentional_color_note": "This source has deliberate red/orange/gray or black border/shadow art. Those are not fringe contamination; preserve genuine palette.",
+      "source_context": "Original battle/unlockven source; live UV/layer context unverified",
+      "previous_revision": "v4",
+      "previous_raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-revisions-20261029/u074-30fad9eb-v4.png",
+      "previous_preview_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-revisions-20261029/images/u074-30fad9eb-draft.png",
+      "previous_raw_sha256": "c168e5de8dd2b16357b73ca33523800e8c80535497c772f0a50662c45f91acec",
+      "previous_preview_sha256": "8428361f66d6f092f36695e351792b04e371cfa464cb60b8ef129fa22c660ed1",
+      "previous_draft_bounds": [
+        8,
+        5,
+        1535,
+        1008
+      ],
+      "original_bounds": [
+        5,
+        5,
+        202,
+        131
+      ],
+      "candidate_revision": "v6",
+      "correction_request": "Owner says the red is too bright. Match the original subdued red ink and partial-opacity spray, not vivid pure scarlet. Keep original collage layout, all overlapping rows and words, slant, irregular red rectangular frame and transparent interior. Text is YOU DON'T / HAVE ENOUGH / POINTS, with source overlapping/layered repetitions exactly as reference; do not invent a new line arrangement. Preserve original low-opacity overspray and worn red, including darker regions; avoid bright orange, neon red, opaque red fill or white backing.",
+      "targeted_edit_note": "Change only red colour/opacity to the original restrained ink. Current red is too bright and dense. Original solid face red is near RGB236/2/2, not vivid247–255red; source spray is much more translucent than current. Reduce red saturation/brightness and overspray opacity to match Images2/3, keeping the current collage text, exact layered line layout, slant, letter geometry and frame shape. Do not fill the transparent field or make lettering uniformly transparent; preserve its solid core and original faded spray. No new white/black fringe or extra text.",
+      "review_note": "Original narrow red lettering and faded frame/spray used as references. Compare actual weight and red tone at1x; colour/opacity and distress remain approximate."
+    }
+  ],
+  "generation_records": [
+    {
+      "key": "u068-0fdad2b7",
+      "source_id": "0fdad2b78d8470675ba3e8524c134019e28548788a321687548a34d913c298e0",
+      "revision": "v7",
+      "selected": true,
+      "request_path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/request-u068-0fdad2b7-v7.json",
+      "request_sha256": "08f88cd1eb829beee70619b68c1ffe947bfafe43486177cd67270c87ddcfa6ea",
+      "result_path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/result-u068-0fdad2b7-v7.json",
+      "result_sha256": "5cc607667c5499136545f47f4557fe586d7e2cdab692623d702593af9a2d6a42",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/u068-0fdad2b7-v7.png",
+      "raw_generated_path": "/Users/vlad/.codex/generated_images/01a1793b-e9e9-7cb0-9af8-db327635dd56/exec-1f333200-a793-498a-b37a-72bb3a860f78.png",
+      "raw_sha256": "2b47e62d9debf6f024f243b006b0dc70153bf32d46784a54a85814a53c8f727a",
+      "prompt": "Use case: precise-object-edit. Faithful restoration of a single original Def Jam UI bitmap.\nImage1 is the ORIGINAL artwork faithfully enlarged6x on a neutral-gray inspection backdrop and is the EDIT TARGET. Images2/3 show exactly the same original on blue/pale. These are three faithful source composites, not alternate designs. The different backdrops reveal original transparency and partial opacity. Remove the inspection backdrops for genuine transparent output; preserve source cutouts/alpha relationships. No previous generated font is a design reference.\nExact text: \"WINNER\".\nRestore the ORIGINAL scanned/stamped artwork with restrained contrast. The rectangle is a quiet thin light-gray edge with diffuse worn spray, NOT a solid brilliant-white rectangle or luminous outline. Original overspray is faint/uneven and limited; do not amplify it into a bright neon halo or denser white cloud. Keep original partial opacity and subtle gray shadow. White letter faces remain the focus, not the border. The inside of the rectangle and letter counters stay genuinely transparent, not an opaque black/gray plate. Match exact original tilt, white face weight, visible face size, letter placement and frame geometry. Keep original narrow straight W strokes, condensed I/N/N, short E bars, narrow R bowl and its original angled leg. Keep original per-glyph positions and condensed widths.\nTreat every original glyph silhouette, tiny terminal/counter, word gap and colour/opacity relationship as protected. Sharpen smooth intended boundaries gently through raster steps; do not trace sampled pixel stair steps, change typeface or reinterpret the lettering. Improve resolution without restyling or strengthening the print. No extra caption, instruction text, ornaments, paper, portrait, plate or reference backdrop. Real transparency including source cutouts; no green/white matte. Fully transparent guard beyond all genuine spray/shadow; never crop visible art at the image edge.",
+      "input_images": [
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u068-0fdad2b7-gray-6x.png",
+          "sha256": "928e2834faa7e8e4357a84bcab36d06a254f498b5e057bc3e5c7448606d705b7"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u068-0fdad2b7-blue-6x.png",
+          "sha256": "b0f6b199266998a7ee4aff167ce7981a65bcfd4799c784a4c72b58aeda8a44d9"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u068-0fdad2b7-pale-6x.png",
+          "sha256": "3feb545ef9b2e30d7f50422750015d0546fdbc1b7d555d80dc358ff251968d44"
+        }
+      ]
+    },
+    {
+      "key": "u071-1378b522",
+      "source_id": "1378b5222a7a4a9ebd1880031af03dba92796de9867b299960f18b3b26e8185d",
+      "revision": "v6",
+      "selected": false,
+      "request_path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/request-u071-1378b522-v6.json",
+      "request_sha256": "a4274e19f7f98819d9f9275fa5b59c09514d673fbe66bc75ed9cd0510d53d475",
+      "result_path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/result-u071-1378b522-v6.json",
+      "result_sha256": "9ca11e3d3cca7844c8f3b0e45825bfdc98e5e5b262234cc6f8244423d5d1bd4a",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/u071-1378b522-v6.png",
+      "raw_generated_path": "/Users/vlad/.codex/generated_images/01a1793b-e9e9-7cb0-9af8-db327635dd56/exec-00490f5c-837c-4238-b348-cda7cce0d9bd.png",
+      "raw_sha256": "aa113380eabb1306f78fabd4ced45a4f73d38489573aa496c3ec8a51d763a6ad",
+      "prompt": "Use case: precise-object-edit. Faithful restoration of a single original Def Jam UI bitmap.\nImage1 is the ORIGINAL artwork faithfully enlarged6x on a neutral-gray inspection backdrop and is the EDIT TARGET. Images2/3 show exactly the same original on blue/pale. These are three faithful source composites, not alternate designs. The different backdrops reveal original transparency and partial opacity. Remove the inspection backdrops for genuine transparent output; preserve source cutouts/alpha relationships. No previous generated font is a design reference.\nExact text: \"OPTIONS\".\nRestore this exact original wordmark as a scan-restoration task, not a font recreation. Preserve the original slab terminals and each glyph silhouette, including split narrow O counters, P bowl junctions, T shaft/ends, asymmetric N diagonal and S curves. Do not substitute a generic western or stencil typeface. Keep original cream/gold face colours, irregular source wear and soft original drop shadow. Only smooth the intended contours and resolve genuine existing detail. Do not add decorative distress, chip outlines or grain absent from this source. The visible original word rectangle, face height, baseline and each individual gap must remain the same relative to the full source canvas; do not enlarge the word, change its aspect or fill the shadow margin with taller letters. No thicker black border, new depth, new highlight or bright yellow/gold wash.\nTreat every original glyph silhouette, tiny terminal/counter, word gap and colour/opacity relationship as protected. Sharpen smooth intended boundaries gently through raster steps; do not trace sampled pixel stair steps, change typeface or reinterpret the lettering. Improve resolution without restyling or strengthening the print. No extra caption, instruction text, ornaments, paper, portrait, plate or reference backdrop. Real transparency including source cutouts; no green/white matte. Fully transparent guard beyond all genuine spray/shadow; never crop visible art at the image edge.",
+      "input_images": [
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u071-1378b522-gray-6x.png",
+          "sha256": "0498386c2807d5aee70eb8d43c546195704dc639ae5bf6ad5aedc178c46c73ce"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u071-1378b522-blue-6x.png",
+          "sha256": "2cb954eab1622074d1e6868f201bb596dd4e120cdd9f5b9a9cc9c134204dab78"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u071-1378b522-pale-6x.png",
+          "sha256": "c66a65f51ce0c42bc395e3c86c5934923bb43f2b66591d9023b7ae7350c6044d"
+        }
+      ]
+    },
+    {
+      "key": "u071-1378b522",
+      "source_id": "1378b5222a7a4a9ebd1880031af03dba92796de9867b299960f18b3b26e8185d",
+      "revision": "v7",
+      "selected": true,
+      "request_path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/request-u071-1378b522-v7.json",
+      "request_sha256": "287a2caded49e0b26720f620c444d02572f892485dacbfea3fdd05da1fea759f",
+      "result_path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/result-u071-1378b522-v7.json",
+      "result_sha256": "9b333210c7b1eee7a42dfa0e2609c9fb02c78d4f69b58d9db4faa0a90d49be5a",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/u071-1378b522-v7.png",
+      "raw_generated_path": "/Users/vlad/.codex/generated_images/01a1793b-e9e9-7cb0-9af8-db327635dd56/exec-013e9c47-1516-4151-b4a4-be53fa6e277f.png",
+      "raw_sha256": "698706f4a72e380dd626bbdcbfef4b173694ac26b58a04103ac5a42584358099",
+      "prompt": "Use case: precise-object-edit. Image1 is current restored HD EDIT TARGET. Images2/3 are the actual original on neutral gray/pale as edge/opacity references only. Exact text: \"OPTIONS\".\nReduce the overly thick continuous BLACK KEYLINE around the whole word to roughly half its current width/weight, matching the original modest outline in Image2. Keep the source soft lower drop shadow soft and translucent, not a solid black band. Do not change any cream face shape, serif, counter, letter position, spacing, original palette or face height. Do not grow the letter faces into the removed border area. The intended edit is quieter narrower black edging, not thinner cream lettering or a redesigned font.\nPreserve everything else in Image1. No new distress, ornaments, words, plate, background or colour shift. Real transparency in background and source cutouts, fully transparent guard beyond shadow/spray; no green/white matte or clipped artwork. Do not reproduce reference backdrops.",
+      "input_images": [
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u071-1378b522-immutable-hd-v6.png",
+          "sha256": "e51ba86c3566bfd0a4c63770f65833ae9fecd9c7466ea4a8130c0e6ed54d3a38"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u071-1378b522-gray-6x.png",
+          "sha256": "0498386c2807d5aee70eb8d43c546195704dc639ae5bf6ad5aedc178c46c73ce"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u071-1378b522-pale-6x.png",
+          "sha256": "c66a65f51ce0c42bc395e3c86c5934923bb43f2b66591d9023b7ae7350c6044d"
+        }
+      ]
+    },
+    {
+      "key": "u074-30fad9eb",
+      "source_id": "30fad9eb6d75a6b390e84c76350b1429905c376bd05d730455005e2fbee23d3a",
+      "revision": "v6",
+      "selected": true,
+      "request_path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/request-u074-30fad9eb-v6.json",
+      "request_sha256": "d51d8f5cbc5ef49419dae484c8c957405f2978631256044dd8363ee466059a41",
+      "result_path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/result-u074-30fad9eb-v6.json",
+      "result_sha256": "457bec3afd41c22bf382d44d0719f5cf2181ea41dec40eed43b3d3dc2da9d479",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/u074-30fad9eb-v6.png",
+      "raw_generated_path": "/Users/vlad/.codex/generated_images/01a1793b-e9e9-7cb0-9af8-db327635dd56/exec-f18ee98f-b8d6-4dd2-88e1-93d45490c655.png",
+      "raw_sha256": "0bba115a078986123b23d3081785aa3767e400edfe100016ac7c33702d0420cd",
+      "prompt": "Use case: precise-object-edit. Faithful restoration of a single original Def Jam UI bitmap.\nImage1 is the ORIGINAL artwork faithfully enlarged6x on a neutral-gray inspection backdrop and is the EDIT TARGET. Images2/3 show exactly the same original on blue/pale. These are three faithful source composites, not alternate designs. The different backdrops reveal original transparency and partial opacity. Remove the inspection backdrops for genuine transparent output; preserve source cutouts/alpha relationships. No previous generated font is a design reference.\nExact text: \"YOU DON'T\\nHAVE ENOUGH\\nPOINTS\".\nRestore the exact original three-line red stamp. Preserve original narrow regular letter strokes and open counters, not the heavy block letters of a bold poster. Copy exact row starts, line heights, gaps, slanted irregular frame and sparse faded spray from the source. Keep original subdued dark-red ink, solid face near RGB236/2/2, and genuine original lower-opacity areas. Do not boost saturation/opacity for readability. No thick red frame, new dense overspray, heavier POINTS, bright orange/neon red or new solid backing. Original background/interior/counters remain transparent.\nTreat every original glyph silhouette, tiny terminal/counter, word gap and colour/opacity relationship as protected. Sharpen smooth intended boundaries gently through raster steps; do not trace sampled pixel stair steps, change typeface or reinterpret the lettering. Improve resolution without restyling or strengthening the print. No extra caption, instruction text, ornaments, paper, portrait, plate or reference backdrop. Real transparency including source cutouts; no green/white matte. Fully transparent guard beyond all genuine spray/shadow; never crop visible art at the image edge.",
+      "input_images": [
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u074-30fad9eb-gray-6x.png",
+          "sha256": "9e36a70f04af9daa422dcd74148743ca2417630280fa7b5a462548de7437c4f2"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u074-30fad9eb-blue-6x.png",
+          "sha256": "82f2c78a1c4aac3fd8b8093d9ab46d96a7c7286a9eeb9d651b4d67c1dbca4fdb"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u074-30fad9eb-pale-6x.png",
+          "sha256": "be62a6c660c80dc322d39cfe8417c48730ef73d91c8c9e9afc48b952d3a6eaab"
+        }
+      ]
+    },
+    {
+      "key": "u076-3e9dd51b",
+      "source_id": "3e9dd51b84fa2b06504f4dbf43ba656c6f2ce48241854d0e9dabb0d3fd5833fb",
+      "revision": "v7",
+      "selected": true,
+      "request_path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/request-u076-3e9dd51b-v7.json",
+      "request_sha256": "c93fe8ac43db0563c148dbdf86fe4b134931bd0cdf0e8413d807d10762d6b456",
+      "result_path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/result-u076-3e9dd51b-v7.json",
+      "result_sha256": "fcb624d8916bb0c89d7f9e0d61ee4bba910e3e0a9aebbc73212d5b1182d409e9",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/u076-3e9dd51b-v7.png",
+      "raw_generated_path": "/Users/vlad/.codex/generated_images/01a1793b-e9e9-7cb0-9af8-db327635dd56/exec-609479e6-66b1-4e92-9e12-512dd6da4fc3.png",
+      "raw_sha256": "73dbe6522f3b7d927fbf0fcf9582b464832da45815ce919b0a21321a072fb299",
+      "prompt": "Use case: precise-object-edit. Faithful restoration of a single original Def Jam UI bitmap.\nImage1 is the ORIGINAL artwork faithfully enlarged6x on a neutral-gray inspection backdrop and is the EDIT TARGET. Images2/3 show exactly the same original on blue/pale. These are three faithful source composites, not alternate designs. The different backdrops reveal original transparency and partial opacity. Remove the inspection backdrops for genuine transparent output; preserve source cutouts/alpha relationships. No previous generated font is a design reference.\nExact text: \"READY!\".\nRestore the ORIGINAL scanned/stamped artwork with restrained contrast. The rectangle is a quiet thin light-gray edge with diffuse worn spray, NOT a solid brilliant-white rectangle or luminous outline. Original overspray is faint/uneven and limited; do not amplify it into a bright neon halo or denser white cloud. Keep original partial opacity and subtle gray shadow. White letter faces remain the focus, not the border. The inside of the rectangle and letter counters stay genuinely transparent, not an opaque black/gray plate. Match exact original tilt, white face weight, visible face size, letter placement and frame geometry. Keep original R bowl and leg, open triangular A, original angular Y junction, narrow D and exact tall exclamation. No widened heavy sans replacement.\nTreat every original glyph silhouette, tiny terminal/counter, word gap and colour/opacity relationship as protected. Sharpen smooth intended boundaries gently through raster steps; do not trace sampled pixel stair steps, change typeface or reinterpret the lettering. Improve resolution without restyling or strengthening the print. No extra caption, instruction text, ornaments, paper, portrait, plate or reference backdrop. Real transparency including source cutouts; no green/white matte. Fully transparent guard beyond all genuine spray/shadow; never crop visible art at the image edge.",
+      "input_images": [
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u076-3e9dd51b-gray-6x.png",
+          "sha256": "1bfc202dcf39054568154afcbac86c98714b5e11176ea370bd467aba6960978e"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u076-3e9dd51b-blue-6x.png",
+          "sha256": "3f611aa47a70395ad0028a3d4ca69844d0a64239b8ed3992fc815affc533c0fa"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u076-3e9dd51b-pale-6x.png",
+          "sha256": "19e8354dc206cd45b51d3f0f0028e97b95a7dbabc39fc266ba7620eebd13011d"
+        }
+      ]
+    },
+    {
+      "key": "u076-3e9dd51b",
+      "source_id": "3e9dd51b84fa2b06504f4dbf43ba656c6f2ce48241854d0e9dabb0d3fd5833fb",
+      "revision": "v8",
+      "selected": false,
+      "request_path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/request-u076-3e9dd51b-v8.json",
+      "request_sha256": "9ff203f20fdfcfe82ed72ae6d410d25d3afca33a59ddb80d0f70d8af926c6d0f",
+      "result_path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/result-u076-3e9dd51b-v8.json",
+      "result_sha256": "eaac1da82ededac4524db24540c65f85158ad57fd4488d928b74a06b37b1d992",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/u076-3e9dd51b-v8.png",
+      "raw_generated_path": "/Users/vlad/.codex/generated_images/01a1793b-e9e9-7cb0-9af8-db327635dd56/exec-7e7cec9d-d50e-440f-b5ea-59ba66d5b65e.png",
+      "raw_sha256": "aa879604adc80ca9556840516b3412e992d390153b11987741d5ffbe3536f4a2",
+      "prompt": "Use case: precise-object-edit. Image1 is the current transparent READY! stamp edit target; Image2 is the original on gray for reference only. Preserve the entire current stamp exactly in appearance: lettering, spacing, tilt, restrained light-gray frame, faint spray and transparent interior. Give it ample genuinely transparent breathing room on ALL four sides, approximately15percent canvas margin, so its existing faint halo/spray cannot meet or clip at the image edge. Keep the art complete; do not zoom, crop, enlarge lettering, invent stronger glow, strengthen edges or alter colour/material. Do not fill the transparent field or reproduce the gray reference background. Exact text READY! only. This is a framing/guard correction, not a redraw or font change.",
+      "input_images": [
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/u076-3e9dd51b-v7.png",
+          "sha256": "73dbe6522f3b7d927fbf0fcf9582b464832da45815ce919b0a21321a072fb299"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u076-3e9dd51b-gray-6x.png",
+          "sha256": "1bfc202dcf39054568154afcbac86c98714b5e11176ea370bd467aba6960978e"
+        }
+      ]
+    },
+    {
+      "key": "u081-5af60ba3",
+      "source_id": "5af60ba386eb7152e8616083f0712375dd9a56c1c4b8482e4ae72266184f254e",
+      "revision": "v7",
+      "selected": false,
+      "request_path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/request-u081-5af60ba3-v7.json",
+      "request_sha256": "c64d311826bc5cd47c0811d77b3a6d3395869bf7cd69e111bb12e54225a9c55e",
+      "result_path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/result-u081-5af60ba3-v7.json",
+      "result_sha256": "24b8d55d9ab6a6b6c08d3c1f86c97f840d827606bc803e8e3eb79bda6add4b96",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/u081-5af60ba3-v7.png",
+      "raw_generated_path": "/Users/vlad/.codex/generated_images/01a1793b-e9e9-7cb0-9af8-db327635dd56/exec-a620ed06-d4ee-4fe6-a243-a72d1018cd5b.png",
+      "raw_sha256": "01db7a216873da1d01cfd43ac96a50ad222191096e893927a31343ddd96e29b6",
+      "prompt": "Use case: precise-object-edit. Faithful restoration of a single original Def Jam UI bitmap.\nImage1 is the ORIGINAL artwork faithfully enlarged6x on a neutral-gray inspection backdrop and is the EDIT TARGET. Images2/3 show exactly the same original on blue/pale. These are three faithful source composites, not alternate designs. The different backdrops reveal original transparency and partial opacity. Remove the inspection backdrops for genuine transparent output; preserve source cutouts/alpha relationships. No previous generated font is a design reference.\nExact text: \"GAGNANT\".\nRestore the ORIGINAL scanned/stamped artwork with restrained contrast. The rectangle is a quiet thin light-gray edge with diffuse worn spray, NOT a solid brilliant-white rectangle or luminous outline. Original overspray is faint/uneven and limited; do not amplify it into a bright neon halo or denser white cloud. Keep original partial opacity and subtle gray shadow. White letter faces remain the focus, not the border. The inside of the rectangle and letter counters stay genuinely transparent, not an opaque black/gray plate. Match exact original tilt, white face weight, visible face size, letter placement and frame geometry. Keep original narrow G bowl/spur, original A apex/counter, N diagonals and T crossbar, with the original condensed width and gaps.\nTreat every original glyph silhouette, tiny terminal/counter, word gap and colour/opacity relationship as protected. Sharpen smooth intended boundaries gently through raster steps; do not trace sampled pixel stair steps, change typeface or reinterpret the lettering. Improve resolution without restyling or strengthening the print. No extra caption, instruction text, ornaments, paper, portrait, plate or reference backdrop. Real transparency including source cutouts; no green/white matte. Fully transparent guard beyond all genuine spray/shadow; never crop visible art at the image edge.",
+      "input_images": [
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u081-5af60ba3-gray-6x.png",
+          "sha256": "97c674671b13af1bee523578fc9fe796f118d6b54ffe7b6d343ad1df28915ed8"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u081-5af60ba3-blue-6x.png",
+          "sha256": "65313551ae864c9fe565eed54a70f098176bb0f5561039e8bdc5ec9c7cacf680"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u081-5af60ba3-pale-6x.png",
+          "sha256": "e0e58241cdebae336f7ed46a7b6ff84d402bce60d784e25b61fb43af03d0e73a"
+        }
+      ]
+    },
+    {
+      "key": "u081-5af60ba3",
+      "source_id": "5af60ba386eb7152e8616083f0712375dd9a56c1c4b8482e4ae72266184f254e",
+      "revision": "v8",
+      "selected": true,
+      "request_path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/request-u081-5af60ba3-v8.json",
+      "request_sha256": "0f83c819c69d2b079fc8b5086cd76dd6094b0d65bbe8c1fd086283286ee37fd1",
+      "result_path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/result-u081-5af60ba3-v8.json",
+      "result_sha256": "1105165fe31346ea200778d7d675d08ae0d5bf6d9772a763a8418c665df67661",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/u081-5af60ba3-v8.png",
+      "raw_generated_path": "/Users/vlad/.codex/generated_images/01a1793b-e9e9-7cb0-9af8-db327635dd56/exec-73e921ff-991a-49a1-8d05-3ac070f93ce3.png",
+      "raw_sha256": "6773752fda267118aeee1090f624fae149bb21110bb1fe08bbe1c073e0703795",
+      "prompt": "Use case: precise-object-edit. Image1 is current restored HD EDIT TARGET. Images2/3 are the actual original on neutral gray/pale as edge/opacity references only. Exact text: \"GAGNANT\".\nSoften the crisp dark outline around individual letters, matching the original subtle gray shadow rather than tracing each glyph with a black stroke. Keep all letter shapes, white faces, spacing, tilt, thin gray rectangle, existing restrained spray and transparent field. Do not add a luminous white rim or remove the original faint shadow entirely.\nPreserve everything else in Image1. No new distress, ornaments, words, plate, background or colour shift. Real transparency in background and source cutouts, fully transparent guard beyond shadow/spray; no green/white matte or clipped artwork. Do not reproduce reference backdrops.",
+      "input_images": [
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u081-5af60ba3-immutable-hd-v7.png",
+          "sha256": "60f21a8ab9c558dff2bd765251410cd0b828d11f812b770ba6ba468ecddce904"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u081-5af60ba3-gray-6x.png",
+          "sha256": "97c674671b13af1bee523578fc9fe796f118d6b54ffe7b6d343ad1df28915ed8"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u081-5af60ba3-pale-6x.png",
+          "sha256": "e0e58241cdebae336f7ed46a7b6ff84d402bce60d784e25b61fb43af03d0e73a"
+        }
+      ]
+    },
+    {
+      "key": "u085-6e626288",
+      "source_id": "6e6262886e5b510df9d384a0e840ab9217b786a2b3f998a4f3b4c253296989cf",
+      "revision": "v6",
+      "selected": false,
+      "request_path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/request-u085-6e626288-v6.json",
+      "request_sha256": "37f9d864e81068d675172fcdb9991a5d29ce8e091a4a8fd2cdc629696dea9780",
+      "result_path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/result-u085-6e626288-v6.json",
+      "result_sha256": "7eb3b5cf47dcd58573cab9634514315c06218c58741429f129f7b4b008b0b6d7",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/u085-6e626288-v6.png",
+      "raw_generated_path": "/Users/vlad/.codex/generated_images/01a1793b-e9e9-7cb0-9af8-db327635dd56/exec-ed16c789-904b-42cc-bf95-7325bf084c7a.png",
+      "raw_sha256": "ddde5d62e14df4113151e9676d665a1de192e90c47a6e87f1902a01433fcb0f1",
+      "prompt": "Use case: precise-object-edit. Faithful restoration of a single original Def Jam UI bitmap.\nImage1 is the ORIGINAL artwork faithfully enlarged6x on a neutral-gray inspection backdrop and is the EDIT TARGET. Images2/3 show exactly the same original on blue/pale. These are three faithful source composites, not alternate designs. The different backdrops reveal original transparency and partial opacity. Remove the inspection backdrops for genuine transparent output; preserve source cutouts/alpha relationships. No previous generated font is a design reference.\nExact text: \"BEATBOX\".\nRestore this exact original wordmark as a scan-restoration task, not a font recreation. Copy original broad flat serif ends and asymmetric original bowls/joins. Preserve the exact B/E/A/T/B/O/X silhouettes, widths and spacing. No pointed flourishes, scalloped replacement serifs or recentered letters. Keep original cream/gold face colours, irregular source wear and soft original drop shadow. Only smooth the intended contours and resolve genuine existing detail. Do not add decorative distress, chip outlines or grain absent from this source. The visible original word rectangle, face height, baseline and each individual gap must remain the same relative to the full source canvas; do not enlarge the word, change its aspect or fill the shadow margin with taller letters. No thicker black border, new depth, new highlight or bright yellow/gold wash.\nTreat every original glyph silhouette, tiny terminal/counter, word gap and colour/opacity relationship as protected. Sharpen smooth intended boundaries gently through raster steps; do not trace sampled pixel stair steps, change typeface or reinterpret the lettering. Improve resolution without restyling or strengthening the print. No extra caption, instruction text, ornaments, paper, portrait, plate or reference backdrop. Real transparency including source cutouts; no green/white matte. Fully transparent guard beyond all genuine spray/shadow; never crop visible art at the image edge.",
+      "input_images": [
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u085-6e626288-gray-6x.png",
+          "sha256": "09338398eaacb1b383c518e90026a506f508ab88800c0a58fec7bdfca2d759e7"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u085-6e626288-blue-6x.png",
+          "sha256": "8eada25accc5b594ed09998cfb03ad4245926532c65b9119907a597c4e26419e"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u085-6e626288-pale-6x.png",
+          "sha256": "897ccf6668c39c3791ef6007033e1bba7ba8cf7a467ebb5272951fae897954b1"
+        }
+      ]
+    },
+    {
+      "key": "u085-6e626288",
+      "source_id": "6e6262886e5b510df9d384a0e840ab9217b786a2b3f998a4f3b4c253296989cf",
+      "revision": "v7",
+      "selected": true,
+      "request_path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/request-u085-6e626288-v7.json",
+      "request_sha256": "44349eef65ea5095934c038a5270bf8d000f2ef0e7daa681f292e7608ed3db30",
+      "result_path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/result-u085-6e626288-v7.json",
+      "result_sha256": "b226812cc323f11bd50d3473e37768fbce2bd9c5a7791ce50c5d8a07f9874ece",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/u085-6e626288-v7.png",
+      "raw_generated_path": "/Users/vlad/.codex/generated_images/01a1793b-e9e9-7cb0-9af8-db327635dd56/exec-d46c97db-c485-4210-8047-c102f8e95c3e.png",
+      "raw_sha256": "f9ba3e76cdd0d5ec7909e8a76e76c524d08f5301b620e98b60a989e25fd5013a",
+      "prompt": "Use case: precise-object-edit. Image1 is current restored HD EDIT TARGET. Images2/3 are the actual original on neutral gray/pale as edge/opacity references only. Exact text: \"BEATBOX\".\nReduce the overly thick continuous BLACK KEYLINE around the whole word to roughly half its current width/weight, matching the original modest outline in Image2. Keep the source soft lower drop shadow soft and translucent, not a solid black band. Do not change any cream face shape, serif, counter, letter position, spacing, original palette or face height. Do not grow the letter faces into the removed border area. The intended edit is quieter narrower black edging, not thinner cream lettering or a redesigned font.\nPreserve everything else in Image1. No new distress, ornaments, words, plate, background or colour shift. Real transparency in background and source cutouts, fully transparent guard beyond shadow/spray; no green/white matte or clipped artwork. Do not reproduce reference backdrops.",
+      "input_images": [
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u085-6e626288-immutable-hd-v6.png",
+          "sha256": "7f723b8527efacb451e6d3f8289ef82c6666b684b321e5bce9012db40127eacf"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u085-6e626288-gray-6x.png",
+          "sha256": "09338398eaacb1b383c518e90026a506f508ab88800c0a58fec7bdfca2d759e7"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u085-6e626288-pale-6x.png",
+          "sha256": "897ccf6668c39c3791ef6007033e1bba7ba8cf7a467ebb5272951fae897954b1"
+        }
+      ]
+    },
+    {
+      "key": "u087-7017f637",
+      "source_id": "7017f637f22b4698e4acbeeb852324ef586cd5ddbd05395599790feb09648890",
+      "revision": "v6",
+      "selected": false,
+      "request_path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/request-u087-7017f637-v6.json",
+      "request_sha256": "f3edf02b2c12e24dfe497446e03cf3cdfa9199ae25425215ee20523ad5b91a64",
+      "result_path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/result-u087-7017f637-v6.json",
+      "result_sha256": "03713f83cb9e50a9169a9d5bc73c3291e7c06508754225a384a0433a9952df27",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/u087-7017f637-v6.png",
+      "raw_generated_path": "/Users/vlad/.codex/generated_images/01a1793b-e9e9-7cb0-9af8-db327635dd56/exec-6e226bb2-607a-4e1f-9412-34f2a8e5e4c1.png",
+      "raw_sha256": "7a83217a840addef0a9c20895a4c8b6477f6c5ea2531dd8bae0f0e666d0c87c2",
+      "prompt": "Use case: precise-object-edit. Faithful restoration of a single original Def Jam UI bitmap.\nImage1 is the ORIGINAL artwork faithfully enlarged6x on a neutral-gray inspection backdrop and is the EDIT TARGET. Images2/3 show exactly the same original on blue/pale. These are three faithful source composites, not alternate designs. The different backdrops reveal original transparency and partial opacity. Remove the inspection backdrops for genuine transparent output; preserve source cutouts/alpha relationships. No previous generated font is a design reference.\nExact text: \"EXTRAS\".\nRestore this exact original wordmark as a scan-restoration task, not a font recreation. Keep original E bars, X crossing, T serifs, R bowl/leg, A apex/counter and S curve. Original word widths and individual gaps control the design; do not create ornate taller serif letters. Keep original cream/gold face colours, irregular source wear and soft original drop shadow. Only smooth the intended contours and resolve genuine existing detail. Do not add decorative distress, chip outlines or grain absent from this source. The visible original word rectangle, face height, baseline and each individual gap must remain the same relative to the full source canvas; do not enlarge the word, change its aspect or fill the shadow margin with taller letters. No thicker black border, new depth, new highlight or bright yellow/gold wash.\nTreat every original glyph silhouette, tiny terminal/counter, word gap and colour/opacity relationship as protected. Sharpen smooth intended boundaries gently through raster steps; do not trace sampled pixel stair steps, change typeface or reinterpret the lettering. Improve resolution without restyling or strengthening the print. No extra caption, instruction text, ornaments, paper, portrait, plate or reference backdrop. Real transparency including source cutouts; no green/white matte. Fully transparent guard beyond all genuine spray/shadow; never crop visible art at the image edge.",
+      "input_images": [
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u087-7017f637-gray-6x.png",
+          "sha256": "845f543be87b125592a0b2941e5c2b131db74f5efa1689e12634864ec1dc3ae0"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u087-7017f637-blue-6x.png",
+          "sha256": "42a771ac0522c883a29e234f3fe77b6701152b76819a98384fd9c3cad4d2d0a2"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u087-7017f637-pale-6x.png",
+          "sha256": "740c49d325258302126ff4fdc29bfd7b118a0bbb56540cd2c682afab3205525e"
+        }
+      ]
+    },
+    {
+      "key": "u087-7017f637",
+      "source_id": "7017f637f22b4698e4acbeeb852324ef586cd5ddbd05395599790feb09648890",
+      "revision": "v7",
+      "selected": true,
+      "request_path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/request-u087-7017f637-v7.json",
+      "request_sha256": "b76b05a00eed5e54177c37c8792594be00ea65474bf4270fdd1b95eccf5714bc",
+      "result_path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/result-u087-7017f637-v7.json",
+      "result_sha256": "d53bdde98dd924d6f89f402a5142b10c286ee4411693a7903a555cd01f7be4a2",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/u087-7017f637-v7.png",
+      "raw_generated_path": "/Users/vlad/.codex/generated_images/01a1793b-e9e9-7cb0-9af8-db327635dd56/exec-31a9041b-07d5-4549-a650-1f94165e0bef.png",
+      "raw_sha256": "c7b80218e62a39d3fe348678324c73bb27803ccd0db6c96312d8881a9c0e93bb",
+      "prompt": "Use case: precise-object-edit. Image1 is current restored HD EDIT TARGET. Images2/3 are the actual original on neutral gray/pale as edge/opacity references only. Exact text: \"EXTRAS\".\nReduce the overly thick continuous BLACK KEYLINE around the whole word to roughly half its current width/weight, matching the original modest outline in Image2. Keep the source soft lower drop shadow soft and translucent, not a solid black band. Do not change any cream face shape, serif, counter, letter position, spacing, original palette or face height. Do not grow the letter faces into the removed border area. The intended edit is quieter narrower black edging, not thinner cream lettering or a redesigned font.\nPreserve everything else in Image1. No new distress, ornaments, words, plate, background or colour shift. Real transparency in background and source cutouts, fully transparent guard beyond shadow/spray; no green/white matte or clipped artwork. Do not reproduce reference backdrops.",
+      "input_images": [
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u087-7017f637-immutable-hd-v6.png",
+          "sha256": "0943e1ac8d8e8d55b613bfde1817d691ae0b5a73230c331770c5f5cf9cf32a88"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u087-7017f637-gray-6x.png",
+          "sha256": "845f543be87b125592a0b2941e5c2b131db74f5efa1689e12634864ec1dc3ae0"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u087-7017f637-pale-6x.png",
+          "sha256": "740c49d325258302126ff4fdc29bfd7b118a0bbb56540cd2c682afab3205525e"
+        }
+      ]
+    },
+    {
+      "key": "u095-885bd6a6",
+      "source_id": "885bd6a629436d2de778123a4232d0e9b981c58192a2363a968083d2a07582cd",
+      "revision": "v6",
+      "selected": false,
+      "request_path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/request-u095-885bd6a6-v6.json",
+      "request_sha256": "6c87076579f0fd3c28a4ba9e39271f2fbd6dbda8a9ff2391845f9143c814e362",
+      "result_path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/result-u095-885bd6a6-v6.json",
+      "result_sha256": "5ca9100440ee4c5b550b49ece64e0d02b05c1dc05d374633198251128aa64a49",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/u095-885bd6a6-v6.png",
+      "raw_generated_path": "/Users/vlad/.codex/generated_images/01a1793b-e9e9-7cb0-9af8-db327635dd56/exec-8b2d2478-e715-4c8e-b813-5ff494de5f77.png",
+      "raw_sha256": "207458f66be967e3ac4f68a9914fa588de315a6696e36948f661bb2120bbbf36",
+      "prompt": "Use case: precise-object-edit. Faithful restoration of a single original Def Jam UI bitmap.\nImage1 is the ORIGINAL artwork faithfully enlarged6x on a neutral-gray inspection backdrop and is the EDIT TARGET. Images2/3 show exactly the same original on blue/pale. These are three faithful source composites, not alternate designs. The different backdrops reveal original transparency and partial opacity. Remove the inspection backdrops for genuine transparent output; preserve source cutouts/alpha relationships. No previous generated font is a design reference.\nExact text: \"ONLINE\".\nRestore this exact original wordmark as a scan-restoration task, not a font recreation. Keep original split narrow O, N diagonal junctions, narrow L/I stems and E bars. Match original slab terminals and exact word spacing. No stylized substitute. Keep original cream/gold face colours, irregular source wear and soft original drop shadow. Only smooth the intended contours and resolve genuine existing detail. Do not add decorative distress, chip outlines or grain absent from this source. The visible original word rectangle, face height, baseline and each individual gap must remain the same relative to the full source canvas; do not enlarge the word, change its aspect or fill the shadow margin with taller letters. No thicker black border, new depth, new highlight or bright yellow/gold wash.\nTreat every original glyph silhouette, tiny terminal/counter, word gap and colour/opacity relationship as protected. Sharpen smooth intended boundaries gently through raster steps; do not trace sampled pixel stair steps, change typeface or reinterpret the lettering. Improve resolution without restyling or strengthening the print. No extra caption, instruction text, ornaments, paper, portrait, plate or reference backdrop. Real transparency including source cutouts; no green/white matte. Fully transparent guard beyond all genuine spray/shadow; never crop visible art at the image edge.",
+      "input_images": [
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u095-885bd6a6-gray-6x.png",
+          "sha256": "12c882f6732e8b53fab1354f44bb64eeb3a8b76e938801f47ab0b34b65fde6ec"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u095-885bd6a6-blue-6x.png",
+          "sha256": "939eb1c9e3749d96b75756e85d1cb2cea69091cda43c3f5607e8b6fefff9f6e7"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u095-885bd6a6-pale-6x.png",
+          "sha256": "b9ecebaa75071ea6c1f443545c71dbd7dbef7f4bcfbc8eb6e8eed8129d543ba4"
+        }
+      ]
+    },
+    {
+      "key": "u095-885bd6a6",
+      "source_id": "885bd6a629436d2de778123a4232d0e9b981c58192a2363a968083d2a07582cd",
+      "revision": "v7",
+      "selected": true,
+      "request_path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/request-u095-885bd6a6-v7.json",
+      "request_sha256": "194d3994da858f8484a66cf90782a7a9c142461ca3679e02d94c93dfcac6f163",
+      "result_path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/result-u095-885bd6a6-v7.json",
+      "result_sha256": "ab9beb5b615aadaec668b3e3fd77046a1ddd5a82c49c787d2dfcc45bd83cac43",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/u095-885bd6a6-v7.png",
+      "raw_generated_path": "/Users/vlad/.codex/generated_images/01a1793b-e9e9-7cb0-9af8-db327635dd56/exec-34a9f856-460d-4ce6-b21d-c6b9f4d8a075.png",
+      "raw_sha256": "c653bf4ecf4250475e31b4f4f3c93d56462c7a8748c9cbc17fbb2cd73c02fbff",
+      "prompt": "Use case: precise-object-edit. Image1 is current restored HD EDIT TARGET. Images2/3 are the actual original on neutral gray/pale as edge/opacity references only. Exact text: \"ONLINE\".\nReduce the overly thick continuous BLACK KEYLINE around the whole word to roughly half its current width/weight, matching the original modest outline in Image2. Keep the source soft lower drop shadow soft and translucent, not a solid black band. Do not change any cream face shape, serif, counter, letter position, spacing, original palette or face height. Do not grow the letter faces into the removed border area. The intended edit is quieter narrower black edging, not thinner cream lettering or a redesigned font.\nPreserve everything else in Image1. No new distress, ornaments, words, plate, background or colour shift. Real transparency in background and source cutouts, fully transparent guard beyond shadow/spray; no green/white matte or clipped artwork. Do not reproduce reference backdrops.",
+      "input_images": [
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u095-885bd6a6-immutable-hd-v6.png",
+          "sha256": "6a310970cfaec1641618b85bd6e7fda1e82acd302a0570843c6a334c16c779b1"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u095-885bd6a6-gray-6x.png",
+          "sha256": "12c882f6732e8b53fab1354f44bb64eeb3a8b76e938801f47ab0b34b65fde6ec"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u095-885bd6a6-pale-6x.png",
+          "sha256": "b9ecebaa75071ea6c1f443545c71dbd7dbef7f4bcfbc8eb6e8eed8129d543ba4"
+        }
+      ]
+    },
+    {
+      "key": "u097-91247b8f",
+      "source_id": "91247b8f430634d8db111521b9bb6d5ae35d83d5de2c80557c78895bc75e24c1",
+      "revision": "v6",
+      "selected": false,
+      "request_path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/request-u097-91247b8f-v6.json",
+      "request_sha256": "7a149fffc9884da8b75d6a29d84c4a877e67b162c57eb605e3cae70f6d240ccd",
+      "result_path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/result-u097-91247b8f-v6.json",
+      "result_sha256": "e658fab73a1313824659f2c61c5ae49e548feb3e9bc6210dbd558b7107b90b65",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/u097-91247b8f-v6.png",
+      "raw_generated_path": "/Users/vlad/.codex/generated_images/01a1793b-e9e9-7cb0-9af8-db327635dd56/exec-2e05842a-4b46-42c0-8a78-a442652f39ab.png",
+      "raw_sha256": "cae57c464426d460451ec3344dbaa6d652428c61644d29d1870c04bca6ab6f1b",
+      "prompt": "Use case: precise-object-edit. Faithful restoration of a single original Def Jam UI bitmap.\nImage1 is the ORIGINAL artwork faithfully enlarged6x on a neutral-gray inspection backdrop and is the EDIT TARGET. Images2/3 show exactly the same original on blue/pale. These are three faithful source composites, not alternate designs. The different backdrops reveal original transparency and partial opacity. Remove the inspection backdrops for genuine transparent output; preserve source cutouts/alpha relationships. No previous generated font is a design reference.\nExact text: \"BATTLE\".\nRestore this exact original wordmark as a scan-restoration task, not a font recreation. Preserve original B bowls, A counters, T/T shaft/serif shapes, L foot and E bars. Retain all original letter widths/spacing and subdued gold shading; no flourished replacement font. Keep original cream/gold face colours, irregular source wear and soft original drop shadow. Only smooth the intended contours and resolve genuine existing detail. Do not add decorative distress, chip outlines or grain absent from this source. The visible original word rectangle, face height, baseline and each individual gap must remain the same relative to the full source canvas; do not enlarge the word, change its aspect or fill the shadow margin with taller letters. No thicker black border, new depth, new highlight or bright yellow/gold wash.\nTreat every original glyph silhouette, tiny terminal/counter, word gap and colour/opacity relationship as protected. Sharpen smooth intended boundaries gently through raster steps; do not trace sampled pixel stair steps, change typeface or reinterpret the lettering. Improve resolution without restyling or strengthening the print. No extra caption, instruction text, ornaments, paper, portrait, plate or reference backdrop. Real transparency including source cutouts; no green/white matte. Fully transparent guard beyond all genuine spray/shadow; never crop visible art at the image edge.",
+      "input_images": [
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u097-91247b8f-gray-6x.png",
+          "sha256": "ec23e7f5a0eacf827c5e44f96ca9bdc9533069648bfcfd80e72c570f7a7298a8"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u097-91247b8f-blue-6x.png",
+          "sha256": "e7f593cfbb4944a0051ebda288ab1a3ad4cfc0a7f350aec91738d591e960db58"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u097-91247b8f-pale-6x.png",
+          "sha256": "250a02bc510444f80a1cf74c74af0dc2056bfa4187bdfc15d913873d8f8da8a8"
+        }
+      ]
+    },
+    {
+      "key": "u097-91247b8f",
+      "source_id": "91247b8f430634d8db111521b9bb6d5ae35d83d5de2c80557c78895bc75e24c1",
+      "revision": "v7",
+      "selected": true,
+      "request_path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/request-u097-91247b8f-v7.json",
+      "request_sha256": "4482ac1a13d8c255cc192e9bf9be2359ca5c4f064b68528b5b7df6d129c1f404",
+      "result_path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/result-u097-91247b8f-v7.json",
+      "result_sha256": "2a6610d86f8b0acab8b45cc68f410a43259c2ee4813ee92a9cef19936dd063a2",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/u097-91247b8f-v7.png",
+      "raw_generated_path": "/Users/vlad/.codex/generated_images/01a1793b-e9e9-7cb0-9af8-db327635dd56/exec-ae07f026-5e3d-4c0f-a0dc-9acc9699a5ce.png",
+      "raw_sha256": "a22d5b8c7c34d5ee1133cffc335e496f6e086638fc60c9fe7c6358f6131d9966",
+      "prompt": "Use case: precise-object-edit. Image1 is current restored HD EDIT TARGET. Images2/3 are the actual original on neutral gray/pale as edge/opacity references only. Exact text: \"BATTLE\".\nReduce the overly thick continuous BLACK KEYLINE around the whole word to roughly half its current width/weight, matching the original modest outline in Image2. Keep the source soft lower drop shadow soft and translucent, not a solid black band. Do not change any cream face shape, serif, counter, letter position, spacing, original palette or face height. Do not grow the letter faces into the removed border area. The intended edit is quieter narrower black edging, not thinner cream lettering or a redesigned font.\nPreserve everything else in Image1. No new distress, ornaments, words, plate, background or colour shift. Real transparency in background and source cutouts, fully transparent guard beyond shadow/spray; no green/white matte or clipped artwork. Do not reproduce reference backdrops.",
+      "input_images": [
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u097-91247b8f-immutable-hd-v6.png",
+          "sha256": "d2d21390cd1685661fdfa606869b63115ced718241b6e35ab5bb1a9df72da8ba"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u097-91247b8f-gray-6x.png",
+          "sha256": "ec23e7f5a0eacf827c5e44f96ca9bdc9533069648bfcfd80e72c570f7a7298a8"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u097-91247b8f-pale-6x.png",
+          "sha256": "250a02bc510444f80a1cf74c74af0dc2056bfa4187bdfc15d913873d8f8da8a8"
+        }
+      ]
+    }
+  ],
+  "failed_calls": [],
+  "prepared_unissued": [
+    {
+      "key": "u068-0fdad2b7",
+      "revision": "v6",
+      "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/unissued-u068-0fdad2b7-v6.json",
+      "sha256": "76548a536b96fc669740031180bd4f2ff7f8a28045f51fd17fca0a8b61aaf079",
+      "classification": "prepared but never invoked",
+      "receipt": {
+        "request": {
+          "key": "u068-0fdad2b7",
+          "source_id": "0fdad2b78d8470675ba3e8524c134019e28548788a321687548a34d913c298e0",
+          "revision": "v6",
+          "prompt": "Use case: precise-object-edit. Faithful restoration of a single original Def Jam UI bitmap.\nImage1 is an exact faithful6x enlargement of the ORIGINAL RGBA edit target, provided to make its composition readable. Image2 is the untouched native original and the final authority. Images3/4 show that same original on blue/pale only to reveal its actual alpha. No previous generated font is a design reference.\nExact text: \"WINNER\".\nRestore the ORIGINAL scanned/stamped artwork with restrained contrast. The rectangle is a quiet thin light-gray edge with diffuse worn spray, NOT a solid brilliant-white rectangle or luminous outline. Original overspray is faint/uneven and limited; do not amplify it into a bright neon halo or denser white cloud. Keep original partial opacity and subtle gray shadow. White letter faces remain the focus, not the border. The inside of the rectangle and letter counters stay genuinely transparent, not an opaque black/gray plate. Match exact original tilt, white face weight, visible face size, letter placement and frame geometry. Keep original narrow straight W strokes, condensed I/N/N, short E bars, narrow R bowl and its original angled leg. Keep original per-glyph positions and condensed widths.\nTreat every original glyph silhouette, tiny terminal/counter, word gap and colour/opacity relationship as protected. Sharpen smooth intended boundaries gently through raster steps; do not trace sampled pixel stair steps, change typeface or reinterpret the lettering. Improve resolution without restyling or strengthening the print. No extra caption, instruction text, ornaments, paper, portrait, plate or reference backdrop. Real transparency including source cutouts; no green/white matte. Fully transparent guard beyond all genuine spray/shadow; never crop visible art at the image edge.",
+          "referenced_image_paths": [
+            "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u068-0fdad2b7-faithful6x-rgba.png",
+            "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u068-0fdad2b7-original-rgba.png",
+            "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u068-0fdad2b7-blue-6x.png",
+            "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u068-0fdad2b7-pale-6x.png"
+          ],
+          "transparent_background": true
+        },
+        "issued": false,
+        "reason": "Before any invocation, switched from RGBA visual inputs containing hidden matte RGB to faithful clean composite references. Original preparation retained.",
+        "request_sha256": "917d1d4ccf3c613faa2453305679ded7e9fe9f89e01bb529212d65f8f5a71172"
+      }
+    },
+    {
+      "key": "u071-1378b522",
+      "revision": "v5",
+      "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/unissued-u071-1378b522-v5.json",
+      "sha256": "fd13584abc51d1e427735b4bf06c14e95a2e3142a401fc0cfb41d44a7baedfd0",
+      "classification": "prepared but never invoked",
+      "receipt": {
+        "request": {
+          "key": "u071-1378b522",
+          "source_id": "1378b5222a7a4a9ebd1880031af03dba92796de9867b299960f18b3b26e8185d",
+          "revision": "v5",
+          "prompt": "Use case: precise-object-edit. Faithful restoration of a single original Def Jam UI bitmap.\nImage1 is an exact faithful6x enlargement of the ORIGINAL RGBA edit target, provided to make its composition readable. Image2 is the untouched native original and the final authority. Images3/4 show that same original on blue/pale only to reveal its actual alpha. No previous generated font is a design reference.\nExact text: \"OPTIONS\".\nRestore this exact original wordmark as a scan-restoration task, not a font recreation. Preserve the original slab terminals and each glyph silhouette, including split narrow O counters, P bowl junctions, T shaft/ends, asymmetric N diagonal and S curves. Do not substitute a generic western or stencil typeface. Keep original cream/gold face colours, irregular source wear and soft original drop shadow. Only smooth the intended contours and resolve genuine existing detail. Do not add decorative distress, chip outlines or grain absent from this source. The visible original word rectangle, face height, baseline and each individual gap must remain the same relative to the full source canvas; do not enlarge the word, change its aspect or fill the shadow margin with taller letters. No thicker black border, new depth, new highlight or bright yellow/gold wash.\nTreat every original glyph silhouette, tiny terminal/counter, word gap and colour/opacity relationship as protected. Sharpen smooth intended boundaries gently through raster steps; do not trace sampled pixel stair steps, change typeface or reinterpret the lettering. Improve resolution without restyling or strengthening the print. No extra caption, instruction text, ornaments, paper, portrait, plate or reference backdrop. Real transparency including source cutouts; no green/white matte. Fully transparent guard beyond all genuine spray/shadow; never crop visible art at the image edge.",
+          "referenced_image_paths": [
+            "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u071-1378b522-faithful6x-rgba.png",
+            "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u071-1378b522-original-rgba.png",
+            "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u071-1378b522-blue-6x.png",
+            "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u071-1378b522-pale-6x.png"
+          ],
+          "transparent_background": true
+        },
+        "issued": false,
+        "reason": "Before any invocation, switched from RGBA visual inputs containing hidden matte RGB to faithful clean composite references. Original preparation retained.",
+        "request_sha256": "7796b65df5a736c1967986d085a369340c6d6921d1c4fa44f97fb6b68e421cf9"
+      }
+    },
+    {
+      "key": "u074-30fad9eb",
+      "revision": "v5",
+      "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/unissued-u074-30fad9eb-v5.json",
+      "sha256": "2e9420d73c71c7fbc770e84344da75553cf0d3f8a206dbe8915c16092dbf188c",
+      "classification": "prepared but never invoked",
+      "receipt": {
+        "request": {
+          "key": "u074-30fad9eb",
+          "source_id": "30fad9eb6d75a6b390e84c76350b1429905c376bd05d730455005e2fbee23d3a",
+          "revision": "v5",
+          "prompt": "Use case: precise-object-edit. Faithful restoration of a single original Def Jam UI bitmap.\nImage1 is an exact faithful6x enlargement of the ORIGINAL RGBA edit target, provided to make its composition readable. Image2 is the untouched native original and the final authority. Images3/4 show that same original on blue/pale only to reveal its actual alpha. No previous generated font is a design reference.\nExact text: \"YOU DON'T\\nHAVE ENOUGH\\nPOINTS\".\nRestore the exact original three-line red stamp. Preserve original narrow regular letter strokes and open counters, not the heavy block letters of a bold poster. Copy exact row starts, line heights, gaps, slanted irregular frame and sparse faded spray from the source. Keep original subdued dark-red ink, solid face near RGB236/2/2, and genuine original lower-opacity areas. Do not boost saturation/opacity for readability. No thick red frame, new dense overspray, heavier POINTS, bright orange/neon red or new solid backing. Original background/interior/counters remain transparent.\nTreat every original glyph silhouette, tiny terminal/counter, word gap and colour/opacity relationship as protected. Sharpen smooth intended boundaries gently through raster steps; do not trace sampled pixel stair steps, change typeface or reinterpret the lettering. Improve resolution without restyling or strengthening the print. No extra caption, instruction text, ornaments, paper, portrait, plate or reference backdrop. Real transparency including source cutouts; no green/white matte. Fully transparent guard beyond all genuine spray/shadow; never crop visible art at the image edge.",
+          "referenced_image_paths": [
+            "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u074-30fad9eb-faithful6x-rgba.png",
+            "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u074-30fad9eb-original-rgba.png",
+            "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u074-30fad9eb-blue-6x.png",
+            "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u074-30fad9eb-pale-6x.png"
+          ],
+          "transparent_background": true
+        },
+        "issued": false,
+        "reason": "Before any invocation, switched from RGBA visual inputs containing hidden matte RGB to faithful clean composite references. Original preparation retained.",
+        "request_sha256": "aecfc37dded28f8c8977522b5820baafc2f633153f718b4c79ad6646757d1bc2"
+      }
+    },
+    {
+      "key": "u076-3e9dd51b",
+      "revision": "v6",
+      "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/unissued-u076-3e9dd51b-v6.json",
+      "sha256": "859ac72279e19dddf4e00dca29be20763804c52320831e787fca8362755a006e",
+      "classification": "prepared but never invoked",
+      "receipt": {
+        "request": {
+          "key": "u076-3e9dd51b",
+          "source_id": "3e9dd51b84fa2b06504f4dbf43ba656c6f2ce48241854d0e9dabb0d3fd5833fb",
+          "revision": "v6",
+          "prompt": "Use case: precise-object-edit. Faithful restoration of a single original Def Jam UI bitmap.\nImage1 is an exact faithful6x enlargement of the ORIGINAL RGBA edit target, provided to make its composition readable. Image2 is the untouched native original and the final authority. Images3/4 show that same original on blue/pale only to reveal its actual alpha. No previous generated font is a design reference.\nExact text: \"READY!\".\nRestore the ORIGINAL scanned/stamped artwork with restrained contrast. The rectangle is a quiet thin light-gray edge with diffuse worn spray, NOT a solid brilliant-white rectangle or luminous outline. Original overspray is faint/uneven and limited; do not amplify it into a bright neon halo or denser white cloud. Keep original partial opacity and subtle gray shadow. White letter faces remain the focus, not the border. The inside of the rectangle and letter counters stay genuinely transparent, not an opaque black/gray plate. Match exact original tilt, white face weight, visible face size, letter placement and frame geometry. Keep original R bowl and leg, open triangular A, original angular Y junction, narrow D and exact tall exclamation. No widened heavy sans replacement.\nTreat every original glyph silhouette, tiny terminal/counter, word gap and colour/opacity relationship as protected. Sharpen smooth intended boundaries gently through raster steps; do not trace sampled pixel stair steps, change typeface or reinterpret the lettering. Improve resolution without restyling or strengthening the print. No extra caption, instruction text, ornaments, paper, portrait, plate or reference backdrop. Real transparency including source cutouts; no green/white matte. Fully transparent guard beyond all genuine spray/shadow; never crop visible art at the image edge.",
+          "referenced_image_paths": [
+            "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u076-3e9dd51b-faithful6x-rgba.png",
+            "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u076-3e9dd51b-original-rgba.png",
+            "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u076-3e9dd51b-blue-6x.png",
+            "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u076-3e9dd51b-pale-6x.png"
+          ],
+          "transparent_background": true
+        },
+        "issued": false,
+        "reason": "Before any invocation, switched from RGBA visual inputs containing hidden matte RGB to faithful clean composite references. Original preparation retained.",
+        "request_sha256": "5b6e3c217c2a07f1e5cccee6482e744aff9199069219f5d7c872bf5e21282679"
+      }
+    },
+    {
+      "key": "u081-5af60ba3",
+      "revision": "v6",
+      "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/unissued-u081-5af60ba3-v6.json",
+      "sha256": "b7e8992591782c02146cf4f0a91c64d65f28e4513750f1a1c636ca8be1cabbbc",
+      "classification": "prepared but never invoked",
+      "receipt": {
+        "request": {
+          "key": "u081-5af60ba3",
+          "source_id": "5af60ba386eb7152e8616083f0712375dd9a56c1c4b8482e4ae72266184f254e",
+          "revision": "v6",
+          "prompt": "Use case: precise-object-edit. Faithful restoration of a single original Def Jam UI bitmap.\nImage1 is an exact faithful6x enlargement of the ORIGINAL RGBA edit target, provided to make its composition readable. Image2 is the untouched native original and the final authority. Images3/4 show that same original on blue/pale only to reveal its actual alpha. No previous generated font is a design reference.\nExact text: \"GAGNANT\".\nRestore the ORIGINAL scanned/stamped artwork with restrained contrast. The rectangle is a quiet thin light-gray edge with diffuse worn spray, NOT a solid brilliant-white rectangle or luminous outline. Original overspray is faint/uneven and limited; do not amplify it into a bright neon halo or denser white cloud. Keep original partial opacity and subtle gray shadow. White letter faces remain the focus, not the border. The inside of the rectangle and letter counters stay genuinely transparent, not an opaque black/gray plate. Match exact original tilt, white face weight, visible face size, letter placement and frame geometry. Keep original narrow G bowl/spur, original A apex/counter, N diagonals and T crossbar, with the original condensed width and gaps.\nTreat every original glyph silhouette, tiny terminal/counter, word gap and colour/opacity relationship as protected. Sharpen smooth intended boundaries gently through raster steps; do not trace sampled pixel stair steps, change typeface or reinterpret the lettering. Improve resolution without restyling or strengthening the print. No extra caption, instruction text, ornaments, paper, portrait, plate or reference backdrop. Real transparency including source cutouts; no green/white matte. Fully transparent guard beyond all genuine spray/shadow; never crop visible art at the image edge.",
+          "referenced_image_paths": [
+            "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u081-5af60ba3-faithful6x-rgba.png",
+            "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u081-5af60ba3-original-rgba.png",
+            "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u081-5af60ba3-blue-6x.png",
+            "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u081-5af60ba3-pale-6x.png"
+          ],
+          "transparent_background": true
+        },
+        "issued": false,
+        "reason": "Before any invocation, switched from RGBA visual inputs containing hidden matte RGB to faithful clean composite references. Original preparation retained.",
+        "request_sha256": "33d2041fae793dccf1e084f942661d4ba0a3cf090f4357b62c22ad6007677a0e"
+      }
+    },
+    {
+      "key": "u085-6e626288",
+      "revision": "v5",
+      "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/unissued-u085-6e626288-v5.json",
+      "sha256": "b232fd0a3c0f776586b557427474e57a8e00d7c75406632232bef43c1cf6eae7",
+      "classification": "prepared but never invoked",
+      "receipt": {
+        "request": {
+          "key": "u085-6e626288",
+          "source_id": "6e6262886e5b510df9d384a0e840ab9217b786a2b3f998a4f3b4c253296989cf",
+          "revision": "v5",
+          "prompt": "Use case: precise-object-edit. Faithful restoration of a single original Def Jam UI bitmap.\nImage1 is an exact faithful6x enlargement of the ORIGINAL RGBA edit target, provided to make its composition readable. Image2 is the untouched native original and the final authority. Images3/4 show that same original on blue/pale only to reveal its actual alpha. No previous generated font is a design reference.\nExact text: \"BEATBOX\".\nRestore this exact original wordmark as a scan-restoration task, not a font recreation. Copy original broad flat serif ends and asymmetric original bowls/joins. Preserve the exact B/E/A/T/B/O/X silhouettes, widths and spacing. No pointed flourishes, scalloped replacement serifs or recentered letters. Keep original cream/gold face colours, irregular source wear and soft original drop shadow. Only smooth the intended contours and resolve genuine existing detail. Do not add decorative distress, chip outlines or grain absent from this source. The visible original word rectangle, face height, baseline and each individual gap must remain the same relative to the full source canvas; do not enlarge the word, change its aspect or fill the shadow margin with taller letters. No thicker black border, new depth, new highlight or bright yellow/gold wash.\nTreat every original glyph silhouette, tiny terminal/counter, word gap and colour/opacity relationship as protected. Sharpen smooth intended boundaries gently through raster steps; do not trace sampled pixel stair steps, change typeface or reinterpret the lettering. Improve resolution without restyling or strengthening the print. No extra caption, instruction text, ornaments, paper, portrait, plate or reference backdrop. Real transparency including source cutouts; no green/white matte. Fully transparent guard beyond all genuine spray/shadow; never crop visible art at the image edge.",
+          "referenced_image_paths": [
+            "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u085-6e626288-faithful6x-rgba.png",
+            "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u085-6e626288-original-rgba.png",
+            "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u085-6e626288-blue-6x.png",
+            "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u085-6e626288-pale-6x.png"
+          ],
+          "transparent_background": true
+        },
+        "issued": false,
+        "reason": "Before any invocation, switched from RGBA visual inputs containing hidden matte RGB to faithful clean composite references. Original preparation retained.",
+        "request_sha256": "5c4310c54aef9afe0c741f1fb2bbebb4c079a362771f13fd13830586a5f82a32"
+      }
+    },
+    {
+      "key": "u087-7017f637",
+      "revision": "v5",
+      "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/unissued-u087-7017f637-v5.json",
+      "sha256": "c2813ba6824970f39bec71a3cca71c48bd2247afc1f874bbef72baea7676273b",
+      "classification": "prepared but never invoked",
+      "receipt": {
+        "request": {
+          "key": "u087-7017f637",
+          "source_id": "7017f637f22b4698e4acbeeb852324ef586cd5ddbd05395599790feb09648890",
+          "revision": "v5",
+          "prompt": "Use case: precise-object-edit. Faithful restoration of a single original Def Jam UI bitmap.\nImage1 is an exact faithful6x enlargement of the ORIGINAL RGBA edit target, provided to make its composition readable. Image2 is the untouched native original and the final authority. Images3/4 show that same original on blue/pale only to reveal its actual alpha. No previous generated font is a design reference.\nExact text: \"EXTRAS\".\nRestore this exact original wordmark as a scan-restoration task, not a font recreation. Keep original E bars, X crossing, T serifs, R bowl/leg, A apex/counter and S curve. Original word widths and individual gaps control the design; do not create ornate taller serif letters. Keep original cream/gold face colours, irregular source wear and soft original drop shadow. Only smooth the intended contours and resolve genuine existing detail. Do not add decorative distress, chip outlines or grain absent from this source. The visible original word rectangle, face height, baseline and each individual gap must remain the same relative to the full source canvas; do not enlarge the word, change its aspect or fill the shadow margin with taller letters. No thicker black border, new depth, new highlight or bright yellow/gold wash.\nTreat every original glyph silhouette, tiny terminal/counter, word gap and colour/opacity relationship as protected. Sharpen smooth intended boundaries gently through raster steps; do not trace sampled pixel stair steps, change typeface or reinterpret the lettering. Improve resolution without restyling or strengthening the print. No extra caption, instruction text, ornaments, paper, portrait, plate or reference backdrop. Real transparency including source cutouts; no green/white matte. Fully transparent guard beyond all genuine spray/shadow; never crop visible art at the image edge.",
+          "referenced_image_paths": [
+            "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u087-7017f637-faithful6x-rgba.png",
+            "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u087-7017f637-original-rgba.png",
+            "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u087-7017f637-blue-6x.png",
+            "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u087-7017f637-pale-6x.png"
+          ],
+          "transparent_background": true
+        },
+        "issued": false,
+        "reason": "Before any invocation, switched from RGBA visual inputs containing hidden matte RGB to faithful clean composite references. Original preparation retained.",
+        "request_sha256": "f9a5d2c002e0963dde044af19bbbb528fd2daebfeb86b6c20b38828567f6117b"
+      }
+    },
+    {
+      "key": "u095-885bd6a6",
+      "revision": "v5",
+      "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/unissued-u095-885bd6a6-v5.json",
+      "sha256": "fbe7c567b36c1f997253d386544215d72af8abbf4c63e3041950aa0868cb5167",
+      "classification": "prepared but never invoked",
+      "receipt": {
+        "request": {
+          "key": "u095-885bd6a6",
+          "source_id": "885bd6a629436d2de778123a4232d0e9b981c58192a2363a968083d2a07582cd",
+          "revision": "v5",
+          "prompt": "Use case: precise-object-edit. Faithful restoration of a single original Def Jam UI bitmap.\nImage1 is an exact faithful6x enlargement of the ORIGINAL RGBA edit target, provided to make its composition readable. Image2 is the untouched native original and the final authority. Images3/4 show that same original on blue/pale only to reveal its actual alpha. No previous generated font is a design reference.\nExact text: \"ONLINE\".\nRestore this exact original wordmark as a scan-restoration task, not a font recreation. Keep original split narrow O, N diagonal junctions, narrow L/I stems and E bars. Match original slab terminals and exact word spacing. No stylized substitute. Keep original cream/gold face colours, irregular source wear and soft original drop shadow. Only smooth the intended contours and resolve genuine existing detail. Do not add decorative distress, chip outlines or grain absent from this source. The visible original word rectangle, face height, baseline and each individual gap must remain the same relative to the full source canvas; do not enlarge the word, change its aspect or fill the shadow margin with taller letters. No thicker black border, new depth, new highlight or bright yellow/gold wash.\nTreat every original glyph silhouette, tiny terminal/counter, word gap and colour/opacity relationship as protected. Sharpen smooth intended boundaries gently through raster steps; do not trace sampled pixel stair steps, change typeface or reinterpret the lettering. Improve resolution without restyling or strengthening the print. No extra caption, instruction text, ornaments, paper, portrait, plate or reference backdrop. Real transparency including source cutouts; no green/white matte. Fully transparent guard beyond all genuine spray/shadow; never crop visible art at the image edge.",
+          "referenced_image_paths": [
+            "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u095-885bd6a6-faithful6x-rgba.png",
+            "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u095-885bd6a6-original-rgba.png",
+            "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u095-885bd6a6-blue-6x.png",
+            "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u095-885bd6a6-pale-6x.png"
+          ],
+          "transparent_background": true
+        },
+        "issued": false,
+        "reason": "Before any invocation, switched from RGBA visual inputs containing hidden matte RGB to faithful clean composite references. Original preparation retained.",
+        "request_sha256": "81d991cd37b03c426a996c2d7ddb0a977f278c903777360d93ecb336745cc391"
+      }
+    },
+    {
+      "key": "u097-91247b8f",
+      "revision": "v5",
+      "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/unissued-u097-91247b8f-v5.json",
+      "sha256": "41ea64607514ccf82f80c6413e4e20401a4bed593b5fad57a544cca17a45b9e4",
+      "classification": "prepared but never invoked",
+      "receipt": {
+        "request": {
+          "key": "u097-91247b8f",
+          "source_id": "91247b8f430634d8db111521b9bb6d5ae35d83d5de2c80557c78895bc75e24c1",
+          "revision": "v5",
+          "prompt": "Use case: precise-object-edit. Faithful restoration of a single original Def Jam UI bitmap.\nImage1 is an exact faithful6x enlargement of the ORIGINAL RGBA edit target, provided to make its composition readable. Image2 is the untouched native original and the final authority. Images3/4 show that same original on blue/pale only to reveal its actual alpha. No previous generated font is a design reference.\nExact text: \"BATTLE\".\nRestore this exact original wordmark as a scan-restoration task, not a font recreation. Preserve original B bowls, A counters, T/T shaft/serif shapes, L foot and E bars. Retain all original letter widths/spacing and subdued gold shading; no flourished replacement font. Keep original cream/gold face colours, irregular source wear and soft original drop shadow. Only smooth the intended contours and resolve genuine existing detail. Do not add decorative distress, chip outlines or grain absent from this source. The visible original word rectangle, face height, baseline and each individual gap must remain the same relative to the full source canvas; do not enlarge the word, change its aspect or fill the shadow margin with taller letters. No thicker black border, new depth, new highlight or bright yellow/gold wash.\nTreat every original glyph silhouette, tiny terminal/counter, word gap and colour/opacity relationship as protected. Sharpen smooth intended boundaries gently through raster steps; do not trace sampled pixel stair steps, change typeface or reinterpret the lettering. Improve resolution without restyling or strengthening the print. No extra caption, instruction text, ornaments, paper, portrait, plate or reference backdrop. Real transparency including source cutouts; no green/white matte. Fully transparent guard beyond all genuine spray/shadow; never crop visible art at the image edge.",
+          "referenced_image_paths": [
+            "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u097-91247b8f-faithful6x-rgba.png",
+            "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u097-91247b8f-original-rgba.png",
+            "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u097-91247b8f-blue-6x.png",
+            "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/references/u097-91247b8f-pale-6x.png"
+          ],
+          "transparent_background": true
+        },
+        "issued": false,
+        "reason": "Before any invocation, switched from RGBA visual inputs containing hidden matte RGB to faithful clean composite references. Original preparation retained.",
+        "request_sha256": "851f4936e8be2fccff87930e706848eb0e9116b597795f12b2f9b1aabfa7d93f"
+      }
+    }
+  ],
+  "selected_exports": [
+    {
+      "key": "u068-0fdad2b7",
+      "revision": "v7",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/u068-0fdad2b7-v7.png",
+      "raw_sha256": "2b47e62d9debf6f024f243b006b0dc70153bf32d46784a54a85814a53c8f727a",
+      "preview_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/images/u068-0fdad2b7-draft.png",
+      "preview_sha256": "fe736a95b26918fd4cd096978265c1242971fd317bd4019818b8979efd673e08",
+      "alpha_exact": true,
+      "rgb_above16_exact": true,
+      "border_alpha_max": 3,
+      "selected": true,
+      "native_alpha_mean": {
+        "original": 0.4772,
+        "previous": 0.4929,
+        "new": 0.3884
+      },
+      "raw_opaque_rgb_median": [
+        247.0,
+        247.0,
+        246.0
+      ]
+    },
+    {
+      "key": "u076-3e9dd51b",
+      "revision": "v7",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/u076-3e9dd51b-v7.png",
+      "raw_sha256": "73dbe6522f3b7d927fbf0fcf9582b464832da45815ce919b0a21321a072fb299",
+      "preview_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/images/u076-3e9dd51b-draft.png",
+      "preview_sha256": "20161fa8b5762569674ed7529d8b67ccca1f80df9783791cde0821c5b9cf1506",
+      "alpha_exact": true,
+      "rgb_above16_exact": true,
+      "border_alpha_max": 89,
+      "selected": true,
+      "native_alpha_mean": {
+        "original": 0.4539,
+        "previous": 0.4299,
+        "new": 0.3492
+      },
+      "raw_opaque_rgb_median": [
+        247.0,
+        246.0,
+        246.0
+      ]
+    },
+    {
+      "key": "u081-5af60ba3",
+      "revision": "v8",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/u081-5af60ba3-v8.png",
+      "raw_sha256": "6773752fda267118aeee1090f624fae149bb21110bb1fe08bbe1c073e0703795",
+      "preview_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/images/u081-5af60ba3-draft.png",
+      "preview_sha256": "28b4ff55615dbe6af2daab538908485424b126eb0b702be1fc78a751d5c26e8d",
+      "alpha_exact": true,
+      "rgb_above16_exact": true,
+      "border_alpha_max": 2,
+      "selected": true,
+      "native_alpha_mean": {
+        "original": 0.4749,
+        "previous": 0.4772,
+        "new": 0.4695
+      },
+      "raw_opaque_rgb_median": [
+        244.0,
+        244.0,
+        245.0
+      ]
+    },
+    {
+      "key": "u071-1378b522",
+      "revision": "v7",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/u071-1378b522-v7.png",
+      "raw_sha256": "698706f4a72e380dd626bbdcbfef4b173694ac26b58a04103ac5a42584358099",
+      "preview_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/images/u071-1378b522-draft.png",
+      "preview_sha256": "94841a0cd3678d4f57aa6afba6a8b302cc61153666b345edf7ab1cd1e90ce58a",
+      "alpha_exact": true,
+      "rgb_above16_exact": true,
+      "border_alpha_max": 1,
+      "selected": true,
+      "native_alpha_mean": {
+        "original": 0.7504,
+        "previous": 0.7204,
+        "new": 0.6692
+      },
+      "raw_opaque_rgb_median": [
+        250.0,
+        239.0,
+        196.0
+      ]
+    },
+    {
+      "key": "u085-6e626288",
+      "revision": "v7",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/u085-6e626288-v7.png",
+      "raw_sha256": "f9ba3e76cdd0d5ec7909e8a76e76c524d08f5301b620e98b60a989e25fd5013a",
+      "preview_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/images/u085-6e626288-draft.png",
+      "preview_sha256": "839e37a459a4cad98f899cb3fbccbae09ef6b0a7e53389e731ec3bac8571bac5",
+      "alpha_exact": true,
+      "rgb_above16_exact": true,
+      "border_alpha_max": 1,
+      "selected": true,
+      "native_alpha_mean": {
+        "original": 0.7675,
+        "previous": 0.7098,
+        "new": 0.6526
+      },
+      "raw_opaque_rgb_median": [
+        248.0,
+        221.0,
+        142.0
+      ]
+    },
+    {
+      "key": "u087-7017f637",
+      "revision": "v7",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/u087-7017f637-v7.png",
+      "raw_sha256": "c7b80218e62a39d3fe348678324c73bb27803ccd0db6c96312d8881a9c0e93bb",
+      "preview_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/images/u087-7017f637-draft.png",
+      "preview_sha256": "d5f07fe830e4ffb5dd0edd08a3b563899cb9d763749a0581658c5196f3ba051b",
+      "alpha_exact": true,
+      "rgb_above16_exact": true,
+      "border_alpha_max": 0,
+      "selected": true,
+      "native_alpha_mean": {
+        "original": 0.7471,
+        "previous": 0.6893,
+        "new": 0.6212
+      },
+      "raw_opaque_rgb_median": [
+        251.0,
+        248.0,
+        214.0
+      ]
+    },
+    {
+      "key": "u095-885bd6a6",
+      "revision": "v7",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/u095-885bd6a6-v7.png",
+      "raw_sha256": "c653bf4ecf4250475e31b4f4f3c93d56462c7a8748c9cbc17fbb2cd73c02fbff",
+      "preview_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/images/u095-885bd6a6-draft.png",
+      "preview_sha256": "a1b233974b191b4d55dfe13f6f0b75ed8e5907ca2b003e7db283d8802949cf30",
+      "alpha_exact": true,
+      "rgb_above16_exact": true,
+      "border_alpha_max": 1,
+      "selected": true,
+      "native_alpha_mean": {
+        "original": 0.7486,
+        "previous": 0.6983,
+        "new": 0.7139
+      },
+      "raw_opaque_rgb_median": [
+        242.0,
+        208.0,
+        154.0
+      ]
+    },
+    {
+      "key": "u097-91247b8f",
+      "revision": "v7",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/u097-91247b8f-v7.png",
+      "raw_sha256": "a22d5b8c7c34d5ee1133cffc335e496f6e086638fc60c9fe7c6358f6131d9966",
+      "preview_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/images/u097-91247b8f-draft.png",
+      "preview_sha256": "5b6aa6fe2a189d2aee52e839abb7ab0aef6ca64e772bb2e881848a46ada25202",
+      "alpha_exact": true,
+      "rgb_above16_exact": true,
+      "border_alpha_max": 1,
+      "selected": true,
+      "native_alpha_mean": {
+        "original": 0.741,
+        "previous": 0.6488,
+        "new": 0.6383
+      },
+      "raw_opaque_rgb_median": [
+        237.0,
+        205.0,
+        138.0
+      ]
+    },
+    {
+      "key": "u074-30fad9eb",
+      "revision": "v6",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/u074-30fad9eb-v6.png",
+      "raw_sha256": "0bba115a078986123b23d3081785aa3767e400edfe100016ac7c33702d0420cd",
+      "preview_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/images/u074-30fad9eb-draft.png",
+      "preview_sha256": "cf0b2829d74281baa351c64c114584794e76336dfbe1f38f2ad9ceb5fb9924ea",
+      "alpha_exact": true,
+      "rgb_above16_exact": true,
+      "border_alpha_max": 13,
+      "selected": true,
+      "native_alpha_mean": {
+        "original": 0.3124,
+        "previous": 0.4196,
+        "new": 0.2955
+      },
+      "raw_opaque_rgb_median": [
+        251.0,
+        2.0,
+        1.0
+      ]
+    }
+  ],
+  "revision_export_checks": [
+    {
+      "key": "u068-0fdad2b7",
+      "revision": "v7",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/u068-0fdad2b7-v7.png",
+      "raw_sha256": "2b47e62d9debf6f024f243b006b0dc70153bf32d46784a54a85814a53c8f727a",
+      "preview_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/images/u068-0fdad2b7-draft.png",
+      "preview_sha256": "fe736a95b26918fd4cd096978265c1242971fd317bd4019818b8979efd673e08",
+      "alpha_exact": true,
+      "rgb_above16_exact": true,
+      "border_alpha_max": 3,
+      "selected": true,
+      "native_alpha_mean": {
+        "original": 0.4772,
+        "previous": 0.4929,
+        "new": 0.3884
+      },
+      "raw_opaque_rgb_median": [
+        247.0,
+        247.0,
+        246.0
+      ]
+    },
+    {
+      "key": "u076-3e9dd51b",
+      "revision": "v7",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/u076-3e9dd51b-v7.png",
+      "raw_sha256": "73dbe6522f3b7d927fbf0fcf9582b464832da45815ce919b0a21321a072fb299",
+      "preview_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/images/u076-3e9dd51b-draft.png",
+      "preview_sha256": "20161fa8b5762569674ed7529d8b67ccca1f80df9783791cde0821c5b9cf1506",
+      "alpha_exact": true,
+      "rgb_above16_exact": true,
+      "border_alpha_max": 89,
+      "selected": true,
+      "native_alpha_mean": {
+        "original": 0.4539,
+        "previous": 0.4299,
+        "new": 0.3492
+      },
+      "raw_opaque_rgb_median": [
+        247.0,
+        246.0,
+        246.0
+      ]
+    },
+    {
+      "key": "u076-3e9dd51b",
+      "revision": "v8",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/u076-3e9dd51b-v8.png",
+      "raw_sha256": "aa879604adc80ca9556840516b3412e992d390153b11987741d5ffbe3536f4a2",
+      "preview_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/images/u076-3e9dd51b-v8-draft.png",
+      "preview_sha256": "64f603bae680b0babffcf58c62f8572f9873060b0e82809de7f2a7804af574e1",
+      "alpha_exact": true,
+      "rgb_above16_exact": true,
+      "border_alpha_max": 1,
+      "selected": false,
+      "raw_opaque_rgb_median": [
+        223.0,
+        222.0,
+        223.0
+      ]
+    },
+    {
+      "key": "u081-5af60ba3",
+      "revision": "v7",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/u081-5af60ba3-v7.png",
+      "raw_sha256": "01db7a216873da1d01cfd43ac96a50ad222191096e893927a31343ddd96e29b6",
+      "preview_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/images/u081-5af60ba3-v7-draft.png",
+      "preview_sha256": "60f21a8ab9c558dff2bd765251410cd0b828d11f812b770ba6ba468ecddce904",
+      "alpha_exact": true,
+      "rgb_above16_exact": true,
+      "border_alpha_max": 1,
+      "selected": false,
+      "raw_opaque_rgb_median": [
+        248.0,
+        248.0,
+        248.0
+      ]
+    },
+    {
+      "key": "u081-5af60ba3",
+      "revision": "v8",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/u081-5af60ba3-v8.png",
+      "raw_sha256": "6773752fda267118aeee1090f624fae149bb21110bb1fe08bbe1c073e0703795",
+      "preview_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/images/u081-5af60ba3-draft.png",
+      "preview_sha256": "28b4ff55615dbe6af2daab538908485424b126eb0b702be1fc78a751d5c26e8d",
+      "alpha_exact": true,
+      "rgb_above16_exact": true,
+      "border_alpha_max": 2,
+      "selected": true,
+      "native_alpha_mean": {
+        "original": 0.4749,
+        "previous": 0.4772,
+        "new": 0.4695
+      },
+      "raw_opaque_rgb_median": [
+        244.0,
+        244.0,
+        245.0
+      ]
+    },
+    {
+      "key": "u071-1378b522",
+      "revision": "v6",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/u071-1378b522-v6.png",
+      "raw_sha256": "aa113380eabb1306f78fabd4ced45a4f73d38489573aa496c3ec8a51d763a6ad",
+      "preview_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/images/u071-1378b522-v6-draft.png",
+      "preview_sha256": "e51ba86c3566bfd0a4c63770f65833ae9fecd9c7466ea4a8130c0e6ed54d3a38",
+      "alpha_exact": true,
+      "rgb_above16_exact": true,
+      "border_alpha_max": 1,
+      "selected": false,
+      "raw_opaque_rgb_median": [
+        156.0,
+        133.0,
+        83.0
+      ]
+    },
+    {
+      "key": "u071-1378b522",
+      "revision": "v7",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/u071-1378b522-v7.png",
+      "raw_sha256": "698706f4a72e380dd626bbdcbfef4b173694ac26b58a04103ac5a42584358099",
+      "preview_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/images/u071-1378b522-draft.png",
+      "preview_sha256": "94841a0cd3678d4f57aa6afba6a8b302cc61153666b345edf7ab1cd1e90ce58a",
+      "alpha_exact": true,
+      "rgb_above16_exact": true,
+      "border_alpha_max": 1,
+      "selected": true,
+      "native_alpha_mean": {
+        "original": 0.7504,
+        "previous": 0.7204,
+        "new": 0.6692
+      },
+      "raw_opaque_rgb_median": [
+        250.0,
+        239.0,
+        196.0
+      ]
+    },
+    {
+      "key": "u085-6e626288",
+      "revision": "v6",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/u085-6e626288-v6.png",
+      "raw_sha256": "ddde5d62e14df4113151e9676d665a1de192e90c47a6e87f1902a01433fcb0f1",
+      "preview_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/images/u085-6e626288-v6-draft.png",
+      "preview_sha256": "7f723b8527efacb451e6d3f8289ef82c6666b684b321e5bce9012db40127eacf",
+      "alpha_exact": true,
+      "rgb_above16_exact": true,
+      "border_alpha_max": 1,
+      "selected": false,
+      "raw_opaque_rgb_median": [
+        125.0,
+        100.0,
+        34.0
+      ]
+    },
+    {
+      "key": "u085-6e626288",
+      "revision": "v7",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/u085-6e626288-v7.png",
+      "raw_sha256": "f9ba3e76cdd0d5ec7909e8a76e76c524d08f5301b620e98b60a989e25fd5013a",
+      "preview_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/images/u085-6e626288-draft.png",
+      "preview_sha256": "839e37a459a4cad98f899cb3fbccbae09ef6b0a7e53389e731ec3bac8571bac5",
+      "alpha_exact": true,
+      "rgb_above16_exact": true,
+      "border_alpha_max": 1,
+      "selected": true,
+      "native_alpha_mean": {
+        "original": 0.7675,
+        "previous": 0.7098,
+        "new": 0.6526
+      },
+      "raw_opaque_rgb_median": [
+        248.0,
+        221.0,
+        142.0
+      ]
+    },
+    {
+      "key": "u087-7017f637",
+      "revision": "v6",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/u087-7017f637-v6.png",
+      "raw_sha256": "7a83217a840addef0a9c20895a4c8b6477f6c5ea2531dd8bae0f0e666d0c87c2",
+      "preview_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/images/u087-7017f637-v6-draft.png",
+      "preview_sha256": "0943e1ac8d8e8d55b613bfde1817d691ae0b5a73230c331770c5f5cf9cf32a88",
+      "alpha_exact": true,
+      "rgb_above16_exact": true,
+      "border_alpha_max": 1,
+      "selected": false,
+      "raw_opaque_rgb_median": [
+        123.0,
+        103.0,
+        62.0
+      ]
+    },
+    {
+      "key": "u087-7017f637",
+      "revision": "v7",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/u087-7017f637-v7.png",
+      "raw_sha256": "c7b80218e62a39d3fe348678324c73bb27803ccd0db6c96312d8881a9c0e93bb",
+      "preview_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/images/u087-7017f637-draft.png",
+      "preview_sha256": "d5f07fe830e4ffb5dd0edd08a3b563899cb9d763749a0581658c5196f3ba051b",
+      "alpha_exact": true,
+      "rgb_above16_exact": true,
+      "border_alpha_max": 0,
+      "selected": true,
+      "native_alpha_mean": {
+        "original": 0.7471,
+        "previous": 0.6893,
+        "new": 0.6212
+      },
+      "raw_opaque_rgb_median": [
+        251.0,
+        248.0,
+        214.0
+      ]
+    },
+    {
+      "key": "u095-885bd6a6",
+      "revision": "v6",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/u095-885bd6a6-v6.png",
+      "raw_sha256": "207458f66be967e3ac4f68a9914fa588de315a6696e36948f661bb2120bbbf36",
+      "preview_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/images/u095-885bd6a6-v6-draft.png",
+      "preview_sha256": "6a310970cfaec1641618b85bd6e7fda1e82acd302a0570843c6a334c16c779b1",
+      "alpha_exact": true,
+      "rgb_above16_exact": true,
+      "border_alpha_max": 3,
+      "selected": false,
+      "raw_opaque_rgb_median": [
+        45.0,
+        41.0,
+        33.0
+      ]
+    },
+    {
+      "key": "u095-885bd6a6",
+      "revision": "v7",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/u095-885bd6a6-v7.png",
+      "raw_sha256": "c653bf4ecf4250475e31b4f4f3c93d56462c7a8748c9cbc17fbb2cd73c02fbff",
+      "preview_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/images/u095-885bd6a6-draft.png",
+      "preview_sha256": "a1b233974b191b4d55dfe13f6f0b75ed8e5907ca2b003e7db283d8802949cf30",
+      "alpha_exact": true,
+      "rgb_above16_exact": true,
+      "border_alpha_max": 1,
+      "selected": true,
+      "native_alpha_mean": {
+        "original": 0.7486,
+        "previous": 0.6983,
+        "new": 0.7139
+      },
+      "raw_opaque_rgb_median": [
+        242.0,
+        208.0,
+        154.0
+      ]
+    },
+    {
+      "key": "u097-91247b8f",
+      "revision": "v6",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/u097-91247b8f-v6.png",
+      "raw_sha256": "cae57c464426d460451ec3344dbaa6d652428c61644d29d1870c04bca6ab6f1b",
+      "preview_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/images/u097-91247b8f-v6-draft.png",
+      "preview_sha256": "d2d21390cd1685661fdfa606869b63115ced718241b6e35ab5bb1a9df72da8ba",
+      "alpha_exact": true,
+      "rgb_above16_exact": true,
+      "border_alpha_max": 1,
+      "selected": false,
+      "raw_opaque_rgb_median": [
+        123.0,
+        105.0,
+        53.0
+      ]
+    },
+    {
+      "key": "u097-91247b8f",
+      "revision": "v7",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/u097-91247b8f-v7.png",
+      "raw_sha256": "a22d5b8c7c34d5ee1133cffc335e496f6e086638fc60c9fe7c6358f6131d9966",
+      "preview_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/images/u097-91247b8f-draft.png",
+      "preview_sha256": "5b6aa6fe2a189d2aee52e839abb7ab0aef6ca64e772bb2e881848a46ada25202",
+      "alpha_exact": true,
+      "rgb_above16_exact": true,
+      "border_alpha_max": 1,
+      "selected": true,
+      "native_alpha_mean": {
+        "original": 0.741,
+        "previous": 0.6488,
+        "new": 0.6383
+      },
+      "raw_opaque_rgb_median": [
+        237.0,
+        205.0,
+        138.0
+      ]
+    },
+    {
+      "key": "u074-30fad9eb",
+      "revision": "v6",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/u074-30fad9eb-v6.png",
+      "raw_sha256": "0bba115a078986123b23d3081785aa3767e400edfe100016ac7c33702d0420cd",
+      "preview_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/images/u074-30fad9eb-draft.png",
+      "preview_sha256": "cf0b2829d74281baa351c64c114584794e76336dfbe1f38f2ad9ceb5fb9924ea",
+      "alpha_exact": true,
+      "rgb_above16_exact": true,
+      "border_alpha_max": 13,
+      "selected": true,
+      "native_alpha_mean": {
+        "original": 0.3124,
+        "previous": 0.4196,
+        "new": 0.2955
+      },
+      "raw_opaque_rgb_median": [
+        251.0,
+        2.0,
+        1.0
+      ]
+    }
+  ],
+  "export_policy": "Established low-alpha RGB bleed; every generated alpha byte and RGB above alpha16 retained. No artistic threshold/recolour/morphology/sharpen repair.",
+  "review_notes": {
+    "status": "Nine new candidates awaiting owner review;other10approved614total;separate82scopequestionpending",
+    "method": "Original-faithful gray/blue/pale6x composites; original RGBA/native sources remain byte-pinned. RGBA visual inputs with hidden matte RGB prepared but never issued. No drifted generated font used as first-pass design authority.",
+    "review": "All9 original/previous/new source pairs visually checked at native1x and magnified blue/pale. Five wordmarks and GAGNANT edge-only edits checked again. READYguard v8 altered rim/lettering, superseded; closer v7 selected. Actual output alpha, not hidden RGB visual noise, controls compositing.",
+    "fidelity_limit": "Glyph widths/counters/serifs, spacing, face size, material/colour and opacity remain approximate. Stamps have less luminous borders but source gray shadows/spray distribution still differ. Promotional wordmarks retain contour/material differences; red warning is narrower but frame/opacity are reconstructed.",
+    "guard": "All selected border alpha≤16 except READYv7 maximum89/255 partial spray. No alpha128 ink touches its edge. Selected for closer art; explicit technical gutter/native validation remains due. No threshold/crop repair conceals this.",
+    "scope": {
+      "owner_message": "These 9 still look off to me. The rest are good",
+      "approved_now": 10,
+      "accepted_distinct": 614,
+      "revisions": [
+        "u068-0fdad2b7",
+        "u071-1378b522",
+        "u074-30fad9eb",
+        "u076-3e9dd51b",
+        "u081-5af60ba3",
+        "u085-6e626288",
+        "u087-7017f637",
+        "u095-885bd6a6",
+        "u097-91247b8f"
+      ],
+      "other82": "Awaiting scope clarification; no approval inferred",
+      "art_direction": "Original-driven geometry, restrained original frame/spray and ink, exact size/spacing/palette; no drifted draft as primary reference.",
+      "publication_authorized": false
+    },
+    "native": "No new game/native install/capture/publication/push. Original1.3/catalogue7 unchanged.",
+    "ocr": "20actual input files (18initial +2READYv7),18final source/draft results. BEATBON and BATI are false Vision readings; visible BEATBOX(Xcrossing) and BATTLE(all6letters) confirmed against source and final blue/pale contacts."
+  },
+  "parent_contacts": {
+    "first_pass": [
+      {
+        "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/contacts-first-pass/u068-0fdad2b7.png",
+        "sha256": "13b5f1f2186dc6fffcb873a639396744db76394c89f96e0032181928b7237e82"
+      },
+      {
+        "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/contacts-first-pass/u071-1378b522.png",
+        "sha256": "b5aa67967bba165751ace5094600aed3df2cded7e6014069beb045cd905a57b8"
+      },
+      {
+        "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/contacts-first-pass/u074-30fad9eb.png",
+        "sha256": "83e3b7f0c34fb6dd221c81a394977787b1600faa6ad7a34d921eefa09145d69b"
+      },
+      {
+        "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/contacts-first-pass/u076-3e9dd51b.png",
+        "sha256": "5b39414afc0fcafe0d121dd6b03f60f3682e37d45d4a7e8c361fe4d84ad38fb3"
+      },
+      {
+        "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/contacts-first-pass/u081-5af60ba3.png",
+        "sha256": "9ecce233541b04afe40cded5051117fd0a30f2b657035cdc73282f8ce204c7c5"
+      },
+      {
+        "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/contacts-first-pass/u085-6e626288.png",
+        "sha256": "6d44688209c0f908b1f2753314ca2437b7f7a6c10ccd2bea89e4e5db490d55ef"
+      },
+      {
+        "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/contacts-first-pass/u087-7017f637.png",
+        "sha256": "ede6d959fc6d2d7cbdb5d11efd23661ac5e98bd8a32dcb5c9210b2998ee97155"
+      },
+      {
+        "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/contacts-first-pass/u095-885bd6a6.png",
+        "sha256": "cf0a2d0056b3ad43c33fd6c2be0a828bfc1b4da4cd935eeeff0a3861786a3f33"
+      },
+      {
+        "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/contacts-first-pass/u097-91247b8f.png",
+        "sha256": "2fec6c5fecea13603fe0f8acf86db9a3f7aba0391bc068b93862f7ec54053d22"
+      }
+    ],
+    "final": [
+      {
+        "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/final-contacts/u068-0fdad2b7.png",
+        "sha256": "13b5f1f2186dc6fffcb873a639396744db76394c89f96e0032181928b7237e82"
+      },
+      {
+        "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/final-contacts/u071-1378b522.png",
+        "sha256": "6369c9e7f2c7c75cf6f58a3ccbb1593053f14930e63e834c6437638e574d0afe"
+      },
+      {
+        "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/final-contacts/u074-30fad9eb.png",
+        "sha256": "83e3b7f0c34fb6dd221c81a394977787b1600faa6ad7a34d921eefa09145d69b"
+      },
+      {
+        "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/final-contacts/u076-3e9dd51b.png",
+        "sha256": "5b39414afc0fcafe0d121dd6b03f60f3682e37d45d4a7e8c361fe4d84ad38fb3"
+      },
+      {
+        "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/final-contacts/u081-5af60ba3.png",
+        "sha256": "ec8878fa33a16a595be31e6c0c85b2bfb24a6996f44e1ba298d7bb1f7e6959cf"
+      },
+      {
+        "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/final-contacts/u085-6e626288.png",
+        "sha256": "0f5a6d7fc56bd732110edcbaf0a34cf8c11d7c0ea3bd328b1669500a34ae75dd"
+      },
+      {
+        "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/final-contacts/u087-7017f637.png",
+        "sha256": "3d7597a4c75bceb0b2293a52ad954c77551f064ed78af86bc524f51e35ba8647"
+      },
+      {
+        "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/final-contacts/u095-885bd6a6.png",
+        "sha256": "0ba9ca21918f15d6d52cd82fd55cc3e2646d99db942edea8c680c877d94f866b"
+      },
+      {
+        "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/final-contacts/u097-91247b8f.png",
+        "sha256": "7c950327f69b020e7c5af070e8fc2b3ce8046dff7d9a22b79dad9b731afa323c"
+      }
+    ],
+    "owner_feedback": [
+      {
+        "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/owner-feedback/feedback-1.png",
+        "sha256": "76d958dfd135e84b3007cd3b3b264d3e7a16c14309205e61e0fded12706cd793"
+      },
+      {
+        "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/owner-feedback/feedback-2.png",
+        "sha256": "08779f294fe5c6cd5753c9fd402770720faa345299dc380c1b69141bff0d74cf"
+      }
+    ]
+  },
+  "ocr": {
+    "receipt_path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave09-nine-redos-20261029/ocr-receipt.json",
+    "sha256": "a68cb5c3794de0439fafebd20b4e067690c9f5c3b4d06c383758b7dd233b0a39"
+  },
+  "browser": {
+    "html_sha256": "7af315e9df55e82b23fb1b750723e3e0a9ea8a5015ebc0aee4c0fcf39cad5008",
+    "data_sha256": "77bd35c0ada96f800622a9219ea6107f5823854c577e330baecd5ae7859a61b8",
+    "qa_sha256": "c9550623191cfca4fd394a12fdb12c5ea0b3fbf9050ac5d84a4e08491fa6c266",
+    "proof_sha256": "e4bea97432dbac727061cc5c4369021bff996c0414af3ed2cb107e75e1737354",
+    "findings": {
+      "overview": {
+        "canvases": 18,
+        "cards": 9,
+        "error": "",
+        "overflow": false
+      },
+      "details": [
+        {
+          "error": "",
+          "key": "u068-0fdad2b7",
+          "loaded": 3,
+          "overflow": false,
+          "scale": "1"
+        },
+        {
+          "error": "",
+          "key": "u068-0fdad2b7",
+          "loaded": 3,
+          "overflow": false,
+          "scale": "3"
+        },
+        {
+          "error": "",
+          "key": "u068-0fdad2b7",
+          "loaded": 3,
+          "overflow": false,
+          "scale": "6"
+        },
+        {
+          "error": "",
+          "key": "u076-3e9dd51b",
+          "loaded": 3,
+          "overflow": false,
+          "scale": "1"
+        },
+        {
+          "error": "",
+          "key": "u076-3e9dd51b",
+          "loaded": 3,
+          "overflow": false,
+          "scale": "3"
+        },
+        {
+          "error": "",
+          "key": "u076-3e9dd51b",
+          "loaded": 3,
+          "overflow": false,
+          "scale": "6"
+        },
+        {
+          "error": "",
+          "key": "u081-5af60ba3",
+          "loaded": 3,
+          "overflow": false,
+          "scale": "1"
+        },
+        {
+          "error": "",
+          "key": "u081-5af60ba3",
+          "loaded": 3,
+          "overflow": false,
+          "scale": "3"
+        },
+        {
+          "error": "",
+          "key": "u081-5af60ba3",
+          "loaded": 3,
+          "overflow": false,
+          "scale": "6"
+        },
+        {
+          "error": "",
+          "key": "u071-1378b522",
+          "loaded": 3,
+          "overflow": false,
+          "scale": "1"
+        },
+        {
+          "error": "",
+          "key": "u071-1378b522",
+          "loaded": 3,
+          "overflow": false,
+          "scale": "3"
+        },
+        {
+          "error": "",
+          "key": "u071-1378b522",
+          "loaded": 3,
+          "overflow": false,
+          "scale": "6"
+        },
+        {
+          "error": "",
+          "key": "u085-6e626288",
+          "loaded": 3,
+          "overflow": false,
+          "scale": "1"
+        },
+        {
+          "error": "",
+          "key": "u085-6e626288",
+          "loaded": 3,
+          "overflow": false,
+          "scale": "3"
+        },
+        {
+          "error": "",
+          "key": "u085-6e626288",
+          "loaded": 3,
+          "overflow": false,
+          "scale": "6"
+        },
+        {
+          "error": "",
+          "key": "u087-7017f637",
+          "loaded": 3,
+          "overflow": false,
+          "scale": "1"
+        },
+        {
+          "error": "",
+          "key": "u087-7017f637",
+          "loaded": 3,
+          "overflow": false,
+          "scale": "3"
+        },
+        {
+          "error": "",
+          "key": "u087-7017f637",
+          "loaded": 3,
+          "overflow": false,
+          "scale": "6"
+        },
+        {
+          "error": "",
+          "key": "u095-885bd6a6",
+          "loaded": 3,
+          "overflow": false,
+          "scale": "1"
+        },
+        {
+          "error": "",
+          "key": "u095-885bd6a6",
+          "loaded": 3,
+          "overflow": false,
+          "scale": "3"
+        },
+        {
+          "error": "",
+          "key": "u095-885bd6a6",
+          "loaded": 3,
+          "overflow": false,
+          "scale": "6"
+        },
+        {
+          "error": "",
+          "key": "u097-91247b8f",
+          "loaded": 3,
+          "overflow": false,
+          "scale": "1"
+        },
+        {
+          "error": "",
+          "key": "u097-91247b8f",
+          "loaded": 3,
+          "overflow": false,
+          "scale": "3"
+        },
+        {
+          "error": "",
+          "key": "u097-91247b8f",
+          "loaded": 3,
+          "overflow": false,
+          "scale": "6"
+        },
+        {
+          "error": "",
+          "key": "u074-30fad9eb",
+          "loaded": 3,
+          "overflow": false,
+          "scale": "1"
+        },
+        {
+          "error": "",
+          "key": "u074-30fad9eb",
+          "loaded": 3,
+          "overflow": false,
+          "scale": "3"
+        },
+        {
+          "error": "",
+          "key": "u074-30fad9eb",
+          "loaded": 3,
+          "overflow": false,
+          "scale": "6"
+        }
+      ],
+      "controls": [
+        {
+          "caption": "Superseded v8 · retained for comparison",
+          "control": "superseded guard"
+        },
+        {
+          "control": "raw and ghost",
+          "fitted": false,
+          "ghost": true,
+          "overflow": false
+        },
+        {
+          "control": "backdrop",
+          "value": "grey"
+        },
+        {
+          "control": "backdrop",
+          "value": "light"
+        },
+        {
+          "control": "backdrop",
+          "value": "context"
+        },
+        {
+          "cards": 3,
+          "control": "family",
+          "value": "stamped result panel"
+        },
+        {
+          "cards": 5,
+          "control": "family",
+          "value": "promotional distressed wordmark"
+        },
+        {
+          "cards": 1,
+          "control": "family",
+          "value": "red points warning stamp"
+        },
+        {
+          "cards": 9,
+          "control": "family",
+          "value": "all"
+        },
+        {
+          "cards": 0,
+          "control": "empty dark group",
+          "error": ""
+        },
+        {
+          "cards": 1,
+          "control": "search"
+        }
+      ],
+      "logs": []
+    }
+  },
+  "previous_approval_checks": [
+    {
+      "path": "config/menu-ui-wave09-revisions-approval-2026-10-29.json",
+      "sha256": "f995e2fb856ad8ecdb0828fa95825887db799118ac28f055ec955cec1bf3dfc4",
+      "entries": 10,
+      "unchanged": true
+    },
+    {
+      "path": "config/menu-ui-reconstruction-wave08-approval-2026-10-29.json",
+      "sha256": "097be613a7ae5d14c78de059464de6300b33c51e8c70515aa05f9e44ae77eaa7",
+      "entries": 100,
+      "unchanged": true
+    },
+    {
+      "path": "config/menu-ui-reconstruction-wave07-approval-2026-10-29.json",
+      "sha256": "f865010505d29b4ec7e408cb5371b3ec674a8f9203ad2b41e4ce71fbebf5cb24",
+      "entries": 50,
+      "unchanged": true
+    },
+    {
+      "path": "config/menu-ui-reconstruction-wave06-approval-2026-10-28.json",
+      "sha256": "6d8de7a8719133f641c262fe874e41e2f719d809a8f2340a88d58ebffa7b9305",
+      "entries": 60,
+      "unchanged": true
+    },
+    {
+      "path": "config/menu-ui-reconstruction-wave05-approval-2026-10-28.json",
+      "sha256": "ea6a0877da4e5167dfefe3631d18904578cb66c56343937d98d4d7efa08a209a",
+      "entries": 100,
+      "unchanged": true
+    },
+    {
+      "path": "config/menu-ui-reconstruction-wave04-approval-2026-10-28.json",
+      "sha256": "0c2b0b949f820d1fec4381de5a203f481281efc48fb5a97ff1ccdb7b4bed50c4",
+      "entries": 103,
+      "unchanged": true
+    },
+    {
+      "path": "config/menu-ui-reconstruction-wave03-approval-2026-10-28.json",
+      "sha256": "32dbe02a559a3ba1ddfdf05f38b4db38d6a7d3f32015f65a8a8bf2d6d9090584",
+      "entries": 104,
+      "unchanged": true
+    },
+    {
+      "path": "config/menu-ui-reconstruction-wave02-approval-2026-10-28.json",
+      "sha256": "8f14aaf41ff41f9a756b03bd289ecadb6b0ea6b86b3bbdf51ecfd17c985dcb71",
+      "entries": 50,
+      "unchanged": true
+    },
+    {
+      "path": "config/menu-ui-reconstruction-approvals-2026-10-28.json",
+      "sha256": "3db116c70a6d72d85806d41c3f9374cfe57a7438d76880c24c7703a01ac40d07",
+      "entries": 27,
+      "unchanged": true
+    }
+  ],
+  "previous_batch9_raw_preview_hashes_unchanged": 101,
+  "previous_19_revision_raw_preview_hashes_unchanged": 19,
+  "published_archive_unchanged": true,
+  "native_validation": "No new game run, installation or capture. Atlas registration/layers/sampling/gutters need assembled-pack validation.",
+  "release_scope": "Published1.3/catalogue7 unchanged. No publication/push.",
+  "future_pr_milestone": "v0.12.2",
+  "recovery_path": "/Users/vlad/Code/defjam-data/scratch/menu-ui-wave09-nine-redos-20261029"
+}
