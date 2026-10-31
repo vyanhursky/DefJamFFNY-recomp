@@ -205,3 +205,5 @@ The plan built from these is in [docs/widescreen](../widescreen/README.md), whic
 - [UI reconstruction 50-wordmark batch](menu-ui-reconstruction-wave-02-2026-10-28.md) — paired select/loading originals for25characters, 50newdrafts, fast grid/detail review; previous27 accepted.
 - [UI reconstruction first production wave](menu-ui-reconstruction-wave-01-2026-10-27.md) — approved family expansion, 25 new labels and Main Menu/Capone native-feedback corrections; Continue preserved.
 - [UI reconstruction native pilot and family batch](menu-ui-reconstruction-pilot-2026-10-27.md) — 1,348-mapping corrected scope, 12 family drafts, native 1440p samples and bounded green-edge cleanup.
+
+- [Four held UI corrections and full lossless experiment](menu-ui-held-fixes-lossless-2026-10-30.md) — four revised drafts, remaining held approvals, full PNG/RGBA/metadata receipts and reusable Modding Tools compression procedure.

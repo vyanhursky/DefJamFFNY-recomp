@@ -1,0 +1,378 @@
+{
+  "schema": 1,
+  "date": "2026-10-30",
+  "status": "Four revised drafts await owner review. Eleven other held generated mappings visually approved; five baseline-retention decisions accepted. Native assembly/validation remains due.",
+  "authorization": {
+    "owner_message": "These 4 held textures look like they need to be fixed. The rest of them look fine. Once the held textures are fixed, continue with compression experiment. OK try the lossless compression and let me know the results. Document the procedure in the modding tools repo so that I can use it for other textures",
+    "approval_record": "config/menu-ui-held-rest-approval-2026-10-30.json",
+    "approval_sha256": "078a4ffb39f9352a343fb248cc4590e89b130bc805bc824cd43d06a180f1652e"
+  },
+  "counts": {
+    "accepted_restoration_mappings": 1339,
+    "published": 390,
+    "queued_approved": 949,
+    "new_corrections_pending": 4,
+    "baseline_retention_only": 5
+  },
+  "review_url": "http://127.0.0.1:51764/review.html#overview",
+  "tool": "Built-in imagegen",
+  "generation_calls": 6,
+  "prompt_set": {
+    "path": "logs/menu-ui-held-fixes-20261030/prompt-set.json",
+    "sha256": "a1e3a6ad451c7f3287659f86c6002fb521d22660f4b7fadf9a3413066d938d0f"
+  },
+  "selected_for_review": [
+    {
+      "key": "j042-battle-matchSm3-9",
+      "name": "GAGNANT",
+      "source_ids": [
+        "37f7407241232da6d9c11df2320e2ad9358cf3c2a77d03fc67a744c099f9b3fb"
+      ],
+      "revision": "v3",
+      "original_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/j042-battle-matchSm3-9-logical-original.png",
+      "original_sha256": "aa486a203a7d7e9b538be50e37f0f06907605bfee64b390ba4f51aa5be893b3d",
+      "preview_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/j042-battle-matchSm3-9-v3.png",
+      "preview_sha256": "dc603fbdfd34a15e8f1ba98bdd6e2607792e7d45c5753d084051954fe756fdf4",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/j042-battle-matchSm3-9-v3.png",
+      "raw_sha256": "dc603fbdfd34a15e8f1ba98bdd6e2607792e7d45c5753d084051954fe756fdf4",
+      "source_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave15-20261030/joined-originals/j042-battle-matchSm3-9.png",
+      "source_sha256": "412e9fcb73ff63cdbbd0a657c04a5812b9df4b91dde41cc8cb8784122c27680f",
+      "reference_pins": [
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/references/j042-battle-matchSm3-9-source.png",
+          "sha256": "412e9fcb73ff63cdbbd0a657c04a5812b9df4b91dde41cc8cb8784122c27680f"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/references/j042-battle-matchSm3-9-blue.png",
+          "sha256": "b851636a8d6bb528ccdf3da666a960aee9f55b31a31ca39bac69681008ec0570"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/references/j042-battle-matchSm3-9-pale.png",
+          "sha256": "bee53b20069e474b9c5aef1d2184ccfeba779f0815ea5b1c5dcef075fd4a2caa"
+        }
+      ],
+      "original_bounds": [
+        8,
+        8,
+        134,
+        65
+      ],
+      "draft_bounds": [
+        83,
+        71,
+        1683,
+        819
+      ],
+      "raw_height_error_percent": 3.34,
+      "technical_notes": "Isolated stamp comparison excludes separate native white corner; native context assembly still due.",
+      "status": "Awaiting owner approval; not selected for release."
+    },
+    {
+      "key": "j062-options-userID-7",
+      "name": "NO USER IDs",
+      "source_ids": [
+        "e56d6339c75c72074fd1e8590426a093cc0ebe34e16ecd8dc6dc43a4ce8cecd1"
+      ],
+      "revision": "v5",
+      "original_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/j062-options-userID-7-logical-original.png",
+      "original_sha256": "72779c1056c7d6985f85e89237b48c911f35e1c4d228b8ae39367fd495305a81",
+      "preview_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/j062-options-userID-7-v5.png",
+      "preview_sha256": "d8d2252a92521f2453894f57671156c28e95cd9f2ce9cc94a1c994f7b9385bd2",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/j062-options-userID-7-v5.png",
+      "raw_sha256": "d8d2252a92521f2453894f57671156c28e95cd9f2ce9cc94a1c994f7b9385bd2",
+      "source_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave15-20261030/joined-originals/j062-options-userID-7.png",
+      "source_sha256": "72779c1056c7d6985f85e89237b48c911f35e1c4d228b8ae39367fd495305a81",
+      "reference_pins": [
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/references/j062-options-userID-7-source.png",
+          "sha256": "72779c1056c7d6985f85e89237b48c911f35e1c4d228b8ae39367fd495305a81"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/references/j062-options-userID-7-blue.png",
+          "sha256": "ea76573060cc26bb7b369c494e0482f75adc296f115a1a10453b462aeb8ce106"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/references/j062-options-userID-7-pale.png",
+          "sha256": "f49cc884238f4242fcb4955645ccab289bca3e506638775899440909f58e51e0"
+        }
+      ],
+      "original_bounds": [
+        0,
+        8,
+        256,
+        103
+      ],
+      "draft_bounds": [
+        77,
+        51,
+        1888,
+        731
+      ],
+      "raw_height_error_percent": 1.18,
+      "technical_notes": "Transparent interior and subdued red ink restored; owner review pending.",
+      "status": "Awaiting owner approval; not selected for release."
+    },
+    {
+      "key": "j074-battle-chsVenue-native",
+      "name": "Venue symbol \u00b7 dark",
+      "source_ids": [
+        "00c20e99d8d81341eca58f0268817e1ed33361126916c5b53ace4fe398d3b144"
+      ],
+      "revision": "v2",
+      "original_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/j074-battle-chsVenue-native-logical-original.png",
+      "original_sha256": "08c3f3b644ac5e50acfb93e53f84f874f5bcb07de51c4dcc7b9183c1449e4caf",
+      "preview_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/j074-battle-chsVenue-native-v2.png",
+      "preview_sha256": "742342575b09303bed7cae22021e0269ab10b0c085673ad86bbd63f06e5d9323",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/j074-battle-chsVenue-native-v2.png",
+      "raw_sha256": "742342575b09303bed7cae22021e0269ab10b0c085673ad86bbd63f06e5d9323",
+      "source_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave15-20261030/joined-originals/j074-battle-chsVenue-native.png",
+      "source_sha256": "36bf9b824549e95161931b45783b654bce8b2b354c6ccafb4b81e445bf328a24",
+      "reference_pins": [
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/references/j074-battle-chsVenue-native-blue.png",
+          "sha256": "eda59e37552f5e6244389968e00e2ca4550b922579809085d1496cecef1ab5bf"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/references/j074-battle-chsVenue-native-pale.png",
+          "sha256": "249c36b446993d40e026af2aec069782b782f9ef86cff3b527c16393da19832e"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/references/j074-battle-chsVenue-native-gray.png",
+          "sha256": "5a4d77ca32e48ec2f6f90b1c793b38ac569e1b8bf2c6a400167cf562868ca1e9"
+        }
+      ],
+      "original_bounds": [
+        1,
+        0,
+        35,
+        33
+      ],
+      "draft_bounds": [
+        186,
+        166,
+        1111,
+        1065
+      ],
+      "raw_height_error_percent": 0.13,
+      "technical_notes": "Badge-only sampled 35\u00d734 source; native gutters and fractional UV assembly remain due.",
+      "status": "Awaiting owner approval; not selected for release."
+    },
+    {
+      "key": "j077-battle-chsVenue-native",
+      "name": "Venue symbol \u00b7 red",
+      "source_ids": [
+        "9fc86ccb5176bd43ff97443d9ed7dcde2fd204ca1275abaa00cd8698acebcb06"
+      ],
+      "revision": "v2",
+      "original_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/j077-battle-chsVenue-native-logical-original.png",
+      "original_sha256": "84522eb30af9965a2187c6aa293abaf1b08a89f7078c3d29cdd3458fb8655ee7",
+      "preview_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/j077-battle-chsVenue-native-v2.png",
+      "preview_sha256": "415ef1aa121009e03fb74248b468d5f10567dc3e9be1932d01cb74db367fa842",
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/j077-battle-chsVenue-native-v2.png",
+      "raw_sha256": "415ef1aa121009e03fb74248b468d5f10567dc3e9be1932d01cb74db367fa842",
+      "source_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-wave15-20261030/joined-originals/j077-battle-chsVenue-native.png",
+      "source_sha256": "9c95f519ea37cedcd9bd66194360c9253a7a4cfcec1ec859d69c73376769580d",
+      "reference_pins": [
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/references/j077-battle-chsVenue-native-blue.png",
+          "sha256": "64c2c1db9e9aa761bbb3b847f80a60f415ce0f2069af94131d3147efaac0160e"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/references/j077-battle-chsVenue-native-pale.png",
+          "sha256": "e86c84bb9ab72e1245ca353a318fbdbc9b43c469eedf2eb93a63ed1f6991f356"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/references/j077-battle-chsVenue-native-gray.png",
+          "sha256": "ce3b98c7c87c15acdc391614f7813416c1320dab35ff53d97260526668c492ea"
+        }
+      ],
+      "original_bounds": [
+        0,
+        0,
+        35,
+        33
+      ],
+      "draft_bounds": [
+        98,
+        75,
+        1202,
+        1131
+      ],
+      "raw_height_error_percent": 1.45,
+      "technical_notes": "Badge-only sampled 35\u00d734 source; native gutters and fractional UV assembly remain due.",
+      "status": "Awaiting owner approval; not selected for release."
+    }
+  ],
+  "attempt_history": [
+    {
+      "key": "j042-battle-matchSm3-9",
+      "revision": "v2",
+      "prompt": "Use case: precise-object-edit. Restore the exact original GAGNANT white spray-stencil stamp from these ORIGINAL source references at higher resolution. Keep the original narrow condensed letter silhouettes, open counters, stroke weight, spacing, slight rising slant, and thin white rectangular stencil frame. Source letters are slender, not an extra-bold modern font. Keep subdued gray semi-transparent inner field and very soft dispersed partly transparent white overspray. The pale/blue/gray backgrounds must visibly show through the interior: absolutely no opaque charcoal panel, solid black plaque, new dark lining around letters, bevel or hard outline. Exterior and real holes transparent. Preserve original soft shadow in restrained source amount only. The detached small solid white rectangle at the bottom right is a separate atlas context material, NOT part of the GAGNANT stamp: do not incorporate it in the generated stamp; it is preserved separately for native assembly. Return ONLY one faithful isolated stamp with smooth sharp HD letter edges on transparent background, generous empty guard. No new paper, background field, drop-shadow embellishment or redesign.",
+      "referenced_image_paths": [
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/references/j042-battle-matchSm3-9-blue.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/references/j042-battle-matchSm3-9-pale.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/references/j042-battle-matchSm3-9-gray.png"
+      ],
+      "reference_pins": [
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/references/j042-battle-matchSm3-9-blue.png",
+          "sha256": "b851636a8d6bb528ccdf3da666a960aee9f55b31a31ca39bac69681008ec0570"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/references/j042-battle-matchSm3-9-pale.png",
+          "sha256": "bee53b20069e474b9c5aef1d2184ccfeba779f0815ea5b1c5dcef075fd4a2caa"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/references/j042-battle-matchSm3-9-gray.png",
+          "sha256": "170305349da54f5575828007789d2eee9883c8e0cb2e2573526b8c9ead67fc74"
+        }
+      ],
+      "transparent_background": true,
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/j042-battle-matchSm3-9-v2.png",
+      "raw_sha256": "5636d24b9936efa726831c3d649b4e35233ff981ecb5841ff225249691d1ed06"
+    },
+    {
+      "key": "j042-battle-matchSm3-9",
+      "revision": "v3",
+      "prompt": "Use case: precise-object-edit. EDIT TARGET is image1, an original RGBA game texture with actual transparent pixels. Images2/3 show that SAME ORIGINAL on different inspection backgrounds. Create a faithful sharp HD restoration, preserving the transparent negative spaces from image1. The artwork is FLAT WHITE INK, not embossed plastic or metal: only the exact narrow white GAGNANT lettering, a THIN white slanted rectangular frame and faint soft white overspray. All negative space between letters and around the inner frame is TRANSPARENT, with no added gray/black/white field. Do not shade the lettering or add outline, bevel, gray depth, rim lighting or shadow behind letters. Keep original narrow source font silhouettes and spacing exactly. Preserve the original delicate irregular stamped edge. The separate detached solid white block at bottom right is atlas context, not stamp art; omit it from this isolated stamp. Output one flat white-ink stamp on true transparent background with generous clear margins. No paper, background texture, backing panel or illuminated halo.",
+      "referenced_image_paths": [
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/references/j042-battle-matchSm3-9-source.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/references/j042-battle-matchSm3-9-blue.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/references/j042-battle-matchSm3-9-pale.png"
+      ],
+      "reference_pins": [
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/references/j042-battle-matchSm3-9-source.png",
+          "sha256": "412e9fcb73ff63cdbbd0a657c04a5812b9df4b91dde41cc8cb8784122c27680f"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/references/j042-battle-matchSm3-9-blue.png",
+          "sha256": "b851636a8d6bb528ccdf3da666a960aee9f55b31a31ca39bac69681008ec0570"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/references/j042-battle-matchSm3-9-pale.png",
+          "sha256": "bee53b20069e474b9c5aef1d2184ccfeba779f0815ea5b1c5dcef075fd4a2caa"
+        }
+      ],
+      "transparent_background": true,
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/j042-battle-matchSm3-9-v3.png",
+      "raw_sha256": "dc603fbdfd34a15e8f1ba98bdd6e2607792e7d45c5753d084051954fe756fdf4"
+    },
+    {
+      "key": "j062-options-userID-7",
+      "revision": "v4",
+      "prompt": "Use case: precise-object-edit. Faithfully reconstruct the exact ORIGINAL red NO USER IDs spray stencil in these source references. Copy the source narrow glyph forms, case, spacing, thin stroke weights, original gentle tilt and thin red frame. Crucial: the ink is subdued dusty brick-red/burgundy, low saturation, NOT vivid scarlet. Match the original ink brightness and partly translucent opacity separately on all three backgrounds; sample visually from the original rather than making it punchier. Source spray is broad, soft, dim, translucent and uneven with a darker lower-left patch; NOT sharp bright splatter. The interior rectangle has NO paper or painted fill: it is completely transparent between glyphs, letting the reference field show through. No cream plaque, white edge, new black outline, glow, bevel or solid red inner flood. Return one high-resolution isolated source-faithful stamp, smooth lettering, restrained original weathering, transparent exterior/interior and ample empty guard. Wording exactly NO USER IDs, preserving lower-case s.",
+      "referenced_image_paths": [
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/references/j062-options-userID-7-blue.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/references/j062-options-userID-7-pale.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/references/j062-options-userID-7-gray.png"
+      ],
+      "reference_pins": [
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/references/j062-options-userID-7-blue.png",
+          "sha256": "ea76573060cc26bb7b369c494e0482f75adc296f115a1a10453b462aeb8ce106"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/references/j062-options-userID-7-pale.png",
+          "sha256": "f49cc884238f4242fcb4955645ccab289bca3e506638775899440909f58e51e0"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/references/j062-options-userID-7-gray.png",
+          "sha256": "c5afdbda978e2853c5bb14041454d769c89555ed535a1b691737c2ce67130ef1"
+        }
+      ],
+      "transparent_background": true,
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/j062-options-userID-7-v4.png",
+      "raw_sha256": "56886731832559829042281647765f3c129e3f4771c879834d1b1bdc3bda6407"
+    },
+    {
+      "key": "j062-options-userID-7",
+      "revision": "v5",
+      "prompt": "Use case: precise-object-edit. EDIT TARGET is image1, the original RGBA game stamp with truly transparent negative space. Images2/3 are the same ORIGINAL composited on different inspection surfaces. Make only its edges sharper while matching source narrow letter shapes, proportions, thin weight, slight tilt and spacing. Exact text NO USER IDs with lower-case s. Output ONLY subdued dusty DARK BURGUNDY RED INK on transparency: lettering, thin rectangular red frame, soft faint diffuse original overspray. Absolutely NO light/pink/white/cream paper and NO interior fill. Preserve source transparent negative space directly from image1, including the whole rectangle between lettering strokes. No dark outline, plastic bevel, embossing or shadow. Ink colour should remain muted reddish-brown with source-like partly translucent spray; no vivid scarlet or saturated bright-red flecks. It is an isolated one-colour stencil graphic, not a sign on a coloured plaque. Return one transparent asset with clear margins.",
+      "referenced_image_paths": [
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/references/j062-options-userID-7-source.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/references/j062-options-userID-7-blue.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/references/j062-options-userID-7-pale.png"
+      ],
+      "reference_pins": [
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/references/j062-options-userID-7-source.png",
+          "sha256": "72779c1056c7d6985f85e89237b48c911f35e1c4d228b8ae39367fd495305a81"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/references/j062-options-userID-7-blue.png",
+          "sha256": "ea76573060cc26bb7b369c494e0482f75adc296f115a1a10453b462aeb8ce106"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/references/j062-options-userID-7-pale.png",
+          "sha256": "f49cc884238f4242fcb4955645ccab289bca3e506638775899440909f58e51e0"
+        }
+      ],
+      "transparent_background": true,
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/j062-options-userID-7-v5.png",
+      "raw_sha256": "d8d2252a92521f2453894f57671156c28e95cd9f2ce9cc94a1c994f7b9385bd2"
+    },
+    {
+      "key": "j074-battle-chsVenue-native",
+      "revision": "v2",
+      "prompt": "Use case: precise-object-edit. Faithfully restore ONLY the original small nearly-square venue symbol shown in these ORIGINAL source references. This is a 35-by-34 native sampled badge, not a wide sign. Follow the actual irregular ink silhouette and internal line paths exactly; do not invent a different mascot or a new illustration. Preserve square proportions and the original narrow distressed frame. The original graphic has near-black/dark-gray ink. All the backdrop between the ink marks is TRANSPARENT, including the whole field inside the square and outside its thin frame; no cream/white paper, plaque, solid background sheet or filled inner panel. Copy only original graphic lines and smooth their low-resolution edges. Remove accidental extraction-green/pink contamination. Preserve source subdued ink colour and partial alpha. No added shading, 3D depth, lettering, opaque white feathers, paper texture or colour embellishment. Return one isolated nearly-square source-faithful icon on transparent background with ample clear guard. The original full atlas had horizontal/vertical stretched gutters, excluded from these references; do not invent any horizontal banner extensions.",
+      "referenced_image_paths": [
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/references/j074-battle-chsVenue-native-blue.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/references/j074-battle-chsVenue-native-pale.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/references/j074-battle-chsVenue-native-gray.png"
+      ],
+      "reference_pins": [
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/references/j074-battle-chsVenue-native-blue.png",
+          "sha256": "eda59e37552f5e6244389968e00e2ca4550b922579809085d1496cecef1ab5bf"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/references/j074-battle-chsVenue-native-pale.png",
+          "sha256": "249c36b446993d40e026af2aec069782b782f9ef86cff3b527c16393da19832e"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/references/j074-battle-chsVenue-native-gray.png",
+          "sha256": "5a4d77ca32e48ec2f6f90b1c793b38ac569e1b8bf2c6a400167cf562868ca1e9"
+        }
+      ],
+      "transparent_background": true,
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/j074-battle-chsVenue-native-v2.png",
+      "raw_sha256": "742342575b09303bed7cae22021e0269ab10b0c085673ad86bbd63f06e5d9323"
+    },
+    {
+      "key": "j077-battle-chsVenue-native",
+      "revision": "v2",
+      "prompt": "Use case: precise-object-edit. Faithfully restore ONLY the original small nearly-square venue symbol shown in these ORIGINAL source references. This is a 35-by-34 native sampled badge, not a wide sign. Follow the actual irregular ink silhouette and internal line paths exactly; do not invent a different mascot or a new illustration. Preserve square proportions and the original narrow distressed frame. The original graphic has muted dark brick-red ink. All the backdrop between the ink marks is TRANSPARENT, including the whole field inside the square and outside its thin frame; no cream/white paper, plaque, solid background sheet or filled inner panel. Copy only original graphic lines and smooth their low-resolution edges. Remove accidental extraction-green/pink contamination. Preserve source subdued ink colour and partial alpha. No added shading, 3D depth, lettering, opaque white feathers, paper texture or colour embellishment. Return one isolated nearly-square source-faithful icon on transparent background with ample clear guard. The original full atlas had horizontal/vertical stretched gutters, excluded from these references; do not invent any horizontal banner extensions.",
+      "referenced_image_paths": [
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/references/j077-battle-chsVenue-native-blue.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/references/j077-battle-chsVenue-native-pale.png",
+        "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/references/j077-battle-chsVenue-native-gray.png"
+      ],
+      "reference_pins": [
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/references/j077-battle-chsVenue-native-blue.png",
+          "sha256": "64c2c1db9e9aa761bbb3b847f80a60f415ce0f2069af94131d3147efaac0160e"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/references/j077-battle-chsVenue-native-pale.png",
+          "sha256": "e86c84bb9ab72e1245ca353a318fbdbc9b43c469eedf2eb93a63ed1f6991f356"
+        },
+        {
+          "path": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/references/j077-battle-chsVenue-native-gray.png",
+          "sha256": "ce3b98c7c87c15acdc391614f7813416c1320dab35ff53d97260526668c492ea"
+        }
+      ],
+      "transparent_background": true,
+      "raw_png": "/Users/vlad/.codex/worktrees/d789/DefJamFFNY-recomp/logs/menu-ui-held-fixes-20261030/j077-battle-chsVenue-native-v2.png",
+      "raw_sha256": "415ef1aa121009e03fb74248b468d5f10567dc3e9be1932d01cb74db367fa842"
+    }
+  ],
+  "geometry": "Venue badges use sampled top-left35x34ofnative64x64. Source gutters excluded from art, require native reconstruction. GAGNANT complete logical stamp excludes detached solid-white21x8context8412529f; its tracked37f74072materialis128x8bottomstrip. Prior approved neighbouring context is not automatically replaced. NOUSERIDs sampled256x109of256x128. Fractional UV registration/native alpha/gutter assembly remain due.",
+  "parent_review": "Parent inspected all four composited on blue and pale, plus source-fitted pale pairs. New stamps have transparent inner fields; venue badges no longer include opaque paper backing. Individual glyph/detail/spray geometry remains approximate and requires owner review.",
+  "browser": {
+    "path": "logs/menu-ui-held-fixes-20261030/browser-qa.json",
+    "sha256": "6f41328419337b7b41e204f2743fae218e44bb899d7266f97e6cf1bb0ce5465e",
+    "proof_sha256": "f27f57ff7e1eae9da2081ef72be812fdbe6a56e4f0ca93bfde9f7ae18ee6199d"
+  },
+  "publication": "Published1.3/catalogue7 unchanged. Nothing installed or uploaded."
+}
