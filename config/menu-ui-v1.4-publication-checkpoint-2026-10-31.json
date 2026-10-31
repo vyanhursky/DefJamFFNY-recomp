@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "date": "2026-10-31",
+  "recovery_path": "/Users/vlad/Code/defjam-data/scratch/menu-ui-v1.4-publication-20261031",
+  "manifest_sha256": "74350af9d4e4c840ffb54bb8e7eca871a52149d39321844f57efaa5a7b801b90",
+  "files": 46,
+  "bytes": 1106707,
+  "parent_checkpoint_path": "config/menu-ui-v1.4-checkpoint-2026-10-31.json",
+  "parent_checkpoint_sha256": "af4bc075414d5ab74f7a918b1f3a6d93480a20f6aec1b140a7ffc772a797963b",
+  "version": "1.4.0",
+  "catalogue_revision": 9,
+  "status": "Published and network update/rollback verified"
+}

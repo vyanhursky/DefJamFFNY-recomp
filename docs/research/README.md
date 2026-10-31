@@ -209,3 +209,5 @@ The plan built from these is in [docs/widescreen](../widescreen/README.md), whic
 - [Four held UI corrections and full lossless experiment](menu-ui-held-fixes-lossless-2026-10-30.md) — four revised drafts, remaining held approvals, full PNG/RGBA/metadata receipts and reusable Modding Tools compression procedure.
 
 - [Combined HD Widescreen Menus 1.4.0 candidate](menu-ui-v1.4-candidate-2026-10-31.md) — all approved art assembled and losslessly packaged, exact size/hash, native checks and PRs; awaiting owner Cloudflare approval.
+
+- [HD Widescreen Menus 1.4.0 publication](menu-ui-v1.4-publication-2026-10-31.md): combined 1,343 approved mappings, Cloudflare verification, protected signed catalogue and released 0.12.1 network update/rollback.

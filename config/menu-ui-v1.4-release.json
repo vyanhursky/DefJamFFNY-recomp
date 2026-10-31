@@ -1,0 +1,123 @@
+{
+  "schema": 1,
+  "date": "2026-10-31",
+  "status": "Published to Cloudflare R2 and signed catalogue revision 9",
+  "version": "1.4.0",
+  "archive": {
+    "size": 601895156,
+    "unpacked_size": 605772797,
+    "file_count": 1746,
+    "sha256": "f3d79f86a024b5786919ef2d6f38b1f599cb49a151d031b4a85023a5f480848d",
+    "root": "menu-ui-hd-wide-v1-4-0",
+    "urls": [
+      "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/menu-ui-hd-wide/1.4.0/f3d79f86a024b5786919ef2d6f38b1f599cb49a151d031b4a85023a5f480848d/menu-ui-hd-wide-v1.4.0.zip"
+    ]
+  },
+  "total_approved_reconstructed_mappings": 1343,
+  "new_approved_since1_3": 953,
+  "baseline_retention_only": 5,
+  "native_mappings": 1522,
+  "wide_entries": 80,
+  "pngs": 1744,
+  "lossless": {
+    "input_png_bytes": 715434318,
+    "output_png_bytes": 603774586,
+    "saved_png_bytes": 111659732,
+    "saved_png_percent": 15.6073,
+    "rgba_and_metadata_exact": true,
+    "optimized_native_new": 963,
+    "reused_optimized_unchanged": 781
+  },
+  "min_recomp": "0.12.1",
+  "capabilities": [
+    "textures-v1",
+    "wide-v1"
+  ],
+  "game_code_changed": false,
+  "faithful_hd_bundled": false,
+  "candidate_record": "config/menu-ui-v1.4-candidate-2026-10-31.json",
+  "catalogue_pr": "https://github.com/vyanhursky/DefJamFFNY-mods/pull/9",
+  "catalogue_source_commit": "145f163097bf660c272d4ff525008a53345531ec",
+  "publication_workflow": "https://github.com/vyanhursky/DefJamFFNY-mods/actions/runs/41217382346",
+  "catalogue": {
+    "url": "https://vyanhursky.github.io/DefJamFFNY-mods/index.json",
+    "revision": 9,
+    "sha256": "99ba98b66aec143c10ec1dcc6b1a2a405dc40a068d0eb3a2c9b7c82a16faf68c",
+    "signature_verified": true,
+    "unchanged_public_key": "4c7c170fa624aeb0aeac40f19c4fa75365eac700f61e9f9902ca42848b840ffd",
+    "source_versions_exact": true,
+    "prior_history_preserved": true,
+    "version": "1.4.0",
+    "archive_sha256": "f3d79f86a024b5786919ef2d6f38b1f599cb49a151d031b4a85023a5f480848d",
+    "min_recomp": "0.12.1",
+    "issued": "2026-10-31T15:58:52Z",
+    "expires": "2026-11-30T15:58:52Z"
+  },
+  "cloudflare": {
+    "public_download_verified": true,
+    "range_verified": true,
+    "objects": [
+      {
+        "name": "menu-ui-hd-wide-v1.4.0.zip",
+        "key": "menu-ui-hd-wide/1.4.0/f3d79f86a024b5786919ef2d6f38b1f599cb49a151d031b4a85023a5f480848d/menu-ui-hd-wide-v1.4.0.zip",
+        "url": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/menu-ui-hd-wide/1.4.0/f3d79f86a024b5786919ef2d6f38b1f599cb49a151d031b4a85023a5f480848d/menu-ui-hd-wide-v1.4.0.zip",
+        "size": 601895156,
+        "sha256": "f3d79f86a024b5786919ef2d6f38b1f599cb49a151d031b4a85023a5f480848d",
+        "etag": "\"f94b1e3ab0f44c172c75c8e9bf270577-72\"",
+        "content_type": "application/zip",
+        "cache_control": "public,max-age=31536000,immutable",
+        "public_verified": true,
+        "verification_note": "Full public GET passed all length/hash assertions in initial run before checksum-sidecar timeout; separate range check follows."
+      },
+      {
+        "name": "menu-ui-hd-wide-v1.4.0.zip.sha256",
+        "key": "menu-ui-hd-wide/1.4.0/f3d79f86a024b5786919ef2d6f38b1f599cb49a151d031b4a85023a5f480848d/menu-ui-hd-wide-v1.4.0.zip.sha256",
+        "url": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/menu-ui-hd-wide/1.4.0/f3d79f86a024b5786919ef2d6f38b1f599cb49a151d031b4a85023a5f480848d/menu-ui-hd-wide-v1.4.0.zip.sha256",
+        "size": 93,
+        "sha256": "fbe582a5e938b6c71815f5dc109589361b3d7895e5a919b2aa2f61a6a436d579",
+        "etag": "\"9af45714a6c5a4f5db9282f235a0b7e1\"",
+        "content_type": "text/plain; charset=utf-8",
+        "cache_control": "public,max-age=31536000,immutable",
+        "public_verified": true
+      },
+      {
+        "name": "RELEASE-NOTES.txt",
+        "key": "menu-ui-hd-wide/1.4.0/f3d79f86a024b5786919ef2d6f38b1f599cb49a151d031b4a85023a5f480848d/RELEASE-NOTES.txt",
+        "url": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/menu-ui-hd-wide/1.4.0/f3d79f86a024b5786919ef2d6f38b1f599cb49a151d031b4a85023a5f480848d/RELEASE-NOTES.txt",
+        "size": 855,
+        "sha256": "e35c9dc6f5d00647c7e8a91fe28459c7ff50a8aa737d81ffc4370b70230bddde",
+        "etag": "\"625ae5e58d9bbc145117a9eb8a37dc1f\"",
+        "content_type": "text/plain; charset=utf-8",
+        "cache_control": "public,max-age=31536000,immutable",
+        "public_verified": true
+      }
+    ]
+  },
+  "released_helper_update": {
+    "runtime": "0.12.1",
+    "helper_identical_to_tag": true,
+    "signed_revision": 9,
+    "version": "1.4.0",
+    "previous": "1.3.0",
+    "archive_sha256": "f3d79f86a024b5786919ef2d6f38b1f599cb49a151d031b4a85023a5f480848d",
+    "files": 1746,
+    "rollback_files": 1706,
+    "save_marker_unchanged": true,
+    "network_download_and_managed_update": true
+  },
+  "rollback_exercise": {
+    "restored": "1.3.0",
+    "files": 1706,
+    "save_unchanged": true
+  },
+  "native_validation": "Six serial isolated native routes, 35 captures; detailed coverage and limits in candidate record",
+  "future_pr_milestone": "v0.12.2",
+  "fire_escape_fix": "Separate game PR131; not a change in this modpack",
+  "private_receipt_sha256": {
+    "upload-receipt.json": "209bbf12d0f913990cad78dc76b95d330f5fc4d66a4dd144aff2eeda5069cddf",
+    "live-index-verification.json": "8b56b4f3e39527cefba6e65d13aca7b99f25a7223dcfe0b116db0df223929aad",
+    "released-helper-update-result.json": "5ec9321759b486117f05ca4363279002915824b065772f83a7d81dc30a2c975e",
+    "rollback-exercise.json": "17819ebcc8a7f38dd0014d944ffceb05d65f5b0c4dc9d523a6cf75e9a095e260",
+    "publish-run.json": "ac399d5efce499769265a81c3b299bab078589872aec2ff7330dc9d9b8ecf82f"
+  }
+}
