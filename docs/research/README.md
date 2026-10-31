@@ -207,3 +207,5 @@ The plan built from these is in [docs/widescreen](../widescreen/README.md), whic
 - [UI reconstruction native pilot and family batch](menu-ui-reconstruction-pilot-2026-10-27.md) — 1,348-mapping corrected scope, 12 family drafts, native 1440p samples and bounded green-edge cleanup.
 
 - [Four held UI corrections and full lossless experiment](menu-ui-held-fixes-lossless-2026-10-30.md) — four revised drafts, remaining held approvals, full PNG/RGBA/metadata receipts and reusable Modding Tools compression procedure.
+
+- [Combined HD Widescreen Menus 1.4.0 candidate](menu-ui-v1.4-candidate-2026-10-31.md) — all approved art assembled and losslessly packaged, exact size/hash, native checks and PRs; awaiting owner Cloudflare approval.

@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "date": "2026-10-31",
+  "recovery_path": "/Users/vlad/Code/defjam-data/scratch/menu-ui-v1.4-candidate-20261031",
+  "manifest_sha256": "a247038d3fe5f34c7e2b34256c5eff96e200046b5f399cb713cd409c64eba727",
+  "files": 111,
+  "bytes": 764121820,
+  "independent_apfs_clones": 111,
+  "version": "1.4.0",
+  "archive": {
+    "size": 601895156,
+    "unpacked_size": 605772797,
+    "file_count": 1746,
+    "sha256": "f3d79f86a024b5786919ef2d6f38b1f599cb49a151d031b4a85023a5f480848d",
+    "root": "menu-ui-hd-wide-v1-4-0",
+    "urls": [
+      "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/menu-ui-hd-wide/1.4.0/f3d79f86a024b5786919ef2d6f38b1f599cb49a151d031b4a85023a5f480848d/menu-ui-hd-wide-v1.4.0.zip"
+    ]
+  },
+  "accepted_sources": 1343,
+  "baseline_only": 5,
+  "native_routes": 6,
+  "captures": 35,
+  "parent_checkpoint_path": "config/menu-ui-held-fixes-checkpoint-2026-10-30.json",
+  "parent_checkpoint_sha256": "2ab3726d43b562d1fd8d90fd036ff7082797b655e7f785e4055eaddb4339f45a",
+  "publication": "Staged only. Cloudflare upload and signedcataloguepublication await owner approval ofexact size/hash; cataloguePR9draft."
+}
