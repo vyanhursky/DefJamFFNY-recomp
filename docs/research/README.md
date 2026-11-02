@@ -62,6 +62,7 @@ cite other development notes, logs and captures that are not published.
 
 ## Gameplay state and test determinism
 
+- [Fighter Mod Support investigation](fighter-mod-support-2026-11-01.md): Vendetta archive inventory, independently checked table limits, compatibility strategy and v0.15.0 plan.
 - [Simulation tick](simulation-tick.md)
 - [Fighter record fields](fighter-record-fields.md)
 - [Match-end state](match-end-state.md)

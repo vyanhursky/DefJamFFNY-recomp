@@ -3,6 +3,10 @@
 Making your first pack? See [Texture Modding — Getting Started](texture-modding-getting-started.md).
 This page explains the manager and its implementation details.
 
+[Fighter Mod Support](fighter-mod-support.md) is planned for v0.15.0, with a
+Fighters category alongside Textures and Languages. Legacy fighter `.mod` files
+are not supported by the current installer; see the linked research and plan.
+
 The Mods page has installed local/project packs, a curated project catalogue and
 one shared Load Order window. **Highest priority is shown at the top**: use Higher/Lower
 to choose which pack overrides matching textures. In the underlying semicolon-separated
