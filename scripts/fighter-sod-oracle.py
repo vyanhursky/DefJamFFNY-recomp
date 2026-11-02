@@ -96,10 +96,10 @@ int main(int argc,char **argv) {
 
 
 def extract(source, address):
-    match = re.search(r'void sub_' + address + r'\(void\)\s*\{.*?^\}', source, re.S | re.M)
+    match = re.search(r'void sub_' + address + r'(?:_gen)?\(void\)\s*\{.*?^\}', source, re.S | re.M)
     if not match:
         raise ValueError('Missing generated parser function: ' + address)
-    return match.group()
+    return match.group().replace('sub_' + address + '_gen(', 'sub_' + address + '(')
 
 
 def main():

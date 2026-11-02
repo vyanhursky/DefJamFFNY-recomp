@@ -32,6 +32,25 @@ def test_presses_expand():
     assert harness.expand_presses("down@11+0.6x2") == ["down:11:%g" % (11 + d), "down:11.6:%g" % (11.6 + d)]
 
 
+@pytest.mark.parametrize('route,screen', [('fighter-roster', 'choosef2'), ('fighter-roster-4', 'choosef4')])
+def test_roster_probe_browsing_replaces_idle_stage_without_duplicate_anchor(monkeypatch, route, screen):
+    calls = []
+    def fake_run(*args, **kwargs):
+        calls.append(kwargs)
+        run = harness.Run('synthetic', 'unused', '')
+        run.summary = {}
+        return run
+    monkeypatch.setattr(harness, 'run_game', fake_run)
+    monkeypatch.setattr(harness, 'reached', lambda *_: True)
+    anchor = 'getscreeninfo(battle/' + screen + '='
+    harness.run_route(route)
+    assert calls[-1]['stages'][-1] == anchor + 'back@9999'
+    browsing = anchor + 'down@10;a@20'
+    harness.run_route(route, extra_stages=[browsing])
+    assert calls[-1]['stages'][-1] == browsing
+    assert sum(anchor in stage for stage in calls[-1]['stages']) == 1
+
+
 def test_guarded_data_root_matches_child_cwd(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     assert harness.guarded_data_root('runtime-data') == os.path.join(harness.REPO, 'runtime-data')

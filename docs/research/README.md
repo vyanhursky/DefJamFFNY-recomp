@@ -30,6 +30,8 @@ cite other development notes, logs and captures that are not published.
 
 ## Front end and movies
 
+- [Fighter Mod Support: active runtime implementation](fighter-mod-runtime-2026-11-02.md): local native menu/combat evidence, stable identities, save/capacity findings and outstanding gates for v0.15.0.
+
 - [Mod system design](mod-system-design.md): signed catalogue architecture and future override types (PR17).
 - [Integrated launcher/menu RC](integrated-menu-launcher-rc-2026-10-23.md): combined candidate, hosted delivery and acceptance evidence.
 - [CachyOS setup compile failure, issue #83](issue83-cachyos-notes.md): C++20 UTF-8 paths and native regression checks

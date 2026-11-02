@@ -207,7 +207,7 @@ class Database:
                 'table_count': len(self._tables), 'schema_fields': len(self.schema),
                 'string_count': len(self.strings), 'character_count': table.count, 'characters': rows}
 
-    def extend_character_records(self, additions, edits=None):
+    def extend_character_records(self, additions, edits=None, *, selection_keys=None):
         """Native-cache construction experiment, not a runnable mod installer.
 
         Additions use stable keys, existing template record offsets and named
@@ -217,6 +217,9 @@ class Database:
         for. No native runtime capability is implied by a successful round-trip.
         """
         check(isinstance(additions, list) and len(additions) <= 16384, 'Invalid additions budget')
+        if selection_keys is not None:
+            check(isinstance(selection_keys, dict) and set(selection_keys) == {a.get('key') for a in additions if isinstance(a, dict)},
+                  'Selection allocation must cover exactly the added fighter keys')
         edits = [] if edits is None else edits
         check(isinstance(edits, list) and len(edits) <= 16384, 'Invalid edits budget')
         table = self._tables.get(CHARACTER)
@@ -315,8 +318,13 @@ class Database:
                   'Unknown template record')
             row = bytearray(self.data[addition['template']:addition['template'] + 26 * 4])
             struct.pack_into('<I', row, 0, intern(native_name))
-            while next_id in identifiers or next_id == 99:
-                next_id += 1
+            if selection_keys is not None:
+                next_id = selection_keys[key]
+                check(type(next_id) is int and next_id >= 100 and next_id not in identifiers,
+                      'Invalid/colliding allocated selection key')
+            else:
+                while next_id in identifiers or next_id in (98, 99):
+                    next_id += 1
             check(next_id <= 0x7fffffff, 'Native selection key exhausted')
             struct.pack_into('<I', row, native_offset * 4, next_id)
             apply_fields(row, addition['fields'])

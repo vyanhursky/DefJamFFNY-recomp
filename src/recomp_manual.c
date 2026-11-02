@@ -40,6 +40,62 @@
 #include "hooks/dev_module.h"
 #include "patches/picture.h"
 #include "patches/menu_geometry.h"
+#include "patches/fighter_runtime.h"
+
+/* Local R&D custom-name fallback. The original lookup owns retail/language
+ * precedence; direct callers reach this wrapper through the v0.16 lifter. */
+extern void sub_00045180_gen(void);
+void sub_00045180(void)
+{
+    uint32_t key = MEM32(g_esp + 4), self = g_ecx;
+    sub_00045180_gen();
+    g_eax = defjam_fighter_localized(key, g_eax, self);
+}
+
+/* Packed Character handles cross a stable identity boundary here. Other SOD
+ * tables retain the original implementation and tuple/sentinel behavior. */
+extern void sub_000BE870_gen(void);
+void sub_000BE870(void)
+{
+    uint32_t database = g_ecx, output = MEM32(g_esp + 4), table = MEM32(g_esp + 8);
+    sub_000BE870_gen();
+    defjam_fighter_handle_produced(database, table, output);
+}
+extern void sub_000BE760_gen(void);
+void sub_000BE760(void)
+{
+    uint32_t argument = g_esp + 8, handle = MEM32(argument);
+    MEM32(argument) = defjam_fighter_native_handle(handle);
+    sub_000BE760_gen();
+    MEM32(argument) = handle;
+}
+
+/* Native menu producers keep their original filtering and retail context
+ * ordering. Partition only the completed token list, never a shared roster
+ * snapshot for a single participant. These wrappers are inactive normally. */
+extern void sub_00053A10_gen(void);
+void sub_00053A10(void)
+{
+    uint32_t entries = MEM32(g_esp + 4), count = MEM32(g_esp + 8);
+    sub_00053A10_gen();
+    defjam_fighter_order(MEM32(0x00341540u), entries, count, "Game.GetCharacterList");
+}
+
+extern void sub_00047BC0_gen(void);
+void sub_00047BC0(void)
+{
+    uint32_t self = g_ecx;
+    sub_00047BC0_gen();
+    defjam_fighter_order(MEM32(self + 0x2C), 0x003A07B0u, MEM32(self + 4), "GameMode");
+}
+
+extern void sub_00020270_gen(void);
+void sub_00020270(void)
+{
+    uint32_t self = g_ecx, handle = MEM32(g_esp + 4);
+    sub_00020270_gen();
+    defjam_fighter_materialized(self, handle);
+}
 
 /* Crowd test controls (src/hooks/crowd_control.c, RECOMP_TEST_CROWD; off unless set). */
 void defjam_crowd_match_start(void);
@@ -115,7 +171,10 @@ void sub_001810B0_enter(void) { ws_apt_load_begin(MEM32(g_esp + 8)); }
 void sub_00056F50_enter(void) { ws_apt_load_done(MEM32(g_esp + 8)); }
 /* DynamicLoader's ELF parser: the input descriptor's +0x10 is the raw header,
  * still before section fixup, relocation and vertex-buffer upload. */
-void sub_00109F80_enter(void) { menu_geometry_register(MEM32(g_ecx + 0x10)); }
+void sub_00109F80_enter(void) {
+    defjam_fighter_model_input(g_ecx);
+    menu_geometry_register(MEM32(g_ecx + 0x10));
+}
 
 /* ---- Story shops: no LOADING frame on an item change (issue #119) ------
  *

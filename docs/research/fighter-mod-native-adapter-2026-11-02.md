@@ -123,6 +123,12 @@ No profile files were opened for writing or modified.
 
 ## Next native integration step
 
+This checkpoint is superseded by the [runtime follow-up](fighter-mod-runtime-2026-11-02.md).
+The pointer-only parser oracle above missed an inline member-map invariant;
+its cache hash is retained as historical evidence, not an activation candidate.
+The corrected writer, expanded oracle and actual native custom-fighter fights
+are recorded in that follow-up.
+
 1. Implement merged localization registration and safe native label handling.
    Trace both roster-output consumers and movie context. Preserve retail order,
    then append custom entries; retain the per-player page option only after its

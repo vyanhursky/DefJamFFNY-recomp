@@ -23,6 +23,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'setup'))
 from fighter_sod import Database, MAX_IMAGE, SodError
 from fighter_registry import resolve, suggest_compatibility, RegistryError, MAX_PACKS
 from fighter_native import RetailCatalog, ADAPTER
+from fighter_names import encode_names
+from fighter_bindings import encode_bindings
+from fighter_assets import unpack as unpack_asset, MAX_ASSET
+from fighter_elf import Model
 
 MAX_DOCUMENT = 8 * 1024**2
 MAX_INPUT = 32 * 1024**2
@@ -88,6 +92,9 @@ def write_preview(data, report):
             stage = Path(temporary) / 'cache'
             (stage / 'assets').mkdir(parents=True)
             (stage / 'assets/djv2.sod').write_bytes(data)
+            (stage / 'fighter-names.bin').write_bytes(encode_names(report['localization_entries']))
+            (stage / 'fighter-bindings.bin').write_bytes(encode_bindings(report['handle_bindings']))
+            (stage / 'fighter-ledger.json').write_text(json.dumps(report['binding_ledger'], sort_keys=True, indent=2) + '\n', encoding='utf-8')
             (stage / 'report.json').write_bytes(serialized)
             try:
                 os.rename(stage, destination)
@@ -99,6 +106,18 @@ def write_preview(data, report):
         actual = stream.read(MAX_IMAGE + 1)
     if len(actual) != len(data) or hashlib.sha256(actual).hexdigest() != report['cache_sha256']:
         raise ValueError('Existing preview cache is corrupt; original data was not changed')
+    with (destination / 'fighter-names.bin').open('rb') as stream:
+        names = stream.read(2 * 1024**2)
+    if names != encode_names(report['localization_entries']):
+        raise ValueError('Existing preview name bindings are corrupt; original data was not changed')
+    with (destination / 'fighter-bindings.bin').open('rb') as stream:
+        bindings = stream.read(1024**2)
+    if bindings != encode_bindings(report['handle_bindings']):
+        raise ValueError('Existing preview fighter bindings are corrupt; original data was not changed')
+    with (destination / 'fighter-ledger.json').open('rb') as stream:
+        ledger = stream.read(MAX_REPORT + 1)
+    if len(ledger) > MAX_REPORT or json.loads(ledger, object_pairs_hook=unique) != report['binding_ledger']:
+        raise ValueError('Existing preview identity ledger is corrupt; original data was not changed')
     with (destination / 'report.json').open('rb') as stream:
         saved = stream.read(MAX_REPORT + 1)
     if len(saved) > MAX_REPORT or json.loads(saved, object_pairs_hook=unique) != json.loads(serialized):
@@ -111,6 +130,8 @@ def main():
     sub = parser.add_subparsers(dest='command', required=True)
     inspect = sub.add_parser('inspect-native')
     inspect.add_argument('sod', type=Path)
+    inspect_model = sub.add_parser('inspect-model', help='Inspect data-only ELF envelope; no runtime activation')
+    inspect_model.add_argument('model', type=Path)
     export = sub.add_parser('export-retail')
     export.add_argument('sod', type=Path)
     compile_preview = sub.add_parser('compile-native-preview')
@@ -127,7 +148,11 @@ def main():
     helper.add_argument('--choose', action='append', required=True, metavar='FIGHTER:COMPONENT=PACK')
     args = parser.parse_args()
     try:
-        if args.command == 'inspect-native':
+        if args.command == 'inspect-model':
+            with args.model.open('rb') as stream:
+                data = stream.read(MAX_ASSET + 1)
+            result = Model(unpack_asset(data)).metadata()
+        elif args.command == 'inspect-native':
             if args.sod.stat().st_size > MAX_IMAGE:
                 raise ValueError('SODB exceeds image budget')
             result = Database(args.sod.read_bytes()).character_metadata()

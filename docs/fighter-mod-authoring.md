@@ -167,13 +167,42 @@ components and retail core reassignment fail with explicit unsupported errors.
 Complete appearance/moveset/voice/portrait and all four stats must be present,
 directly or through inheritance, for this adapter to produce a preview.
 
-Custom names become separate localization entries keyed by bounded generated
-native symbols. The preview does not register them into the running game.
-Native menu labels longer than 19 UTF-8 bytes trigger an additional blocker due
-to an audited 20-byte inline text field; this is not a proposed permanent public
-name limit. Selection keys above 127 are reported separately. Every preview
+Custom names become a validated FML1 name cache keyed by bounded generated
+native symbols; the report includes its hash. Ordinary preview commands do not
+activate it. Long names retain a conservative blocker while native views are
+audited: one transient menu sort field is 20 bytes, although its exact relationship
+to `DisplayName` is not established. This is not a permanent public name limit.
+Selection keys above 127 are reported separately. Every preview
 retains `runtime_ready: false` and `launch_allowed: false`: it does not allocate
 new movesets, install a mod or make fighters playable.
+
+The runtime-owned binding ledger now retains historical fighter handles and
+selection tokens across pack removal and re-enable. FMB1 translates those
+identities to each snapshot's physical native rows; authors never choose either
+number. The internal probe can consume a previous cache's ledger with `--ledger`.
+The ledger must remain tied to its profile/save namespace before production use.
+
+Inspect a model/face envelope, either raw or RefPack compressed:
+
+```powershell
+python scripts/fighter-registry.py inspect-model path/to/model.o
+```
+
+The validator permits the observed data-only ELF layout, bounded symbols and
+pointer relocations. CPU executable sections, absolute address symbols,
+out-of-range/duplicate relocations and oversized expansion are rejected. The
+report lists imports/exports for dependency resolution. Passing this inspection
+does not validate EAGL geometry, skeletons, materials or texture references and
+does not grant a runtime asset capability.
+
+The [active runtime research note](research/fighter-mod-runtime-2026-11-02.md)
+records isolated native probes. `scripts/fighter-runtime-probe.py` is an internal
+acceptance driver, using disposable guarded saves under `logs`, not an install
+or activation command. Combat start controls do not prove native menu selection.
+The probe's `--expect-fighter` assertions verify original ControllerSetup
+submissions and actual match IDs without overriding them. Two-player custom
+headers, donor thumbnails/portraits and selection now have native evidence;
+other layouts, full save lifecycle and authored resources remain acceptance gates.
 
 Before publishing creator instructions, implement asset conversion/validation,
 native registration, preview/selection, profile lifecycle, package transactions

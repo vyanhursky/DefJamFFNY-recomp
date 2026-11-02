@@ -284,6 +284,20 @@ ROUTES = {
         "until": "game.startgame(", "after": 120, "secs": 420,
         "shots": "@game.startgame(,60,110",
     },
+    "fighter-roster": {
+        "help": "One on One native selector, waiting for explicit browsing stages",
+        "stages": ONE_ON_ONE_SETUP[:7],
+        "default_stages": ["getscreeninfo(battle/choosef2=back@9999"],
+        "until": "getscreeninfo(battle/choosef2", "after": 100, "secs": 230,
+        "shots": "@getscreeninfo(battle/choosef2,10,50",
+    },
+    "fighter-roster-4": {
+        "help": "Free For All native selector, waiting for explicit browsing stages",
+        "stages": FFA_SETUP[:7],
+        "default_stages": ["getscreeninfo(battle/choosef4=back@9999"],
+        "until": "getscreeninfo(battle/choosef4", "after": 180, "secs": 320,
+        "shots": "@getscreeninfo(battle/choosef4,10,50",
+    },
     "fight-result": {
         "help": "One on One at the default venue, played until the game shows the match summary",
         "stages": ONE_ON_ONE_SETUP + ["controllersetup(1,=a@4+4x6"],
@@ -956,7 +970,7 @@ def run_game(name, stages=(), tail="", shots="", secs=240, preset=RELEASE_PRESET
 def run_route(route, preset=RELEASE_PRESET, secs=None, shots=None, env=None, extra_stages=(),
               to_end=False, **kw):
     r = ROUTES[route]
-    stages = list(r["stages"]) + list(extra_stages)
+    stages = list(r["stages"]) + list(extra_stages or r.get("default_stages", ()))
     if r.get("env"):
         env = dict(r["env"], **(env or {}))     # what the route needs; the caller's values win
     run = run_game(route, stages=stages, tail=r.get("tail", ""),

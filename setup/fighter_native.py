@@ -10,6 +10,8 @@ import re
 
 from fighter_registry import SCHEMA, check, fingerprint, resolve, slug
 from fighter_sod import Database, CHARACTER
+from fighter_names import encode_names
+from fighter_bindings import seed, allocate, materialize, symbol, encode_bindings
 
 ADAPTER = 'fighter-native-preview-1'
 STATS = {'health': 'Health', 'speed': 'Speed', 'toughness': 'Toughness', 'charisma': 'Charisma'}
@@ -62,10 +64,11 @@ class RetailCatalog:
     def baseline(self):
         return deepcopy(self._baseline)
 
-    def compile(self, packs):
+    def compile(self, packs, ledger=None):
         snapshot = resolve(self._baseline, packs)
+        ledger = allocate(seed(self.db, self.source_sha256, self.rows), snapshot['fighters'], ledger)
         original = {key: value for key, value in resolve(self._baseline, [])['fighters'].items()}
-        additions, edits, donor_keys, localization = [], [], {}, {}
+        additions, edits, donor_keys, localization, portrait_donors = [], [], {}, {}, {}
         for identifier, fighter in snapshot['fighters'].items():
             components = fighter['components']
             unsupported = set(components) - set(RESOURCE_FIELDS) - {'moveset', 'stats'}
@@ -103,33 +106,38 @@ class RetailCatalog:
                 if changed:
                     edits.append({'template': row['record_offset'], 'fields': changed})
             else:
+                portrait_donors[identifier] = self.bindings[components['portrait']]['donor']
                 # Public keys can be long and are never copied into bounded
                 # native UI fields. Hash collisions are rejected by the builder.
-                native_name = 'fm-' + hashlib.sha256(identifier.encode('ascii')).hexdigest()[:16]
+                native_name = symbol(identifier)
                 # Native DisplayName is a localization key, not literal text.
                 # This cache requires a future merged localization registration.
                 native_fields['DisplayName'] = native_name
                 localization[native_name] = fighter['name']
                 additions.append({'key': identifier, 'native_name': native_name,
                                   'template': donor['record_offset'], 'fields': native_fields})
-        output, native = self.db.extend_character_records(additions, edits)
+        output, native = self.db.extend_character_records(additions, edits,
+            selection_keys={addition['key']: ledger['fighters'][addition['key']]['selection'] for addition in additions})
         bindings = {key: dict(row['native_binding'], record_offset=row['record_offset'], native_name=row['name'])
                     for key, row in self.rows.items()}
         for key, binding in native['bindings'].items():
             bindings[key] = {'selection_key': binding['selection_key'],
                              'core_id': binding['inherited_core_id'],
                              'record_offset': binding['record_offset'], 'native_name': binding['native_name']}
-        report = {'adapter': ADAPTER, 'runtime_ready': False, 'launch_allowed': False,
+        report = {'adapter': ADAPTER, 'cache_layout': 2, 'runtime_ready': False, 'launch_allowed': False,
                   'source_sha256': self.source_sha256, 'snapshot_sha256': snapshot['sha256'],
                   'cache_sha256': hashlib.sha256(output).hexdigest(), 'cache_bytes': len(output),
                   'fighter_count': len(snapshot['fighters']), 'added_count': len(additions),
                   'edited_count': len(edits), 'bindings': dict(sorted(bindings.items())),
                   'localization_entries': localization,
-                  'moveset_donors': donor_keys, 'native': native,
+                  'moveset_donors': donor_keys, 'portrait_donors': portrait_donors, 'native': native,
+                  'binding_ledger': ledger, 'handle_bindings': materialize(Database(output), ledger),
                   'blockers': ['native-selection-and-capacity', 'profile-lifecycle', 'asset-runtime-acceptance',
                                'localization-registration'],
                   'compatibility_policy': 'conservative-retail-donor-bundles'}
         if any(len(label.encode('utf-8')) > 19 for label in localization.values()):
             report['blockers'].append('native-label-buffer')
+        report['names_sha256'] = hashlib.sha256(encode_names(localization)).hexdigest()
+        report['bindings_sha256'] = hashlib.sha256(encode_bindings(report['handle_bindings'])).hexdigest()
         report['cache_key'] = fingerprint(report)
         return output, report

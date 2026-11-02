@@ -617,6 +617,10 @@ static int host_main(void)
      * reads the environment. See src/hooks/pc_settings.c. */
     if (!pc_settings_init())
         return 1;
+    {
+        extern int defjam_fighter_runtime_start(void);
+        if (!defjam_fighter_runtime_start()) return 1;
+    }
 
     printf("=== Def Jam: Fight for NY - Static Recompilation ===\n");
     printf("Loading XBE...\n");
