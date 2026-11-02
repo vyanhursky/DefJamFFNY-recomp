@@ -124,6 +124,7 @@ def test_portrait_cache_verifies_source_and_existing_output(tmp_path, monkeypatc
     from test_fighter_results import result_fixture
     probe = driver(tmp_path, monkeypatch)
     entries = {}
+    entries['screens/trans/empty2.big'] = fixture({'empty2.apt': b'blank movie', 'empty2.const': b'blank constants'})
     for count in (2, 3, 4):
         stem = f'p_cf_8_{count}p'
         entries[f'screens/portrait/p_CF/{stem}.big'] = fixture({stem + suffix: suffix.encode() for suffix in ('.apt', '.const', '.o', '.xsh')})

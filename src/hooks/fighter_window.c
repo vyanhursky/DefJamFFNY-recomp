@@ -86,6 +86,12 @@ int fighter_window_bind(FighterWindow *w, uint32_t participant, uint32_t selecti
         if (i != participant && w->selected[i] == index + 1) return 0;
     w->selected[participant] = index + 1; return 1;
 }
+int fighter_window_clear(FighterWindow *w, uint32_t participant) {
+    if (!w || !w->bytes || w->frozen || (participant != UINT32_MAX && participant >= FIGHTER_WINDOW_BANKS)) return 0;
+    for (uint32_t i = 0; i < FIGHTER_WINDOW_BANKS; ++i)
+        if (participant == UINT32_MAX || participant == i) w->selected[i] = 0;
+    return 1;
+}
 uint32_t fighter_window_native(const FighterWindow *w, uint32_t stable) {
     FighterWindowRow row;
     if (!w || !w->bytes) return UINT32_MAX;

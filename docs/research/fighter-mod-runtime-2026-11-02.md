@@ -12,10 +12,10 @@ thread; its one-time heartbeat was deleted after delivery. Work began about
 
 ## Current code and tests
 
-12:39 checkpoint: implementing the logical roster/native binding window and
+13:11 checkpoint: implementing the logical roster/native binding window and
 coherent isolated save generations. This supersedes the immediate continuation
-at the bottom of this note. Latest committed source is `4b13818`, which checkpoints
-the window/save implementation. Fresh-profile bootstrap is being tested locally.
+at the bottom of this note. Latest committed source is `6aa7188`. Full native
+write/close receipts and the corrected result-label wrapper are being tested locally.
 
 - Native list capacity is **not a single 255 limit**. The signed-byte selection
   path narrows inside `558E0` before `1E700`; the shared roster has a different
@@ -157,10 +157,10 @@ gates remain false. No public push/PR, no PROGRESS.md edits.
 - The research save helper publishes a heartbeat/status. The harness stops only
   its own child if the helper fails, disappears or becomes stale; exceptional
   exits reap that child before restoring files. A failed verifier preserves the
-  previous immutable head. This does **not** establish a native successful-write
-  acknowledgement: matching bytes/signatures, staging and queue cleanup alone
-  cannot distinguish a new successful write from identical old bytes. Actual
-  native completion linkage remains a production gate.
+  previous immutable head. At this checkpoint it did **not** establish a native
+  successful-write acknowledgement: identical old bytes could satisfy the checks.
+  The later FSA1 implementation and native Options proof below close that gap
+  for the observed synchronous write/close path; other lifecycle cases remain gates.
 - Native results read the transient byte through `1E820`, then emit field `fid`
   in `65540` at formatter callsite **65653**. A narrow **5F810** wrapper now emits
   the frozen logical identity for that field using an owned call frame. All
@@ -207,6 +207,98 @@ gates remain false. No public push/PR, no PROGRESS.md edits.
   Fresh full gate: **1,002 passed, 27 skipped, 1 deselected**,95.05s,
   `logs/fighter-results-full-unit.txt`; the later C-only controller-range
   correction passed the native four-participant boundary test above.
+
+### Native save receipts and result-label correction (12:56)
+
+- `run-20261102-123704.log.err` / `logs/fighter-logical-results-native-retest.txt`
+  passed the saved-profile two-pack selection/combat/results/save path:153 frame
+  reports,min107/median120/max120,no faults,saves identical,two verified generations.
+  Native result fids map engine100/101 to logical101/102 with exact stable handles.
+  Captures retained in `logs/fighter-window-runs/fa9d4418bdd34ba0b2fa3873b18edc7b/captures`.
+  Portraits render, but the reviewed three-second result still has donor logos.
+  This is **not custom result-label acceptance**.
+- The first result adapter incorrectly treated `iFighterID` as a timeline local.
+  It is local to original **fillStats(playerId)**. The corrected adapter preserves
+  all original bytecode/pointers, saves that function and wraps its synchronous
+  call, then uses the exact logical ID it publishes to `_level0._root.nLastPlayerID`.
+  A runtime-owned action fills the original name field, hides the one-based
+  logoLoader target and reapplies the label after F4's later field replacement.
+  Synthetic tests now model this function scope; native visual proof is pending.
+- Injected verifier failure **passed**: `run-20261102-124404.log.err`,
+  `logs/fighter-supervisor-negative-native.txt`. Expected harness FAIL/helper
+  error, eight frame reports,median120,no native faults,save root identical and
+  committed head unchanged. The one-off injection helper remains ignored under logs.
+- Added a real native IO witness: **1F8D61** wraps WriteFile's return and full
+  output byte count, **1F694D** observes successful CloseHandle, and **1F8EBB**
+  invalidates an in-progress attempt on unexpected seek. `fighter_save_io.[ch]`
+  recognizes bounded MC02 streams, rejects short/failed/asynchronous writes,
+  overflow, incomplete/failed closes and handle reuse without a fresh header.
+  A complete closed stream must match exactly one staged identity/payload before
+  an **FSA1** receipt, tied to its session/batch/record, is durably published.
+  The Python verifier now requires that receipt plus an identical independently
+  signature-verified on-disk file and metadata. Matching old bytes alone cannot
+  publish. Generation files/head still receive their own durable publication.
+- Do not reuse the earlier save audit's type14/event16 as acknowledgement:
+  primary review found it is device/path selection. MC02 construction is in
+  **1987A0**, not1989B0. Its write states enter198D40→backend+3C→19E380→19C7D0;
+  chunk success alone is insufficient. Likewise8BE60/2D9E0 are input bookkeeping,
+  not established voice/model release. No teardown was proven by those leads.
+- Focused receipt C/Python/result suite **49 passed**, `logs/fighter-save-io-unit.txt`.
+  Full unit gate **1,034 passed,27 skipped,1 deselected**,106.30s,
+  `logs/fighter-save-receipts-full-unit.txt`. Re-lift/build passed
+  `logs/fighter-save-io-lift.txt` / `logs/fighter-save-io-build.txt`.
+  Fresh no-unlock native acceptance **passed**: `run-20261102-125328.log.err`,
+  `logs/fighter-closed-results-native.txt`,143 frame reports,min109/median120/
+  max121,no native faults,saves identical,one verified generation. Options wrote
+  **76+64+5264 bytes**, then successful CloseHandle produced the5404-byte receipt
+  for batch1/record0. The generation retains12retail marks and two custom stable
+  marks, with no private bank IDs in native Options. Captures retained at
+  `logs/fighter-window-runs/1d22271381204915b238e36fee7cba77/captures`.
+  Custom result labels are visible, but donor logos subsequently overlay them;
+  this is still not clean visual acceptance. The compiler now aliases custom
+  l_MS logos to original **empty2** (APT/const only), while retaining donor t_MS
+  portraits. This avoids relying on visibility set before asynchronous movie load.
+  Focused archive/probe/result tests **29 passed**, `logs/fighter-blank-logo-unit.txt`.
+  Native pack lifecycle checks subsequently passed, as below.
+
+Native lifecycle against the receipt-backed saved generation **passed**:
+`logs/fighter-lifecycle-native-summary.txt`. Each boot has15 frame reports,
+min110/median120/max120,no faults,zero save batches and identical save restoration.
+Removing Alpha (`run-20261102-130056.log.err`) and updating/re-enabling Alpha2.0
+(`130132`) both retain generation **fe8d51f2ec8aaab4a5a2483521c5c0ec5fe2f470772c4610bb66b0dde742139c**.
+Adding independent Gamma (`130207`) migrates to
+**9f10bf2142ca9713c017d16bd8f0539869b285207f4c5ad51ed20da22bd605d3**.
+Assertions compare every old ledger binding, both custom progress marks and all
+native file bytes. New content gets a fresh identity; dormant Alpha history never
+becomes Beta or Gamma. Separate summaries are `fighter-lifecycle-removed-native.txt`,
+`fighter-lifecycle-updated-reenabled-native.txt`, `fighter-lifecycle-added-pack-native.txt`.
+
+Pre-match reset/retail submissions now clear window ownership through a checked
+codec operation. A frozen match cannot be cleared by a menu reset; verified
+teardown is still required. This does **not** implement Back-from-ready release,
+which does not issue a native ControllerSetup reset. Focused current gate:
+**92 passed**, `logs/fighter-pre-match-clear-unit.txt`. The native IO output-count
+pointer is now read only inside the active research path. The build first
+correctly refused stale manual-wrapper metadata; re-lift
+`logs/fighter-save-io-inactive-lift.txt` and rebuild
+`logs/fighter-save-io-inactive-build-retest.txt` passed.
+
+`--import-profiles` reads verified fixtures once into an empty isolated store;
+it refuses fresh-default mode or replacement of an existing store. It permits
+native Story/real-profile acceptance without changing the original fixtures.
+A six-file composite fixture copies verified Options and the previously tested
+VY3 profile (payload **0x5904 /22788 bytes**) read-only into ignored research data.
+Current `run-20261102-130905.log.err` / `logs/fighter-real-profile-results-native.txt`
+has loaded it, acknowledged an initial complete Options write/close and reached
+custom selection. Native5904-byte save and clean blank-logo result acceptance
+are pending; do not promote the fixture import itself to that proof.
+
+Remaining implementation gates, in order: finish native pack lifecycle and clean
+result presentation; prove pre-match cancellation/independent human ownership,
+then bank teardown/reuse and repeated matches; exercise native5904-byte profile
+saves and interrupted write failures; complete authored resource validation and
+registration, shared language/texture composition, whole-pack launcher transactions,
+ordinary Vendetta conversion and platform/Story/soak acceptance. None is waived.
 
 Resource/lifetime audit corrections: 109F80 is the DynamicLoader ELF parser, not
 cleanup. 102130 resolves four-character SHAPENAME via SHAPE in a supplied module

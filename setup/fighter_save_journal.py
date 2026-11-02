@@ -1,7 +1,8 @@
 """Verify completed native save batches before publishing isolated generations.
 
-FSB1 is runtime-owned intent, not evidence that a write succeeded. Every named
-native file, identity block, payload and signature must match. Only that exact
+FSB1 is runtime-owned intent, not evidence that a write succeeded. FSA1 receipts
+require successful full synchronous writes and native close. Every named native
+file, identity block, payload and signature must match that attempt. Only that exact
 batch is merged over the previous generation; unrelated working files cannot
 leak into a committed save. Used by the disposable research supervisor for now.
 """
@@ -53,7 +54,22 @@ def bounded(path):
     return data
 
 
-def completed_records(batch, save):
+def closed_record(journal, batch, index, record):
+    root = Path(journal)
+    require(not any(linked(path) for path in (root, *root.parents)), 'Redirected native save receipt directory')
+    path = root / f'{batch:06}-{index:02}.closed'
+    if not path.exists():
+        return None
+    data = bounded(path)
+    require(20 <= len(data) <= 20 + 0x8c + 0x5904 and data[:4] == b'FSA1', 'Invalid native save receipt')
+    require(struct.unpack_from('<4I', data, 4) == (1, batch, index, len(data) - 20), 'Crossed native save receipt')
+    native = data[20:]
+    require(verify_container(native) == record['payload'] and native[0x4c:0x8c] == record['identity'],
+            'Native save receipt differs from its staged record')
+    return native
+
+
+def completed_records(batch, save, journal):
     root = Path(save)
     require(not any(linked(path) for path in (root, *root.parents)), 'Redirected native save workspace')
     title = root / 'UserData' / '45410049'
@@ -63,7 +79,10 @@ def completed_records(batch, save):
     folders = list(title.iterdir())
     require(len(folders) <= 1024, 'Native save folder count exceeds budget')
     updates = {}
-    for record in batch['records']:
+    for index, record in enumerate(batch['records']):
+        receipt = closed_record(journal, batch['number'], index, record)
+        if receipt is None:
+            return None
         matches = []
         for folder in folders:
             if not re.fullmatch('[0-9A-F]{12}', folder.name):
@@ -74,7 +93,7 @@ def completed_records(batch, save):
                 continue
             try:
                 data = bounded(path)
-                if verify_container(data) != record['payload'] or data[0x4c:0x8c] != record['identity']:
+                if data != receipt or verify_container(data) != record['payload'] or data[0x4c:0x8c] != record['identity']:
                     continue
                 metadata = bounded(folder / 'SaveMeta.xbx')
                 text = metadata.decode('utf-16')
@@ -119,7 +138,7 @@ class Monitor:
         with path.open('rb') as stream:
             batch = decode(stream.read(MAX_BATCH + 1))
         require(batch['number'] == self.next, 'Out-of-order fighter save journal')
-        updates = completed_records(batch, self.save)
+        updates = completed_records(batch, self.save, self.journal)
         if updates is None:
             return False
         previous = self.store.load()

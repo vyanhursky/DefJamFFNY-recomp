@@ -53,10 +53,16 @@ int main(int argc,char **argv) {
     }
     w.frozen=1;
     if(fighter_window_bind(&w,0,255,&row) || !fighter_window_bind(&w,0,254,&row)) return 7;
+    if(fighter_window_clear(&w,0) || fighter_window_clear(&w,UINT32_MAX)) return 11;
     if(fighter_window_bind(&w,4,254,&row) || fighter_window_bind(&w,0,99,&row)) return 8;
     if(fighter_window_native(&w,0x07012345)!=UINT32_MAX) return 9;
     w.frozen=0;
     if(fighter_window_bind(&w,0,255,&row)) return 10;
+    if(!fighter_window_clear(&w,0) || w.selected[0] || !w.selected[1])return 12;
+    if(fighter_window_stable(&w,w.banks[0].native_handle)!=w.banks[0].private_handle)return 13;
+    if(!fighter_window_bind(&w,0,254,&row) || fighter_window_clear(&w,4))return 14;
+    if(!fighter_window_clear(&w,UINT32_MAX))return 15;
+    for(uint32_t i=0;i<4;++i)if(w.selected[i])return 16;
     free(bytes); return 0;
 }
 '''

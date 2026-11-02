@@ -94,12 +94,16 @@ table expansion where sufficient; virtualize where narrow layouts make widening
 much more invasive. A hybrid needs explicit invariants for each binding boundary.
 Do not assume 255 is a product limit or promise unlimited fighters.
 
-**Current evidence:** some moveset indices/profile keys are 32-bit; a front-end
-identity field is one byte, read as signed, with a reserved value. A CPU-only
-native database parser accepts 375 records and a selection key of 276; native
-menus/gameplay at those sizes remain unproved. The reference's 256-entry array
-is not a universal engine limit. Ease of exceeding 255 remains unproved. See the
-[capacity audit](research/fighter-mod-capacity-2026-11-01.md).
+**Current evidence:** the front-end uses a signed byte, shared roster storage
+has a separate fixed boundary, and Options has 80 unlock cells. The hybrid
+prototype keeps historical logical IDs in native appended menus and binds four
+participant rows for each match. A 300-custom-fighter roster selected logical361
+and reached combat; a further four-participant match selected254/255/256/257
+together with correct stable identities. This establishes a real path beyond255,
+not an unlimited roster or completed capacity acceptance. Bank teardown/reuse,
+independent controllers and other menus remain gates. See the
+[active native evidence](research/fighter-mod-runtime-2026-11-02.md) and
+[earlier capacity audit](research/fighter-mod-capacity-2026-11-01.md).
 
 ### D2. Integration: compile native data or register through runtime hooks?
 

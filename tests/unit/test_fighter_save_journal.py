@@ -29,6 +29,11 @@ def put_files(root, files):
         path.with_name('saveimage.xbx').write_bytes(b'synthetic image')
 
 
+def put_acks(journal, files, number=1):
+    for index, data in enumerate(files.values()):
+        (journal / f'{number:06}-{index:02}.closed').write_bytes(b'FSA1' + struct.pack('<4I', 1, number, index, len(data)) + data)
+
+
 def test_torn_partial_batch_cannot_publish_and_unstaged_files_are_excluded(tmp_path):
     baseline, ledger, _, files, extension = state()
     store = Store(tmp_path / 'store', baseline)
@@ -40,6 +45,7 @@ def test_torn_partial_batch_cannot_publish_and_unstaged_files_are_excluded(tmp_p
     handle = ledger['fighters']['alpha/fighter-299']['handle']
     journal = tmp_path / 'journal'; journal.mkdir()
     (journal / '000001.batch').write_bytes(batch(updated, {handle: unlocks.METADATA}))
+    put_acks(journal, updated)
     monitor = Monitor(store, save, journal, ledger)
     assert not monitor.poll() and store.load()['generation'] == first
     put_files(save, {OPTIONS: updated[OPTIONS]})
@@ -82,6 +88,8 @@ def test_fresh_namespace_bootstraps_only_from_a_complete_native_options_batch(tm
     (journal / '000001.batch').write_bytes(batch(files, {}))
     monitor = Monitor(store, save, journal, ledger)
     assert encode_unlock_state(None, baseline) == b'FUM1' + struct.pack('<III', 1, 0, 0)
+    assert not monitor.poll() and store.load() is None
+    put_acks(journal, files)
     assert monitor.poll()
     assert store.load()['files'][OPTIONS] == files[OPTIONS]
     assert store.load()['parent'] is None and store.load()['extension']['marks'] == {}
@@ -129,11 +137,40 @@ def test_native_compiler_save_migration_retains_removed_pack_and_updated_identit
     put_files(working, files); journal.mkdir()
     handle = updated['binding_ledger']['fighters']['gamma/fighter-0']['handle']
     (journal / '000001.batch').write_bytes(batch({OPTIONS: files[OPTIONS]}, {handle: 0}))
+    put_acks(journal, {OPTIONS: files[OPTIONS]})
     monitor = Monitor(store, working, journal, updated['binding_ledger'])
     assert monitor.poll()
     restored = store.load()
     assert restored['extension']['marks'] == dict(marks, **{'gamma/fighter-0': 0})
     assert restored['files'][PROFILE] == files[PROFILE]
+
+
+@pytest.mark.parametrize('mutation', ['missing', 'old-batch', 'other-record', 'truncated', 'trailing', 'wrong-payload', 'failed-signature'])
+def test_identical_old_files_cannot_acknowledge_a_new_native_save(tmp_path, mutation):
+    baseline, ledger, _, files, extension = state()
+    store = Store(tmp_path / 'store', baseline)
+    first = store.publish(None, files, ledger, extension, OPTIONS)
+    save, journal = tmp_path / 'working', tmp_path / 'journal'
+    put_files(save, files); journal.mkdir()
+    (journal / '000001.batch').write_bytes(batch(files, {}))
+    monitor = Monitor(store, save, journal, ledger)
+    if mutation == 'missing':
+        assert not monitor.poll()
+    else:
+        put_acks(journal, files)
+        path = journal / '000001-00.closed'
+        data = bytearray(path.read_bytes())
+        if mutation == 'old-batch': struct.pack_into('<I', data, 8, 2)
+        elif mutation == 'other-record': struct.pack_into('<I', data, 12, 1)
+        elif mutation == 'truncated': data.pop()
+        elif mutation == 'trailing': data += b'x'
+        elif mutation == 'failed-signature': data[-1] ^= 1
+        elif mutation == 'wrong-payload':
+            payload = bytearray(verify_container(files[OPTIONS])); payload[40] ^= 1
+            data[20:] = container(bytes(payload))
+        path.write_bytes(data)
+        with pytest.raises(ValueError): monitor.poll()
+    assert store.load()['generation'] == first
 
 
 def test_supervisor_reports_verifier_failure_without_replacing_committed_progress(tmp_path):

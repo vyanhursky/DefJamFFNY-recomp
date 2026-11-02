@@ -9,7 +9,20 @@ import struct
 
 import fighter_apt as apt
 from fighter_assets import AssetError
-from fighter_menu import Action, MAX_MOVIE, put_word
+from fighter_menu import Action, MAX_MOVIE
+
+
+def apply_label(action):
+    """Use the timeline's variable scope, as its original name action does."""
+    done = action.unique()
+    action.variable('_recompResultLabel')
+    action.op('EA_PushUndefined'); action.op('Equals2'); action.branch('BranchIfTrue', done)
+    action.variable('szFighterNameMov'); action.string('text')
+    action.variable('_recompResultLabel'); action.op('SetMember')
+    action.variable('szFighterNameMov'); action.string('_visible'); action.op('EA_PushTrue'); action.op('SetMember')
+    action.string('_parent.logoLoader'); action.variable('_recompResultPlayer'); action.integer(1); action.op('Add2'); action.op('Add2'); action.op('GetVariable')
+    action.string('_visible'); action.op('EA_PushFalse'); action.op('SetMember')
+    action.label(done)
 
 
 def scan_action(movie, start, entries):
@@ -59,49 +72,44 @@ def compile_results(movie, constants, names):
         raise AssetError('Native result panel differs from the reviewed template')
     character, (initial, instructions, end), text_frames = found[0]
     start = initial['instructions_at']
-    if start % 4:
-        raise AssetError('Unaligned original result action')
+    fills = [ins for ins in instructions if ins.function_size is not None
+             and "name='fillStats' params=(playerId)" in ' '.join(ins.operands)]
+    if len(fills) != 1:
+        raise AssetError('Native result fillStats function differs from the reviewed template')
     output = bytearray(movie); output += bytes(-len(output) % 4)
-    cloned_at = len(output)
-    # Relocate the complete action by a multiple of four. Literal/pool/parameter
-    # pointers still reference preserved original data; relative branches and
-    # inline function bodies keep their exact layout. Only the outer End grows
-    # a runtime-owned tail, so its action-local iFighterID remains accessible.
-    output += movie[start:end]
-    action = Action(len(output), continuation=True)
+    wrapper_at = len(output)
+    action = Action(wrapper_at)
     action.string('_recompResultNames'); action.integer(0); action.string('Object'); action.op('NewObject'); action.op('SetVariable')
     for identity, label in sorted(names.items()):
         action.variable('_recompResultNames'); action.integer(identity); action.string(label); action.op('SetMember')
-    action.op('EA_PushThisVar'); action.string('_recompResultLabel')
-    action.variable('_recompResultNames'); action.variable('iFighterID'); action.op('GetMember'); action.op('SetMember')
+    action.string('_recompFillStats'); action.variable('fillStats'); action.op('SetVariable')
+    def fill():
+        action.variable('playerId'); action.integer(1); action.string('_recompFillStats'); action.op('CallFunction'); action.op('Pop')
+        # Original fillStats owns iFighterID as a function local and publishes
+        # that exact value here before returning. Its caller is synchronous.
+        action.string('_recompResultLabel'); action.variable('_recompResultNames')
+        action.variable('_level0'); action.member('_root'); action.member('nLastPlayerID')
+        action.op('GetMember'); action.op('SetVariable')
+        action.string('_recompResultPlayer'); action.variable('playerId'); action.op('SetVariable')
+        apply_label(action)
+        action.op('EA_PushUndefined'); action.op('Return')
+    action.function('fillStats', ['playerId'], fill)
     output += action.finish(); output += bytes(-len(output) % 4)
-
-    # Find the original frame-0 item pointer and retarget just its action record.
     frames_at = struct.unpack_from('<I', movie, character['offset'] + 12)[0]
     count, items_at = struct.unpack_from('<II', movie, frames_at)
-    originals = [struct.unpack_from('<I', movie, items_at + i * 4)[0] for i in range(count)]
-    matching = [at for at in originals if struct.unpack_from('<II', movie, at) == (1, start)]
-    if len(matching) != 1:
-        raise AssetError('Ambiguous result action ownership')
-    put_word(output, matching[0] + 4, cloned_at)
+    wrapper_record = len(output); output += struct.pack('<II', 1, wrapper_at)
+    list_at = len(output); output += movie[items_at:items_at + count * 4] + struct.pack('<I', wrapper_record)
+    struct.pack_into('<II', output, frames_at, count + 1, list_at)
 
-    field = Action(len(output)); done = field.unique()
-    field.op('EA_PushThisVar'); field.member('_recompResultLabel')
-    field.op('EA_PushUndefined'); field.op('Equals2'); field.branch('BranchIfTrue', done)
-    field.variable('szFighterNameMov'); field.string('text')
-    field.op('EA_PushThisVar'); field.member('_recompResultLabel'); field.op('SetMember')
-    field.variable('szFighterNameMov'); field.string('_visible'); field.op('EA_PushTrue'); field.op('SetMember')
-    field.string('_parent.logoLoader'); field.variable('playerId'); field.op('Add2'); field.op('GetVariable')
-    field.string('_visible'); field.op('EA_PushFalse'); field.op('SetMember')
-    field.label(done)
+    field = Action(len(output)); apply_label(field)
     field_at = len(output); output += field.finish(); output += bytes(-len(output) % 4)
     item_at = len(output); output += struct.pack('<II', 1, field_at)
     for frame in text_frames:
         frame_at = frames_at + frame * 8
-        count, pointers = struct.unpack_from('<II', movie, frame_at)
-        list_at = len(output); output += movie[pointers:pointers + count * 4] + struct.pack('<I', item_at)
+        count, pointers = struct.unpack_from('<II', output, frame_at)
+        list_at = len(output); output += output[pointers:pointers + count * 4] + struct.pack('<I', item_at)
         struct.pack_into('<II', output, frame_at, count + 1, list_at)
     if len(output) > MAX_MOVIE:
         raise AssetError('Composed result movie exceeds byte budget')
-    return bytes(output), constants, {'original_action': start, 'cloned_action': cloned_at,
+    return bytes(output), constants, {'original_action': start, 'wrapper_action': wrapper_at,
                                      'label_frames': text_frames, 'label_action': field_at}

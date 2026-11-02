@@ -166,7 +166,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('sod', type=Path)
     parser.add_argument('packs', nargs='+', type=Path)
-    parser.add_argument('--route', choices=('boot', 'fight', 'ffa', 'versus', 'fighter-roster', 'fighter-roster-4', 'fighter-roster-result', 'fighter-roster-save'), default='boot')
+    parser.add_argument('--route', choices=('boot', 'fight', 'ffa', 'versus', 'crib', 'gym', 'intro', 'fighter-roster', 'fighter-roster-4', 'fighter-roster-result', 'fighter-roster-save'), default='boot')
     parser.add_argument('--secs', type=int, default=60)
     parser.add_argument('--shots', default='25')
     parser.add_argument('--to-end', action='store_true', help='Use the complete duration for long native-menu acceptance')
@@ -181,6 +181,7 @@ def main():
     parser.add_argument('--binding-window', action='store_true', help='Internal four-participant native binding prototype')
     parser.add_argument('--profile-store', type=Path, default=ROOT / 'logs/fighter-profile-store', help='Internal isolated generation store under logs')
     parser.add_argument('--fresh-profiles', action='store_true', help='Create a new isolated namespace from native defaults instead of importing a fixture')
+    parser.add_argument('--import-profiles', type=Path, help='Read-only verified save fixture for the first isolated generation; never replaces an existing store')
     parser.add_argument('--no-unlock', action='store_true', help='Disable the harness unlock-everything control for native progress/save acceptance')
     parser.add_argument('--ledger', type=Path, help='Internal historical ledger from a previous research cache')
     args = parser.parse_args()
@@ -193,6 +194,8 @@ def main():
             raise ValueError('Binding window requires native menu selection and no other binding mode')
         if args.fresh_profiles and not args.binding_window:
             raise ValueError('Fresh profile research requires the binding window')
+        if args.import_profiles and (not args.binding_window or args.fresh_profiles):
+            raise ValueError('Profile import requires the binding window and cannot use fresh defaults')
         if args.trace_assets and args.trace_profiles:
             raise ValueError('Select one four-breakpoint trace domain per probe')
         if args.logical_menu:
@@ -212,6 +215,8 @@ def main():
             source = registry.retail_catalog(args.sod)
             store = Store(destination, seed(source.db, source.source_sha256, source.rows))
             previous = store.load()
+            if args.import_profiles and previous is not None:
+                raise ValueError('Profile import requires an empty isolated store')
             if args.fresh_profiles and previous is not None:
                 raise ValueError('Fresh profile research requires an empty store; choose a new research path')
             if previous is not None and args.ledger is None:
@@ -223,7 +228,7 @@ def main():
         portraits = prepare_portraits(args.sod.resolve().parents[1] / 'screens/screens.viv', report)
         data_root = ROOT / 'logs/fighter-runtime-probe'
         if store is not None:
-            generation = None if args.fresh_profiles else initialize(store, data_root / 'save', report['binding_ledger'])
+            generation = None if args.fresh_profiles else initialize(store, args.import_profiles or data_root / 'save', report['binding_ledger'])
             session = ROOT / 'logs/fighter-window-runs' / uuid.uuid4().hex
             data_root = session / 'fighter-runtime-probe'
             for name, data in (generation['files'] if generation else {}).items():

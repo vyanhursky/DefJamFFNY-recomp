@@ -24,6 +24,8 @@ int fighter_window_at(const FighterWindow *window, uint32_t index, FighterWindow
 int fighter_window_find(const FighterWindow *window, uint32_t selection, uint32_t *index, FighterWindowRow *out);
 /* Rebinding a frozen match is forbidden; identical repeated submissions work. */
 int fighter_window_bind(FighterWindow *window, uint32_t participant, uint32_t selection, FighterWindowRow *out);
+/* UINT32_MAX clears all pre-match ownership. Never releases a frozen match. */
+int fighter_window_clear(FighterWindow *window, uint32_t participant);
 uint32_t fighter_window_native(const FighterWindow *window, uint32_t stable);
 uint32_t fighter_window_stable(const FighterWindow *window, uint32_t native);
 #endif

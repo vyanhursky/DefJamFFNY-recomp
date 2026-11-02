@@ -1,4 +1,4 @@
-"""Summary action relocation preserves branches, pools and nested functions."""
+"""Wrap native summary behavior without moving original bytecode or pointers."""
 import struct
 import sys
 from pathlib import Path
@@ -24,7 +24,7 @@ def result_fixture():
     movie[224:242] = b'szFighterNameMov\0'.ljust(18, b'\0')
     action = Action(256)
     action.string('Game.GetMatchSummary('); action.op('Pop')
-    action.local('iFighterID', lambda: action.integer(256))
+    action.function('fillStats', ['playerId'], lambda: (action.local('iFighterID', lambda: action.integer(256)), action.op('EA_PushUndefined'), action.op('Return')))
     action.function('original', ['value'], lambda: (action.variable('value'), action.op('Return')))
     done = action.unique()
     action.integer(0); action.branch('BranchIfTrue', done)
@@ -41,16 +41,11 @@ def test_summary_keeps_original_code_and_adds_literal_label_after_native_field_c
     assert unchanged == constants and report['label_frames'] == [1]
     _, entries = apt.parse_const(constants)
     before, end = scan_action(original, 256, entries)
-    delta = report['cloned_action'] - 256
-    assert delta % 4 == 0
-    assert output[report['cloned_action']:report['cloned_action'] + end - 256] == original[256:end]
-    after, _ = scan_action(output, report['cloned_action'], entries)
-    for left, right in zip(before[:-1], after):
-        assert left.name == right.name
-        assert left.function_size == right.function_size
-        if left.branch_target is not None:
-            assert right.branch_target == left.branch_target + delta
-    assert struct.unpack_from('<I', output, 148)[0] == report['cloned_action']
+    assert output[256:len(original)] == original[256:]
+    after, _ = scan_action(output, 256, entries)
+    assert [(i.offset, i.name, i.operands, i.function_size, i.branch_target) for i in after] == \
+           [(i.offset, i.name, i.operands, i.function_size, i.branch_target) for i in before]
+    assert struct.unpack_from('<I', output, 148)[0] == 256
     record = apt.parse_character(output, 16)
     sprite = apt.read_characters_list(output, record)[0]
     assert len(sprite['frames'][1]) == 2 and sprite['frames'][1][0][0] == 'PlaceObject'
@@ -58,6 +53,9 @@ def test_summary_keeps_original_code_and_adds_literal_label_after_native_field_c
     assert label.encode() + b'\0' in output
     generated = apt.disassemble_block(output, report['label_action'], entries)
     assert all(not ins.note for ins in generated)
+    wrapper = apt.disassemble_block(output, report['wrapper_action'], entries)
+    assert any(ins.function_size is not None and "name='fillStats' params=(playerId)" in ' '.join(ins.operands) for ins in wrapper)
+    assert b'nLastPlayerID\0' in output and b'_recompFillStats\0' in output
 
 
 def test_summary_requires_a_unique_supported_native_panel_and_valid_labels():

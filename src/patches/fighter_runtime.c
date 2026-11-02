@@ -5,6 +5,7 @@
 #include "hooks/fighter_bindings.h"
 #include "hooks/fighter_unlocks.h"
 #include "hooks/fighter_window.h"
+#include "hooks/fighter_save_io.h"
 #include "hooks/guest_call.h"
 #include "host.h"
 #include <stdio.h>
@@ -44,6 +45,9 @@ static uint8_t s_live_settings[FIGHTER_SETTINGS_SIZE];
 static int s_projecting_settings;
 typedef struct FighterPendingSave { char name[32]; uint32_t name_size, size; uint8_t identity[64], payload[0x5904]; } FighterPendingSave;
 static FighterPendingSave s_pending[16];
+typedef struct FighterExpectedSave { FighterPendingSave save; uint32_t batch, index; int active; } FighterExpectedSave;
+static FighterExpectedSave s_expected[16];
+static FighterSaveIO s_save_io;
 static uint32_t s_pending_count, s_batch_number, s_custom_count;
 static uint32_t s_custom_keys[FIGHTER_BINDINGS_MAX_COUNT], s_custom_metadata[FIGHTER_BINDINGS_MAX_COUNT];
 static uint32_t read_word(const uint8_t *p);
@@ -373,6 +377,18 @@ static FighterPendingSave *pending_save(void) {
     return &s_pending[s_pending_count++];
 }
 
+static void expect_save(const FighterPendingSave *save) {
+    lock_names();
+    for (uint32_t i = 0; i < 16; ++i) if (!s_expected[i].active) {
+        s_expected[i].save = *save;
+        s_expected[i].batch = s_batch_number + 1;
+        s_expected[i].index = s_pending_count - 1;
+        s_expected[i].active = 1;
+        unlock_names(); return;
+    }
+    unlock_names(); fighter_stop("Too many native fighter saves await file-close acknowledgement.");
+}
+
 void defjam_fighter_settings_saving(void) {
     if (!s_bindings.bytes) return;
     if (!s_settings || MEM32(s_settings + 0x20) != MEM32(s_settings + 0x1264))
@@ -395,6 +411,7 @@ void defjam_fighter_settings_saving(void) {
         memset(save, 0, sizeof *save); memcpy(save->name, "Options", 7); save->name_size = 7; save->size = FIGHTER_SETTINGS_SIZE;
         memcpy(save->identity, (const void *)XBOX_PTR(s_settings + 0x1738), 64);
         memcpy(save->payload, (const void *)XBOX_PTR(s_settings + 0x4C), FIGHTER_SETTINGS_SIZE);
+        expect_save(save);
         s_projecting_settings = 1;
         fprintf(stderr, "[FIGHTERS] staged retail-only Options: %u marks, %u historical custom marks\n", kept, s_custom_count);
     }
@@ -419,11 +436,89 @@ void defjam_fighter_profile_staging(uint32_t name, uint32_t payload) {
     save->size = 0x5904;
     memcpy(save->identity, (const void *)XBOX_PTR(s_settings + 0x16F8), 64);
     memcpy(save->payload, (const void *)XBOX_PTR(payload), save->size);
+    expect_save(save);
 }
 
 static void journal_word(FILE *file, uint32_t value) {
     uint8_t bytes[4] = {(uint8_t)value, (uint8_t)(value >> 8), (uint8_t)(value >> 16), (uint8_t)(value >> 24)};
     if (fwrite(bytes, 1, 4, file) != 4) fighter_stop("Could not stage fighter save journal.");
+}
+
+static FILE *open_journal(const char *path) {
+#if defined(_WIN32)
+    wchar_t wide[2112];
+    if (!MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, path, -1, wide, 2112)) fighter_stop("Invalid fighter journal path.");
+    return _wfopen(wide, L"wbx");
+#else
+    return fopen(path, "wbx");
+#endif
+}
+
+static void finish_journal(FILE *file, const char *temporary, const char *destination) {
+    if (ferror(file) || fflush(file)) fighter_stop("Could not flush fighter save journal.");
+#if defined(_WIN32)
+    if (_commit(_fileno(file))) fighter_stop("Could not sync fighter save journal.");
+    if (fclose(file)) fighter_stop("Could not close fighter save journal.");
+    {
+        wchar_t from[2112], to[2112];
+        if (!MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, temporary, -1, from, 2112)
+            || !MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, destination, -1, to, 2112)
+            || !MoveFileExW(from, to, MOVEFILE_WRITE_THROUGH)) fighter_stop("Could not publish fighter save journal.");
+    }
+#else
+    if (fsync(fileno(file))) fighter_stop("Could not sync fighter save journal.");
+    if (fclose(file)) fighter_stop("Could not close fighter save journal.");
+    if (rename(temporary, destination)) fighter_stop("Could not publish fighter save journal.");
+#endif
+}
+
+void defjam_fighter_save_write(uint32_t handle, uint32_t buffer, uint32_t size, uint32_t written, int success, int asynchronous) {
+    int result;
+    if (!s_window.bytes) return;
+    lock_names();
+    result = fighter_save_io_write(&s_save_io, handle, (const uint8_t *)XBOX_PTR(buffer), size, written ? MEM32(written) : 0, success && !asynchronous);
+    unlock_names();
+    if (result < 0) fighter_stop("A native fighter save write was incomplete or used an unreviewed IO path.");
+    if (result) fprintf(stderr, "[FIGHTERS] completed native save write: handle=%08X bytes=%u\n", handle, size);
+}
+
+void defjam_fighter_save_seek(uint32_t handle) {
+    if (!s_window.bytes) return;
+    lock_names(); fighter_save_io_seek(&s_save_io, handle); unlock_names();
+}
+
+void defjam_fighter_save_close(uint32_t handle, int success) {
+    const uint8_t *bytes = NULL;
+    uint32_t size = 0, matches = 0, match = 0;
+    int result;
+    if (!s_window.bytes) return;
+    lock_names();
+    result = fighter_save_io_close(&s_save_io, handle, success, &bytes, &size);
+    if (!result) { unlock_names(); return; }
+    if (result < 0) { unlock_names(); fighter_stop("Native fighter save did not finish and close successfully."); return; }
+    for (uint32_t i = 0; i < 16; ++i) {
+        FighterExpectedSave *expected = &s_expected[i];
+        if (expected->active && size == expected->save.size + 0x8C
+            && !memcmp(bytes + 0x4C, expected->save.identity, 64)
+            && !memcmp(bytes + 0x8C, expected->save.payload, expected->save.size)) { ++matches; match = i; }
+    }
+    if (matches != 1) { unlock_names(); fighter_stop("Native closed save has no unique staged fighter record."); return; }
+    {
+        FighterExpectedSave *expected = &s_expected[match];
+        char temporary[2112], destination[2112];
+        FILE *file;
+        snprintf(temporary, sizeof temporary, "%s/%06u-%02u.pending", s_journal, expected->batch, expected->index);
+        snprintf(destination, sizeof destination, "%s/%06u-%02u.closed", s_journal, expected->batch, expected->index);
+        file = open_journal(temporary);
+        if (!file) { unlock_names(); fighter_stop("Could not create native fighter save receipt."); return; }
+        fwrite("FSA1", 1, 4, file); journal_word(file, 1); journal_word(file, expected->batch);
+        journal_word(file, expected->index); journal_word(file, size); fwrite(bytes, 1, size, file);
+        finish_journal(file, temporary, destination);
+        fprintf(stderr, "[FIGHTERS] native save closed: batch=%u record=%u name=%.*s bytes=%u\n",
+                expected->batch, expected->index, expected->save.name_size, expected->save.name, size);
+        expected->active = 0;
+    }
+    unlock_names();
 }
 
 void defjam_fighter_save_batch(void) {
@@ -433,15 +528,7 @@ void defjam_fighter_save_batch(void) {
     if (s_projecting_settings || ++s_batch_number > 10000) fighter_stop("Invalid fighter save batch lifecycle.");
     snprintf(temporary, sizeof temporary, "%s/%06u.pending", s_journal, s_batch_number);
     snprintf(destination, sizeof destination, "%s/%06u.batch", s_journal, s_batch_number);
-#if defined(_WIN32)
-    {
-        wchar_t wide[2112];
-        if (!MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, temporary, -1, wide, 2112)) fighter_stop("Invalid fighter journal path.");
-        file = _wfopen(wide, L"wbx");
-    }
-#else
-    file = fopen(temporary, "wbx");
-#endif
+    file = open_journal(temporary);
     if (!file) fighter_stop("Could not create fighter save journal.");
     fwrite("FSB1", 1, 4, file); journal_word(file, 1); journal_word(file, s_batch_number);
     journal_word(file, s_pending_count); journal_word(file, s_custom_count); journal_word(file, 0);
@@ -451,21 +538,7 @@ void defjam_fighter_save_batch(void) {
         fwrite(save->identity, 1, 64, file); fwrite(save->name, 1, 32, file); fwrite(save->payload, 1, save->size, file);
     }
     for (uint32_t i = 0; i < s_custom_count; ++i) { journal_word(file, s_custom_keys[i]); journal_word(file, s_custom_metadata[i]); }
-    if (ferror(file) || fflush(file)) fighter_stop("Could not flush fighter save journal.");
-#if defined(_WIN32)
-    if (_commit(_fileno(file))) fighter_stop("Could not sync fighter save journal.");
-    fclose(file);
-    {
-        wchar_t from[2112], to[2112];
-        if (!MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, temporary, -1, from, 2112)
-            || !MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, destination, -1, to, 2112)
-            || !MoveFileExW(from, to, MOVEFILE_WRITE_THROUGH)) fighter_stop("Could not publish pending fighter save batch.");
-    }
-#else
-    if (fsync(fileno(file))) fighter_stop("Could not sync fighter save journal.");
-    fclose(file);
-    if (rename(temporary, destination)) fighter_stop("Could not publish pending fighter save batch.");
-#endif
+    finish_journal(file, temporary, destination);
     fprintf(stderr, "[FIGHTERS] save batch %u sealed: %u records; awaiting independently verified native files\n", s_batch_number, s_pending_count);
     s_pending_count = 0;
 }
@@ -508,6 +581,12 @@ uint32_t defjam_fighter_controller_submission(uint32_t arguments) {
     for (uint32_t i = 0; i < 4; ++i)
         if (!submission_integer(MEM32(arguments + i * 4), &values[i]))
             fighter_stop("Invalid native controller setup arguments.");
+    if (s_window.bytes && (values[0] < 0 || values[2] < 100)) {
+        uint32_t participant = values[0] < 0 ? UINT32_MAX : (uint32_t)values[0];
+        if (!fighter_window_clear(&s_window, participant))
+            fighter_stop("Cannot clear participant ownership before verified match teardown.");
+        fprintf(stderr, "[FIGHTERS] cleared pre-match participant ownership: %d\n", values[0]);
+    }
     if (values[0] < 0 || values[2] < 100) return UINT32_MAX;
     if (!s_window.bytes) { defjam_fighter_selection_gate((uint32_t)values[2]); return UINT32_MAX; }
     /* The original selector passes nConID as its fourth argument (0..3),

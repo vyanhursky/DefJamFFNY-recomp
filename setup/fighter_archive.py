@@ -148,8 +148,9 @@ def store(data):
 def portrait_aliases(data, pairs, *, results=False):
     """Map {custom selection token: retail portrait token}; never alias identity.
 
-    All four inner filenames are renamed together. Movie/data/texture bytes are
-    untouched, and movies have no embedded occurrences of their file basename.
+    Portrait envelopes are renamed together without changing their payloads.
+    Custom result logos use the verified original blank movie so donor branding
+    cannot obscure custom labels. Movies must not embed their file basename.
     An occupied destination is a conflict, including another mod's same path.
     """
     archive, additions = Archive(data), {}
@@ -167,8 +168,16 @@ def portrait_aliases(data, pairs, *, results=False):
                 path = prefix + new + '.big'
                 if path.lower() in archive.by_name or path in additions:
                     raise AssetError('Portrait alias destination already owned: ' + path)
-                inner = Archive(unpack(archive.read(prefix + old + '.big')))
-                expected = {old + suffix for suffix in ('.apt', '.const', '.o', '.xsh')}
+                # Custom names use our text field. Loading a donor logo would
+                # overwrite an early _visible=false when that movie arrives.
+                # The original blank movie has no model/texture dependencies.
+                if stem == 'l_MS_':
+                    old = 'empty2'
+                    inner = Archive(unpack(archive.read('screens/trans/empty2.big')))
+                    expected = {old + suffix for suffix in ('.apt', '.const')}
+                else:
+                    inner = Archive(unpack(archive.read(prefix + old + '.big')))
+                    expected = {old + suffix for suffix in ('.apt', '.const', '.o', '.xsh')}
                 if {entry.name for entry in inner.entries} != expected:
                     raise AssetError('Unsupported donor portrait envelope')
                 if any(old.encode('ascii') in inner.read(name) for name in expected):

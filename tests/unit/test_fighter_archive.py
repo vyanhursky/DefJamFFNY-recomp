@@ -96,3 +96,20 @@ def test_portrait_alias_keeps_movie_data_and_texture_payloads_exact():
 def test_literal_refpack_roundtrip(size):
     data = bytes(i % 256 for i in range(size))
     assert unpack(store(data)) == data
+
+
+def test_result_alias_uses_exact_id_for_portrait_and_blank_custom_name_logo():
+    entries = {'screens/trans/empty2.big': fixture({'empty2.apt': b'blank', 'empty2.const': b'constants'})}
+    for count in (2, 3, 4):
+        for prefix, stem in [('screens/portrait/p_CF/', f'p_cf_8_{count}p'),
+                             ('screens/portrait/t_MS/', f't_MS_7_{count}p')]:
+            entries[prefix + stem + '.big'] = fixture({stem + suffix: suffix.encode() for suffix in ('.apt', '.const', '.o', '.xsh')})
+    source = Archive(fixture(entries))
+    changed = Archive(portrait_aliases(source.data, {256: 7}, results=True))
+    assert all(changed.read(e.name) == source.read(e.name) for e in source.entries)
+    for count in (2, 3, 4):
+        portrait = Archive(unpack(changed.read(f'screens/portrait/t_MS/t_MS_256_{count}p.big')))
+        assert portrait.read(f't_MS_256_{count}p.xsh') == b'.xsh'
+        logo = Archive(unpack(changed.read(f'screens/portrait/l_MS_256_{count}p.big')))
+        assert {e.name for e in logo.entries} == {f'l_MS_256_{count}p.apt', f'l_MS_256_{count}p.const'}
+        assert logo.read(f'l_MS_256_{count}p.apt') == b'blank'
