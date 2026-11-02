@@ -26,6 +26,11 @@ int fighter_window_find(const FighterWindow *window, uint32_t selection, uint32_
 int fighter_window_bind(FighterWindow *window, uint32_t participant, uint32_t selection, FighterWindowRow *out);
 /* UINT32_MAX clears all pre-match ownership. Never releases a frozen match. */
 int fighter_window_clear(FighterWindow *window, uint32_t participant);
+/* Fixed runtime-owned menu command: 0 unknown, 1 handled, -1 invalid/state mismatch.
+ * Validates completely before changing any pre-match ownership. */
+int fighter_window_command(FighterWindow *window, const char *command);
+/* Bounded decimal native arguments, including the original menus' whitespace. */
+int fighter_window_integer(const char *text, int32_t *value);
 uint32_t fighter_window_native(const FighterWindow *window, uint32_t stable);
 uint32_t fighter_window_stable(const FighterWindow *window, uint32_t native);
 #endif

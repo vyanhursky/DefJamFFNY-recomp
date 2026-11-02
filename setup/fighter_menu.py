@@ -215,6 +215,53 @@ def append_logical_roster(action, definitions, records):
         action.variable('_result'); action.op('Return')
     action.function('getCharData', [], get_data)
     action.integer(0); action.string('_recompAppendFighters'); action.op('CallFunction'); action.op('Pop')
+    retain_ready_ownership(action, definitions)
+
+
+def retain_ready_ownership(action, definitions):
+    """Mirror the original selector's ready owners after its Back handler.
+
+    The original handler also handles recursive unready/cancel transitions.
+    Observe its completed CCharacter ownership instead of guessing which slot
+    a controller was browsing, or changing any of the original input behavior.
+    """
+    if len([d for d in definitions if d['name'] == 'keyBackHandler' and d['params'] == ['nConID']]) != 1:
+        raise AssetError('Native selector Back handler differs from the reviewed template')
+    action.string('_recompFighterKeyBack'); action.variable('keyBackHandler'); action.op('SetVariable')
+    def back():
+        loop, next_char, owners, owner_loop, next_owner, done = [action.unique() for _ in range(6)]
+        action.local('_chars', lambda: action.variable('aCharacters'))
+        action.local('_result', lambda: (action.variable('nConID'), action.integer(1),
+                                       action.string('_recompFighterKeyBack'), action.op('CallFunction')))
+        action.variable('_chars'); action.op('EA_PushUndefined'); action.op('Equals2'); action.branch('BranchIfTrue', done)
+        action.local('_owners', lambda: (action.integer(0), action.string('Array'), action.op('NewObject')))
+        action.local('_i', lambda: action.integer(0))
+        action.label(loop)
+        action.variable('_i'); action.variable('_chars'); action.member('length'); action.op('LessThan2'); action.op('Not'); action.branch('BranchIfTrue', owners)
+        action.local('_char', lambda: (action.variable('_chars'), action.variable('_i'), action.op('GetMember')))
+        action.variable('_recompFighterLabels'); action.integer(0); action.variable('_char'); action.string('getID'); action.op('CallMethod'); action.op('GetMember')
+        action.op('EA_PushUndefined'); action.op('Equals2'); action.branch('BranchIfTrue', next_char)
+        action.local('_owner', lambda: (action.variable('_char'), action.member('iTakenBy')))
+        action.variable('_owner'); action.integer(0); action.op('LessThan2'); action.branch('BranchIfTrue', next_char)
+        action.variable('_owner'); action.integer(4); action.op('LessThan2'); action.op('Not'); action.branch('BranchIfTrue', next_char)
+        action.variable('_owners'); action.variable('_owner'); action.op('EA_PushTrue'); action.op('SetMember')
+        action.label(next_char)
+        action.string('_i'); action.variable('_i'); action.op('Increment'); action.op('SetVariable'); action.branch('BranchAlways', loop)
+        action.label(owners)
+        action.string('_i'); action.integer(0); action.op('SetVariable')
+        action.local('_mask', lambda: action.integer(0)); action.local('_bit', lambda: action.integer(1))
+        action.label(owner_loop)
+        action.variable('_i'); action.integer(4); action.op('LessThan2'); action.op('Not'); action.branch('BranchIfTrue', done + '-send')
+        action.variable('_owners'); action.variable('_i'); action.op('GetMember'); action.op('Not'); action.branch('BranchIfTrue', next_owner)
+        action.string('_mask'); action.variable('_mask'); action.variable('_bit'); action.op('Add2'); action.op('SetVariable')
+        action.label(next_owner)
+        action.string('_bit'); action.variable('_bit'); action.integer(2); action.op('Multiply'); action.op('SetVariable')
+        action.string('_i'); action.variable('_i'); action.op('Increment'); action.op('SetVariable'); action.branch('BranchAlways', owner_loop)
+        action.label(done + '-send')
+        action.string('Fighters.KeepReady('); action.variable('_mask'); action.op('Add2'); action.string(')'); action.op('Add2')
+        action.integer(1); action.variable('_level0'); action.member('_root'); action.string('FuncCall'); action.op('CallMethod'); action.op('Pop')
+        action.label(done); action.variable('_result'); action.op('Return')
+    action.function('keyBackHandler', ['nConID'], back)
 
 
 def presentation_action(base, movie, constants, pairs, names, records=None):

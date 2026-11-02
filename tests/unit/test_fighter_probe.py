@@ -152,3 +152,25 @@ def test_portrait_cache_verifies_source_and_existing_output(tmp_path, monkeypatc
     source.write_bytes(b'unverified')
     with pytest.raises(ValueError, match='original screens'):
         probe.prepare_portraits(source, report)
+
+
+def test_native_save_acceptance_requires_the_requested_kind_in_a_committed_closed_batch(tmp_path, monkeypatch):
+    from test_fighter_save_journal import batch, put_acks, state, OPTIONS, PROFILE
+    probe = driver(tmp_path, monkeypatch)
+    journal = tmp_path / 'journal'; journal.mkdir()
+    _, _, _, files, _ = state()
+    (journal / '000001.batch').write_bytes(batch({OPTIONS: files[OPTIONS]}, {}))
+    put_acks(journal, {OPTIONS: files[OPTIONS]})
+    committed = [(1, 'verified-generation')]
+    assert probe.verify_saved_kind(journal, committed, 'options') == ['Options']
+    with pytest.raises(ValueError, match='acknowledged profile'):
+        probe.verify_saved_kind(journal, committed, 'profile')
+    (journal / '000002.batch').write_bytes(batch({PROFILE: files[PROFILE]}, {}, 2))
+    put_acks(journal, {PROFILE: files[PROFILE]}, 2)
+    with pytest.raises(ValueError, match='acknowledged profile'):
+        probe.verify_saved_kind(journal, committed, 'profile')
+    committed.append((2, 'next-verified-generation'))
+    assert probe.verify_saved_kind(journal, committed, 'profile') == [PROFILE.rsplit('/', 1)[1]]
+    (journal / '000002-00.closed').unlink()
+    with pytest.raises(ValueError, match='close receipt'):
+        probe.verify_saved_kind(journal, committed, 'profile')

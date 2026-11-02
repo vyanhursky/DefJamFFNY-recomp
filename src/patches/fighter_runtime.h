@@ -25,6 +25,8 @@ void defjam_fighter_selection_gate(uint32_t selection);
 /* Reads the original string vector before the native dispatcher narrows it.
  * UINT32_MAX means preserve the original submission/sentinel. */
 uint32_t defjam_fighter_controller_submission(uint32_t arguments);
+/* Intercepts only the fixed runtime-owned selector command when active. */
+int defjam_fighter_ui_command(uint32_t command);
 void defjam_fighter_menu_event(const char *text);
 uint32_t defjam_fighter_filter_banks(uint32_t entries, uint32_t count);
 uint32_t defjam_fighter_result_identity(uint32_t participant, uint32_t native);

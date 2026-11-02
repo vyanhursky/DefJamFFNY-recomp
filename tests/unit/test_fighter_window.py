@@ -40,6 +40,15 @@ PROBE = r'''
 #include <stdlib.h>
 int main(int argc,char **argv) {
     FILE *f; uint8_t *bytes; size_t size; FighterWindow w; FighterWindowRow row;
+    { const char *valid[]={"0", " -1", " +101 ", "\t2147483647\r\n", "-2147483648", "\v\f-0"};
+      int32_t expected[]={0,-1,101,2147483647,(-2147483647-1),0}, value;
+      const char *bad[]={"", " ", "+", "-", "--1", "9a", "2147483648", "-2147483649", "1.0"};
+      for(uint32_t i=0;i<sizeof valid/sizeof valid[0];++i)
+        if(!fighter_window_integer(valid[i],&value) || value!=expected[i])return 26;
+      for(uint32_t i=0;i<sizeof bad/sizeof bad[0];++i)
+        if(fighter_window_integer(bad[i],&value))return 27;
+      if(fighter_window_integer(NULL,&value) || fighter_window_integer("1",NULL))return 28;
+    }
     if(argc<2 || !(f=fopen(argv[1],"rb"))) return 2;
     bytes=(uint8_t*)malloc(FIGHTER_WINDOW_MAX_FILE+1); if(!bytes) return 2;
     size=fread(bytes,1,FIGHTER_WINDOW_MAX_FILE+1,f); fclose(f);
@@ -52,17 +61,30 @@ int main(int argc,char **argv) {
         if(w.banks[i].selection_key!=100+i) return 6;
     }
     w.frozen=1;
+    if(fighter_window_command(&w,"Fighters.KeepReady(15)")!=-1)return 17;
     if(fighter_window_bind(&w,0,255,&row) || !fighter_window_bind(&w,0,254,&row)) return 7;
     if(fighter_window_clear(&w,0) || fighter_window_clear(&w,UINT32_MAX)) return 11;
     if(fighter_window_bind(&w,4,254,&row) || fighter_window_bind(&w,0,99,&row)) return 8;
     if(fighter_window_native(&w,0x07012345)!=UINT32_MAX) return 9;
     w.frozen=0;
+    { const char *bad[]={"Fighters.KeepReady", "Fighters.KeepReady()", "Fighters.KeepReady(16)",
+        "Fighters.KeepReady(-1)", "Fighters.KeepReady(01)", "Fighters.KeepReady(0)tail"};
+      for(uint32_t i=0;i<sizeof bad/sizeof bad[0];++i)
+        if(fighter_window_command(&w,bad[i])!=-1 || !w.selected[0] || !w.selected[3])return 18;
+    }
+    if(fighter_window_command(&w,"Game.Quit()") || fighter_window_command(&w,NULL))return 19;
+    if(fighter_window_command(&w,"Fighters.KeepReady(15)")!=1)return 20;
     if(fighter_window_bind(&w,0,255,&row)) return 10;
     if(!fighter_window_clear(&w,0) || w.selected[0] || !w.selected[1])return 12;
     if(fighter_window_stable(&w,w.banks[0].native_handle)!=w.banks[0].private_handle)return 13;
     if(!fighter_window_bind(&w,0,254,&row) || fighter_window_clear(&w,4))return 14;
     if(!fighter_window_clear(&w,UINT32_MAX))return 15;
     for(uint32_t i=0;i<4;++i)if(w.selected[i])return 16;
+    if(fighter_window_command(&w,"Fighters.KeepReady(1)")!=-1)return 21;
+    if(!fighter_window_bind(&w,0,254,&row) || !fighter_window_bind(&w,1,255,&row))return 22;
+    if(fighter_window_command(&w,"Fighters.KeepReady(2)")!=1 || w.selected[0] || !w.selected[1])return 23;
+    if(!fighter_window_bind(&w,0,254,&row))return 24;
+    if(fighter_window_command(&w,"Fighters.KeepReady(0)")!=1 || !fighter_window_bind(&w,2,254,&row))return 25;
     free(bytes); return 0;
 }
 '''

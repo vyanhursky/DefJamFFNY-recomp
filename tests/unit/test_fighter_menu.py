@@ -41,6 +41,7 @@ def selector_fixture():
         action.function('', [], visual); action.op('SetMember')
     action.function('updateChar', ['nPlayer'], lambda: (action.op('EA_PushUndefined'), action.op('Return')))
     action.function('getCharData', [], lambda: (action.op('EA_PushUndefined'), action.op('Return')))
+    action.function('keyBackHandler', ['nConID'], lambda: (action.op('EA_PushUndefined'), action.op('Return')))
     movie = bytearray(b'Apt Data' + bytes(92))
     struct.pack_into('<10I', movie, 16, 9, 0x09876543, 1, 80, 0, 0, 0, 640, 480, 16)
     struct.pack_into('<5I', movie, 80, 1, 88, 92, 1, 100)
@@ -117,6 +118,8 @@ def test_logical_entries_above_255_use_original_constructor_and_shared_list():
     _, values, definitions = functions(output, changed)
     assert len([d for d in definitions if d['name'] == '_recompAppendFighters']) == 1
     assert len([d for d in definitions if d['name'] == 'getCharData']) == 2
+    assert len([d for d in definitions if d['name'] == 'keyBackHandler']) == 2
+    assert b'Fighters.KeepReady(\0' in output and b'iTakenBy\0' in output
     assert not any(d['owner'] == 'CCharacter' and d['method'] == 'getID' for d in definitions)
     instructions = apt.disassemble_block(output, report['action_offset'], values)
     assert all(not instruction.note for instruction in instructions)
@@ -124,3 +127,11 @@ def test_logical_entries_above_255_use_original_constructor_and_shared_list():
     for bad in (dict(records[0], selection_key=[]), dict(records[0], stats={'H': 1}), dict(records[0], styles=[1, 1]),
                 dict(records[0], styles=[True]), dict(records[0], extra='unrecognized')):
         with pytest.raises(AssetError): character_parameters(bad)
+
+
+def test_logical_roster_refuses_an_unreviewed_back_handler():
+    movie, constants = selector_fixture()
+    movie = movie.replace(b'keyBackHandler\0', b'keyBackChanged\0')
+    records = [dict(selection_key=100, stats=dict.fromkeys('ULSTHC', 50), styles=[1])]
+    with pytest.raises(AssetError, match='Back handler differs'):
+        compile_menu(movie, constants, {100: 7}, {100: 'Custom'}, records)

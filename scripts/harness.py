@@ -1052,10 +1052,29 @@ def run_game(name, stages=(), tail="", shots="", secs=240, preset=RELEASE_PRESET
     return run
 
 
+def merge_stages(stages, replacements):
+    """Override a route anchor in place, preserving the native stage order.
+
+    Appending a repeated earlier anchor closes all intervening stages as soon
+    as that anchor fires. In particular, overriding user selection must not
+    disable the route's later Crib input. New anchors still append normally.
+    """
+    result = list(stages)
+    positions = {stage.split('=', 1)[0].strip().casefold(): i for i, stage in enumerate(result)}
+    for stage in replacements:
+        anchor = stage.split('=', 1)[0].strip().casefold()
+        if anchor in positions:
+            result[positions[anchor]] = stage
+        else:
+            positions[anchor] = len(result)
+            result.append(stage)
+    return result
+
+
 def run_route(route, preset=RELEASE_PRESET, secs=None, shots=None, env=None, extra_stages=(),
               to_end=False, **kw):
     r = ROUTES[route]
-    stages = list(r["stages"]) + list(extra_stages or r.get("default_stages", ()))
+    stages = merge_stages(r["stages"], extra_stages or r.get("default_stages", ()))
     if r.get("env"):
         env = dict(r["env"], **(env or {}))     # what the route needs; the caller's values win
     run = run_game(route, stages=stages, tail=r.get("tail", ""),
@@ -1272,6 +1291,11 @@ def main(argv=None):
         env = dict(kv.split("=", 1) for kv in a.env)
         run = run_route(a.route, preset=a.preset, secs=a.secs, shots=a.shots, env=env,
                         extra_stages=a.stage, to_end=a.to_end, supervisor=a.supervisor)
+        # run_game prints its summary before run_route checks the route target.
+        # Make this late failure visible as well as returning a failing status.
+        if run.missing_anchor:
+            print('FAIL     never reached ' + run.missing_anchor)
+            print('triage   ' + triage_hint(run.log))
         if a.png:
             for f in run.shots():
                 print("png      %s" % os.path.relpath(bmp_to_png(f), REPO))

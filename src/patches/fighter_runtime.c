@@ -561,15 +561,11 @@ void defjam_fighter_selection_gate(uint32_t selection) {
 }
 
 static int submission_integer(uint32_t pointer, int32_t *value) {
-    uint32_t magnitude = 0, i = 0, negative = 0;
+    char text[40]; uint32_t i;
     if (!pointer) return 0;
-    if (MEM8(pointer) == '-') { negative = 1; ++i; }
-    if (MEM8(pointer + i) < '0' || MEM8(pointer + i) > '9') return 0;
-    for (; i < 12; ++i) {
-        unsigned digit = MEM8(pointer + i);
-        if (!digit) { *value = negative ? -(int64_t)magnitude : (int32_t)magnitude; return 1; }
-        if (digit < '0' || digit > '9' || magnitude > (2147483647u + negative - (digit - '0')) / 10u) return 0;
-        magnitude = magnitude * 10 + digit - '0';
+    for (i = 0; i < sizeof text; ++i) {
+        text[i] = (char)MEM8(pointer + i);
+        if (!text[i]) return fighter_window_integer(text, value);
     }
     return 0;
 }
@@ -639,6 +635,22 @@ uint32_t defjam_fighter_controller_submission(uint32_t arguments) {
                 values[0], values[2], row.stable_handle, bank->selection_key, row.core_id, kept);
         return bank->selection_key;
     }
+}
+
+int defjam_fighter_ui_command(uint32_t command) {
+    static const char prefix[] = "Fighters.KeepReady";
+    char text[40]; uint32_t i;
+    if (!s_window.bytes || !command) return 0;
+    for (i = 0; i < sizeof prefix - 1; ++i)
+        if (MEM8(command + i) != (uint8_t)prefix[i]) return 0;
+    for (i = 0; i < sizeof text; ++i) {
+        text[i] = (char)MEM8(command + i);
+        if (!text[i]) break;
+    }
+    if (i == sizeof text || fighter_window_command(&s_window, text) != 1)
+        fighter_stop("Native ready ownership differs from the participant bindings, or the match is still active.");
+    fprintf(stderr, "[FIGHTERS] synchronized pre-match ready ownership: %s\n", text);
+    return 1;
 }
 
 void defjam_fighter_menu_event(const char *text) {

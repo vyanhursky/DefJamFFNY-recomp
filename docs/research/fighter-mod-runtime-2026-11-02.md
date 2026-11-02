@@ -12,10 +12,12 @@ thread; its one-time heartbeat was deleted after delivery. Work began about
 
 ## Current code and tests
 
-13:11 checkpoint: implementing the logical roster/native binding window and
+13:59 checkpoint: implementing the logical roster/native binding window and
 coherent isolated save generations. This supersedes the immediate continuation
-at the bottom of this note. Latest committed source is `6aa7188`. Full native
-write/close receipts and the corrected result-label wrapper are being tested locally.
+at the bottom of this note. Receipt checkpoint `d059bfd` is followed by the
+ownership/profile work described below. Native Options and Story profile
+write/close receipts and two independent controllers with cancellation have
+passed. Binding reuse, authored assets and launcher integration remain incomplete.
 
 - Native list capacity is **not a single 255 limit**. The signed-byte selection
   path narrows inside `558E0` before `1E700`; the shared roster has a different
@@ -288,10 +290,119 @@ it refuses fresh-default mode or replacement of an existing store. It permits
 native Story/real-profile acceptance without changing the original fixtures.
 A six-file composite fixture copies verified Options and the previously tested
 VY3 profile (payload **0x5904 /22788 bytes**) read-only into ignored research data.
-Current `run-20261102-130905.log.err` / `logs/fighter-real-profile-results-native.txt`
-has loaded it, acknowledged an initial complete Options write/close and reached
-custom selection. Native5904-byte save and clean blank-logo result acceptance
-are pending; do not promote the fixture import itself to that proof.
+`run-20261102-130905.log.err` / `logs/fighter-real-profile-results-native.txt`
+passed custom selection, combat, results and two complete Options save/close
+receipts:159 frame reports,min109/median120/max120,no native faults,saves restored.
+The first generation retains12retail/zero custom marks; the second retains12retail/
+two custom marks. The imported VY3 file is present, but this Battle path did not
+write it; native0x5904-profile save remains unproved. Captures are retained in
+`logs/fighter-window-runs/713ba6dbc00b43fd9af5b0e790cb7c1d/captures`.
+Reviewed both the two- and three-second results: Alpha Two/Beta One, correct donor
+portraits, and no donor logos. Both names are fully visible. An initial reading
+mistook the portrait's edge for text overlap; no placement fix was necessary for
+these labels. Long-name fitting and narrow F4 names remain separate gates.
+
+Latest stock regression **4/4 passed**,7min:
+`logs/fighter-save-io-stock-regression.txt` / `logs/regress-20261102-132838.txt`.
+Boot/title/main-menu goldens match;122s of combat,min102/median120 presents per
+two seconds. This covers the inactive native write/close/seek wrappers before
+the next ready-ownership hook is added.
+
+Back does not issue ControllerSetup. The new runtime-owned native-menu adapter
+wraps the original `keyBackHandler(nConID)` and observes its completed shared
+CCharacter `iTakenBy` state, including recursive cancellations. It sends only a
+bounded ready-owner mask through a fixed `Fighters.KeepReady(mask)` command.
+The native dispatcher wrapper preserves the original bridge's allocation and
+result-copy ownership; unknown calls remain original. The checked window codec
+rejects malformed masks, owners with no binding and any frozen-match release
+before mutating state. Focused C/menu/result gate **26 passed**,
+`logs/fighter-ready-native-unit.txt`; re-lift/build/native acceptance underway.
+
+Original Crib APT establishes the normal profile-save route: horizontal choices
+Map0,Message1,Wardrobe2,Options3,Trophies4,Exit5, then first popup option Yes0.
+`confirmExitCallback` enters the
+loader's QuerySave/Save flow for `story/crib.swf`; completion calls
+`Game.StartMainMenu(3)`. Initial selection inherits `_root.iCribLastIndex`, so
+calibrate it rather than guessing a fixed right-press count. With this single-VY3
+fixture, the first row is Create User ID; one Down selects the existing VY3.
+An earlier audit confused constant-pool slots with assigned indices. Primary
+review of `logs/fighter-crib-original-apt.txt:1121` verifies the assignments above.
+
+### Native ownership and real-profile acceptance (13:59)
+
+- The first Story calibration `run-20261102-133319.log.err` never reached Crib;
+  an appended override of an earlier anchor closed later original input stages.
+  `harness.merge_stages` now replaces matching anchors in their original position,
+  retaining later route input. It also reports a missing route target after the
+  earlier game summary. `133820` correctly failed the Crib target: its capture
+  showed the Create User keyboard, rather than an existing-profile selection.
+- After selecting VY3, `run-20261102-134205.log.err` reproduced a research guard
+  bug: original `ControllerSetup( -1,0,99,0 )` has leading whitespace, which the
+  strict integer parser rejected. No native fault; saves restored. The bounded
+  shared C parser now accepts original ASCII whitespace and optional signs,
+  rejects trailing non-whitespace and signed overflow, and has native C boundary
+  fixtures. Focused gate **96 passed,1 skipped**,
+  `logs/fighter-native-argument-unit.txt`; incremental build
+  `logs/fighter-native-argument-build.txt` passed. Corrected VY3 Story entry
+  `134407` passed:26 reports,min109/median120/max120,no faults,saves identical.
+- `--expect-save options|profile` now requires this run's **committed** batch of
+  the requested payload size plus valid native close receipts. Existing files,
+  imported profiles, a different save kind or an uncommitted receipt cannot pass.
+  `run-20261102-134542.log.err` deliberately remains a failed acceptance attempt:
+  four Right presses from Map0 selected Trophies4; no profile save occurred.
+  The explicit expectation failed instead of treating a clean run as a save pass.
+- Real profile write/close acceptance **passed**:
+  `run-20261102-135252.log.err`, `logs/fighter-story-profile-save-retest-native.txt`.
+  Calibrated route: user selection Down4/A9; Crib messages No Down4/A6, Left12
+  from Map0 to Exit5, A18, Up21 to Yes, A24. The original QuerySave/Save callback
+  writes VY3 **76+64+22788 bytes**, then closes its22928-byte MC02 successfully.
+  It also writes Options **76+64+5264**, then closes5404bytes. Both form batch1
+  and one coherent generation before `Game.StartMainMenu(3)`.
+  54 reports,min107/median120/max120,no native faults,saves restored identically.
+  Reviewed Exit/Yes and returned-main-menu captures, retained in
+  `logs/fighter-window-runs/748219d9847744c8a23d2e5adae1bb07/captures`.
+  Generation **a7a641e9a9478b461048ccf946a0d5abbd3675678a7ea7933a8d4cdf6f373b6e**
+  retains all six files and both custom marks; `fighter-profile-save-preservation.json`
+  compares the untouched original fixture. VY3's payload stayed byte-identical in
+  this no-progress-change run; the fresh native receipts prove a write actually
+  occurred. This does not prove new Story progression or custom battle-stat saves.
+- Two independent native-controller cancellation/reselection **passed**:
+  `run-20261102-134828.log.err`, `logs/fighter-two-pad-cancel-native.txt`.
+  P1 first submits logical101, then Back produces `Fighters.KeepReady(0)` and
+  releases its pre-match binding. P2 independently submits that same logical101
+  with native controller1; P1 chooses logical102/controller0. StartGame matches
+  expected **102/101**, stable **0700004D/0700004C**, engines100/101, cores23/5.
+  Reviewed ready/cancel/ready and combat captures in
+  `logs/fighter-window-runs/a41222fb77304f5cb38043eac8d416e1/captures`.
+  120 reports,min106/median120/max120,no native faults,one verified generation,
+  saves restored identically. This establishes two independent humans; four
+  independent pads and disconnect/rejoin remain required. The imported-fixture
+  SELECT USER ID header is the previously reproduced stock behavior, not fixed here.
+- Current full unit gate **1,039 passed,27 skipped,1 deselected**,113.02s,
+  `logs/fighter-ownership-profile-full-unit.txt`. An earlier unprivileged full run
+  failed four junction-creation safety fixtures on Windows access denial; all four
+  passed with required filesystem permissions, and the fresh full gate above
+  passed. Re-lift/build for the ownership dispatcher passed
+  `fighter-ready-ownership-lift.txt` / `fighter-ready-ownership-build.txt`.
+  Current stock golden/combat regression is running in
+  `logs/fighter-ownership-profile-stock-regression.txt`; do not report its final
+  result until complete.
+
+Next binding experiment: keep the indexed Character bank rows immutable and
+resolve every installed custom **stable handle** to its own immutable unindexed
+template, rather than copying it into a reusable row. Native BE760 success is a
+12-byte record/database/type tuple; preserve the native registered database/type
+and substitute only the validated record pointer. StartGame's bank-token query
+still yields a full stable handle. Primary stack-flow review shows20270's
+per-participant BE760 output feeds its BEE90 property receiver; its secondary
+0x5950-stride profile branch is gated by Story's created-player state or Battle
+sentinel99, rather than custom byte tokens100..103. This is a promising design
+experiment, **not implemented or accepted**. Verify actual model/core/stat pointer
+provenance, all identity-producing paths, immutable-row invariants, and repeated
+native matches before changing the current freeze guard. Existing model cleanup
+findings do not prove full teardown:9D340 resets an inner owner before replacement,
+while the proven four-owner destructor is process-exit-only. Never call a UI
+transition a model/XSH release acknowledgement.
 
 Remaining implementation gates, in order: finish native pack lifecycle and clean
 result presentation; prove pre-match cancellation/independent human ownership,

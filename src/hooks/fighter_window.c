@@ -92,6 +92,45 @@ int fighter_window_clear(FighterWindow *w, uint32_t participant) {
         if (participant == UINT32_MAX || participant == i) w->selected[i] = 0;
     return 1;
 }
+static int argument_space(unsigned char c) {
+    return c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == '\v' || c == '\f';
+}
+int fighter_window_integer(const char *text, int32_t *value) {
+    uint32_t length, i = 0, magnitude = 0, negative = 0;
+    if (!text || !value) return 0;
+    for (length = 0; length < 40 && text[length]; ++length) {}
+    if (length == 40) return 0;
+    while (argument_space((unsigned char)text[i])) ++i;
+    if (text[i] == '-' || text[i] == '+') { negative = text[i] == '-'; ++i; }
+    if (text[i] < '0' || text[i] > '9') return 0;
+    while (text[i] >= '0' && text[i] <= '9') {
+        uint32_t digit = (uint32_t)(text[i++] - '0');
+        if (magnitude > (2147483647u + negative - digit) / 10u) return 0;
+        magnitude = magnitude * 10u + digit;
+    }
+    while (argument_space((unsigned char)text[i])) ++i;
+    if (text[i]) return 0;
+    *value = negative ? (int32_t)(-(int64_t)magnitude) : (int32_t)magnitude;
+    return 1;
+}
+int fighter_window_command(FighterWindow *w, const char *command) {
+    static const char prefix[] = "Fighters.KeepReady";
+    const char *p; uint32_t mask;
+    if (!command || strncmp(command, prefix, sizeof prefix - 1)) return 0;
+    p = command + sizeof prefix - 1;
+    if (*p++ != '(' || *p < '0' || *p > '9') return -1;
+    mask = (uint32_t)(*p++ - '0');
+    if (*p >= '0' && *p <= '9') {
+        if (mask != 1 || *p > '5') return -1;
+        mask = 10 + (uint32_t)(*p++ - '0');
+    }
+    if (*p++ != ')' || *p || !w || !w->bytes || w->frozen) return -1;
+    for (uint32_t i = 0; i < FIGHTER_WINDOW_BANKS; ++i)
+        if ((mask & (1u << i)) && !w->selected[i]) return -1;
+    for (uint32_t i = 0; i < FIGHTER_WINDOW_BANKS; ++i)
+        if (!(mask & (1u << i))) w->selected[i] = 0;
+    return 1;
+}
 uint32_t fighter_window_native(const FighterWindow *w, uint32_t stable) {
     FighterWindowRow row;
     if (!w || !w->bytes) return UINT32_MAX;

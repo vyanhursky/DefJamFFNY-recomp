@@ -30,7 +30,7 @@ from fighter_menu import compile_menu
 from fighter_results import compile_results
 from fighter_bindings import seed
 from fighter_profile_store import Store
-from fighter_save_journal import Monitor, initialize, encode_unlock_state
+from fighter_save_journal import Monitor, initialize, encode_unlock_state, bounded, closed_record, decode
 from mods import atomic_json, linked
 
 
@@ -162,6 +162,24 @@ def prepare_portraits(screens, report):
     return path
 
 
+def verify_saved_kind(journal, committed, kind):
+    """Count only this run's committed batches with valid native close receipts."""
+    size = {'options': 0x1490, 'profile': 0x5904}[kind]
+    names = []
+    for number, _ in committed:
+        batch = decode(bounded(Path(journal) / f'{number:06}.batch'))
+        if batch['number'] != number:
+            raise ValueError('Crossed native save acceptance batch')
+        for index, record in enumerate(batch['records']):
+            if len(record['payload']) == size:
+                if closed_record(journal, number, index, record) is None:
+                    raise ValueError('Native save acceptance lost its close receipt')
+                names.append(record['name'])
+    if not names:
+        raise ValueError('Native run did not commit an acknowledged ' + kind + ' save')
+    return names
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('sod', type=Path)
@@ -177,12 +195,14 @@ def main():
                         help='Assert native menu and StartGame identities in participant order; no override')
     parser.add_argument('--trace-assets', action='store_true')
     parser.add_argument('--trace-profiles', action='store_true')
+    parser.add_argument('--trace-lifetime', action='store_true', help='Watch reviewed participant model reset/load boundaries; no lifecycle override')
     parser.add_argument('--logical-menu', action='store_true', help='Browsing-only logical roster prototype; native confirmation blocked')
     parser.add_argument('--binding-window', action='store_true', help='Internal four-participant native binding prototype')
     parser.add_argument('--profile-store', type=Path, default=ROOT / 'logs/fighter-profile-store', help='Internal isolated generation store under logs')
     parser.add_argument('--fresh-profiles', action='store_true', help='Create a new isolated namespace from native defaults instead of importing a fixture')
     parser.add_argument('--import-profiles', type=Path, help='Read-only verified save fixture for the first isolated generation; never replaces an existing store')
     parser.add_argument('--no-unlock', action='store_true', help='Disable the harness unlock-everything control for native progress/save acceptance')
+    parser.add_argument('--expect-save', choices=('options', 'profile'), help='Require a committed native write/close receipt of this kind in this run')
     parser.add_argument('--ledger', type=Path, help='Internal historical ledger from a previous research cache')
     args = parser.parse_args()
     try:
@@ -196,7 +216,9 @@ def main():
             raise ValueError('Fresh profile research requires the binding window')
         if args.import_profiles and (not args.binding_window or args.fresh_profiles):
             raise ValueError('Profile import requires the binding window and cannot use fresh defaults')
-        if args.trace_assets and args.trace_profiles:
+        if args.expect_save and not args.binding_window:
+            raise ValueError('Save acceptance requires the isolated binding window')
+        if sum((args.trace_assets, args.trace_profiles, args.trace_lifetime)) > 1:
             raise ValueError('Select one four-breakpoint trace domain per probe')
         if args.logical_menu:
             if args.route not in ('fighter-roster', 'fighter-roster-4') or args.start_fighter or args.expect_fighter:
@@ -271,6 +293,9 @@ def main():
         if args.trace_profiles:
             command += ['--env', 'RECOMP_WATCH_EXEC=0x000144B0,0x00014540,0x00016810,0x000D2300',
                         '--env', 'RECOMP_WATCH_EXEC_ALL=1', '--env', 'RECOMP_WATCH_EXEC_FIELD=0x4']
+        if args.trace_lifetime:
+            command += ['--env', 'RECOMP_WATCH_EXEC=0x0009ADC0,0x0009D340,0x000AD910,0x0008B730',
+                        '--env', 'RECOMP_WATCH_EXEC_ALL=1', '--env', 'RECOMP_WATCH_EXEC_FIELD=0xA234']
         for stage in args.stage:
             command += ['--stage', stage]
         print(json.dumps({'probe': 'donor-roster', 'cache_key': report['cache_key'],
@@ -308,6 +333,9 @@ def main():
                 raise ValueError('Harness evidence log is outside the research directory')
             expected = verify_menu_selection(log, report, args.expect_fighter)
             print('native menu identities verified: ' + ','.join(map(str, expected)))
+        if args.expect_save and result.returncode == 0:
+            names = verify_saved_kind(journal, monitor.committed, args.expect_save)
+            print('native acknowledged ' + args.expect_save + ' saves verified: ' + ', '.join(names))
         return result.returncode
     except (ValueError, OSError) as error:
         print(str(error), file=sys.stderr)

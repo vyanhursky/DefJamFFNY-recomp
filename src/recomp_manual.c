@@ -973,6 +973,15 @@ void sub_00044FC0(void)
 }
 
 extern void sub_00068BA0(void);
+/* FuncCall's native bridge copies the dispatcher's borrowed result through its
+ * own allocator. Keep that original allocation/ownership path intact. */
+extern void sub_000457D0_gen(void);
+void sub_000457D0(void)
+{
+    if (!defjam_fighter_ui_command(MEM32(g_esp + 4))) { sub_000457D0_gen(); return; }
+    g_eax = 0; /* The original bridge normalizes NULL to its own empty string. */
+    g_esp += 4; /* Original cdecl ret; caller owns the argument. */
+}
 extern void xbox_NoteAnchorEvent(const char *text);
 extern void defjam_unlock_all_on_funccall(const char *text);
 

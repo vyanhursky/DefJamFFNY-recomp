@@ -32,6 +32,19 @@ def test_presses_expand():
     assert harness.expand_presses("down@11+0.6x2") == ["down:11:%g" % (11 + d), "down:11.6:%g" % (11.6 + d)]
 
 
+def test_route_overrides_keep_later_native_stages_after_the_overridden_anchor(monkeypatch):
+    calls = []
+    monkeypatch.setattr(harness, 'run_game', lambda *args, **kw: calls.append(kw) or
+                        type('Result', (), {'summary': {'funccalls': []}})())
+    monkeypatch.setattr(harness, 'reached', lambda *args: True)
+    replacement = 'GetScreenInfo(options/userid=a@9;a@13'
+    harness.run_route('crib', extra_stages=[replacement])
+    assert calls[0]['stages'] == [harness.ROUTES['crib']['stages'][0], replacement,
+                                  harness.ROUTES['crib']['stages'][2]]
+    assert harness.merge_stages(['screen=a@1'], ['screen=a@2', 'screen#2=b@1', 'screen=a@3']) == [
+        'screen=a@3', 'screen#2=b@1']
+
+
 def test_long_roster_navigation_compacts_without_losing_press_times_or_pad_ownership():
     stages = [f'selector{i}=p{i + 1}-down@10+0.8x75;a@76' for i in range(4)]
     script = harness.build_pad_script(stages)
@@ -443,6 +456,15 @@ def test_missing_story_route_is_a_failure(monkeypatch):
     args = type('Args', (), {'preset': 'synthetic'})()
     assert not regress.check_crib(args)[0]
     assert not regress.check_gym(args)[0]
+
+
+def test_cli_reports_a_missing_route_target_after_the_game_summary(monkeypatch, capsys):
+    run = harness.Run('crib', 'synthetic.log', '')
+    run.save_ok = True
+    run.missing_anchor = 'getscreeninfo(story/crib'
+    monkeypatch.setattr(harness, 'run_route', lambda *args, **kw: run)
+    assert harness.main(['run', 'crib']) == 1
+    assert 'FAIL     never reached getscreeninfo(story/crib' in capsys.readouterr().out
 
 
 def test_clean_log_without_route_target_still_fails(monkeypatch):
