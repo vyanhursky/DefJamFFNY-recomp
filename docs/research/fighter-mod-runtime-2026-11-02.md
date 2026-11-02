@@ -6,9 +6,9 @@ with an update in a few hours. Continue through the runtime/save/launcher/asset
 work; do not treat this intermediate note as completion. Keep work local, no push
 or public PR, and no reference implementation code copying.
 
-Requested update scheduled for 2026-11-02 09:54 America/Vancouver in this thread
-(`fighter-mod-support-progress-update`, one-time heartbeat). Work began about
-06:54. Report actual acceptance, limits and remaining work honestly.
+The requested three-hour update was delivered at 09:54 America/Vancouver in this
+thread; its one-time heartbeat was deleted after delivery. Work began about
+06:54 and continues. No additional reminder/automation remains.
 
 ## Current code and tests
 
@@ -263,6 +263,69 @@ complete file is **5404 bytes**, with the existing MC02 8C-byte header/identity
 prefix and a **1490-byte payload**. The Character count is 22, sentinel FFFFFFFF,
 and all 22 entries have the expected Character-table high byte 07. This verifies
 the payload offsets against an actual saved file as well as the native copy path.
+`logs/fighter-options-real-projection.json` records a full in-memory round trip
+of those 22 marks plus **300 customs**: the native payload remains byte-identical,
+322 marks restore, and the recomputed MC02 signatures verify. The source file
+was read only. This is a real-file codec test, not native save/load acceptance.
+
+The runtime now validates the fixed Options payload before `14540` loads it and
+before `D2300` stages a save; every unlock must have a stable historical binding.
+`144B0` verifies the owner/container layout, and the `16810` wrapper rejects an
+81st insertion before the original unchecked write. These guards remain confined
+to the research roster. They do not implement expanded live storage/persistence.
+The actual C wire decoder agrees with Python at counts 0/1/79/80/81 and for
+malformed lengths/sentinel/duplicates/order: **19 focused Python/C tests pass**,
+`logs/fighter-unlock-native-unit.txt`. Re-lift/build passed
+`logs/fighter-options-guards-lift.txt` / `logs/fighter-options-guards-build.txt`.
+
+Four-player calibration: chooseF4 has **three columns**, versus chooseF2's six.
+The first script stopped on retail WC and never reached combat; it is not an
+acceptance pass. The corrected script selected custom **101/100** and retail
+**17/58** through the original four-player menu, all identical at StartGame.
+`run-20261102-094131.log.err` rendered Alpha Two/Alpha One/Crack/Crow in combat,
+123 frame reports, min 109 / median 120 / max 120, no native faults and saves
+restored. Its explicit assertion named the wrong retail pair (Blaze/Bo), so the
+driver correctly failed it. Repeat with the intended exact four stable keys
+and the Options guards is running; do not relabel the failed assertion a pass.
+
+Repeat **passed**: `run-20261102-095123.log.err`, summary
+`logs/fighter-options-native-menu-four.txt`, exact asserted identities
+**101/100/17/58**, 124 frame reports, min 107 / median 120 / max 120, no native
+faults and save root restored identically. This uses one human controller to
+choose P1 and three CPU participants, not four independent human controllers.
+With a copied real Options fixture, boot `run-20261102-095712.log.err` also
+**passed**: native `144B0` owner binding, `14540` loaded all **22 stable unlocks**,
+and `16810` ran (89 watched entries across set kinds). Fifteen frame reports,
+median 120, no faults, saves identical. Summary: `logs/fighter-options-native-load.txt`.
+
+An ordinary 10-fighter semantic research pack reaches the native unlock limit:
+`run-20261102-100426.log.err`, summary `logs/fighter-native-unlock-capacity-stop.txt`.
+The last watched Character insertion had count **0x50 (80)**, and the guard
+stopped before the unchecked write. Exit 1 / harness FAIL is the **expected
+negative test**, not playable-roster acceptance. No native crash or watchdog;
+entire fixture restored. Triage's first unclassified return at line 412 was
+read and belongs to the inherited NtFsControlFile stub; tail lines 4946–4948
+show the intended bounds rejection. This is now a reproduced native bottleneck,
+not merely a guessed save capacity.
+
+### Shared roster storage boundary
+
+Primary source check corroborates a further constraint: GameMode's temporary
+count*32 workspace is dynamic, but its final `3A07B0 + index*4` list is static.
+The literal base appears in **26 native functions**, not just the two wrapped
+menu producers. In `4E9A0`, `3A09B0` is separately assigned the scalar input
+argument while the list uses computed `3A07B0 + index*4` writes. Thus **index
+128 would overwrite a known distinct scalar at 3A09B0**. This establishes an
+upper bound before that state, not proof that every preceding slot is usable.
+`3A09B4` is also scalar state; `3A0BB0` is a separate object. Relocating only
+the list producer/consumer pair would miss the other literal readers/writers.
+
+The next D1 prototype therefore separates the full logical roster from a bounded
+native binding window. Test whether runtime-owned native movie data can append
+logical CCharacter entries, preserving each player's grid/cursor, then bind the
+chosen definitions at audited setup boundaries. Keep stable identity and saved
+progress outside transient byte slots. This is a general adapter experiment,
+not a fixed 28-fighter product limit or a promise that >255 selection is solved.
 
 Correction to earlier speculative row interpretation: `D23B0` copies
 `block+16FC`, length **40**, into the identity staging buffer. Its second stack

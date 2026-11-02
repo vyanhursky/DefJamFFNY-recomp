@@ -10,4 +10,8 @@ void defjam_fighter_materialized(uint32_t self, uint32_t handle);
 void defjam_fighter_model_input(uint32_t object);
 uint32_t defjam_fighter_native_handle(uint32_t handle);
 void defjam_fighter_handle_produced(uint32_t database, uint32_t table, uint32_t output);
+void defjam_fighter_settings_bound(uint32_t self);
+void defjam_fighter_settings_validate(uint32_t self, uint32_t payload);
+void defjam_fighter_settings_saving(void);
+void defjam_fighter_unlock_inserting(uint32_t self);
 #endif

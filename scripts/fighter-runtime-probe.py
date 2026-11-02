@@ -150,6 +150,7 @@ def main():
     parser.add_argument('--expect-fighter', action='append', default=[],
                         help='Assert native menu and StartGame identities in participant order; no override')
     parser.add_argument('--trace-assets', action='store_true')
+    parser.add_argument('--trace-profiles', action='store_true')
     parser.add_argument('--ledger', type=Path, help='Internal historical ledger from a previous research cache')
     args = parser.parse_args()
     try:
@@ -157,6 +158,8 @@ def main():
             raise ValueError('Probe duration must be 10..900 seconds')
         if args.expect_fighter and args.start_fighter:
             raise ValueError('Native menu expectations cannot use a StartGame fighter override')
+        if args.trace_assets and args.trace_profiles:
+            raise ValueError('Select one four-breakpoint trace domain per probe')
         require_idle_game()
         cache, report = prepare(args.sod, args.packs, args.ledger)
         if args.expect_fighter:
@@ -184,6 +187,9 @@ def main():
             command += ['--env', 'RECOMP_WATCH_EXEC=0x001E3FB0,0x00109F80',
                         '--env', 'RECOMP_WATCH_EXEC_ALL=1', '--env', 'RECOMP_WATCH_EXEC_STR=1',
                         '--env', 'RECOMP_WATCH_EXEC_FIELD=0x10']
+        if args.trace_profiles:
+            command += ['--env', 'RECOMP_WATCH_EXEC=0x000144B0,0x00014540,0x00016810,0x000D2300',
+                        '--env', 'RECOMP_WATCH_EXEC_ALL=1', '--env', 'RECOMP_WATCH_EXEC_FIELD=0x4']
         for stage in args.stage:
             command += ['--stage', stage]
         print(json.dumps({'probe': 'donor-roster', 'cache_key': report['cache_key'],

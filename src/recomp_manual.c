@@ -97,6 +97,30 @@ void sub_00020270(void)
     defjam_fighter_materialized(self, handle);
 }
 
+/* Bound the original fixed Options set before loading, insertion and staging.
+ * Expansion cannot ship until its companion persistence is connected. */
+extern void sub_000144B0_gen(void);
+void sub_000144B0(void) {
+    uint32_t self = g_ecx;
+    sub_000144B0_gen();
+    defjam_fighter_settings_bound(self);
+}
+extern void sub_00014540_gen(void);
+void sub_00014540(void) {
+    defjam_fighter_settings_validate(g_ecx, MEM32(g_esp + 4));
+    sub_00014540_gen();
+}
+extern void sub_00016810_gen(void);
+void sub_00016810(void) {
+    defjam_fighter_unlock_inserting(g_ecx);
+    sub_00016810_gen();
+}
+extern void sub_000D2300_gen(void);
+void sub_000D2300(void) {
+    defjam_fighter_settings_saving();
+    sub_000D2300_gen();
+}
+
 /* Crowd test controls (src/hooks/crowd_control.c, RECOMP_TEST_CROWD; off unless set). */
 void defjam_crowd_match_start(void);
 void defjam_crowd_update(void);

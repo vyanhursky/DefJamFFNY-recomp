@@ -3,6 +3,7 @@
 #include "hooks/fighter_names.h"
 #include "hooks/fighter_roster.h"
 #include "hooks/fighter_bindings.h"
+#include "hooks/fighter_unlocks.h"
 #include "hooks/guest_call.h"
 #include "host.h"
 #include <stdio.h>
@@ -22,6 +23,7 @@ static uint8_t *s_bytes;
 static uint8_t *s_binding_bytes;
 static uint32_t s_validated_database;
 static uint32_t s_guest_text;
+static uint32_t s_settings;
 static volatile int s_lock;
 static RECOMP_TLS unsigned s_trace_count;
 static int s_trace;
@@ -212,6 +214,46 @@ void defjam_fighter_handle_produced(uint32_t database, uint32_t table, uint32_t 
     if (!fighter_bindings_find(&s_bindings, FIGHTER_BINDING_NATIVE, handle, &binding))
         fighter_stop("Native fighter handle has no stable identity binding.");
     MEM32(output) = binding.stable_handle;
+}
+
+void defjam_fighter_settings_bound(uint32_t self) {
+    if (!s_bindings.bytes) return;
+    if (MEM32(self + 0x1C) != FIGHTER_UNLOCK_CAPACITY || MEM32(self + 0x24) != self + 0x1264
+        || MEM32(self + 0x28) != self + 0x12E0)
+        fighter_stop("Native Character unlock container has a different layout.");
+    s_settings = self;
+    fprintf(stderr, "[FIGHTERS] native Options container bound: capacity=%u\n", FIGHTER_UNLOCK_CAPACITY);
+}
+
+void defjam_fighter_settings_validate(uint32_t self, uint32_t payload) {
+    uint32_t count;
+    FighterBinding binding;
+    const uint8_t *bytes;
+    if (!s_bindings.bytes) return;
+    if (!s_settings || self != s_settings) fighter_stop("Unregistered native fighter settings owner.");
+    bytes = (const uint8_t *)XBOX_PTR(payload);
+    if (!fighter_unlocks_decode(bytes, FIGHTER_SETTINGS_SIZE, &count))
+        fighter_stop("Native fighter unlock settings are malformed or exceed their fixed capacity.");
+    for (uint32_t i = 0; i < count; ++i)
+        if (!fighter_bindings_find(&s_bindings, FIGHTER_BINDING_STABLE,
+                fighter_unlocks_at(bytes, i) & ~FIGHTER_UNLOCK_METADATA, &binding))
+            fighter_stop("Saved fighter unlock has no historical identity binding.");
+    fprintf(stderr, "[FIGHTERS] native Options unlock payload verified: %u marks\n", count);
+}
+
+void defjam_fighter_settings_saving(void) {
+    if (!s_bindings.bytes) return;
+    if (!s_settings || MEM32(s_settings + 0x20) != MEM32(s_settings + 0x1264))
+        fighter_stop("Native fighter unlock counts disagree before save staging.");
+    defjam_fighter_settings_validate(s_settings, s_settings + 0x4C);
+}
+
+void defjam_fighter_unlock_inserting(uint32_t self) {
+    if (!s_bindings.bytes || !s_settings || self != s_settings + 0x1C) return;
+    /* A larger live array also requires the save extension. Until it is wired,
+     * reject the next insertion before the original unchecked write occurs. */
+    if (MEM32(self + 4) >= MEM32(self) || MEM32(self) != FIGHTER_UNLOCK_CAPACITY)
+        fighter_stop("Native Character unlock storage is full; expanded persistence is required.");
 }
 
 static uint32_t read_word(const uint8_t *p) {

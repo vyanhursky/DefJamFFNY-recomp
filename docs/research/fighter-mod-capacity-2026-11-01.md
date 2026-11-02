@@ -70,6 +70,16 @@ basis of those helpers.
 
 ## Required capacity audit before implementation choice
 
+2026-11-02 runtime follow-up adds two concrete bottlenecks. The Options Character
+unlock set has 80 inline/persisted dword entries; a native 10-custom-fighter
+negative test stops on the attempted insertion at live count 80. Separately,
+the shared final roster buffer at `3A07B0` has a known scalar at `3A09B0`, so
+list index128 would overwrite that state. This is an upper bound before a known
+different field, not proof of 128 usable slots. Twenty-six functions reference
+the list base literally; dynamic temporary allocation does not relocate them.
+See the [current runtime note](fighter-mod-runtime-2026-11-02.md) for exact
+function evidence, save payload offsets, native logs and binding-window work.
+
 1. Trace selection input/AI/preview through the actual front-end-to-core mapping,
    including created fighters and Story style combinations. Record exact widths,
    signed conversions, sentinels, packed fields, implicit offsets and index bases.
