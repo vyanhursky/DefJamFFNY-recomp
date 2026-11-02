@@ -219,6 +219,13 @@ local evidence for eventual conversion through the ordinary toolchain.
   maintainable system first; one- and multi-fighter packs use the same contract.
 - D-new: assess capacity beyond 255 without assuming a global native-ID ceiling;
   review expansion versus virtual bindings after the identity/persistence audit.
+- D-new: owner accepts D1's audit-driven capacity strategy and D2's hybrid
+  integration, to be refined through tests; D3 extends existing profiles if safe,
+  otherwise isolated mod-enabled profiles. The fallback is authorized.
+- D-new: owner chooses D5 whole-pack activation and D6 native selection menus.
+  Evaluate custom entries after retail or a per-player native custom-roster page;
+  preserve other players' browsing/selection/readiness and all menu variants.
+  D4 conflict policy remains under review; examples are in the revised plan.
 
 Validation for this local research iteration:
 
@@ -242,6 +249,7 @@ The requested v0.15.0 GitHub milestone was created before the owner changed the
 publication instruction. No research branch or PR was pushed/opened. Keep all
 further R&D local until asked to publish.
 
-Next: owner review of the revised plan and decisions D1–D6 before implementation.
+Next: clarify D4 with the owner; D1/D2/D3/D5/D6 direction is accepted. Native UI
+presentation and capacity details still need investigation/prototypes.
 Keep R&D local. Later runtime work requires quick/area-specific checks followed
 by platform release gates; metadata integrity is not gameplay acceptance.

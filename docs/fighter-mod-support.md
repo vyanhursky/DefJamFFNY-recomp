@@ -1,10 +1,11 @@
 # Fighter Mod Support — revised plan for review
 
-**Target: v0.15.0. Status: local R&D; architecture awaiting owner review.**
+**Target: v0.15.0. Status: local R&D; D4 remains under owner review.**
 No runtime implementation, public branch push or public PR. This revision follows
 the owner's request to build the maintainable system first. It supersedes the
 proposal to ship a Vendetta-specific compatibility bundle. Review precedes
-implementation; the recommendations below are not approved decisions.
+implementation. Owner decisions are recorded below; unresolved details remain
+explicit rather than being treated as approvals.
 
 ## Direction already agreed
 
@@ -60,10 +61,19 @@ preserves working settings/files/saves and reports the problem; never silently
 launch a different roster. Reuse manager receipts, locks and transactions. Cache
 identity includes dump, schema/adapter version, resolved content and bindings.
 
-## Architectural decisions to review together
+## Architectural decisions and remaining review
 
-These options are legitimate alternatives. Some are conditional on what the
-engine audit proves possible. Recommendations are proposals for review.
+| Decision | Owner direction |
+|---|---|
+| D1 — capacity | Approved: stable logical keys; select expansion/virtualization after audit, assess beyond 255 |
+| D2 — data integration | Approved: hybrid, refine the native-cache/runtime-hook split through testing |
+| D3 — saves | Approved: extend existing profiles if safe; otherwise isolated mod-enabled profiles |
+| D4 — conflicts | Open: concrete examples and proposed policy below |
+| D5 — activation | Approved: whole-pack activation |
+| D6 — selection | Approved: native menus only; evaluate appended entries versus a per-player custom-roster page |
+
+Alternative designs are retained below to explain the tradeoffs. Their presence
+does not reopen the accepted choices.
 
 ### D1. Capacity: wider native indices or virtual engine slots?
 
@@ -78,7 +88,7 @@ match boundary. This avoids some structural changes but requires complete contro
 of cached IDs, previews, voice banks, cinematics and resource lifetime. Four active
 fighters does not prove that four reusable slots suffice.
 
-**Recommendation:** stable logical keys and a width-independent package schema
+**Owner-approved direction:** stable logical keys and a width-independent package schema
 now; choose expansion/virtualization **after the capacity audit**. Prefer direct
 table expansion where sufficient; virtualize where narrow layouts make widening
 much more invasive. A hybrid needs explicit invariants for each binding boundary.
@@ -100,11 +110,12 @@ requires serializers and potentially costly cold builds.
 serve registry-owned records. Avoids some archive rebuilding, but makes us
 responsible for layouts, ownership and direct/indirect call coverage.
 
-**Recommendation:** one typed resolver with a hybrid adapter: cache native data
+**Owner-approved direction:** one typed resolver with a hybrid adapter: cache native data
 where formats are understood; use narrow maintained runtime hooks for capacity,
 identity and behavior files cannot express. Choose the exact split after the
 consumer inventory. Compose language/fighter changes through one overlay plan
-rather than independently generating conflicting copies of the same file.
+rather than independently generating conflicting copies of the same file. Refine
+this split through tests; the owner agrees the best route is not yet fully known.
 
 ### D3. Saves: extend existing profiles or separate mod-enabled profiles?
 
@@ -118,12 +129,12 @@ namespace and preserve original files. Contains unknown native save-layout risks
 and simplifies rollback, but players manage a separate progression history and
 need explicit import/export rules.
 
-**Recommendation for discussion:** A is the friendlier long-term experience if
-complete persistence isolation can be proven; B is a valid permanent policy if
-separate progression is preferred. Do not silently introduce B as a temporary
-workaround. Review before coding the save bridge. Both retain dormant stable
-records for missing fighters and block actions needing unavailable content with
-a restore path. No silent substitution, lost progression or sample-based repair.
+**Owner decision:** use A if complete persistence isolation can be proven;
+otherwise use B. The fallback is authorized: document the evidence requiring it,
+preserve the original profile and make the separate progression/import behavior
+clear. Both retain dormant stable records for missing fighters and block actions
+needing unavailable content with a restore path. No silent substitution, lost
+progression or sample-based repair.
 
 ### D4. Overrides: strict ownership or typed component composition?
 
@@ -138,6 +149,29 @@ model/animation and voice/event bundles need documented compatibility groups.
 Validate the combined fighter. Texture priority must not silently resolve gameplay
 conflicts. Resolve dependency/version constraints to an exact local content lock.
 
+**Owner review remains open.** These are concrete hypothetical cases illustrating
+proposed behavior, not claims about existing runtime support:
+
+| Enabled packs | Expected result under B | Why |
+|---|---|---|
+| One adds DMX; another adds Eminem, each with independent keys/assets | Both work | Different definitions merge into the generated native databases. Sharing an output database is not itself a conflict. |
+| One replaces Blaze's portrait; another replaces his voice with compatible events | Combine after validation | These edit independent components. Whole-definition ownership would reject them unnecessarily. |
+| Two packs change Blaze's health, one to 80 and another to 120 | Conflict | One effective fighter cannot have both values. Disable one conflicting pack or use a declared override/compatibility patch selecting the intended result. |
+| One gives Blaze a different joint layout; another supplies animations for his original skeleton | Incompatible unless adapted | The files/components differ, but the combined fighter may deform or crash. Related components need group validation. |
+| Two packs require incompatible versions of a shared moveset library | Dependency conflict unless safely separable | Their shared requirements may not be satisfiable together even when individual fighters are valid. |
+
+Matching display names alone are not a conflict: independently keyed DMX variants
+can coexist. Duplicate stable identities and incompatible resource claims matter.
+Referencing a retail donor moveset does not edit the donor or other fighters using
+it. An authored variation gets its own resource key unless a shared override is
+explicitly intended.
+
+The proposed player-facing rule is: independent additions combine; compatible
+component edits combine; contradictory edits or invalid combinations explain the
+conflict before launch. Automatic last-pack-wins is another option for simple
+same-field overrides, but cannot repair incompatible skeletons/animations.
+Existing texture-pack image priority remains separate from gameplay resolution.
+
 ### D5. Multi-fighter packs: whole-pack or individual fighter activation?
 
 **A — Whole-pack activation.** Install/update/enable atomically; simpler dependency
@@ -147,10 +181,9 @@ and settings behavior and fewer accidental partial configurations.
 resources and cross-fighter references need dependency closure; disabling one
 fighter needs the same save policy as disabling its pack.
 
-**Recommendation:** A for the initial public contract, retaining independent
-fighter keys internally. If individual selection matters for v0.15.0, choose B
-now and include it in resolver tests. Merely hiding a roster entry with a display
-filter is different from disabling its definition/resources.
+**Owner decision:** A, whole-pack activation. Retain independent fighter keys
+internally. Merely hiding a roster entry with a display filter or switching the
+visible selection page is different from disabling its definition/resources.
 
 ### D6. Selection UI: extend the game's interface or use a host browser?
 
@@ -163,10 +196,26 @@ passes validated selections into native match setup. Changes presentation and
 requires integration with every relevant mode. A launcher-only picker is not
 enough for in-game selection flows.
 
-**Recommendation:** evaluate A first for continuity, then compare cost with B.
-Review a small mockup before implementing either. Both must preserve player/CPU
-selection, supported participant arrangements, retail unlock display and created
-fighters. No UI rewrite is approved by this plan revision.
+**Owner decision:** A. Keep all fighter selection in the native menus; a
+host-rendered roster browser is not planned. Preserve the retail roster's order
+and menu behavior. Evaluate these two native presentation patterns:
+
+- **Appended roster:** custom fighters appear after the retail list. Verify
+  scrolling, wraparound, pagination, indexing and portrait/movie limits as it grows.
+- **Per-player roster switch:** an unused, clearly labelled button/controller
+  action switches the browsing player's native selector between retail and
+  custom fighter lists, using the same visual layout. Player 1/2/3/4 each keep
+  their own page, cursor and selection state. Switching one player's page must
+  not change another player's highlighted/selected fighter or ready state.
+
+The page switch is a browsing action, not mod activation or a game-wide roster
+swap. Its implementation must retain stable fighter identity across pages and
+validate native movie/state ownership before assuming selectors are independent.
+Choose the button only after auditing existing controls and label it in the
+native interface. Back/cancel/ready, CPU selection, portraits/previews, created
+fighters and all native menu variants must continue to work. Prototype both
+patterns within the native menu to choose the one that scales without breakage;
+the owner raised the page switch as an idea, not a final binding/layout choice.
 
 Routine syntax choices should follow project conventions rather than become
 owner decision overhead. A strict versioned JSON-like manifest is a reasonable
@@ -204,8 +253,10 @@ Source/examples remain game-free; creators supply their own assets.
 
 ## Work sequence and review gates
 
-1. **Architecture review.** Review D1–D6, particularly capacity and save policy.
-   Record choices separately from hypotheses. No pack-specific bridge while open.
+1. **Complete architecture review.** D1/D2/D3/D5/D6 have owner direction above.
+   Resolve D4 after discussing concrete conflicts; use native-menu prototypes to
+   select appended entries or per-player page switching. Keep evidence-dependent
+   choices separate from product approvals. No pack-specific bridge.
 2. **Capacity/format/persistence audit.** Trace identity domains end to end; decode
    required SOD/motion/tag/UI structures and derive native save/load allocation/
    layouts. Deliver a consumer matrix and expansion-versus-virtualization cost
@@ -247,6 +298,11 @@ Source/examples remain game-free; creators supply their own assets.
 - [ ] Cover mixed retail/custom fights, player 1/player 2/CPU activation, four
   participants, previews/entry/victory, repeat matches, Story/created-fighter paths
   and coexistence with languages/textures touching related data.
+- [ ] Native selection supports large custom lists without breaking existing
+  menus or retail order. For page switching, test independent Player 1/2/3/4
+  navigation, retained selections/readiness, Back/cancel/rejoin, CPU choices and
+  portraits/previews across native mode/menu variants. No input-binding collision
+  or one-player action changing another player's selection.
 - [ ] Re-lift preserves direct/indirect hook coverage; no generated-source patch
   scripts, arbitrary mod code or mutable original dump required.
 - [ ] Measure snapshot/cache build, cold/warm loads, memory, resource lifetime and
@@ -261,5 +317,7 @@ Source/examples remain game-free; creators supply their own assets.
 
 The original investigation remains evidence for package/binary facts; its legacy
 bundle recommendation is superseded. The new [capacity audit](research/fighter-mod-capacity-2026-11-01.md)
-records the bounded source findings behind the 255 discussion. No production
-limit, persistence policy, UI rewrite or implementation strategy is approved yet.
+records the bounded source findings behind the 255 discussion. D1/D2/D3/D5/D6
+direction is accepted; D4 awaits clarification/decision. The production capacity
+and exact native-menu presentation still require evidence/prototypes. Continue
+locally; no public push or PR. No runtime work was performed to record this review.
