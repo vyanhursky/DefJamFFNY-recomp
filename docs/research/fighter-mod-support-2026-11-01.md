@@ -225,7 +225,12 @@ local evidence for eventual conversion through the ordinary toolchain.
 - D-new: owner chooses D5 whole-pack activation and D6 native selection menus.
   Evaluate custom entries after retail or a per-player native custom-roster page;
   preserve other players' browsing/selection/readiness and all menu variants.
-  D4 conflict policy remains under review; examples are in the revised plan.
+- D-new: owner approves D4 compatible component composition and actionable errors
+  for unresolved conflicts. A compatibility helper is desirable if practical;
+  no automatic asset adaptation or last-pack-wins behavior is required.
+- D-new: implementation is authorized locally. See the
+  [first implementation checkpoint](fighter-mod-implementation-2026-11-01.md)
+  for the resolver, native-cache experiment, evidence and remaining gates.
 
 Validation for this local research iteration:
 
@@ -249,7 +254,8 @@ The requested v0.15.0 GitHub milestone was created before the owner changed the
 publication instruction. No research branch or PR was pushed/opened. Keep all
 further R&D local until asked to publish.
 
-Next: clarify D4 with the owner; D1/D2/D3/D5/D6 direction is accepted. Native UI
-presentation and capacity details still need investigation/prototypes.
+Architecture review is complete. Continue the implementation from the
+[checkpoint](fighter-mod-implementation-2026-11-01.md); native UI presentation,
+save serialization and capacity details still need investigation/prototypes.
 Keep R&D local. Later runtime work requires quick/area-specific checks followed
 by platform release gates; metadata integrity is not gameplay acceptance.

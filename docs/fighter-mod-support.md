@@ -1,10 +1,10 @@
-# Fighter Mod Support — revised plan for review
+# Fighter Mod Support — approved implementation plan
 
-**Target: v0.15.0. Status: local R&D; D4 remains under owner review.**
-No runtime implementation, public branch push or public PR. This revision follows
+**Target: v0.15.0. Status: approved architecture; local implementation underway.**
+No public branch push or public PR. This revision follows
 the owner's request to build the maintainable system first. It supersedes the
-proposal to ship a Vendetta-specific compatibility bundle. Review precedes
-implementation. Owner decisions are recorded below; unresolved details remain
+proposal to ship a Vendetta-specific compatibility bundle. Owner decisions are
+recorded below; evidence-dependent implementation details remain
 explicit rather than being treated as approvals.
 
 ## Direction already agreed
@@ -68,7 +68,7 @@ identity includes dump, schema/adapter version, resolved content and bindings.
 | D1 — capacity | Approved: stable logical keys; select expansion/virtualization after audit, assess beyond 255 |
 | D2 — data integration | Approved: hybrid, refine the native-cache/runtime-hook split through testing |
 | D3 — saves | Approved: extend existing profiles if safe; otherwise isolated mod-enabled profiles |
-| D4 — conflicts | Open: concrete examples and proposed policy below |
+| D4 — conflicts | Approved: compatible component composition; actionable errors for unresolved conflicts; a helper/tool where practical |
 | D5 — activation | Approved: whole-pack activation |
 | D6 — selection | Approved: native menus only; evaluate appended entries versus a per-player custom-roster page |
 
@@ -95,7 +95,9 @@ much more invasive. A hybrid needs explicit invariants for each binding boundary
 Do not assume 255 is a product limit or promise unlimited fighters.
 
 **Current evidence:** some moveset indices/profile keys are 32-bit; a front-end
-identity field is one byte with a reserved value. The reference's 256-entry array
+identity field is one byte, read as signed, with a reserved value. A CPU-only
+native database parser accepts 375 records and a selection key of 276; native
+menus/gameplay at those sizes remain unproved. The reference's 256-entry array
 is not a universal engine limit. Ease of exceeding 255 remains unproved. See the
 [capacity audit](research/fighter-mod-capacity-2026-11-01.md).
 
@@ -149,8 +151,10 @@ model/animation and voice/event bundles need documented compatibility groups.
 Validate the combined fighter. Texture priority must not silently resolve gameplay
 conflicts. Resolve dependency/version constraints to an exact local content lock.
 
-**Owner review remains open.** These are concrete hypothetical cases illustrating
-proposed behavior, not claims about existing runtime support:
+**Owner decision:** combine compatible components and return an actionable error
+for unresolved conflicts. A compatibility helper/tool is desirable where practical,
+but is not required to resolve every conflict automatically. The following
+hypothetical cases illustrate the accepted direction, not existing runtime support:
 
 | Enabled packs | Expected result under B | Why |
 |---|---|---|
@@ -224,6 +228,8 @@ starting point; it contains logical references, never engine addresses.
 ## Package and authoring contract
 
 This is a checklist, not a frozen schema or supported export command.
+The [local authoring prototype](fighter-mod-authoring.md) documents executable
+definition/conflict checks without advertising installable fighter packages.
 
 - **Package:** stable ID/version, authors/provenance, category, runtime/capabilities,
   dependencies/version constraints, conflicts and content hashes.
@@ -253,8 +259,8 @@ Source/examples remain game-free; creators supply their own assets.
 
 ## Work sequence and review gates
 
-1. **Complete architecture review.** D1/D2/D3/D5/D6 have owner direction above.
-   Resolve D4 after discussing concrete conflicts; use native-menu prototypes to
+1. **Architecture review completed.** D1–D6 have owner direction above.
+   Implement D4 composition/error rules; use native-menu prototypes to
    select appended entries or per-player page switching. Keep evidence-dependent
    choices separate from product approvals. No pack-specific bridge.
 2. **Capacity/format/persistence audit.** Trace identity domains end to end; decode
@@ -317,7 +323,8 @@ Source/examples remain game-free; creators supply their own assets.
 
 The original investigation remains evidence for package/binary facts; its legacy
 bundle recommendation is superseded. The new [capacity audit](research/fighter-mod-capacity-2026-11-01.md)
-records the bounded source findings behind the 255 discussion. D1/D2/D3/D5/D6
-direction is accepted; D4 awaits clarification/decision. The production capacity
+records the bounded source findings behind the 255 discussion. D1–D6 direction
+is accepted and the owner authorizes starting work. The production capacity
 and exact native-menu presentation still require evidence/prototypes. Continue
-locally; no public push or PR. No runtime work was performed to record this review.
+locally; no public push or PR. Evidence and implementation status belong in the
+local implementation worklog; an approved plan is not a completed runtime feature.

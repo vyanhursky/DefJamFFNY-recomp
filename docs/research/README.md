@@ -64,6 +64,7 @@ cite other development notes, logs and captures that are not published.
 
 - [Fighter Mod Support investigation](fighter-mod-support-2026-11-01.md): Vendetta archive inventory, independently checked table limits, compatibility strategy and v0.15.0 plan.
 - [Fighter Mod Support capacity audit](fighter-mod-capacity-2026-11-01.md): byte-width selection, 32-bit runtime indices, and the evidence needed to assess going beyond 255.
+- [Fighter Mod Support implementation checkpoint](fighter-mod-implementation-2026-11-01.md): draft resolver/compatibility helper, native SODB construction, parser evidence and runtime handoff.
 - [Simulation tick](simulation-tick.md)
 - [Fighter record fields](fighter-record-fields.md)
 - [Match-end state](match-end-state.md)
