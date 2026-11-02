@@ -12,7 +12,121 @@ thread; its one-time heartbeat was deleted after delivery. Work began about
 
 ## Current code and tests
 
-Latest accepted state (09:05): two independent packs, three donor-backed custom
+11:39 checkpoint: implementing the logical roster/native binding window and
+coherent isolated save generations. This supersedes the immediate continuation
+at the bottom of this note. Latest committed source is `01b41a6`; the following
+window/save work is being tested locally before its source checkpoint.
+
+- Native list capacity is **not a single 255 limit**. The signed-byte selection
+  path narrows inside `558E0` before `1E700`; the shared roster has a different
+  fixed boundary, and Options has 80 cells. The chosen R&D direction is a large
+  logical native-menu roster plus **four participant banks**. Installed fighters
+  retain historical logical keys; each match binds at most four native rows.
+  This is within the approved hybrid/virtualization direction, not a proposed
+  four-installed-fighter limit. Lifetime/rebind and full ownership remain gates.
+- `--logical-menu` appends original CCharacter objects to the shared native
+  aCharacters array without adding Character rows. The corrected 300-fighter
+  browse run `run-20261102-103633.log.err` / summary
+  `logs/fighter-logical-300-native-browse-corrected.txt` highlighted **Capacity
+  261 / logical 361**, with name, donor portrait, stats and consistent thumbnails.
+  78 frame reports, min 110 / median 120 / max 121, no native faults, saves
+  identical. Header still reads SELECT USER ID; stock comparison is pending.
+  It is browsing evidence, not >255 gameplay acceptance. The earlier 10:23 run
+  had incorrect thumbnail states and is retained only as a diagnostic.
+- Generated visual methods now retain the original constant pool verbatim,
+  replace only visual getID operands with literal getThumbID calls, and relocate
+  branch targets. The created-fighter identity comparison remains untouched.
+  Positive integers above 127 use a wide immediate. The 10:45 direct regression
+  stopped on a **new guard bug**, not a native crash: its guard read a narrowed
+  argument with unrelated upper bits. Validation moved to the original four
+  strings in `558E0`, before native narrowing. The replacement call frame owns
+  its vector/text and never edits an original movie string.
+- `setup/fighter_window.py` and `src/hooks/fighter_window.[ch]` define FWR1,
+  runtime-owned typed templates/banks with checked row offsets, identities and
+  bounds. The SODB writer can retain unindexed templates/string IDs. A 300-row
+  synthetic pack produces **four additional indexed rows**, with original rows
+  unchanged. The public FMB1 ledger has no private bank identities. Private
+  handles occupy reserved internal ranks and cannot become public progress.
+  Four-slot bindings, 254/255/256/257, duplicate ownership and match freeze have
+  C codec tests. This is not yet native capacity acceptance.
+- The first window run at 10:56 reached the automatic user-ID save and stopped
+  on the intended save gate (`logs/fighter-window-native-two.txt`). It is not a
+  gameplay pass. Persistence is therefore connected before further acceptance.
+- `fighter_profile_store.py` implements authorized **D3B isolated generations**:
+  immutable native files, historical ledger and hash-bound custom extension,
+  with one durable head publication. Fault injection at files/manifest/generation/
+  head proves recovery reads a complete old or new generation. A stale writer,
+  crossed extension, torn file or redirected state cannot replace committed data.
+- Native D2300 temporarily projects **retail-only Options** into the original
+  queue, then restores its live data after the native copy. D23B0 captures profile
+  save intent; D2780 seals an FSB1 intent journal. **Sealing is not success**.
+  `fighter_save_journal.py` requires every staged native file's full payload,
+  identity and MC02 signatures to match before committing exactly that batch
+  over the previous generation. It excludes unstaged partial working files.
+  FUM1 restores historical custom marks, including dormant content. All writes
+  are under ignored isolated research data; original fixture files are read only.
+  Native file verification and helper/runtime failure reporting still need
+  acceptance before a production launch capability can be enabled.
+- Focused window/profile/journal/probe gate: **44 passed**,
+  `logs/fighter-journal-final-focused.txt`. Earlier full gate after logical UI
+  changes: 952 passes plus four junction setup failures under the sandbox; those
+  **four passed** with junction access (`logs/fighter-logical-junction-unit.txt`).
+  Fresh full gate: **994 passed, 27 skipped, 1 deselected**, 91.03 seconds,
+  `logs/fighter-window-full-unit.txt`. One later evidence assertion test passes
+  in the eight-test probe gate; the full gate predates that additional test.
+
+Native window/save follow-up:
+
+- `run-20261102-111208.log.err` committed the first independently verified
+  native Options generation. It then stopped because the prototype assumed
+  costume 0 only. Native ready submissions use costume **1** for the first set;
+  the generated one-costume contract now accepts selection 0 / ready 1. No
+  crashes/watchdogs; this stopped run is not gameplay acceptance.
+- `run-20261102-111532.log.err` / summary
+  `logs/fighter-window-journal-native-two-retest.txt` passed: native menu P1
+  **Alpha Two 101 / stable 0700004C / donor core 5** bound to engine 100; CPU
+  **Beta One 102 / stable 0700004D / core 23** bound to engine 101. Match setup
+  receives 100/101, and the reviewed 90-second capture shows those custom names,
+  expected bodies and combat. One verified save generation, 78 frame reports,
+  min 110 / median 120 / max 120, no faults, disposable saves restored identically.
+  The stronger evidence parser also checked the recorded stable/core bindings.
+- **First native >255 path passed:** 300 enabled custom fighters plus the
+  original roster, `run-20261102-111846.log.err`, summary
+  `logs/fighter-window-native-wide.txt`. Native menu submits **361** for
+  Capacity 261; its historical handle **07000150** binds to engine 100/core 5.
+  Retail Blaze remains **56/core 5**. Match setup is 100/56, HUD is Capacity 261 /
+  Blaze, and native hit/damage events advance. Reviewed 85-second combat capture.
+  One verified save generation, 78 frame reports, min 101 / median 120 / max 120,
+  no crashes/watchdogs/unresolved calls, saves identical. This proves a real
+  native selection beyond 255 without widening the original byte consumers;
+  it does not prove every boundary, independent controllers or bank rebinding.
+  Four-participant boundary and progress-save/reload tests remain next.
+
+Header isolation: stock `run-20261102-112219.log.err` shows CHOOSE FIGHTER and
+both native button hints (79 frame reports, median120, no faults). Moving copied
+constant pools to function registration did **not** fix the stale SELECT USER ID
+header (`run-20261102-112854.log.err`). Even an empty appended action has the
+stale title (`run-20261102-113339.log.err`); it is therefore not established as
+an error in the copied thumbnail methods. An original-screens control under the
+same runtime/profile state is running next. The controlled helper is ignored
+`logs/fighter-menu-isolation.py`, never a package or production feature.
+Do not fix the title by substituting a guessed string. Native frame-0 assignment
+already names `~CHTCR_CHSEFGHTR`; find which layer prevents its update. Captures
+in the standard harness directory are transient; the research driver now retains
+each completed run's PNGs under a unique ignored session folder.
+
+Immediate continuation: finish the native two-pack window/save test, then prove
+actual >255 selection/combat and P1/P2/four-participant ownership. Resolve the
+header against a stock selector. Find a verified teardown boundary before
+releasing frozen banks; movie entry alone is insufficient. Audit the remaining
+profile fields and interrupted native batches, complete save/update/missing-pack
+acceptance, then authored resource adapters, language/texture composition,
+launcher Fighters transactions and ordinary Vendetta conversion. All shipping
+gates remain false. No public push/PR, no PROGRESS.md edits.
+
+### Earlier accepted checkpoints
+
+Accepted state (09:05): two independent packs, three donor-backed custom
 fighters, native mixed four-participant combat, and P1/CPU custom selection
 through the original selector. FML1 names and FMB1 stable identity bindings are
 connected. Full unit gate: **923 passed, 28 skipped, 1 deselected**, 90.55 s

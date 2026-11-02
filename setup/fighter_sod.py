@@ -207,7 +207,7 @@ class Database:
                 'table_count': len(self._tables), 'schema_fields': len(self.schema),
                 'string_count': len(self.strings), 'character_count': table.count, 'characters': rows}
 
-    def extend_character_records(self, additions, edits=None, *, selection_keys=None):
+    def extend_character_records(self, additions, edits=None, *, selection_keys=None, deferred_keys=None):
         """Native-cache construction experiment, not a runnable mod installer.
 
         Additions use stable keys, existing template record offsets and named
@@ -217,6 +217,9 @@ class Database:
         for. No native runtime capability is implied by a successful round-trip.
         """
         check(isinstance(additions, list) and len(additions) <= 16384, 'Invalid additions budget')
+        deferred_keys = set() if deferred_keys is None else deferred_keys
+        check(isinstance(deferred_keys, set) and deferred_keys <= {a.get('key') for a in additions if isinstance(a, dict)},
+              'Deferred native records must identify added templates')
         if selection_keys is not None:
             check(isinstance(selection_keys, dict) and set(selection_keys) == {a.get('key') for a in additions if isinstance(a, dict)},
                   'Selection allocation must cover exactly the added fighter keys')
@@ -329,12 +332,16 @@ class Database:
             struct.pack_into('<I', row, native_offset * 4, next_id)
             apply_fields(row, addition['fields'])
             offset = emit(row)
-            new_rows.append(offset)
+            # Runtime-owned binding windows retain validated templates/string
+            # IDs without exposing every logical fighter to fixed native lists.
+            if key not in deferred_keys:
+                new_rows.append(offset)
             # This is the donor's one-based core ID, not a newly allocated core
             # or zero-based active moveset index. Core storage is a separate adapter.
             bindings[key] = {'selection_key': next_id, 'inherited_core_id': struct.unpack_from('<I', row, 40)[0],
                              'record_offset': offset, 'native_name': native_name}
-            identifiers.add(next_id)
+            if key not in deferred_keys:
+                identifiers.add(next_id)
             next_id += 1
             names.add(native_name)
             hashes.add(name_hash(native_name))

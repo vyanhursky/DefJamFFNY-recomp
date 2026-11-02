@@ -21,7 +21,7 @@ FIELDS = {'BodySize': (1, 4), 'Charisma': (2, 2), 'CheckIndex': (3, 2), 'Cost': 
           'Thumb': (23, 1), 'Toughness': (25, 2)}
 
 
-def native_fixture():
+def native_fixture(menu=False):
     image = bytearray(24)
 
     def emit(data):
@@ -42,6 +42,9 @@ def native_fixture():
     schema[sod.SELECTION_FIELD] = (8, 2)
     schema[sod.CORE_FIELD] = (10, 2)
     schema.update({character ^ sod.name_hash(name): value for name, value in FIELDS.items()})
+    if menu:
+        schema.update({character ^ member: (offset, descriptor) for member, offset, descriptor in
+                       [(0xE2824A3D, 17, 2), (0xCD759ABA, 16, 2), (0xD841C77B, 18, 6)]})
     keys = sorted(schema)
     schema_at = index(int.from_bytes(b'SKMA', 'little'), keys, [schema[k] for k in keys], 2)
     data_at = emit(words([int.from_bytes(b'DATA', 'little'), 1, 1, character, 0]))
@@ -55,6 +58,7 @@ def native_fixture():
                              4 if name == 'Model' else 5 if name in ('Shadow', 'Thumb') else 25)
         row[8] = name_index
         row[10] = 100 + name_index
+        if menu: row[16:19] = [21, 22, 1]
         record_offsets.append(emit(words(row)))
     pairs = sorted((sod.name_hash(symbol_names[i + 1]), o) for i, o in enumerate(record_offsets))
     name_index = index(character, [x[0] for x in pairs], [(x[1],) for x in pairs], 1)

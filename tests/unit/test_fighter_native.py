@@ -17,8 +17,8 @@ from fighter_registry import RegistryError, SCHEMA
 from fighter_sod import Database, CHARACTER, name_hash
 
 
-def catalog():
-    data, layout = native_fixture()
+def catalog(menu=False):
+    data, layout = native_fixture(menu=menu)
     data = bytearray(data)
     struct.pack_into('<I', data, 8, 0x86f322ac)
     data = bytes(data)
@@ -47,6 +47,20 @@ def test_verified_baseline_and_exact_noop():
     with pytest.raises(RegistryError) as caught:
         RetailCatalog(data, '0' * 64)
     assert caught.value.code == 'baseline-hash'
+
+
+def test_large_logical_roster_keeps_native_database_bounded_and_confirmation_gated():
+    source, data, _ = catalog(menu=True)
+    compiled, report = source.compile([pack(count=300)], logical_menu=True)
+    assert compiled == data and report['native_character_count'] == 2
+    assert len(report['menu_roster']) == 300 and report['added_count'] == 300
+    assert report['binding_mode'] == 'logical-menu-only' and not report['launch_allowed']
+    assert max(row['selection_key'] for row in report['menu_roster'].values()) > 255
+    assert all(not row['available'] for key, row in report['handle_bindings'].items() if key.startswith('alpha/'))
+    row = report['menu_roster']['alpha/fighter-0']
+    assert row['stats'] == dict(U=22, L=21, S=25, T=25, H=65, C=25)
+    assert row['styles'] == [0, 3, 4]
+    assert source.compile([pack(count=300)], logical_menu=True) == (compiled, report)
 
 
 def test_two_packs_multiple_fighters_full_pipeline_and_determinism():

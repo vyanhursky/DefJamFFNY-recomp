@@ -13,5 +13,14 @@ void defjam_fighter_handle_produced(uint32_t database, uint32_t table, uint32_t 
 void defjam_fighter_settings_bound(uint32_t self);
 void defjam_fighter_settings_validate(uint32_t self, uint32_t payload);
 void defjam_fighter_settings_saving(void);
+void defjam_fighter_settings_saved(void);
+void defjam_fighter_profile_staging(uint32_t name, uint32_t payload);
+void defjam_fighter_save_batch(void);
 void defjam_fighter_unlock_inserting(uint32_t self);
+void defjam_fighter_selection_gate(uint32_t selection);
+/* Reads the original string vector before the native dispatcher narrows it.
+ * UINT32_MAX means preserve the original submission/sentinel. */
+uint32_t defjam_fighter_controller_submission(uint32_t arguments);
+void defjam_fighter_menu_event(const char *text);
+uint32_t defjam_fighter_filter_banks(uint32_t entries, uint32_t count);
 #endif

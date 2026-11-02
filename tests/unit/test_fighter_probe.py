@@ -52,6 +52,18 @@ def test_probe_refuses_unadapted_width_and_empty_packs(tmp_path, monkeypatch):
         probe.prepare(tmp_path / 'unused.sod', [path])
 
 
+def test_browsing_large_logical_roster_does_not_expand_native_tables(tmp_path, monkeypatch):
+    probe = driver(tmp_path, monkeypatch)
+    source, original, _ = catalog(menu=True)
+    monkeypatch.setattr(probe.registry, 'retail_catalog', lambda _: source)
+    path = tmp_path / 'alpha.json'; path.write_text(json.dumps(pack(count=300)))
+    cache, report = probe.prepare(tmp_path / 'unused.sod', [path], logical_menu=True)
+    assert (cache / 'assets/djv2.sod').read_bytes() == original
+    assert report['binding_mode'] == 'logical-menu-only'
+    assert report['native_character_count'] == 2 and len(report['menu_roster']) == 300
+    assert sum(binding['available'] for binding in report['handle_bindings'].values()) == 2
+
+
 def test_probe_refuses_to_stop_another_game(tmp_path, monkeypatch):
     probe = driver(tmp_path, monkeypatch)
     class Running:
@@ -86,6 +98,24 @@ def test_menu_acceptance_requires_real_submissions_and_matching_match(tmp_path, 
         path.write_text(evidence)
         with pytest.raises(ValueError, match='Native menu'):
             probe.verify_menu_selection(path, report, ['alpha/new', 'beta/new'])
+
+
+def test_window_acceptance_requires_full_logical_identity_and_the_bound_core(tmp_path, monkeypatch):
+    probe = driver(tmp_path, monkeypatch)
+    report = {'binding_mode': 'participant-window',
+              'bindings': {'alpha/new': {'selection_key': 256, 'core_id': 5}, 'retail/blaze': {'selection_key': 7}},
+              'binding_ledger': {'fighters': {'alpha/new': {'handle': 0x0700004b}}}}
+    evidence = ('[FUNCCALL] Controller.ControllerSetup(0,0,256,1)\n'
+                '[FIGHTERS] participant=0 logical=256 stable=0700004B native=100 core=5 unlocks=76\n'
+                '[FUNCCALL] Controller.ControllerSetup(1,-1,7,1)\n'
+                '[START] venue(script)=1 fighters(gd+1aaa step 5): 100 7 -99 -99\n')
+    path = tmp_path / 'window.log'; path.write_text(evidence)
+    assert probe.verify_menu_selection(path, report, ['alpha/new', 'retail/blaze']) == [256, 7]
+    for text in (evidence.replace('core=5', 'core=4'), evidence.replace('stable=0700004B', 'stable=0700004C'),
+                 evidence.replace('logical=256', 'logical=255')):
+        path.write_text(text)
+        with pytest.raises(ValueError, match='participant bank'):
+            probe.verify_menu_selection(path, report, ['alpha/new', 'retail/blaze'])
 
 
 def test_portrait_cache_verifies_source_and_existing_output(tmp_path, monkeypatch):

@@ -25,6 +25,7 @@ from fighter_registry import resolve, suggest_compatibility, RegistryError, MAX_
 from fighter_native import RetailCatalog, ADAPTER
 from fighter_names import encode_names
 from fighter_bindings import encode_bindings
+from fighter_window import encode_window
 from fighter_assets import unpack as unpack_asset, MAX_ASSET
 from fighter_elf import Model
 
@@ -94,6 +95,8 @@ def write_preview(data, report):
             (stage / 'assets/djv2.sod').write_bytes(data)
             (stage / 'fighter-names.bin').write_bytes(encode_names(report['localization_entries']))
             (stage / 'fighter-bindings.bin').write_bytes(encode_bindings(report['handle_bindings']))
+            if 'window' in report:
+                (stage / 'fighter-window.bin').write_bytes(encode_window(report['window']))
             (stage / 'fighter-ledger.json').write_text(json.dumps(report['binding_ledger'], sort_keys=True, indent=2) + '\n', encoding='utf-8')
             (stage / 'report.json').write_bytes(serialized)
             try:
@@ -114,6 +117,11 @@ def write_preview(data, report):
         bindings = stream.read(1024**2)
     if bindings != encode_bindings(report['handle_bindings']):
         raise ValueError('Existing preview fighter bindings are corrupt; original data was not changed')
+    if 'window' in report:
+        with (destination / 'fighter-window.bin').open('rb') as stream:
+            window = stream.read(1024**2)
+        if window != encode_window(report['window']):
+            raise ValueError('Existing preview fighter window is corrupt; original data was not changed')
     with (destination / 'fighter-ledger.json').open('rb') as stream:
         ledger = stream.read(MAX_REPORT + 1)
     if len(ledger) > MAX_REPORT or json.loads(ledger, object_pairs_hook=unique) != report['binding_ledger']:

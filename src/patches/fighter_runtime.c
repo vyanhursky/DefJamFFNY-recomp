@@ -4,11 +4,17 @@
 #include "hooks/fighter_roster.h"
 #include "hooks/fighter_bindings.h"
 #include "hooks/fighter_unlocks.h"
+#include "hooks/fighter_window.h"
 #include "hooks/guest_call.h"
 #include "host.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#if defined(_WIN32)
+#include <io.h>
+#else
+#include <unistd.h>
+#endif
 #if !defined(_WIN32)
 #include <sched.h>
 #endif
@@ -19,6 +25,8 @@ extern void sub_000BE760(void);
 extern void sub_000BE760_gen(void);
 static FighterNames s_names;
 static FighterBindings s_bindings;
+static FighterWindow s_window;
+static uint8_t *s_window_bytes;
 static uint8_t *s_bytes;
 static uint8_t *s_binding_bytes;
 static uint32_t s_validated_database;
@@ -30,6 +38,15 @@ static int s_trace;
 static int s_probe, s_probed;
 static char s_research_sod[2048];
 static char s_research_screens[2048];
+static char s_journal[2048];
+static uint8_t s_live_settings[FIGHTER_SETTINGS_SIZE];
+static int s_projecting_settings;
+typedef struct FighterPendingSave { char name[32]; uint32_t name_size, size; uint8_t identity[64], payload[0x5904]; } FighterPendingSave;
+static FighterPendingSave s_pending[16];
+static uint32_t s_pending_count, s_batch_number, s_custom_count;
+static uint32_t s_custom_keys[FIGHTER_BINDINGS_MAX_COUNT], s_custom_metadata[FIGHTER_BINDINGS_MAX_COUNT];
+static uint32_t read_word(const uint8_t *p);
+static void remember_custom(uint32_t mark);
 #if defined(_WIN32)
 typedef WCHAR fighter_host_char;
 #else
@@ -117,6 +134,64 @@ static int research_start(void) {
         }
         fclose(file);
     }
+    {
+        const char *path = getenv("RECOMP_FIGHTER_WINDOW");
+        if (path && *path) {
+            FILE *file = open_utf8(path);
+            size_t count;
+            if (!file) return 0;
+            s_window_bytes = (uint8_t *)malloc(FIGHTER_WINDOW_MAX_FILE + 1);
+            if (!s_window_bytes) { fclose(file); return 0; }
+            count = fread(s_window_bytes, 1, FIGHTER_WINDOW_MAX_FILE + 1, file);
+            if (ferror(file) || !fighter_window_decode(&s_window, s_window_bytes, count)
+                || s_window.table != s_bindings.table) {
+                fclose(file); fprintf(stderr, "[FIGHTERS] invalid participant binding window\n"); return 0;
+            }
+            fclose(file);
+            for (uint32_t i = 0; i < s_window.count; ++i) {
+                FighterWindowRow row; FighterBinding binding;
+                fighter_window_at(&s_window, i, &row);
+                if (!fighter_bindings_find(&s_bindings, FIGHTER_BINDING_STABLE, row.stable_handle, &binding)
+                    || binding.flags != 1 || binding.selection_key != row.selection_key || binding.symbol_hash != row.symbol_hash)
+                    return 0;
+            }
+            for (uint32_t i = 0; i < FIGHTER_WINDOW_BANKS; ++i) {
+                FighterBinding binding;
+                if (fighter_bindings_find(&s_bindings, FIGHTER_BINDING_STABLE, s_window.banks[i].private_handle, &binding)
+                    || fighter_bindings_find(&s_bindings, FIGHTER_BINDING_NATIVE, s_window.banks[i].native_handle, &binding)) return 0;
+            }
+            fprintf(stderr, "[FIGHTERS] participant window: %u logical fighters, %u native banks\n", s_window.count, FIGHTER_WINDOW_BANKS);
+            path = getenv("RECOMP_FIGHTER_SAVE_JOURNAL");
+            if (!path || !*path || strlen(path) >= sizeof s_journal - 64) return 0;
+            strcpy(s_journal, path);
+            path = getenv("RECOMP_FIGHTER_UNLOCKS");
+            if (!path || !*path) return 0;
+            {
+                uint8_t *bytes = (uint8_t *)malloc(17 + FIGHTER_BINDINGS_MAX_COUNT * 8);
+                FILE *file = open_utf8(path);
+                size_t size;
+                uint32_t total, previous = 0;
+                if (!bytes || !file) { free(bytes); if (file) fclose(file); return 0; }
+                size = fread(bytes, 1, 17 + FIGHTER_BINDINGS_MAX_COUNT * 8, file);
+                if (ferror(file) || size < 16 || memcmp(bytes, "FUM1", 4) || read_word(bytes + 4) != 1 || read_word(bytes + 12)) {
+                    fclose(file); free(bytes); return 0;
+                }
+                fclose(file); total = read_word(bytes + 8);
+                if (total > FIGHTER_BINDINGS_MAX_COUNT || size != 16u + total * 8u) { free(bytes); return 0; }
+                for (uint32_t i = 0; i < total; ++i) {
+                    uint32_t handle = read_word(bytes + 16 + i * 8), metadata = read_word(bytes + 20 + i * 8);
+                    FighterBinding binding;
+                    if ((i && handle <= previous) || (metadata != 0 && metadata != FIGHTER_UNLOCK_METADATA)
+                        || !fighter_bindings_find(&s_bindings, FIGHTER_BINDING_STABLE, handle, &binding) || !(binding.flags & 1)) {
+                        free(bytes); return 0;
+                    }
+                    remember_custom(handle | metadata); previous = handle;
+                }
+                free(bytes);
+                fprintf(stderr, "[FIGHTERS] restored %u historical custom unlock marks\n", s_custom_count);
+            }
+        }
+    }
     strcpy(s_research_sod, sod);
     if (screens) strcpy(s_research_screens, screens);
     s_previous_redirect = g_xbox_game_file_redirect;
@@ -165,6 +240,8 @@ static void unlock_names(void) {
 
 uint32_t defjam_fighter_native_handle(uint32_t handle) {
     FighterBinding binding;
+    uint32_t window_handle = fighter_window_native(&s_window, handle);
+    if (window_handle != UINT32_MAX) return window_handle;
     if (!s_bindings.bytes || handle == UINT32_MAX || handle >> 24 != s_bindings.table) return handle;
     /* A dormant/unknown identity resolves to the native absent tuple. Never
      * reinterpret its stable rank as whichever current row occupies it. */
@@ -179,7 +256,8 @@ static void validate_database(uint32_t database) {
     base = MEM32(database);
     if (MEM32(base) != 0x42444f53u) fighter_stop("Fighter bindings received a different database format.");
     table_header = MEM32(MEM32(database + 0x14) + MEM32(database + 8) * s_bindings.table * 4);
-    if (MEM32(base + table_header) != 0x4ce5b1b2u || MEM32(base + table_header + 12) != s_bindings.active_count)
+    if (MEM32(base + table_header) != 0x4ce5b1b2u || MEM32(base + table_header + 12)
+        != s_bindings.active_count + (s_window.bytes ? FIGHTER_WINDOW_BANKS : 0))
         fighter_stop("Fighter binding roster count does not match the loaded database.");
     guest_regs_save(&saved);
     g_esp -= 16; output = g_esp;
@@ -196,6 +274,24 @@ static void validate_database(uint32_t database) {
             || MEM32(row + 32) != binding.selection_key || MEM32(row + 40) != binding.core_id)
             fighter_stop("Fighter identity bindings do not match the loaded database rows.");
     }
+    if (s_window.bytes) {
+        for (uint32_t i = 0; i < FIGHTER_WINDOW_BANKS; ++i) {
+            FighterWindowBank *bank = &s_window.banks[i];
+            uint32_t args[3] = {output, bank->native_handle, 0};
+            guest_call(sub_000BE760_gen, database, 3, args);
+            if (MEM32(output) != base + bank->record_offset || MEM32(MEM32(database + 0x48) + MEM32(base + bank->record_offset) * 8) != bank->symbol_hash
+                || MEM32(base + bank->record_offset + 32) != bank->selection_key || MEM32(base + bank->record_offset + 40) != bank->core_id)
+                fighter_stop("Native participant bank does not match its generated binding.");
+        }
+        for (uint32_t i = 0; i < s_window.count; ++i) {
+            FighterWindowRow row; uint32_t sid;
+            fighter_window_at(&s_window, i, &row);
+            sid = MEM32(base + row.record_offset);
+            if (sid >= MEM32(database + 0x44) || MEM32(MEM32(database + 0x48) + sid * 8) != row.symbol_hash
+                || MEM32(base + row.record_offset + 32) != row.selection_key || MEM32(base + row.record_offset + 40) != row.core_id)
+                fighter_stop("Logical fighter template does not match its generated binding.");
+        }
+    }
     guest_regs_restore(&saved);
     s_validated_database = database;
     fprintf(stderr, "[FIGHTERS] native identity bindings verified: %u active, %u dormant\n",
@@ -211,6 +307,10 @@ void defjam_fighter_handle_produced(uint32_t database, uint32_t table, uint32_t 
     lock_names();
     validate_database(database);
     unlock_names();
+    {
+        uint32_t stable = fighter_window_stable(&s_window, handle);
+        if (stable != UINT32_MAX) { MEM32(output) = stable; return; }
+    }
     if (!fighter_bindings_find(&s_bindings, FIGHTER_BINDING_NATIVE, handle, &binding))
         fighter_stop("Native fighter handle has no stable identity binding.");
     MEM32(output) = binding.stable_handle;
@@ -236,9 +336,26 @@ void defjam_fighter_settings_validate(uint32_t self, uint32_t payload) {
         fighter_stop("Native fighter unlock settings are malformed or exceed their fixed capacity.");
     for (uint32_t i = 0; i < count; ++i)
         if (!fighter_bindings_find(&s_bindings, FIGHTER_BINDING_STABLE,
-                fighter_unlocks_at(bytes, i) & ~FIGHTER_UNLOCK_METADATA, &binding))
+                fighter_unlocks_at(bytes, i) & ~FIGHTER_UNLOCK_METADATA, &binding)
+            && fighter_window_native(&s_window, fighter_unlocks_at(bytes, i) & ~FIGHTER_UNLOCK_METADATA) == UINT32_MAX)
             fighter_stop("Saved fighter unlock has no historical identity binding.");
     fprintf(stderr, "[FIGHTERS] native Options unlock payload verified: %u marks\n", count);
+}
+
+static void remember_custom(uint32_t mark) {
+    FighterBinding binding;
+    uint32_t identity = mark & ~FIGHTER_UNLOCK_METADATA;
+    if (!fighter_bindings_find(&s_bindings, FIGHTER_BINDING_STABLE, identity, &binding) || !(binding.flags & 1)) return;
+    for (uint32_t i = 0; i < s_custom_count; ++i) if (s_custom_keys[i] == identity) {
+        s_custom_metadata[i] = mark & FIGHTER_UNLOCK_METADATA; return;
+    }
+    if (s_custom_count >= FIGHTER_BINDINGS_MAX_COUNT) fighter_stop("Historical custom unlock journal is full.");
+    s_custom_keys[s_custom_count] = identity; s_custom_metadata[s_custom_count++] = mark & FIGHTER_UNLOCK_METADATA;
+}
+
+static FighterPendingSave *pending_save(void) {
+    if (s_pending_count >= 16) fighter_stop("Native fighter save batch exceeds its reviewed record budget.");
+    return &s_pending[s_pending_count++];
 }
 
 void defjam_fighter_settings_saving(void) {
@@ -246,6 +363,96 @@ void defjam_fighter_settings_saving(void) {
     if (!s_settings || MEM32(s_settings + 0x20) != MEM32(s_settings + 0x1264))
         fighter_stop("Native fighter unlock counts disagree before save staging.");
     defjam_fighter_settings_validate(s_settings, s_settings + 0x4C);
+    if (s_window.bytes) {
+        uint32_t count = MEM32(s_settings + 0x20), kept = 0;
+        FighterPendingSave *save = pending_save();
+        if (s_projecting_settings) fighter_stop("Reentrant native Options projection.");
+        memcpy(s_live_settings, (const void *)XBOX_PTR(s_settings + 0x4C), FIGHTER_SETTINGS_SIZE);
+        for (uint32_t i = 0; i < count; ++i) {
+            uint32_t mark = MEM32(s_settings + 0x12E0 + i * 4);
+            FighterBinding binding;
+            remember_custom(mark);
+            if (fighter_bindings_find(&s_bindings, FIGHTER_BINDING_STABLE, mark & ~FIGHTER_UNLOCK_METADATA, &binding) && !(binding.flags & 1))
+                MEM32(s_settings + 0x12E0 + kept++ * 4) = mark;
+        }
+        MEM32(s_settings + 0x1264) = kept;
+        for (uint32_t i = kept; i < FIGHTER_UNLOCK_CAPACITY; ++i) MEM32(s_settings + 0x12E0 + i * 4) = UINT32_MAX;
+        memset(save, 0, sizeof *save); memcpy(save->name, "Options", 7); save->name_size = 7; save->size = FIGHTER_SETTINGS_SIZE;
+        memcpy(save->identity, (const void *)XBOX_PTR(s_settings + 0x1738), 64);
+        memcpy(save->payload, (const void *)XBOX_PTR(s_settings + 0x4C), FIGHTER_SETTINGS_SIZE);
+        s_projecting_settings = 1;
+        fprintf(stderr, "[FIGHTERS] staged retail-only Options: %u marks, %u historical custom marks\n", kept, s_custom_count);
+    }
+}
+
+void defjam_fighter_settings_saved(void) {
+    if (!s_projecting_settings) return;
+    memcpy((void *)XBOX_PTR(s_settings + 0x4C), s_live_settings, FIGHTER_SETTINGS_SIZE);
+    s_projecting_settings = 0;
+}
+
+void defjam_fighter_profile_staging(uint32_t name, uint32_t payload) {
+    FighterPendingSave *save;
+    if (!s_window.bytes) return;
+    save = pending_save(); memset(save, 0, sizeof *save);
+    while (save->name_size < 32 && MEM8(name + save->name_size)) {
+        uint8_t c = MEM8(name + save->name_size);
+        if (c < 32 || c > 126 || strchr("\\/:*?\"<>|", c)) fighter_stop("Unsafe native profile staging name.");
+        save->name[save->name_size++] = (char)c;
+    }
+    if (!save->name_size || MEM8(name + save->name_size)) fighter_stop("Native profile staging name exceeds its budget.");
+    save->size = 0x5904;
+    memcpy(save->identity, (const void *)XBOX_PTR(s_settings + 0x16F8), 64);
+    memcpy(save->payload, (const void *)XBOX_PTR(payload), save->size);
+}
+
+static void journal_word(FILE *file, uint32_t value) {
+    uint8_t bytes[4] = {(uint8_t)value, (uint8_t)(value >> 8), (uint8_t)(value >> 16), (uint8_t)(value >> 24)};
+    if (fwrite(bytes, 1, 4, file) != 4) fighter_stop("Could not stage fighter save journal.");
+}
+
+void defjam_fighter_save_batch(void) {
+    FILE *file;
+    char temporary[2112], destination[2112];
+    if (!s_window.bytes || !s_pending_count) return;
+    if (s_projecting_settings || ++s_batch_number > 10000) fighter_stop("Invalid fighter save batch lifecycle.");
+    snprintf(temporary, sizeof temporary, "%s/%06u.pending", s_journal, s_batch_number);
+    snprintf(destination, sizeof destination, "%s/%06u.batch", s_journal, s_batch_number);
+#if defined(_WIN32)
+    {
+        wchar_t wide[2112];
+        if (!MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, temporary, -1, wide, 2112)) fighter_stop("Invalid fighter journal path.");
+        file = _wfopen(wide, L"wbx");
+    }
+#else
+    file = fopen(temporary, "wbx");
+#endif
+    if (!file) fighter_stop("Could not create fighter save journal.");
+    fwrite("FSB1", 1, 4, file); journal_word(file, 1); journal_word(file, s_batch_number);
+    journal_word(file, s_pending_count); journal_word(file, s_custom_count); journal_word(file, 0);
+    for (uint32_t i = 0; i < s_pending_count; ++i) {
+        FighterPendingSave *save = &s_pending[i];
+        journal_word(file, save->name_size); journal_word(file, save->size);
+        fwrite(save->identity, 1, 64, file); fwrite(save->name, 1, 32, file); fwrite(save->payload, 1, save->size, file);
+    }
+    for (uint32_t i = 0; i < s_custom_count; ++i) { journal_word(file, s_custom_keys[i]); journal_word(file, s_custom_metadata[i]); }
+    if (ferror(file) || fflush(file)) fighter_stop("Could not flush fighter save journal.");
+#if defined(_WIN32)
+    if (_commit(_fileno(file))) fighter_stop("Could not sync fighter save journal.");
+    fclose(file);
+    {
+        wchar_t from[2112], to[2112];
+        if (!MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, temporary, -1, from, 2112)
+            || !MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, destination, -1, to, 2112)
+            || !MoveFileExW(from, to, MOVEFILE_WRITE_THROUGH)) fighter_stop("Could not publish pending fighter save batch.");
+    }
+#else
+    if (fsync(fileno(file))) fighter_stop("Could not sync fighter save journal.");
+    fclose(file);
+    if (rename(temporary, destination)) fighter_stop("Could not publish pending fighter save batch.");
+#endif
+    fprintf(stderr, "[FIGHTERS] save batch %u sealed: %u records; awaiting independently verified native files\n", s_batch_number, s_pending_count);
+    s_pending_count = 0;
 }
 
 void defjam_fighter_unlock_inserting(uint32_t self) {
@@ -254,10 +461,116 @@ void defjam_fighter_unlock_inserting(uint32_t self) {
      * reject the next insertion before the original unchecked write occurs. */
     if (MEM32(self + 4) >= MEM32(self) || MEM32(self) != FIGHTER_UNLOCK_CAPACITY)
         fighter_stop("Native Character unlock storage is full; expanded persistence is required.");
+    if (s_window.bytes) remember_custom(MEM32(MEM32(g_esp + 4)));
+}
+
+void defjam_fighter_selection_gate(uint32_t selection) {
+    FighterBinding binding;
+    if (!s_bindings.bytes || selection < 100 || selection > 0x7fffffffu) return;
+    if (selection >= 128 || !fighter_bindings_find(&s_bindings, FIGHTER_BINDING_SELECTION, selection, &binding)
+        || !(binding.flags & 2))
+        fighter_stop("Logical fighter selection has no safe native binding; confirmation is blocked.");
+}
+
+static int submission_integer(uint32_t pointer, int32_t *value) {
+    uint32_t magnitude = 0, i = 0, negative = 0;
+    if (!pointer) return 0;
+    if (MEM8(pointer) == '-') { negative = 1; ++i; }
+    if (MEM8(pointer + i) < '0' || MEM8(pointer + i) > '9') return 0;
+    for (; i < 12; ++i) {
+        unsigned digit = MEM8(pointer + i);
+        if (!digit) { *value = negative ? -(int64_t)magnitude : (int32_t)magnitude; return 1; }
+        if (digit < '0' || digit > '9' || magnitude > (2147483647u + negative - (digit - '0')) / 10u) return 0;
+        magnitude = magnitude * 10 + digit - '0';
+    }
+    return 0;
+}
+
+uint32_t defjam_fighter_controller_submission(uint32_t arguments) {
+    int32_t values[4];
+    FighterWindowRow row;
+    if (!s_bindings.bytes) return UINT32_MAX;
+    for (uint32_t i = 0; i < 4; ++i)
+        if (!submission_integer(MEM32(arguments + i * 4), &values[i]))
+            fighter_stop("Invalid native controller setup arguments.");
+    if (values[0] < 0 || values[2] < 100) return UINT32_MAX;
+    if (!s_window.bytes) { defjam_fighter_selection_gate((uint32_t)values[2]); return UINT32_MAX; }
+    /* Native selectors submit 0 during selection and 1 for the first costume
+     * when ready; generated logical entries expose exactly that one costume. */
+    if (values[0] > 3 || !s_validated_database || values[3] < 0 || values[3] > 1
+        || !fighter_window_bind(&s_window, (uint32_t)values[0], (uint32_t)values[2], &row))
+        fighter_stop("Logical fighter cannot bind to this participant or the match is still active.");
+    if (s_window.frozen) return s_window.banks[values[0]].selection_key;
+    {
+        FighterWindowBank *bank = &s_window.banks[values[0]];
+        uint32_t base = MEM32(s_validated_database), destination = base + bank->record_offset;
+        uint32_t name = MEM32(destination), count, kept = 0, keys[FIGHTER_UNLOCK_CAPACITY];
+        /* Preserve indexed native identity/selection. Copy only a compiled,
+         * validated data record from this very SODB/string pool. */
+        memcpy((void *)XBOX_PTR(destination), (const void *)XBOX_PTR(base + row.record_offset), 104);
+        MEM32(destination) = name; MEM32(destination + 32) = bank->selection_key;
+        if (!s_settings) fighter_stop("Participant binding has no native Options owner.");
+        count = MEM32(s_settings + 0x20);
+        if (count > FIGHTER_UNLOCK_CAPACITY) fighter_stop("Native unlock storage is malformed before participant binding.");
+        for (uint32_t i = 0; i < count; ++i) {
+            uint32_t mark = MEM32(s_settings + 0x12E0 + i * 4), identity = mark & ~FIGHTER_UNLOCK_METADATA;
+            FighterBinding binding;
+            /* Retain retail marks and the other currently bound custom keys.
+             * Private bank placeholders and old custom bindings never escape
+             * this live set. Historical custom progress belongs to extension. */
+            int retain = fighter_bindings_find(&s_bindings, FIGHTER_BINDING_STABLE, identity, &binding) && !(binding.flags & 1);
+            for (uint32_t j = 0; j < FIGHTER_WINDOW_BANKS; ++j) {
+                FighterWindowRow selected;
+                if (j != (uint32_t)values[0] && s_window.selected[j]
+                    && fighter_window_at(&s_window, s_window.selected[j] - 1, &selected) && selected.stable_handle == identity) retain = 1;
+            }
+            if (retain) keys[kept++] = mark;
+        }
+        if (kept >= FIGHTER_UNLOCK_CAPACITY) fighter_stop("Participant unlock projection exceeds native capacity.");
+        {
+            uint32_t mark = row.stable_handle;
+            for (uint32_t i = 0; i < s_custom_count; ++i)
+                if (s_custom_keys[i] == row.stable_handle) mark |= s_custom_metadata[i];
+            keys[kept++] = mark;
+            remember_custom(mark);
+        }
+        for (uint32_t i = 1; i < kept; ++i) {
+            uint32_t mark = keys[i], j = i;
+            while (j && (keys[j - 1] & ~FIGHTER_UNLOCK_METADATA) > (mark & ~FIGHTER_UNLOCK_METADATA)) { keys[j] = keys[j - 1]; --j; }
+            keys[j] = mark;
+        }
+        for (uint32_t i = 0; i < FIGHTER_UNLOCK_CAPACITY; ++i) MEM32(s_settings + 0x12E0 + i * 4) = i < kept ? keys[i] : 0;
+        MEM32(s_settings + 0x20) = MEM32(s_settings + 0x1264) = kept;
+        fprintf(stderr, "[FIGHTERS] participant=%d logical=%d stable=%08X native=%u core=%u unlocks=%u\n",
+                values[0], values[2], row.stable_handle, bank->selection_key, row.core_id, kept);
+        return bank->selection_key;
+    }
+}
+
+void defjam_fighter_menu_event(const char *text) {
+    if (s_window.bytes && !strncmp(text, "Game.StartGame(", 15)) {
+        s_window.frozen = 1;
+        fprintf(stderr, "[FIGHTERS] participant window frozen for active match\n");
+    }
 }
 
 static uint32_t read_word(const uint8_t *p) {
     return (uint32_t)p[0] | (uint32_t)p[1] << 8 | (uint32_t)p[2] << 16 | (uint32_t)p[3] << 24;
+}
+
+uint32_t defjam_fighter_filter_banks(uint32_t entries, uint32_t count) {
+    uint32_t kept = 0;
+    if (!s_window.bytes) return count;
+    if (count > 128) fighter_stop("Native bank roster exceeds the audited fixed-list boundary.");
+    for (uint32_t i = 0; i < count; ++i) {
+        uint32_t handle = MEM32(entries + i * 4);
+        FighterBinding binding;
+        if (!fighter_bindings_find(&s_bindings, FIGHTER_BINDING_STABLE, handle, &binding) || (binding.flags & 1)) continue;
+        MEM32(entries + kept++ * 4) = handle;
+    }
+    for (uint32_t i = kept; i < count; ++i) MEM32(entries + i * 4) = UINT32_MAX;
+    fprintf(stderr, "[FIGHTERS] private bank roster filtered: %u -> %u\n", count, kept);
+    return kept;
 }
 
 void defjam_fighter_order(uint32_t database, uint32_t entries, uint32_t count, const char *source) {

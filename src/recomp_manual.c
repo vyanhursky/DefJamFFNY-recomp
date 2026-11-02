@@ -86,6 +86,7 @@ void sub_00047BC0(void)
 {
     uint32_t self = g_ecx;
     sub_00047BC0_gen();
+    MEM32(self + 4) = defjam_fighter_filter_banks(0x003A07B0u, MEM32(self + 4));
     defjam_fighter_order(MEM32(self + 0x2C), 0x003A07B0u, MEM32(self + 4), "GameMode");
 }
 
@@ -119,6 +120,39 @@ extern void sub_000D2300_gen(void);
 void sub_000D2300(void) {
     defjam_fighter_settings_saving();
     sub_000D2300_gen();
+    defjam_fighter_settings_saved();
+}
+extern void sub_000D23B0_gen(void);
+void sub_000D23B0(void) {
+    defjam_fighter_profile_staging(MEM32(g_esp + 4), MEM32(g_esp + 8));
+    sub_000D23B0_gen();
+}
+extern void sub_000D2780_gen(void);
+void sub_000D2780(void) {
+    defjam_fighter_save_batch();
+    sub_000D2780_gen();
+}
+extern void sub_0001E700_gen(void);
+void sub_0001E700(void) {
+    sub_0001E700_gen();
+}
+
+extern void sub_000558E0_gen(void);
+void sub_000558E0(void) {
+    uint32_t stack = g_esp, arguments = MEM32(stack + 4);
+    uint32_t selection = defjam_fighter_controller_submission(arguments);
+    if (selection == UINT32_MAX) { sub_000558E0_gen(); return; }
+    /* Keep all original command strings immutable. A complete temporary native
+     * call frame owns the rewritten vector and text above the callee's stack. */
+    g_esp -= 64;
+    MEM32(g_esp) = MEM32(stack);
+    MEM32(g_esp + 4) = g_esp + 16; MEM32(g_esp + 8) = MEM32(stack + 8);
+    for (uint32_t i = 0; i < 4; ++i) MEM32(g_esp + 16 + i * 4) = MEM32(arguments + i * 4);
+    MEM32(g_esp + 24) = g_esp + 32;
+    MEM8(g_esp + 32) = '1'; MEM8(g_esp + 33) = '0'; MEM8(g_esp + 34) = (uint8_t)('0' + selection - 100);
+    MEM8(g_esp + 35) = 0;
+    sub_000558E0_gen();
+    g_esp = stack + 12; /* Native thiscall ret 8. */
 }
 
 /* Crowd test controls (src/hooks/crowd_control.c, RECOMP_TEST_CROWD; off unless set). */
@@ -926,6 +960,7 @@ static void funccall_hook(void)
     recorder_event_text("fe", "text", text);
     xbox_NoteAnchorEvent(text);
     defjam_unlock_all_on_funccall(text);   /* RECOMP_UNLOCK_ALL, src/patches/dev_unlock.c */
+    defjam_fighter_menu_event(text);
     sub_00068BA0();
     /* RECOMP_FE_INJECT: commands of a test's own, after a chosen call (src/hooks/fe_inject.c). */
     fe_inject_after_call(text);

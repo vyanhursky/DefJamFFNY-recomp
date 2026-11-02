@@ -1,8 +1,8 @@
 """Runtime-owned native menu presentation compiler.
 
 Only verified original movies are inputs. Packages provide typed presentation
-data, never bytecode. Existing visual methods are retained with a function-local
-constant-pool remap from getID to getThumbID; ControllerSetup keeps getID. A
+data, never bytecode. Existing visual methods are cloned with literal
+getThumbID calls and relocated branches; ControllerSetup keeps getID. A
 small generated action supplies the donor mapping and native name text fields.
 No original instruction/branch or asset pointer is relocated in place.
 """
@@ -53,7 +53,7 @@ class Action:
     def integer(self, value):
         if value == 0: self.op('EA_PushZero')
         elif value == 1: self.op('EA_PushOne')
-        elif 0 <= value <= 255: self.op('EA_PushByte'); self.code.append(value)
+        elif 0 <= value <= 127: self.op('EA_PushByte'); self.code.append(value)
         else: self.op('EA_PushLong'); self.word(value)
 
     def variable(self, name):
@@ -114,22 +114,6 @@ class Action:
         return bytes(self.code)
 
 
-def add_string_constant(data, text):
-    """Append a constant entry, preserving the old string payloads verbatim."""
-    _, entries = apt.parse_const(data)
-    at, string_cells = 32, []
-    for entry in entries:
-        if entry.type == 1: string_cells.append(at + 4)
-        at += 4 if entry.type == 3 else 8
-    if at > len(data) or any(struct.unpack_from('<I', data, cell)[0] < at for cell in string_cells):
-        raise AssetError('Unsupported constant string storage')
-    result = bytearray(data[:at] + struct.pack('<II', 1, len(data) + 8) + data[at:] + text.encode('ascii') + b'\0')
-    put_word(result, 24, len(entries) + 1)
-    for cell in string_cells:
-        put_word(result, cell, struct.unpack_from('<I', data, cell)[0] + 8)
-    return bytes(result), len(entries)
-
-
 def functions(movie, constants):
     """Find top-level definitions while keeping each function's pool separate."""
     entry, entries = apt.parse_const(constants)
@@ -169,9 +153,73 @@ def functions(movie, constants):
     return entry, entries, found
 
 
-def presentation_action(base, movie, constants, pairs, names):
+def character_parameters(record):
+    """Typed native CCharacter data. No display text or executable input here."""
+    if not isinstance(record, dict) or set(record) != {'selection_key', 'stats', 'styles'}:
+        raise AssetError('Invalid logical menu fighter fields')
+    identity, stats, styles = record['selection_key'], record['stats'], record['styles']
+    if type(identity) is not int or not 100 <= identity <= 0x7fffffff:
+        raise AssetError('Invalid logical menu identity')
+    if not isinstance(stats, dict) or set(stats) != set('ULSTHC') \
+            or any(type(value) is not int or not 0 <= value <= 100 for value in stats.values()):
+        raise AssetError('Invalid logical menu stats')
+    if not isinstance(styles, list) or not 1 <= len(styles) <= 5 \
+            or any(type(value) is not int or not 0 <= value < 5 for value in styles) or len(set(styles)) != len(styles):
+        raise AssetError('Invalid logical menu styles')
+    return (f'CLOTH=1&FE_ID={identity}&LOCK=1' + ''.join(f'&{key}={stats[key]}' for key in 'ULSTHC')
+            + ''.join(f'&K={value}' for value in styles))
+
+
+def append_logical_roster(action, definitions, records):
+    if len([d for d in definitions if d['name'] == 'getCharData' and not d['params']]) != 1:
+        raise AssetError('Native character-list constructor differs from the reviewed template')
+    action.string('_recompFighterData'); action.integer(0); action.string('Array'); action.op('NewObject'); action.op('SetVariable')
+    for index, record in enumerate(records):
+        action.variable('_recompFighterData'); action.integer(index); action.string(character_parameters(record)); action.op('SetMember')
+    def append():
+        done, loop, grids, next_grid, grid_loop = [action.unique() for _ in range(5)]
+        action.local('_chars', lambda: action.variable('aCharacters'))
+        action.variable('_chars'); action.op('EA_PushUndefined'); action.op('Equals2'); action.branch('BranchIfTrue', done)
+        action.variable('_chars'); action.member('_recompFighterRoster'); action.op('EA_PushTrue'); action.op('Equals2'); action.branch('BranchIfTrue', done)
+        action.variable('_chars'); action.string('_recompFighterRoster'); action.op('EA_PushTrue'); action.op('SetMember')
+        action.local('_i', lambda: action.integer(0))
+        action.label(loop)
+        action.variable('_i'); action.variable('_recompFighterData'); action.member('length'); action.op('LessThan2'); action.op('Not'); action.branch('BranchIfTrue', grids)
+        action.variable('_recompFighterData'); action.variable('_i'); action.op('GetMember')
+        action.integer(1); action.string('CCharacter'); action.op('NewObject')
+        action.integer(1); action.variable('_chars'); action.string('push'); action.op('CallMethod'); action.op('Pop')
+        action.string('_i'); action.variable('_i'); action.op('Increment'); action.op('SetVariable'); action.branch('BranchAlways', loop)
+        action.label(grids)
+        action.variable('aThumbGrids'); action.op('EA_PushUndefined'); action.op('Equals2'); action.branch('BranchIfTrue', done)
+        action.string('_i'); action.integer(0); action.op('SetVariable')
+        action.label(grid_loop)
+        action.variable('_i'); action.variable('aThumbGrids'); action.member('length'); action.op('LessThan2'); action.op('Not'); action.branch('BranchIfTrue', done)
+        action.local('_grid', lambda: (action.variable('aThumbGrids'), action.variable('_i'), action.op('GetMember')))
+        action.variable('_grid'); action.op('EA_PushUndefined'); action.op('Equals2'); action.branch('BranchIfTrue', next_grid)
+        action.variable('_grid'); action.member('aCharacters'); action.variable('_chars'); action.op('Equals2'); action.op('Not'); action.branch('BranchIfTrue', next_grid)
+        action.local('_count', lambda: (action.variable('_chars'), action.member('length')))
+        has_created = action.unique()
+        action.variable('_grid'); action.member('bHasCreatePlayer'); action.branch('BranchIfTrue', has_created)
+        action.string('_count'); action.variable('_count'); action.op('Decrement'); action.op('SetVariable')
+        action.label(has_created)
+        action.variable('_grid'); action.string('iNumChars'); action.variable('_count'); action.op('SetMember')
+        action.integer(0); action.variable('_grid'); action.string('redraw'); action.op('CallMethod'); action.op('Pop')
+        action.label(next_grid)
+        action.string('_i'); action.variable('_i'); action.op('Increment'); action.op('SetVariable'); action.branch('BranchAlways', grid_loop)
+        action.label(done); action.op('EA_PushUndefined'); action.op('Return')
+    action.function('_recompAppendFighters', [], append)
+    action.string('_recompFighterGetCharData'); action.variable('getCharData'); action.op('SetVariable')
+    def get_data():
+        action.local('_result', lambda: (action.integer(0), action.string('_recompFighterGetCharData'), action.op('CallFunction')))
+        action.integer(0); action.string('_recompAppendFighters'); action.op('CallFunction'); action.op('Pop')
+        action.variable('_result'); action.op('Return')
+    action.function('getCharData', [], get_data)
+    action.integer(0); action.string('_recompAppendFighters'); action.op('CallFunction'); action.op('Pop')
+
+
+def presentation_action(base, movie, constants, pairs, names, records=None):
     entry, entries, definitions = functions(movie, constants)
-    updated_constants, getter_index = add_string_constant(constants, 'getThumbID')
+    updated_constants = constants
     getter = next((i for i, entry in enumerate(entries) if entry.value == 'getID'), None)
     visual = []
     for definition in definitions:
@@ -186,28 +234,19 @@ def presentation_action(base, movie, constants, pairs, names):
             raise AssetError('Thumbnail method needs pointer relocation')
         if any(ins.branch_target is not None and not definition['start'] <= ins.branch_target <= definition['start'] + definition['size'] for ins in body):
             raise AssetError('Thumbnail branch leaves its function')
-        patched = bytearray(movie[definition['start']:definition['start'] + definition['size']])
-        remapped = [getter_index if index == getter else index for index in pool]
         # selectChar also uses getID to recognize the created-player identity.
         # Preserve that semantic comparison even when artwork is borrowed. A
-        # spare function-local pool slot keeps the operand/instruction width.
+        # original operand and pool are preserved for this identity comparison.
         semantic = [ins for i, ins in enumerate(body[:-3]) if ins in references
                     and body[i + 1].name == 'CallMethod'
                     and any("='CHAR_HERO'" in operand for operand in body[i + 2].operands)
                     and body[i + 3].name == 'Equals2']
         if definition['method'] == 'selectChar' and len(semantic) != 1:
             raise AssetError('Created-player identity comparison differs from the reviewed template')
-        if semantic:
-            byte_pool = {'EA_PushConstantByte', 'EA_PushValueOfVar', 'EA_GetNamedMember',
-                         'EA_CallNamedFuncPop', 'EA_CallNamedFunc', 'EA_CallNamedMethodPop', 'EA_CallNamedMethod'}
-            used = {movie[ins.offset + 1] for ins in body if ins.name in byte_pool}
-            used.update(struct.unpack_from('<H', movie, ins.offset + 1)[0] for ins in body if ins.name == 'EA_PushConstantWord')
-            spare = next((i for i in range(min(256, len(pool))) if i not in used), None)
-            if spare is None or any(ins.name != 'EA_PushConstantByte' for ins in semantic):
-                raise AssetError('Created-player comparison needs a wider menu relocation adapter')
-            remapped[spare] = getter
-            for ins in semantic: patched[ins.offset + 1 - definition['start']] = spare
-        definition = dict(definition, pool=tuple(remapped), body=bytes(patched))
+        redirected = {ins.offset for ins in references if ins not in semantic}
+        if any(ins.name not in ('EA_PushConstantByte', 'EA_PushConstantWord') for ins in references):
+            raise AssetError('Unreviewed native thumbnail getter instruction')
+        definition = dict(definition, instructions=body, redirected=redirected)
         visual.append(definition)
     if {definition['method'] for definition in visual} != {'redraw', 'selectChar', 'deselectChar'}:
         raise AssetError('Native thumbnail method set differs from the reviewed template')
@@ -229,10 +268,24 @@ def presentation_action(base, movie, constants, pairs, names):
         action.label(fallback); action.variable('_id'); action.op('Return')
     action.method('CCharacter', 'getThumbID', [], getter_body)
     for definition in visual:
+        # Bind the original pool while registering the function, as the native
+        # movie does; invoked methods must not rewrite ambient pool state.
+        action.constant_pool(definition['pool'])
         def cloned(definition=definition):
-            action.constant_pool(definition['pool'])
-            if action.position % 4 != definition['start'] % 4: raise AssetError('Thumbnail alignment changed')
-            action.code += definition['body']
+            instructions = definition['instructions']
+            end = definition['start'] + definition['size']
+            labels = {offset: action.unique() for offset in [ins.offset for ins in instructions] + [end]}
+            for index, ins in enumerate(instructions):
+                action.label(labels[ins.offset])
+                if ins.offset in definition['redirected']:
+                    action.string('getThumbID')
+                elif ins.branch_target is not None:
+                    if ins.branch_target not in labels: raise AssetError('Thumbnail branch targets an instruction interior')
+                    action.branch(ins.name, labels[ins.branch_target])
+                else:
+                    following = instructions[index + 1].offset if index + 1 < len(instructions) else end
+                    action.code += movie[ins.offset:following]
+            action.label(labels[end])
         action.method('CThumbGrid', definition['method'], definition['params'], cloned)
     action.string('_recompFighterUpdateChar'); action.variable('updateChar'); action.op('SetVariable')
     def update_name():
@@ -246,10 +299,12 @@ def presentation_action(base, movie, constants, pairs, names):
         action.variable('_field'); action.string('_visible'); action.op('EA_PushTrue'); action.op('SetMember')
         action.label(done); action.op('EA_PushUndefined'); action.op('Return')
     action.function('updateChar', ['nPlayer'], update_name)
+    if records is not None:
+        append_logical_roster(action, definitions, records)
     return action.finish(), updated_constants, entry, [definition['method'] for definition in visual]
 
 
-def compile_menu(movie, constants, pairs, names):
+def compile_menu(movie, constants, pairs, names, records=None):
     if not 8 <= len(movie) <= MAX_MOVIE or movie[:8] != b'Apt Data' or len(constants) > MAX_MOVIE:
         raise AssetError('Invalid selector input budget')
     if set(pairs) != set(names) or not 0 < len(pairs) <= 16384:
@@ -257,8 +312,15 @@ def compile_menu(movie, constants, pairs, names):
     if any(type(identity) is not int or not 100 <= identity <= 0x7fffffff
            or type(donor) is not int or not 0 <= donor < 100 for identity, donor in pairs.items()):
         raise AssetError('Selector bindings must separate custom identities and retail artwork')
+    if records is not None:
+        if not isinstance(records, list) or len(records) != len(pairs):
+            raise AssetError('Logical roster must cover exactly the presentation identities')
+        for record in records: character_parameters(record)
+        if {record['selection_key'] for record in records} != set(pairs):
+            raise AssetError('Logical roster must cover exactly the presentation identities')
+        records = sorted(records, key=lambda row: row['selection_key'])
     output = bytearray(movie); output += bytes(-len(output) % 4)
-    code, constants, entry, methods = presentation_action(len(output), movie, constants, pairs, names)
+    code, constants, entry, methods = presentation_action(len(output), movie, constants, pairs, names, records)
     action_at = len(output); output += code; output += bytes(-len(output) % 4)
     record_at = len(output); output += struct.pack('<II', 1, action_at)
     frames = struct.unpack_from('<I', movie, entry + 12)[0]

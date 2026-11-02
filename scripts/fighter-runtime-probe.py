@@ -16,6 +16,8 @@ import re
 import subprocess
 import sys
 import tempfile
+import uuid
+import shutil
 
 ROOT = Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location('fighter_registry_cli', ROOT / 'scripts/fighter-registry.py')
@@ -25,6 +27,10 @@ from fighter_archive import MAX_ARCHIVE, portrait_aliases
 from fighter_archive import Archive, store
 from fighter_assets import unpack
 from fighter_menu import compile_menu
+from fighter_bindings import seed
+from fighter_profile_store import Store
+from fighter_save_journal import Monitor, initialize, encode_unlock_state
+from mods import atomic_json, linked
 
 
 def require_idle_game():
@@ -41,7 +47,7 @@ def require_idle_game():
             raise ValueError('Close the running game before starting a fighter probe')
 
 
-def prepare(sod, packs, ledger_path=None):
+def prepare(sod, packs, ledger_path=None, logical_menu=False, binding_window=False):
     if not packs or len(packs) > registry.MAX_PACKS:
         raise ValueError('Probe requires one or more bounded draft packs')
     parsed, used = [], 0
@@ -52,13 +58,14 @@ def prepare(sod, packs, ledger_path=None):
         pack, count = registry.document(path, registry.MAX_INPUT - used)
         parsed.append(pack)
         used += count
-    data, report = registry.retail_catalog(sod).compile(parsed, ledger)
+    options = {'logical_menu': True} if logical_menu else {'binding_window': True} if binding_window else {}
+    data, report = registry.retail_catalog(sod).compile(parsed, ledger, **options)
     if not report['added_count']:
         raise ValueError('Probe needs at least one added fighter')
     # This is an internal vertical slice, not a declared product capacity.
     # The signed selection-byte path has not been widened yet.
     custom = {key: row for key, row in report['bindings'].items() if not key.startswith('retail/')}
-    if any(not 0 <= row['selection_key'] < 128 or row['selection_key'] in (98, 99) for row in custom.values()):
+    if not logical_menu and not binding_window and any(not 0 <= row['selection_key'] < 128 or row['selection_key'] in (98, 99) for row in custom.values()):
         raise ValueError('Research probe has not adapted the signed selection-byte boundary')
     cache = Path(registry.write_preview(data, report))
     return cache, report
@@ -76,7 +83,7 @@ def start_fighters(report, keys):
 def verify_menu_selection(log, report, keys):
     """Require original menu submission and actual match setup, not just frames."""
     expected = [int(value) for value in start_fighters(report, keys).split(',')]
-    submissions, starts = {}, []
+    submissions, starts, bound = {}, [], {}
     used = 0
     with Path(log).open('r', encoding='utf-8', errors='replace') as stream:
         while line := stream.readline(65537):
@@ -89,10 +96,21 @@ def verify_menu_selection(log, report, keys):
             match = re.search(r'\[START\] venue\(script\)=-?\d+ fighters\(gd\+1aaa step 5\):((?: -?\d+){4})', line)
             if match:
                 starts.append([int(value) for value in match[1].split()])
-    if len(starts) != 1 or starts[0][:len(expected)] != expected:
+            match = re.search(r'\[FIGHTERS\] participant=(\d+) logical=(\d+) stable=([0-9A-F]{8}) native=(\d+) core=(\d+)', line)
+            if match:
+                bound[int(match[1])] = (int(match[2]), int(match[3], 16), int(match[4]), int(match[5]))
+    native_expected = [100 + i if not key.startswith('retail/') else value for i, (key, value) in enumerate(zip(keys, expected))] \
+        if report.get('binding_mode') == 'participant-window' else expected
+    if len(starts) != 1 or starts[0][:len(expected)] != native_expected:
         raise ValueError('Native menu did not start exactly one match with the expected fighter identities')
     if any(submissions.get(index) != value for index, value in enumerate(expected)):
         raise ValueError('Native menu did not submit every expected participant identity')
+    if report.get('binding_mode') == 'participant-window':
+        for index, key in enumerate(keys):
+            if not key.startswith('retail/'):
+                wanted = (expected[index], report['binding_ledger']['fighters'][key]['handle'], 100 + index, report['bindings'][key]['core_id'])
+                if bound.get(index) != wanted:
+                    raise ValueError('Native participant bank did not bind the expected stable identity and core')
     return expected
 
 
@@ -112,7 +130,8 @@ def prepare_portraits(screens, report):
         stem = f'chooseF{count}'
         path = 'screens/battle/' + stem + '.big'
         inner = Archive(unpack(archive.read(path)))
-        movie, constants, _ = compile_menu(inner.read(stem + '.apt'), inner.read(stem + '.const'), pairs, names)
+        records = list(report['menu_roster'].values()) if report.get('binding_mode') in ('logical-menu-only', 'participant-window') else None
+        movie, constants, _ = compile_menu(inner.read(stem + '.apt'), inner.read(stem + '.const'), pairs, names, records)
         replacements[path] = store(inner.compose(replacements={stem + '.apt': movie, stem + '.const': constants}))
     result = archive.compose(replacements=replacements)
     digest = hashlib.sha256(result).hexdigest()
@@ -141,9 +160,10 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('sod', type=Path)
     parser.add_argument('packs', nargs='+', type=Path)
-    parser.add_argument('--route', choices=('boot', 'fight', 'ffa', 'versus', 'fighter-roster', 'fighter-roster-4'), default='boot')
+    parser.add_argument('--route', choices=('boot', 'fight', 'ffa', 'versus', 'fighter-roster', 'fighter-roster-4', 'fighter-roster-result'), default='boot')
     parser.add_argument('--secs', type=int, default=60)
     parser.add_argument('--shots', default='25')
+    parser.add_argument('--to-end', action='store_true', help='Use the complete duration for long native-menu acceptance')
     parser.add_argument('--stage', action='append', default=[])
     parser.add_argument('--start-fighter', action='append', default=[],
                         help='Internal StartGame control, by stable key; not menu-selection acceptance')
@@ -151,6 +171,9 @@ def main():
                         help='Assert native menu and StartGame identities in participant order; no override')
     parser.add_argument('--trace-assets', action='store_true')
     parser.add_argument('--trace-profiles', action='store_true')
+    parser.add_argument('--logical-menu', action='store_true', help='Browsing-only logical roster prototype; native confirmation blocked')
+    parser.add_argument('--binding-window', action='store_true', help='Internal four-participant native binding prototype')
+    parser.add_argument('--profile-store', type=Path, default=ROOT / 'logs/fighter-profile-store', help='Internal isolated generation store under logs')
     parser.add_argument('--ledger', type=Path, help='Internal historical ledger from a previous research cache')
     args = parser.parse_args()
     try:
@@ -158,14 +181,47 @@ def main():
             raise ValueError('Probe duration must be 10..900 seconds')
         if args.expect_fighter and args.start_fighter:
             raise ValueError('Native menu expectations cannot use a StartGame fighter override')
+        if args.binding_window and (args.logical_menu or args.start_fighter):
+            raise ValueError('Binding window requires native menu selection and no other binding mode')
         if args.trace_assets and args.trace_profiles:
             raise ValueError('Select one four-breakpoint trace domain per probe')
+        if args.logical_menu:
+            if args.route not in ('fighter-roster', 'fighter-roster-4') or args.start_fighter or args.expect_fighter:
+                raise ValueError('Logical menu prototype permits browsing routes only')
+            allowed = {'up', 'down', 'left', 'right', 'back'}
+            if any(press.split('@')[0] not in allowed for stage in args.stage for press in stage.split('=', 1)[-1].split(';')):
+                raise ValueError('Logical menu prototype permits direction/back input only')
         require_idle_game()
-        cache, report = prepare(args.sod, args.packs, args.ledger)
+        store, monitor = None, None
+        if args.binding_window:
+            if any(linked(parent) for parent in (args.profile_store, *args.profile_store.parents)):
+                raise ValueError('Research profile store must not use redirected directories')
+            destination = args.profile_store.resolve()
+            if not destination.is_relative_to((ROOT / 'logs').resolve()):
+                raise ValueError('Research profile generations must stay under logs')
+            source = registry.retail_catalog(args.sod)
+            store = Store(destination, seed(source.db, source.source_sha256, source.rows))
+            previous = store.load()
+            if previous is not None and args.ledger is None:
+                args.ledger = destination / 'next-ledger.json'
+                atomic_json(args.ledger, previous['ledger'])
+        cache, report = prepare(args.sod, args.packs, args.ledger, args.logical_menu, args.binding_window)
         if args.expect_fighter:
             start_fighters(report, args.expect_fighter)  # reject missing/duplicate keys before launching
         portraits = prepare_portraits(args.sod.resolve().parents[1] / 'screens/screens.viv', report)
         data_root = ROOT / 'logs/fighter-runtime-probe'
+        if store is not None:
+            generation = initialize(store, data_root / 'save', report['binding_ledger'])
+            session = ROOT / 'logs/fighter-window-runs' / uuid.uuid4().hex
+            data_root = session / 'fighter-runtime-probe'
+            for name, data in generation['files'].items():
+                path = data_root / 'save' / name
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes(data)
+            journal = session / 'journal'; journal.mkdir(parents=True)
+            unlock_state = session / 'fighter-unlocks.bin'
+            unlock_state.write_bytes(encode_unlock_state(generation, store.baseline))
+            monitor = Monitor(store, data_root / 'save', journal, report['binding_ledger'])
         data_root.mkdir(parents=True, exist_ok=True)
         # A redirected parent of logs/data could accidentally reach player files.
         for path in (ROOT / 'logs', data_root):
@@ -183,6 +239,11 @@ def main():
                    '--env', 'RECOMP_START_LOG=1', '--env', 'RECOMP_TEST_OBSERVATIONS=1']
         if args.start_fighter:
             command += ['--env', 'RECOMP_START_FIGHTERS=' + start_fighters(report, args.start_fighter)]
+        if args.to_end:
+            command += ['--to-end']
+        if args.binding_window:
+            command += ['--env', 'RECOMP_FIGHTER_WINDOW=' + str(cache / 'fighter-window.bin')]
+            command += ['--env', 'RECOMP_FIGHTER_SAVE_JOURNAL=' + str(journal), '--env', 'RECOMP_FIGHTER_UNLOCKS=' + str(unlock_state)]
         if args.trace_assets:
             command += ['--env', 'RECOMP_WATCH_EXEC=0x001E3FB0,0x00109F80',
                         '--env', 'RECOMP_WATCH_EXEC_ALL=1', '--env', 'RECOMP_WATCH_EXEC_STR=1',
@@ -195,10 +256,28 @@ def main():
         print(json.dumps({'probe': 'donor-roster', 'cache_key': report['cache_key'],
                           'data_root': str(data_root), 'custom_bindings': custom_bindings(report),
                           'shipping_gates': report['blockers']}, indent=2), flush=True)
-        result = subprocess.run(command, cwd=ROOT, env=environment,
-                                capture_output=bool(args.expect_fighter), text=True)
+        if monitor is not None:
+            monitor.start()
+        try:
+            result = subprocess.run(command, cwd=ROOT, env=environment,
+                                    capture_output=bool(args.expect_fighter), text=True)
+            if args.expect_fighter:
+                print(result.stdout, end=''); print(result.stderr, end='', file=sys.stderr)
+            shots = ROOT / 'logs/shots' / args.route
+            captured = list(shots.glob('*.png')) if shots.is_dir() else []
+            if captured:
+                preserved = (session if store is not None else ROOT / 'logs/fighter-probe-captures' / uuid.uuid4().hex) / 'captures'
+                preserved.mkdir(parents=True)
+                for path in captured:
+                    shutil.copyfile(path, preserved / path.name)
+                print('preserved fighter captures: ' + str(preserved), flush=True)
+        finally:
+            if monitor is not None:
+                monitor.stop()
+                print('verified fighter save generations: ' + str(len(monitor.committed)), flush=True)
+                if 'result' in locals() and result.returncode == 0 and (journal / f'{monitor.next:06}.batch').exists():
+                    raise ValueError('Native run ended with an unverified fighter save batch; committed generation was preserved')
         if args.expect_fighter:
-            print(result.stdout, end=''); print(result.stderr, end='', file=sys.stderr)
             if result.returncode:
                 return result.returncode
             paths = re.findall(r'^log\s+(.+)$', result.stdout, re.M)

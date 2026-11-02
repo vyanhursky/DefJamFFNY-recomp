@@ -12,6 +12,7 @@ from fighter_registry import SCHEMA, check, fingerprint, resolve, slug
 from fighter_sod import Database, CHARACTER
 from fighter_names import encode_names
 from fighter_bindings import seed, allocate, materialize, symbol, encode_bindings
+from fighter_window import BANKS, FIRST_SELECTION, MAX_FIGHTERS, bank_key, build_window, encode_window
 
 ADAPTER = 'fighter-native-preview-1'
 STATS = {'health': 'Health', 'speed': 'Speed', 'toughness': 'Toughness', 'charisma': 'Charisma'}
@@ -64,11 +65,34 @@ class RetailCatalog:
     def baseline(self):
         return deepcopy(self._baseline)
 
-    def compile(self, packs, ledger=None):
+    def menu_record(self, donor, components, selection):
+        # Raw member hashes/roles checked against native GetNextFighter's
+        # CLOTH/FE_ID/LOCK/U/L/S/T/H/C/K formatter. No guessed schema names.
+        roles = {'U': (0xE2824A3D, 17), 'L': (0xCD759ABA, 16)}
+        stats = {}
+        for role, (member, position) in roles.items():
+            check(self.db.schema.get(member ^ CHARACTER) == (position, 2), 'native-menu-schema',
+                  'Native menu power field differs from the audited layout')
+            stats[role] = self.db.word(donor['record_offset'] + position * 4)
+        stats.update({letter: components['stats'][name] for letter, name in
+                      [('S', 'speed'), ('T', 'toughness'), ('H', 'health'), ('C', 'charisma')]})
+        check(all(type(value) is int and 0 <= value <= 100 for value in stats.values()),
+              'native-menu-stats', 'Native menu attributes exceed the supported range')
+        check(self.db.schema.get(0xD841C77B ^ CHARACTER) == (18, 6), 'native-menu-schema',
+              'Native primary fighting-style field differs from the audited layout')
+        mask = donor['fields']['FightingStyle']['word']
+        primary = self.db.word(donor['record_offset'] + 18 * 4)
+        first = [index for index in range(5) if mask & primary & (1 << index)]
+        check(0 < mask <= 31 and len(first) == 1, 'native-menu-style', 'Unsupported native fighting-style ordering')
+        styles = first + [index for index in range(5) if mask & (1 << index) and index not in first]
+        return {'selection_key': selection, 'stats': stats, 'styles': styles}
+
+    def compile(self, packs, ledger=None, *, logical_menu=False, binding_window=False):
+        check(not (logical_menu and binding_window), 'native-mode', 'Choose one logical binding mode')
         snapshot = resolve(self._baseline, packs)
         ledger = allocate(seed(self.db, self.source_sha256, self.rows), snapshot['fighters'], ledger)
         original = {key: value for key, value in resolve(self._baseline, [])['fighters'].items()}
-        additions, edits, donor_keys, localization, portrait_donors = [], [], {}, {}, {}
+        additions, edits, donor_keys, localization, portrait_donors, menu_roster = [], [], {}, {}, {}, {}
         for identifier, fighter in snapshot['fighters'].items():
             components = fighter['components']
             unsupported = set(components) - set(RESOURCE_FIELDS) - {'moveset', 'stats'}
@@ -116,14 +140,36 @@ class RetailCatalog:
                 localization[native_name] = fighter['name']
                 additions.append({'key': identifier, 'native_name': native_name,
                                   'template': donor['record_offset'], 'fields': native_fields})
-        output, native = self.db.extend_character_records(additions, edits,
-            selection_keys={addition['key']: ledger['fighters'][addition['key']]['selection'] for addition in additions})
+                if logical_menu or binding_window:
+                    menu_roster[identifier] = self.menu_record(donor, components, ledger['fighters'][identifier]['selection'])
+        native_additions = [] if logical_menu else additions
+        if binding_window:
+            check(0 < len(additions) <= MAX_FIGHTERS, 'native-window-count', 'Invalid logical fighter window population')
+            native_additions = list(additions)
+            first = additions[0]
+            for index in range(BANKS):
+                native_additions.append({'key': bank_key(index), 'native_name': f'fw-bank-{index}',
+                                         'template': first['template'], 'fields': dict(first['fields'])})
+        selections = {addition['key']: ledger['fighters'][addition['key']]['selection'] for addition in additions}
+        if binding_window:
+            selections.update({bank_key(index): FIRST_SELECTION + index for index in range(BANKS)})
+        output, native = self.db.extend_character_records(native_additions, edits,
+            selection_keys={addition['key']: selections[addition['key']] for addition in native_additions},
+            deferred_keys={addition['key'] for addition in additions} if binding_window else None)
         bindings = {key: dict(row['native_binding'], record_offset=row['record_offset'], native_name=row['name'])
                     for key, row in self.rows.items()}
         for key, binding in native['bindings'].items():
+            if binding_window and key.startswith('runtime-bank/'):
+                continue
             bindings[key] = {'selection_key': binding['selection_key'],
                              'core_id': binding['inherited_core_id'],
                              'record_offset': binding['record_offset'], 'native_name': binding['native_name']}
+        if logical_menu:
+            for addition in additions:
+                key = addition['key']
+                bindings[key] = {'selection_key': ledger['fighters'][key]['selection'],
+                                 'core_id': self.rows[donor_keys[key]]['native_binding']['core_id'],
+                                 'record_offset': 0, 'native_name': addition['native_name']}
         report = {'adapter': ADAPTER, 'cache_layout': 2, 'runtime_ready': False, 'launch_allowed': False,
                   'source_sha256': self.source_sha256, 'snapshot_sha256': snapshot['sha256'],
                   'cache_sha256': hashlib.sha256(output).hexdigest(), 'cache_bytes': len(output),
@@ -135,6 +181,14 @@ class RetailCatalog:
                   'blockers': ['native-selection-and-capacity', 'profile-lifecycle', 'asset-runtime-acceptance',
                                'localization-registration'],
                   'compatibility_policy': 'conservative-retail-donor-bundles'}
+        if logical_menu:
+            report.update(binding_mode='logical-menu-only', native_character_count=len(self.rows), menu_roster=menu_roster)
+            report['blockers'].append('logical-fighter-confirmation-unbound')
+        if binding_window:
+            report.update(binding_mode='participant-window', native_character_count=len(self.rows) + BANKS,
+                          menu_roster=menu_roster, window=build_window(output, native, additions, ledger))
+            report['window_sha256'] = hashlib.sha256(encode_window(report['window'])).hexdigest()
+            report['blockers'].extend(['window-lifetime-acceptance', 'window-save-extension'])
         if any(len(label.encode('utf-8')) > 19 for label in localization.values()):
             report['blockers'].append('native-label-buffer')
         report['names_sha256'] = hashlib.sha256(encode_names(localization)).hexdigest()

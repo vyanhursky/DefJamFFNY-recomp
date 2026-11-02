@@ -8,6 +8,13 @@ this follow-up. Generated code remains untracked and is not reproduced here.
 
 ## Finding
 
+2026-11-02 runtime follow-up: a 300-custom-fighter native menu selected logical
+ID **361**, bound its stable identity to one of four native participant slots,
+and reached combat against retail Blaze. This establishes one native path beyond
+255 without widening the original byte consumers. It does not establish a
+universal capacity or complete menu/lifetime acceptance. Evidence and the other
+fixed storage limits are in the [active runtime note](fighter-mod-runtime-2026-11-02.md).
+
 **255 is not established as a universal fighter-count ceiling, and going beyond
 it has not been shown to be easy.** The existing path contains both byte-width
 and 32-bit identity fields. Their mapping must be established before choosing

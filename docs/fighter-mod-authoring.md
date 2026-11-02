@@ -204,6 +204,21 @@ submissions and actual match IDs without overriding them. Two-player custom
 headers, donor thumbnails/portraits and selection now have native evidence;
 other layouts, full save lifecycle and authored resources remain acceptance gates.
 
+The internal `--binding-window` prototype appends typed logical CCharacter
+entries while retaining four native participant slots. A 300-custom-fighter
+research roster has selected logical ID 361 through the native menu and reached
+combat with its correct name and stable identity. This is capacity evidence,
+not a supported package capability or a permanent roster limit. The ordinary
+draft format has no bank numbers or engine addresses.
+
+Its profile research uses a separate store of immutable generations. Each
+generation binds native MC02 files to the historical ledger and custom unlock
+extension. A sealed native save journal is only intent: every complete native
+file must verify before the exact batch can replace the committed generation.
+The probe keeps all stores and working copies under `logs`; normal profiles
+remain outside this entry point. Bank lifetime, real custom-progress save/reload,
+missing-content behavior and production helper failure handling remain gates.
+
 Before publishing creator instructions, implement asset conversion/validation,
 native registration, preview/selection, profile lifecycle, package transactions
 and component-specific acceptance cases. Reusable conversion/package/preview

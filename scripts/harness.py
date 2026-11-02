@@ -298,6 +298,14 @@ ROUTES = {
         "until": "getscreeninfo(battle/choosef4", "after": 180, "secs": 320,
         "shots": "@getscreeninfo(battle/choosef4,10,50",
     },
+    "fighter-roster-result": {
+        "help": "Native fighter selector with explicit selection stages, then combat through the result screen",
+        "stages": ONE_ON_ONE_SETUP[:7],
+        "default_stages": ["getscreeninfo(battle/choosef2=back@9999"],
+        "tail": FIGHT_TAIL,
+        "until": "game.getmatchsummary(", "after": 6, "secs": 900,
+        "shots": "@game.startgame(,60",
+    },
     "fight-result": {
         "help": "One on One at the default venue, played until the game shows the match summary",
         "stages": ONE_ON_ONE_SETUP + ["controllersetup(1,=a@4+4x6"],
