@@ -230,6 +230,8 @@ starting point; it contains logical references, never engine addresses.
 This is a checklist, not a frozen schema or supported export command.
 The [local authoring prototype](fighter-mod-authoring.md) documents executable
 definition/conflict checks without advertising installable fighter packages.
+The [native adapter checkpoint](research/fighter-mod-native-adapter-2026-11-02.md)
+records the connected retail-export/resolver/cache pipeline and current limits.
 
 - **Package:** stable ID/version, authors/provenance, category, runtime/capabilities,
   dependencies/version constraints, conflicts and content hashes.

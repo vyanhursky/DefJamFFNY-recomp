@@ -59,9 +59,15 @@ def native_fixture():
     pairs = sorted((sod.name_hash(symbol_names[i + 1]), o) for i, o in enumerate(record_offsets))
     name_index = index(character, [x[0] for x in pairs], [(x[1],) for x in pairs], 1)
     numeric_index = index(sod.SELECTION_FIELD, [1, 2], [(x,) for x in record_offsets], 1)
+    health_key = character ^ sod.name_hash('Health')
+    health_index = index(health_key, [25, 25], [(x,) for x in record_offsets], 1)
+    model_key = character ^ sod.name_hash('Model')
+    model_index = index(model_key, [sod.name_hash('SyntheticModel')] * 2, [(x,) for x in record_offsets], 1)
     list_key = sod.name_hash('SyntheticRows')
     record_list = index(list_key, [], [(x,) for x in record_offsets], 0)
-    primary = index(None, [character, sod.SELECTION_FIELD], [(name_index,), (numeric_index,)], 1)
+    indexes = {character: name_index, sod.SELECTION_FIELD: numeric_index,
+               health_key: health_index, model_key: model_index}
+    primary = index(None, sorted(indexes), [(indexes[k],) for k in sorted(indexes)], 1)
     secondary = index(None, [list_key], [(record_list,)], 1)
     table_at = emit(words([character, primary, secondary, 2]))
     struct.pack_into('<I', image, data_at + 16, table_at)

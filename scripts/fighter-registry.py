@@ -3,6 +3,8 @@
 
     python scripts/fighter-registry.py inspect-native path/to/assets/djv2.sod
     python scripts/fighter-registry.py resolve-preview baseline.json pack-a.json pack-b.json
+    python scripts/fighter-registry.py export-retail path/to/assets/djv2.sod
+    python scripts/fighter-registry.py compile-native-preview path/to/assets/djv2.sod pack-a.json --write-cache
 
 These commands never install/enable mods, change saves, or advertise runtime
 support. A draft snapshot's runtime_ready=false remains an explicit gate.
@@ -11,15 +13,21 @@ ignored local report; original game data must not be committed.
 """
 import argparse
 import json
+import hashlib
+import os
 from pathlib import Path
 import sys
+import tempfile
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'setup'))
 from fighter_sod import Database, MAX_IMAGE, SodError
 from fighter_registry import resolve, suggest_compatibility, RegistryError, MAX_PACKS
+from fighter_native import RetailCatalog, ADAPTER
 
 MAX_DOCUMENT = 8 * 1024**2
 MAX_INPUT = 32 * 1024**2
+MAX_REPORT = 32 * 1024**2
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def unique(pairs):
@@ -56,11 +64,59 @@ def documents(baseline_path, pack_paths):
     return baseline, packs
 
 
+def retail_catalog(path):
+    pin = json.loads((ROOT / 'config/fighter-native-baseline.json').read_text(encoding='utf-8'))
+    if pin['adapter'] != ADAPTER:
+        raise ValueError('Native adapter/baseline pin mismatch')
+    with path.open('rb') as stream:
+        data = stream.read(MAX_IMAGE + 1)
+    if len(data) > MAX_IMAGE:
+        raise ValueError('SODB exceeds image budget')
+    return RetailCatalog(data, pin['sha256'])
+
+
+def write_preview(data, report):
+    """Write only an ignored, content-addressed research cache; never install."""
+    serialized = (json.dumps(report, indent=2, sort_keys=True, allow_nan=False) + '\n').encode('utf-8')
+    if len(serialized) > MAX_REPORT:
+        raise ValueError('Generated preview report exceeds budget')
+    root = ROOT / 'logs/fighter-native-preview'
+    root.mkdir(parents=True, exist_ok=True)
+    destination = root / report['cache_key']
+    if not destination.exists():
+        with tempfile.TemporaryDirectory(dir=root) as temporary:
+            stage = Path(temporary) / 'cache'
+            (stage / 'assets').mkdir(parents=True)
+            (stage / 'assets/djv2.sod').write_bytes(data)
+            (stage / 'report.json').write_bytes(serialized)
+            try:
+                os.rename(stage, destination)
+            except OSError:
+                if not destination.is_dir():
+                    raise
+    cached = destination / 'assets/djv2.sod'
+    with cached.open('rb') as stream:
+        actual = stream.read(MAX_IMAGE + 1)
+    if len(actual) != len(data) or hashlib.sha256(actual).hexdigest() != report['cache_sha256']:
+        raise ValueError('Existing preview cache is corrupt; original data was not changed')
+    with (destination / 'report.json').open('rb') as stream:
+        saved = stream.read(MAX_REPORT + 1)
+    if len(saved) > MAX_REPORT or json.loads(saved, object_pairs_hook=unique) != json.loads(serialized):
+        raise ValueError('Existing preview report is corrupt; original data was not changed')
+    return str(destination)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest='command', required=True)
     inspect = sub.add_parser('inspect-native')
     inspect.add_argument('sod', type=Path)
+    export = sub.add_parser('export-retail')
+    export.add_argument('sod', type=Path)
+    compile_preview = sub.add_parser('compile-native-preview')
+    compile_preview.add_argument('sod', type=Path)
+    compile_preview.add_argument('packs', type=Path, nargs='*')
+    compile_preview.add_argument('--write-cache', action='store_true')
     preview = sub.add_parser('resolve-preview')
     preview.add_argument('baseline', type=Path)
     preview.add_argument('packs', type=Path, nargs='*')
@@ -75,6 +131,19 @@ def main():
             if args.sod.stat().st_size > MAX_IMAGE:
                 raise ValueError('SODB exceeds image budget')
             result = Database(args.sod.read_bytes()).character_metadata()
+        elif args.command == 'export-retail':
+            result = retail_catalog(args.sod).baseline()
+        elif args.command == 'compile-native-preview':
+            if len(args.packs) > MAX_PACKS:
+                raise ValueError('Enabled pack count exceeds budget')
+            packs, used = [], 0
+            for path in args.packs:
+                pack, size = document(path, MAX_INPUT - used)
+                used += size
+                packs.append(pack)
+            data, result = retail_catalog(args.sod).compile(packs)
+            if args.write_cache:
+                result['preview_directory'] = write_preview(data, result)
         elif args.command == 'resolve-preview':
             result = resolve(*documents(args.baseline, args.packs))
         else:

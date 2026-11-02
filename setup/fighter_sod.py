@@ -204,20 +204,24 @@ class Database:
                 'table_count': len(self._tables), 'schema_fields': len(self.schema),
                 'string_count': len(self.strings), 'character_count': table.count, 'characters': rows}
 
-    def extend_character_records(self, additions):
+    def extend_character_records(self, additions, edits=None):
         """Native-cache construction experiment, not a runnable mod installer.
 
         Additions use stable keys, existing template record offsets and named
-        native fields. Existing record bytes/string IDs are retained. Rebuilds
+        native fields. Optional edits change named fields in existing records;
+        all other record bytes/string IDs are retained. Rebuilds
         indexes; reports native rank changes that a save bridge MUST account
         for. No native runtime capability is implied by a successful round-trip.
         """
         check(isinstance(additions, list) and len(additions) <= 16384, 'Invalid additions budget')
+        edits = [] if edits is None else edits
+        check(isinstance(edits, list) and len(edits) <= 16384, 'Invalid edits budget')
         table = self._tables.get(CHARACTER)
         check(table is not None, 'Missing Character table')
-        if not additions:
+        if not additions and not edits:
             return self.data, {'runtime_ready': False, 'bindings': {},
-                               'retail_name_index_rank_remap': {}, 'native_signed_byte_overflow': []}
+                               'retail_name_index_rank_remap': {}, 'native_signed_byte_overflow': [],
+                               'edited_records': []}
         check(SELECTION_FIELD in self.schema and CORE_FIELD in self.schema,
               'Missing character identity schema fields')
         native_offset, native_type = self.schema[SELECTION_FIELD]
@@ -253,6 +257,31 @@ class Database:
             symbol_lookup[value] = index
             return index
 
+        def apply_fields(row, fields):
+            check(isinstance(fields, dict) and fields.keys() <= STRING_FIELDS | INTEGER_FIELDS,
+                  'Unsupported native field')
+            for name, value in sorted(fields.items()):
+                word_offset, descriptor = self.field('Character', name)
+                check(word_offset < 26, 'Native field exceeds character record')
+                if name in STRING_FIELDS:
+                    check(descriptor == 1, 'Unexpected native string field type')
+                    value = intern(value)
+                else:
+                    check(type(value) is int and 0 <= value <= 0x7fffffff, 'Invalid native integer field')
+                struct.pack_into('<I', row, word_offset * 4, value)
+
+        edited = set()
+        check(all(isinstance(e, dict) and set(e) == {'template', 'fields'}
+                  and type(e['template']) is int for e in edits), 'Invalid native edit shape')
+        for edit in sorted(edits, key=lambda e: e['template']):
+            offset = edit['template']
+            check(type(offset) is int and offset in table.records and offset not in edited,
+                  'Unknown/duplicate native edit record')
+            row = bytearray(self.data[offset:offset + 104])
+            apply_fields(row, edit['fields'])
+            output[offset:offset + 104] = row
+            edited.add(offset)
+
         old_names = [self.symbol(self.word(o)) for o in table.records]
         check(all(n is not None for n in old_names), 'Missing character names')
         names = set(old_names)
@@ -263,7 +292,8 @@ class Database:
         new_rows = []
         bindings = {}
         # Stable input order is not part of the binding policy.
-        check(all(isinstance(a, dict) and set(a) == {'key', 'template', 'fields'} for a in additions),
+        check(all(isinstance(a, dict) and {'key', 'template', 'fields'} <= a.keys()
+                  and a.keys() <= {'key', 'template', 'fields', 'native_name'} for a in additions),
               'Invalid native addition shape')
         check(all(isinstance(a['key'], str) for a in additions), 'Invalid native addition key')
         for addition in sorted(additions, key=lambda a: a['key']):
@@ -272,38 +302,31 @@ class Database:
                   and all(part and part[0] != '-' and part[-1] != '-'
                           and all(c in 'abcdefghijklmnopqrstuvwxyz0123456789-' for c in part)
                           for part in key.split('/')), 'Invalid stable character key')
-            check(key not in names and name_hash(key) not in hashes, 'Duplicate/colliding character key')
+            check(key not in bindings, 'Duplicate character key')
+            native_name = addition.get('native_name', key)
+            check(isinstance(native_name, str) and 0 < len(native_name) <= 256,
+                  'Invalid native character name')
+            check(native_name not in names and name_hash(native_name) not in hashes,
+                  'Duplicate/colliding character key')
             check(type(addition['template']) is int and addition['template'] in table.records,
                   'Unknown template record')
-            fields = addition['fields']
-            check(isinstance(fields, dict) and fields.keys() <= STRING_FIELDS | INTEGER_FIELDS,
-                  'Unsupported native addition field')
             row = bytearray(self.data[addition['template']:addition['template'] + 26 * 4])
-            struct.pack_into('<I', row, 0, intern(key))
+            struct.pack_into('<I', row, 0, intern(native_name))
             while next_id in identifiers or next_id == 99:
                 next_id += 1
             check(next_id <= 0x7fffffff, 'Native selection key exhausted')
             struct.pack_into('<I', row, native_offset * 4, next_id)
-            for name, value in sorted(fields.items()):
-                word_offset, descriptor = self.field('Character', name)
-                check(word_offset < 26, 'Native addition field exceeds character record')
-                if name in STRING_FIELDS:
-                    check(descriptor == 1, 'Unexpected native string field type')
-                    value = intern(value)
-                else:
-                    check(type(value) is int and 0 <= value <= 0x7fffffff,
-                          'Invalid native integer field')
-                struct.pack_into('<I', row, word_offset * 4, value)
+            apply_fields(row, addition['fields'])
             offset = emit(row)
             new_rows.append(offset)
             # This is the donor's one-based core ID, not a newly allocated core
             # or zero-based active moveset index. Core storage is a separate adapter.
             bindings[key] = {'selection_key': next_id, 'inherited_core_id': struct.unpack_from('<I', row, 40)[0],
-                             'record_offset': offset}
+                             'record_offset': offset, 'native_name': native_name}
             identifiers.add(next_id)
             next_id += 1
-            names.add(key)
-            hashes.add(name_hash(key))
+            names.add(native_name)
+            hashes.add(name_hash(native_name))
 
         def index_blob(tag, keys, values, stride):
             header = ([] if tag is None else [tag]) + [len(values), stride]
@@ -317,10 +340,16 @@ class Database:
             for member_key, (old_index_offset,) in zip(group.keys, group.values):
                 old_index = self.index(old_index_offset, tagged=True)
                 if old_index.keyed:
-                    pairs = [(key, value[0]) for key, value in zip(old_index.keys, old_index.values)]
+                    pairs = []
                     word_offset, descriptor = self.schema[member_key]
                     check(word_offset < 26, 'Native index field exceeds character record')
-                    for offset in new_rows:
+                    for original_key, (pointer,) in zip(old_index.keys, old_index.values):
+                        original_value = self.word(pointer + word_offset * 4)
+                        if member_key == CHARACTER or descriptor == 1:
+                            check(original_value < len(self.strings), 'Bad original indexed string reference')
+                            original_value = self.strings[original_value][0]
+                        check(original_value == original_key, 'Unsupported native index key encoding')
+                    for offset in [value[0] for value in old_index.values] + new_rows:
                         value = struct.unpack_from('<I', output, offset + word_offset * 4)[0]
                         if member_key == CHARACTER or descriptor == 1:
                             check(value < len(symbols), 'Bad indexed string reference')
@@ -343,7 +372,8 @@ class Database:
         rebuilt = Database(bytes(output))
         check(rebuilt._tables[CHARACTER].count == table.count + len(new_rows), 'Expanded table did not round-trip')
         for offset in table.records:
-            check(rebuilt.data[offset:offset + 104] == self.data[offset:offset + 104], 'Retail record changed')
+            if offset not in edited:
+                check(rebuilt.data[offset:offset + 104] == self.data[offset:offset + 104], 'Retail record changed')
         primary_group = self.index(self.word(native_header + 4))
         old_index_offset = dict(zip(primary_group.keys, primary_group.values))[CHARACTER][0]
         new_group = rebuilt.index(rebuilt.word(native_header + 4))
@@ -353,5 +383,6 @@ class Database:
         ranks = {offset: rank for rank, offset in enumerate(new_order)}
         remap = {old: ranks[offset] for old, offset in enumerate(old_order)}
         return bytes(output), {'runtime_ready': False, 'bindings': bindings,
+                               'edited_records': sorted(edited),
                                'retail_name_index_rank_remap': remap,
                                'native_signed_byte_overflow': [k for k, v in bindings.items() if v['selection_key'] > 127]}

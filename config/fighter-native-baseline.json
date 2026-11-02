@@ -1,0 +1,6 @@
+{
+  "adapter": "fighter-native-preview-1",
+  "path": "assets/djv2.sod",
+  "sha256": "90cc4655680e1f7c1c8ffb140eb81208648682259e5c68e4e8e8cf65b2c8a803",
+  "comment": "Original supported USA database only. Hash pin verifies the input; no game bytes are shipped. Experimental adapter, not runtime support."
+}

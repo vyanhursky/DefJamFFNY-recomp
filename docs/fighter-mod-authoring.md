@@ -12,10 +12,18 @@ including shared resources, exact dependencies, inheritance and component edits.
 All enabled packs are resolved together. It emits a deterministic snapshot with
 an explicit `runtime_ready: false` gate and a content hash.
 
-The baseline is a locally authored/extracted `retail` document using the same
-shape. The retail namespace is reserved. There is no automatic retail baseline
-exporter yet. The synthetic tests show the full shape without distributing game
-data: `tests/unit/test_fighter_registry.py`.
+The baseline is a locally extracted `retail` document using the same shape. The
+retail namespace is reserved. Export the supported original database locally:
+
+```powershell
+python scripts/fighter-registry.py export-retail path/to/assets/djv2.sod > logs/retail-fighters.json
+```
+
+The exporter verifies the original SOD hash pinned in
+`config/fighter-native-baseline.json`; modified/unsupported databases are rejected.
+The output contains 75 retail definitions and 300 resource references, with no
+game assets. The synthetic tests show the shape without distributing extracted
+fixtures: `tests/unit/test_fighter_registry.py`.
 
 Each document has exactly these fields:
 
@@ -30,13 +38,13 @@ Each document has exactly these fields:
     {
       "id": "first-fighter",
       "name": "Example Fighter",
-      "inherits": "retail/example-donor",
+      "inherits": "retail/ludacris",
       "components": {"stats": {"health": 60}}
     },
     {
       "id": "second-fighter",
       "name": "Another Fighter",
-      "inherits": "retail/example-donor",
+      "inherits": "retail/ludacris",
       "components": {"stats": {"speed": 70}}
     }
   ],
@@ -44,9 +52,9 @@ Each document has exactly these fields:
 }
 ```
 
-`retail/example-donor` is a placeholder. This example needs a baseline defining
-that donor; it is not an existing retail ID. Remove the second entry for a
-single-fighter pack. The resulting permanent keys are
+This example reuses Ludacris's retail donor bundle; it supplies no new model,
+animation or voice assets. Remove the second entry for a single-fighter pack.
+The resulting permanent keys are
 `example-pack/first-fighter` and `example-pack/second-fighter`. Display names may
 match between independently keyed fighters. Never publish native IDs or record
 offsets as these keys.
@@ -81,6 +89,11 @@ accepted by this draft resource schema. Pack intake and native format validation
 remain separate work; rejecting unknown JSON fields is not sufficient asset
 validation.
 
+The native exporter uses conservative `retail/binding-<fighter>` compatibility
+labels. They identify a known retail donor bundle, not a decoded skeleton or
+event fingerprint. This prevents unverified cross-donor animation/voice mixing;
+it may reject combinations that future asset validation will establish as valid.
+
 ## Check packs and diagnose conflicts
 
 ```powershell
@@ -97,7 +110,7 @@ Skeleton/event checks still apply after independent components are combined.
 An override contains `target`, `components` and `supersedes`:
 
 ```json
-{"target":"retail/example-donor","components":{"stats":{"health":80}},
+{"target":"retail/ludacris","components":{"stats":{"health":80}},
  "supersedes":[]}
 ```
 
@@ -109,7 +122,7 @@ The helper accepts a choice for **every** conflicting fighter/component and
 prints a draft patch plus the validated preview hash:
 
 ```powershell
-python scripts/fighter-registry.py suggest-compatibility baseline.json alpha.json beta.json --id example-compat --choose retail/example-donor:stats=alpha
+python scripts/fighter-registry.py suggest-compatibility baseline.json alpha.json beta.json --id example-compat --choose retail/ludacris:stats=alpha
 ```
 
 The user must choose a provider listed in the error. The helper copies the chosen
@@ -134,9 +147,33 @@ This prints native Character metadata and source hashes. Its selection key,
 one-based core ID, string IDs and record offsets are separate native concepts;
 none is a stable public fighter key. Keep output/game-derived caches local.
 
-The native-cache experiment can clone Character records and rebuild indexes. It
-retains the donor's core ID; it does not allocate new movesets or make fighters
-playable. There is deliberately no install/build-cache CLI yet.
+Compile packs into a native cache preview:
+
+```powershell
+python scripts/fighter-registry.py compile-native-preview path/to/assets/djv2.sod example-pack.json another-pack.json
+```
+
+Without options this prints the preview report and writes no cache. Add
+`--write-cache` to publish a verified content-addressed preview beneath the
+repository's ignored `logs/fighter-native-preview/`. Existing cache bytes and
+reports are checked before reuse; corruption fails without overwriting them.
+Generated reports have a separate 32 MiB budget, checked before publication.
+
+This adapter translates retail donor resources, complete stats, localization
+keys and permitted edits into native records. Pack order is irrelevant. It
+retains donor core IDs and all untouched retail record bytes. Donor inheritance
+uses authored retail data before overrides. New asset resources, AI/cinematic
+components and retail core reassignment fail with explicit unsupported errors.
+Complete appearance/moveset/voice/portrait and all four stats must be present,
+directly or through inheritance, for this adapter to produce a preview.
+
+Custom names become separate localization entries keyed by bounded generated
+native symbols. The preview does not register them into the running game.
+Native menu labels longer than 19 UTF-8 bytes trigger an additional blocker due
+to an audited 20-byte inline text field; this is not a proposed permanent public
+name limit. Selection keys above 127 are reported separately. Every preview
+retains `runtime_ready: false` and `launch_allowed: false`: it does not allocate
+new movesets, install a mod or make fighters playable.
 
 Before publishing creator instructions, implement asset conversion/validation,
 native registration, preview/selection, profile lifecycle, package transactions
