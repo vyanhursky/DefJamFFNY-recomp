@@ -145,7 +145,7 @@ def store(data):
     return bytes(output + data[at:])
 
 
-def portrait_aliases(data, pairs):
+def portrait_aliases(data, pairs, *, results=False):
     """Map {custom selection token: retail portrait token}; never alias identity.
 
     All four inner filenames are renamed together. Movie/data/texture bytes are
@@ -156,18 +156,23 @@ def portrait_aliases(data, pairs):
     for target, donor in sorted(pairs.items()):
         if not all(type(value) is int and 0 <= value <= 0x7ffffffe for value in (target, donor)) or target == donor:
             raise AssetError('Invalid portrait selection binding')
-        for players in (2, 3, 4):
-            old, new = f'p_cf_{donor + 1}_{players}p', f'p_cf_{target + 1}_{players}p'
-            prefix = 'screens/portrait/p_CF/'
-            path = prefix + new + '.big'
-            if path.lower() in archive.by_name or path in additions:
-                raise AssetError('Portrait alias destination already owned: ' + path)
-            inner = Archive(unpack(archive.read(prefix + old + '.big')))
-            expected = {old + suffix for suffix in ('.apt', '.const', '.o', '.xsh')}
-            if {entry.name for entry in inner.entries} != expected:
-                raise AssetError('Unsupported donor portrait envelope')
-            if any(old.encode('ascii') in inner.read(name) for name in expected):
-                raise AssetError('Portrait has embedded filename references; needs a typed adapter')
-            result = inner.compose(renames={name: new + name[len(old):] for name in expected})
-            additions[path] = store(result)
+        families = [('screens/portrait/p_CF/', 'p_cf_', 1)]
+        if results:
+            # GetMatchSummary's fid is used directly; selector portraits alone
+            # add one. These are different namespaces in the original movies.
+            families += [('screens/portrait/t_MS/', 't_MS_', 0), ('screens/portrait/', 'l_MS_', 0)]
+        for prefix, stem, increment in families:
+            for players in (2, 3, 4):
+                old, new = f'{stem}{donor + increment}_{players}p', f'{stem}{target + increment}_{players}p'
+                path = prefix + new + '.big'
+                if path.lower() in archive.by_name or path in additions:
+                    raise AssetError('Portrait alias destination already owned: ' + path)
+                inner = Archive(unpack(archive.read(prefix + old + '.big')))
+                expected = {old + suffix for suffix in ('.apt', '.const', '.o', '.xsh')}
+                if {entry.name for entry in inner.entries} != expected:
+                    raise AssetError('Unsupported donor portrait envelope')
+                if any(old.encode('ascii') in inner.read(name) for name in expected):
+                    raise AssetError('Portrait has embedded filename references; needs a typed adapter')
+                result = inner.compose(renames={name: new + name[len(old):] for name in expected})
+                additions[path] = store(result)
     return archive.compose(additions=additions)

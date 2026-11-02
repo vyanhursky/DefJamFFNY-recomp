@@ -154,7 +154,7 @@ def title_presses():
 DIRECTION_HOLD = 0.3 if WINDOWS else 0.2
 
 
-def expand_presses(keys):
+def expand_presses(keys, *, compact=False):
     """`right@5;a@8+4x6` -> ['right:5:5.3', 'a:8:8.3', 'a:12:12.3', ...]."""
     out = []
     for k in keys.split(";"):
@@ -169,7 +169,10 @@ def expand_presses(keys):
         else:
             times = [float(rest)]
         hold = DIRECTION_HOLD if name.split("-")[-1] in ("up", "down", "left", "right") else 0.3
-        out += ["%s:%g:%g" % (name, t, t + hold) for t in times]
+        if compact and len(times) > 2 and float(step) > hold:
+            out.append("%s:%g:%g:%g:%g" % (name, times[0], times[-1] + hold, float(step), hold))
+        else:
+            out += ["%s:%g:%g" % (name, t, t + hold) for t in times]
     return out
 
 
@@ -185,7 +188,19 @@ def build_pad_script(stages, raw_tail=""):
         out += expand_presses(keys)
     if raw_tail:
         out.append(raw_tail)
-    return ",".join(out)
+    script = ",".join(out)
+    if len(script.encode('utf-8')) > 4095 or len(script.split(',')) > 256:
+        out = title_presses()
+        for stage in stages:
+            anchor, keys = stage.split("=", 1)
+            out.append("@" + anchor)
+            out += expand_presses(keys, compact=True)
+        if raw_tail:
+            out.append(raw_tail)
+        script = ",".join(out)
+    if len(script.encode('utf-8')) > 4095 or len(script.split(',')) > 256:
+        raise ValueError('Pad script exceeds the native byte/entry budget; split or compact the route')
+    return script
 
 
 # ---------------------------------------------------------------------------
@@ -305,6 +320,14 @@ ROUTES = {
         "tail": FIGHT_TAIL,
         "until": "game.getmatchsummary(", "after": 6, "secs": 900,
         "shots": "@game.startgame(,60",
+    },
+    "fighter-roster-save": {
+        "help": "Native fighter selection and combat, then summary/rewards/save back to Battle",
+        "stages": ONE_ON_ONE_SETUP[:7],
+        "default_stages": ["getscreeninfo(battle/choosef2=back@9999"],
+        "tail": FIGHT_TAIL + "," + raw_stages(["game.getmatchsummary(=a@4+3x12"]),
+        "until": "getscreeninfo(battle/cmtype#2", "after": 8, "secs": 900,
+        "shots": "@game.getmatchsummary(,2,12,25",
     },
     "fight-result": {
         "help": "One on One at the default venue, played until the game shows the match summary",
@@ -791,6 +814,7 @@ class Run:
         self.hung = False
         self.exit_code = None
         self.unexpected_exit = False
+        self.supervisor_failure = None
         self.missing_anchor = None
         self.identity = {}
         self.elapsed = 0.0
@@ -845,9 +869,50 @@ def process_memory(pid):
         kernel32.CloseHandle(handle)
 
 
+def supervisor_fault(path, now=None, cache=None):
+    """A research save helper must stay alive; stale/failed state stops this run."""
+    try:
+        path = Path(path)
+        if any(p.is_symlink() or (hasattr(p, 'is_junction') and p.is_junction()) for p in (path, *path.parents)):
+            raise ValueError('redirected status')
+        # Windows can deny opening a destination momentarily while an atomic
+        # replacement retires its old file. Retry only that sharing race; a
+        # cached valid heartbeat never extends the original 15-second deadline.
+        for attempt in range(4):
+            try:
+                with path.open('rb') as stream:
+                    data = stream.read(4097)
+                break
+            except PermissionError:
+                if attempt < 3:
+                    time.sleep(0.02)
+                    continue
+                moment = time.monotonic() if now is None else now
+                if cache is not None and 'heartbeat' in cache and 0 <= moment - cache['heartbeat'] <= 15:
+                    return None
+                raise
+        if len(data) > 4096:
+            raise ValueError('oversized status')
+        state = json.loads(data)
+        if not isinstance(state, dict) or set(state) != {'schema', 'state', 'heartbeat', 'detail'} \
+                or state['schema'] != 'fighter-save-supervisor-1' or not isinstance(state['detail'], str):
+            raise ValueError('invalid status')
+        heartbeat = state['heartbeat']
+        if type(heartbeat) not in (int, float) or not math.isfinite(heartbeat) \
+                or not 0 <= (time.monotonic() if now is None else now) - heartbeat <= 15:
+            raise ValueError('save helper heartbeat expired')
+        if state['state'] != 'active':
+            raise ValueError('save helper is ' + str(state['state'])[:32])
+        if cache is not None:
+            cache['heartbeat'] = heartbeat
+    except (OSError, ValueError, TypeError) as error:
+        return 'Fighter save supervisor unavailable: ' + str(error)
+    return None
+
+
 def run_game(name, stages=(), tail="", shots="", secs=240, preset=RELEASE_PRESET, env=None,
              until=None, after=0, story=False, scripted=True, stall_secs=0, on_stall=None, quiet=False,
-             until_file=None, controller=None, inherit_recomp=True):
+             until_file=None, controller=None, inherit_recomp=True, supervisor=None):
     """Run the game once. Returns a Run.
 
     until/after: stop `after` seconds after the first `[FUNCCALL]` containing
@@ -916,11 +981,16 @@ def run_game(name, stages=(), tail="", shots="", secs=240, preset=RELEASE_PRESET
             last_presents, last_change = -1, time.time()
             tail_log = LogTail(run.log)
             memory_at = 0.0
+            supervisor_cache = {}
             while p.poll() is None and time.time() - t0 < secs:
                 # Live recipes can contain adjacent menu presses. A two-second
                 # monitor poll merges them into one held button report.
                 time.sleep(0.05 if controller is not None else 2.0)
                 tail_log.poll(time.time() - t0)
+                if supervisor:
+                    run.supervisor_failure = supervisor_fault(supervisor, cache=supervisor_cache)
+                    if run.supervisor_failure:
+                        break
                 if time.time() - memory_at >= 5.0:
                     # The game's private bytes over the run, for a growth check.
                     memory_at = time.time()
@@ -964,6 +1034,13 @@ def run_game(name, stages=(), tail="", shots="", secs=240, preset=RELEASE_PRESET
             tail_log.poll(run.elapsed)
             run.timeline = tail_log.timeline
     finally:
+        # A controller, helper or diagnostic can throw. Reap only our child
+        # before restoring its files, including on exceptional exits.
+        if 'p' in locals():
+            if p.poll() is None:
+                p.kill()
+            p.wait(timeout=15)
+            _OWNED_PROCESSES.discard(p)
         guard.__exit__(None, None, None)
         run.save_ok = guard.restored_equal
     run.text = read_log(run.log)
@@ -1080,6 +1157,8 @@ def run_faults(run):
         out.append("never reached " + run.missing_anchor)
     if run.unexpected_exit:
         out.append("unexpected process exit %s" % run.exit_code)
+    if run.supervisor_failure:
+        out.append(run.supervisor_failure)
     if run.save_ok is not True:
         out.append("save root not restored identical")
     wrong = [m for m in DIR_RE.findall(run.text) if m[0].lower() != m[1].lower()]
@@ -1163,6 +1242,7 @@ def main(argv=None):
     r.add_argument("--env", action="append", default=[], help="NAME=VALUE for the game (repeatable)")
     r.add_argument("--to-end", action="store_true", help="run the full --secs; do not stop at the route's anchor")
     r.add_argument("--png", action="store_true", help="also write a PNG beside each capture")
+    r.add_argument("--supervisor", type=Path, help="internal research save-helper heartbeat/status file")
 
     s = sub.add_parser("soak", help="boot to the main menu repeatedly; dump state at a hang")
     s.add_argument("--boots", type=int, default=10)
@@ -1191,7 +1271,7 @@ def main(argv=None):
     if a.cmd == "run":
         env = dict(kv.split("=", 1) for kv in a.env)
         run = run_route(a.route, preset=a.preset, secs=a.secs, shots=a.shots, env=env,
-                        extra_stages=a.stage, to_end=a.to_end)
+                        extra_stages=a.stage, to_end=a.to_end, supervisor=a.supervisor)
         if a.png:
             for f in run.shots():
                 print("png      %s" % os.path.relpath(bmp_to_png(f), REPO))

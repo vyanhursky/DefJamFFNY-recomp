@@ -155,6 +155,21 @@ void sub_000558E0(void) {
     g_esp = stack + 12; /* Native thiscall ret 8. */
 }
 
+/* Match-summary fid is a UI identity. Adapt only this verified formatter
+ * callsite, after the original signed-byte read, before decimal formatting.
+ * Other summary fields, gameplay consumers and the created sentinel stay native. */
+extern void sub_0005F810_gen(void);
+void sub_0005F810(void) {
+    uint32_t stack = g_esp, value = MEM32(stack + 8), adapted = value;
+    if (MEM32(stack) == 0x00065653u && MEM32(stack + 4) == 0x00298C70u)
+        adapted = defjam_fighter_result_identity(g_ebx, value);
+    if (adapted == value) { sub_0005F810_gen(); return; }
+    g_esp -= 16;
+    MEM32(g_esp) = MEM32(stack); MEM32(g_esp + 4) = MEM32(stack + 4); MEM32(g_esp + 8) = adapted;
+    sub_0005F810_gen();
+    g_esp = stack + 12;
+}
+
 /* Crowd test controls (src/hooks/crowd_control.c, RECOMP_TEST_CROWD; off unless set). */
 void defjam_crowd_match_start(void);
 void defjam_crowd_update(void);

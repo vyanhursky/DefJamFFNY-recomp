@@ -11,11 +11,12 @@ from pathlib import Path
 import re
 import struct
 import threading
+import time
 
 from fighter_bindings import allocate
 from fighter_profile_store import MAX_FILE, relative, require, verify_container
 import fighter_unlocks as unlocks
-from mods import linked
+from mods import atomic_json, linked
 
 MAX_BATCH = 24 + 16 * (104 + 0x5904) + 16384 * 8
 
@@ -106,6 +107,10 @@ class Monitor:
         self.stop_event, self.error, self.committed, self.next = threading.Event(), None, [], 1
         self.thread = threading.Thread(target=self._run, name='fighter-save-verifier', daemon=True)
 
+    def status(self, state, detail=''):
+        atomic_json(self.journal / 'supervisor.json', {'schema': 'fighter-save-supervisor-1',
+            'state': state, 'heartbeat': time.monotonic(), 'detail': str(detail)[:256]})
+
     def poll(self):
         path = self.journal / f'{self.next:06}.batch'
         if not path.exists():
@@ -118,15 +123,15 @@ class Monitor:
         if updates is None:
             return False
         previous = self.store.load()
-        require(previous is not None, 'Fighter profile journal requires a committed import')
-        old_ledger = previous['ledger']
+        old_ledger = previous['ledger'] if previous else self.ledger
         # A caller cannot substitute a ledger that reassigns any old identity.
         checked = allocate(self.store.baseline, (), self.ledger)['fighters']
         require(all(checked.get(key) == value for key, value in old_ledger['fighters'].items()),
                 'Fighter journal lost historical identity bindings')
-        options = next((name for name in updates if name.endswith('/Options')), previous['options'])
+        options = next((name for name in updates if name.endswith('/Options')), previous['options'] if previous else None)
+        require(options is not None, 'The first fighter save batch must include native Options')
         data = updates[options] if options in updates else previous['files'][options]
-        marks = unlocks.restore(verify_container(previous['files'][previous['options']]), previous['extension'], old_ledger, self.store.baseline)
+        marks = unlocks.restore(verify_container(previous['files'][previous['options']]), previous['extension'], old_ledger, self.store.baseline) if previous else {}
         # Retail unlock changes belong to the freshly saved native Options;
         # absent custom content stays dormant in the prior extension.
         marks = {key: value for key, value in marks.items() if not key.startswith('retail/')}
@@ -137,20 +142,28 @@ class Monitor:
             marks[known[handle]] = metadata
         projected, extension = unlocks.project(verify_container(data), marks, self.ledger, self.store.baseline)
         require(projected == verify_container(data), 'Native batch did not use the canonical retail-only projection')
-        generation = self.store.commit_batch(previous['generation'], updates, self.ledger, extension, options)
+        generation = self.store.commit_batch(previous['generation'] if previous else None, updates, self.ledger, extension, options)
         self.committed.append((self.next, generation))
         self.next += 1
         return True
 
     def _run(self):
         try:
+            heartbeat = time.monotonic()
             while not self.stop_event.is_set():
+                if time.monotonic() - heartbeat >= 1:
+                    self.status('active'); heartbeat = time.monotonic()
                 if not self.poll():
                     self.stop_event.wait(0.1)
         except Exception as error:
             self.error = error
+            try:
+                self.status('failed', error)
+            except (OSError, ValueError):
+                pass  # A stale heartbeat still makes the harness stop safely.
 
     def start(self):
+        self.status('active')
         self.thread.start()
 
     def stop(self):
@@ -158,6 +171,7 @@ class Monitor:
         require(not self.thread.is_alive(), 'Fighter save verifier did not stop')
         if self.error:
             raise ValueError('Fighter save verification failed: ' + str(self.error)) from self.error
+        self.status('stopped')
 
 
 def initialize(store, source, ledger):
@@ -207,6 +221,8 @@ def initialize(store, source, ledger):
 
 
 def encode_unlock_state(generation, baseline):
+    if generation is None:
+        return b'FUM1' + struct.pack('<III', 1, 0, 0)
     ledger = generation['ledger']
     marks = unlocks.restore(verify_container(generation['files'][generation['options']]), generation['extension'], ledger, baseline)
     values = sorted((ledger['fighters'][key]['handle'], metadata) for key, metadata in marks.items() if not key.startswith('retail/'))

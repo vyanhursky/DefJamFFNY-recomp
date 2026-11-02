@@ -12,10 +12,10 @@ thread; its one-time heartbeat was deleted after delivery. Work began about
 
 ## Current code and tests
 
-11:39 checkpoint: implementing the logical roster/native binding window and
+12:39 checkpoint: implementing the logical roster/native binding window and
 coherent isolated save generations. This supersedes the immediate continuation
-at the bottom of this note. Latest committed source is `01b41a6`; the following
-window/save work is being tested locally before its source checkpoint.
+at the bottom of this note. Latest committed source is `4b13818`, which checkpoints
+the window/save implementation. Fresh-profile bootstrap is being tested locally.
 
 - Native list capacity is **not a single 255 limit**. The signed-byte selection
   path narrows inside `558E0` before `1E700`; the shared roster has a different
@@ -30,7 +30,7 @@ window/save work is being tested locally before its source checkpoint.
   `logs/fighter-logical-300-native-browse-corrected.txt` highlighted **Capacity
   261 / logical 361**, with name, donor portrait, stats and consistent thumbnails.
   78 frame reports, min 110 / median 120 / max 121, no native faults, saves
-  identical. Header still reads SELECT USER ID; stock comparison is pending.
+  identical. The imported-fixture header issue is isolated below.
   It is browsing evidence, not >255 gameplay acceptance. The earlier 10:23 run
   had incorrect thumbnail states and is retained only as a diagnostic.
 - Generated visual methods now retain the original constant pool verbatim,
@@ -108,21 +108,115 @@ constant pools to function registration did **not** fix the stale SELECT USER ID
 header (`run-20261102-112854.log.err`). Even an empty appended action has the
 stale title (`run-20261102-113339.log.err`); it is therefore not established as
 an error in the copied thumbnail methods. An original-screens control under the
-same runtime/profile state is running next. The controlled helper is ignored
+same runtime/profile state also reproduced the title (`run-20261102-113727.log.err`).
+Crucially, **stock with the same Options fixture and all fighter hooks inactive**
+reproduced it too (`run-20261102-114059.log.err`), with 78 frame reports, median
+120 and no faults. A fresh isolated fighter profile now shows the correct
+**CHOOSE FIGHTER / A SELECT / B BACK** header, visually checked at 10 seconds in
+the current result run. The issue is not established as a Fighter Mod regression;
+retain the controls instead of patching copied methods to hide it.
+The controlled helper is ignored
 `logs/fighter-menu-isolation.py`, never a package or production feature.
 Do not fix the title by substituting a guessed string. Native frame-0 assignment
-already names `~CHTCR_CHSEFGHTR`; find which layer prevents its update. Captures
+already names `~CHTCR_CHSEFGHTR`. Captures
 in the standard harness directory are transient; the research driver now retains
 each completed run's PNGs under a unique ignored session folder.
 
 Immediate continuation: finish the native two-pack window/save test, then prove
 actual >255 selection/combat and P1/P2/four-participant ownership. Resolve the
-header against a stock selector. Find a verified teardown boundary before
+header against a stock selector (fresh profiles now pass). Find a verified teardown boundary before
 releasing frozen banks; movie entry alone is insufficient. Audit the remaining
 profile fields and interrupted native batches, complete save/update/missing-pack
 acceptance, then authored resource adapters, language/texture composition,
 launcher Fighters transactions and ordinary Vendetta conversion. All shipping
 gates remain false. No public push/PR, no PROGRESS.md edits.
+
+### Full native result/save cycle and current follow-up
+
+- `run-20261102-114526.log.err` / `logs/fighter-window-fresh-result-native.txt`:
+  fresh namespace from native defaults, two custom fighters (101/102), actual
+  result, then one verified Options generation. The immutable extension contains
+  `research-alpha/second` and `research-beta/first`, both with metadata 0. Native
+  Options contains 75 retail marks and no custom/private bank keys. 202 frame
+  reports, min107/median120/max120, no faults. Captures are preserved under
+  `logs/fighter-window-runs/7eca0476ebd048dd9e8b1394916d7503/captures`.
+- Custom binding now requests native Options saving through **1E310(GameData,1)**,
+  after verifying its manager/settings owner. Native purchase code uses this
+  same dirty setter; D2300 is conditional. FUM1 restoration does not dirty state.
+  `run-20261102-115439.log.err` / `logs/fighter-no-unlock-save-native.txt` passed
+  the native selector, combat, result/rewards/save and return to Battle **with
+  RECOMP_UNLOCK_ALL=0**. Live Options had 12 retail plus two selected custom marks;
+  native persisted Options has only the 12 retail marks. One verified isolated
+  generation retains both custom stable keys. 144 frame reports, min109/median120/
+  max120, no faults; complete disposable saves restored identically. Captures:
+  `logs/fighter-window-runs/c3edd9d2d40c4f46a6c5fdae217001e0/captures`.
+- `--fresh-profiles` bootstraps the first complete native Options batch without
+  importing a fixture. Integration fixtures exercise native compiler -> dormant
+  pack -> re-enabled/content-updated pack -> appended identity migration -> next
+  save batch, retaining metadata and unrelated opaque native profile bytes.
+- The research save helper publishes a heartbeat/status. The harness stops only
+  its own child if the helper fails, disappears or becomes stale; exceptional
+  exits reap that child before restoring files. A failed verifier preserves the
+  previous immutable head. This does **not** establish a native successful-write
+  acknowledgement: matching bytes/signatures, staging and queue cleanup alone
+  cannot distinguish a new successful write from identical old bytes. Actual
+  native completion linkage remains a production gate.
+- Native results read the transient byte through `1E820`, then emit field `fid`
+  in `65540` at formatter callsite **65653**. A narrow **5F810** wrapper now emits
+  the frozen logical identity for that field using an owned call frame. All
+  other fields/calls remain native. Results use **t_MS_/l_MS_ exact IDs**, whereas
+  selector **p_cf_ uses ID+1**. The portrait compiler now includes those result
+  families, and runtime-owned `fighter_results.py` fills the original result name
+  text field with literal custom labels. It relocates complete original actions
+  by four-byte multiples, preserving original constant/parameter/literal pointers,
+  nested function bodies and relative branches; label actions follow every native
+  text-field placement (F4 replaces the field on a later frame). Re-lift/build:
+  `logs/fighter-results-lift.txt`, `logs/fighter-results-build.txt`, both pass.
+  Native visual acceptance of these result changes is still pending.
+- Four-participant IDs254/255/256/257 run **120813 is not acceptance**: its
+  5,785-byte pad script exceeded the native4,095-byte budget and was ignored.
+  Stopped only the verified owned PID47700, then harness restored the save root
+  identically. `build_pad_script` now uses the existing native repeat syntax when
+  needed and rejects any remaining byte/256-token overflow before launch. The
+  compact rerun **121422** selected254 and255 correctly, then stopped at256 on
+  the prototype's fourth-argument guard. Primary APT inspection corrects the
+  earlier costume interpretation: **ControllerSetup's fourth argument is nConID
+  (0..3)**, not a costume. F4 passes nConID both first and fourth; clothing is
+  read separately. The guard now preserves that native four-controller range.
+  This stopped run is not four-participant gameplay acceptance.
+- Four-participant boundary rerun **passed**: `run-20261102-122144.log.err`,
+  `logs/fighter-boundary-four-controller-native.txt`. Native menus submitted
+  logical **254/255/256/257**, stable **070000E5/E6/E7/E8**, bound respectively
+  to engine **100/101/102/103**, all donor core5. Reviewed combat capture shows
+  all four Capacity154/155/156/157 HUD labels and bodies. 240 frame reports,
+  min105/median120/max120, no native faults; saves restored identically and one
+  verified generation. PNGs retained in
+  `logs/fighter-window-runs/ab4c5ddd62244dc19033a9e5d9e56e85/captures`.
+  This is one human selecting three CPUs, not four independent human pads.
+  Narrow F4 selector labels clip on the left; text-field fitting remains work.
+- Result acceptance `run-20261102-123353.log.err` stopped safely before combat:
+  Windows denied opening supervisor.json during an atomic replacement. No
+  crash/watchdog, 46 frame reports/median120, complete save-root restoration.
+  The harness now retries PermissionError and may reuse a previously validated
+  heartbeat only until its original 15-second deadline; malformed/failed/stale
+  state still stops. Focused supervisor/journal suite **77 passed,1 skipped**,
+  `logs/fighter-supervisor-race-unit.txt`. Native result rerun is pending.
+- Focused result/menu/archive/probe/journal suite: **51 passed**,
+  `logs/fighter-results-final-unit.txt`. Later harness/supervisor/journal gate:
+  **76 passed, 1 skipped**, `logs/fighter-supervisor-unit.txt`.
+  Fresh full gate: **1,002 passed, 27 skipped, 1 deselected**,95.05s,
+  `logs/fighter-results-full-unit.txt`; the later C-only controller-range
+  correction passed the native four-participant boundary test above.
+
+Resource/lifetime audit corrections: 109F80 is the DynamicLoader ELF parser, not
+cleanup. 102130 resolves four-character SHAPENAME via SHAPE in a supplied module
+context, not a demonstrated process-wide shape table. The XSH owner/load path and
+collision/lifetime rules remain unproved. Game.Quit is registered to462C0; its
+686A0 manager-C call only clears a UI flag. Neither that flag nor C20B0/E660 UI
+transitions establish fighter-resource teardown. Save async backend vtable2C0728
+slot18 maps, in the own XBE, to19E180; lower19C7D0 checks one WriteFile's return and
+full byte count but is not yet linked to MC02 writes. Continue from concrete
+writers/owners rather than treating queue submission or movie entry as teardown.
 
 ### Earlier accepted checkpoints
 

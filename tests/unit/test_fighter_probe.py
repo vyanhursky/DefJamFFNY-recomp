@@ -121,13 +121,20 @@ def test_window_acceptance_requires_full_logical_identity_and_the_bound_core(tmp
 def test_portrait_cache_verifies_source_and_existing_output(tmp_path, monkeypatch):
     from test_fighter_archive import fixture
     from test_fighter_menu import selector_fixture
+    from test_fighter_results import result_fixture
     probe = driver(tmp_path, monkeypatch)
     entries = {}
     for count in (2, 3, 4):
         stem = f'p_cf_8_{count}p'
         entries[f'screens/portrait/p_CF/{stem}.big'] = fixture({stem + suffix: suffix.encode() for suffix in ('.apt', '.const', '.o', '.xsh')})
+        for prefix, start in [('screens/portrait/t_MS/', 't_MS_'), ('screens/portrait/', 'l_MS_')]:
+            stem = f'{start}7_{count}p'
+            entries[prefix + stem + '.big'] = fixture({stem + suffix: suffix.encode() for suffix in ('.apt', '.const', '.o', '.xsh')})
         movie, constants = selector_fixture()
         name = f'chooseF{count}'
+        entries[f'screens/battle/{name}.big'] = fixture({name + '.apt': movie, name + '.const': constants})
+        movie, constants = result_fixture()
+        name = f'matchSm{count}'
         entries[f'screens/battle/{name}.big'] = fixture({name + '.apt': movie, name + '.const': constants})
     source = tmp_path / 'screens.viv'
     source.write_bytes(fixture(entries))

@@ -23,6 +23,7 @@ extern void sub_00029680(void);
 extern void sub_00045180(void);
 extern void sub_000BE760(void);
 extern void sub_000BE760_gen(void);
+extern void sub_0001E310(void);
 static FighterNames s_names;
 static FighterBindings s_bindings;
 static FighterWindow s_window;
@@ -46,7 +47,7 @@ static FighterPendingSave s_pending[16];
 static uint32_t s_pending_count, s_batch_number, s_custom_count;
 static uint32_t s_custom_keys[FIGHTER_BINDINGS_MAX_COUNT], s_custom_metadata[FIGHTER_BINDINGS_MAX_COUNT];
 static uint32_t read_word(const uint8_t *p);
-static void remember_custom(uint32_t mark);
+static int remember_custom(uint32_t mark);
 #if defined(_WIN32)
 typedef WCHAR fighter_host_char;
 #else
@@ -342,15 +343,29 @@ void defjam_fighter_settings_validate(uint32_t self, uint32_t payload) {
     fprintf(stderr, "[FIGHTERS] native Options unlock payload verified: %u marks\n", count);
 }
 
-static void remember_custom(uint32_t mark) {
+static int remember_custom(uint32_t mark) {
     FighterBinding binding;
     uint32_t identity = mark & ~FIGHTER_UNLOCK_METADATA;
-    if (!fighter_bindings_find(&s_bindings, FIGHTER_BINDING_STABLE, identity, &binding) || !(binding.flags & 1)) return;
+    if (!fighter_bindings_find(&s_bindings, FIGHTER_BINDING_STABLE, identity, &binding) || !(binding.flags & 1)) return 0;
     for (uint32_t i = 0; i < s_custom_count; ++i) if (s_custom_keys[i] == identity) {
-        s_custom_metadata[i] = mark & FIGHTER_UNLOCK_METADATA; return;
+        uint32_t metadata = mark & FIGHTER_UNLOCK_METADATA;
+        int changed = s_custom_metadata[i] != metadata;
+        s_custom_metadata[i] = metadata; return changed;
     }
     if (s_custom_count >= FIGHTER_BINDINGS_MAX_COUNT) fighter_stop("Historical custom unlock journal is full.");
     s_custom_keys[s_custom_count] = identity; s_custom_metadata[s_custom_count++] = mark & FIGHTER_UNLOCK_METADATA;
+    return 1;
+}
+
+static void custom_progress_changed(void) {
+    uint32_t owner = MEM32(0x002FB148u + 0x18u * 4u), changed = 1;
+    if (!owner || MEM32(owner + 4) + 4 != s_settings)
+        fighter_stop("Custom progress has no verified native Options owner.");
+    /* The native purchase path calls this same dirty setter after insertion.
+     * Merely editing live Options would be lost when SaveGame skips D2300.
+     * Restoring historical FUM1 state deliberately does not call this. */
+    guest_call(sub_0001E310, owner, 1, &changed);
+    fprintf(stderr, "[FIGHTERS] custom progress changed; native Options save requested\n");
 }
 
 static FighterPendingSave *pending_save(void) {
@@ -495,9 +510,9 @@ uint32_t defjam_fighter_controller_submission(uint32_t arguments) {
             fighter_stop("Invalid native controller setup arguments.");
     if (values[0] < 0 || values[2] < 100) return UINT32_MAX;
     if (!s_window.bytes) { defjam_fighter_selection_gate((uint32_t)values[2]); return UINT32_MAX; }
-    /* Native selectors submit 0 during selection and 1 for the first costume
-     * when ready; generated logical entries expose exactly that one costume. */
-    if (values[0] > 3 || !s_validated_database || values[3] < 0 || values[3] > 1
+    /* The original selector passes nConID as its fourth argument (0..3),
+     * independently of clothing. Keep this native controller/color routing. */
+    if (values[0] > 3 || !s_validated_database || values[3] < 0 || values[3] > 3
         || !fighter_window_bind(&s_window, (uint32_t)values[0], (uint32_t)values[2], &row))
         fighter_stop("Logical fighter cannot bind to this participant or the match is still active.");
     if (s_window.frozen) return s_window.banks[values[0]].selection_key;
@@ -532,7 +547,7 @@ uint32_t defjam_fighter_controller_submission(uint32_t arguments) {
             for (uint32_t i = 0; i < s_custom_count; ++i)
                 if (s_custom_keys[i] == row.stable_handle) mark |= s_custom_metadata[i];
             keys[kept++] = mark;
-            remember_custom(mark);
+            if (remember_custom(mark)) custom_progress_changed();
         }
         for (uint32_t i = 1; i < kept; ++i) {
             uint32_t mark = keys[i], j = i;
@@ -552,6 +567,17 @@ void defjam_fighter_menu_event(const char *text) {
         s_window.frozen = 1;
         fprintf(stderr, "[FIGHTERS] participant window frozen for active match\n");
     }
+}
+
+uint32_t defjam_fighter_result_identity(uint32_t participant, uint32_t native) {
+    FighterWindowRow row;
+    if (!s_window.bytes || participant >= FIGHTER_WINDOW_BANKS || !s_window.selected[participant]) return native;
+    if (!s_window.frozen || native != s_window.banks[participant].selection_key
+        || !fighter_window_at(&s_window, s_window.selected[participant] - 1, &row))
+        fighter_stop("Result identity does not match its frozen participant binding.");
+    fprintf(stderr, "[FIGHTERS] result participant=%u native=%u logical=%u stable=%08X\n",
+            participant, native, row.selection_key, row.stable_handle);
+    return row.selection_key;
 }
 
 static uint32_t read_word(const uint8_t *p) {

@@ -22,8 +22,8 @@ def put_word(data, at, value):
 
 class Action:
     """Small assembler for code owned by this runtime, with literal data fixups."""
-    def __init__(self, base):
-        if base % 4:
+    def __init__(self, base, *, continuation=False):
+        if base % 4 and not continuation:
             raise AssetError('Action base must be aligned')
         self.base, self.code, self.literals, self.lists, self.branches, self.labels = base, bytearray(), [], [], [], {}
         self.serial = 0

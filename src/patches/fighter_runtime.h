@@ -23,4 +23,5 @@ void defjam_fighter_selection_gate(uint32_t selection);
 uint32_t defjam_fighter_controller_submission(uint32_t arguments);
 void defjam_fighter_menu_event(const char *text);
 uint32_t defjam_fighter_filter_banks(uint32_t entries, uint32_t count);
+uint32_t defjam_fighter_result_identity(uint32_t participant, uint32_t native);
 #endif

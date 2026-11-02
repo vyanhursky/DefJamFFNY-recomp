@@ -27,6 +27,7 @@ from fighter_archive import MAX_ARCHIVE, portrait_aliases
 from fighter_archive import Archive, store
 from fighter_assets import unpack
 from fighter_menu import compile_menu
+from fighter_results import compile_results
 from fighter_bindings import seed
 from fighter_profile_store import Store
 from fighter_save_journal import Monitor, initialize, encode_unlock_state
@@ -122,7 +123,7 @@ def prepare_portraits(screens, report):
         raise ValueError('Portrait adapter requires the supported original screens archive')
     pairs = {report['bindings'][key]['selection_key']: report['bindings'][donor]['selection_key']
              for key, donor in report['portrait_donors'].items()}
-    result = portrait_aliases(source, pairs)
+    result = portrait_aliases(source, pairs, results=True)
     archive, replacements = Archive(result), {}
     names = {report['bindings'][key]['selection_key']: report['localization_entries'][report['bindings'][key]['native_name']]
              for key in report['portrait_donors']}
@@ -132,6 +133,11 @@ def prepare_portraits(screens, report):
         inner = Archive(unpack(archive.read(path)))
         records = list(report['menu_roster'].values()) if report.get('binding_mode') in ('logical-menu-only', 'participant-window') else None
         movie, constants, _ = compile_menu(inner.read(stem + '.apt'), inner.read(stem + '.const'), pairs, names, records)
+        replacements[path] = store(inner.compose(replacements={stem + '.apt': movie, stem + '.const': constants}))
+        stem = f'matchSm{count}'
+        path = 'screens/battle/' + stem + '.big'
+        inner = Archive(unpack(archive.read(path)))
+        movie, constants, _ = compile_results(inner.read(stem + '.apt'), inner.read(stem + '.const'), names)
         replacements[path] = store(inner.compose(replacements={stem + '.apt': movie, stem + '.const': constants}))
     result = archive.compose(replacements=replacements)
     digest = hashlib.sha256(result).hexdigest()
@@ -160,7 +166,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('sod', type=Path)
     parser.add_argument('packs', nargs='+', type=Path)
-    parser.add_argument('--route', choices=('boot', 'fight', 'ffa', 'versus', 'fighter-roster', 'fighter-roster-4', 'fighter-roster-result'), default='boot')
+    parser.add_argument('--route', choices=('boot', 'fight', 'ffa', 'versus', 'fighter-roster', 'fighter-roster-4', 'fighter-roster-result', 'fighter-roster-save'), default='boot')
     parser.add_argument('--secs', type=int, default=60)
     parser.add_argument('--shots', default='25')
     parser.add_argument('--to-end', action='store_true', help='Use the complete duration for long native-menu acceptance')
@@ -174,6 +180,8 @@ def main():
     parser.add_argument('--logical-menu', action='store_true', help='Browsing-only logical roster prototype; native confirmation blocked')
     parser.add_argument('--binding-window', action='store_true', help='Internal four-participant native binding prototype')
     parser.add_argument('--profile-store', type=Path, default=ROOT / 'logs/fighter-profile-store', help='Internal isolated generation store under logs')
+    parser.add_argument('--fresh-profiles', action='store_true', help='Create a new isolated namespace from native defaults instead of importing a fixture')
+    parser.add_argument('--no-unlock', action='store_true', help='Disable the harness unlock-everything control for native progress/save acceptance')
     parser.add_argument('--ledger', type=Path, help='Internal historical ledger from a previous research cache')
     args = parser.parse_args()
     try:
@@ -183,6 +191,8 @@ def main():
             raise ValueError('Native menu expectations cannot use a StartGame fighter override')
         if args.binding_window and (args.logical_menu or args.start_fighter):
             raise ValueError('Binding window requires native menu selection and no other binding mode')
+        if args.fresh_profiles and not args.binding_window:
+            raise ValueError('Fresh profile research requires the binding window')
         if args.trace_assets and args.trace_profiles:
             raise ValueError('Select one four-breakpoint trace domain per probe')
         if args.logical_menu:
@@ -202,6 +212,8 @@ def main():
             source = registry.retail_catalog(args.sod)
             store = Store(destination, seed(source.db, source.source_sha256, source.rows))
             previous = store.load()
+            if args.fresh_profiles and previous is not None:
+                raise ValueError('Fresh profile research requires an empty store; choose a new research path')
             if previous is not None and args.ledger is None:
                 args.ledger = destination / 'next-ledger.json'
                 atomic_json(args.ledger, previous['ledger'])
@@ -211,10 +223,10 @@ def main():
         portraits = prepare_portraits(args.sod.resolve().parents[1] / 'screens/screens.viv', report)
         data_root = ROOT / 'logs/fighter-runtime-probe'
         if store is not None:
-            generation = initialize(store, data_root / 'save', report['binding_ledger'])
+            generation = None if args.fresh_profiles else initialize(store, data_root / 'save', report['binding_ledger'])
             session = ROOT / 'logs/fighter-window-runs' / uuid.uuid4().hex
             data_root = session / 'fighter-runtime-probe'
-            for name, data in generation['files'].items():
+            for name, data in (generation['files'] if generation else {}).items():
                 path = data_root / 'save' / name
                 path.parent.mkdir(parents=True, exist_ok=True)
                 path.write_bytes(data)
@@ -239,11 +251,14 @@ def main():
                    '--env', 'RECOMP_START_LOG=1', '--env', 'RECOMP_TEST_OBSERVATIONS=1']
         if args.start_fighter:
             command += ['--env', 'RECOMP_START_FIGHTERS=' + start_fighters(report, args.start_fighter)]
+        if args.no_unlock:
+            command += ['--env', 'RECOMP_UNLOCK_ALL=0']
         if args.to_end:
             command += ['--to-end']
         if args.binding_window:
             command += ['--env', 'RECOMP_FIGHTER_WINDOW=' + str(cache / 'fighter-window.bin')]
             command += ['--env', 'RECOMP_FIGHTER_SAVE_JOURNAL=' + str(journal), '--env', 'RECOMP_FIGHTER_UNLOCKS=' + str(unlock_state)]
+            command += ['--supervisor', str(journal / 'supervisor.json')]
         if args.trace_assets:
             command += ['--env', 'RECOMP_WATCH_EXEC=0x001E3FB0,0x00109F80',
                         '--env', 'RECOMP_WATCH_EXEC_ALL=1', '--env', 'RECOMP_WATCH_EXEC_STR=1',

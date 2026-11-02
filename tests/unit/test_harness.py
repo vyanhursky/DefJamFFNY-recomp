@@ -32,6 +32,50 @@ def test_presses_expand():
     assert harness.expand_presses("down@11+0.6x2") == ["down:11:%g" % (11 + d), "down:11.6:%g" % (11.6 + d)]
 
 
+def test_long_roster_navigation_compacts_without_losing_press_times_or_pad_ownership():
+    stages = [f'selector{i}=p{i + 1}-down@10+0.8x75;a@76' for i in range(4)]
+    script = harness.build_pad_script(stages)
+    assert len(script.encode()) <= 4095 and len(script.split(',')) <= 256
+    for index in range(4):
+        expected = f'p{index + 1}-down:10:69.5:0.8:{harness.DIRECTION_HOLD:g}'
+        # Last press is at 69.2, with the normal platform-specific hold.
+        expected = expected.replace('69.5', f'{69.2 + harness.DIRECTION_HOLD:g}')
+        assert expected in script
+    with pytest.raises(ValueError, match='native byte/entry budget'):
+        harness.build_pad_script(['x' * 4096 + '=a@1'])
+
+
+def test_research_save_supervisor_requires_a_fresh_active_heartbeat(tmp_path):
+    path = tmp_path / 'supervisor.json'
+    state = {'schema': 'fighter-save-supervisor-1', 'state': 'active', 'heartbeat': 99, 'detail': ''}
+    assert harness.supervisor_fault(path, now=100)
+    path.write_text(json.dumps(state))
+    assert harness.supervisor_fault(path, now=100) is None
+    assert harness.supervisor_fault(path, now=115)
+    for change in ({'state': 'failed'}, {'state': 'stopped'}, {'heartbeat': float('nan')}, {'heartbeat': True}, {'schema': 'other'}):
+        path.write_text(json.dumps(dict(state, **change)))
+        assert harness.supervisor_fault(path, now=100)
+
+
+def test_supervisor_sharing_race_cannot_extend_last_verified_heartbeat(tmp_path, monkeypatch):
+    path = tmp_path / 'supervisor.json'
+    path.write_text(json.dumps({'schema': 'fighter-save-supervisor-1', 'state': 'active', 'heartbeat': 99, 'detail': ''}))
+    cache = {}
+    assert harness.supervisor_fault(path, now=100, cache=cache) is None
+    original, calls = type(path).open, []
+    def sharing_error(self, *args, **kwargs):
+        calls.append(self)
+        if self == path:
+            raise PermissionError('atomic replacement sharing race')
+        return original(self, *args, **kwargs)
+    monkeypatch.setattr(type(path), 'open', sharing_error)
+    monkeypatch.setattr(harness.time, 'sleep', lambda _: None)
+    assert harness.supervisor_fault(path, now=101, cache=cache) is None
+    assert cache == {'heartbeat': 99} and len(calls) == 4
+    assert harness.supervisor_fault(path, now=115, cache=cache)
+    assert harness.supervisor_fault(path, now=101, cache={})
+
+
 @pytest.mark.parametrize('route,screen', [('fighter-roster', 'choosef2'), ('fighter-roster-4', 'choosef4')])
 def test_roster_probe_browsing_replaces_idle_stage_without_duplicate_anchor(monkeypatch, route, screen):
     calls = []
