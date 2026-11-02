@@ -147,6 +147,9 @@ class Database:
         self._count(count)
         primary = self.index(primary_offset)
         secondary = self.index(secondary_offset)
+        # BE760/BE870 derive this address as header+16 rather than reading
+        # primary_offset. Both access paths must name the same member map.
+        check(primary_offset == offset + 16, 'Native primary member map must be inline')
         all_indexes = []
         for group in (primary, secondary):
             check((group.keyed or not group.values) and len(set(group.keys)) == len(group.keys),
@@ -364,7 +367,14 @@ class Database:
                     keys = []
                     values = list(old_index.values) + [(offset,) for offset in new_rows]
                 pointers.append((emit(index_blob(old_index.tag, keys, values, int(old_index.keyed))),))
-            groups.append(emit(index_blob(None, group.keys, pointers, 1)))
+            # The member set/width is unchanged. Retain its address and rewrite
+            # its pointers in place so inline and pointer-based native readers
+            # observe the very same rebuilt indexes. Relocating this map alone
+            # leaves BE760/BE870 silently using the old Character name index.
+            member_map = index_blob(None, group.keys, pointers, 1)
+            self.range(group_offset, len(member_map))
+            output[group_offset:group_offset + len(member_map)] = member_map
+            groups.append(group_offset)
         struct.pack_into('<3I', output, native_header + 4, *groups, table.count + len(new_rows))
         strings_offset = emit(packed([int.from_bytes(b'STRT', 'little'), len(symbols)]
             + [word for (hashed, _), pointer in zip(symbols, string_pointers) for word in (hashed, pointer)]))

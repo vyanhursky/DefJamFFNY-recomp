@@ -67,9 +67,10 @@ def native_fixture():
     record_list = index(list_key, [], [(x,) for x in record_offsets], 0)
     indexes = {character: name_index, sod.SELECTION_FIELD: numeric_index,
                health_key: health_index, model_key: model_index}
+    table_at = emit(words([character, 0, 0, 2]))
     primary = index(None, sorted(indexes), [(indexes[k],) for k in sorted(indexes)], 1)
     secondary = index(None, [list_key], [(record_list,)], 1)
-    table_at = emit(words([character, primary, secondary, 2]))
+    struct.pack_into('<II', image, table_at + 4, primary, secondary)
     struct.pack_into('<I', image, data_at + 16, table_at)
     string_offsets = [0] + [emit(s.encode('ascii') + b'\0') for s in symbol_names[1:]]
     while len(image) % 4:
@@ -134,6 +135,18 @@ def test_indexes_must_agree():
     broken = changed(data, layout['record_list'] + 12, layout['records'][0] + 4)
     with pytest.raises(sod.SodError, match='disagree'):
         sod.Database(broken)
+
+
+def test_relocated_primary_map_is_rejected_even_when_pointer_readers_can_follow_it():
+    data, layout = native_fixture()
+    db = sod.Database(data)
+    group = db.index(layout['primary'])
+    size = 8 + len(group.values) * 8
+    relocated = len(data)
+    broken = bytearray(data + data[layout['primary']:layout['primary'] + size])
+    struct.pack_into('<I', broken, layout['table'] + 4, relocated)
+    with pytest.raises(sod.SodError, match='must be inline'):
+        sod.Database(bytes(broken))
 
 
 def test_duplicate_records_and_key_order():

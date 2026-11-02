@@ -24,7 +24,7 @@ share one moveset. Installed fighters need not all be resident in memory.
 |---|---|---|
 | Front-end setup identity | `src/patches/dev_unlock.c:145–155` writes a byte at game-data `+0x1AAA + participant*5`; native helpers `1E700`/`1E820` write/read it. StartGame `46E40` sign-extends the returned byte before comparing with Character word 8 | **128–255 become negative in this path.** The unmodified selection representation has an earlier problem than 255; a wider database ID alone cannot fix it. This is a token-domain restriction, not a measured roster-count ceiling. |
 | Reserved selection token | `sub_0001E850`, generated `recomp_0000.c:39420–39427`, compares that byte with `0x63` (99). StartGame handles 99 specially and normalizes to 98 during lookup | 98/99 need explicit created/special-fighter handling. Byte capacity is not automatically a roster of 256 usable entries. No universal 99-fighter ceiling follows. |
-| Character to match setup | StartGame compares selection token with Character schema `fcdba74e` (word 8). Materializer `20270` reads schema `232d89a7` (word 10) into the output core field, which reaches setup `+0xA8` | Selection key and one-based core ID are distinct. Multiple Character definitions may share a core. |
+| Character to match setup | StartGame compares selection token with Character schema `fcdba74e` (word 8); setup `+0xA8` contains the separate one-based core ID | Selection key and core ID are distinct. Multiple Character definitions may share a core. `20270` is a general materializer observed for venue data; its fighter-specific role was not established by this audit. |
 | Match setup to active record | Existing verified trace in `fighter-record-fields.md:63–66`: setup `+0xA8 + 4*participant`, minus one, reaches active record `+0x2C` through `sub_000871F0`, `sub_001A4D90`, `sub_001B3110` | The active character/core index is a dword and uses the one-based setup core ID minus one. This does not prove storage capacity. |
 | Moveset reader | `sub_001B2090`, `recomp_0012.c:57802–57805`: dword record field `+0x2C`, 16-byte row indexing of pointer table at `0x3B864C` | No byte truncation/255 comparison in this inspected sequence. It is a 32-bit indexing path, not proof the referenced table is large enough. |
 | Other move consumers | `sub_001B4930`, `recomp_0012.c:64447–64502`; `sub_001B4BA0:64680–64699`, same dword field/16-byte stride, pointer at `0x3B8654` | Subsequent byte/word loads access move data/indices; they do not alone prove truncation of the character/core index. |
@@ -50,6 +50,15 @@ The [implementation checkpoint](fighter-mod-implementation-2026-11-01.md)
 records exact inputs, hashes, native parser functions and reproducible commands.
 The new definitions inherit a donor's one-based core ID; 375 Character rows do
 not mean 375 distinct movesets. No additional animation or voice bank was loaded.
+The first experiment followed index pointers only and missed an inline member-map
+invariant. The [runtime follow-up](fighter-mod-runtime-2026-11-02.md) corrects the
+writer and adds native packed-handle round trips. The old result alone is not
+proof that those 375 records work through all native database APIs.
+The corrected 375-row experiment now passes all six oracle functions, including
+handle creation and row resolution for selection key 276 (native handle
+117440730). Evidence: `logs/fighter-inline-375-oracle.json`, SOD SHA-256
+`765c5f58404bfc1ab4928ad03c7d979e7200725cd2fc38908f2dfeece354d175`.
+This remains CPU database acceptance, not a playable 375-fighter roster.
 
 The generated cache preserves original record bytes and ordinal-index positions,
 but rebuilding sorted name indexes changes 58 retail ranks. Any cached/saved
