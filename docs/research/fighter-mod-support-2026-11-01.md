@@ -4,20 +4,18 @@
 **the mod is not playable in our runtime as a result of this research**.
 The owner requested local R&D only; no public PR or branch push.
 
-## Recommendation
+## Revised recommendation after owner review
 
-Build **Fighter Mod Support** as an engine feature, with **Fighters** as its
-launcher mod category alongside Textures and Languages. Start with a constrained
-compatibility profile for this particular Vendetta package, then expose an
-additive, declarative authoring format. Do not make whole-database replacement
-the normal authoring API. Renaming the ZIP or wrapping it in our texture manifest
-cannot provide the missing game behavior.
+The owner requests a maintainable general system first, with ordinary packages
+containing one or many fighters and multiple packs enabled together. The initial
+proposal for an exclusive legacy compatibility bundle is withdrawn. The current
+architecture, genuine alternatives and review gates are in
+[Fighter Mod Support — revised plan](../fighter-mod-support.md).
 
-Keep legacy imports explicit: one legacy roster pack at a time initially, fixed
-declared IDs, source fingerprint checks, and no silent conflict resolution with
-language/data mods. This is a compatibility mode, not the design for all future
-fighter mods. A replacement fighter (reskin or moveset replacement) and an added
-roster entry must be distinguished in metadata and validation.
+Vendetta remains a possible standard-format conversion/acceptance case. Its
+shared database replacements and reference-runtime assumptions do not define the
+public contract. No special compatibility profile or hash-specific runtime branch
+is planned. The package facts and source observations below remain useful.
 
 ## Evidence and reproducibility
 
@@ -199,77 +197,28 @@ validation), rather than overloading that field. Display **Fighters**, retain
 the existing Textures/Languages behavior, show unmet requirements/conflicts and
 require restart for changes to gameplay data.
 
-## Proposed architecture and compatibility strategy
+## Current architecture and capacity follow-up
 
-1. **One effective data overlay.** Compute it before launch from the verified
-   original dump and the enabled language/fighter packs. Cache identity includes
-   dump fingerprint, runtime/overlay schema and ordered package hashes. Serve
-   immutable rebuilt files through the existing redirect facility. Support
-   existing and new archive members explicitly, or introduce an independently
-   validated member-open hook where rebuilding cannot express a new file route.
-   Do not require the user's dump to be modified.
-2. **Semantic registration.** Separate fighter identity, core/moveset, model,
-   voice, AI, portraits, cinematics and availability. Merge typed records and
-   build the final SOD/move/tag/UI structures once. Preserve retail records and
-   Story hero slots. Treat replacement of a retail record as an explicit action.
-3. **Stable logical IDs; bounded engine slots.** Authors use `pack-id/fighter-id`.
-   The engine adapter resolves these into validated native indices. Persist the
-   mapping with modded state and the roster fingerprint; never derive it from
-   texture load order or silently reinterpret an existing save. Original cores
-   0–141 are reserved pending independent validation; 142–255 is only a candidate
-   114-slot extension budget if every consumer is proved byte-safe. Do not claim
-   unlimited fighters. Binary legacy imports keep their declared IDs and must
-   conflict with any overlapping allocation until complete relocation is proven.
-4. **Composition rules.** Different added fighter IDs compose. Duplicate IDs and
-   undeclared edits to shared gameplay records fail validation. Texture overrides
-   keep normal priority. Whole-file deltas made against the same original do not
-   automatically compose by applying them in order. Merge semantics, a separately
-   reviewed compatibility patch, or a clear conflict is required. Language mods
-   that touch translated selection movies/strings need this same analysis.
-5. **Save behavior.** Begin with added fighters available outside retail unlock
-   storage and an isolated modded profile namespace. Record the roster/slot map.
-   When a required fighter is missing, preserve the save and show a recoverable
-   error; do not silently reassign its ID or repair bytes from a canned template.
-   Verify disable/remove/re-enable and unmodified retail profiles before relaxing
-   isolation. Existing game locks do not solve save compatibility.
-6. **Runtime-owned accommodations.** Implement bounded moveset/voice/Blazin/UI
-   tables and access validation once; packs only declare data. Ship no arbitrary
-   memory-write directives or pack-supplied native hooks. Implement flags/ABI
-   preservation and direct-call coverage according to our lifter rules.
+See the [revised plan](../fighter-mod-support.md) for the semantic registry,
+resolver, engine adapters, save policy options, package composition and UI choices.
+The [capacity audit](fighter-mod-capacity-2026-11-01.md) finds byte-width selection
+and 32-bit runtime index paths. A universal 255-fighter limit and the cost of
+exceeding it remain unproved. Do not inherit the reference's 256-core allocation
+as the feature's public limit.
 
-For future networking/replays, include roster/schema/runtime versions, enabled
-gameplay package hashes and resolved mapping in the simulation fingerprint.
-This is future compatibility design, not a claim that our current game has
-online multiplayer.
-
-### Legacy Vendetta importer
-
-Recognize this exact archive hash as the initial researched compatibility
-profile; reject unknown revisions until inspected. Read its French metadata and
-mapping files, retain provenance, and convert declared target routes to our
-manifest. Preserve the original ZIP. Do not auto-enable the result.
-
-The first playable implementation can retain its SOD/shared-file replacements
-as a **single exclusive legacy roster bundle**, with explicit conflict metadata,
-provided all required runtime capabilities are implemented. This is substantially
-less reverse engineering than immediately decomposing every SOD/tag/motion
-record into a fully composable pack. It still needs the table, cinematic, unlock,
-save and UI work above. General authoring should graduate to record-level inputs
-instead of encouraging every creator to ship another full database.
-
-A converted archive is not produced by this research: there is no accepted
-fighter manifest/runtime capability yet, so such an archive would misleadingly
-look installable. The verified unpacked data is ready for the implementation
-spike. The detailed authoring workflow and acceptance gates are in
-[Fighter Mod Support](../fighter-mod-support.md).
+No converted archive has been produced: the standard package contract and engine
+support must be defined and reviewed first. The verified extracted input remains
+local evidence for eventual conversion through the ordinary toolchain.
 
 ## Decisions and hand-off
 
 - D-new: user names the feature Fighter Mod Support and assigns v0.15.0.
 - D-new: preserve reference-code independence; use the supplied assets and
   independently checked game behavior to implement our own runtime support.
-- D-new (proposal): compatibility bundle first, composable semantic registration
-  as the authoring target; no unconditional generic raw-mod loader.
+- D-new: owner supersedes the compatibility-bundle proposal. Build the general
+  maintainable system first; one- and multi-fighter packs use the same contract.
+- D-new: assess capacity beyond 255 without assuming a global native-ID ceiling;
+  review expansion versus virtual bindings after the identity/persistence audit.
 
 Validation for this local research iteration:
 
@@ -293,7 +242,6 @@ The requested v0.15.0 GitHub milestone was created before the owner changed the
 publication instruction. No research branch or PR was pushed/opened. Keep all
 further R&D local until asked to publish.
 
-Next: implement the bounded feasibility spike in the linked plan, keeping R&D
-local until the owner requests publication. Run quick and area-specific gameplay
-checks after runtime changes, then the platform release gates. Metadata integrity
-and the inspector's tests are not gameplay acceptance.
+Next: owner review of the revised plan and decisions D1–D6 before implementation.
+Keep R&D local. Later runtime work requires quick/area-specific checks followed
+by platform release gates; metadata integrity is not gameplay acceptance.

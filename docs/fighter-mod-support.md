@@ -1,131 +1,265 @@
-# Fighter Mod Support
+# Fighter Mod Support — revised plan for review
 
-**Planned for v0.15.0; not implemented or available in released builds.**
-The launcher category will be **Fighters**, alongside Texture and Language mods.
-The initial compatibility target is the owner's `Def Jam Vendetta.mod` package.
-See the [investigation](research/fighter-mod-support-2026-11-01.md) for measured
-archive contents, game limits and reference-source evidence.
+**Target: v0.15.0. Status: local R&D; architecture awaiting owner review.**
+No runtime implementation, public branch push or public PR. This revision follows
+the owner's request to build the maintainable system first. It supersedes the
+proposal to ship a Vendetta-specific compatibility bundle. Review precedes
+implementation; the recommendations below are not approved decisions.
 
-## What the feature should support
+## Direction already agreed
 
-- Add a fighter without replacing a retail fighter, with its own model,
-  textures, portraits, AI, donor moveset or authored animations, voice, entry,
-  victory and optional special-move cinematic.
-- Explicitly replace selected fighter components when that is the author's intent.
-- Install, enable, disable, remove and roll back through the existing mod manager.
-- Explain missing runtime capabilities, duplicate fighter IDs and data conflicts
-  before launch. Installation alone never enables a pack.
-- Preserve retail profiles and make modded save dependencies recoverable.
+- Feature: **Fighter Mod Support**. Launcher category: **Fighters**.
+- A pack defines **one fighter or many fighters**. Several independent packs must
+  coexist. Single/multiple fighters use the same pipeline, with shared resources
+  and explicit references between definitions.
+- Preserve retail fighters and Story behavior. Additions and explicit overrides
+  of existing fighter components are separate operations.
+- Packages supply validated data/assets. Executable behavior belongs to the
+  recomp; no mod-provided native hooks, arbitrary memory patches or edits to
+  generated game code.
+- Adding/updating/disabling/removing packs must preserve profiles and progression.
+  Missing content remains recoverable; saved identities never become other fighters.
+- Vendetta is an eventual real-world conversion/acceptance case. It does not set
+  our schema, IDs, limits, database layout or save policy. Any converter must emit
+  the ordinary format and pass the ordinary validator. No exclusive legacy mode
+  or hash-specific runtime branch.
+- Keep R&D local and preserve independence from the reference implementation.
 
-## Package contract to develop
+## Proposed system
 
-This is a design checklist, **not an accepted file schema or working example**.
-Freeze a versioned schema only after a one-fighter spike proves the whole path.
+A fighter is a typed definition with stable identity and references to appearance,
+behavior and presentation resources. Several fighters can share movesets, voices
+or asset libraries; these counts do not necessarily grow together. Extract the
+retail definitions locally into the same internal representation. Do not ship
+another copy of the game's databases.
 
-| Declaration | Purpose |
-|---|---|
-| Package identity, version, authors and provenance | Stable receipts, updates and attribution |
-| Category `fighters` and minimum runtime/capabilities | Show it in Fighters; refuse unsupported builds |
-| Stable `pack-id/fighter-id` keys | Identity independent of model numbers and load order |
-| Add versus replace operation | Preserve the retail roster by default |
-| Model, textures, portrait and selection label | Match and selection representation |
-| Moveset/core source, AI and bounded stats | Define actual behavior independently of appearance |
-| Voice banks and animation-event bindings | Route the correct participant's speech and effects |
-| Entry, victory, special moves and activation sequence | Avoid player-1/shared-cinematic assumptions |
-| Exact target records/assets, source/result hashes where applicable | Validate baseline and deterministic composition |
-| Dependencies and conflicts | Reject incompatible gameplay edits before launch |
-| Save/roster schema and content fingerprint | Detect missing or changed fighter definitions |
+```mermaid
+flowchart TD
+    A[Verified original dump] --> C[Typed retail definitions]
+    B[Enabled fighter packs and dependencies] --> D[Validated mod definitions]
+    C --> E[Resolve references, edits and conflicts]
+    D --> E
+    E --> F[Immutable roster snapshot and resource budgets]
+    F --> G[Game adapters: files, tables, UI and cinematics]
+    F --> H[Save bridge: stable identities and missing content]
+```
 
-Runtime capabilities should be granular internally (data overlay, registration,
-extended move tables, cinematic features). Advertise a public `fighters-v1`
-only when its promised behavior and acceptance tests exist. Legacy imports may
-require a separate capability/profile; they must not masquerade as ordinary
-fully composable packs.
+The **registry** describes fighters/resources. The **resolver** builds a consistent
+roster. The **adapters** make the original game consume it safely. No relational
+database server is required.
 
-## Proposed authoring workflow
+Keep package identity, stable fighter/resource keys, native selection IDs, native
+moveset/core indices, voice IDs, SOD handles and participant slots distinct.
+Persistent state uses stable keys; engine numbers are internal bindings. Each
+binding is fixed for its declared lifetime. Match-scoped bindings can change only
+at audited teardown/load boundaries. Restore must reconstruct or explicitly
+migrate any native numbers retained by the save format.
 
-1. **Start with a donor-based fighter.** Pick a known supported retail skeleton
-   and moveset. Assign a stable package/fighter key. Supply replacement model,
-   textures and portraits, with explicit donor/voice/AI choices. A full custom
-   moveset should be a later authoring tier.
-2. **Validate the asset formats.** Check skeleton/joint ordering, vertex weights,
-   model/material references, texture layouts, animation timing and events.
-   Console-source assets may need conversion; unzipping another game's assets
-   is not a conversion pipeline. This Vendetta pack already contains target
-   format assets, but the original conversion toolchain was not established as
-   a public reusable dependency in this investigation.
-3. **Author isolated records.** Provide typed fighter and dependency declarations,
-   not hand-edited complete copies of `djv2.sod`, `main_all.dat`, animation tags
-   or selection movies. An assembler should merge additions against the player's
-   verified dump and generate the necessary runtime data.
-4. **Preview before packaging.** Check model/skeleton/texture binding and each
-   animation, then selection navigation/portraits and a real fight. Record the
-   runtime version and donor/assets used. Preview tools and converters should
-   live in the modding-tools project; engine integration belongs in this repo.
-5. **Build and lint.** Resolve logical IDs to bounded engine slots, check archive
-   references, enforce per-table budgets and create a reproducible package with
-   hashes and conflicts. Runtime storage limits are explicit errors.
-6. **Test lifecycle and composition.** Run the fighter against retail and custom
-   opponents, with four participants, repeated matches and each enabled language.
-   Test install/disable/re-enable/update/remove with disposable saves and verify
-   retail save bytes remain unchanged.
-7. **Distribute through the existing manager/catalogue path.** Keep game assets
-   out of this source repository. Catalogue `linked`/`original` describes content
-   provenance, not the Fighters category. Catalogue publication remains a
-   separate reviewed operation.
+Changes build a new validated snapshot and require restart. Failed validation
+preserves working settings/files/saves and reports the problem; never silently
+launch a different roster. Reuse manager receipts, locks and transactions. Cache
+identity includes dump, schema/adapter version, resolved content and bindings.
 
-There is currently no supported “export fighter mod” command or general-purpose
-fighter converter in this project. The workflow above defines the toolchain to
-build and document, rather than asking creators to depend on undocumented manual
-patches in generated game code.
+## Architectural decisions to review together
 
-## v0.15.0 implementation and acceptance checklist
+These options are legitimate alternatives. Some are conditional on what the
+engine audit proves possible. Recommendations are proposals for review.
 
-### A. Prove one added fighter end to end
+### D1. Capacity: wider native indices or virtual engine slots?
 
-- [ ] Decode enough SOD structure to identify a fighter and its key references;
-  compare the supplied SOD with the owner's original. Prove which subsystems
-  still use `fighter.xml` and which use SOD.
-- [ ] Independently establish core/voice/selection/unlock storage bounds and all
-  relevant readers. Reserve retail/Story IDs; implement bounded extension.
-- [ ] Extend the data overlay for added assets and existing member replacements;
-  prove nested archive behavior and POSIX/case handling.
-- [ ] Register one new logical fighter, select it and complete a match; verify
-  no retail fighter or hero style is replaced unintentionally.
-- [ ] Verify direct and indirect lifted callers reach accommodations, and ensure
-  regeneration preserves them. No post-lift text-patching requirement.
+**A — Expand native indices/tables.** Give the game a consistently larger roster.
+Audit/adapt every narrow selection, runtime and persistence boundary. Relocating
+arrays can be straightforward; widening struct fields may affect many embedded
+offsets and readers.
 
-### B. Make the supplied Vendetta pack compatible
+**B — Map a large logical roster into bounded native slots.** Reuse existing
+layouts where practical and bind selected content at a well-defined session or
+match boundary. This avoids some structural changes but requires complete control
+of cached IDs, previews, voice banks, cinematics and resource lifetime. Four active
+fighters does not prove that four reusable slots suffice.
 
-- [ ] Define the initial legacy import manifest/profile and recognize the audited
-  input hash; unknown revisions require new inspection.
-- [ ] Convert its 46 core/activation mappings with validated targets and resolve
-  the advertised-44 versus observed-46 roster discrepancy.
-- [ ] Support its 177 WPAR/WWAZ pairs, donor voices, extended Blazin list and event
-  bindings, per-participant activation, entries and victories.
-- [ ] Validate selection movie indices, all relevant fighter-count limits and
-  multi-player navigation; retain custom-fighter/hero UI behavior.
-- [ ] Keep added unlock availability outside unsafe retail storage; establish
-  save layout from our own evidence. Isolate modded profiles initially.
-- [ ] Run all mapped fighters through asset loading and intro/fight/victory;
-  cover special/activation variants for player 1, player 2 and CPU, including
-  mixed retail/custom and four-fighter matches. Check speech by listening.
-- [ ] Run repeat matches and a soak, measure load time/memory and reject dangling
-  references, buffer growth, crashes, wrong-owner cinematics or lost save data.
+**Recommendation:** stable logical keys and a width-independent package schema
+now; choose expansion/virtualization **after the capacity audit**. Prefer direct
+table expansion where sufficient; virtualize where narrow layouts make widening
+much more invasive. A hybrid needs explicit invariants for each binding boundary.
+Do not assume 255 is a product limit or promise unlimited fighters.
 
-### C. Integrate the launcher and authoring contract
+**Current evidence:** some moveset indices/profile keys are 32-bit; a front-end
+identity field is one byte with a reserved value. The reference's 256-entry array
+is not a universal engine limit. Ease of exceeding 255 remains unproved. See the
+[capacity audit](research/fighter-mod-capacity-2026-11-01.md).
 
-- [ ] Add Fighters to installed/catalogue filtering and pack metadata, capability
-  gates, settings projection, persistence and restart messaging across platforms.
-- [ ] Support transactional import/rollback/removal and immutable runtime caches.
-  Reject duplicate IDs, undeclared record conflicts and unsafe asset paths.
-- [ ] Retain texture priority behavior and language single-selection. Either prove
-  language/fighter shared-data composition or show a precise conflict reason.
-- [ ] Freeze the native declarative schema, provide a minimal non-game-data
-  example and converter/validator documentation in the modding-tools project.
-- [ ] Verify disable/remove/re-enable, missing-package saves and rollback with
-  disposable fixtures; never overwrite an incompatible save.
-- [ ] Run unit/native fixtures plus quick/targeted game checks for implementation
-  PRs, and the Windows/macOS/Linux release-candidate gates and owner play-test.
+### D2. Integration: compile native data or register through runtime hooks?
 
-Completing an inspection or repackaging the ZIP does not complete these gates.
+**A — Assemble native data before launch.** Compile the resolved registry into
+cached databases/archive members; redirect reads and grow tables as necessary.
+Preserves more original loading behavior and supports offline inspection, but
+requires serializers and potentially costly cold builds.
+
+**B — Runtime registration hooks.** Intercept relevant lookup/load paths and
+serve registry-owned records. Avoids some archive rebuilding, but makes us
+responsible for layouts, ownership and direct/indirect call coverage.
+
+**Recommendation:** one typed resolver with a hybrid adapter: cache native data
+where formats are understood; use narrow maintained runtime hooks for capacity,
+identity and behavior files cannot express. Choose the exact split after the
+consumer inventory. Compose language/fighter changes through one overlay plan
+rather than independently generating conflicting copies of the same file.
+
+### D3. Saves: extend existing profiles or separate mod-enabled profiles?
+
+**A — Retail profile plus versioned extension/sidecar.** Store custom identity,
+progression, availability and bindings in companion state, keeping retail progress
+usable. Requires intercepting every custom persistence path and coherent commit/
+recovery of the related files. A sidecar alone cannot prevent unsafe retail writes.
+
+**B — Isolated mod-enabled profiles.** Import/copy retail progress into a separate
+namespace and preserve original files. Contains unknown native save-layout risks
+and simplifies rollback, but players manage a separate progression history and
+need explicit import/export rules.
+
+**Recommendation for discussion:** A is the friendlier long-term experience if
+complete persistence isolation can be proven; B is a valid permanent policy if
+separate progression is preferred. Do not silently introduce B as a temporary
+workaround. Review before coding the save bridge. Both retain dormant stable
+records for missing fighters and block actions needing unavailable content with
+a restore path. No silent substitution, lost progression or sample-based repair.
+
+### D4. Overrides: strict ownership or typed component composition?
+
+**A — One owner per definition.** Conflicting edits need an explicit compatibility
+patch. Simpler to explain/test, but rejects independent portrait and voice edits.
+
+**B — Compose disjoint components.** Combine independent edits; conflicting claims
+on a component require an explicit override/patch. More flexible, but skeleton/
+model/animation and voice/event bundles need documented compatibility groups.
+
+**Recommendation:** B with coarse compatibility groups and explicit overrides.
+Validate the combined fighter. Texture priority must not silently resolve gameplay
+conflicts. Resolve dependency/version constraints to an exact local content lock.
+
+### D5. Multi-fighter packs: whole-pack or individual fighter activation?
+
+**A — Whole-pack activation.** Install/update/enable atomically; simpler dependency
+and settings behavior and fewer accidental partial configurations.
+
+**B — Individual activation.** Players choose fighters inside a pack. Shared
+resources and cross-fighter references need dependency closure; disabling one
+fighter needs the same save policy as disabling its pack.
+
+**Recommendation:** A for the initial public contract, retaining independent
+fighter keys internally. If individual selection matters for v0.15.0, choose B
+now and include it in resolver tests. Merely hiding a roster entry with a display
+filter is different from disabling its definition/resources.
+
+### D6. Selection UI: extend the game's interface or use a host browser?
+
+**A — Extend native selection movies.** Keep the original visual/controller flow,
+with pagination/filtering and generated portrait registration. Requires a reusable
+UI authoring/bounds solution; packs must not replace whole selection movies.
+
+**B — Host-rendered roster browser.** Scales search/filtering more naturally and
+passes validated selections into native match setup. Changes presentation and
+requires integration with every relevant mode. A launcher-only picker is not
+enough for in-game selection flows.
+
+**Recommendation:** evaluate A first for continuity, then compare cost with B.
+Review a small mockup before implementing either. Both must preserve player/CPU
+selection, supported participant arrangements, retail unlock display and created
+fighters. No UI rewrite is approved by this plan revision.
+
+Routine syntax choices should follow project conventions rather than become
+owner decision overhead. A strict versioned JSON-like manifest is a reasonable
+starting point; it contains logical references, never engine addresses.
+
+## Package and authoring contract
+
+This is a checklist, not a frozen schema or supported export command.
+
+- **Package:** stable ID/version, authors/provenance, category, runtime/capabilities,
+  dependencies/version constraints, conflicts and content hashes.
+- **Definitions:** independently keyed fighters and reusable typed resources;
+  explicit add/component-override operations. No global numeric-ID coordination
+  between authors and no complete replacement retail databases.
+- **Fighter:** display/localized names, model/skeleton/materials, textures,
+  portraits, stats/AI, movesets, voices/events, entry/victory/Blazin sequences and
+  mode/availability policy. Unsupported combinations get actionable diagnostics.
+- **Assets:** pack-relative validated files and target-format requirements;
+  shared libraries require explicit dependencies. Check joint compatibility,
+  references, indices, lengths and decompression/memory budgets, not extensions
+  alone. Authoring tools convert formats; packages execute no conversion code.
+- **Evolution:** versioned schema and immutable published keys; explicit aliases/
+  migrations for deliberate renames. Display names are independent of identity.
+  Runtime-owned migrations preserve backups and never reinterpret saved identities.
+
+Creator workflow: inspect a supported donor, author named definitions/assets,
+validate and preview a fighter, assemble one/multiple fighters, then test alongside
+another independent pack. Donor reuse is optional resource sharing; the schema
+also expresses authored movesets/voices/cinematics for supported native formats.
+Each advertised component needs validation and an in-game acceptance case.
+
+Reusable extraction/conversion/preview/package tools belong in the modding-tools
+project. This game repo owns the contract, resolver integration and adapters.
+Source/examples remain game-free; creators supply their own assets.
+
+## Work sequence and review gates
+
+1. **Architecture review.** Review D1–D6, particularly capacity and save policy.
+   Record choices separately from hypotheses. No pack-specific bridge while open.
+2. **Capacity/format/persistence audit.** Trace identity domains end to end; decode
+   required SOD/motion/tag/UI structures and derive native save/load allocation/
+   layouts. Deliver a consumer matrix and expansion-versus-virtualization cost
+   comparison. Resolve D1/D2/D3 with evidence before fixing native layouts.
+3. **Contract/resolver.** Canonical retail/mod definitions, versioned package
+   schema, reference/dependency/conflict validation and deterministic snapshots.
+   Synthetic single/multiple/shared-resource/conflicting-pack fixtures first.
+4. **General adapters.** Wire data into loaders, tables, animation/voice events,
+   cinematics and UI. One-fighter vertical slice tests the final architecture
+   internally; it is not a separate limited product. Then prove independent packs.
+5. **Save lifecycle/launcher.** Reviewed persistence policy, missing-content
+   behavior, transactional activation, Fighters category, capabilities, restart/
+   settings behavior and the chosen roster interface.
+6. **Authoring tools/real-world conversion.** Document the standard format and
+   game-free examples. Attempt to decompose Vendetta into ordinary definitions,
+   comparing the original dump to exclude unrelated global replacements. Report
+   unsupported semantics; extend the general model only where justified. Do not
+   add a private special-case runtime if conversion cannot express a component.
+7. **Acceptance/v0.15.0 readiness.** Complete the gates below on supported
+   platforms. If required lifecycle/capacity behavior is unproved, return to
+   review with evidence and scope tradeoffs instead of making a release shortcut.
+
+## Acceptance criteria
+
+- [ ] One- and multi-fighter packs use the same path; independent enabled packs
+  coexist without displacing retail fighters.
+- [ ] Every promised component has validation and native acceptance coverage,
+  including authored resources and compatible donor reuse.
+- [ ] Definitions/bindings are deterministic and stable under irrelevant pack
+  reordering; conflicts preserve working state. Snapshot changes require restart.
+- [ ] Document limits separately for installed definitions, selectable fighters,
+  distinct movesets, voices/UI resources and simultaneous participants.
+- [ ] Test 254/255/256/257, reserved sentinels, sparse/high keys and actual native
+  boundaries. If >255 is implemented, prove more than 256 selectable entries and
+  selection through formerly narrow paths; changing a manifest number is not a
+  capacity test. Explicitly test any lower chosen bound and slot rebinding.
+- [ ] Install/update/rollback/disable/remove/re-enable, missing packs/fighters and
+  interrupted saves preserve retail/custom progression and stable identities.
+- [ ] Cover mixed retail/custom fights, player 1/player 2/CPU activation, four
+  participants, previews/entry/victory, repeat matches, Story/created-fighter paths
+  and coexistence with languages/textures touching related data.
+- [ ] Re-lift preserves direct/indirect hook coverage; no generated-source patch
+  scripts, arbitrary mod code or mutable original dump required.
+- [ ] Measure snapshot/cache build, cold/warm loads, memory, resource lifetime and
+  soak behavior. Large installed rosters do not imply preloading all their assets.
+- [ ] Run unit/native/targeted gates, then Windows/macOS/Linux release-candidate
+  checks and owner play-test.
+- [ ] Vendetta conversion, if feasible, produces a normal package that coexists
+  with another pack. Record compatibility per component; it cannot replace
+  acceptance of the general system.
+
+## Review hand-off
+
+The original investigation remains evidence for package/binary facts; its legacy
+bundle recommendation is superseded. The new [capacity audit](research/fighter-mod-capacity-2026-11-01.md)
+records the bounded source findings behind the 255 discussion. No production
+limit, persistence policy, UI rewrite or implementation strategy is approved yet.
