@@ -315,6 +315,50 @@ def test_language_pack_preparation_keeps_other_native_files_and_rejects_sod_over
         probe.prepare_language_screens(source, folder)
 
 
+def texture_layer(root, name):
+    from PIL import Image
+    folder = root / name; folder.mkdir(parents=True)
+    Image.new('RGBA', (4, 4), 'blue').save(folder / 'image.png')
+    (folder / 'manifest.ini').write_text('[pack]\nschema=1\n[textures]\n' + 'a' * 64 + '=image.png\n')
+    return folder
+
+
+def test_texture_environment_preserves_native_pack_precedence_and_shared_language_root(tmp_path, monkeypatch):
+    probe = driver(tmp_path, monkeypatch)
+    first = texture_layer(tmp_path / 'mods', 'first')
+    last = texture_layer(tmp_path / 'mods', 'last')
+    language = tmp_path / 'mods/xx-test'; language.mkdir()
+    assert probe.texture_environment([], None) == {}
+    environment = probe.texture_environment([first, last], language)
+    assert environment == {'RECOMP_TEXTURE_ROOT': str(first.parent), 'RECOMP_TEXTURE_PACKS': 'first;last',
+                           'RECOMP_TEXTURE_TRACE': '1', 'RECOMP_LANGUAGE_PACK': 'xx-test'}
+    with pytest.raises(ValueError, match='pack twice'): probe.texture_environment([first, first])
+    other = texture_layer(tmp_path / 'other', 'other')
+    with pytest.raises(ValueError, match='shared pack root'): probe.texture_environment([first, other])
+    with pytest.raises(ValueError, match='shared pack root'): probe.texture_environment([other], language)
+    # A language pack's own images are validated even when automatically prepended.
+    (language / 'manifest.ini').write_text('[pack]\nschema=1\n[textures]\n' + 'b' * 64 + '=missing.png\n')
+    with pytest.raises(ValueError, match='Missing image'): probe.texture_environment([first], language)
+
+
+def test_texture_environment_rejects_redirected_images_and_native_list_truncation(tmp_path, monkeypatch):
+    probe = driver(tmp_path, monkeypatch)
+    first = texture_layer(tmp_path / 'mods', 'first')
+    (first / 'manifest.ini').write_text('[pack]\nschema=1\n[textures]\n' + 'a' * 64 + '=images/image.png\n')
+    outside = tmp_path / 'outside'; outside.mkdir()
+    directory_link(outside, first / 'images')
+    with pytest.raises(ValueError, match='Redirected pack file path'):
+        probe.texture_environment([first])
+    monkeypatch.setattr(probe, 'validate_textures', lambda _: None)
+    folders = []
+    for index in range(17):
+        folder = tmp_path / 'mods' / (str(index).zfill(3) + 'x' * 60); folder.mkdir(); folders.append(folder)
+    assert len(probe.texture_environment(folders[:16])['RECOMP_TEXTURE_PACKS']) == 1023
+    with pytest.raises(ValueError, match='pack-list budget'): probe.texture_environment(folders)
+    language = tmp_path / 'mods/xx-test'; language.mkdir(); (language / 'manifest.ini').write_text('placeholder')
+    with pytest.raises(ValueError, match='pack-list budget'): probe.texture_environment(folders[:16], language)
+
+
 def test_native_save_acceptance_requires_the_requested_kind_in_a_committed_closed_batch(tmp_path, monkeypatch):
     from test_fighter_save_journal import batch, put_acks, state, OPTIONS, PROFILE
     probe = driver(tmp_path, monkeypatch)

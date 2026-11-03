@@ -456,5 +456,18 @@ def test_language_delta_rejects_redirected_intermediate_directory(tmp_path, rela
         link.symlink_to(outside, target_is_directory=True)
     (folder / 'language.ini').write_text('[language]\nschema=1\nname=X\nlanguage=x\n[files]\n'
                                        'gconfig.xml = ' + relative + '/001.djd\n')
-    with pytest.raises(ValueError, match='Redirected language delta path'):
+    with pytest.raises(ValueError, match='Redirected pack file path'):
         mods.language_manifest(folder)
+
+
+def test_texture_reference_rejects_redirected_intermediate_directory(tmp_path):
+    outside = tmp_path / 'outside'; outside.mkdir()
+    folder = tmp_path / 'pack'; folder.mkdir()
+    if sys.platform == 'win32':
+        import _winapi
+        _winapi.CreateJunction(str(outside), str(folder / 'images'))
+    else:
+        (folder / 'images').symlink_to(outside, target_is_directory=True)
+    (folder / 'manifest.ini').write_text('[pack]\nschema=1\n[textures]\n' + 'a' * 64 + '=images/picture.png\n')
+    with pytest.raises(ValueError, match='Redirected pack file path'):
+        mods.validate_textures(folder)

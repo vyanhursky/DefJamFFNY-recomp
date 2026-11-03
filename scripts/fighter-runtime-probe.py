@@ -33,7 +33,7 @@ from fighter_results import compile_results
 from fighter_bindings import seed
 from fighter_profile_store import Store
 from fighter_save_journal import Monitor, initialize, encode_unlock_state, bounded, closed_record, decode
-from mods import atomic_json, linked, language_manifest, ordinary_path
+from mods import atomic_json, language_manifest, ordinary_path, validate_textures
 
 
 def require_idle_game():
@@ -163,10 +163,44 @@ def original_screens(screens):
     return source
 
 
+def pack_folder(folder):
+    folder = ordinary_path(folder)
+    if not re.fullmatch(r'[A-Za-z0-9_.-]{1,63}', folder.name) or '..' in folder.name:
+        raise ValueError('Composition needs an ordinary supported pack folder')
+    return folder
+
+
+def texture_environment(folders, language=None):
+    """Use the native pack order/root; never copy installed packs into the probe."""
+    folders = [pack_folder(folder) for folder in folders]
+    language = pack_folder(language) if language is not None else None
+    roots = {folder.parent for folder in [*folders, *([language] if language else [])]}
+    if len(roots) > 1:
+        raise ValueError('Native language/texture composition needs one shared pack root')
+    names = [folder.name for folder in folders]
+    if len({name.casefold() for name in names}) != len(names):
+        raise ValueError('Texture composition lists a pack twice')
+    for folder in folders:
+        validate_textures(folder)
+    if language is not None and (language / 'manifest.ini').exists() and language not in folders:
+        validate_textures(language)
+    # pc_language may prepend its own image layer. Account for that before the
+    # native texture loader's 1024-byte list would silently drop a trailing pack.
+    total = list(names)
+    if language is not None and (language / 'manifest.ini').exists() and language.name not in total:
+        total.insert(0, language.name)
+    if len(';'.join(total).encode('ascii')) >= 1024:
+        raise ValueError('Texture composition exceeds the native pack-list budget')
+    environment = {'RECOMP_TEXTURE_ROOT': str(next(iter(roots)))} if roots else {}
+    if names:
+        environment.update(RECOMP_TEXTURE_PACKS=';'.join(names), RECOMP_TEXTURE_TRACE='1')
+    if language is not None:
+        environment['RECOMP_LANGUAGE_PACK'] = language.name
+    return environment
+
+
 def prepare_language_screens(screens, folder):
-    folder = folder.absolute()
-    if any(linked(path) for path in (folder, *folder.parents)) or not re.fullmatch(r'[A-Za-z0-9_.-]{1,63}', folder.name) or '..' in folder.name:
-        raise ValueError('Language composition needs an ordinary supported pack folder')
+    folder = pack_folder(folder)
     parser = language_manifest(folder)
     edits, used = [], 0
     for target, delta in parser['files'].items():
@@ -286,6 +320,7 @@ def main():
     parser.add_argument('--expect-save', choices=('options', 'profile'), help='Require a committed native write/close receipt of this kind in this run')
     parser.add_argument('--ledger', type=Path, help='Internal historical ledger from a previous research cache')
     parser.add_argument('--language-pack', type=Path, help='Existing language pack; compose its verified screens before fighter presentation')
+    parser.add_argument('--texture-pack', type=Path, action='append', default=[], help='Existing texture pack under the same native mods root; repeat in precedence order')
     args = parser.parse_args()
     try:
         if not 10 <= args.secs <= 900:
@@ -319,6 +354,7 @@ def main():
         for relative in ('fighter-native-preview', 'fighter-ui-preview', 'fighter-runtime-probe',
                          'fighter-window-runs', 'fighter-probe-captures'):
             ordinary_path(ROOT / 'logs' / relative)
+        layers = texture_environment(args.texture_pack, args.language_pack)
         store, monitor = None, None
         if args.binding_window:
             destination = ordinary_path(args.profile_store)
@@ -371,9 +407,8 @@ def main():
             command += ['--env', 'RECOMP_START_FIGHTERS=' + start_fighters(report, args.start_fighter)]
         if args.no_unlock:
             command += ['--env', 'RECOMP_UNLOCK_ALL=0']
-        if args.language_pack:
-            folder = args.language_pack.absolute()
-            command += ['--env', 'RECOMP_TEXTURE_ROOT=' + str(folder.parent), '--env', 'RECOMP_LANGUAGE_PACK=' + folder.name]
+        for key, value in layers.items():
+            command += ['--env', key + '=' + value]
         if language is not None:
             command += ['--env', 'RECOMP_FIGHTER_RESEARCH_LANGUAGE_BASE=' + language[1]['base_sha256'],
                         '--env', 'RECOMP_FIGHTER_RESEARCH_SCREENS_SHA256=' + hashlib.sha256(portraits.read_bytes()).hexdigest()]

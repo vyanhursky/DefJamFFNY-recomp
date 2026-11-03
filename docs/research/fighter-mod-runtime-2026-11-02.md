@@ -748,6 +748,51 @@ F4 name fitting follow-up:
   download did not run. Continued using published format documentation and
   independent bounded local-asset inspection; no source copied from Comoria.
 
+### Re-enable/update and native texture coexistence (2026-11-03 UTC)
+
+- Re-enabled the300-definition capacity pack after its missing-pack test, as an
+  ordinary1.0.1 manifest update. Stable `research-capacity/unit-261` keeps logical
+  **365**,handle**07000154**,core5, while its name becomes **Capacity261v2**
+  (with spaces in the actual label) and authored Health becomes**88**.
+- First run `run-20261102-220552.log.err` selected the neighboring364 due to
+  navigation calibration. The exact expected-identity assertion correctly
+  failed. It still completed a match and two acknowledged generations,168reports,
+  min108/median120,no faults,full save-root restoration; it is not acceptance of
+  the intended update. Summary:`logs/fighter-reenable-update-native.txt`.
+- Corrected navigation (five final Rights) `run-20261102-221201.log.err` /
+  `logs/fighter-reenable-update-retest-native.txt` passes native identity**365/55**,
+  immutable core materialization,combat,results,two acknowledged generations
+  including VY3,return to Battle and full save-root restoration.192reports,
+  min108/median120/max120,no native faults. All historical bindings are unchanged;
+  independent native SODB readback confirms Health88 and the new name.
+  `logs/fighter-reenable-update-verification.json`; head
+  `b36cf378b8c810755677fd0fe0cf91e1298f59b949774ec04cef3cc7009c4fb0`.
+  **Visual acceptance failed:** the high stat overfills its bar and the longer
+  header clips. Preserve this finding; identity/save success does not close it.
+- The probe now supports existing `--texture-pack PATH` layers, using their
+  native order and a shared root with the language pack. It validates images,
+  the language pack's optional image layer and the complete1023-byte native
+  list budget. A common pack-file path checker rejects linked intermediate
+  directories for both deltas and textures. Focused gate75passed,3.90s,
+  `logs/fighter-texture-probe-unit.txt`.
+- Combined native acceptance **passed**, `run-20261102-221912.log.err` /
+  `logs/fighter-language-texture-coexist-native.txt`: diagnostic language screens
+  and LOC199,three ordinary donor-backed fighter packs,real createdVY3 and the
+  existing Faithful HD **2048x2048 RGBA** Bo atlas. The original A012 source ID
+  was independently recomputed as
+  `219a7ab28c2db0e729c73fe94292ebce24df12352687a099334ea3055f9726b0`.
+  Native upload/load of that exact atlas is recorded at20465–20466;12mips,
+  44,739,240 accounted bytes. All300capacity definitions were absent again;
+  their historical identities and the saved261 mark remain intact/dormant.
+- This combined run asserts**99/103**,core56 for GammaOne,then combat,result,
+  VY3+Options write/close,two verified generations and return to Battle.118reports,
+  min101/median120/max120,no faults,full save-root restoration. Reviewed combat
+  capture20s; donor Bo appearance has its existing HD texture, not new community
+  geometry. Captures:`logs/fighter-window-runs/c0b00ce3e4e84c479f04e6a1c5f2464c/captures`.
+  Independent report:`logs/fighter-language-texture-coexist-verification.json`;
+  head`ee23ebc28409502423e1b39ef4185dbeb070029b17d2fad848074f784db5de61`.
+  This run predates the next name/stat presentation fix.
+
 Remaining implementation gates, in order:
 
 1. Finish F4 fitting acceptance, long names, three/four-player result variants,

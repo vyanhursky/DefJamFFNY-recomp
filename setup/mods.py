@@ -216,6 +216,17 @@ LANGUAGE_TARGET = re.compile(r'[A-Za-z0-9_.-]+(/[A-Za-z0-9_.-]+)*')
 LANGUAGE_DELTA = re.compile(r'[A-Za-z0-9_-]+(/[A-Za-z0-9_.-]+)*\.djd')
 
 
+def pack_file(folder, relative):
+    """Validate every component before opening an installed pack's data file."""
+    safe_relative(relative)
+    path = Path(folder)
+    check(not linked(path), 'Redirected pack folder')
+    for part in PurePosixPath(relative).parts:
+        path = path / part
+        check(not linked(path), 'Redirected pack file path: ' + relative)
+    return path
+
+
 def language_manifest(folder):
     """Read one validated manifest snapshot for installation or composition.
 
@@ -246,11 +257,7 @@ def language_manifest(folder):
         targets.add('|'.join(parts).casefold())
         delta = delta.strip()
         check(LANGUAGE_DELTA.fullmatch(delta), 'Invalid language delta path')
-        safe_relative(delta)
-        path = folder
-        for part in PurePosixPath(delta).parts:
-            path = path / part
-            check(not linked(path), 'Redirected language delta path: ' + delta)
+        path = pack_file(folder, delta)
         check(path.is_file(), 'Missing delta: ' + delta)
         with path.open('rb') as stream:
             check(stream.read(8) == b'DJDELTA1', 'Not a language delta: ' + delta)
@@ -288,8 +295,7 @@ def validate_textures(folder):
     check(parser.has_section('textures') and 0 < len(parser['textures']) <= MAX_FILES, 'Missing texture entries')
     refs, dimensions = set(), {}
     def reference(value, png_only=False):
-        safe_relative(value)
-        path = folder.joinpath(*PurePosixPath(value).parts)
+        path = pack_file(folder, value)
         check(path.is_file() and not linked(path), 'Missing image: ' + value)
         dims = image_shape(path, png_only)
         refs.add(value)

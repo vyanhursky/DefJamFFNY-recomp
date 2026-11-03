@@ -259,6 +259,13 @@ language files keep their native handling. A language pack that edits the fighte
 database receives a composition error until a semantic database adapter exists.
 This research option does not enable a launcher capability.
 
+Use repeated `--texture-pack PATH` options to exercise existing texture packs
+in native precedence order alongside the fighters. The language and texture
+folders must share one native mods root. The probe validates their image paths,
+rejects linked subdirectories, duplicate selections and pack lists that the
+native loader would truncate. Installed packs are read without modification;
+the research option does not enable a launcher category.
+
 For the repeated-match research route, `--immutable-reuse` retains canonical
 custom records for the process lifetime while ending selection ownership after
 native Game.Quit. Repeat `--expect-match key-a,key-b` once per expected match.
