@@ -120,7 +120,8 @@ class Model:
     def local_pointer(self, offset, size):
         """Follow an explicit relocation, rejecting imports and one-past reads.
 
-        An inline Skeleton export and a pointer-valued Model export are distinct.
+        An inline resource can itself begin with a relocated member. Following
+        that member does not locate the start of the whole resource object.
         Callers must choose the interpretation from a separately audited schema.
         No raw word or imported address becomes a host/guest address here.
         """
@@ -169,10 +170,12 @@ class Model:
         check(not missing, 'Unresolved or forbidden model imports: ' + ', '.join(sorted(missing)[:8]))
 
     def metadata(self):
+        from fighter_rig import skeleton_metadata
         bones = self.bone_indices()
         return {'format': 'fighter-elf-model-draft-1', 'sha256': hashlib.sha256(self.data).hexdigest(),
                 'bytes': len(self.data), 'data_bytes': self.sections[1][5],
                 'symbol_count': len(self.symbols), 'relocation_count': self.relocations,
                 'imports': sorted(self.imports), 'exports': sorted(self.exports),
                 'bone_indices': bones, 'bone_index_map_only': True,
+                'skeleton': skeleton_metadata(self),
                 'runtime_ready': False, 'pending': ['eagl-geometry-skeleton-material-validation', 'native-resource-acceptance']}

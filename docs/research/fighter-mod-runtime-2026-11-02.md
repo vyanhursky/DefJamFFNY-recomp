@@ -686,6 +686,27 @@ F4 name fitting follow-up:
   association entry points to64 bytes copied into runtime+20, but its pose
   convention and link to the model file remain unknown. Do not describe these
   generic class accessors as XML readers without evidence.
+- The owner's published [Modding Tools format research](https://github.com/vyanhursky/DefJam-Modding-Tools/blob/main/docs/research/trejo-pose-material-layout.md)
+  supplied a primary format lead, independently checked against610A/113A. No
+  reference-project implementation code was copied. New `setup/fighter_rig.py`
+  validates the inline skeleton header and112-byte records: ordered parents,
+  finite transforms, normalized quaternions, exact bone count, no pointer
+  relocations in scalar records and a bijective opaque permutation. It preserves
+  authored matrices instead of assuming they are all inverse local transforms.
+  Geometry/skin mapping and animation compatibility remain explicit false gates.
+  Game-free rig/envelope fixtures: **45passed** (18new rig cases).
+- Full reinspection passes **156retail+93community** model/face envelopes,
+  including **78retail+47community skeletons**. All125 share one topology hash,
+  `a9488faa8e02c640e882ecc74a1aaf0329e4b9da0aee3ae148ceefbbe930ec47`;
+  `logs/fighter-rig-all-assets.json`. The610A/113A whole skeleton bytes differ:
+  matching parents/permutation, but28 translation records and22 stored matrices
+  differ beyond their tiny scale/quaternion rounding differences. Therefore
+  matching topology alone is insufficient for approved animation reuse.
+  `logs/fighter-community-retail-rig-field-diff.json` retains that comparison.
+  An intermediate complete gate passed **1,112tests**,27skipped,1deselected,
+  93.20s,`logs/fighter-rig-language-final-unit.txt`; the later redirected-path
+  fixtures are covered by the separate focused gate above.
+
 Remaining implementation gates, in order:
 
 1. Finish F4 fitting acceptance, long names, three/four-player result variants,
@@ -704,7 +725,8 @@ Remaining implementation gates, in order:
    installed fighters.
 4. Complete authored resource validation/registration (geometry/skeleton/materials,
    motions/events, voice/AI/cinematics) and shared language/texture composition.
-   ELF envelopes and46XSH texture files pass only their documented format gates.
+   ELF envelopes,125skeletons and46XSH texture files pass only their documented
+   format gates; matching topology is not verified skin/animation compatibility.
 5. Whole-pack launcher Fighters transactions/restart/profile-helper integration,
    ordinary Vendetta conversion, authoring tools/docs, platform/Story/soak gates
    and owner play-test. No shipping capability, public push or PR is authorized.

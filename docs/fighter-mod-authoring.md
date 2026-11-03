@@ -199,8 +199,18 @@ map establishes only matching names and indices; it does not establish parent
 relationships, bind poses, skin weights or animation compatibility. Typed reader
 helpers distinguish inline data from explicit pointer relocations and reject
 unresolved imported pointers and reads beyond the data section. Passing this inspection
-does not validate EAGL geometry, skeletons, materials or texture references and
+does not validate EAGL geometry, materials or texture references and
 does not grant a runtime asset capability.
+
+When present, the observed inline `__Skeleton:::root` resource receives a separate
+typed check: bounded 112-byte records, one ordered parent tree, matching exported
+bone indices, finite transforms, normalized quaternions and a complete opaque
+permutation. The reader preserves every stored matrix, including authored
+corrections. It reports topology and pose hashes separately. Matching topology
+does not establish matching poses, skin joint mapping or animation compatibility;
+those last two checks remain false in inspection metadata. A face/pose module
+without a skeleton is reported with `skeleton: null`, rather than treated as a
+complete fighter model.
 
 Inspect a supported SHPX texture archive, raw or RefPack compressed:
 
