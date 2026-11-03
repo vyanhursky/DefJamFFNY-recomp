@@ -506,6 +506,13 @@ ROUTES['fighter-roster-3'] = dict(ROUTES['fighter-roster-4'],
     until='getscreeninfo(battle/choosef3', after=160, secs=360,
     shots='@getscreeninfo(battle/choosef3,41')
 
+for count in (3, 4):
+    ROUTES[f'fighter-roster-{count}-save'] = dict(ROUTES[f'fighter-roster-{count}'],
+        help=f'{count} native fighter selections through combat, summary, rewards and saving back to Battle',
+        tail=FIGHT_TAIL + ',' + raw_stages(['game.getmatchsummary(=a@4+3x12']),
+        until='getscreeninfo(battle/cmtype#2', after=8, secs=900,
+        shots='@game.startgame(,20,@game.getmatchsummary(,3,16')
+
 
 # ---------------------------------------------------------------------------
 # The save area

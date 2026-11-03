@@ -250,7 +250,7 @@ def prepare_portraits(screens, report, *, language=None):
         stem = f'matchSm{count}'
         path = 'screens/battle/' + stem + '.big'
         inner = Archive(unpack(archive.read(path)))
-        movie, constants, _ = compile_results(inner.read(stem + '.apt'), inner.read(stem + '.const'), names)
+        movie, constants, _ = compile_results(inner.read(stem + '.apt'), inner.read(stem + '.const'), names, participants=count)
         replacements[path] = store(inner.compose(replacements={stem + '.apt': movie, stem + '.const': constants}))
     result = archive.compose(replacements=replacements)
     digest = hashlib.sha256(result).hexdigest()
@@ -296,7 +296,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('sod', type=Path)
     parser.add_argument('packs', nargs='+', type=Path)
-    parser.add_argument('--route', choices=('boot', 'fight', 'ffa', 'versus', 'crib', 'gym', 'intro', 'fighter-roster', 'fighter-roster-3', 'fighter-roster-4', 'fighter-roster-4-human', 'fighter-roster-4-human-browse', 'fighter-roster-result', 'fighter-roster-save', 'fighter-roster-two-matches'), default='boot')
+    parser.add_argument('--route', choices=('boot', 'fight', 'ffa', 'versus', 'crib', 'gym', 'intro', 'fighter-roster', 'fighter-roster-3', 'fighter-roster-4', 'fighter-roster-4-human', 'fighter-roster-4-human-browse', 'fighter-roster-3-save', 'fighter-roster-4-save', 'fighter-roster-result', 'fighter-roster-save', 'fighter-roster-two-matches'), default='boot')
     parser.add_argument('--secs', type=int, default=60)
     parser.add_argument('--shots', default='25')
     parser.add_argument('--to-end', action='store_true', help='Use the complete duration for long native-menu acceptance')

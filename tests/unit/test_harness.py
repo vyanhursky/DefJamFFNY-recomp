@@ -110,7 +110,8 @@ def test_supervisor_sharing_race_cannot_extend_last_verified_heartbeat(tmp_path,
     assert harness.supervisor_fault(path, now=101, cache={})
 
 
-@pytest.mark.parametrize('route,screen', [('fighter-roster', 'choosef2'), ('fighter-roster-4', 'choosef4')])
+@pytest.mark.parametrize('route,screen', [('fighter-roster', 'choosef2'), ('fighter-roster-3', 'choosef3'),
+                                        ('fighter-roster-4', 'choosef4')])
 def test_roster_probe_browsing_replaces_idle_stage_without_duplicate_anchor(monkeypatch, route, screen):
     calls = []
     def fake_run(*args, **kwargs):
@@ -127,6 +128,15 @@ def test_roster_probe_browsing_replaces_idle_stage_without_duplicate_anchor(monk
     harness.run_route(route, extra_stages=[browsing])
     assert calls[-1]['stages'][-1] == browsing
     assert sum(anchor in stage for stage in calls[-1]['stages']) == 1
+
+
+@pytest.mark.parametrize('participants', [3, 4])
+def test_multiplayer_fighter_save_routes_require_return_after_result(participants):
+    route = harness.ROUTES[f'fighter-roster-{participants}-save']
+    assert route['until'] == 'getscreeninfo(battle/cmtype#2'
+    assert route['tail'].index('@game.startgame(') < route['tail'].index('@game.getmatchsummary(')
+    script = harness.build_pad_script(route['stages'], route['tail'])
+    assert len(script.encode()) <= 4095 and len(script.split(',')) <= 256
 
 
 def test_guarded_data_root_matches_child_cwd(tmp_path, monkeypatch):

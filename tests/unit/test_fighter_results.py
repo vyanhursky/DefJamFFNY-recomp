@@ -65,3 +65,43 @@ def test_summary_requires_a_unique_supported_native_panel_and_valid_labels():
             compile_results(movie, constants, names)
     with pytest.raises(AssetError, match='panel differs'):
         compile_results(movie.replace(b'Game.GetMatchSummary(', b'Game.GetWrongSummary('), constants, {256: 'A'})
+
+
+def fitted_result_fixture(participants):
+    movie, constants = result_fixture()
+    movie = bytearray(movie); movie += bytes(-len(movie) % 4)
+    font = len(movie); movie += struct.pack('<II', 3, 0x09876543)
+    text = len(movie); movie += struct.pack('<II4fIIIf5I', 2, 0x09876543, -2, -2, 112, 33,
+                                          2, 0, 0xff000000, 20 if participants == 4 else 26, 1, 0, 0, 242, 242)
+    placement = len(movie)
+    movie += struct.pack('<4I6f6I', 3, 38, 31, 1, 1, 0, 0, 1, 46, -20, 0, 0, 0, 224, 0xffffffff, 0)
+    pointers = len(movie); movie += struct.pack('<3I', 104, text, font)
+    struct.pack_into('<II', movie, 36, 3, pointers)
+    frame = len(movie); movie += struct.pack('<2I', 144, placement)
+    struct.pack_into('<II', movie, 120, 2, frame)
+    struct.pack_into('<I', movie, 140, placement)
+    return bytes(movie), constants, text
+
+
+@pytest.mark.parametrize('participants,height', [(2, 14), (3, 12), (4, 9)])
+def test_long_result_names_have_independent_bounded_lines_and_clear_on_retail(participants, height):
+    original, constants, native_text = fitted_result_fixture(participants)
+    output, _, report = compile_results(original, constants, {256: 'W' * 19}, participants=participants)
+    root = apt.parse_character(output, 16); chars = apt.read_characters_list(output, root)
+    assert output[native_text:native_text + 60] == original[native_text:native_text + 60]
+    assert report['label_frames'] == [0, 1] and len(chars) == 5
+    assert [struct.unpack_from('<f', output, row['offset'] + 36)[0] for row in chars[-2:]] == [height, height]
+    assert [apt.read_cstr(output, struct.unpack_from('<I', output, row['offset'] + 56)[0]) for row in chars[-2:]] == [
+        '_recompResultText0', '_recompResultText1']
+    _, entries = apt.parse_const(constants)
+    code = apt.disassemble_block(output, report['label_action'], entries)
+    first_branch = next(index for index, ins in enumerate(code) if ins.name == 'BranchIfTrue')
+    assert sum(ins.name == 'SetMember' for ins in code[:first_branch]) == 2
+    assert b'_recompResultID\0' in output and b'_xscale\0' not in output
+    sprite = chars[0]
+    overlays = [item for kind, item in sprite['frames'][0] if kind == 'PlaceObject' and
+                (item.get('name') or '').startswith('_recompResultLine')]
+    assert len(overlays) == 2 and len({row['depth'] for row in overlays}) == 2
+    assert overlays[1]['matrix'][5] - overlays[0]['matrix'][5] == height + 2
+    with pytest.raises(AssetError, match='line budget'):
+        compile_results(original, constants, {256: 'W' * 40}, participants=participants)

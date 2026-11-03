@@ -174,7 +174,7 @@ def test_created_fighter_assertion_preserves_the_native_profile_owned_sentinel(t
 def portrait_inputs(tmp_path):
     from test_fighter_archive import fixture
     from test_fighter_menu import selector_fixture
-    from test_fighter_results import result_fixture
+    from test_fighter_results import fitted_result_fixture
     entries = {'screens/language-marker.txt': b'original language bytes'}
     entries['screens/trans/empty2.big'] = fixture({'empty2.apt': b'blank movie', 'empty2.const': b'blank constants'})
     for count in (2, 3, 4):
@@ -186,7 +186,7 @@ def portrait_inputs(tmp_path):
         movie, constants = selector_fixture(participants=count)
         name = f'chooseF{count}'
         entries[f'screens/battle/{name}.big'] = fixture({name + '.apt': movie, name + '.const': constants})
-        movie, constants = result_fixture()
+        movie, constants, _ = fitted_result_fixture(count)
         name = f'matchSm{count}'
         entries[f'screens/battle/{name}.big'] = fixture({name + '.apt': movie, name + '.const': constants})
     source = tmp_path / 'screens.viv'
