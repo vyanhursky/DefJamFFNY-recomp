@@ -170,7 +170,7 @@ def test_four_player_fitting_owns_new_text_records_without_scaling_native_panels
     bindings = []
     for record in chars[-16:]:
         assert record['type'] == 'Text' and record['sig_ok']
-        assert struct.unpack_from('<f', output, record['offset'] + 36)[0] == 12
+        assert struct.unpack_from('<f', output, record['offset'] + 36)[0] == 11
         binding = apt.read_cstr(output, struct.unpack_from('<I', output, record['offset'] + 56)[0])
         bindings.append(binding)
         assert binding.startswith('_recompFighterText') and not binding.startswith('sFName')
@@ -178,8 +178,8 @@ def test_four_player_fitting_owns_new_text_records_without_scaling_native_panels
     overlays = [item for kind, item in root['frames'][0] if kind == 'PlaceObject' and
                 (item.get('name') or '').startswith('_recompFighterLabel')]
     assert len(overlays) == 16 and len({item['depth'] for item in overlays}) == 16
-    assert [item['matrix'][4] for item in overlays] == [left for left in (100, 239, 377, 513) for _ in range(4)]
-    assert [item['matrix'][5] for item in overlays[:4]] == [103, 117, 131, 145]
+    assert [item['matrix'][4] for item in overlays] == [left for left in (125, 264, 402, 538) for _ in range(4)]
+    assert [item['matrix'][5] for item in overlays[:4]] == [86, 99, 112, 125]
     code = output[report['action_offset']:]
     assert b'Alpha\0' in code and b'One\0' in code
     assert b'wordWrap\0' not in code and b'multiline\0' not in code

@@ -306,9 +306,10 @@ def append_name_fields(output, movie, entry, participants, lines):
         font, alignment, _, height = struct.unpack_from('<IIIf', movie, start + 24)
         if not 0 <= font < count or characters[font] is None or characters[font]['type'] != 'Font' or alignment != 2 or height != {2: 32, 3: 26, 4: 20}[participants]:
             raise AssetError('Native fighter name font differs from the reviewed template')
-        width = {2: 198, 3: 120, 4: 75}[participants]
-        font_height = {2: 20, 3: 16, 4: 12}[participants]
-        left = (100, 239, 377, 513)[player] if participants == 4 else source['matrix'][4] + (25 if participants == 3 else 0)
+        width = {2: 198, 3: 120, 4: 50}[participants]
+        font_height = {2: 20, 3: 16, 4: 11}[participants]
+        left = (125, 264, 402, 538)[player] if participants == 4 else source['matrix'][4] + (25 if participants == 3 else 0)
+        top = 86 if participants == 4 else source['matrix'][5]
         for line in range(lines):
             added.append(len(output)); output += movie[start:start + 60]
             struct.pack_into('<4f', output, added[-1] + 8, -2, -2, width, font_height + 4)
@@ -327,7 +328,7 @@ def append_name_fields(output, movie, entry, participants, lines):
             serial = len(added) - 1
             struct.pack_into('<II', output, placements[-1] + 8, depth + serial, count + serial)
             struct.pack_into('<6f', output, placements[-1] + 16, 1, 0, 0, 1, left,
-                             source['matrix'][5] + line * (font_height + 2))
+                             top + line * (font_height + 2))
             struct.pack_into('<I', output, placements[-1] + 52, name_at)
     list_at = len(output); output += movie[pointers:pointers + count * 4]
     output += struct.pack('<' + 'I' * len(added), *added)
@@ -490,7 +491,7 @@ def compile_menu(movie, constants, pairs, names, records=None, *, participants=N
     placements, label_lines = [], None
     if participants is not None:
         capacity = {2: 2, 3: 2, 4: 4}[participants]
-        wrapped = {key: textwrap.wrap(name, width={2: 14, 3: 10, 4: 6}[participants], break_on_hyphens=False) for key, name in names.items()}
+        wrapped = {key: textwrap.wrap(name, width={2: 14, 3: 10, 4: 5}[participants], break_on_hyphens=False) for key, name in names.items()}
         if any(len(lines) > capacity for lines in wrapped.values()):
             raise AssetError('Native header name exceeds the fitted line budget')
         label_lines = [{key: lines[index] if index < len(lines) else '' for key, lines in wrapped.items()} for index in range(capacity)]

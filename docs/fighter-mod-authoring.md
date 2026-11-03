@@ -257,7 +257,8 @@ saved identity or unwrapped HUD name. Native stat percentages are capped for
 custom fighters after the original display getter; authored gameplay values in
 the database remain intact. Two-player visual tests cover a health-88 update,
 the complete wrapped name and returning to the created fighter without stale
-text. Three-/four-player long-name and result acceptance remain required.
+text. Separate native three-/four-player browsing tests fit19-character wide-
+letter names in every header; multiplayer result acceptance remains required.
 
 The internal probe can also use `--language-pack PATH`. It verifies the existing
 language deltas against the supported original screens archive, applies fighter

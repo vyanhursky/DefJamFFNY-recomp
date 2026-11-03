@@ -296,7 +296,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('sod', type=Path)
     parser.add_argument('packs', nargs='+', type=Path)
-    parser.add_argument('--route', choices=('boot', 'fight', 'ffa', 'versus', 'crib', 'gym', 'intro', 'fighter-roster', 'fighter-roster-4', 'fighter-roster-4-human', 'fighter-roster-result', 'fighter-roster-save', 'fighter-roster-two-matches'), default='boot')
+    parser.add_argument('--route', choices=('boot', 'fight', 'ffa', 'versus', 'crib', 'gym', 'intro', 'fighter-roster', 'fighter-roster-3', 'fighter-roster-4', 'fighter-roster-4-human', 'fighter-roster-4-human-browse', 'fighter-roster-result', 'fighter-roster-save', 'fighter-roster-two-matches'), default='boot')
     parser.add_argument('--secs', type=int, default=60)
     parser.add_argument('--shots', default='25')
     parser.add_argument('--to-end', action='store_true', help='Use the complete duration for long native-menu acceptance')

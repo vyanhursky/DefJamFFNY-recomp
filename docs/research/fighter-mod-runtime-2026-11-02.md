@@ -863,6 +863,63 @@ F4 name fitting follow-up:
   launcher gates remain open. Prefer uniquely preserved PNGs over reading a
   shared BMP while it is being written/cached.
 
+### Four-panel long-name fitting (2026-11-03 UTC)
+
+- Menu/stat checkpoint committed locally as `2f0f1be`; full unit gate before
+  this further F4 tuning passed1,153tests as above. No native C changed.
+- A300-fighter1.0.2 stress fixture gives each definition a19-byte all-W name,
+  under `logs/fighter-native-preview/research-long-300.json`. Stable keys remain
+  distinct even though display names are identical; it is an ignored diagnostic
+  manifest, not a new pack format or shipped content.
+- `run-20261102-230458.log.err` / `logs/fighter-four-long-name-native.txt`
+  correctly **fails the combat route** because this probe intentionally never
+  confirms a match.150reports,min110/median120,no faults,one verified generation,
+  full save-root restoration. Its visual finding is also a failure: lower lines
+  fall onto the dark stat panel in P1/P2/P3. Do not label it a fight or visual
+  acceptance pass. Captures:
+  `logs/fighter-window-runs/eab51be5359d48ce9a5e842a0c9b2ece/captures`.
+- Added `fighter-roster-4-human-browse`, with the same four independent native
+  joins and its own chooseF4 completion anchor. The existing four-human combat
+  route still requires StartGame. F4 custom headers now use four five-character
+  lines at11-point size,width50,positions125/264/402/538 and common top86; line
+  positions86/99/112/125 stay on each panel's paper area. Native fields and
+  portrait transforms are unchanged. Focused menu/harness gate77passed,1skipped,
+  0.71s,`logs/fighter-four-browse-focused-unit.txt`.
+- **F4 stress visual acceptance passes**, `run-20261102-231250.log.err` /
+  `logs/fighter-four-long-name-fit-native.txt`: four independent scripted pads
+  browse custom entries and all four complete19-character names fit, with
+  portraits and stat panels clear. Reviewed80s preserved PNG.92reports,
+  min109/median120/max120,no faults,one acknowledged Options generation,full
+  save-root restoration. Captures:
+  `logs/fighter-window-runs/c301be1110624320a1082fa67fa7b8fd/captures`.
+  This is menu-only acceptance, not a new four-player combat/result test.
+- Initial three-player calibration `run-20261102-231949.log.err` /
+  `logs/fighter-three-long-name-native.txt` chose the adjacent **team** match
+  option, so the harness correctly **failed** its missing chooseF3 anchor.
+ 179reports,min99/median120,no faults,one verified generation,full restoration.
+  Native original battleID actions prove the actual control is Free For All's
+  own3/4-player selector: `keyLeft` changes4→3 when aFocus is5. After profile
+  sign-in, A5opens it,Left8selects3,A11confirms. Source action metadata:
+  `logs/fighter-battleid-player-count-actions.json`. The final route preserves
+  FFA_SETUP and changes only this existing player-count control.
+- **F3 stress visual acceptance passes**, `run-20261102-232707.log.err` /
+  `logs/fighter-three-long-name-retest-native.txt`: native SetMatchType2 and
+  chooseF3,then real VY3 P1 confirms logical226/stable070000C9/bank100/core5;
+  CPU1 confirms228/stable070000CB/bank101/core5;CPU2 browses without confirming.
+  P1 browses Down48 then confirms; CPU1 browses Down48/Right1 then confirms;
+  CPU2 browses Down48/Right2. Reviewed50s capture shows complete19-character
+  names in all three headers,with original READY overlays and stats intact.
+ 119reports,min103/median120/max120,no faults,one acknowledged Options generation,
+  full save-root restoration. Captures:
+  `logs/fighter-window-runs/04c4b491a0594691ad18ea82dbd01509/captures`.
+  This remains menu-only acceptance, not three-player combat/result proof.
+- Uncommitted source: F4 fit in`setup/fighter_menu.py`,matching unit assertions,
+  browse/three-player routes in`scripts/harness.py` and probe route choices.
+  Final full unit gate **1,153passed,27skipped,1deselected**,95.64s,
+  `logs/fighter-native-layout-final-unit.txt`.
+  Three-/four-player results,disconnect/rematch,immutable boundary/resource
+  soaks,authored resource adapters and launcher integration remain open.
+
 Remaining implementation gates, in order:
 
 1. Finish F4 fitting acceptance, long names, three/four-player result variants,

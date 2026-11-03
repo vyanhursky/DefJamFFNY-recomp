@@ -491,6 +491,21 @@ ROUTES = {
 ROUTES['story-tour'] = dict(ROUTES['gym'], help='Story profile -> crib -> gym in one launch',
                            shots='@getscreeninfo(story/crib,9,@getscreeninfo(story/gym,13,23')
 
+# The four-human combat route deliberately requires StartGame. A visual browse
+# probe has its own completion anchor, so menu-only evidence cannot count as a
+# failed fight or accidentally weaken the combat route's acceptance condition.
+ROUTES['fighter-roster-4-human-browse'] = dict(ROUTES['fighter-roster-4-human'],
+    help='Four independent native pads browsing the fighter selector without confirming a match',
+    tail='', until='getscreeninfo(battle/choosef4', after=100, secs=300,
+    shots='@getscreeninfo(battle/choosef4,6,66,80')
+
+ROUTES['fighter-roster-3'] = dict(ROUTES['fighter-roster-4'],
+    help='Three-fighter native selector, waiting for explicit browsing stages',
+    stages=FFA_SETUP[:6] + ['setbmcurrentuserindex(=a@5;left@8;a@11+5x5'],
+    default_stages=['getscreeninfo(battle/choosef3=back@9999'],
+    until='getscreeninfo(battle/choosef3', after=160, secs=360,
+    shots='@getscreeninfo(battle/choosef3,41')
+
 
 # ---------------------------------------------------------------------------
 # The save area
