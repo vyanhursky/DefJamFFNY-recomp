@@ -1049,6 +1049,56 @@ F4 name fitting follow-up:
 
 Remaining implementation gates, in order:
 
+Core-descriptor continuation lead (after `de9fc64`, not a runtime change):
+`logs/fighter-native-core-descriptor-readers.json` finds initializer1A47B0 and
+four direct core-table consumers:1A7F30,1B2090,1B4930,1B4BA0. The latter use a
+32-bit core index from participant+2C or3B930C, then multiply by16 to read WPAR
+or WWAZ pointers at3B864C/3B8654. Literal3B8638 in1BC900 belongs to the secondary
+NAME descriptor, not this core table;3B8F18 in1BA9B0 is live adjacent state.
+The141-row table must not grow in place over that state. These literal searches
+do not exclude retained/derived pointers or establish every core-ID width.
+Native1B4BA0/1B4930 use **six-byte** WWAZ entries, not twelve-byte records;
+780bytes therefore hold130entries.1B4930 masks the first word with0FFF and
+observes its high bit; the high bit is not a selector for the second WAZA table.
+That rejected hypothesis fails thousands of original entries. The low12-bit
+indices fit the first826-row table in both local streams, but the other words,
+flag meaning and event/animation relationships need further native tracing.
+
+Further accepted local checks (2026-11-03 UTC):
+
+- Four independent human pads can cancel and replace a ready custom fighter.
+  `run-20261103-004703.log.err` /
+  `logs/fighter-four-human-cancel-reselect-retest-native.txt` first confirms
+  254/255/256, then P2 presses B. Native `Fighters.KeepReady(5)` retains only
+  P1/P3 ownership. P2 selects258 into bank101, P4 confirms257, and the actual
+  match materializes254/258/256/257 with the expected stable handles/cores.
+  Reviewed79s/89s captures show P2's unready/ready transition while P1/P3 stay
+  ready.152reports,min103/median120/max121,no faults,one acknowledged Options
+  generation and byte-identical save restoration. Preserved captures:
+  `logs/fighter-window-runs/744841be6c634cde83ba1a602abf7b2b/captures`.
+  This is cancellation/reselection, not physical hotplug or resource teardown.
+- The first run004039 used `p2-back`, which is the controller's separate Back
+  button, rather than `p2-b`. Its explicit258 expectation correctly fails;
+  original255 remains selected. It has no crash and restores saves, but is
+  retained only as a test-input diagnostic. Do not count it as cancellation
+  acceptance. The corrected B run above passes without source changes.
+- New private CPU probe extracts only own generated1A3530/1A3630/1A3AD0 into
+  ignored `logs/fighter-motion-decoder-oracle/`. It runs without the game and
+  compares the original bit reader's return values with an independent Python
+  MSB-first interpretation: **2,181WAZA rows and320WPAR rows,zero mismatches**.
+  Each population includes two synthetic zero/all-one rows; the rest comes
+  from both local motion streams. WAZA consumes33packed fields/250bits from
+  each32-byte record; WPAR consumes94packed fields/all512bits from64bytes.
+  Verification:`logs/fighter-motion-decoder-oracle/verification.json`;
+  source-function hashes:`provenance.json`; build log:
+  `logs/fighter-motion-decoder-oracle-build.txt`.
+  This verifies bit extraction and consumption, not friendly parameter names,
+  enum/link validity or Python equivalence for the decoder's final float output.
+  The six WAZA tail bits and FZUI/event links still need an explicit contract.
+- Current local source checkpoint remains `de9fc64`; only this follow-up
+  documentation is newer. Complete unit gate remains1,195passed as above.
+  No game process or CPU probe remains running, and no public push/PR occurred.
+
 1. Continue disconnect/rejoin and rematch cases after accepted long-name results
    for all participant layouts. Real created-fighter selection and
    progression now pass as recorded above. Existing
