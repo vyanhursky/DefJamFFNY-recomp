@@ -571,6 +571,83 @@ F4 name fitting follow-up:
   `logs/fighter-created-after-wide-reload-supplementary.json`. A clean driver run
   with corrected CPU expectations remains desirable.
 
+- Clean corrected custom-P1 run **passed**: `run-20261102-205927.log.err` /
+  `logs/fighter-wide-real-profile-exact-native.txt` independently asserts
+  **365/55**, original native menu submissions, stable07000154/core5 immutable
+  materialization, combat, result, two acknowledged generations including a VY3
+  profile batch, and return to Battle.169reports,min100/median120/max120,
+  no native faults, full save restoration. New head
+  `18498428d2f114b444f8a4532d3f49d4ed066bc7c4e567fcb1410bd61a3be86a`.
+  Captures: `logs/fighter-window-runs/8ceb4e6d202a481595a33c894003bae4/captures`.
+  This closes the original CPU-expectation issue for the wide custom-P1 case.
+
+### Language/fighter semantic screen composition
+
+- `setup/fighter_composition.py` applies the existing DJDELTA1 format to a
+  hash-pinned original file, with bounded nested archive edits, strict source
+  and output hashes, operation/depth/size budgets and explicit target conflicts.
+  Replacement order matches the native language builder byte for byte. A
+  content-addressed provenance receipt records original/base/delta hashes.
+- The internal probe's `--language-pack PATH` rebuilds the language screens
+  base first, then generates fighter-owned menus/portraits from those bytes.
+  Native `pc_language_adopt_composed_file` independently hashes the language
+  loader's actual cache file and the final semantic output before adopting
+  one final redirect. Missing/wrong/corrupted files cannot silently override
+  another owner. The new path supports UTF-8 final filenames on Windows.
+  Language files outside the shared screens archive retain their native loader;
+  a language edit to assets/djv2.sod gets an explicit unsupported-composition
+  error. This remains a research entry point, with shipping capabilities false.
+- Focused composition/language/probe fixtures **68passed**,4.13s,
+  `logs/fighter-language-probe-unit-final.txt`; build passes in
+  `logs/fighter-language-composition-build.txt`. Coverage includes native cache
+  parity, preservation of another served file, Unicode output paths, crossed
+  hashes, missing output and a modified cached base. The first9 fixture failures
+  used a new data root without pointing the native loader at the fixture's mods;
+  corrected fixtures supply that root explicitly. No production bounds relaxed.
+- Native acceptance **passed**: `run-20261102-211325.log.err` /
+  `logs/fighter-language-created-reload-native.txt`. The diagnostic language
+  pack changes the audited cmusen.loc entry199 from CHOOSE FIGHTER to SELECT
+  FIGHTER and four annotation bytes in the original chooseF2.xsh; all other
+  texture bytes remain identical. This exercises two native language files and
+  an actual shared screens edit. The strict fighter-model SHPX subset does not
+  accept every original menu shape identifier; this fixture edits only a bounded
+  annotation in hash-verified original menu art and grants no new fighter asset
+  format capability. `logs/fighter-language-composition-pack.json` records it.
+  Native log confirms verified base adoption, real VY3 sign-in, created99 and
+  GammaOne103/core56 bound to bank101. Reviewed4s/22s captures show SELECT FIGHTER,
+  the preserved created fighter and GammaOne. Native menu assertions99/103,
+  combat, decisive result, two acknowledged generations including VY3+Options,
+  and return to Battle all pass.105reports,min101/median120/max121,no native
+  faults, full original-save restoration. Captures:
+  `logs/fighter-window-runs/5e09985618c44faaabe726b67d1b7ab4/captures`.
+  Head `d532548f8efa56bef315c089cb978c4d7ad252215bdc5fe7716b3180ac78dcc9`.
+  Independent readback verifies the native language base hash, final composed
+  archive hash, exact preservation of the edited XSH, added fighter actions and
+  translated cmusen.loc199 in the other served file. Report:
+  `logs/fighter-language-composition-native-verification.json`. This also closes
+  the fresh created-fighter reload after a wide custom-P1 save with the capacity
+  pack absent, using corrected CPU expectations. Fresh full unit gate:
+  **1,094passed,27skipped,1deselected**,93.08s,
+  `logs/fighter-language-composition-full-unit.txt`. Stock/language regression
+  **6/6passed** in10minutes: loading/title/menu goldens,120seconds of stock combat
+  (min113/median120 presents per2seconds), native French and English SC05
+  subtitles. `logs/fighter-language-composition-stock-regression.txt` /
+  `logs/regress-20261102-213118.txt`. Native regressions did not change thresholds
+  or golden frames. Visually reviewed French5s and English subtitle12s/20s
+  captures: menu translation and rendered dialogue are intact.
+- Final review fixed redirected research output paths before cache/store/session
+  writes, including existing cache children. Common language manifest validation
+  now rejects intermediate linked delta directories and returns the one checked
+  parser snapshot to composition. Real Windows junction fixtures verify these
+  refusals without creating files in their external targets. Focused gate:
+  **128passed**,6.63s,`logs/fighter-path-focused-unit.txt`. These are checks of
+  the current path structure, not handle-based protection against concurrent
+  hostile filesystem renames.
+- Final combined unit gate after the composition/path and typed-rig work:
+  **1,127passed,27skipped,1deselected**,94.82s,
+  `logs/fighter-composition-rig-final-unit.txt`. The Windows native build and
+  six stock/language regression checks above remain the current C gate.
+
 ### Authored model findings and remaining uncertainty
 
 - Primary inspection of community `V2IP_610A.o` finds94 exported `__Bone`
@@ -594,8 +671,12 @@ F4 name fitting follow-up:
   the immutable-build stock4/4 regression above still applies.
 - `__Skeleton:::root` is inline data, not a pointer. Community data offset40C50
   and retail356C0 begin03AC3F23,0,94,0; the +8 count agrees with the94 bones.
-  The exported community Model pointer at43BB8 relocates to43950. Its descriptor
-  contains further local pointers; their geometry semantics remain unproved.
+  Correction: the community **Model resource is inline at43BB8**. Its first
+  member points to43950, the named-descriptor array, rather than another Model.
+  The ELF symbol's declared size4 does not describe the whole inline object.
+  Primary checks confirm its named-descriptor count17, material count5 at+9C
+  and group-table pointer43584 at+CC. Retail Blaze's corresponding counts are
+  22/10. `logs/fighter-rig-inline-primary-check.json` records these checks.
 - Corrected source leads:21500/215E0 query **PosePaletteBank**,21710 queries
   **AnimationBank**, and10AC20's count is an ELF section count. They do not prove
   a mesh decoder. CB3B0 queries the Model class; CB9A0 queries Skeleton and uses
@@ -605,7 +686,6 @@ F4 name fitting follow-up:
   association entry points to64 bytes copied into runtime+20, but its pose
   convention and link to the model file remain unknown. Do not describe these
   generic class accessors as XML readers without evidence.
-
 Remaining implementation gates, in order:
 
 1. Finish F4 fitting acceptance, long names, three/four-player result variants,
@@ -613,8 +693,8 @@ Remaining implementation gates, in order:
    progression now pass as recorded above. Existing
    native two-pad cancellation, four independent pads and two-match reuse have
    passed; preserve their exact evidence instead of redoing their investigation.
-2. Finish custom-P1 progression and fresh reload with a real Battle ID, plus
-   native missing-pack/update/re-enable and interrupted-write cases. Native5904-byte
+2. Complete native missing-pack/update/re-enable and interrupted-write cases,
+   building on the real Battle ID/custom-P1/created-fighter reload evidence. Native5904-byte
    write/close and isolated generations already pass; unchanged VY3 payloads do
    not prove new progression. Internal `@created` is an assertion of sentinel99,
    never a package identity or a StartGame override.

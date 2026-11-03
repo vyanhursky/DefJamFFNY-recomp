@@ -20,6 +20,13 @@ size_t pc_language_settings(struct RecompSetting *out, size_t max);
  * and the game runs in its own language. data_root may be NULL. */
 void pc_language_start(const char *data_root, const char *game_dir);
 
+/* Runtime-owned semantic adapters may replace one already composed language
+ * file only after its current bytes and their final output match both hashes.
+ * The final path is UTF-8. Returns 1 on adoption, 0 if this language pack does
+ * not serve relative, -1 for invalid/mismatched data. This is not a pack API. */
+int pc_language_adopt_composed_file(const char *relative, const char *base_sha256,
+                                    const char *final_path, const char *final_sha256);
+
 /* Apply the pack's change to default.xbe's data sections to the loaded image,
  * before the memory layout maps it. Nothing when no pack changes the XBE. */
 void pc_language_patch_xbe(void *xbe, size_t size);

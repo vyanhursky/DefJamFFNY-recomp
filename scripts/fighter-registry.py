@@ -28,6 +28,7 @@ from fighter_bindings import encode_bindings
 from fighter_window import encode_window
 from fighter_assets import unpack as unpack_asset, MAX_ASSET
 from fighter_elf import Model
+from mods import ordinary_path
 
 MAX_DOCUMENT = 8 * 1024**2
 MAX_INPUT = 32 * 1024**2
@@ -85,9 +86,9 @@ def write_preview(data, report):
     serialized = (json.dumps(report, indent=2, sort_keys=True, allow_nan=False) + '\n').encode('utf-8')
     if len(serialized) > MAX_REPORT:
         raise ValueError('Generated preview report exceeds budget')
-    root = ROOT / 'logs/fighter-native-preview'
+    root = ordinary_path(ROOT / 'logs/fighter-native-preview')
     root.mkdir(parents=True, exist_ok=True)
-    destination = root / report['cache_key']
+    destination = ordinary_path(root / report['cache_key'])
     if not destination.exists():
         with tempfile.TemporaryDirectory(dir=root) as temporary:
             stage = Path(temporary) / 'cache'
@@ -102,8 +103,12 @@ def write_preview(data, report):
             try:
                 os.rename(stage, destination)
             except OSError:
-                if not destination.is_dir():
+                if not ordinary_path(destination).is_dir():
                     raise
+    # Check exact leaves too: an existing cache may contain redirected children.
+    for relative in ('assets/djv2.sod', 'fighter-names.bin', 'fighter-bindings.bin',
+                     'fighter-window.bin', 'fighter-ledger.json', 'report.json'):
+        ordinary_path(destination / relative)
     cached = destination / 'assets/djv2.sod'
     with cached.open('rb') as stream:
         actual = stream.read(MAX_IMAGE + 1)

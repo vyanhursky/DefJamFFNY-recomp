@@ -7,6 +7,7 @@
 #include "hooks/fighter_window.h"
 #include "hooks/fighter_save_io.h"
 #include "hooks/guest_call.h"
+#include "hooks/pc_language.h"
 #include "host.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -115,9 +116,12 @@ static BOOL research_redirect(const char *relative, fighter_host_char *host_path
 static int research_start(void) {
     const char *sod = getenv("RECOMP_FIGHTER_RESEARCH_SOD");
     const char *screens = getenv("RECOMP_FIGHTER_RESEARCH_SCREENS");
+    const char *language_base = getenv("RECOMP_FIGHTER_RESEARCH_LANGUAGE_BASE");
+    const char *screens_hash = getenv("RECOMP_FIGHTER_RESEARCH_SCREENS_SHA256");
     const char *bindings = getenv("RECOMP_FIGHTER_BINDINGS");
     const char *data = getenv("DEFJAM_DATA"), *settings = getenv("RECOMP_SETTINGS"), *leaf;
-    if (!sod || !*sod) return !screens || !*screens;
+    if (!sod || !*sod) return (!screens || !*screens) && (!language_base || !*language_base)
+        && (!screens_hash || !*screens_hash);
     /* This development entry point cannot use the normal profile namespace or
      * player settings. The probe driver owns this disposable data root and the
      * harness guards its complete save directory. No runtime capability is
@@ -206,6 +210,18 @@ static int research_start(void) {
     }
     strcpy(s_research_sod, sod);
     if (screens) strcpy(s_research_screens, screens);
+    if (language_base && *language_base) {
+        if (!screens || !*screens || pc_language_adopt_composed_file("screens/screens.viv",
+                language_base, screens, screens_hash) != 1) {
+            fprintf(stderr, "[FIGHTERS] language screens composition did not verify; launch refused\n");
+            return 0;
+        }
+        s_research_screens[0] = 0; /* The language redirect owns the single final composed file. */
+        fprintf(stderr, "[FIGHTERS] verified language screens base and adopted fighter presentation\n");
+    } else if (screens_hash && *screens_hash) {
+        fprintf(stderr, "[FIGHTERS] incomplete language composition receipt; launch refused\n");
+        return 0;
+    }
     s_previous_redirect = g_xbox_game_file_redirect;
     g_xbox_game_file_redirect = research_redirect;
     fprintf(stderr, "[FIGHTERS] experimental roster enabled in disposable probe namespace only\n");

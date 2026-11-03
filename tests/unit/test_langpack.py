@@ -242,11 +242,28 @@ int main(int argc, char **argv)
     size_t n = pc_language_settings(settings, 4);
     recomp_settings_register(settings, n);
     pc_language_start(argv[1], argv[2]);
+    if (getenv("TEST_COMPOSE_BASE")) {
+        const char *final = getenv("TEST_COMPOSE_FINAL"), *encoded = getenv("TEST_COMPOSE_FINAL_HEX");
+        char utf8[2048];
+        if (encoded) {
+            size_t length = strlen(encoded) / 2;
+            if (length >= sizeof utf8) return 2;
+            for (size_t j = 0; j < length; ++j) {
+                unsigned value;
+                if (sscanf(encoded + j * 2, "%2x", &value) != 1) return 2;
+                utf8[j] = (char)value;
+            }
+            utf8[length] = 0;
+            final = utf8;
+        }
+        printf("adopt %d\n", pc_language_adopt_composed_file(getenv("TEST_COMPOSE_RELATIVE"),
+                getenv("TEST_COMPOSE_BASE"), final, getenv("TEST_COMPOSE_HASH")));
+    }
     for (int i = 3; i < argc; i++) {
 #if defined(_WIN32)
         wchar_t wide[2048];
         int served = g_xbox_game_file_redirect && g_xbox_game_file_redirect(argv[i], wide, 2048) &&
-                     WideCharToMultiByte(CP_ACP, 0, wide, -1, path, sizeof path, NULL, NULL);
+                     WideCharToMultiByte(CP_UTF8, 0, wide, -1, path, sizeof path, NULL, NULL);
 #else
         int served = g_xbox_game_file_redirect && g_xbox_game_file_redirect(argv[i], path, sizeof path);
 #endif
@@ -322,7 +339,7 @@ def run_runtime(tool, data, game, *paths, **env_values):
     env['RECOMP_SETTINGS'] = 'none'
     env.update(env_values)
     result = subprocess.run([str(tool), str(data), str(game), *paths], env=env, capture_output=True,
-                            text=True, timeout=60)
+                            text=True, encoding='utf-8', timeout=60)
     assert result.returncode == 0, result.stdout + result.stderr
     return result.stdout.splitlines(), result.stderr
 

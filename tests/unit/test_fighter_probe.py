@@ -3,6 +3,8 @@ import importlib.util
 import hashlib
 import json
 from pathlib import Path
+import shutil
+import sys
 
 import pytest
 
@@ -169,12 +171,11 @@ def test_created_fighter_assertion_preserves_the_native_profile_owned_sentinel(t
         probe.verify_menu_selection(path, report, ['@created', 'alpha/new'])
 
 
-def test_portrait_cache_verifies_source_and_existing_output(tmp_path, monkeypatch):
+def portrait_inputs(tmp_path):
     from test_fighter_archive import fixture
     from test_fighter_menu import selector_fixture
     from test_fighter_results import result_fixture
-    probe = driver(tmp_path, monkeypatch)
-    entries = {}
+    entries = {'screens/language-marker.txt': b'original language bytes'}
     entries['screens/trans/empty2.big'] = fixture({'empty2.apt': b'blank movie', 'empty2.const': b'blank constants'})
     for count in (2, 3, 4):
         stem = f'p_cf_8_{count}p'
@@ -195,14 +196,123 @@ def test_portrait_cache_verifies_source_and_existing_output(tmp_path, monkeypatc
     pin.write_text(json.dumps({'screens_sha256': hashlib.sha256(source.read_bytes()).hexdigest()}))
     report = {'bindings': {'retail/donor': {'selection_key': 7}, 'alpha/new': {'selection_key': 100, 'native_name': 'fm-new'}},
               'portrait_donors': {'alpha/new': 'retail/donor'}, 'localization_entries': {'fm-new': 'Example'}}
+    return source, report
+
+
+def test_portrait_cache_verifies_source_and_existing_output(tmp_path, monkeypatch):
+    probe = driver(tmp_path, monkeypatch)
+    source, report = portrait_inputs(tmp_path)
     output = probe.prepare_portraits(source, report)
     assert probe.prepare_portraits(source, report) == output
+    from fighter_composition import language_base
+    from fighter_archive import Archive
+    from test_langpack import lp
+    language = language_base(source.read_bytes(), [(('screens/language-marker.txt',),
+                              lp.delta_make(b'original language bytes', b'translated language bytes'))],
+                              hashlib.sha256(source.read_bytes()).hexdigest())
+    composed = probe.prepare_portraits(source, report, language=language)
+    assert composed != output
+    assert Archive(composed.read_bytes()).read('screens/language-marker.txt') == b'translated language bytes'
+    assert Archive(source.read_bytes()).read('screens/language-marker.txt') == b'original language bytes'
+    with pytest.raises(ValueError, match='provenance'):
+        probe.prepare_portraits(source, report, language=(source.read_bytes(), language[1]))
     output.write_bytes(b'corrupt')
     with pytest.raises(ValueError, match='cache is corrupt'):
         probe.prepare_portraits(source, report)
     source.write_bytes(b'unverified')
     with pytest.raises(ValueError, match='original screens'):
         probe.prepare_portraits(source, report)
+
+
+def directory_link(target, path):
+    if sys.platform == 'win32':
+        import _winapi
+        _winapi.CreateJunction(str(target), str(path))
+    else:
+        path.symlink_to(target, target_is_directory=True)
+
+
+@pytest.mark.parametrize('relative', ['logs', 'logs/fighter-ui-preview', 'logs/fighter-native-preview',
+                                      'logs/fighter-runtime-probe', 'logs/fighter-window-runs',
+                                      'logs/fighter-probe-captures'])
+def test_probe_rejects_redirected_output_roots_before_any_output(tmp_path, monkeypatch, capsys, relative):
+    probe = driver(tmp_path, monkeypatch)
+    outside = tmp_path / 'outside'; outside.mkdir()
+    path = tmp_path / relative; path.parent.mkdir(parents=True, exist_ok=True)
+    directory_link(outside, path)
+    monkeypatch.setattr(probe, 'require_idle_game', lambda: None)
+    monkeypatch.setattr(sys, 'argv', ['fighter-runtime-probe.py', 'unused.sod', 'unused.json'])
+    assert probe.main() == 1
+    assert 'redirected path' in capsys.readouterr().err
+    assert list(outside.iterdir()) == []
+    if relative in ('logs', 'logs/fighter-ui-preview'):
+        with pytest.raises(ValueError, match='redirected path'):
+            probe.prepare_portraits(tmp_path / 'nonexistent.viv', {})
+    if relative in ('logs', 'logs/fighter-native-preview'):
+        with pytest.raises(ValueError, match='redirected path'):
+            probe.registry.write_preview(b'', {})
+
+
+@pytest.mark.parametrize('child', ['', 'screens', 'screens/screens.viv'])
+def test_portrait_cache_rejects_existing_redirected_children(tmp_path, monkeypatch, child):
+    probe = driver(tmp_path, monkeypatch)
+    source, report = portrait_inputs(tmp_path)
+    output = probe.prepare_portraits(source, report)
+    destination = output.parents[1]
+    path = destination / child if child else destination
+    if path.is_dir():
+        shutil.rmtree(path)
+    else:
+        path.unlink()
+    outside = tmp_path / 'outside'; outside.mkdir()
+    directory_link(outside, path)
+    with pytest.raises(ValueError, match='redirected path'):
+        probe.prepare_portraits(source, report)
+    assert list(outside.iterdir()) == []
+
+
+@pytest.mark.parametrize('child', ['', 'assets', 'fighter-names.bin', 'assets/djv2.sod'])
+def test_native_cache_rejects_existing_redirected_children(tmp_path, monkeypatch, child):
+    probe = driver(tmp_path, monkeypatch)
+    definition = tmp_path / 'alpha.json'; definition.write_text(json.dumps(pack()))
+    cache, _ = probe.prepare(tmp_path / 'unused.sod', [definition])
+    path = cache / child if child else cache
+    if path.is_dir():
+        shutil.rmtree(path)
+    else:
+        path.unlink()
+    outside = tmp_path / 'outside'; outside.mkdir()
+    directory_link(outside, path)
+    with pytest.raises(ValueError, match='redirected path'):
+        probe.prepare(tmp_path / 'unused.sod', [definition])
+    assert list(outside.iterdir()) == []
+
+
+def test_language_pack_preparation_keeps_other_native_files_and_rejects_sod_overlap(tmp_path, monkeypatch):
+    from test_fighter_archive import fixture
+    from test_langpack import lp
+    probe = driver(tmp_path, monkeypatch)
+    source = tmp_path / 'screens.viv'
+    source.write_bytes(fixture({'text.bin': b'original'}))
+    pin = tmp_path / 'config/fighter-native-baseline.json'; pin.parent.mkdir()
+    pin.write_text(json.dumps({'screens_sha256': hashlib.sha256(source.read_bytes()).hexdigest()}))
+    folder = tmp_path / 'mods/xx-test'; (folder / 'patches').mkdir(parents=True)
+    (folder / 'patches/one.djd').write_bytes(lp.delta_make(b'original', b'translated'))
+    ini = folder / 'language.ini'
+    header = '[language]\nschema=1\nname=Test\nlanguage=xx\n[files]\n'
+    ini.write_text(header + 'screens/screens.viv|text.bin = patches/one.djd\n')
+    composed, receipt = probe.prepare_language_screens(source, folder)
+    assert probe.Archive(composed).read('text.bin') == b'translated'
+    assert receipt['base_sha256'] == hashlib.sha256(composed).hexdigest()
+    ini.write_text(header + 'gconfig.xml = patches/one.djd\n')
+    assert probe.prepare_language_screens(source, folder) is None
+    ini.write_text(header + 'assets/djv2.sod = patches/one.djd\n')
+    with pytest.raises(ValueError, match='semantic composition adapter'):
+        probe.prepare_language_screens(source, folder)
+    ini.write_text(header + 'screens/screens.viv|text.bin = patches/one.djd\n')
+    monkeypatch.setattr(probe, 'MAX_DELTA_BYTES', 8)
+    with pytest.raises(ValueError, match='byte budget'):
+        probe.prepare_language_screens(source, folder)
 
 
 def test_native_save_acceptance_requires_the_requested_kind_in_a_committed_closed_batch(tmp_path, monkeypatch):

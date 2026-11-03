@@ -441,3 +441,20 @@ def test_language_package_shape_rejected(tmp_path, ini, delta, message):
     target = tmp_path/'unpacked'
     with pytest.raises(ValueError, match=message):
         mods.unpack_archive(source, row['versions'][0]['archive'], target)
+
+
+@pytest.mark.parametrize('relative', ['patches', 'patches/nested'])
+def test_language_delta_rejects_redirected_intermediate_directory(tmp_path, relative):
+    outside = tmp_path / 'outside'; outside.mkdir()
+    (outside / '001.djd').write_bytes(b'DJDELTA1' + bytes(72) + b'\0')
+    folder = tmp_path / 'pack'; folder.mkdir()
+    link = folder / relative; link.parent.mkdir(parents=True, exist_ok=True)
+    if sys.platform == 'win32':
+        import _winapi
+        _winapi.CreateJunction(str(outside), str(link))
+    else:
+        link.symlink_to(outside, target_is_directory=True)
+    (folder / 'language.ini').write_text('[language]\nschema=1\nname=X\nlanguage=x\n[files]\n'
+                                       'gconfig.xml = ' + relative + '/001.djd\n')
+    with pytest.raises(ValueError, match='Redirected language delta path'):
+        mods.language_manifest(folder)

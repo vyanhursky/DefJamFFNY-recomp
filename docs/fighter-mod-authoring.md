@@ -225,6 +225,14 @@ submissions and actual match IDs without overriding them. Two-player custom
 headers, donor thumbnails/portraits and selection now have native evidence;
 other layouts, full save lifecycle and authored resources remain acceptance gates.
 
+The internal probe can also use `--language-pack PATH`. It verifies the existing
+language deltas against the supported original screens archive, applies fighter
+presentation to that language base, and requires native hashes of both the
+actual language cache and final output before one redirect is adopted. Other
+language files keep their native handling. A language pack that edits the fighter
+database receives a composition error until a semantic database adapter exists.
+This research option does not enable a launcher capability.
+
 For the repeated-match research route, `--immutable-reuse` retains canonical
 custom records for the process lifetime while ending selection ownership after
 native Game.Quit. Repeat `--expect-match key-a,key-b` once per expected match.

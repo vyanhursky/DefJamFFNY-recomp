@@ -58,6 +58,18 @@ def linked(path):
     return path.is_symlink() or (hasattr(path, 'is_junction') and path.is_junction())
 
 
+def ordinary_path(path):
+    """Reject redirected leaves/ancestors before research IO creates anything.
+
+    This checks the current directory structure, not concurrent hostile renames.
+    Do not resolve first: resolution would hide the redirect being checked.
+    """
+    path = Path(path).absolute()
+    check('..' not in path.parts and not any(linked(item) for item in (path, *path.parents)),
+          'Refusing redirected path: ' + str(path))
+    return path
+
+
 def read_json(path, default=None, maximum=MAX_INDEX):
     path = Path(path)
     if not path.exists() and not linked(path):
@@ -204,9 +216,14 @@ LANGUAGE_TARGET = re.compile(r'[A-Za-z0-9_.-]+(/[A-Za-z0-9_.-]+)*')
 LANGUAGE_DELTA = re.compile(r'[A-Za-z0-9_-]+(/[A-Za-z0-9_.-]+)*\.djd')
 
 
-def validate_language(folder):
-    """A language mod (docs/language-packs.md): language.ini and its deltas. The game checks each delta
-    against the player's dump when it builds the pack; here only the shape and the files' presence."""
+def language_manifest(folder):
+    """Read one validated manifest snapshot for installation or composition.
+
+    Native/application adapters verify the deltas against the player's dump.
+    This checks the manifest shape, paths and presence of its delta files.
+    """
+    folder = Path(folder)
+    check(not linked(folder), 'Redirected language pack folder')
     ini = folder / 'language.ini'
     check(ini.is_file() and not linked(ini) and ini.stat().st_size <= 1024**2, 'Missing/oversized language.ini')
     raw = ini.read_text(encoding='utf-8-sig')
@@ -230,10 +247,18 @@ def validate_language(folder):
         delta = delta.strip()
         check(LANGUAGE_DELTA.fullmatch(delta), 'Invalid language delta path')
         safe_relative(delta)
-        path = folder.joinpath(*PurePosixPath(delta).parts)
-        check(path.is_file() and not linked(path), 'Missing delta: ' + delta)
+        path = folder
+        for part in PurePosixPath(delta).parts:
+            path = path / part
+            check(not linked(path), 'Redirected language delta path: ' + delta)
+        check(path.is_file(), 'Missing delta: ' + delta)
         with path.open('rb') as stream:
             check(stream.read(8) == b'DJDELTA1', 'Not a language delta: ' + delta)
+    return parser
+
+
+def validate_language(folder):
+    language_manifest(folder)
     return {'capabilities': ['language-v1'], 'texture_ids': [], 'wide_ids': []}
 
 

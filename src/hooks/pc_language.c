@@ -438,7 +438,7 @@ typedef struct {
     Buf ini;
 } Pack;
 
-typedef struct { char relative[256]; char host[LANG_PATH]; } Served;
+typedef struct { char relative[256]; char host[LANG_PATH]; int utf8; } Served;
 
 static Pack g_pack;
 static Served g_served[16];
@@ -749,7 +749,9 @@ static BOOL lang_redirect(const char *relative, xbox_host_char *host_path, DWORD
     for (int i = 0; i < g_served_count; i++) {
         if (!same_file_name(relative, g_served[i].relative)) continue;
 #if defined(_WIN32)
-        if (!MultiByteToWideChar(CP_ACP, 0, g_served[i].host, -1, host_path, (int)size)) return FALSE;
+        if (!MultiByteToWideChar(g_served[i].utf8 ? CP_UTF8 : CP_ACP,
+                                g_served[i].utf8 ? MB_ERR_INVALID_CHARS : 0,
+                                g_served[i].host, -1, host_path, (int)size)) return FALSE;
 #else
         if ((size_t)snprintf(host_path, size, "%s", g_served[i].host) >= size) return FALSE;
 #endif
@@ -761,6 +763,66 @@ static BOOL lang_redirect(const char *relative, xbox_host_char *host_path, DWORD
 static void hex(const uint8_t *h, char *out)
 {
     for (int i = 0; i < 32; i++) sprintf(out + 2 * i, "%02x", h[i]);
+}
+
+static int file_digest(const char *path, int utf8, char out[65])
+{
+    FILE *file = NULL;
+    uint8_t chunk[65536], digest[32];
+    size_t got;
+    uint64_t total = 0;
+    Sha sha;
+    int valid = 1;
+#if defined(_WIN32)
+    if (utf8) {
+        wchar_t wide[2048];
+        if (MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, path, -1, wide, 2048))
+            file = _wfopen(wide, L"rb");
+    } else
+#else
+    (void)utf8;
+#endif
+        file = fopen(path, "rb");
+    if (!file) return 0;
+    sha_init(&sha);
+    while ((got = fread(chunk, 1, sizeof chunk, file)) != 0) {
+        total += got;
+        if (total > (512ull << 20)) { valid = 0; break; }
+        sha_update(&sha, chunk, got);
+    }
+    if (ferror(file)) valid = 0;
+    if (fclose(file)) valid = 0;
+    if (!valid) return 0;
+    sha_final(&sha, digest);
+    hex(digest, out);
+    return 1;
+}
+
+static int valid_digest(const char *text)
+{
+    if (!text || strlen(text) != 64) return 0;
+    for (int i = 0; i < 64; ++i)
+        if (!((text[i] >= '0' && text[i] <= '9') || (text[i] >= 'a' && text[i] <= 'f'))) return 0;
+    return 1;
+}
+
+int pc_language_adopt_composed_file(const char *relative, const char *base_sha256,
+                                    const char *final_path, const char *final_sha256)
+{
+    char actual[65];
+    if (!relative || !final_path || !*final_path || strlen(final_path) >= LANG_PATH
+        || !valid_digest(base_sha256) || !valid_digest(final_sha256)) return -1;
+    for (int i = 0; i < g_served_count; ++i) {
+        Served *served = &g_served[i];
+        if (!same_file_name(relative, served->relative)) continue;
+        if (!file_digest(served->host, served->utf8, actual) || strcmp(actual, base_sha256)
+            || !file_digest(final_path, 1, actual) || strcmp(actual, final_sha256)) return -1;
+        /* Publish one final owner only after both independent checks succeed. */
+        strcpy(served->host, final_path);
+        served->utf8 = 1;
+        return 1;
+    }
+    return 0;
 }
 
 /* A pack's own images: a manifest.ini beside language.ini, in the texture-pack format (HD versions of

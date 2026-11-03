@@ -26,12 +26,14 @@ spec.loader.exec_module(registry)
 from fighter_archive import MAX_ARCHIVE, portrait_aliases
 from fighter_archive import Archive, store
 from fighter_assets import unpack
+from fighter_composition import language_base, MAX_DELTA_BYTES
+from fighter_registry import fingerprint
 from fighter_menu import compile_menu
 from fighter_results import compile_results
 from fighter_bindings import seed
 from fighter_profile_store import Store
 from fighter_save_journal import Monitor, initialize, encode_unlock_state, bounded, closed_record, decode
-from mods import atomic_json, linked
+from mods import atomic_json, linked, language_manifest, ordinary_path
 
 
 def require_idle_game():
@@ -152,12 +154,52 @@ def verify_menu_selection(log, report, keys):
     return verify_menu_matches(log, report, [keys])[0]
 
 
-def prepare_portraits(screens, report):
+def original_screens(screens):
     pin = json.loads((ROOT / 'config/fighter-native-baseline.json').read_text(encoding='utf-8'))
     with screens.open('rb') as stream:
         source = stream.read(MAX_ARCHIVE + 1)
     if len(source) > MAX_ARCHIVE or hashlib.sha256(source).hexdigest() != pin['screens_sha256']:
         raise ValueError('Portrait adapter requires the supported original screens archive')
+    return source
+
+
+def prepare_language_screens(screens, folder):
+    folder = folder.absolute()
+    if any(linked(path) for path in (folder, *folder.parents)) or not re.fullmatch(r'[A-Za-z0-9_.-]{1,63}', folder.name) or '..' in folder.name:
+        raise ValueError('Language composition needs an ordinary supported pack folder')
+    parser = language_manifest(folder)
+    edits, used = [], 0
+    for target, delta in parser['files'].items():
+        parts = tuple(part.strip() for part in target.split('|'))
+        if parts[0].lower() == 'assets/djv2.sod':
+            raise ValueError('Language changes to the fighter database need a semantic composition adapter')
+        if parts[0].lower() != 'screens/screens.viv':
+            continue  # The native language loader retains its other files and data-only XBE patch.
+        path = folder / delta.strip()
+        with path.open('rb') as stream:
+            data = stream.read(MAX_DELTA_BYTES - used + 1)
+        used += len(data)
+        if used > MAX_DELTA_BYTES:
+            raise ValueError('Language composition deltas exceed byte budget')
+        edits.append((parts[1:], data))
+    if not edits:
+        return None
+    source = original_screens(screens)
+    return language_base(source, edits, hashlib.sha256(source).hexdigest())
+
+
+def prepare_portraits(screens, report, *, language=None):
+    root = ordinary_path(ROOT / 'logs/fighter-ui-preview')
+    source = original_screens(screens)
+    if language is not None:
+        composed, receipt = language
+        if set(receipt) != {'schema', 'source_sha256', 'base_sha256', 'edits', 'cache_key'} \
+                or receipt['schema'] != 'fighter-language-base-1' \
+                or receipt['source_sha256'] != hashlib.sha256(source).hexdigest() \
+                or receipt['base_sha256'] != hashlib.sha256(composed).hexdigest() \
+                or receipt['cache_key'] != fingerprint({key: value for key, value in receipt.items() if key != 'cache_key'}):
+            raise ValueError('Language screens provenance does not match its composed bytes')
+        source = composed
     pairs = {report['bindings'][key]['selection_key']: report['bindings'][donor]['selection_key']
              for key, donor in report['portrait_donors'].items()}
     result = portrait_aliases(source, pairs, results=True)
@@ -178,9 +220,8 @@ def prepare_portraits(screens, report):
         replacements[path] = store(inner.compose(replacements={stem + '.apt': movie, stem + '.const': constants}))
     result = archive.compose(replacements=replacements)
     digest = hashlib.sha256(result).hexdigest()
-    root = ROOT / 'logs/fighter-ui-preview'
     root.mkdir(parents=True, exist_ok=True)
-    destination = root / digest
+    destination = ordinary_path(root / digest)
     if not destination.exists():
         with tempfile.TemporaryDirectory(dir=root) as temporary:
             stage = Path(temporary) / 'cache'
@@ -189,9 +230,9 @@ def prepare_portraits(screens, report):
             try:
                 os.rename(stage, destination)
             except OSError:
-                if not destination.is_dir():
+                if not ordinary_path(destination).is_dir():
                     raise
-    path = destination / 'screens/screens.viv'
+    path = ordinary_path(destination / 'screens/screens.viv')
     with path.open('rb') as stream:
         actual = stream.read(MAX_ARCHIVE + 1)
     if len(actual) != len(result) or hashlib.sha256(actual).hexdigest() != digest:
@@ -244,6 +285,7 @@ def main():
     parser.add_argument('--no-unlock', action='store_true', help='Disable the harness unlock-everything control for native progress/save acceptance')
     parser.add_argument('--expect-save', choices=('options', 'profile'), help='Require a committed native write/close receipt of this kind in this run')
     parser.add_argument('--ledger', type=Path, help='Internal historical ledger from a previous research cache')
+    parser.add_argument('--language-pack', type=Path, help='Existing language pack; compose its verified screens before fighter presentation')
     args = parser.parse_args()
     try:
         if not 10 <= args.secs <= 900:
@@ -272,11 +314,14 @@ def main():
             if any(press.split('@')[0] not in allowed for stage in args.stage for press in stage.split('=', 1)[-1].split(';')):
                 raise ValueError('Logical menu prototype permits direction/back input only')
         require_idle_game()
+        # Validate every output root before cache/store/session creation. Child
+        # paths are checked again immediately before their own reads/writes.
+        for relative in ('fighter-native-preview', 'fighter-ui-preview', 'fighter-runtime-probe',
+                         'fighter-window-runs', 'fighter-probe-captures'):
+            ordinary_path(ROOT / 'logs' / relative)
         store, monitor = None, None
         if args.binding_window:
-            if any(linked(parent) for parent in (args.profile_store, *args.profile_store.parents)):
-                raise ValueError('Research profile store must not use redirected directories')
-            destination = args.profile_store.resolve()
+            destination = ordinary_path(args.profile_store)
             if not destination.is_relative_to((ROOT / 'logs').resolve()):
                 raise ValueError('Research profile generations must stay under logs')
             source = registry.retail_catalog(args.sod)
@@ -287,30 +332,31 @@ def main():
             if args.fresh_profiles and previous is not None:
                 raise ValueError('Fresh profile research requires an empty store; choose a new research path')
             if previous is not None and args.ledger is None:
-                args.ledger = destination / 'next-ledger.json'
+                args.ledger = ordinary_path(destination / 'next-ledger.json')
                 atomic_json(args.ledger, previous['ledger'])
         cache, report = prepare(args.sod, args.packs, args.ledger, args.logical_menu, args.binding_window)
         for keys in matches:
             expected_fighters(report, keys)  # reject missing/duplicate keys before launching
-        portraits = prepare_portraits(args.sod.resolve().parents[1] / 'screens/screens.viv', report)
-        data_root = ROOT / 'logs/fighter-runtime-probe'
+        screens = args.sod.resolve().parents[1] / 'screens/screens.viv'
+        language = prepare_language_screens(screens, args.language_pack) if args.language_pack else None
+        portraits = prepare_portraits(screens, report, language=language)
+        data_root = ordinary_path(ROOT / 'logs/fighter-runtime-probe')
         if store is not None:
             generation = None if args.fresh_profiles else initialize(store, args.import_profiles or data_root / 'save', report['binding_ledger'])
-            session = ROOT / 'logs/fighter-window-runs' / uuid.uuid4().hex
-            data_root = session / 'fighter-runtime-probe'
+            session = ordinary_path(ROOT / 'logs/fighter-window-runs' / uuid.uuid4().hex)
+            data_root = ordinary_path(session / 'fighter-runtime-probe')
             for name, data in (generation['files'] if generation else {}).items():
-                path = data_root / 'save' / name
+                path = ordinary_path(data_root / 'save' / name)
                 path.parent.mkdir(parents=True, exist_ok=True)
                 path.write_bytes(data)
-            journal = session / 'journal'; journal.mkdir(parents=True)
-            unlock_state = session / 'fighter-unlocks.bin'
+            journal = ordinary_path(session / 'journal'); journal.mkdir(parents=True)
+            unlock_state = ordinary_path(session / 'fighter-unlocks.bin')
             unlock_state.write_bytes(encode_unlock_state(generation, store.baseline))
             monitor = Monitor(store, data_root / 'save', journal, report['binding_ledger'])
         data_root.mkdir(parents=True, exist_ok=True)
-        # A redirected parent of logs/data could accidentally reach player files.
-        for path in (ROOT / 'logs', data_root):
-            if path.is_symlink() or (hasattr(path, 'is_junction') and path.is_junction()):
-                raise ValueError('Probe data root must be an ordinary local directory')
+        if language is not None:
+            atomic_json(ordinary_path(data_root / 'fighter-composition.json'), {'language': language[1],
+                        'screens_sha256': hashlib.sha256(portraits.read_bytes()).hexdigest()})
         environment = {k: v for k, v in os.environ.items() if not k.startswith('RECOMP_')}
         environment['DEFJAM_DATA'] = str(data_root)
         command = [sys.executable, str(ROOT / 'scripts/harness.py'), 'run', args.route,
@@ -325,6 +371,12 @@ def main():
             command += ['--env', 'RECOMP_START_FIGHTERS=' + start_fighters(report, args.start_fighter)]
         if args.no_unlock:
             command += ['--env', 'RECOMP_UNLOCK_ALL=0']
+        if args.language_pack:
+            folder = args.language_pack.absolute()
+            command += ['--env', 'RECOMP_TEXTURE_ROOT=' + str(folder.parent), '--env', 'RECOMP_LANGUAGE_PACK=' + folder.name]
+        if language is not None:
+            command += ['--env', 'RECOMP_FIGHTER_RESEARCH_LANGUAGE_BASE=' + language[1]['base_sha256'],
+                        '--env', 'RECOMP_FIGHTER_RESEARCH_SCREENS_SHA256=' + hashlib.sha256(portraits.read_bytes()).hexdigest()]
         if args.to_end:
             command += ['--to-end']
         if args.binding_window:
@@ -358,7 +410,7 @@ def main():
             shots = ROOT / 'logs/shots' / args.route
             captured = list(shots.glob('*.png')) if shots.is_dir() else []
             if captured:
-                preserved = (session if store is not None else ROOT / 'logs/fighter-probe-captures' / uuid.uuid4().hex) / 'captures'
+                preserved = ordinary_path((session if store is not None else ROOT / 'logs/fighter-probe-captures' / uuid.uuid4().hex) / 'captures')
                 preserved.mkdir(parents=True)
                 for path in captured:
                     shutil.copyfile(path, preserved / path.name)
