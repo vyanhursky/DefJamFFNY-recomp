@@ -195,6 +195,20 @@ report lists imports/exports for dependency resolution. Passing this inspection
 does not validate EAGL geometry, skeletons, materials or texture references and
 does not grant a runtime asset capability.
 
+Inspect a supported SHPX texture archive, raw or RefPack compressed:
+
+```powershell
+python scripts/fighter-registry.py inspect-textures path/to/textures.xsh
+```
+
+This checks single-level indexed/BGRA/DXT1/3/5 textures, dimensions, complete
+pixel and palette ranges, attachment chains, shape references and overlaps.
+Unknown formats or mip layouts require a validated adapter. The data-only shape
+renamer edits verified directory/material fields and rejects collisions. It
+does not guess references inside model data. All 46 community-pack texture
+archives pass this file-format gate; model/material compatibility and actual
+native loading remain separate requirements.
+
 The [active runtime research note](research/fighter-mod-runtime-2026-11-02.md)
 records isolated native probes. `scripts/fighter-runtime-probe.py` is an internal
 acceptance driver, using disposable guarded saves under `logs`, not an install
@@ -203,6 +217,13 @@ The probe's `--expect-fighter` assertions verify original ControllerSetup
 submissions and actual match IDs without overriding them. Two-player custom
 headers, donor thumbnails/portraits and selection now have native evidence;
 other layouts, full save lifecycle and authored resources remain acceptance gates.
+
+For the repeated-match research route, `--immutable-reuse` retains canonical
+custom records for the process lifetime while ending selection ownership after
+native Game.Quit. Repeat `--expect-match key-a,key-b` once per expected match.
+The driver checks each match's fresh submissions, stable bindings and actual
+materialized cores independently. This does not expose process-lifetime native
+IDs to packs, or claim that Game.Quit acknowledges resource destruction.
 
 The internal `--binding-window` prototype appends typed logical CCharacter
 entries while retaining four native participant slots. A 300-custom-fighter

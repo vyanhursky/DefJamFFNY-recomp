@@ -140,6 +140,8 @@ def main():
     inspect.add_argument('sod', type=Path)
     inspect_model = sub.add_parser('inspect-model', help='Inspect data-only ELF envelope; no runtime activation')
     inspect_model.add_argument('model', type=Path)
+    inspect_textures = sub.add_parser('inspect-textures', help='Validate supported SHPX data and references; no runtime activation')
+    inspect_textures.add_argument('textures', type=Path)
     export = sub.add_parser('export-retail')
     export.add_argument('sod', type=Path)
     compile_preview = sub.add_parser('compile-native-preview')
@@ -156,7 +158,12 @@ def main():
     helper.add_argument('--choose', action='append', required=True, metavar='FIGHTER:COMPONENT=PACK')
     args = parser.parse_args()
     try:
-        if args.command == 'inspect-model':
+        if args.command == 'inspect-textures':
+            from fighter_xsh import Textures
+            with args.textures.open('rb') as stream:
+                data = stream.read(MAX_ASSET + 1)
+            result = Textures(unpack_asset(data)).metadata()
+        elif args.command == 'inspect-model':
             with args.model.open('rb') as stream:
                 data = stream.read(MAX_ASSET + 1)
             result = Model(unpack_asset(data)).metadata()

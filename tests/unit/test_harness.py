@@ -49,6 +49,7 @@ def test_long_roster_navigation_compacts_without_losing_press_times_or_pad_owner
     stages = [f'selector{i}=p{i + 1}-down@10+0.8x75;a@76' for i in range(4)]
     script = harness.build_pad_script(stages)
     assert len(script.encode()) <= 4095 and len(script.split(',')) <= 256
+    harness.validate_shots(harness.ROUTES['fighter-roster-two-matches']['shots'])
     for index in range(4):
         expected = f'p{index + 1}-down:10:69.5:0.8:{harness.DIRECTION_HOLD:g}'
         # Last press is at 69.2, with the normal platform-specific hold.
@@ -56,6 +57,26 @@ def test_long_roster_navigation_compacts_without_losing_press_times_or_pad_owner
         assert expected in script
     with pytest.raises(ValueError, match='native byte/entry budget'):
         harness.build_pad_script(['x' * 4096 + '=a@1'])
+    for compiler in (harness.build_pad_script, harness.raw_stages):
+        with pytest.raises(ValueError, match='comma before its occurrence count'):
+            compiler(['controllersetup(0,0#2=a@1'])
+
+
+def test_second_match_overrides_stay_after_the_first_fight_and_result(monkeypatch):
+    calls = []
+    monkeypatch.setattr(harness, 'run_game', lambda *args, **kw: calls.append(kw) or
+                        type('Result', (), {'summary': {'funccalls': []}})())
+    monkeypatch.setattr(harness, 'reached', lambda *args: True)
+    first = 'getscreeninfo(battle/choosef2=down@6;a@29'
+    second = 'getscreeninfo(battle/choosef2#2=up@6;a@29'
+    cpu = 'controllersetup(0#2=right@6;a@29'
+    harness.run_route('fighter-roster-two-matches', extra_stages=[first, second, cpu])
+    stages, tail = calls[0]['stages'], calls[0]['tail']
+    assert first in stages and second not in stages and cpu not in stages
+    script = harness.build_pad_script(stages, tail)
+    assert tail.index('@game.startgame(') < tail.index('@game.getmatchsummary(') < tail.index('@getscreeninfo(battle/choosef2#2')
+    assert tail.index('@getscreeninfo(battle/choosef2#2') < tail.index('@controllersetup(0#2') < tail.index('@getscreeninfo(battle/chsvenue#2')
+    assert len(script.encode()) <= 4095 and len(script.split(',')) <= 256
 
 
 def test_research_save_supervisor_requires_a_fresh_active_heartbeat(tmp_path):

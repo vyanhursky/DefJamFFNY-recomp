@@ -81,38 +81,75 @@ def start_fighters(report, keys):
         raise ValueError('Combat probe fighter is missing: ' + str(error.args[0])) from error
 
 
-def verify_menu_selection(log, report, keys):
-    """Require original menu submission and actual match setup, not just frames."""
-    expected = [int(value) for value in start_fighters(report, keys).split(',')]
-    submissions, starts, bound = {}, [], {}
+def expected_fighters(report, keys):
+    """@created asserts the profile-owned sentinel; it is never a pack binding."""
+    if not 2 <= len(keys) <= 4 or len(set(keys)) != len(keys):
+        raise ValueError('Menu evidence needs two to four distinct participant identities')
+    try:
+        return [99 if key == '@created' else report['bindings'][key]['selection_key'] for key in keys]
+    except KeyError as error:
+        raise ValueError('Expected menu fighter is missing: ' + str(error.args[0])) from error
+
+
+def custom_key(key):
+    return key != '@created' and not key.startswith('retail/')
+
+
+def verify_menu_matches(log, report, matches, *, immutable=False):
+    """Check each selection epoch independently, including post-StartGame cores."""
+    expected = [expected_fighters(report, keys) for keys in matches]
+    submissions, bound, epochs, current, released = {}, {}, [], None, 0
     used = 0
     with Path(log).open('r', encoding='utf-8', errors='replace') as stream:
         while line := stream.readline(65537):
             used += len(line)
             if len(line) > 65536 or used > 512 * 1024**2:
                 raise ValueError('Native menu evidence exceeds inspection budget')
-            match = re.search(r'\[FUNCCALL\] Controller\.ControllerSetup\((\d+),-?\d+,(-?\d+),-?\d+\)', line)
+            match = re.search(r'\[FUNCCALL\] Controller\.ControllerSetup\(\s*(-?\d+)\s*,\s*-?\d+\s*,\s*(-?\d+)\s*,\s*-?\d+\s*\)', line)
             if match:
-                submissions[int(match[1])] = int(match[2])
+                if int(match[1]) == -1:
+                    submissions, bound = {}, {}
+                else:
+                    submissions[int(match[1])] = int(match[2])
             match = re.search(r'\[START\] venue\(script\)=-?\d+ fighters\(gd\+1aaa step 5\):((?: -?\d+){4})', line)
             if match:
-                starts.append([int(value) for value in match[1].split()])
+                current = {'native': [int(value) for value in match[1].split()],
+                           'submissions': dict(submissions), 'bound': dict(bound), 'materialized': {}, 'released': released}
+                epochs.append(current)
+                submissions, bound = {}, {}
             match = re.search(r'\[FIGHTERS\] participant=(\d+) logical=(\d+) stable=([0-9A-F]{8}) native=(\d+) core=(\d+)', line)
             if match:
                 bound[int(match[1])] = (int(match[2]), int(match[3], 16), int(match[4]), int(match[5]))
-    native_expected = [100 + i if not key.startswith('retail/') else value for i, (key, value) in enumerate(zip(keys, expected))] \
-        if report.get('binding_mode') == 'participant-window' else expected
-    if len(starts) != 1 or starts[0][:len(expected)] != native_expected:
-        raise ValueError('Native menu did not start exactly one match with the expected fighter identities')
-    if any(submissions.get(index) != value for index, value in enumerate(expected)):
-        raise ValueError('Native menu did not submit every expected participant identity')
-    if report.get('binding_mode') == 'participant-window':
-        for index, key in enumerate(keys):
-            if not key.startswith('retail/'):
-                wanted = (expected[index], report['binding_ledger']['fighters'][key]['handle'], 100 + index, report['bindings'][key]['core_id'])
-                if bound.get(index) != wanted:
-                    raise ValueError('Native participant bank did not bind the expected stable identity and core')
+            match = re.search(r'\[FIGHTERS\] materialized participant=(\d+) stable=([0-9A-F]{8}) logical=(\d+) core=(\d+) immutable=1', line)
+            if match and current is not None:
+                current['materialized'][int(match[1])] = (int(match[3]), int(match[2], 16), int(match[4]))
+            if '[FIGHTERS] selection ownership finished after native Game.Quit; immutable records retained' in line:
+                released += 1
+    if len(epochs) != len(matches):
+        raise ValueError('Native menu did not start exactly the expected number of matches')
+    if immutable and any(epoch['released'] < index for index, epoch in enumerate(epochs)):
+        raise ValueError('Native repeated matches lack immutable selection ownership release evidence')
+    for keys, wanted_ids, epoch in zip(matches, expected, epochs):
+        native_expected = [100 + i if custom_key(key) else value for i, (key, value) in enumerate(zip(keys, wanted_ids))] \
+            if report.get('binding_mode') == 'participant-window' else wanted_ids
+        if epoch['native'][:len(wanted_ids)] != native_expected:
+            raise ValueError('Native menu did not start a match with the expected fighter identities')
+        if any(epoch['submissions'].get(index) != value for index, value in enumerate(wanted_ids)):
+            raise ValueError('Native menu did not submit every expected participant identity')
+        if report.get('binding_mode') == 'participant-window':
+            for index, key in enumerate(keys):
+                if custom_key(key):
+                    wanted = (wanted_ids[index], report['binding_ledger']['fighters'][key]['handle'], 100 + index, report['bindings'][key]['core_id'])
+                    if epoch['bound'].get(index) != wanted:
+                        raise ValueError('Native participant bank did not bind the expected stable identity and core')
+                    if immutable and epoch['materialized'].get(index) != (wanted[0], wanted[1], wanted[3]):
+                        raise ValueError('Native immutable fighter core was not materialized for every expected participant')
     return expected
+
+
+def verify_menu_selection(log, report, keys):
+    """Single-match control preserves the stricter original one-start contract."""
+    return verify_menu_matches(log, report, [keys])[0]
 
 
 def prepare_portraits(screens, report):
@@ -132,7 +169,7 @@ def prepare_portraits(screens, report):
         path = 'screens/battle/' + stem + '.big'
         inner = Archive(unpack(archive.read(path)))
         records = list(report['menu_roster'].values()) if report.get('binding_mode') in ('logical-menu-only', 'participant-window') else None
-        movie, constants, _ = compile_menu(inner.read(stem + '.apt'), inner.read(stem + '.const'), pairs, names, records)
+        movie, constants, _ = compile_menu(inner.read(stem + '.apt'), inner.read(stem + '.const'), pairs, names, records, participants=count)
         replacements[path] = store(inner.compose(replacements={stem + '.apt': movie, stem + '.const': constants}))
         stem = f'matchSm{count}'
         path = 'screens/battle/' + stem + '.big'
@@ -184,7 +221,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('sod', type=Path)
     parser.add_argument('packs', nargs='+', type=Path)
-    parser.add_argument('--route', choices=('boot', 'fight', 'ffa', 'versus', 'crib', 'gym', 'intro', 'fighter-roster', 'fighter-roster-4', 'fighter-roster-result', 'fighter-roster-save'), default='boot')
+    parser.add_argument('--route', choices=('boot', 'fight', 'ffa', 'versus', 'crib', 'gym', 'intro', 'fighter-roster', 'fighter-roster-4', 'fighter-roster-4-human', 'fighter-roster-result', 'fighter-roster-save', 'fighter-roster-two-matches'), default='boot')
     parser.add_argument('--secs', type=int, default=60)
     parser.add_argument('--shots', default='25')
     parser.add_argument('--to-end', action='store_true', help='Use the complete duration for long native-menu acceptance')
@@ -192,12 +229,15 @@ def main():
     parser.add_argument('--start-fighter', action='append', default=[],
                         help='Internal StartGame control, by stable key; not menu-selection acceptance')
     parser.add_argument('--expect-fighter', action='append', default=[],
-                        help='Assert native menu and StartGame identities in participant order; no override')
+                        help='Assert native menu identities in participant order; @created requires the real profile-owned fighter')
+    parser.add_argument('--expect-match', action='append', default=[],
+                        help='Repeated-match assertion: comma-separated stable keys, once per match in order')
     parser.add_argument('--trace-assets', action='store_true')
     parser.add_argument('--trace-profiles', action='store_true')
     parser.add_argument('--trace-lifetime', action='store_true', help='Watch reviewed participant model reset/load boundaries; no lifecycle override')
     parser.add_argument('--logical-menu', action='store_true', help='Browsing-only logical roster prototype; native confirmation blocked')
     parser.add_argument('--binding-window', action='store_true', help='Internal four-participant native binding prototype')
+    parser.add_argument('--immutable-reuse', action='store_true', help='Research repeated selections using immutable records after native Game.Quit')
     parser.add_argument('--profile-store', type=Path, default=ROOT / 'logs/fighter-profile-store', help='Internal isolated generation store under logs')
     parser.add_argument('--fresh-profiles', action='store_true', help='Create a new isolated namespace from native defaults instead of importing a fixture')
     parser.add_argument('--import-profiles', type=Path, help='Read-only verified save fixture for the first isolated generation; never replaces an existing store')
@@ -208,10 +248,15 @@ def main():
     try:
         if not 10 <= args.secs <= 900:
             raise ValueError('Probe duration must be 10..900 seconds')
-        if args.expect_fighter and args.start_fighter:
+        matches = [value.split(',') for value in args.expect_match] if args.expect_match else ([args.expect_fighter] if args.expect_fighter else [])
+        if args.expect_match and (args.expect_fighter or not args.immutable_reuse):
+            raise ValueError('Repeated-match expectations require immutable reuse and cannot mix single-match assertions')
+        if matches and args.start_fighter:
             raise ValueError('Native menu expectations cannot use a StartGame fighter override')
         if args.binding_window and (args.logical_menu or args.start_fighter):
             raise ValueError('Binding window requires native menu selection and no other binding mode')
+        if args.immutable_reuse and not args.binding_window:
+            raise ValueError('Immutable record reuse requires the isolated binding window')
         if args.fresh_profiles and not args.binding_window:
             raise ValueError('Fresh profile research requires the binding window')
         if args.import_profiles and (not args.binding_window or args.fresh_profiles):
@@ -245,8 +290,8 @@ def main():
                 args.ledger = destination / 'next-ledger.json'
                 atomic_json(args.ledger, previous['ledger'])
         cache, report = prepare(args.sod, args.packs, args.ledger, args.logical_menu, args.binding_window)
-        if args.expect_fighter:
-            start_fighters(report, args.expect_fighter)  # reject missing/duplicate keys before launching
+        for keys in matches:
+            expected_fighters(report, keys)  # reject missing/duplicate keys before launching
         portraits = prepare_portraits(args.sod.resolve().parents[1] / 'screens/screens.viv', report)
         data_root = ROOT / 'logs/fighter-runtime-probe'
         if store is not None:
@@ -284,6 +329,8 @@ def main():
             command += ['--to-end']
         if args.binding_window:
             command += ['--env', 'RECOMP_FIGHTER_WINDOW=' + str(cache / 'fighter-window.bin')]
+            if args.immutable_reuse:
+                command += ['--env', 'RECOMP_FIGHTER_IMMUTABLE_REUSE=1']
             command += ['--env', 'RECOMP_FIGHTER_SAVE_JOURNAL=' + str(journal), '--env', 'RECOMP_FIGHTER_UNLOCKS=' + str(unlock_state)]
             command += ['--supervisor', str(journal / 'supervisor.json')]
         if args.trace_assets:
@@ -305,8 +352,8 @@ def main():
             monitor.start()
         try:
             result = subprocess.run(command, cwd=ROOT, env=environment,
-                                    capture_output=bool(args.expect_fighter), text=True)
-            if args.expect_fighter:
+                                    capture_output=bool(matches), text=True)
+            if matches:
                 print(result.stdout, end=''); print(result.stderr, end='', file=sys.stderr)
             shots = ROOT / 'logs/shots' / args.route
             captured = list(shots.glob('*.png')) if shots.is_dir() else []
@@ -322,7 +369,7 @@ def main():
                 print('verified fighter save generations: ' + str(len(monitor.committed)), flush=True)
                 if 'result' in locals() and result.returncode == 0 and (journal / f'{monitor.next:06}.batch').exists():
                     raise ValueError('Native run ended with an unverified fighter save batch; committed generation was preserved')
-        if args.expect_fighter:
+        if matches:
             if result.returncode:
                 return result.returncode
             paths = re.findall(r'^log\s+(.+)$', result.stdout, re.M)
@@ -331,8 +378,8 @@ def main():
             log = (ROOT / paths[0].strip()).resolve()
             if not log.is_relative_to((ROOT / 'logs').resolve()):
                 raise ValueError('Harness evidence log is outside the research directory')
-            expected = verify_menu_selection(log, report, args.expect_fighter)
-            print('native menu identities verified: ' + ','.join(map(str, expected)))
+            expected = verify_menu_matches(log, report, matches, immutable=bool(args.expect_match))
+            print('native menu identities verified: ' + '; '.join(','.join(map(str, values)) for values in expected))
         if args.expect_save and result.returncode == 0:
             names = verify_saved_kind(journal, monitor.committed, args.expect_save)
             print('native acknowledged ' + args.expect_save + ' saves verified: ' + ', '.join(names))

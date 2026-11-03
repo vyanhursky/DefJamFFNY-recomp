@@ -31,6 +31,8 @@ int fighter_window_clear(FighterWindow *window, uint32_t participant);
 int fighter_window_command(FighterWindow *window, const char *command);
 /* Bounded decimal native arguments, including the original menus' whitespace. */
 int fighter_window_integer(const char *text, int32_t *value);
+/* Ends selection ownership only; says nothing about model/resource teardown. */
+int fighter_window_finish(FighterWindow *window);
 uint32_t fighter_window_native(const FighterWindow *window, uint32_t stable);
 uint32_t fighter_window_stable(const FighterWindow *window, uint32_t native);
 #endif

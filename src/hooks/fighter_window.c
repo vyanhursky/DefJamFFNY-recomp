@@ -92,6 +92,11 @@ int fighter_window_clear(FighterWindow *w, uint32_t participant) {
         if (participant == UINT32_MAX || participant == i) w->selected[i] = 0;
     return 1;
 }
+int fighter_window_finish(FighterWindow *w) {
+    if (!w || !w->bytes || !w->frozen) return 0;
+    w->frozen = 0;
+    return 1;
+}
 static int argument_space(unsigned char c) {
     return c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == '\v' || c == '\f';
 }

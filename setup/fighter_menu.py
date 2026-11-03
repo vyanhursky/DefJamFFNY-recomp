@@ -8,6 +8,7 @@ No original instruction/branch or asset pointer is relocated in place.
 """
 import re
 import struct
+import textwrap
 
 import fighter_apt as apt
 from fighter_assets import AssetError
@@ -264,7 +265,65 @@ def retain_ready_ownership(action, definitions):
     action.function('keyBackHandler', ['nConID'], back)
 
 
-def presentation_action(base, movie, constants, pairs, names, records=None):
+def append_name_fields(output, movie, entry):
+    """Clone reviewed native Text records; generic transforms affect the parent.
+
+    The Text record is60bytes: type/signature, bounds, font/alignment/color,
+    font height, flags and original string pointers. No font or glyph is supplied
+    by a package. Original records, placements and native names remain intact.
+    """
+    root = apt.parse_character(movie, entry)
+    characters = apt.read_characters_list(movie, root)
+    fields = {}
+    first_frame = struct.unpack_from('<I', movie, entry + 12)[0]
+    frame_count, frame_list = struct.unpack_from('<II', movie, first_frame)
+    for offset in struct.unpack_from('<' + 'I' * frame_count, movie, frame_list):
+        kind, item = apt.parse_frame_item(movie, offset)
+        name = item.get('name') or ''
+        if kind == 'PlaceObject' and re.fullmatch(r'szFighterName[0-3]', name):
+            if name in fields: raise AssetError('Duplicate native fighter name field')
+            fields[name] = dict(item, record_offset=offset)
+    if len(fields) != 4:
+        raise AssetError('Four-player name fields differ from the reviewed native layout')
+    count, pointers = root['_characters_ptr_list']
+    depths = [item['depth'] for frame in root['frames'] for kind, item in frame if kind == 'PlaceObject']
+    depth = max(depths, default=0) + 1
+    if count > 16380 or depth > 16380:
+        raise AssetError('Native name field character/depth budget exceeded')
+    added, placements = [], []
+    for player, left in enumerate((100, 239, 377, 513)):
+        source = fields['szFighterName' + str(player)]
+        index = source['character']
+        if index is None or not 0 <= index < count or characters[index] is None:
+            raise AssetError('Native fighter name field has no character')
+        record = characters[index]; start = record['offset']
+        if record['type'] != 'Text' or not record['sig_ok'] or start + 60 > len(movie) or source['matrix'] is None:
+            raise AssetError('Native fighter name Text record differs')
+        placement = source['record_offset']
+        if source['flags'] != 38 or placement + 64 > len(movie) or struct.unpack_from('<I', movie, placement + 60)[0]:
+            raise AssetError('Native fighter name placement needs a reviewed clip-action adapter')
+        font, alignment, _, height = struct.unpack_from('<IIIf', movie, start + 24)
+        if not 0 <= font < count or characters[font] is None or characters[font]['type'] != 'Font' or alignment != 2 or height != 20:
+            raise AssetError('Native fighter name font differs from the reviewed template')
+        added.append(len(output)); output += movie[start:start + 60]
+        struct.pack_into('<4f', output, added[-1] + 8, -2, -2, 75, 64)
+        struct.pack_into('<f', output, added[-1] + 36, 12)
+        label = '_recompFighterLabel' + str(player)
+        name_at = len(output); output += label.encode('ascii') + b'\0'; output += bytes(-len(output) % 4)
+        placements.append(len(output))
+        # Native PlaceObject is64bytes, including the zero clip-actions pointer
+        # even when its flag is absent. Preserve its original color/defaults.
+        output += movie[placement:placement + 64]
+        struct.pack_into('<II', output, placements[-1] + 8, depth + player, count + player)
+        struct.pack_into('<6f', output, placements[-1] + 16, 1, 0, 0, 1, left, source['matrix'][5])
+        struct.pack_into('<I', output, placements[-1] + 52, name_at)
+    list_at = len(output); output += movie[pointers:pointers + count * 4]
+    output += struct.pack('<4I', *added)
+    struct.pack_into('<II', output, entry + 20, count + 4, list_at)
+    return placements
+
+
+def presentation_action(base, movie, constants, pairs, names, records=None, *, fitted_names=False):
     entry, entries, definitions = functions(movie, constants)
     updated_constants = constants
     getter = next((i for i, entry in enumerate(entries) if entry.value == 'getID'), None)
@@ -337,13 +396,22 @@ def presentation_action(base, movie, constants, pairs, names, records=None):
     action.string('_recompFighterUpdateChar'); action.variable('updateChar'); action.op('SetVariable')
     def update_name():
         action.variable('nPlayer'); action.integer(1); action.string('_recompFighterUpdateChar'); action.op('CallFunction'); action.op('Pop')
+        if fitted_names:
+            action.local('_fitted', lambda: (action.string('_recompFighterLabel'), action.variable('nPlayer'), action.op('Add2'), action.op('GetVariable')))
+            action.variable('_fitted'); action.string('text'); action.string(''); action.op('SetMember')
         action.local('_char', lambda: (action.integer(0), action.variable('aThumbGrids'), action.variable('nPlayer'), action.op('GetMember'), action.string('getSelectedChar'), action.op('CallMethod')))
         action.local('_label', lambda: (action.variable('_recompFighterLabels'), action.integer(0), action.variable('_char'), action.string('getID'), action.op('CallMethod'), action.op('GetMember')))
         done = action.unique()
         action.variable('_label'); action.op('EA_PushUndefined'); action.op('Equals2'); action.branch('BranchIfTrue', done)
         action.local('_field', lambda: (action.string('szFighterName'), action.variable('nPlayer'), action.op('Add2'), action.op('GetVariable')))
-        action.variable('_field'); action.string('text'); action.variable('_label'); action.op('SetMember')
-        action.variable('_field'); action.string('_visible'); action.op('EA_PushTrue'); action.op('SetMember')
+        if fitted_names:
+            action.variable('_field'); action.string('text'); action.string(''); action.op('SetMember')
+            for prop in ('multiline', 'wordWrap'):
+                action.variable('_fitted'); action.string(prop); action.op('EA_PushTrue'); action.op('SetMember')
+            action.variable('_fitted'); action.string('text'); action.variable('_label'); action.op('SetMember')
+        else:
+            action.variable('_field'); action.string('text'); action.variable('_label'); action.op('SetMember')
+            action.variable('_field'); action.string('_visible'); action.op('EA_PushTrue'); action.op('SetMember')
         action.label(done); action.op('EA_PushUndefined'); action.op('Return')
     action.function('updateChar', ['nPlayer'], update_name)
     if records is not None:
@@ -351,7 +419,9 @@ def presentation_action(base, movie, constants, pairs, names, records=None):
     return action.finish(), updated_constants, entry, [definition['method'] for definition in visual]
 
 
-def compile_menu(movie, constants, pairs, names, records=None):
+def compile_menu(movie, constants, pairs, names, records=None, *, participants=None):
+    if participants is not None and (type(participants) is not int or participants not in (2, 3, 4)):
+        raise AssetError('Invalid native selector participant layout')
     if not 8 <= len(movie) <= MAX_MOVIE or movie[:8] != b'Apt Data' or len(constants) > MAX_MOVIE:
         raise AssetError('Invalid selector input budget')
     if set(pairs) != set(names) or not 0 < len(pairs) <= 16384:
@@ -367,13 +437,16 @@ def compile_menu(movie, constants, pairs, names, records=None):
             raise AssetError('Logical roster must cover exactly the presentation identities')
         records = sorted(records, key=lambda row: row['selection_key'])
     output = bytearray(movie); output += bytes(-len(output) % 4)
-    code, constants, entry, methods = presentation_action(len(output), movie, constants, pairs, names, records)
+    entry, _ = apt.parse_const(constants)
+    placements = append_name_fields(output, movie, entry) if participants == 4 else []
+    display_names = {key: '\n'.join(textwrap.wrap(name, width=6, break_on_hyphens=False)) for key, name in names.items()} if placements else names
+    code, constants, entry, methods = presentation_action(len(output), movie, constants, pairs, display_names, records, fitted_names=bool(placements))
     action_at = len(output); output += code; output += bytes(-len(output) % 4)
     record_at = len(output); output += struct.pack('<II', 1, action_at)
     frames = struct.unpack_from('<I', movie, entry + 12)[0]
     count, pointers = struct.unpack_from('<II', movie, frames)
     if count > 16384 or pointers + count * 4 > len(movie): raise AssetError('Invalid first-frame item list')
-    list_at = len(output); output += movie[pointers:pointers + count * 4] + struct.pack('<I', record_at)
-    struct.pack_into('<II', output, frames, count + 1, list_at)
+    list_at = len(output); output += movie[pointers:pointers + count * 4] + struct.pack('<' + 'I' * (len(placements) + 1), *placements, record_at)
+    struct.pack_into('<II', output, frames, count + len(placements) + 1, list_at)
     if len(output) > MAX_MOVIE: raise AssetError('Composed selector exceeds movie budget')
     return bytes(output), constants, {'methods': methods, 'action_offset': action_at}

@@ -12,12 +12,13 @@ thread; its one-time heartbeat was deleted after delivery. Work began about
 
 ## Current code and tests
 
-13:59 checkpoint: implementing the logical roster/native binding window and
+Checkpoint after immutable-record acceptance: implementing the logical roster/native binding window and
 coherent isolated save generations. This supersedes the immediate continuation
 at the bottom of this note. Receipt checkpoint `d059bfd` is followed by the
 ownership/profile work described below. Native Options and Story profile
 write/close receipts and two independent controllers with cancellation have
-passed. Binding reuse, authored assets and launcher integration remain incomplete.
+passed. Four independent humans and repeated native matches now pass with
+immutable custom records. Authored assets and launcher integration remain incomplete.
 
 - Native list capacity is **not a single 255 limit**. The signed-byte selection
   path narrows inside `558E0` before `1E700`; the shared roster has a different
@@ -384,11 +385,13 @@ review of `logs/fighter-crib-original-apt.txt:1121` verifies the assignments abo
   passed with required filesystem permissions, and the fresh full gate above
   passed. Re-lift/build for the ownership dispatcher passed
   `fighter-ready-ownership-lift.txt` / `fighter-ready-ownership-build.txt`.
-  Current stock golden/combat regression is running in
-  `logs/fighter-ownership-profile-stock-regression.txt`; do not report its final
-  result until complete.
+  Stock golden/combat regression **4/4 passed** on checkpoint `136eb7d`,
+  `logs/fighter-ownership-profile-stock-regression.txt` /
+  `logs/regress-20261102-140324.txt`: loading/title/main-menu goldens and122seconds
+  combat, min113/median120 presents per2seconds. This predates the immutable
+  record prototype described next.
 
-Next binding experiment: keep the indexed Character bank rows immutable and
+Current binding experiment: keep the indexed Character bank rows immutable and
 resolve every installed custom **stable handle** to its own immutable unindexed
 template, rather than copying it into a reusable row. Native BE760 success is a
 12-byte record/database/type tuple; preserve the native registered database/type
@@ -396,20 +399,138 @@ and substitute only the validated record pointer. StartGame's bank-token query
 still yields a full stable handle. Primary stack-flow review shows20270's
 per-participant BE760 output feeds its BEE90 property receiver; its secondary
 0x5950-stride profile branch is gated by Story's created-player state or Battle
-sentinel99, rather than custom byte tokens100..103. This is a promising design
-experiment, **not implemented or accepted**. Verify actual model/core/stat pointer
-provenance, all identity-producing paths, immutable-row invariants, and repeated
-native matches before changing the current freeze guard. Existing model cleanup
+sentinel99, rather than custom byte tokens100..103. This is now implemented
+behind isolated research controls. Original indexed banks are never overwritten;
+every installed custom stable handle resolves to its canonical process-lifetime
+template, independently of current participant ownership. BE760 retains the native
+database/type tuple and only substitutes the validated record pointer. After the
+original20270 returns, a guard compares each custom participant's actual core
+field with its intended core. Original bank records are snapshotted and checked.
+The subsequent guard also snapshots/checks every104-byte custom template across
+binding/setup/Quit boundaries, rather than assuming that absence of a crash proves
+immutability. Existing model cleanup
 findings do not prove full teardown:9D340 resets an inner owner before replacement,
 while the proven four-owner destructor is process-exit-only. Never call a UI
 transition a model/XSH release acknowledgement.
 
-Remaining implementation gates, in order: finish native pack lifecycle and clean
-result presentation; prove pre-match cancellation/independent human ownership,
-then bank teardown/reuse and repeated matches; exercise native5904-byte profile
-saves and interrupted write failures; complete authored resource validation and
-registration, shared language/texture composition, whole-pack launcher transactions,
-ordinary Vendetta conversion and platform/Story/soak acceptance. None is waived.
+- CPU oracle now executes **nine native routines**, adding16AE0/BEC70/BEE90 to
+  the six packed-handle/lookup routines. It checks19 actual Character properties,
+  their descriptor/schema/pointer/database/value relationships, and unchanged
+  source records. Original75-row SOD passes19 checks
+  (`logs/fighter-immutable-stock-oracle-final.json`); the300-custom/four-indexed-bank
+  cache passes38 (retail plus immutable template logical256, offset278764),
+  `logs/fighter-immutable-256-oracle.json`. Generated0/5 source hashes are in each
+  report. Earlier oracle attempts wrongly treated the schema's Character type
+  entry as a queryable Name property; they are scaffold failures, retained as such.
+- Four independent human controllers **passed** immutable native selection and
+  combat: `run-20261102-141259.log.err`,
+  `logs/fighter-immutable-four-human-native.txt`. Three packs supply AlphaOne100,
+  AlphaTwo101, BetaOne102, GammaOne103. Exact native controller/participant0..3,
+  stable0700004B..4E, transient100..103 and materialized cores **4/5/23/56** all
+  agree. Reviewed selector and60second combat captures under
+  `logs/fighter-window-runs/a186108cefeb4049b5b8b0236d429266/captures`.
+  130reports,min96/median120/max121,no crashes/watchdogs/unresolved calls,
+  one verified generation,saves restored identically. Narrow selector names still
+  clip; combat HUD labels render correctly. This run did not release/rebind banks.
+- Internal `--immutable-reuse` enables selection ownership release **after original
+  Game.Quit returns**. It retains all immutable records and does not claim models,
+  XSH or voice resources have been released. Default research behavior remains
+  frozen. Native repeated-match acceptance passed as recorded below.
+  The driver now asserts each match's fresh ControllerSetup, stable binding,
+  actual post-materialization core and prior Quit release separately; records
+  from another match cannot satisfy it. The harness supports replacing later
+  match stages in place without closing the first match's input. Focused gate
+  **90passed,1skipped**, `logs/fighter-immutable-reuse-focused.txt`.
+  Immutable re-lift/build and incremental record-guard build passed in
+  `fighter-immutable-records-lift.txt`, `fighter-immutable-records-build.txt`,
+  `fighter-immutable-records-guard-build.txt`.
+- Two consecutive native matches **passed**, `run-20261102-142833.log.err`,
+  `logs/fighter-immutable-two-matches-native-corrected.txt`. First101/102,
+  stable4C/4D,cores5/23; original result/reward/save/Quit; second100/101,
+  stable4B/4C,cores4/5. Both reuse engine100/101 while canonical records remain
+  unchanged. The complete first match and120seconds of second combat ran,
+  with277reports,min84/median120/max120,no native faults,two acknowledged Options
+  save generations and byte-identical save-root restoration. Native core guards
+  and independent per-match identity assertions passed. Both60/61second combat
+  captures were reviewed under
+  `logs/fighter-window-runs/66d9f7e52c65425ebb1807b999d06020/captures`.
+  Earlier142358 is a failed harness calibration: a comma before#2 in an anchor
+  caused later input to fire early. Stopped only verified ownedPID62980; restoration
+  passed. Repeated-anchor compilers now reject that lossy syntax. The corrected
+  route uses comma-free call prefixes. This acceptance does not establish a
+  resource memory soak or all rematch/disconnect/Story cases.
+- Strict `fighter_xsh.py` validates single-level paletted/BGRA/DXT1/3/5 SHPX
+  textures, pixel/palette/attachment ranges, swizzle dimensions, directory/material
+  names and overlap/expansion budgets. Typed shape renaming edits only verified
+  directory and material references and revalidates the result; it never replaces
+  arbitrary matching bytes. Unsupported mips/attachments fail closed. All46
+  Vendetta XSH files passed, `logs/fighter-vendetta-xsh-validation.json`; this is
+  file-format acceptance only, not model/material/runtime compatibility.
+  CLI `fighter-registry.py inspect-textures` reports metadata and pending gates.
+- Full gate **1,050passed,27skipped,1deselected**,97.30s,
+  `logs/fighter-immutable-xsh-full-unit.txt`. The subsequent F4 text-layout
+  prototype has28 focused passes (`logs/fighter-label-fit-first-unit.txt`) and
+  still requires native visual acceptance. Stock immutable-build regression is
+  **4/4passed** in `logs/fighter-immutable-stock-regression.txt` /
+  `logs/regress-20261102-195432.txt`: loading/title/main-menu goldens and122seconds
+  combat,min114/median120 presents per2seconds. The F4 layout probe is running;
+  The earlier transform experiment failed visual acceptance; the accepted
+  replacement is recorded below.
+
+F4 name fitting follow-up:
+
+- Transform prototype `run-20261102-195545.log.err` completed four-player combat
+  and identity assertions but **failed visual acceptance**: generic TextField
+  `_x/_xscale/_yscale` fallback changes its surrounding display object. Its35/39/43s
+  captures show compressed panels. Removed the transform implementation; retain
+  `logs/fighter-menu-transform-rejected.py` as ignored diagnostic source only.
+  The generic property map2EA4A0 and setter167270→17EBD0→164B80 prove dispatch,
+  not ownership of a TextField-local transform. Never infer the latter again.
+- Replacement owns four additional native Text definitions, reusing the original
+  font and immutable field templates. Its fixed75x64 bounds/font12 sit beside
+  portraits; generated custom labels wrap, and original fields render unchanged
+  for retail/created entries. It clears only the extra label when browsing away.
+  No generic display transforms/visibility toggles are used in the F4 path.
+- First overlay `run-20261102-200631.log.err` crashed in native155AD0 constant-pool
+  fixup before selection, with save restoration intact. The appended PlaceObject
+  lacked its always-present final clip-actions-pointer word. Native original
+  placements are **64bytes**, including that zero word even without flag128.
+  The compiler now clones complete verified64-byte placements and changes only
+  depth, Character index, matrix and name pointer. It rejects unreviewed nonzero
+  clip actions. Tests retain the complete slot and original Text records.
+- Corrected overlay `run-20261102-201143.log.err` **passed** with exact
+  custom100/101/102/103 and cores4/5/23/56. Reviewed35/39/43s captures show full
+  panels and readable AlphaOne/AlphaTwo/BetaOne/GammaOne labels; P1's intervening
+  locked native entry clears its custom label and restores the original presentation.
+  131reports,min104/median120/max121,no native faults,one verified generation,
+  saves restored identically. Captures retained under
+  `logs/fighter-window-runs/2f2595aba5a043d3b31850e4bdfed1db/captures`.
+  Focused overlay/created-assertion gate **21passed**,
+  `logs/fighter-created-assertion-unit.txt`. Fresh full gate **1,052passed,
+  27skipped,1deselected**,93.26s, `logs/fighter-immutable-overlay-final-unit.txt`.
+
+Remaining implementation gates, in order:
+
+1. Finish F4 fitting acceptance, long names, three/four-player result variants,
+   real created-fighter selection, disconnect/rejoin and rematch cases. Existing
+   native two-pad cancellation, four independent pads and two-match reuse have
+   passed; preserve their exact evidence instead of redoing their investigation.
+2. Exercise actual new profile progression with a real Battle ID (the current
+   multi-pad script confirms guests, `SetBMCurrentUserIndex(player,-1)`), plus
+   native missing-pack/update/re-enable and interrupted-write cases. Native5904-byte
+   write/close and isolated generations already pass; unchanged VY3 payloads do
+   not prove new progression. Internal `@created` is an assertion of sentinel99,
+   never a package identity or a StartGame override.
+3. Repeat immutable >255/four-bank boundaries and memory/resource soaks. Canonical
+   immutable records avoid row overwrite; they do not establish every asset's
+   lifetime. Native bank windows remain four simultaneous participants, not four
+   installed fighters.
+4. Complete authored resource validation/registration (geometry/skeleton/materials,
+   motions/events, voice/AI/cinematics) and shared language/texture composition.
+   ELF envelopes and46XSH texture files pass only their documented format gates.
+5. Whole-pack launcher Fighters transactions/restart/profile-helper integration,
+   ordinary Vendetta conversion, authoring tools/docs, platform/Story/soak gates
+   and owner play-test. No shipping capability, public push or PR is authorized.
 
 Resource/lifetime audit corrections: 109F80 is the DynamicLoader ELF parser, not
 cleanup. 102130 resolves four-character SHAPENAME via SHAPE in a supplied module

@@ -64,7 +64,10 @@ void sub_000BE870(void)
 extern void sub_000BE760_gen(void);
 void sub_000BE760(void)
 {
-    uint32_t argument = g_esp + 8, handle = MEM32(argument);
+    uint32_t argument = g_esp + 8, handle = MEM32(argument), output = MEM32(g_esp + 4);
+    if (defjam_fighter_native_record(g_ecx, output, handle)) {
+        g_eax = output; g_esp += 16; return; /* Original typed result and ret 12. */
+    }
     MEM32(argument) = defjam_fighter_native_handle(handle);
     sub_000BE760_gen();
     MEM32(argument) = handle;
@@ -93,9 +96,17 @@ void sub_00047BC0(void)
 extern void sub_00020270_gen(void);
 void sub_00020270(void)
 {
-    uint32_t self = g_ecx, handle = MEM32(g_esp + 4);
+    uint32_t self = g_ecx, handle = MEM32(g_esp + 4), fighters = MEM32(g_esp + 12);
     sub_00020270_gen();
     defjam_fighter_materialized(self, handle);
+    defjam_fighter_match_setup(self, fighters);
+}
+
+extern void sub_000462C0_gen(void);
+void sub_000462C0(void)
+{
+    sub_000462C0_gen();
+    defjam_fighter_match_finished();
 }
 
 /* Bound the original fixed Options set before loading, insertion and staging.

@@ -32,6 +32,10 @@ static uint8_t *s_window_bytes;
 static uint8_t *s_bytes;
 static uint8_t *s_binding_bytes;
 static uint32_t s_validated_database;
+static uint8_t s_bank_records[FIGHTER_WINDOW_BANKS][104];
+static uint8_t *s_template_records;
+static int s_immutable_reuse;
+static RECOMP_TLS unsigned s_record_traces;
 static uint32_t s_guest_text;
 static uint32_t s_settings;
 static volatile int s_lock;
@@ -166,6 +170,9 @@ static int research_start(void) {
                     || fighter_bindings_find(&s_bindings, FIGHTER_BINDING_NATIVE, s_window.banks[i].native_handle, &binding)) return 0;
             }
             fprintf(stderr, "[FIGHTERS] participant window: %u logical fighters, %u native banks\n", s_window.count, FIGHTER_WINDOW_BANKS);
+            path = getenv("RECOMP_FIGHTER_IMMUTABLE_REUSE");
+            if (path && strcmp(path, "0") && strcmp(path, "1")) return 0;
+            s_immutable_reuse = path && !strcmp(path, "1");
             path = getenv("RECOMP_FIGHTER_SAVE_JOURNAL");
             if (!path || !*path || strlen(path) >= sizeof s_journal - 64) return 0;
             strcpy(s_journal, path);
@@ -287,7 +294,10 @@ static void validate_database(uint32_t database) {
             if (MEM32(output) != base + bank->record_offset || MEM32(MEM32(database + 0x48) + MEM32(base + bank->record_offset) * 8) != bank->symbol_hash
                 || MEM32(base + bank->record_offset + 32) != bank->selection_key || MEM32(base + bank->record_offset + 40) != bank->core_id)
                 fighter_stop("Native participant bank does not match its generated binding.");
+            memcpy(s_bank_records[i], (const void *)XBOX_PTR(base + bank->record_offset), 104);
         }
+        s_template_records = (uint8_t *)malloc((size_t)s_window.count * 104);
+        if (!s_template_records) fighter_stop("Could not retain immutable fighter validation records.");
         for (uint32_t i = 0; i < s_window.count; ++i) {
             FighterWindowRow row; uint32_t sid;
             fighter_window_at(&s_window, i, &row);
@@ -295,12 +305,76 @@ static void validate_database(uint32_t database) {
             if (sid >= MEM32(database + 0x44) || MEM32(MEM32(database + 0x48) + sid * 8) != row.symbol_hash
                 || MEM32(base + row.record_offset + 32) != row.selection_key || MEM32(base + row.record_offset + 40) != row.core_id)
                 fighter_stop("Logical fighter template does not match its generated binding.");
+            memcpy(s_template_records + (size_t)i * 104, (const void *)XBOX_PTR(base + row.record_offset), 104);
         }
     }
     guest_regs_restore(&saved);
     s_validated_database = database;
     fprintf(stderr, "[FIGHTERS] native identity bindings verified: %u active, %u dormant\n",
             s_bindings.active_count, s_bindings.count - s_bindings.active_count);
+}
+
+static void validate_immutable_banks(void) {
+    uint32_t base;
+    if (!s_window.bytes || !s_validated_database) fighter_stop("Immutable fighter records have no verified database.");
+    base = MEM32(s_validated_database);
+    for (uint32_t i = 0; i < FIGHTER_WINDOW_BANKS; ++i)
+        if (memcmp(s_bank_records[i], (const void *)XBOX_PTR(base + s_window.banks[i].record_offset), 104))
+            fighter_stop("An indexed fighter bank changed after immutable-record validation.");
+    for (uint32_t i = 0; i < s_window.count; ++i) {
+        FighterWindowRow row;
+        fighter_window_at(&s_window, i, &row);
+        if (!s_template_records || memcmp(s_template_records + (size_t)i * 104,
+                                         (const void *)XBOX_PTR(base + row.record_offset), 104))
+            fighter_stop("An immutable fighter template changed during its native lifetime.");
+    }
+}
+
+static int installed_record(uint32_t stable, FighterWindowRow *row) {
+    FighterBinding binding;
+    if (!s_window.bytes || !fighter_bindings_find(&s_bindings, FIGHTER_BINDING_STABLE, stable, &binding)
+        || !(binding.flags & 1) || !fighter_window_find(&s_window, binding.selection_key, NULL, row)) return 0;
+    if (row->stable_handle != stable) fighter_stop("Immutable fighter identity differs from its historical binding.");
+    return 1;
+}
+
+int defjam_fighter_native_record(uint32_t database, uint32_t output, uint32_t stable) {
+    FighterWindowRow row;
+    uint32_t type;
+    if (!installed_record(stable, &row)) return 0;
+    if (database != s_validated_database) fighter_stop("Immutable fighter lookup received a different database owner.");
+    type = MEM32(MEM32(database + 0x10) + s_window.table * 4);
+    if (type != 0x4ce5b1b2u) fighter_stop("Immutable fighter record has an unreviewed native type.");
+    /* Original BE760's typed result, with process-lifetime immutable storage.
+     * A retained stable handle never resolves through a later participant slot. */
+    MEM32(output) = MEM32(database) + row.record_offset;
+    MEM32(output + 4) = database;
+    MEM32(output + 8) = type;
+    if (s_record_traces++ < 32)
+        fprintf(stderr, "[FIGHTERS] immutable record stable=%08X logical=%u core=%u offset=%u caller=%08X\n",
+                stable, row.selection_key, row.core_id, row.record_offset, MEM32(g_esp));
+    return 1;
+}
+
+void defjam_fighter_match_setup(uint32_t self, uint32_t fighters) {
+    if (!s_window.bytes) return;
+    validate_immutable_banks();
+    for (uint32_t i = 0; i < FIGHTER_WINDOW_BANKS; ++i) {
+        FighterWindowRow row;
+        uint32_t stable = MEM32(fighters + i * 4);
+        if (!installed_record(stable, &row)) continue;
+        if (MEM32(self + 0x168 + i * 4) != row.core_id)
+            fighter_stop("Native match setup did not materialize the immutable fighter core.");
+        fprintf(stderr, "[FIGHTERS] materialized participant=%u stable=%08X logical=%u core=%u immutable=1\n",
+                i, stable, row.selection_key, row.core_id);
+    }
+}
+
+void defjam_fighter_match_finished(void) {
+    if (!s_window.bytes || !s_window.frozen || !s_immutable_reuse) return;
+    validate_immutable_banks();
+    if (!fighter_window_finish(&s_window)) fighter_stop("Could not finish native fighter selection ownership.");
+    fprintf(stderr, "[FIGHTERS] selection ownership finished after native Game.Quit; immutable records retained\n");
 }
 
 void defjam_fighter_handle_produced(uint32_t database, uint32_t table, uint32_t output) {
@@ -593,12 +667,8 @@ uint32_t defjam_fighter_controller_submission(uint32_t arguments) {
     if (s_window.frozen) return s_window.banks[values[0]].selection_key;
     {
         FighterWindowBank *bank = &s_window.banks[values[0]];
-        uint32_t base = MEM32(s_validated_database), destination = base + bank->record_offset;
-        uint32_t name = MEM32(destination), count, kept = 0, keys[FIGHTER_UNLOCK_CAPACITY];
-        /* Preserve indexed native identity/selection. Copy only a compiled,
-         * validated data record from this very SODB/string pool. */
-        memcpy((void *)XBOX_PTR(destination), (const void *)XBOX_PTR(base + row.record_offset), 104);
-        MEM32(destination) = name; MEM32(destination + 32) = bank->selection_key;
+        uint32_t count, kept = 0, keys[FIGHTER_UNLOCK_CAPACITY];
+        validate_immutable_banks();
         if (!s_settings) fighter_stop("Participant binding has no native Options owner.");
         count = MEM32(s_settings + 0x20);
         if (count > FIGHTER_UNLOCK_CAPACITY) fighter_stop("Native unlock storage is malformed before participant binding.");
@@ -655,6 +725,7 @@ int defjam_fighter_ui_command(uint32_t command) {
 
 void defjam_fighter_menu_event(const char *text) {
     if (s_window.bytes && !strncmp(text, "Game.StartGame(", 15)) {
+        validate_immutable_banks();
         s_window.frozen = 1;
         fprintf(stderr, "[FIGHTERS] participant window frozen for active match\n");
     }

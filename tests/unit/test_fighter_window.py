@@ -66,7 +66,8 @@ int main(int argc,char **argv) {
     if(fighter_window_clear(&w,0) || fighter_window_clear(&w,UINT32_MAX)) return 11;
     if(fighter_window_bind(&w,4,254,&row) || fighter_window_bind(&w,0,99,&row)) return 8;
     if(fighter_window_native(&w,0x07012345)!=UINT32_MAX) return 9;
-    w.frozen=0;
+    if(!fighter_window_finish(&w) || w.frozen || fighter_window_finish(&w))return 29;
+    for(uint32_t i=0;i<4;++i)if(!w.selected[i])return 30;
     { const char *bad[]={"Fighters.KeepReady", "Fighters.KeepReady()", "Fighters.KeepReady(16)",
         "Fighters.KeepReady(-1)", "Fighters.KeepReady(01)", "Fighters.KeepReady(0)tail"};
       for(uint32_t i=0;i<sizeof bad/sizeof bad[0];++i)

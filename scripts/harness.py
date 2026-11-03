@@ -184,6 +184,8 @@ def build_pad_script(stages, raw_tail=""):
     out = title_presses()
     for stage in stages:
         anchor, keys = stage.split("=", 1)
+        if ',' in anchor and '#' in anchor.split(',', 1)[1]:
+            raise ValueError('A repeated pad-script anchor cannot contain a comma before its occurrence count')
         out.append("@" + anchor)
         out += expand_presses(keys)
     if raw_tail:
@@ -261,6 +263,8 @@ def raw_stages(stages):
     out = []
     for stage in stages:
         anchor, keys = stage.split("=", 1)
+        if ',' in anchor and '#' in anchor.split(',', 1)[1]:
+            raise ValueError('A repeated pad-script anchor cannot contain a comma before its occurrence count')
         out.append("@" + anchor)
         out += expand_presses(keys)
     return ",".join(out)
@@ -313,6 +317,20 @@ ROUTES = {
         "until": "getscreeninfo(battle/choosef4", "after": 180, "secs": 320,
         "shots": "@getscreeninfo(battle/choosef4,10,50",
     },
+    "fighter-roster-4-human": {
+        "help": "Four independent native pads, explicit custom browsing, default venue",
+        "stages": FFA_SETUP[:4] + [
+            "getscreeninfo(options/battleid=start@6;p2-start@10;p3-start@14;p4-start@18;"
+            "a@22;p2-a@26;p3-a@30;p4-a@34;a@38;p2-a@42;p3-a@46;p4-a@50",
+            "getscreeninfo(battle/choosef4=back@9999",
+            "getscreeninfo(battle/chsvenue=a@8+4x4",
+        ],
+        "env": {"RECOMP_USB_PADS": "4"},
+        "tail": "@game.startgame(," + ",".join(
+            f"p{pad}-" + press for pad in range(1, 5) for press in FIGHT_TAIL.split(",")[1:]),
+        "until": "game.startgame(", "after": 120, "secs": 600,
+        "shots": "@getscreeninfo(battle/choosef4,25,@game.startgame(,60",
+    },
     "fighter-roster-result": {
         "help": "Native fighter selector with explicit selection stages, then combat through the result screen",
         "stages": ONE_ON_ONE_SETUP[:7],
@@ -328,6 +346,29 @@ ROUTES = {
         "tail": FIGHT_TAIL + "," + raw_stages(["game.getmatchsummary(=a@4+3x12"]),
         "until": "getscreeninfo(battle/cmtype#2", "after": 8, "secs": 900,
         "shots": "@game.getmatchsummary(,2,12,25",
+    },
+    "fighter-roster-two-matches": {
+        "help": "Two native One on One selections with a full result/save/menu cycle between them",
+        "stages": ONE_ON_ONE_SETUP[:7] + [
+            "getscreeninfo(battle/choosef2=back@9999",
+            "controllersetup(0=back@9999",
+            "getscreeninfo(battle/chsvenue=a@8+4x4",
+        ],
+        "tail": FIGHT_TAIL,
+        "tail_stages": [
+            "game.getmatchsummary(=a@4+3x12",
+            "getscreeninfo(battle/cmtype#2=a@5+4x7",
+            "setmatchtype(#2=a@5+4x7",
+            "getscreeninfo(options/battleid#2=start@6+4x7",
+            "controllerbind(0#2=a@5+4x8",
+            "setbmcurrentuserindex(#2=a@5+5x6",
+            "getscreeninfo(battle/choosef2#2=back@9999",
+            "controllersetup(0#2=back@9999",
+            "getscreeninfo(battle/chsvenue#2=a@8+4x4",
+        ],
+        "final_tail": FIGHT_TAIL.replace("@game.startgame(", "@game.startgame(#2"),
+        "until": "game.startgame(#2", "after": 120, "secs": 900,
+        "shots": "@game.startgame(,60,@game.startgame(#2,61",
     },
     "fight-result": {
         "help": "One on One at the default venue, played until the game shows the match summary",
@@ -1074,10 +1115,16 @@ def merge_stages(stages, replacements):
 def run_route(route, preset=RELEASE_PRESET, secs=None, shots=None, env=None, extra_stages=(),
               to_end=False, **kw):
     r = ROUTES[route]
-    stages = merge_stages(r["stages"], extra_stages or r.get("default_stages", ()))
+    replacements = extra_stages or r.get("default_stages", ())
+    later = {stage.split('=', 1)[0].strip().casefold() for stage in r.get('tail_stages', ())}
+    stages = merge_stages(r["stages"], [stage for stage in replacements if stage.split('=', 1)[0].strip().casefold() not in later])
+    tail = r.get('tail', '')
+    if later:
+        tail += ',' + raw_stages(merge_stages(r['tail_stages'], [stage for stage in replacements if stage.split('=', 1)[0].strip().casefold() in later]))
+        tail += ',' + r.get('final_tail', '')
     if r.get("env"):
         env = dict(r["env"], **(env or {}))     # what the route needs; the caller's values win
-    run = run_game(route, stages=stages, tail=r.get("tail", ""),
+    run = run_game(route, stages=stages, tail=tail,
                     shots=r.get("shots", "") if shots is None else shots,
                     secs=secs or r["secs"], preset=preset, env=env,
                     until=None if to_end else r.get("until"), after=r.get("after", 0),

@@ -10,7 +10,7 @@ import fighter_apt as apt
 from fighter_menu import Action, AssetError, character_parameters, compile_menu, functions
 
 
-def selector_fixture():
+def selector_fixture(*, four_player=False):
     values = ['getID', 'CThumbGrid', 'prototype', 'redraw', 'deselectChar', 'selectChar', 'CHAR_HERO']
     constants = bytearray(b'Apt constant file' + bytes(3) + struct.pack('<III', 16, len(values), 32))
     pool_end = 32 + len(values) * 8
@@ -46,6 +46,23 @@ def selector_fixture():
     struct.pack_into('<10I', movie, 16, 9, 0x09876543, 1, 80, 0, 0, 0, 640, 480, 16)
     struct.pack_into('<5I', movie, 80, 1, 88, 92, 1, 100)
     movie += action.finish()
+    if four_player:
+        movie += bytes(-len(movie) % 4)
+        empty = len(movie); movie += bytes(4)
+        font = len(movie); movie += struct.pack('<II', 3, 0x09876543)
+        chars, placements = [font], []
+        for player in range(4):
+            chars.append(len(movie))
+            movie += struct.pack('<II4fIIIf5I', 2, 0x09876543, -2, -2, 120, 38,
+                                 0, 2, 0xff000000, 20, 1, 0, 0, empty, empty)
+            name = len(movie); movie += ('szFighterName' + str(player)).encode() + b'\0'; movie += bytes(-len(movie) % 4)
+            placements.append(len(movie))
+            movie += struct.pack('<4I6f', 3, 38, 10 + player, 1 + player, 1, 0, 0, 1, 50 + 140 * player, 103)
+            movie += bytes(8) + struct.pack('<fIiI', 0, name, -1, 0)
+        pointers = len(movie); movie += struct.pack('<5I', *chars)
+        struct.pack_into('<II', movie, 36, 5, pointers)
+        pointers = len(movie); movie += struct.pack('<5I', 92, *placements)
+        struct.pack_into('<II', movie, 80, 5, pointers)
     return bytes(movie), bytes(constants)
 
 
@@ -135,3 +152,34 @@ def test_logical_roster_refuses_an_unreviewed_back_handler():
     records = [dict(selection_key=100, stats=dict.fromkeys('ULSTHC', 50), styles=[1])]
     with pytest.raises(AssetError, match='Back handler differs'):
         compile_menu(movie, constants, {100: 7}, {100: 'Custom'}, records)
+
+
+def test_four_player_fitting_owns_new_text_records_without_scaling_native_panels():
+    movie, constants = selector_fixture(four_player=True)
+    entry, _ = apt.parse_const(constants)
+    before = apt.parse_character(movie, entry)
+    original = apt.read_characters_list(movie, before)
+    output, changed, report = compile_menu(movie, constants, {100: 7}, {100: 'Alpha One'}, participants=4)
+    root = apt.parse_character(output, entry); chars = apt.read_characters_list(output, root)
+    assert changed == constants and len(chars) == len(original) + 4
+    assert all(output[c['offset']:c['offset'] + (8 if c['type'] == 'Font' else 60)] ==
+               movie[c['offset']:c['offset'] + (8 if c['type'] == 'Font' else 60)] for c in original)
+    for player, record in enumerate(chars[-4:]):
+        assert record['type'] == 'Text' and record['sig_ok']
+        assert struct.unpack_from('<f', output, record['offset'] + 36)[0] == 12
+    overlays = [item for kind, item in root['frames'][0] if kind == 'PlaceObject' and
+                (item.get('name') or '').startswith('_recompFighterLabel')]
+    assert len(overlays) == 4 and len({item['depth'] for item in overlays}) == 4
+    assert [item['matrix'][4] for item in overlays] == [100, 239, 377, 513]
+    code = output[report['action_offset']:]
+    assert b'Alpha\nOne\0' in code and b'wordWrap\0' in code
+    assert b'_xscale\0' not in code and b'_yscale\0' not in code
+    frame_offset = struct.unpack_from('<I', output, entry + 12)[0]
+    count, pointers = struct.unpack_from('<II', output, frame_offset)
+    items = struct.unpack_from('<' + 'I' * count, output, pointers)
+    for offset in items:
+        kind, item = apt.parse_frame_item(output, offset)
+        if kind == 'PlaceObject' and (item.get('name') or '').startswith('_recompFighterLabel'):
+            assert struct.unpack_from('<I', output, offset + 60)[0] == 0
+    with pytest.raises(AssetError, match='name fields differ'):
+        compile_menu(*selector_fixture(), {100: 7}, {100: 'Alpha One'}, participants=4)

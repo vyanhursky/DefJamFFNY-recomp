@@ -118,6 +118,57 @@ def test_window_acceptance_requires_full_logical_identity_and_the_bound_core(tmp
             probe.verify_menu_selection(path, report, ['alpha/new', 'retail/blaze'])
 
 
+def test_repeated_matches_require_fresh_submissions_release_and_actual_cores(tmp_path, monkeypatch):
+    probe = driver(tmp_path, monkeypatch)
+    report = {'binding_mode': 'participant-window',
+              'bindings': {'alpha/one': {'selection_key': 100, 'core_id': 4},
+                           'alpha/two': {'selection_key': 101, 'core_id': 5},
+                           'beta/one': {'selection_key': 102, 'core_id': 23}},
+              'binding_ledger': {'fighters': {key: {'handle': 0x0700004b + index} for index, key in enumerate(
+                  ('alpha/one', 'alpha/two', 'beta/one'))}}}
+    def epoch(ids):
+        text = '[FUNCCALL] Controller.ControllerSetup( -1, 0, 99, 0 )\n'
+        for slot, key in enumerate(ids):
+            binding = report['bindings'][key]; stable = report['binding_ledger']['fighters'][key]['handle']
+            text += f'[FUNCCALL] Controller.ControllerSetup({slot},0,{binding["selection_key"]},{slot})\n'
+            text += f'[FIGHTERS] participant={slot} logical={binding["selection_key"]} stable={stable:08X} native={100 + slot} core={binding["core_id"]}\n'
+        text += '[START] venue(script)=1 fighters(gd+1aaa step 5): 100 101 -99 -99\n'
+        for slot, key in enumerate(ids):
+            binding = report['bindings'][key]; stable = report['binding_ledger']['fighters'][key]['handle']
+            text += f'[FIGHTERS] materialized participant={slot} stable={stable:08X} logical={binding["selection_key"]} core={binding["core_id"]} immutable=1\n'
+        return text
+    matches = [['alpha/two', 'beta/one'], ['alpha/one', 'alpha/two']]
+    first, second = map(epoch, matches)
+    release = '[FIGHTERS] selection ownership finished after native Game.Quit; immutable records retained\n'
+    path = tmp_path / 'repeated.log'; path.write_text(first + release + second)
+    assert probe.verify_menu_matches(path, report, matches, immutable=True) == [[101, 102], [100, 101]]
+    for invalid in (first + second + release, first + release + second.replace('logical=100 core=4 immutable=1', 'logical=100 core=5 immutable=1'),
+                    first + release + second.replace('[FUNCCALL] Controller.ControllerSetup(1,0,101,1)\n', ''),
+                    first + release + second.replace('stable=0700004B native=100 core=4', 'stable=0700004C native=100 core=4'),
+                    first + release + first):
+        path.write_text(invalid)
+        with pytest.raises(ValueError):
+            probe.verify_menu_matches(path, report, matches, immutable=True)
+
+
+def test_created_fighter_assertion_preserves_the_native_profile_owned_sentinel(tmp_path, monkeypatch):
+    probe = driver(tmp_path, monkeypatch)
+    report = {'binding_mode': 'participant-window',
+              'bindings': {'alpha/new': {'selection_key': 256, 'core_id': 5}},
+              'binding_ledger': {'fighters': {'alpha/new': {'handle': 0x0700004b}}}}
+    evidence = ('[FUNCCALL] Controller.ControllerSetup(0,0,99,0)\n'
+                '[FUNCCALL] Controller.ControllerSetup(1,-1,256,1)\n'
+                '[FIGHTERS] participant=1 logical=256 stable=0700004B native=101 core=5\n'
+                '[START] venue(script)=1 fighters(gd+1aaa step 5): 99 101 -99 -99\n')
+    path = tmp_path / 'created.log'; path.write_text(evidence)
+    assert probe.verify_menu_selection(path, report, ['@created', 'alpha/new']) == [99, 256]
+    with pytest.raises(ValueError, match='fighter is missing'):
+        probe.start_fighters(report, ['@created', 'alpha/new'])
+    path.write_text(evidence.replace('99', '98'))
+    with pytest.raises(ValueError, match='Native menu'):
+        probe.verify_menu_selection(path, report, ['@created', 'alpha/new'])
+
+
 def test_portrait_cache_verifies_source_and_existing_output(tmp_path, monkeypatch):
     from test_fighter_archive import fixture
     from test_fighter_menu import selector_fixture
@@ -131,7 +182,7 @@ def test_portrait_cache_verifies_source_and_existing_output(tmp_path, monkeypatc
         for prefix, start in [('screens/portrait/t_MS/', 't_MS_'), ('screens/portrait/', 'l_MS_')]:
             stem = f'{start}7_{count}p'
             entries[prefix + stem + '.big'] = fixture({stem + suffix: suffix.encode() for suffix in ('.apt', '.const', '.o', '.xsh')})
-        movie, constants = selector_fixture()
+        movie, constants = selector_fixture(four_player=count == 4)
         name = f'chooseF{count}'
         entries[f'screens/battle/{name}.big'] = fixture({name + '.apt': movie, name + '.const': constants})
         movie, constants = result_fixture()
