@@ -913,17 +913,144 @@ F4 name fitting follow-up:
   full save-root restoration. Captures:
   `logs/fighter-window-runs/04c4b491a0594691ad18ea82dbd01509/captures`.
   This remains menu-only acceptance, not three-player combat/result proof.
-- Uncommitted source: F4 fit in`setup/fighter_menu.py`,matching unit assertions,
+- Committed as `0ef78e5`: F4 fit in`setup/fighter_menu.py`,matching unit assertions,
   browse/three-player routes in`scripts/harness.py` and probe route choices.
   Final full unit gate **1,153passed,27skipped,1deselected**,95.64s,
   `logs/fighter-native-layout-final-unit.txt`.
   Three-/four-player results,disconnect/rematch,immutable boundary/resource
   soaks,authored resource adapters and launcher integration remain open.
 
+### Immutable four-participant boundary and result fitting (2026-11-03 UTC)
+
+- Layout checkpoint `0ef78e5` is committed locally. Nothing has been pushed.
+- `run-20261102-234447.log.err` / `logs/fighter-four-immutable-boundary-save-native.txt`
+  completes four native selections, combat, results, rewards, profile/Options
+  saving, Game.Quit and return to Battle. Logical254/255/256/257 retain distinct
+  stable070000E5/E6/E7/E8 identities and immutable participant banks100/101/102/103;
+  the post-20270 core checks pass for all four. Native result calls also publish
+  those four full logical identities. All four use the same retail donor core5.
+  This crosses255 in the immutable mode, but is one match and does not add a
+  multi-match reuse or authored-resource teardown claim.
+- 320two-second presentation reports,min108/median120/max121,no crash/watchdog,
+  debug-layer fault,truncated batch or unresolved call. Two independently
+  acknowledged save generations include the real disposable VY3 profile; the
+  harness restores the original complete save root byte-identically. Preserved
+  captures: `logs/fighter-window-runs/f0d58ea89fdd4fafba7c7c93ecfb201c/captures`.
+- The3s result capture shows all four portraits and score panels, but the
+  nineteen-W stress names overrun their headers. Therefore native lifecycle and
+  identity acceptance pass, while result typography fails. Do not use the
+  driver's successful identity assertions as visual acceptance.
+- In progress: runtime-owned two-line custom result fields for matchSm2/3/4,
+  with separate per-panel bindings, custom-only original-field clearing and
+  unconditional overlay clearing before a retail/created fallback. Packages
+  remain literal data; original score, portrait, label records and bytecode
+  are preserved. Both3/4-fighter save routes now require the full return-to-Battle
+  anchor, rather than treating selection or StartGame alone as save acceptance.
+  Focused result/harness gate:69passed,1skipped,0.50s,
+  `logs/fighter-result-fit-unit.txt`. The first attempt without an explicit local
+  pytest temp directory encountered Windows temp-directory errors; the rerun
+  uses a unique ignored logs directory and required filesystem access.
+- Three-fighter acceptance **passes**, `run-20261103-000136.log.err` /
+  `logs/fighter-three-immutable-long-result-native.txt`:365/366/367 retain
+  stable07000154/155/156, immutable banks100/101/102 and core5 through native
+  selection, combat and results. Real VY3 and Options writes produce two
+  acknowledged generations; Game.Quit returns to Battle and save restoration
+  is byte-identical.324reports,min101/median120/max120,no fault signatures.
+  The reviewed3s capture shows all nineteen-W names complete on two lines,
+  with native portraits and score panels intact. Preserved captures:
+  `logs/fighter-window-runs/68e87a47a4114c70abecf637bb76a940/captures`.
+- Four-fighter retest **passes**, `run-20261103-001308.log.err` /
+  `logs/fighter-four-distinct-long-result-native.txt`,254/255/256/257. Fixture
+  `research-long-distinct-300.json` is an ignored v1.0.3 pack update: its four
+  boundary names endA/B/C/D after eighteen W characters. Those distinct endings
+  remain in their own result panels in the reviewed3s capture. All four native
+  identities, post-20270 cores and result mappings pass; two acknowledged save
+  generations, native Quit/return to Battle and byte-identical save restoration
+  pass.318reports,min103/median120/max120,no fault signatures. Preserved captures:
+  `logs/fighter-window-runs/689d4a44f66c4da58e9ee8475d5e65f7/captures`.
+- Two-fighter/created fallback **passes**, `run-20261103-002452.log.err` /
+  `logs/fighter-two-created-long-result-native.txt`: original profile-owned99/VY3
+  versus logical365/stable07000154/bank101/core5, with the verified language
+  composition enabled. The reviewed3s results show VY3's original name and the
+  complete nineteen-W custom name in two bounded lines.108reports,min102/median120,
+  no faults,two acknowledged generations,return to Battle and full save
+  restoration. The fixture's white created-fighter result thumbnail also appears
+  in the earlier pre-change `c0b00ce3e4e84c479f04e6a1c5f2464c` capture; it is not
+  accepted as a correctly populated thumbnail by this name-layout check.
+  New captures: `logs/fighter-window-runs/e357cf1e2f2348f29b405e4158802b48/captures`.
+- Result/layout code is committed locally as `360315b`. The first complete unit
+  run found four synthetic cache fixtures that lacked the now-required native
+  Text/Font/PlaceObject structure. Updated those fixtures without weakening the
+  production source checks; focused cache/result/animation checks68passed,3.08s.
+  Final complete gate **1,195passed,27skipped,1deselected**,96.48s,
+  `logs/fighter-results-animation-final-unit.txt`. Native C/toolkit pins unchanged;
+  the earlier build and six stock/language regression checks still apply.
+- Model-format lead only: RM command words in610A RM0/1/33 have a high-word
+  opcode and low-word bounded word population, followed by a zero terminator.
+  The preliminary tokenizer stopped at that zero; it does not establish native
+  command semantics. RM33 also has a direct index count/pointer where the
+  currently supported subset has an additional index header. Do not accept that
+  variant merely by skipping the header check. Metadata remains local under
+  `logs/fighter-render-program-token-lead.json` and
+  `logs/fighter-render-parameter-layout-lead.json`.
+
+### Motion-table partition inspection (2026-11-03 UTC)
+
+- Independently checked own-dump initializer1A47B0: it advances through two
+  WAZA/FZUI/NAME triplets using chunk sizes, then fills exactly141 static
+  sixteen-byte core descriptors with WPAR/WWAZ spans. This is independent of
+  the logical roster and its accepted greater-than255 selection keys.
+- New `setup/fighter_motion.py` / `inspect-motion-index` checks this bounded
+  partition layout:32-byte move rows, group population spans,39-byte parameter
+  rows with zero alignment padding, bounded uint16 name offsets/ASCII strings,
+  and complete64/780-byte core pairs. It explicitly leaves opaque move-record
+  semantics and animation links unvalidated and never declares runtime readiness.
+  Processing budgets are not advertised native capacities.
+- Both original282,904-byte and community318,012-byte streams pass those
+  structural checks. Core pair population141→177; existing pairs changed only
+  at ordinals2/3/50/76/77/78/79/80/82/83, plus36 appended pairs. The first move
+  table stays826 rows/2,088 parameter rows/826 names. The second grows256→271
+  move rows and873→967 parameter rows while its group population remains256
+  and its name count224. Thus group/name/core populations must not be used as
+  interchangeable counts. Reports: `logs/fighter-motion-index-retail.json`,
+  `logs/fighter-motion-index-vendetta.json`, `logs/fighter-motion-index-compare.json`.
+- Focused gate94passed,1skipped,0.55s,
+  `logs/fighter-motion-result-unit.txt`, including22 new synthetic motion cases.
+  This does not validate `.ord/.orl/.mnl` animations, WPAR/WWAZ references,
+  Blazin dispatch, audio events, or safe expansion of the native141-core table.
+
+### Split animation envelopes (2026-11-03 UTC)
+
+- Independently established from local resources: decoded `.ord` ends exactly
+  at its ELF data-section end, and decoded `.orl` starts with the string tables
+  and completes the symbol, relocation and section tables. Concatenation gives
+  the exact total extent declared by the ELF header. Reused the existing bounded
+  data-only ELF reader; no reference decoder source was copied.
+- `setup/fighter_animation.py` / `inspect-animation-envelope` checks that split
+  boundary, all existing ELF/relocation bounds, no unresolved imports and one
+  AnimationBank export. Optional `.mnl` validation checks its count/reserved word,
+  dot terminator and bounded ASCII animation tokens. Individual Blazin pairs
+  share a separate name list, so a missing per-pair MNL is not corruption and
+  inspection may omit it. A supplied list is not proven to name that bank's
+  records. Metadata keeps record/pose/curve, name-link and event-link gates false.
+- All **445examined animation pairs** pass envelope checks:141retail and46community
+  wrestling banks, plus164retail and94community Blazin pairs. All187 wrestling
+  name lists pass their independent token/count checks. Blazin's shared list,
+  internal animation records, pose compatibility, events and cinematics remain
+  unvalidated. Report:`logs/fighter-animation-envelope-corpus.json`; real CLI
+  check:`logs/fighter-animation-envelope-142.json`. The first corpus attempt
+  incorrectly required an individual MNL for every Blazin pair; the corrected
+  model keeps shared name lists independent and never promotes envelope checks
+  into runtime acceptance.
+- Game-free animation fixtures cover local/external relocations, split shifting,
+  truncated/extra link bytes, absent bank export, invalid counts, reserved words,
+  path/control/oversized tokens and omitted shared name lists. All are included
+  in the final1,195-test gate above. No game process remains running.
+
 Remaining implementation gates, in order:
 
-1. Finish F4 fitting acceptance, long names, three/four-player result variants,
-   disconnect/rejoin and rematch cases. Real created-fighter selection and
+1. Continue disconnect/rejoin and rematch cases after accepted long-name results
+   for all participant layouts. Real created-fighter selection and
    progression now pass as recorded above. Existing
    native two-pad cancellation, four independent pads and two-match reuse have
    passed; preserve their exact evidence instead of redoing their investigation.
@@ -932,14 +1059,17 @@ Remaining implementation gates, in order:
    write/close and isolated generations already pass; unchanged VY3 payloads do
    not prove new progression. Internal `@created` is an assertion of sentinel99,
    never a package identity or a StartGame override.
-3. Repeat immutable >255/four-bank boundaries and memory/resource soaks. Canonical
+3. Continue immutable multi-match and memory/resource soaks after the accepted
+   single-match254/255/256/257 boundary. Canonical
    immutable records avoid row overwrite; they do not establish every asset's
    lifetime. Native bank windows remain four simultaneous participants, not four
    installed fighters.
 4. Complete authored resource validation/registration (geometry/skeleton/materials,
-   motions/events, voice/AI/cinematics) and shared language/texture composition.
+   motions/events, voice/AI/cinematics), retaining accepted language/texture composition.
    ELF envelopes,125skeletons and46XSH texture files pass only their documented
-   format gates; matching topology is not verified skin/animation compatibility.
+   format gates;445animation-pair envelopes do not validate curves/events, and
+   matching topology is not verified skin/animation compatibility. Continue from
+   native1A47B0's141-core descriptor table and the RM33 parameter-layout lead.
 5. Whole-pack launcher Fighters transactions/restart/profile-helper integration,
    ordinary Vendetta conversion, authoring tools/docs, platform/Story/soak gates
    and owner play-test. No shipping capability, public push or PR is authorized.

@@ -150,6 +150,12 @@ def main():
     inspect_geometry.add_argument('--textures', type=Path, help='Also require every model shape in this validated SHPX file')
     inspect_textures = sub.add_parser('inspect-textures', help='Validate supported SHPX data and references; no runtime activation')
     inspect_textures.add_argument('textures', type=Path)
+    inspect_motion = sub.add_parser('inspect-motion-index', help='Inspect native motion table partitions; no runtime activation')
+    inspect_motion.add_argument('motion', type=Path)
+    inspect_animation = sub.add_parser('inspect-animation-envelope', help='Inspect split animation ELF/name envelopes; no runtime activation')
+    inspect_animation.add_argument('data', type=Path, help='Native .ord resource')
+    inspect_animation.add_argument('links', type=Path, help='Matching native .orl resource')
+    inspect_animation.add_argument('--names', type=Path, help='Optional separately validated native .mnl list')
     export = sub.add_parser('export-retail')
     export.add_argument('sod', type=Path)
     compile_preview = sub.add_parser('compile-native-preview')
@@ -166,7 +172,19 @@ def main():
     helper.add_argument('--choose', action='append', required=True, metavar='FIGHTER:COMPONENT=PACK')
     args = parser.parse_args()
     try:
-        if args.command == 'inspect-textures':
+        if args.command == 'inspect-animation-envelope':
+            from fighter_animation import AnimationEnvelope
+            parts = []
+            for path in (args.data, args.links) + ((args.names,) if args.names is not None else ()):
+                with path.open('rb') as stream:
+                    parts.append(unpack_asset(stream.read(MAX_ASSET + 1)))
+            result = AnimationEnvelope(*parts).metadata()
+        elif args.command == 'inspect-motion-index':
+            from fighter_motion import MotionIndex
+            with args.motion.open('rb') as stream:
+                data = stream.read(MAX_ASSET + 1)
+            result = MotionIndex(data).metadata()
+        elif args.command == 'inspect-textures':
             from fighter_xsh import Textures
             with args.textures.open('rb') as stream:
                 data = stream.read(MAX_ASSET + 1)

@@ -141,6 +141,30 @@ unknown fields, invalid references and dependency cycles are rejected.
 
 ## Native inspection and remaining creator tools
 
+`inspect-model`, `inspect-geometry`, `inspect-textures` and
+`inspect-motion-index` and `inspect-animation-envelope` inspect supported native
+data structures locally. They
+do not register new resources or certify a pack for play. In particular, motion
+table counts, name counts and grouped rows are separate quantities; an accepted
+container does not prove that its move or animation references are valid.
+
+```powershell
+python scripts/fighter-registry.py inspect-motion-index path/to/motion/main_all.dat
+python scripts/fighter-registry.py inspect-animation-envelope path/to/wres142.ord path/to/wres142.orl --names path/to/wres142.mnl
+```
+
+This command reports both native move-table partitions and per-core content
+hashes. It accepts the currently observed ASCII names and fixed table strides;
+other layouts fail as unsupported. Keep the original stream and all game-derived
+reports local. Creator-owned per-fighter resources will need the verified
+animation/event adapter before runtime activation.
+
+Animation inspection joins the decoded data/link parts only in memory and
+requires a self-contained data-only ELF with the native split boundary. The
+optional name list is checked separately; individual Blazin banks can share a
+list. File envelopes and valid name tokens do not establish curve, pose, event
+or name-to-animation compatibility. Reported part hashes refer to decoded bytes.
+
 ```powershell
 python scripts/fighter-registry.py inspect-native path/to/assets/djv2.sod
 ```
@@ -171,9 +195,12 @@ directly or through inheritance, for this adapter to produce a preview.
 
 Custom names become a validated FML1 name cache keyed by bounded generated
 native symbols; the report includes its hash. Ordinary preview commands do not
-activate it. Long names retain a conservative blocker while native views are
-audited: one transient menu sort field is 20 bytes, although its exact relationship
-to `DisplayName` is not established. This is not a permanent public name limit.
+activate it. The current native preview accepts at most 19 UTF-8 bytes per custom
+display name: the reviewed native formatter has a 20-byte destination including
+its terminator. This is an adapter limit, not the draft semantic schema's
+permanent name limit. Custom names fit into native two-, three- and four-fighter
+selection headers; result-layout acceptance is recorded separately in the
+[runtime report](research/fighter-mod-runtime-2026-11-02.md).
 Selection keys above 127 are reported separately. Every preview
 retains `runtime_ready: false` and `launch_allowed: false`: it does not allocate
 new movesets, install a mod or make fighters playable.
