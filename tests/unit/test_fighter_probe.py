@@ -183,7 +183,7 @@ def portrait_inputs(tmp_path):
         for prefix, start in [('screens/portrait/t_MS/', 't_MS_'), ('screens/portrait/', 'l_MS_')]:
             stem = f'{start}7_{count}p'
             entries[prefix + stem + '.big'] = fixture({stem + suffix: suffix.encode() for suffix in ('.apt', '.const', '.o', '.xsh')})
-        movie, constants = selector_fixture(four_player=count == 4)
+        movie, constants = selector_fixture(participants=count)
         name = f'chooseF{count}'
         entries[f'screens/battle/{name}.big'] = fixture({name + '.apt': movie, name + '.const': constants})
         movie, constants = result_fixture()

@@ -251,6 +251,14 @@ submissions and actual match IDs without overriding them. Two-player custom
 headers, donor thumbnails/portraits and selection now have native evidence;
 other layouts, full save lifecycle and authored resources remain acceptance gates.
 
+The native-menu compiler owns bounded header text fields, with independent
+bindings for each player and line. Display wrapping never changes a fighter's
+saved identity or unwrapped HUD name. Native stat percentages are capped for
+custom fighters after the original display getter; authored gameplay values in
+the database remain intact. Two-player visual tests cover a health-88 update,
+the complete wrapped name and returning to the created fighter without stale
+text. Three-/four-player long-name and result acceptance remain required.
+
 The internal probe can also use `--language-pack PATH`. It verifies the existing
 language deltas against the supported original screens archive, applies fighter
 presentation to that language base, and requires native hashes of both the

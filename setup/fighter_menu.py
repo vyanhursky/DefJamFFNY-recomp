@@ -265,12 +265,13 @@ def retain_ready_ownership(action, definitions):
     action.function('keyBackHandler', ['nConID'], back)
 
 
-def append_name_fields(output, movie, entry):
+def append_name_fields(output, movie, entry, participants, lines):
     """Clone reviewed native Text records; generic transforms affect the parent.
 
     The Text record is60bytes: type/signature, bounds, font/alignment/color,
-    font height, flags and original string pointers. No font or glyph is supplied
-    by a package. Original records, placements and native names remain intact.
+    font height, flags and initial/bound string pointers. Each new line receives
+    an independent binding. No font or glyph is supplied by a package. Original
+    records, placements and native names remain intact.
     """
     root = apt.parse_character(movie, entry)
     characters = apt.read_characters_list(movie, root)
@@ -283,15 +284,15 @@ def append_name_fields(output, movie, entry):
         if kind == 'PlaceObject' and re.fullmatch(r'szFighterName[0-3]', name):
             if name in fields: raise AssetError('Duplicate native fighter name field')
             fields[name] = dict(item, record_offset=offset)
-    if len(fields) != 4:
-        raise AssetError('Four-player name fields differ from the reviewed native layout')
+    if set(fields) != {'szFighterName' + str(i) for i in range(participants)}:
+        raise AssetError('Native name fields differ from the reviewed participant layout')
     count, pointers = root['_characters_ptr_list']
     depths = [item['depth'] for frame in root['frames'] for kind, item in frame if kind == 'PlaceObject']
     depth = max(depths, default=0) + 1
-    if count > 16380 or depth > 16380:
+    if count + participants * lines > 16384 or depth + participants * lines > 16384:
         raise AssetError('Native name field character/depth budget exceeded')
     added, placements = [], []
-    for player, left in enumerate((100, 239, 377, 513)):
+    for player in range(participants):
         source = fields['szFighterName' + str(player)]
         index = source['character']
         if index is None or not 0 <= index < count or characters[index] is None:
@@ -303,27 +304,67 @@ def append_name_fields(output, movie, entry):
         if source['flags'] != 38 or placement + 64 > len(movie) or struct.unpack_from('<I', movie, placement + 60)[0]:
             raise AssetError('Native fighter name placement needs a reviewed clip-action adapter')
         font, alignment, _, height = struct.unpack_from('<IIIf', movie, start + 24)
-        if not 0 <= font < count or characters[font] is None or characters[font]['type'] != 'Font' or alignment != 2 or height != 20:
+        if not 0 <= font < count or characters[font] is None or characters[font]['type'] != 'Font' or alignment != 2 or height != {2: 32, 3: 26, 4: 20}[participants]:
             raise AssetError('Native fighter name font differs from the reviewed template')
-        added.append(len(output)); output += movie[start:start + 60]
-        struct.pack_into('<4f', output, added[-1] + 8, -2, -2, 75, 64)
-        struct.pack_into('<f', output, added[-1] + 36, 12)
-        label = '_recompFighterLabel' + str(player)
-        name_at = len(output); output += label.encode('ascii') + b'\0'; output += bytes(-len(output) % 4)
-        placements.append(len(output))
-        # Native PlaceObject is64bytes, including the zero clip-actions pointer
-        # even when its flag is absent. Preserve its original color/defaults.
-        output += movie[placement:placement + 64]
-        struct.pack_into('<II', output, placements[-1] + 8, depth + player, count + player)
-        struct.pack_into('<6f', output, placements[-1] + 16, 1, 0, 0, 1, left, source['matrix'][5])
-        struct.pack_into('<I', output, placements[-1] + 52, name_at)
+        width = {2: 198, 3: 120, 4: 75}[participants]
+        font_height = {2: 20, 3: 16, 4: 12}[participants]
+        left = (100, 239, 377, 513)[player] if participants == 4 else source['matrix'][4] + (25 if participants == 3 else 0)
+        for line in range(lines):
+            added.append(len(output)); output += movie[start:start + 60]
+            struct.pack_into('<4f', output, added[-1] + 8, -2, -2, width, font_height + 4)
+            struct.pack_into('<f', output, added[-1] + 36, font_height)
+            suffix = str(player) + '_' + str(line)
+            label = '_recompFighterLabel' + suffix
+            name_at = len(output); output += label.encode('ascii') + b'\0'; output += bytes(-len(output) % 4)
+            # Never share the source sFNameN binding, or one line's binding with
+            # another. Text-instance names and bound string variables differ.
+            binding_at = len(output); output += ('_recompFighterText' + suffix).encode('ascii') + b'\0'
+            output += bytes(-len(output) % 4)
+            struct.pack_into('<I', output, added[-1] + 56, binding_at)
+            placements.append(len(output))
+            # Native PlaceObject is64bytes, including a zero clip-actions word.
+            output += movie[placement:placement + 64]
+            serial = len(added) - 1
+            struct.pack_into('<II', output, placements[-1] + 8, depth + serial, count + serial)
+            struct.pack_into('<6f', output, placements[-1] + 16, 1, 0, 0, 1, left,
+                             source['matrix'][5] + line * (font_height + 2))
+            struct.pack_into('<I', output, placements[-1] + 52, name_at)
     list_at = len(output); output += movie[pointers:pointers + count * 4]
-    output += struct.pack('<4I', *added)
-    struct.pack_into('<II', output, entry + 20, count + 4, list_at)
+    output += struct.pack('<' + 'I' * len(added), *added)
+    struct.pack_into('<II', output, entry + 20, count + len(added), list_at)
     return placements
 
 
-def presentation_action(base, movie, constants, pairs, names, records=None, *, fitted_names=False):
+def bound_custom_stat_bars(action, definitions):
+    """Cap display percentages after the original getter; retain all raw data.
+
+    The reviewed native getter doubles six raw stats. Its returned array is
+    presentation data, independent of the Character's SODB gameplay values.
+    Retail and created fighters return their untouched original array.
+    """
+    getters = [row for row in definitions if row['owner'] == 'CCharacter' and row['method'] == 'getStats']
+    if not 1 <= len(getters) <= 2 or any(row['params'] != ['SetIndex'] for row in getters):
+        raise AssetError('Native stat getter differs from the reviewed template')
+    action.variable('CCharacter'); action.member('prototype'); action.string('_recompFighterGetStats')
+    action.variable('CCharacter'); action.member('prototype'); action.member('getStats'); action.op('SetMember')
+    def stats():
+        action.local('_stats', lambda: (action.variable('SetIndex'), action.integer(1), action.op('EA_PushThisVar'),
+                                       action.string('_recompFighterGetStats'), action.op('CallMethod')))
+        action.local('_label', lambda: (action.variable('_recompFighterLabels'), action.integer(0), action.op('EA_PushThisVar'),
+                                       action.string('getID'), action.op('CallMethod'), action.op('GetMember')))
+        done = action.unique()
+        action.variable('_label'); action.op('EA_PushUndefined'); action.op('Equals2'); action.branch('BranchIfTrue', done)
+        for index in range(6):
+            next_bar = action.unique()
+            action.integer(100); action.variable('_stats'); action.integer(index); action.op('GetMember')
+            action.op('LessThan2'); action.op('Not'); action.branch('BranchIfTrue', next_bar)
+            action.variable('_stats'); action.integer(index); action.integer(100); action.op('SetMember')
+            action.label(next_bar)
+        action.label(done); action.variable('_stats'); action.op('Return')
+    action.method('CCharacter', 'getStats', ['SetIndex'], stats)
+
+
+def presentation_action(base, movie, constants, pairs, names, records=None, *, label_lines=None):
     entry, entries, definitions = functions(movie, constants)
     updated_constants = constants
     getter = next((i for i, entry in enumerate(entries) if entry.value == 'getID'), None)
@@ -359,12 +400,17 @@ def presentation_action(base, movie, constants, pairs, names, records=None, *, f
     if len([d for d in definitions if d['name'] == 'updateChar' and d['params'] == ['nPlayer']]) != 1:
         raise AssetError('Native name update template differs')
     action = Action(base)
-    for mapping, values in (('_recompFighterThumbs', pairs), ('_recompFighterLabels', names)):
+    maps = [('_recompFighterThumbs', pairs), ('_recompFighterLabels', names)]
+    if label_lines is not None:
+        for index, line in enumerate(label_lines):
+            maps.append(('_recompFighterLine' + str(index), line))
+    for mapping, values in maps:
         action.string(mapping); action.integer(0); action.string('Object'); action.op('NewObject'); action.op('SetVariable')
         for identity, value in sorted(values.items()):
             action.variable(mapping); action.integer(identity)
             action.integer(value) if type(value) is int else action.string(value)
             action.op('SetMember')
+    bound_custom_stat_bars(action, definitions)
     def getter_body():
         action.local('_id', lambda: (action.integer(0), action.op('EA_PushThisVar'), action.string('getID'), action.op('CallMethod')))
         action.local('_donor', lambda: (action.variable('_recompFighterThumbs'), action.variable('_id'), action.op('GetMember')))
@@ -396,19 +442,22 @@ def presentation_action(base, movie, constants, pairs, names, records=None, *, f
     action.string('_recompFighterUpdateChar'); action.variable('updateChar'); action.op('SetVariable')
     def update_name():
         action.variable('nPlayer'); action.integer(1); action.string('_recompFighterUpdateChar'); action.op('CallFunction'); action.op('Pop')
-        if fitted_names:
-            action.local('_fitted', lambda: (action.string('_recompFighterLabel'), action.variable('nPlayer'), action.op('Add2'), action.op('GetVariable')))
-            action.variable('_fitted'); action.string('text'); action.string(''); action.op('SetMember')
+        if label_lines is not None:
+            for index in range(len(label_lines)):
+                action.local('_fitted' + str(index), lambda index=index: (action.string('_recompFighterLabel'), action.variable('nPlayer'), action.op('Add2'),
+                              action.string('_' + str(index)), action.op('Add2'), action.op('GetVariable')))
+                action.variable('_fitted' + str(index)); action.string('text'); action.string(''); action.op('SetMember')
         action.local('_char', lambda: (action.integer(0), action.variable('aThumbGrids'), action.variable('nPlayer'), action.op('GetMember'), action.string('getSelectedChar'), action.op('CallMethod')))
-        action.local('_label', lambda: (action.variable('_recompFighterLabels'), action.integer(0), action.variable('_char'), action.string('getID'), action.op('CallMethod'), action.op('GetMember')))
+        action.local('_id', lambda: (action.integer(0), action.variable('_char'), action.string('getID'), action.op('CallMethod')))
+        action.local('_label', lambda: (action.variable('_recompFighterLabels'), action.variable('_id'), action.op('GetMember')))
         done = action.unique()
         action.variable('_label'); action.op('EA_PushUndefined'); action.op('Equals2'); action.branch('BranchIfTrue', done)
         action.local('_field', lambda: (action.string('szFighterName'), action.variable('nPlayer'), action.op('Add2'), action.op('GetVariable')))
-        if fitted_names:
+        if label_lines is not None:
             action.variable('_field'); action.string('text'); action.string(''); action.op('SetMember')
-            for prop in ('multiline', 'wordWrap'):
-                action.variable('_fitted'); action.string(prop); action.op('EA_PushTrue'); action.op('SetMember')
-            action.variable('_fitted'); action.string('text'); action.variable('_label'); action.op('SetMember')
+            for index in range(len(label_lines)):
+                action.variable('_fitted' + str(index)); action.string('text')
+                action.variable('_recompFighterLine' + str(index)); action.variable('_id'); action.op('GetMember'); action.op('SetMember')
         else:
             action.variable('_field'); action.string('text'); action.variable('_label'); action.op('SetMember')
             action.variable('_field'); action.string('_visible'); action.op('EA_PushTrue'); action.op('SetMember')
@@ -438,9 +487,15 @@ def compile_menu(movie, constants, pairs, names, records=None, *, participants=N
         records = sorted(records, key=lambda row: row['selection_key'])
     output = bytearray(movie); output += bytes(-len(output) % 4)
     entry, _ = apt.parse_const(constants)
-    placements = append_name_fields(output, movie, entry) if participants == 4 else []
-    display_names = {key: '\n'.join(textwrap.wrap(name, width=6, break_on_hyphens=False)) for key, name in names.items()} if placements else names
-    code, constants, entry, methods = presentation_action(len(output), movie, constants, pairs, display_names, records, fitted_names=bool(placements))
+    placements, label_lines = [], None
+    if participants is not None:
+        capacity = {2: 2, 3: 2, 4: 4}[participants]
+        wrapped = {key: textwrap.wrap(name, width={2: 14, 3: 10, 4: 6}[participants], break_on_hyphens=False) for key, name in names.items()}
+        if any(len(lines) > capacity for lines in wrapped.values()):
+            raise AssetError('Native header name exceeds the fitted line budget')
+        label_lines = [{key: lines[index] if index < len(lines) else '' for key, lines in wrapped.items()} for index in range(capacity)]
+        placements = append_name_fields(output, movie, entry, participants, capacity)
+    code, constants, entry, methods = presentation_action(len(output), movie, constants, pairs, names, records, label_lines=label_lines)
     action_at = len(output); output += code; output += bytes(-len(output) % 4)
     record_at = len(output); output += struct.pack('<II', 1, action_at)
     frames = struct.unpack_from('<I', movie, entry + 12)[0]

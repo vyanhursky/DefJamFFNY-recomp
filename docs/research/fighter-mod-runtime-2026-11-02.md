@@ -793,6 +793,76 @@ F4 name fitting follow-up:
   head`ee23ebc28409502423e1b39ef4185dbeb070029b17d2fad848074f784db5de61`.
   This run predates the next name/stat presentation fix.
 
+### Name/stat presentation follow-up (active, 2026-11-03 UTC)
+
+- Local texture-layer checkpoint is `ff75a28`; geometry checkpoint `d4365c4`.
+  Three menu files remain in progress: `setup/fighter_menu.py`,
+  `tests/unit/test_fighter_menu.py`, and the matching synthetic movie fixture
+  call in `tests/unit/test_fighter_probe.py`. No native C changed.
+- Primary movie inspection proves CCharacter.getStats doubles each of its six
+  raw values before the bar percentage is assigned. The runtime-owned movie
+  adapter now calls the original getter, caps only custom fighters' returned
+  display percentages at100, and preserves the raw Character/SODB values. It
+  leaves retail and created arrays untouched. Native contracts, source hashes
+  and original text-field geometry are recorded in
+  `logs/fighter-menu-stat-name-primary-contract.json`.
+- Added own name Text records for F2/F3 as well as F4. Reviewed original font
+  heights are32/26/20; fitted records use20/16/12, bounded header areas and
+  literal wrapped names. All three original movies compile with the new adapter,
+  `logs/fighter-all-name-layouts-compile.json`. Full gate before the later line-
+  separator/binding fix: **1,153passed,27skipped,1deselected**,95.60s,
+  `logs/fighter-texture-label-full-unit.txt`.
+- `run-20261102-223119.log.err` / `logs/fighter-name-stat-visual-native.txt`
+  passes exact365/55 selection,immutable cores,combat,result,two acknowledged
+  generations including VY3 and full save-root restoration.128reports,
+  min100/median120/max120,no faults. Reviewed61s capture confirms the Health88
+  bar now fits its frame. **Name visual acceptance still fails:** only the first
+  line appears. Captures:`logs/fighter-window-runs/b4eea5d14c424d43a83c287d22d4ddf5/captures`.
+- A CR-separator browse experiment `run-20261102-223933.log.err` /
+  `logs/fighter-name-cr-created-native.txt` returns from the custom to real
+  created99. Harness/save checks pass,115reports,min100/median120/max121,
+  one acknowledged Options generation,full restoration. **Visual failure remains**:
+  missing v2 line and doubled VY3 on return. Captures:
+  `logs/fighter-window-runs/482bacf28c524b619ff3520262639523/captures`.
+- Root cause found: source Text+56 binds `sFName0`/`sFName1`, and cloned records
+  retained those shared variables. New clones now bind independent
+  `_recompFighterTextN` variables, distinct from their instance names. Synthetic
+  fixtures now include the original nonempty binding to catch this regression;
+  **13focused tests pass**,0.09s,`logs/fighter-name-binding-unit.txt`.
+- Binding experiment, now complete: serial native browse/revert check
+  `logs/fighter-name-binding-created-native.txt`, native log
+  `run-20261102-224533.log.err`, tool session52070. Route fighter-roster230seconds,
+  all300 capacity definitions re-enabled,real VY3,Health88/Capacity261v2. Input
+  Down55 at10s,Right5 at56s; capture61s;Left5 at65s,Up55 at70s;capture116s.
+  One acknowledged Options generation,115reports,min100/median120/max120,
+  no faults,full restoration. Captures:
+  `logs/fighter-window-runs/5984b4069f34441caca24ac1a5aed913/captures`.
+  Reviewed116s confirms the shared-binding fix removes the duplicate VY3.
+  **The second custom-name line still fails** with multiline/CR text.
+- Final name representation uses explicitly positioned single-line Text records:
+  two lines per F2/F3 participant and four per F4 participant. Each line has its
+  own instance name and independent bound variable. Compiler-owned line maps
+  contain literal text, and every selection clears all lines before showing a
+  custom header. Retail/created names retain their original field. It does not
+  depend on generic transforms or multiline/wordWrap properties. Oversized
+  header line populations fail explicitly; the separate19-byte native name
+  buffer gate remains in force.
+- **F2 native visual acceptance passes**: `run-20261102-225342.log.err` /
+  `logs/fighter-name-lines-created-native.txt`, same230-second custom→created
+  browse route. Reviewed61s shows **Capacity261 / v2** on two complete lines
+  and a bounded Health88 bar;116s shows a single untouched VY3 with no stale
+  custom line.115reports,min102/median120/max120,no faults,one acknowledged
+  Options generation,full save-root restoration. Captures:
+  `logs/fighter-window-runs/363ec14eb4f748eaa40ae0c488b0884b/captures`.
+  Focused13tests pass,`logs/fighter-name-lines-unit.txt`; final full gate
+  **1,153passed,27skipped,1deselected**,94.06s,
+  `logs/fighter-name-lines-final-unit.txt`. Post-run head
+  `98788d8f1c16ae54723907a94369110be3de0fd404d206c324232b655b88c9b6`.
+- Next native work: long names,F3/F4 fitting and
+  results,disconnect/rematch,immutable boundary soaks. Authored assets and
+  launcher gates remain open. Prefer uniquely preserved PNGs over reading a
+  shared BMP while it is being written/cached.
+
 Remaining implementation gates, in order:
 
 1. Finish F4 fitting acceptance, long names, three/four-player result variants,

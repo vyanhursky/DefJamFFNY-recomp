@@ -10,7 +10,7 @@ import fighter_apt as apt
 from fighter_menu import Action, AssetError, character_parameters, compile_menu, functions
 
 
-def selector_fixture(*, four_player=False):
+def selector_fixture(*, four_player=False, participants=None):
     values = ['getID', 'CThumbGrid', 'prototype', 'redraw', 'deselectChar', 'selectChar', 'CHAR_HERO']
     constants = bytearray(b'Apt constant file' + bytes(3) + struct.pack('<III', 16, len(values), 32))
     pool_end = 32 + len(values) * 8
@@ -42,27 +42,30 @@ def selector_fixture(*, four_player=False):
     action.function('updateChar', ['nPlayer'], lambda: (action.op('EA_PushUndefined'), action.op('Return')))
     action.function('getCharData', [], lambda: (action.op('EA_PushUndefined'), action.op('Return')))
     action.function('keyBackHandler', ['nConID'], lambda: (action.op('EA_PushUndefined'), action.op('Return')))
+    action.method('CCharacter', 'getStats', ['SetIndex'], lambda: (action.op('EA_PushUndefined'), action.op('Return')))
     movie = bytearray(b'Apt Data' + bytes(92))
     struct.pack_into('<10I', movie, 16, 9, 0x09876543, 1, 80, 0, 0, 0, 640, 480, 16)
     struct.pack_into('<5I', movie, 80, 1, 88, 92, 1, 100)
     movie += action.finish()
-    if four_player:
+    participants = 4 if four_player else participants
+    if participants is not None:
         movie += bytes(-len(movie) % 4)
         empty = len(movie); movie += bytes(4)
         font = len(movie); movie += struct.pack('<II', 3, 0x09876543)
         chars, placements = [font], []
-        for player in range(4):
+        for player in range(participants):
+            binding = len(movie); movie += ('sFName' + str(player)).encode('ascii') + b'\0'; movie += bytes(-len(movie) % 4)
             chars.append(len(movie))
             movie += struct.pack('<II4fIIIf5I', 2, 0x09876543, -2, -2, 120, 38,
-                                 0, 2, 0xff000000, 20, 1, 0, 0, empty, empty)
+                                 0, 2, 0xff000000, {2: 32, 3: 26, 4: 20}[participants], 1, 0, 0, empty, binding)
             name = len(movie); movie += ('szFighterName' + str(player)).encode() + b'\0'; movie += bytes(-len(movie) % 4)
             placements.append(len(movie))
             movie += struct.pack('<4I6f', 3, 38, 10 + player, 1 + player, 1, 0, 0, 1, 50 + 140 * player, 103)
             movie += bytes(8) + struct.pack('<fIiI', 0, name, -1, 0)
-        pointers = len(movie); movie += struct.pack('<5I', *chars)
-        struct.pack_into('<II', movie, 36, 5, pointers)
-        pointers = len(movie); movie += struct.pack('<5I', 92, *placements)
-        struct.pack_into('<II', movie, 80, 5, pointers)
+        pointers = len(movie); movie += struct.pack('<' + 'I' * len(chars), *chars)
+        struct.pack_into('<II', movie, 36, len(chars), pointers)
+        pointers = len(movie); movie += struct.pack('<' + 'I' * (1 + participants), 92, *placements)
+        struct.pack_into('<II', movie, 80, 1 + participants, pointers)
     return bytes(movie), bytes(constants)
 
 
@@ -161,18 +164,25 @@ def test_four_player_fitting_owns_new_text_records_without_scaling_native_panels
     original = apt.read_characters_list(movie, before)
     output, changed, report = compile_menu(movie, constants, {100: 7}, {100: 'Alpha One'}, participants=4)
     root = apt.parse_character(output, entry); chars = apt.read_characters_list(output, root)
-    assert changed == constants and len(chars) == len(original) + 4
+    assert changed == constants and len(chars) == len(original) + 16
     assert all(output[c['offset']:c['offset'] + (8 if c['type'] == 'Font' else 60)] ==
                movie[c['offset']:c['offset'] + (8 if c['type'] == 'Font' else 60)] for c in original)
-    for player, record in enumerate(chars[-4:]):
+    bindings = []
+    for record in chars[-16:]:
         assert record['type'] == 'Text' and record['sig_ok']
         assert struct.unpack_from('<f', output, record['offset'] + 36)[0] == 12
+        binding = apt.read_cstr(output, struct.unpack_from('<I', output, record['offset'] + 56)[0])
+        bindings.append(binding)
+        assert binding.startswith('_recompFighterText') and not binding.startswith('sFName')
+    assert len(set(bindings)) == 16
     overlays = [item for kind, item in root['frames'][0] if kind == 'PlaceObject' and
                 (item.get('name') or '').startswith('_recompFighterLabel')]
-    assert len(overlays) == 4 and len({item['depth'] for item in overlays}) == 4
-    assert [item['matrix'][4] for item in overlays] == [100, 239, 377, 513]
+    assert len(overlays) == 16 and len({item['depth'] for item in overlays}) == 16
+    assert [item['matrix'][4] for item in overlays] == [left for left in (100, 239, 377, 513) for _ in range(4)]
+    assert [item['matrix'][5] for item in overlays[:4]] == [103, 117, 131, 145]
     code = output[report['action_offset']:]
-    assert b'Alpha\nOne\0' in code and b'wordWrap\0' in code
+    assert b'Alpha\0' in code and b'One\0' in code
+    assert b'wordWrap\0' not in code and b'multiline\0' not in code
     assert b'_xscale\0' not in code and b'_yscale\0' not in code
     frame_offset = struct.unpack_from('<I', output, entry + 12)[0]
     count, pointers = struct.unpack_from('<II', output, frame_offset)
@@ -183,3 +193,38 @@ def test_four_player_fitting_owns_new_text_records_without_scaling_native_panels
             assert struct.unpack_from('<I', output, offset + 60)[0] == 0
     with pytest.raises(AssetError, match='name fields differ'):
         compile_menu(*selector_fixture(), {100: 7}, {100: 'Alpha One'}, participants=4)
+
+
+@pytest.mark.parametrize('participants,font_height,lines', [(2, 20, (b'Capacity 261', b'v2')), (3, 16, (b'Capacity', b'261 v2'))])
+def test_two_and_three_player_custom_names_use_bounded_own_fields(participants, font_height, lines):
+    movie, constants = selector_fixture(participants=participants)
+    output, _, report = compile_menu(movie, constants, {365: 7}, {365: 'Capacity 261 v2'}, participants=participants)
+    entry, _ = apt.parse_const(constants); root = apt.parse_character(output, entry)
+    chars = apt.read_characters_list(output, root)
+    overlays = [item for kind, item in root['frames'][0] if kind == 'PlaceObject' and
+                (item.get('name') or '').startswith('_recompFighterLabel')]
+    assert len(overlays) == participants * 2 and len({item['depth'] for item in overlays}) == participants * 2
+    assert all(struct.unpack_from('<f', output, row['offset'] + 36)[0] == font_height for row in chars[-participants * 2:])
+    assert [apt.read_cstr(output, struct.unpack_from('<I', output, row['offset'] + 56)[0]) for row in chars[-participants * 2:]] == [
+        f'_recompFighterText{i}_{j}' for i in range(participants) for j in range(2)]
+    code = output[report['action_offset']:]
+    assert all(line + b'\0' in code for line in lines)
+    assert b'_xscale\0' not in code and b'_yscale\0' not in code
+    with pytest.raises(AssetError, match='line budget'):
+        compile_menu(movie, constants, {365: 7}, {365: 'x' * 40}, participants=participants)
+
+
+def test_visual_stat_percentages_stay_bounded_without_mutating_gameplay_values():
+    stats = {'U': 0, 'L': 50, 'S': 51, 'T': 100, 'H': 88, 'C': 49}
+    record = {'selection_key': 365, 'stats': stats.copy(), 'styles': [3]}
+    data = character_parameters(record)
+    assert '&U=0&L=50&S=51&T=100&H=88&C=49&' in data
+    assert record['stats'] == stats
+    movie, constants = selector_fixture()
+    output, constants, _ = compile_menu(movie, constants, {365: 7}, {365: 'Test'}, [record])
+    _, entries, definitions = functions(output, constants)
+    wrapper = [d for d in definitions if d['owner'] == 'CCharacter' and d['method'] == 'getStats'][-1]
+    body = apt.disassemble_block(output, wrapper['start'], entries, wrapper['size'], wrapper['pool'])
+    assert wrapper['params'] == ['SetIndex']
+    assert sum(i.name == 'LessThan2' for i in body) == 6
+    assert b'_recompFighterGetStats\0' in output and b'&H=88&' in output
