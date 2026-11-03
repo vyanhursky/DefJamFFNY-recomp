@@ -145,6 +145,9 @@ def main():
     inspect.add_argument('sod', type=Path)
     inspect_model = sub.add_parser('inspect-model', help='Inspect data-only ELF envelope; no runtime activation')
     inspect_model.add_argument('model', type=Path)
+    inspect_geometry = sub.add_parser('inspect-geometry', help='Check observed stream/index/material structures; no runtime activation')
+    inspect_geometry.add_argument('model', type=Path)
+    inspect_geometry.add_argument('--textures', type=Path, help='Also require every model shape in this validated SHPX file')
     inspect_textures = sub.add_parser('inspect-textures', help='Validate supported SHPX data and references; no runtime activation')
     inspect_textures.add_argument('textures', type=Path)
     export = sub.add_parser('export-retail')
@@ -168,10 +171,22 @@ def main():
             with args.textures.open('rb') as stream:
                 data = stream.read(MAX_ASSET + 1)
             result = Textures(unpack_asset(data)).metadata()
-        elif args.command == 'inspect-model':
+        elif args.command in ('inspect-model', 'inspect-geometry'):
             with args.model.open('rb') as stream:
                 data = stream.read(MAX_ASSET + 1)
-            result = Model(unpack_asset(data)).metadata()
+            model = Model(unpack_asset(data))
+            result = model.metadata()
+            if args.command == 'inspect-geometry':
+                from fighter_geometry import Geometry
+                geometry = Geometry(model)
+                result['geometry'] = geometry.metadata()
+                if args.textures:
+                    from fighter_xsh import Textures
+                    with args.textures.open('rb') as stream:
+                        texture_data = stream.read(MAX_ASSET + 1)
+                    textures = Textures(unpack_asset(texture_data))
+                    geometry.require_textures(textures)
+                    result['textures'] = textures.metadata()
         elif args.command == 'inspect-native':
             if args.sod.stat().st_size > MAX_IMAGE:
                 raise ValueError('SODB exceeds image budget')

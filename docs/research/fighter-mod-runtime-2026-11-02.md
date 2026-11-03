@@ -707,6 +707,47 @@ F4 name fitting follow-up:
   93.20s,`logs/fighter-rig-language-final-unit.txt`; the later redirected-path
   fixtures are covered by the separate focused gate above.
 
+### Geometry inspection checkpoint (2026-11-03 UTC)
+
+- Local commits `940bb40` (language composition) and `1f51901` (typed skeletons)
+  retain the accepted source work. Nothing has been pushed or opened as a PR.
+- `setup/fighter_geometry.py` and `inspect-geometry` add strict checks of the
+  observed material/render associations and data ranges. The group table is a
+  zero word followed by **inline variable count/pointer lists**, not a fixed
+  count/pointer-to-array table. Every wrapper must be RM+38, point back to that
+  exported RM, and occur exactly once across the material groups. Stream headers
+  must agree with their inline data pointers, counts/strides are bounded, scalar
+  streams cannot hide relocations, positions/UVs are finite, and supported uint16
+  strip indices stay inside the position stream. Short streams permit the
+  observed two-byte tail padding. Sparkle streams and untextured helpers retain
+  their distinct reviewed parent types.
+- This is **data-structure inspection**, not validation of GPU render commands,
+  native parameter bindings or skin weights. The separate CLI remains explicitly
+  `runtime_ready:false`; plain `inspect-model` retains its envelope/skeleton
+  scope. Optional `--textures` checks shape references against the supplied
+  validated XSH, refusing missing dependencies instead of treating arbitrary
+  shape names as globally available. Shared sparkle/environment libraries still
+  require a verified baseline dependency adapter.
+- Current corpus result: **65/78retail and1/47community main models** pass these
+  structure checks. Twelve retail and46community models stop on unsupported
+  index-header/parameter layouts; one retail model has an unsupported stream
+  layout. These are not declared corrupt assets. In610A RM33, the binding after
+  EAGLAnimationBuffer does not follow the header/count/data arrangement used by
+  the currently checked subset. The reader deliberately rejects it; the next
+  decoder must establish the native parameter schema before accepting it.
+  `logs/fighter-geometry-all-assets.json` retains per-file diagnostics, including
+  the accepted original Blaze113A and Trejo112A reports.
+- **74focused tests passed**,0.29s,`logs/fighter-geometry-cross-unit.txt`, including
+  20new game-free geometry cases: variable group lists, surface/helper/point
+  layouts, texture dependencies, scalar-pointer injection, bad counts, nonfinite
+  values, aliased wrappers and index bounds. Full gate **1,147passed,27skipped,
+  1deselected**,94.20s,`logs/fighter-geometry-full-unit.txt`. No native C changed
+  after the build and six stock/language regression checks above.
+- Automatic approval review refused a proposed local download of the owner's
+  complete Modding Tools decoder source, citing the no-copy instruction. The
+  download did not run. Continued using published format documentation and
+  independent bounded local-asset inspection; no source copied from Comoria.
+
 Remaining implementation gates, in order:
 
 1. Finish F4 fitting acceptance, long names, three/four-player result variants,

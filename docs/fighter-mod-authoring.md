@@ -212,6 +212,22 @@ those last two checks remain false in inspection metadata. A face/pose module
 without a skeleton is reported with `skeleton: null`, rather than treated as a
 complete fighter model.
 
+Inspect the currently understood geometry structures separately:
+
+```powershell
+python scripts/fighter-registry.py inspect-geometry path/to/model.o
+python scripts/fighter-registry.py inspect-geometry path/to/model.o --textures path/to/textures.xsh
+```
+
+This checks explicit material-to-render-resource links, bounded vertex buffers,
+finite positions/UVs, matching stream lengths, known index headers and uint16
+index bounds. It distinguishes surface strips, untextured helpers and sparkle
+point streams. The optional texture check requires every referenced shape in
+the supplied validated file; a missing shared sparkle atlas is an error until
+its original-library dependency is resolved. Unknown index/stream variants are
+rejected. Imported render commands, native parameter bindings and skin weights
+remain unvalidated, and this command still reports `runtime_ready: false`.
+
 Inspect a supported SHPX texture archive, raw or RefPack compressed:
 
 ```powershell
