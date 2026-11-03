@@ -1,4 +1,4 @@
-"""Coherent, isolated fighter-save generations (runtime integration pending).
+"""Coherent, isolated fighter-save generations for guarded research runtime runs.
 
 Native writes must first finish in a disposable working directory. Publication
 uses the exact verified batch over the previous committed generation, never a

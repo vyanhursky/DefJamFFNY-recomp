@@ -86,6 +86,7 @@ class Model:
         check(rel[6:8] == (4, 1) and rel[9] == 8 and rel[5] % 8 == 0
               and rel[5] // 8 <= MAX_RELOCATIONS, 'Invalid model relocation table')
         seen = set()
+        self.pointers = {}
         for position in range(rel[4], rel[4] + rel[5], 8):
             offset, info = self.unpack('<II', position)
             symbol, method = info >> 8, info & 255
@@ -94,10 +95,54 @@ class Model:
                   'Invalid/duplicate model pointer relocation')
             seen.add(offset)
             addend, = self.unpack('<I', self.sections[1][4] + offset)
-            _, value, _, _, section = self.symbols[symbol]
+            name, value, _, _, section = self.symbols[symbol]
             check((section == 0 and addend == 0) or (section == 1 and value + addend <= self.sections[1][5]),
                   'Model relocation points outside resolved data')
+            self.pointers[offset] = {'symbol': name, 'imported': section == 0,
+                                     'target': None if section == 0 else value + addend}
         self.relocations = len(seen)
+
+    def data_range(self, offset, size):
+        check(type(offset) is int and type(size) is int and 0 <= offset <= self.sections[1][5]
+              and 0 <= size <= self.sections[1][5] - offset, 'Model data range exceeds section')
+        return self.sections[1][4] + offset
+
+    def data_words(self, offset, count):
+        """Read inline words, without guessing that a numeric value is a pointer."""
+        check(type(count) is int and count >= 0, 'Invalid model word count')
+        at = self.data_range(offset, count * 4)
+        return self.unpack('<' + 'I' * count, at)
+
+    def export_offset(self, name):
+        check(name in self.exports, 'Missing model data export')
+        return next(row[1] for row in self.symbols if row[0] == name and row[4] == 1 and row[3] >> 4 in (1, 2))
+
+    def local_pointer(self, offset, size):
+        """Follow an explicit relocation, rejecting imports and one-past reads.
+
+        An inline Skeleton export and a pointer-valued Model export are distinct.
+        Callers must choose the interpretation from a separately audited schema.
+        No raw word or imported address becomes a host/guest address here.
+        """
+        self.data_range(offset, 4)
+        check(offset in self.pointers, 'Model field has no pointer relocation')
+        pointer = self.pointers[offset]
+        check(not pointer['imported'], 'Model pointer needs an explicitly resolved data library')
+        check(type(size) is int and size > 0, 'Invalid model pointer target size')
+        self.data_range(pointer['target'], size)
+        return pointer['target']
+
+    def bone_indices(self):
+        """Audited __Bone name/index words only; never a complete rig validator."""
+        bones = {}
+        for name, offset, size, info, section in self.symbols:
+            if name not in self.exports or section != 1 or info >> 4 not in (1, 2) or not name.startswith('__Bone:::'):
+                continue
+            check(size == 4 and offset not in self.pointers, 'Unsupported model bone index field')
+            bones[name] = self.data_words(offset, 1)[0]
+        check(len(bones) <= 4096 and set(bones.values()) == set(range(len(bones))),
+              'Model bone indices must be unique and contiguous')
+        return dict(sorted(bones.items()))
 
     def range(self, offset, size):
         check(0 <= offset <= len(self.data) and 0 <= size <= len(self.data) - offset, 'Model range exceeds file')
@@ -124,8 +169,10 @@ class Model:
         check(not missing, 'Unresolved or forbidden model imports: ' + ', '.join(sorted(missing)[:8]))
 
     def metadata(self):
+        bones = self.bone_indices()
         return {'format': 'fighter-elf-model-draft-1', 'sha256': hashlib.sha256(self.data).hexdigest(),
                 'bytes': len(self.data), 'data_bytes': self.sections[1][5],
                 'symbol_count': len(self.symbols), 'relocation_count': self.relocations,
                 'imports': sorted(self.imports), 'exports': sorted(self.exports),
+                'bone_indices': bones, 'bone_index_map_only': True,
                 'runtime_ready': False, 'pending': ['eagl-geometry-skeleton-material-validation', 'native-resource-acceptance']}

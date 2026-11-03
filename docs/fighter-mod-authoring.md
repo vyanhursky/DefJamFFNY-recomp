@@ -2,7 +2,9 @@
 
 Target v0.15.0; local R&D. The [approved architecture](fighter-mod-support.md)
 defines the intended feature. This document covers the first working definition
-and conflict tools. **These drafts cannot be installed or played.** The schema
+and conflict tools. **These drafts are not installable launcher packages.**
+Internal native acceptance probes run donor-backed fighters using guarded,
+isolated profiles; the production capability remains disabled. The schema
 will evolve as native assets, menus and persistence are integrated.
 
 ## What the prototype checks
@@ -191,7 +193,12 @@ python scripts/fighter-registry.py inspect-model path/to/model.o
 The validator permits the observed data-only ELF layout, bounded symbols and
 pointer relocations. CPU executable sections, absolute address symbols,
 out-of-range/duplicate relocations and oversized expansion are rejected. The
-report lists imports/exports for dependency resolution. Passing this inspection
+report lists imports/exports for dependency resolution and the observed exported
+bone name/index map. Bone indices must be unique and contiguous. Matching this
+map establishes only matching names and indices; it does not establish parent
+relationships, bind poses, skin weights or animation compatibility. Typed reader
+helpers distinguish inline data from explicit pointer relocations and reject
+unresolved imported pointers and reads beyond the data section. Passing this inspection
 does not validate EAGL geometry, skeletons, materials or texture references and
 does not grant a runtime asset capability.
 

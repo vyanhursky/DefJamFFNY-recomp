@@ -509,14 +509,111 @@ F4 name fitting follow-up:
   `logs/fighter-created-assertion-unit.txt`. Fresh full gate **1,052passed,
   27skipped,1deselected**,93.26s, `logs/fighter-immutable-overlay-final-unit.txt`.
 
+### Real Battle ID and created-fighter progression
+
+- `run-20261102-202336.log.err` /
+  `logs/fighter-created-profile-signin-native.txt` **passed** native VY3 sign-in
+  (`SetBMCurrentUserIndex(0,0)`), selection of the profile-owned created fighter
+  **99** against **Alpha Two101 / stable0700004C / core5**, combat, results,
+  rewards, saving and return to Battle. The internal `@created` assertion checks
+  sentinel99; it does not introduce a pack identity or override StartGame.
+  Two independently acknowledged generations committed, including one coherent
+  VY3+Options batch. VY3's native writes were76+64+22788 bytes, total22928;
+  Options was76+64+5264, total5404. 87reports,min108/median120/max120,
+  no native faults; the complete original save root restored identically.
+  Captures: `logs/fighter-window-runs/51b73c34930d4a8780eb08f936163dde/captures`.
+- New head `9517a56bfeb12d9211bef698209743bc112af5a566f05c9c9aa9a8a2f0cc7ad6`.
+  Independent verification of the previous and new immutable generation finds
+  **16 changed bytes in the5904-byte VY3 payload**; all other payload bytes are
+  unchanged. Native container hashes/signatures verify. Report:
+  `logs/fighter-created-profile-progress-diff.json`. The changed words are
+  recorded without assigning unproved gameplay meanings to their offsets.
+  This establishes new native profile data, rather than merely re-saving an
+  identical imported profile. Fresh reload after a custom-P1 match remains a gate.
+- Battle's ControllerBind prompt defaults to **No**. Up then A chooses Yes;
+  four Down presses and A select the sole actual VY3 profile from this fixture.
+  A signed-in selector starts at the created fighter, unlike the guest selector.
+  CPU selection must explicitly move to an eligible retail/custom fighter.
+  `run-20261102-203325.log.err` correctly submitted Capacity261/logical365 for
+  P1 but the script then confirmed the CPU's initial created-fighter entry and
+  never submitted P2. Stopped only the verified probe PID65596; 263reports,
+  min100/median120/max120, no native faults, one acknowledged Options generation,
+  full save restoration. This is a script-calibration failure, not combat/save
+  acceptance. The next run explicitly moved Right before CPU confirmation.
+- `run-20261102-204235.log.err` completed native selection, combat, a decisive
+  result, VY3+Options saving and return to Battle. The driver **failed its CPU
+  expectation**: the Right press selected **Doc/Redman55**, rather than Blaze56.
+  Do not label that original assertion a pass. A separate exact-identity check
+  verifies **Capacity261/logical365/stable07000154/core5** as P1 and retail/doc55
+  as CPU, including immutable native core materialization. Both acknowledged
+  batches match their immutable committed payloads. VY3 changes16 payload bytes;
+  all remaining payload bytes stay unchanged. Supplementary report:
+  `logs/fighter-wide-real-profile-supplementary.json`; head
+  `425fc94e83f04f28079e57200d3de603d72edfc57521dea2e7a72cf4f2b1844c`.
+  216reports,min100/median120/max120,no native faults, full save restoration.
+  Captures: `logs/fighter-window-runs/ac0bae6d30a04a4093c69557598ad840/captures`.
+- Fresh-process reload `run-20261102-205044.log.err` disabled all300 capacity
+  definitions and restored three historical custom marks. Native sign-in still
+  selects VY3's original created fighter99; the reviewed4s selector capture shows
+  its original body, clothing, name and stats. The CPU script selected GammaOne103
+  rather than expected AlphaTwo101, so **the original driver assertion failed**.
+  Native match setup99/101 uses the second participant's transient bank101 for
+  GammaOne, not the public AlphaTwo identity. Combat, decisive result, two
+  acknowledged generations and return to Battle completed.168reports,
+  min102/median120/max120,no native faults, full save restoration. Current head
+  `d75c7c17e20839530bf125796546ea3c973c359cea0c9b9672cd1f921dfb9b00`.
+  Captures: `logs/fighter-window-runs/2300a295298d4affa04dbd23d752205a/captures`.
+  Independent exact-identity/materialization checks verify99/103; both committed
+  batches' native files are byte-identical to their successful-close receipts.
+  The restored extension retains AlphaTwo, BetaOne, dormant Capacity261 and new
+  GammaOne marks, and Capacity261 retains logical365. VY3 changes16 payload
+  bytes; other payload bytes remain unchanged. Report:
+  `logs/fighter-created-after-wide-reload-supplementary.json`. A clean driver run
+  with corrected CPU expectations remains desirable.
+
+### Authored model findings and remaining uncertainty
+
+- Primary inspection of community `V2IP_610A.o` finds94 exported `__Bone`
+  identities with unique raw index DWORDs0..93 and no relocation at those words.
+  Its complete bone-name/index map exactly matches retail Blaze `V2IP_113A.o`.
+  Reports: `logs/fighter-community-bone-index.json` and
+  `logs/fighter-retail-blaze-bone-index.json`. This is an animation-reuse lead,
+  not proof of skin weights, poses, parents or material compatibility.
+- The model inspector now retains the validated relocation graph and offers
+  bounded inline-word/export lookup and explicit local-pointer traversal.
+  Imported pointers, unrelocated words and one-past dereferences fail closed.
+  Inspection exposes the bone map separately, rejects duplicate/gapped indices,
+  and still reports `runtime_ready:false`. Game-free parser/graph fixtures:
+  **27passed**. Rechecking610A against113A with the same implementation confirms
+  identical94-entry maps and inline Skeleton headers; report
+  `logs/fighter-model-graph-blaze-610.json`. Full reinspection also passes all
+  **156retail+93community** model/face files, with observed bone populations0/94;
+  `logs/fighter-model-graph-all-assets.json`. Fresh full unit gate:
+  **1,064passed,27skipped,1deselected**,94.38s,
+  `logs/fighter-model-graph-full-unit.txt`. No native C changed in this checkpoint;
+  the immutable-build stock4/4 regression above still applies.
+- `__Skeleton:::root` is inline data, not a pointer. Community data offset40C50
+  and retail356C0 begin03AC3F23,0,94,0; the +8 count agrees with the94 bones.
+  The exported community Model pointer at43BB8 relocates to43950. Its descriptor
+  contains further local pointers; their geometry semantics remain unproved.
+- Corrected source leads:21500/215E0 query **PosePaletteBank**,21710 queries
+  **AnimationBank**, and10AC20's count is an ELF section count. They do not prove
+  a mesh decoder. CB3B0 queries the Model class; CB9A0 queries Skeleton and uses
+  accessor+8 for runtime allocations. Its0x80 runtime record stride does not
+  establish an on-disk skeleton stride. CB010 parses dotted/underscored tokens
+  and formats V2CA_%s; it does not decode bone parents. A downstream12-byte
+  association entry points to64 bytes copied into runtime+20, but its pose
+  convention and link to the model file remain unknown. Do not describe these
+  generic class accessors as XML readers without evidence.
+
 Remaining implementation gates, in order:
 
 1. Finish F4 fitting acceptance, long names, three/four-player result variants,
-   real created-fighter selection, disconnect/rejoin and rematch cases. Existing
+   disconnect/rejoin and rematch cases. Real created-fighter selection and
+   progression now pass as recorded above. Existing
    native two-pad cancellation, four independent pads and two-match reuse have
    passed; preserve their exact evidence instead of redoing their investigation.
-2. Exercise actual new profile progression with a real Battle ID (the current
-   multi-pad script confirms guests, `SetBMCurrentUserIndex(player,-1)`), plus
+2. Finish custom-P1 progression and fresh reload with a real Battle ID, plus
    native missing-pack/update/re-enable and interrupted-write cases. Native5904-byte
    write/close and isolated generations already pass; unchanged VY3 payloads do
    not prove new progression. Internal `@created` is an assertion of sentinel99,
