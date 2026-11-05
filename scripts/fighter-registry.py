@@ -211,6 +211,7 @@ def main():
     inspect_textures.add_argument('textures', type=Path)
     inspect_motion = sub.add_parser('inspect-motion-index', help='Inspect native motion table partitions; no runtime activation')
     inspect_motion.add_argument('motion', type=Path)
+    inspect_motion.add_argument('--check-links', action='store_true', help='Validate established move/parameter index namespaces; no runtime activation')
     inspect_record = sub.add_parser('inspect-motion-record', help='Inspect raw typed fields; semantic links remain unvalidated')
     inspect_record.add_argument('motion', type=Path)
     inspect_record.add_argument('--kind', choices=('move', 'core', 'parameter'), required=True)
@@ -220,6 +221,8 @@ def main():
     inspect_animation.add_argument('data', type=Path, help='Native .ord resource')
     inspect_animation.add_argument('links', type=Path, help='Matching native .orl resource')
     inspect_animation.add_argument('--names', type=Path, help='Optional separately validated native .mnl list')
+    inspect_animation.add_argument('--check-links', action='store_true', help='Check bank name lookup and established child edges; curves remain unvalidated')
+    inspect_animation.add_argument('--check-curves', action='store_true', help='Also inspect supported curve ranges; numerical/output-context validation remains required')
     export = sub.add_parser('export-retail')
     export.add_argument('sod', type=Path)
     compile_preview = sub.add_parser('compile-native-preview')
@@ -242,7 +245,15 @@ def main():
             for path in (args.data, args.links) + ((args.names,) if args.names is not None else ()):
                 with path.open('rb') as stream:
                     parts.append(unpack_asset(stream.read(MAX_ASSET + 1)))
-            result = AnimationEnvelope(*parts).metadata()
+            envelope = AnimationEnvelope(*parts)
+            result = envelope.metadata()
+            if args.check_links or args.check_curves:
+                from fighter_animation import AnimationIndex
+                index = AnimationIndex(envelope)
+                result['index_links'] = index.metadata()
+                if args.check_curves:
+                    from fighter_animation_curves import CurveLayouts
+                    result['curve_layouts'] = CurveLayouts(index).metadata()
         elif args.command in ('inspect-motion-index', 'inspect-motion-record'):
             from fighter_motion import MotionIndex
             with args.motion.open('rb') as stream:
@@ -250,6 +261,9 @@ def main():
             motion = MotionIndex(data)
             result = (motion.record(args.kind, args.index, args.partition).metadata()
                       if args.command == 'inspect-motion-record' else motion.metadata())
+            if args.command == 'inspect-motion-index' and args.check_links:
+                from fighter_motion_links import MotionLinks
+                result['index_links'] = MotionLinks(motion).metadata()
         elif args.command == 'inspect-textures':
             from fighter_xsh import Textures
             with args.textures.open('rb') as stream:

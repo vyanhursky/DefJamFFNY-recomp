@@ -180,6 +180,16 @@ optional name list is checked separately; individual Blazin banks can share a
 list. File envelopes and valid name tokens do not establish curve, pose, event
 or name-to-animation compatibility. Reported part hashes refer to decoded bytes.
 
+Add `--check-links` to the motion-index inspector to check the established
+action/move/parameter namespaces. On the animation-envelope inspector it checks
+the sorted bank name index, `_t`/`_s` token lookups and known child references.
+Missing optional native lookups are reported as missing, not invented mappings.
+`--check-curves` also checks supported curve byte ranges, serialized finite
+values and time profiles. These research checks leave numerical decoding,
+output-context compatibility and runtime admission false; unsupported curve
+types and layouts remain explicit in the report. No supplied native dispatch
+pointer becomes an executable mod capability.
+
 ```powershell
 python scripts/fighter-registry.py inspect-native path/to/assets/djv2.sod
 ```

@@ -27,6 +27,9 @@ extern void sub_00045180(void);
 extern void sub_000BE760(void);
 extern void sub_000BE760_gen(void);
 extern void sub_0001E310(void);
+/* Toolkit allocator counters; diagnostic observations, not asset ownership. */
+extern uint32_t xbox_HeapLiveBytes(void);
+extern uint32_t xbox_ContiguousLiveBytes(void);
 static FighterNames s_names;
 static FighterBindings s_bindings;
 static FighterWindow s_window;
@@ -401,6 +404,8 @@ int defjam_fighter_native_record(uint32_t database, uint32_t output, uint32_t st
 void defjam_fighter_match_setup(uint32_t self, uint32_t fighters) {
     if (!s_window.bytes) return;
     validate_immutable_banks();
+    fprintf(stderr, "[FIGHTERS] resource observation phase=match_setup heap=%u contiguous=%u\n",
+            xbox_HeapLiveBytes(), xbox_ContiguousLiveBytes());
     for (uint32_t i = 0; i < FIGHTER_WINDOW_BANKS; ++i) {
         FighterWindowRow row;
         uint32_t stable = MEM32(fighters + i * 4);
@@ -417,6 +422,8 @@ void defjam_fighter_match_finished(void) {
     validate_immutable_banks();
     if (!fighter_window_finish(&s_window)) fighter_stop("Could not finish native fighter selection ownership.");
     fprintf(stderr, "[FIGHTERS] selection ownership finished after native Game.Quit; immutable records retained\n");
+    fprintf(stderr, "[FIGHTERS] resource observation phase=match_finished heap=%u contiguous=%u\n",
+            xbox_HeapLiveBytes(), xbox_ContiguousLiveBytes());
 }
 
 void defjam_fighter_handle_produced(uint32_t database, uint32_t table, uint32_t output) {

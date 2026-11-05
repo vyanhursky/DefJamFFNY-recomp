@@ -274,3 +274,83 @@ Full unit gate after the texture control/conflict checks and combat acceptance
 helper: **1,318 passed,27 skipped,1 deselected**,99.64s, recorded in
 `logs/fighter-appearance-final-unit-nov04.txt`. The subsequent recorder switch
 only forwards the existing `RECOMP_RECORD=1` diagnostic for resource measurements.
+
+### Four human participants, repeat match and motion-reference checks
+
+Four human controllers passed ordinary-manifest acceptance in
+`run-20261104-224929.log.err`: two packs with two logical fighters each,
+identities100/101/102/103, correct compiled610/611 appearances and all six
+combat assertions. There were121 frame reports (min99/median120/max120), no
+native faults, one verified generation and identical save restoration. Captures
+are in session `d84002b0d3c946afbda5898846414fe4`. The earlier224615 attempt
+used incorrect six-column input on the three-column four-player grid; it was
+stopped and is an input diagnostic, not an acceptance result.
+
+The resource-observation build passed in
+`logs/fighter-resource-observation-build-nov04.txt`. It records the toolkit's
+existing live heap/contiguous counters at research match setup and Game.Quit.
+These count allocator blocks, not individual assets or internal pool occupancy.
+The toolkit pin and generated game code did not change.
+
+`run-20261104-230040.log.err` then passed the two-match route with both compiled
+packs: identities100/101 in each match, ten combat assertions, first match
+result, return through menus, second combat, two verified generations and
+identical save restoration. There were253 frame reports, median120, min37,
+max120, zero native faults. This instrumented route includes loading/menu
+transitions and concurrent offline checks; the low sample has not been
+attributed, and this run is not a release performance qualification.
+Captures: session `b784b2fc33d64f7a834829c9c4cd9882`.
+
+Heap bytes remained5,243,952 at first setup, first quit and second setup.
+Contiguous bytes were52,449,280,53,522,432,52,510,720 respectively: the increase
+at the menu transition mostly receded on reload, leaving61,440 above the first
+setup. The recorder's texture cache stayed within256 entries, peaked17.05MiB
+and ended15.77MiB. This supports basic repeat-load acceptance but does not prove
+all allocations are freed or establish a long-run leak bound. M3 stress remains
+separate. Two preflight attempts were rejected before game launch for duplicate
+screenshot labels and a malformed repeated input anchor; neither counts as a
+native test. Source summaries and metrics are under `logs/fighter-template-repeat-native.txt`
+and `logs/fighter-resource-metrics-20261104-230040.json`.
+
+`fighter_motion_links.py` now checks established WWAZ/WAZA/FZUI namespaces,
+including the row125 synthetic boundary and state65 parameter special case.
+The inspector exposes this explicitly with `inspect-motion-index --check-links`.
+Independent own-generated-native comparison of1A7F30 covered **3,498,000 cases**
+across141 retail and177 community cores, all local IDs, four participant routes,
+and eleven actor-state combinations. All2,081,165 in-range answers matched;
+all1,416,835 rejected answers were outside the declared FZUI table. Zero
+mismatches. Evidence: `logs/fighter-motion-links-oracle/comparison.json`.
+This validates lookup behavior and rejection, not an extended native core table.
+
+`AnimationIndex` validates relocation-backed name/record arrays, sorted unique
+names, native `_t`/`_s` index lookups with explicit missing(-1) values, type15
+child edges, budgets and cycles. All446 examined retail/community banks passed
+(`logs/fighter-animation-index-corpus-nov04.json`). `CurveLayouts` adds bounded
+structural inspection for13/20/21/25, finite serialized floats, time profiles,
+output-size requirements and inert type25 wrapper seeds. It deliberately leaves
+numerical decoding, external sample/output contexts, exclusive span ownership
+and runtime admission false. It passed445/446 banks under this profile; retail
+base00 contains a non-increasing time sequence and remains unsupported pending
+consumer-specific review. Evidence: `logs/fighter-animation-curves-corpus-nov04.json`.
+Focused animation/reference checks passed41 tests.
+
+The corrected native bank join is core ordinal+1 to `wres%03d` MNL/ORD/ORL.
+MNL tokens resolve named `_t`/`_s` **indices**, not pointers. The AnimationBank
+initialization callback supplies its own native dispatch word to serialized
+type25 inert wrapper prefixes. No mod-supplied dispatch address is accepted.
+Detailed structural leads are in the animation-bank and curve18/19/20/21 audits;
+native numerical and output-context validation remains required.
+
+Native selection uses authored2D artwork; its current donor portraits cannot
+serve as acceptance of the new appearance. The owner has been asked whether
+M1 should use custom portraits with3D acceptance in entrances/combat, or add a
+new live3D preview. Independent M2 work continues while that decision is pending.
+See the portrait-registration audit for the separate grid/large/result paths.
+Neither milestone is complete; no M3 work or publication is authorized here.
+
+Full unit gate with the MSVC environment: **1,345 passed,27 skipped,1 deselected**,
+95.65s (`logs/fighter-motion-links-msvc-unit-nov04.txt`). An earlier run without
+that environment passed1,113 but skipped259; it is not the native-unit gate.
+The subsequent standalone inspector/CLI checks passed19 tests after fixing the
+new test module's independent import path. Stock golden/menu/fight regression
+is running separately; its result is not yet claimed.

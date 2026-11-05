@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'setup'))
-from fighter_animation import AnimationEnvelope
+from fighter_animation import AnimationEnvelope, AnimationIndex
 from fighter_assets import AssetError
 from fighter_elf import ModelError
 from test_fighter_elf import fixture
@@ -71,3 +71,58 @@ def test_animation_envelope_requires_self_contained_data_and_a_bank_export():
         AnimationEnvelope(original[:split], original[split:], names)
     with pytest.raises(AssetError, match='bank export'):
         AnimationEnvelope(data, links.replace(b'__AnimationBank:::a', b'__DifferentBank:::a'), names)
+
+
+def index_fixture(change=None):
+    """Invented bank with two names sharing one parent and one opaque child."""
+    original, rows, _ = fixture('__AnimationBank:::a')
+    payload = bytearray(96)
+    struct.pack_into('<6I', payload, 0, 0, 2, 0, 0, 24, 32)
+    struct.pack_into('<4I', payload, 24, 40, 40, 80, 84)
+    struct.pack_into('<HHIHHI', payload, 40, 15, 0, 0, 1, 0, 56)
+    struct.pack_into('<H', payload, 56, 13)
+    payload[80:88] = b'A_s\0A_t\0'
+    pointers = [16, 20, 24, 28, 32, 36, 52]
+    if change:
+        change(payload, pointers)
+    pieces = [b'', bytes(payload), original[rows[2][4]:rows[2][4] + rows[2][5]],
+              b'\0__AnimationBank:::a\0', bytes(16) + struct.pack('<IIIBBH', 1, 0, 24, 17, 0, 1),
+              b''.join(struct.pack('<II', at, 258) for at in pointers)]
+    image = bytearray(original[:64])
+    output_rows = [rows[0]]
+    for i in range(1, 6):
+        image += bytes(-len(image) % rows[i][8])
+        output_rows.append((*rows[i][:4], len(image), len(pieces[i]), *rows[i][6:]))
+        image += pieces[i]
+    image += bytes(-len(image) % 4)
+    struct.pack_into('<I', image, 32, len(image))
+    image += b''.join(struct.pack('<10I', *row) for row in output_rows)
+    split = output_rows[2][4]
+    return AnimationEnvelope(bytes(image[:split]), bytes(image[split:]), struct.pack('<2I', 2, 0) + b'A.B.')
+
+
+def test_animation_index_tracks_native_missing_sentinel_without_curve_admission():
+    index = AnimationIndex(index_fixture())
+    assert index.names == ['A_s', 'A_t']
+    assert index.token_links == ((1, 0), (-1, -1))
+    assert index.records == [40, 40]  # sharing is allowed
+    assert index.children == {40: (56,)}
+    report = index.metadata()
+    assert report['record_types'] == {13: 1, 15: 1}
+    assert report['missing_t_links'] == report['missing_s_links'] == 1
+    assert not report['animation_records_validated'] and not report['runtime_ready']
+
+
+@pytest.mark.parametrize('change, message', [
+    (lambda b, p: struct.pack_into('<I', b, 4, 65536), 'count'),
+    (lambda b, p: p.remove(16), 'relocation'),
+    (lambda b, p: struct.pack_into('<I', b, 16, 92), 'range'),
+    (lambda b, p: b.__setitem__(slice(80, 88), b'A_t\0A_s\0'), 'sorted'),
+    (lambda b, p: struct.pack_into('<I', b, 36, 80), 'unique'),
+    (lambda b, p: b.__setitem__(slice(80, 96), b'X' * 16), 'unterminated'),
+    (lambda b, p: struct.pack_into('<H', b, 48, 100), 'range'),
+    (lambda b, p: struct.pack_into('<I', b, 52, 40), 'Cyclic'),
+])
+def test_animation_index_rejects_malformed_reference_graph(change, message):
+    with pytest.raises((AssetError, ModelError), match=message):
+        AnimationIndex(index_fixture(change))
