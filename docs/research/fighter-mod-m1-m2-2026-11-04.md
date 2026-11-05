@@ -541,3 +541,118 @@ Captures: `logs/fighter-window-runs/3efb03d3efdf43d798beae2ab44991d4/captures`.
 Full MSVC unit gate: **1393 passed,27 skipped,1 deselected**,101.26s
 (`logs/fighter-ui-capacity-msvc-unit-nov05.txt`). Three-player visual acceptance
 and stock native regressions on this rebuilt executable are next.
+
+### 2026-11-05 three-player portraits and motion binding receipt
+
+Run011515 completed three-player browsing of two independent two-fighter packs.
+The20s/26s/32s captures show Briggs/Tank/Briggs with matching large portraits and
+native grid thumbnails.114 frame reports min108/median120/max120; no faults,
+one verified save generation and byte-identical restoration. Preserved captures:
+`logs/fighter-window-runs/fff4592983004c4fadeed1ca4630a25d/captures`.
+Stock regressions on the new UI executable are running serially.
+
+The owned motion-core composer now emits a checked FMC1 relative-offset receipt.
+It verifies the original-prefix hash, whole composed-stream hash, contiguous
+new descriptor ordinals, one-based Character/bank bindings and exact inherited
+WPAR/WWAZ bytes.18 focused tests pass, including descriptor254..257 and tampered
+bindings/payloads. This remains a registration foundation, not native acceptance
+or admission of authored moves/events. The native reader audit additionally
+found a core-indexed float lookup in1B2C60; it must be handled before claiming
+that adapting the four descriptor readers is sufficient. No retail row swapping
+or actor identity substitution is planned. M1/M2 remain incomplete; no M3 work.
+
+### 2026-11-05 owned native motion adapter — acceptance in progress
+
+Stock regressions on the UI-capacity executable passed4/4 in7min
+(`logs/regress-20261105-012943.txt`): boot25s, title123s, menu74s,
+fight215s; fight median120/min107 presents per2s.
+
+The motion adapter now validates FMC1 receipts and exact inherited core pairs,
+registers full-width sidecar descriptors against the loaded source digest,
+invalidates them before native source teardown, redirects the four descriptor
+readers, maps inherited animation banks and handles1B2C60's independent static
+scalar table. Original core IDs and native retail records are not swapped.
+Eight real entry wrappers are regenerated; inspected direct calls reach them.
+Research remains restricted to the isolated harness namespace.
+
+MSVC invented-guest adapter tests:17pass, including16,000 frame scan cases,
+distinct output/context participants, special/external moves, parameter override
+sum wrap/argument-slot mutation, mixed scalar classes, source reload, expired
+and malformed receipt rejection. Full unit gate:1418pass/27skip/1deselected,
+with one recorder bundle-frame-count failure292vs300 while a release build was
+running. Unchanged isolated recorder suite then passed6/6 in45.79s. No test
+expectation was weakened. See `logs/fighter-motion-msvc-unit-nov05.txt` and
+`logs/fighter-motion-recorder-recheck-nov05.txt`.
+
+First native high-core run014255 is **FAILED acceptance**, not a pass: four
+native menu identities103/104/105/106 verified, source generation1 and native
+cores256..259 registered, all four mapped to inherited bank5. Presentation
+stopped before combat setup; no crash/watchdog was emitted.66frame reports
+99/120/120, one save generation and identical restoration. The live-stack
+attempt was too late (process had ended); no stack diagnosis is claimed.
+A longer traced reproduction is running to capture the blocked thread.
+`logs/fighter-motion-four-high-native.txt`, `logs/run-20261105-014255.log.err`.
+M1/M2 remain incomplete; no M3 or public publication.
+
+
+### 2026-11-05 audio-table diagnosis and reader hardening
+
+014823 reproduced the high-core hang; live host stack sampled1E7CD0's
+stream scan beneath intro audio. No acceptance claimed.020004 data watch
+then caught3E170 indexing fixed audio metadata with one-based core257:
+voice3403B4 became2929016Dhex. Both diagnostic runs were explicitly
+stopped and their save trees restored identically (one generation each).
+Evidence: fighter-motion-high-native-stacks.txt and
+fighter-motion-voice-write-native.txt underlogs/.
+
+A new real3E170 wrapper delegates native setup with a private guest-stack
+copy of its0x84-byte input, mapping only audio template keys. Actor cores
+remain full-width. WAZA/FZUI/NAME dimensions, group populations, padding,
+and string boundaries are now independently checked at native startup.
+40focused MSVC tests pass, including pre-motion audio setup, mixed retail/
+custom/empty slots, unchanged caller input, unknown-template rejection and
+22malformed-table cases with recomputed matching digests. Native rebuilt
+acceptance remains pending. No authored voice/behavior admission, M3 or push.
+
+
+### 2026-11-05 full-width four-human combat acceptance
+
+Run021106 PASS: independent packs' four selected identities103/104/105/106,
+native cores256..259, inherited audio templates5/5/5/5, six combat assertions,
+121frame reports min108/median120/max120, zero crash/watchdog/unresolved
+calls, one save generation restored identically. Captures in
+logs/fighter-window-runs/9d86677eadd148ae81540f5445a3c8cb/captures show the
+four fighters in combat. Main harness: logs/fighter-motion-audio-high-native.txt.
+This is acceptance of high-core inherited behavior, not genuinely authored
+moves/voice/AI or fullM2. A one-human/three-CPU route is being checked next.
+
+Type18 quaternion forward replay now matches isolated native helpers:
+240cases/3360channelposes/13440scalars/0byte differences. 13focused Python
+fixtures pass. Interpolation/cache/scatter and other numerical codecs remain
+separate gates. See fighter-animation-quaternion-codec-2026-11-05.md.
+
+
+Run021813 PASS onehuman/threeCPU with the same two independent packs and
+native cores256..259: identities103/104/105/106, five combat assertions,
+174frame reports min96/median120/max121, zero crash/watchdog/unresolved
+calls, one save generation restored identically. Preserved captures:
+logs/fighter-window-runs/48c744e7a4b5486d8e864972c9025be1/captures.
+Main log: logs/fighter-motion-audio-cpu-native.txt.
+
+Type18 native interpolation helper comparison expands coverage to53,760scalar
+results with zero byte differences, weights0/.25/.5/1. Native source digest
+and remaining cache/scatter gates are in the quaternion report. Stock quick
+regression and clean full MSVC unit rerun are next; no C edits during them.
+
+
+### 2026-11-05 inherited motion checkpoint accepted
+
+Stock quick regression passed all five checks in eight minutes:
+`logs/regress-20261105-023405.txt` and
+`logs/fighter-motion-audio-quick-regression-nov05.txt`. Clean full unit run:
+1455 passed, 27 skipped, 1 deselected (101.20 seconds). Boot, title and menu
+goldens match. Stock fight: 122 seconds, median120/min114 presents per2s.
+Together with the two high-core combat routes above, this accepts the current
+inherited motion/audio adapter checkpoint. It does not complete M2: genuinely
+authored behavior and independently registered voices remain outstanding.
+No M3 work or public publication.

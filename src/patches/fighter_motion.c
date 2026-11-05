@@ -1,0 +1,317 @@
+/* Owned descriptors retain full-width core identity and borrow one validated
+ * native motion resource generation. Retail descriptors are never overwritten.
+ * Contracts derived from the player's own executable; see the motion ABI brief.
+ */
+#ifndef _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+#include "fighter_motion.h"
+#include "fighter_runtime.h"
+#include "hooks/guest_call.h"
+#include "hooks/mod_sha256.h"
+#include <stdlib.h>
+#include <math.h>
+
+#define ORIGINAL_CORES 141u
+#define MAX_CORES 16384u
+#define MAX_MOTION (64u * 1024u * 1024u)
+#define MAX_BINDINGS (56u + 16u * (MAX_CORES - ORIGINAL_CORES))
+typedef struct MotionCore { uint32_t parameters, actions, bank; } MotionCore;
+static MotionCore s_cores[MAX_CORES - ORIGINAL_CORES];
+static uint32_t s_count, s_size, s_source, s_generation;
+static uint8_t s_digest[32];
+static char s_path[2048];
+extern void sub_001A3AD0(void);
+extern void sub_001A3630(void);
+extern void sub_001C60D0(void);
+extern void sub_000444E0(void);
+extern void sub_00011520(void);
+extern void sub_0003E170_gen(void);
+
+static void motion_stop(const char *message) {
+    fprintf(stderr, "[FIGHTERS] motion stopped: %s\n", message);
+    fflush(stderr); exit(1);
+}
+static uint32_t word(const uint8_t *p) {
+    return (uint32_t)p[0] | (uint32_t)p[1]<<8 | (uint32_t)p[2]<<16 | (uint32_t)p[3]<<24;
+}
+static int shared_table(const uint8_t *p, uint32_t size, unsigned kind) {
+    if (kind == 0) {
+        if (size < 12) return 0;
+        uint32_t count = word(p + 4), groups = word(p + 8);
+        if (word(p) != 32 || !count || count > 65535 || !groups || groups > 4096
+            || size != 12u + groups * 4u + count * 32u) return 0;
+        uint64_t total = 0;
+        for (uint32_t i = 0; i < groups; ++i) total += word(p + 12 + i * 4);
+        return total <= count;
+    }
+    if (kind == 1) {
+        if (size < 8) return 0;
+        uint32_t count = word(p + 4);
+        if (word(p) != 39 || !count || count > 1000000) return 0;
+        uint32_t end = 8 + count * 39;
+        if (size != ((end + 3u) & ~3u)) return 0;
+        for (; end < size; ++end) if (p[end]) return 0;
+        return 1;
+    }
+    if (size < 4) return 0;
+    uint32_t count = word(p), pool = 4 + count * 2;
+    if (!count || count > 65535 || pool >= size) return 0;
+    for (uint32_t i = 0; i < count; ++i) {
+        uint32_t offset = p[4 + i * 2] | (uint32_t)p[5 + i * 2] << 8;
+        uint32_t at = pool + offset, length = 0;
+        if (at >= size || (offset && p[at - 1])) return 0;
+        while (at < size && p[at] && length <= 1024) {
+            if (p[at] < 32 || p[at] >= 127) return 0;
+            ++at; ++length;
+        }
+        if (at == size || length > 1024) return 0;
+    }
+    return 1;
+}
+static uint8_t *read_file(const char *path, size_t limit, size_t *size) {
+    FILE *file;
+#if defined(_WIN32)
+    wchar_t wide[2048];
+    if (!MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, path, -1, wide, 2048)) return NULL;
+    file = _wfopen(wide, L"rb");
+#else
+    file = fopen(path, "rb");
+#endif
+    if (!file) return NULL;
+    uint8_t *data = (uint8_t *)malloc(limit + 1);
+    if (!data) { fclose(file); return NULL; }
+    *size = fread(data, 1, limit + 1, file);
+    int good = !ferror(file) && *size <= limit;
+    if (fclose(file)) good = 0;
+    if (!good) { free(data); return NULL; }
+    return data;
+}
+
+int defjam_fighter_motion_start(void) {
+    const char *path = getenv("RECOMP_FIGHTER_MOTION");
+    const char *bindings = getenv("RECOMP_FIGHTER_MOTION_BINDINGS");
+    const char *hash = getenv("RECOMP_FIGHTER_MOTION_SHA256");
+    if (!path || !*path) return (!bindings || !*bindings) && (!hash || !*hash);
+    if (!defjam_fighter_research_active() || !bindings || !*bindings || s_count || strlen(path) >= sizeof(s_path)
+        || !mod_file_matches(path, hash)) return 0;
+    size_t size = 0, bytes = 0;
+    uint8_t *table = read_file(bindings, MAX_BINDINGS, &size);
+    uint8_t *data = read_file(path, MAX_MOTION, &bytes);
+    int valid = table && data && size >= 56 && !memcmp(table, "FMC1", 4)
+        && word(table + 4) == 1 && word(table + 8) == ORIGINAL_CORES
+        && word(table + 12) && word(table + 12) <= MAX_CORES - ORIGINAL_CORES
+        && size == 56u + 16u * word(table + 12) && bytes == word(table + 16) && !word(table + 20);
+    if (!valid) { free(table); free(data); return 0; }
+    uint8_t digest[32]; char encoded[65];
+    sha256(data, bytes, digest); hex(digest, encoded);
+    valid = !memcmp(digest, table + 24, 32) && !strcmp(encoded, hash);
+    /* Establish every native chunk before publishing any sidecar entry. */
+    uint32_t cursor = 0, original[ORIGINAL_CORES];
+    static const char *tags[6] = {"WAZA", "FZUI", "NAME", "WAZA", "FZUI", "NAME"};
+    for (unsigned i = 0; valid && i < 6; ++i) {
+        if (cursor > bytes || bytes - cursor < 8 || memcmp(data + cursor, tags[i], 4)
+            || word(data + cursor + 4) > bytes - cursor - 8) { valid = 0; break; }
+        uint32_t length = word(data + cursor + 4);
+        if (!shared_table(data + cursor + 8, length, i % 3)) { valid = 0; break; }
+        cursor += 8 + length;
+    }
+    uint32_t count = word(table + 12);
+    for (uint32_t i = 0; valid && i < ORIGINAL_CORES + count; ++i) {
+        if (cursor > bytes || bytes - cursor < 860 || memcmp(data + cursor, "WPAR", 4)
+            || word(data + cursor + 4) != 64 || memcmp(data + cursor + 72, "WWAZ", 4)
+            || word(data + cursor + 76) != 780) { valid = 0; break; }
+        if (i < ORIGINAL_CORES) original[i] = cursor;
+        else {
+            const uint8_t *row = table + 56 + (i - ORIGINAL_CORES) * 16;
+            uint32_t bank = word(row + 12);
+            if (word(row) != i || word(row + 4) != cursor + 8 || word(row + 8) != cursor + 80
+                || bank < 3 || bank > ORIGINAL_CORES || memcmp(data + cursor, data + original[bank - 1], 860)) {
+                valid = 0; break;
+            }
+            s_cores[i - ORIGINAL_CORES] = (MotionCore){cursor + 8, cursor + 80, bank};
+        }
+        cursor += 860;
+    }
+    valid = valid && cursor == bytes;
+    if (valid) {
+        s_count = count; s_size = (uint32_t)bytes;
+        memcpy(s_digest, digest, 32); strcpy(s_path, path);
+        fprintf(stderr, "[FIGHTERS] validated %u owned motion cores\n", count);
+    }
+    free(table); free(data); return valid;
+}
+
+const char *defjam_fighter_motion_path(void) { return s_path; }
+int defjam_fighter_motion_audio(uint32_t input) {
+    if (!defjam_fighter_research_active() || !s_count || MEM8(0x340540)) return 0;
+    uint32_t indices[4]; int changed = 0;
+    for (uint32_t slot = 0; slot < 4; ++slot) {
+        uint32_t index = MEM32(input + 0x20 + slot * 0x18);
+        indices[slot] = index;
+        if (index == UINT32_MAX || index <= ORIGINAL_CORES) continue;
+        if (index - ORIGINAL_CORES - 1 >= s_count) motion_stop("unknown audio template core");
+        indices[slot] = s_cores[index - ORIGINAL_CORES - 1].bank;
+        changed = 1;
+    }
+    if (!changed) return 0;
+    /* Audio setup precedes motion-resource registration. Its caller owns an
+     * 0x84-byte stack value, read synchronously, with four one-based core keys.
+     * Copy that value onto a nested guest frame; neither actors nor the caller's
+     * source are rewritten. Native audio rows retain their own template keys. */
+    uint32_t stack = g_esp;
+    if (stack < 0x1000 + 0x90) motion_stop("invalid audio adapter stack");
+    g_esp -= 0x90;
+    uint32_t copy = g_esp;
+    memcpy((void *)XBOX_PTR(copy), (const void *)XBOX_PTR(input), 0x84);
+    for (uint32_t slot = 0; slot < 4; ++slot) MEM32(copy + 0x20 + slot * 0x18) = indices[slot];
+    g_eax = guest_call(sub_0003E170_gen, g_ecx, 1, &copy);
+    g_esp = stack + 4;
+    fprintf(stderr, "[FIGHTERS] inherited audio templates %u/%u/%u/%u\n",
+            indices[0], indices[1], indices[2], indices[3]);
+    return 1;
+}
+void defjam_fighter_motion_register(uint32_t source) {
+    if (!s_count) return;
+    if (!source || s_size > UINT32_MAX - source) motion_stop("invalid source range");
+    uint8_t digest[32]; sha256((const void *)XBOX_PTR(source), s_size, digest);
+    if (memcmp(digest, s_digest, 32)) motion_stop("loaded resource differs from validated receipt");
+    s_source = source; ++s_generation;
+    fprintf(stderr, "[FIGHTERS] motion generation %u registered: core %u..%u\n",
+            s_generation, ORIGINAL_CORES, ORIGINAL_CORES + s_count - 1);
+}
+void defjam_fighter_motion_release(uint32_t owner) {
+    if (s_source && MEM32(owner) == s_source) {
+        s_source = 0;
+        fprintf(stderr, "[FIGHTERS] motion generation %u invalidated before source release\n", s_generation);
+    }
+}
+static const MotionCore *custom(uint32_t core) {
+    if (!defjam_fighter_research_active() || core < ORIGINAL_CORES) return NULL;
+    if (core - ORIGINAL_CORES >= s_count || !s_source) motion_stop("unregistered or expired core");
+    return &s_cores[core - ORIGINAL_CORES];
+}
+uint32_t defjam_fighter_motion_bank(uint32_t bank) {
+    if (!bank) return bank;
+    const MotionCore *row = custom(bank - 1);
+    if (row) fprintf(stderr, "[FIGHTERS] core %u uses inherited bank %u\n", bank - 1, row->bank);
+    return row ? row->bank : bank;
+}
+int defjam_fighter_motion_parameters(uint32_t actor) {
+    const MotionCore *row = custom(MEM32(actor + 0x2C));
+    if (!row) return 0;
+    uint32_t slot = MEM32(actor + 0x28), sum = 0;
+    if (slot >= 4) motion_stop("invalid parameter participant");
+    uint32_t args[2] = {actor + 0xAE4, s_source + row->parameters};
+    guest_call(sub_001A3AD0, g_ecx, 2, args);
+    for (uint32_t i = 0; i < 7; ++i) sum += MEM32(0x3B9128 + slot * 28 + i * 4);
+    MEM32(g_esp + 4) = sum;
+    if (sum) for (uint32_t i = 0; i < 7; ++i) MEM32(actor + 0xB34 + i * 4) = MEM32(0x3B9128 + slot * 28 + i * 4);
+    g_esp += 4; return 1;
+}
+static uint32_t action(const MotionCore *row, uint32_t id) {
+    if (id >= 130) motion_stop("action exceeds core table");
+    return s_source + row->actions + id * 6;
+}
+static void decode_move(uint32_t output, uint32_t partition, uint32_t id) {
+    uint32_t base = partition ? 0x3B8610 : 0x3B85D8;
+    if (MEM32(base + 4) != 32 || id >= MEM32(base + 8)) motion_stop("move exceeds shared table");
+    uint32_t args[2] = {output + 0xF6C, MEM32(base + 20) + id * 32};
+    guest_call(sub_001A3630, g_ecx, 2, args);
+}
+int defjam_fighter_motion_state(uint32_t output, uint32_t context, uint32_t id) {
+    const MotionCore *row = custom(MEM32(context + 0x2C));
+    if (!row) return 0;
+    if (id > INT32_MAX) motion_stop("negative motion identifier");
+    int special = (id >= 31 && id <= 34) || (id >= 38 && id <= 41);
+    MEM32(output + 0xFAC) = output; MEM32(output + 0xFB0) = context; MEM32(output + 0xF50) = id;
+    MEM32(output + 0xF58) = guest_call(sub_001C60D0, g_ecx, 1, &output);
+    MEM8(output + 0xF68) = MEM8(output + 0xF69) = MEM8(output + 0xF6A) = 0;
+    MEM32(output + 0xFB4) = 0;
+    if (special || id >= 10000) {
+        MEM32(output + 0xF54) = UINT32_MAX;
+        MEM32(output + 0x1020) = MEM32(output + 0xF5C) = id;
+        uint32_t ordinal = id - 10000;
+        if (special) {
+            uint32_t value = MEM32(output + 0xBB8 + (id - (id >= 38 ? 38 : 31)) * 4);
+            if (value > UINT32_MAX - 142) motion_stop("special move overflow");
+            ordinal = value + 142;
+        }
+        decode_move(output, 1, ordinal);
+        MEM8(output + 0xF68) = special ? !!(MEM16(action(row, id)) & 0x8000) : !!MEM8(output + 0xF71);
+    } else {
+        uint32_t at = action(row, id), value = MEM16(at), slot = MEM32(output + 0x28);
+        if (value == 0xFFFF || slot >= 4) motion_stop("absent action or invalid output participant");
+        MEM32(output + 0xF54) = MEM32(output + 0x1020) = MEM32(output + 0xF5C) = value & 0xFFF;
+        MEM8(output + 0xF68) = !!(value & 0x8000);
+        decode_move(output, 0, value & 0xFFF);
+        MEM32(output + 0xFB4) = MEM16(at + 2) + slot * 1000;
+    }
+    MEM32(output + 0x3C0) = (uint32_t)(int32_t)(int16_t)MEM16(output + 0xF6C);
+    MEM8(output + 0x926) = (uint8_t)((MEM8(output + 0x926) & 0xFE) | special);
+    g_esp += 4; return 1;
+}
+int defjam_fighter_motion_present(uint32_t context, uint32_t id) {
+    /* Preserve sample0's no-dereference contract, even for null context. */
+    if (!id) return 0;
+    const MotionCore *row = custom(MEM32(context + 0x2C));
+    if (!row) return 0;
+    g_eax = MEM16(action(row, id)) != 0xFFFF; g_esp += 4; return 1;
+}
+int defjam_fighter_motion_frame(uint32_t local) {
+    if (!defjam_fighter_research_active()) return 0;
+    if (local >= 4000) motion_stop("invalid motion participant encoding");
+    uint32_t actor = 0x3B92E0 + (local / 1000) * 0x12E8;
+    const MotionCore *row = custom(MEM32(actor + 0x2C));
+    if (!row) return 0;
+    local %= 1000;
+    uint32_t previous = 1, lower = 0, result = 0;
+    for (uint32_t i = 2; i <= 125; ++i) {
+        uint32_t boundary = i == 125 ? 1000 : MEM16(action(row, i) + 2);
+        if (local < boundary) {
+            uint32_t delta = local - lower;
+            result = MEM16(action(row, previous) + 4) + delta;
+            if (delta >= 2 && MEM32(actor + 0x30) == 0x41)
+                result = (uint32_t)(int32_t)(int16_t)MEM16(actor + 0xFA6)
+                    - (((MEM8(actor + 0x91A) & 4) | 8) >> 2) + delta;
+            break;
+        }
+        if (boundary > lower) { lower = boundary; previous = i; }
+        else if (boundary == lower && MEM16(action(row, i)) != 0xFFFF) previous = i;
+    }
+    if (result >= MEM32(0x3B85F8)) motion_stop("frame exceeds primary parameter table");
+    g_eax = result; g_esp += 4; return 1;
+}
+int defjam_fighter_motion_scale(void) {
+    if (!defjam_fighter_research_active()) return 0;
+    int any = 0, occupied[4] = {0}, high = 0, normal = 0, low = 0;
+    float values[4] = {0};
+    double h = MEMF(0x2C9348), n = MEMF(0x289478), l = MEMF(0x2A2C38), epsilon = MEMF(0x292378);
+    for (uint32_t slot = 0; slot < 4; ++slot) {
+        uint32_t actor = 0x3B92E0 + slot * 0x12E8;
+        if (MEM32(actor + 0x28) == UINT32_MAX) continue;
+        uint32_t core = MEM32(actor + 0x2C);
+        const MotionCore *row = custom(core);
+        if (row) { any = 1; core = row->bank - 1; }
+        occupied[slot] = 1; values[slot] = MEMF(0x2F0088 + core * 4);
+        high += fabs((double)values[slot] - h) < epsilon;
+        normal += fabs((double)values[slot] - n) < epsilon;
+        low += fabs((double)values[slot] - l) < epsilon;
+    }
+    if (!any) return 0;
+    int adjusted = high && !normal && low;
+    int raw = (high && normal) || (!high && normal && low) || (!high && !normal && !low);
+    for (uint32_t slot = 0; slot < 4; ++slot) if (occupied[slot]) {
+        double value = raw || adjusted ? values[slot] : 1.0;
+        if (adjusted) {
+            if (fabs(value - l) < epsilon) value = (float)0.95;
+            if (fabs(value - h) < epsilon) value = 1.0;
+        }
+        uint32_t args[4] = {slot, 0x3F800000, 0, 0};
+        guest_call(sub_000444E0, g_ecx, 2, args);
+        args[0] = adjusted ? 0x2C9308 : raw ? 0x2C9324 : 0x2C92E8;
+        args[1] = slot + 1; memcpy(args + 2, &value, 8);
+        guest_call(sub_00011520, g_ecx, 4, args);
+    }
+    g_esp += 4; return 1;
+}

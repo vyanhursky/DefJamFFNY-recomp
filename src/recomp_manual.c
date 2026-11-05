@@ -42,6 +42,51 @@
 #include "patches/menu_geometry.h"
 #include "patches/fighter_runtime.h"
 #include "patches/fighter_ui.h"
+#include "patches/fighter_motion.h"
+
+/* Owned motion descriptors and generation boundaries. Real entry points retain
+ * direct-call coverage after re-lift; native retail branches remain delegated. */
+extern void sub_0003E170_gen(void);
+void sub_0003E170(void) {
+    if (!defjam_fighter_motion_audio(MEM32(g_esp + 4))) sub_0003E170_gen();
+}
+extern void sub_001A47B0_gen(void);
+void sub_001A47B0(void) {
+    defjam_fighter_motion_register(g_eax);
+    sub_001A47B0_gen();
+}
+extern void sub_00089310_gen(void);
+void sub_00089310(void) {
+    defjam_fighter_motion_release(g_ecx);
+    sub_00089310_gen();
+}
+extern void sub_000A02E0_gen(void);
+void sub_000A02E0(void) {
+    uint32_t address = g_esp + 8, bank = MEM32(address);
+    MEM32(address) = defjam_fighter_motion_bank(bank);
+    sub_000A02E0_gen();
+    MEM32(address) = bank; /* Native ret8 owns stack cleanup. */
+}
+extern void sub_001B2090_gen(void);
+void sub_001B2090(void) {
+    if (!defjam_fighter_motion_parameters(MEM32(g_esp + 4))) sub_001B2090_gen();
+}
+extern void sub_001B4930_gen(void);
+void sub_001B4930(void) {
+    if (!defjam_fighter_motion_state(MEM32(g_esp + 4), MEM32(g_esp + 8), MEM32(g_esp + 12))) sub_001B4930_gen();
+}
+extern void sub_001B4BA0_gen(void);
+void sub_001B4BA0(void) {
+    if (!defjam_fighter_motion_present(MEM32(g_esp + 4), MEM32(g_esp + 8))) sub_001B4BA0_gen();
+}
+extern void sub_001A7F30_gen(void);
+void sub_001A7F30(void) {
+    if (!defjam_fighter_motion_frame(g_ecx)) sub_001A7F30_gen();
+}
+extern void sub_001B2C60_gen(void);
+void sub_001B2C60(void) {
+    if (!defjam_fighter_motion_scale()) sub_001B2C60_gen();
+}
 
 /* Preserve native normalization math while avoiding its fixed model-ID table
  * during validated fighter research runs. Both direct and indirect calls must
