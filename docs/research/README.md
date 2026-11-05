@@ -31,6 +31,10 @@ cite other development notes, logs and captures that are not published.
 ## Front end and movies
 
 - [Fighter Mod Support: active runtime implementation](fighter-mod-runtime-2026-11-02.md): local native menu/combat evidence, stable identities, save/capacity findings and outstanding gates for v0.15.0.
+- [Fighter Mod Support: M1/M2 checkpoint](fighter-mod-m1-m2-2026-11-04.md): current appearance compiler, native acceptance, motion decoding and remaining milestone gates; supersedes earlier tentative audit conclusions.
+- [Appearance loader audit](fighter-m1-loader-audit-2026-11-04.md) and [render audit](fighter-m1-render-audit-2026-11-04.md): supporting native relationships and unresolved ownership details.
+- [Motion semantics audit](fighter-m2-motion-audit-2026-11-04.md): decoder layouts, typed index relationships and boundaries still needing runtime adapters.
+- [Motion-core descriptor table extension audit](fighter-motion-core-table-audit-2026-11-04.md): fixed 141-row native table, four direct consumers, and the narrow owned-sidecar hook surface.
 
 - [Mod system design](mod-system-design.md): signed catalogue architecture and future override types (PR17).
 - [Integrated launcher/menu RC](integrated-menu-launcher-rc-2026-10-23.md): combined candidate, hosted delivery and acceptance evidence.

@@ -87,9 +87,22 @@ class RetailCatalog:
         styles = first + [index for index in range(5) if mask & (1 << index) and index not in first]
         return {'selection_key': selection, 'stats': stats, 'styles': styles}
 
-    def compile(self, packs, ledger=None, *, logical_menu=False, binding_window=False):
+    def compile(self, packs, ledger=None, *, logical_menu=False, binding_window=False, appearances=None):
         check(not (logical_menu and binding_window), 'native-mode', 'Choose one logical binding mode')
         snapshot = resolve(self._baseline, packs)
+        appearances = {} if appearances is None else appearances
+        check(type(appearances) is dict, 'native-resource', 'Expected validated appearance resources')
+        from fighter_appearance import Appearance
+        for identifier, appearance in appearances.items():
+            resource = snapshot['resources'].get(identifier, {})
+            check(type(appearance) is Appearance and appearance.identifier == identifier
+                  and appearance.donor in self.rows and resource.get('kind') == 'appearance'
+                  and 'source' in resource and appearance.source_sha256 == fingerprint(resource['source']),
+                  'native-resource', 'Appearance does not match its resolved source definition')
+            check(resource['compatibility']['skeleton'] == 'retail/binding-' + appearance.donor.split('/')[1],
+                  'native-resource', 'Appearance declares a different inherited animation rig')
+            check(appearance.donor_model == self.rows[appearance.donor]['fields']['Model']['symbol'],
+                  'native-resource', 'Appearance was checked against a different donor model')
         ledger = allocate(seed(self.db, self.source_sha256, self.rows), snapshot['fighters'], ledger)
         original = {key: value for key, value in resolve(self._baseline, [])['fighters'].items()}
         additions, edits, donor_keys, localization, portrait_donors, menu_roster = [], [], {}, {}, {}, {}
@@ -103,7 +116,8 @@ class RetailCatalog:
                   {'fighter': identifier})
             for group, resource in components.items():
                 if group != 'stats':
-                    check(resource in self.bindings, 'native-resource', 'Resource needs a native asset adapter',
+                    check(resource in self.bindings or group == 'appearance' and resource in appearances,
+                          'native-resource', 'Resource needs a native asset adapter',
                           {'fighter': identifier, 'component': group, 'resource': resource})
             donor_key = self.bindings[components['moveset']]['donor']
             donor_keys[identifier] = donor_key
@@ -113,10 +127,13 @@ class RetailCatalog:
             for group, names in RESOURCE_FIELDS.items():
                 check(group in components, 'native-component', 'Native preview needs a complete retail donor bundle',
                       {'fighter': identifier, 'component': group})
-                resource_row = self.rows[self.bindings[components[group]]['donor']]
+                appearance = appearances.get(components[group]) if group == 'appearance' else None
+                resource_row = self.rows[appearance.donor if appearance else self.bindings[components[group]]['donor']]
                 for name in names:
                     field = resource_row['fields'][name]
                     native_fields[name] = field['symbol'] if field['descriptor'] == 1 else field['word']
+                if appearance:
+                    native_fields['Model'] = appearance.name
             if identifier in self.rows:
                 if fighter == original[identifier]:
                     continue
@@ -181,6 +198,9 @@ class RetailCatalog:
                   'blockers': ['native-selection-and-capacity', 'profile-lifecycle', 'asset-runtime-acceptance',
                                'localization-registration'],
                   'compatibility_policy': 'conservative-retail-donor-bundles'}
+        if appearances:
+            report['appearance_resources'] = {key: value.summary for key, value in sorted(appearances.items())}
+            report['blockers'].extend(['appearance-render-parameter-acceptance', 'appearance-ownership-acceptance'])
         if logical_menu:
             report.update(binding_mode='logical-menu-only', native_character_count=len(self.rows), menu_roster=menu_roster)
             report['blockers'].append('logical-fighter-confirmation-unbound')

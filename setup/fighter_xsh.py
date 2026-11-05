@@ -34,7 +34,7 @@ class Textures:
         size, count = struct.unpack_from('<II', data, 4)
         require(size == len(data) and 0 < count <= MAX_IMAGES and 16 + count * 8 <= size,
                 'Invalid SHPX texture directory')
-        self.data, self.images, self.name_sites = data, [], {}
+        self.data, self.images, self.name_sites, self.controls = data, [], {}, {}
         roots, names = [], set()
         for index in range(count):
             raw, offset = struct.unpack_from('<4sI', data, 16 + index * 8)
@@ -51,6 +51,7 @@ class Textures:
         occupied = []
         for root, name in roots:
             position, attachments, image, palette = root, [], None, None
+            controls = [data[12:16]]
             for _ in range(MAX_ATTACHMENTS):
                 require(position <= size - 16, 'Truncated SHPX attachment header')
                 kind = data[position]
@@ -108,6 +109,19 @@ class Textures:
                 else:
                     raise AssetError(f'Unsupported SHPX attachment type 0x{kind:02x}')
                 require(end <= following and end <= size, 'SHPX texture or attachment exceeds its bounds')
+                # Preserve a separate signature for every opaque control byte.
+                # Bounds-checked pixels, dimensions, palette colors and names
+                # may be authored; appearance activation requires all remaining
+                # controls to match a hash-verified original texture layout.
+                if kind in (0x60, 0x61, 0x62, 0x7b, 0x7d):
+                    control = data[position + 8:position + 16]
+                elif kind == 0x2a:
+                    control = data[position + 6:position + 16]
+                elif kind == 0x70:
+                    control = data[position + 8:position + 16]
+                else:
+                    control = data[position + 4:end]
+                controls.append(bytes([kind]) + control)
                 occupied.append((position, end)); attachments.append(kind)
                 if not delta:
                     break
@@ -122,6 +136,13 @@ class Textures:
             else:
                 require(palette is None, 'Nonindexed SHPX texture carries an unexpected palette')
             image.update(attachments=attachments, palette_entries=palette[1] if palette else 0)
+            signature = hashlib.sha256(b''.join(struct.pack('<I', len(c)) + c for c in controls)).hexdigest()
+            self.controls[name] = signature
+            content = (struct.pack('<III', image['kind'], image['width'], image['height'])
+                       + bytes.fromhex(signature)
+                       + data[image['pixels_offset']:image['pixels_offset'] + image['pixels_bytes']]
+                       + (data[palette[0]:palette[0] + palette[1] * 4] if palette else b''))
+            image['content_sha256'] = hashlib.sha256(content).hexdigest()
             self.images.append(image)
         ordered = sorted(occupied)
         require(all(a[1] <= b[0] for a, b in zip(ordered, ordered[1:])), 'Overlapping SHPX texture records')

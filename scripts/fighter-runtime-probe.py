@@ -62,7 +62,7 @@ def prepare(sod, packs, ledger_path=None, logical_menu=False, binding_window=Fal
         parsed.append(pack)
         used += count
     options = {'logical_menu': True} if logical_menu else {'binding_window': True} if binding_window else {}
-    data, report = registry.retail_catalog(sod).compile(parsed, ledger, **options)
+    data, report, resources = registry.compile_inputs(sod, packs, parsed, ledger, **options)
     if not report['added_count']:
         raise ValueError('Probe needs at least one added fighter')
     # This is an internal vertical slice, not a declared product capacity.
@@ -70,7 +70,7 @@ def prepare(sod, packs, ledger_path=None, logical_menu=False, binding_window=Fal
     custom = {key: row for key, row in report['bindings'].items() if not key.startswith('retail/')}
     if not logical_menu and not binding_window and any(not 0 <= row['selection_key'] < 128 or row['selection_key'] in (98, 99) for row in custom.values()):
         raise ValueError('Research probe has not adapted the signed selection-byte boundary')
-    cache = Path(registry.write_preview(data, report))
+    cache = Path(registry.write_preview(data, report, resources))
     return cache, report
 
 
@@ -95,6 +95,32 @@ def expected_fighters(report, keys):
 
 def custom_key(key):
     return key != '@created' and not key.startswith('retail/')
+
+
+def verify_combat(log, matches, *, humans=1, require_result=False):
+    """Check each native match without loading the much larger diagnostic log."""
+    spec = importlib.util.spec_from_file_location('fighter_test_evidence', Path(__file__).with_name('test_evidence.py'))
+    evidence = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(evidence)
+    lines, used, retained = [], 0, 0
+    with Path(log).open('r', encoding='utf-8', errors='replace') as stream:
+        while line := stream.readline(65537):
+            used += len(line)
+            if len(line) > 65536 or used > 512 * 1024**2:
+                raise ValueError('Combat evidence exceeds inspection budget')
+            if '[TEST-EVENT]' in line or 'game.getmatchsummary(' in line.lower():
+                retained += len(line)
+                if retained > 16 * 1024**2:
+                    raise ValueError('Combat telemetry exceeds inspection budget')
+                lines.append(line)
+    text, checks = ''.join(lines), []
+    for ordinal, fighters in enumerate(matches, 1):
+        checks.extend(dict(check, match=ordinal) for check in evidence.combat_checks(
+            text, fighters=len(fighters), match=ordinal, humans=humans, require_result=require_result))
+    if not checks or any(check['status'] != 'pass' for check in checks):
+        failed = [str(c['match']) + ':' + c['name'] for c in checks if c['status'] != 'pass']
+        raise ValueError('Native combat acceptance failed: ' + ', '.join(failed or ['no expected matches']))
+    return checks
 
 
 def verify_menu_matches(log, report, matches, *, immutable=False):
@@ -308,7 +334,12 @@ def main():
     parser.add_argument('--expect-match', action='append', default=[],
                         help='Repeated-match assertion: comma-separated stable keys, once per match in order')
     parser.add_argument('--trace-assets', action='store_true')
+    parser.add_argument('--trace-cinematics', action='store_true', help='Observe cinematic names, parser entry and file loads')
     parser.add_argument('--observe-combat', action='store_true', help='Record native match, movement, attack and damage telemetry')
+    parser.add_argument('--require-combat', action='store_true', help='Require observed movement, input-linked attacks and damage in each expected match')
+    parser.add_argument('--require-result', action='store_true', help='Also require a decisive result and results screen in each expected match')
+    parser.add_argument('--combat-humans', type=int, choices=(1, 2, 3, 4), default=1)
+    parser.add_argument('--record', action='store_true', help='Record frame/resource metrics through the existing play-test recorder')
     parser.add_argument('--trace-profiles', action='store_true')
     parser.add_argument('--trace-lifetime', action='store_true', help='Watch reviewed participant model reset/load boundaries; no lifecycle override')
     parser.add_argument('--logical-menu', action='store_true', help='Browsing-only logical roster prototype; native confirmation blocked')
@@ -327,6 +358,8 @@ def main():
         if not 10 <= args.secs <= 900:
             raise ValueError('Probe duration must be 10..900 seconds')
         matches = [value.split(',') for value in args.expect_match] if args.expect_match else ([args.expect_fighter] if args.expect_fighter else [])
+        if (args.require_combat or args.require_result) and not matches:
+            raise ValueError('Combat acceptance requires explicit expected native menu identities')
         if args.expect_match and (args.expect_fighter or not args.immutable_reuse):
             raise ValueError('Repeated-match expectations require immutable reuse and cannot mix single-match assertions')
         if matches and args.start_fighter:
@@ -341,7 +374,7 @@ def main():
             raise ValueError('Profile import requires the binding window and cannot use fresh defaults')
         if args.expect_save and not args.binding_window:
             raise ValueError('Save acceptance requires the isolated binding window')
-        if sum((args.trace_assets, args.trace_profiles, args.trace_lifetime)) > 1:
+        if sum((args.trace_assets, args.trace_cinematics, args.trace_profiles, args.trace_lifetime)) > 1:
             raise ValueError('Select one four-breakpoint trace domain per probe')
         if args.logical_menu:
             if args.route not in ('fighter-roster', 'fighter-roster-4') or args.start_fighter or args.expect_fighter:
@@ -404,8 +437,14 @@ def main():
                    '--env', 'RECOMP_FIGHTER_RESEARCH_SOD=' + str(cache / 'assets/djv2.sod'),
                    '--env', 'RECOMP_FIGHTER_RESEARCH_SCREENS=' + str(portraits),
                    '--env', 'RECOMP_START_LOG=1', '--env', 'RECOMP_TEST_OBSERVATIONS=1']
+        if args.record:
+            command += ['--env', 'RECOMP_RECORD=1']
         if args.start_fighter:
             command += ['--env', 'RECOMP_START_FIGHTERS=' + start_fighters(report, args.start_fighter)]
+        if report.get('appearance_files'):
+            for field, relative in [('MODELS', 'assets/v2ip.viv'), ('ENTITIES', 'assets/entity.xml'), ('CINEMATICS', 'assets/nis.viv')]:
+                command += ['--env', 'RECOMP_FIGHTER_RESEARCH_' + field + '=' + str(cache / relative)]
+                command += ['--env', 'RECOMP_FIGHTER_RESEARCH_' + field + '_SHA256=' + report['appearance_files'][relative]]
         if args.no_unlock:
             command += ['--env', 'RECOMP_UNLOCK_ALL=0']
         for key, value in layers.items():
@@ -425,6 +464,10 @@ def main():
             command += ['--env', 'RECOMP_WATCH_EXEC=0x001E3FB0,0x00109F80',
                         '--env', 'RECOMP_WATCH_EXEC_ALL=1', '--env', 'RECOMP_WATCH_EXEC_STR=1',
                         '--env', 'RECOMP_WATCH_EXEC_FIELD=0x10']
+        if args.trace_cinematics:
+            command += ['--env', 'RECOMP_WATCH_EXEC=0x000A3830,0x000A3E80,0x000A1F60,0x001E3FB0',
+                        '--env', 'RECOMP_WATCH_EXEC_ALL=1', '--env', 'RECOMP_WATCH_EXEC_STR=1',
+                        '--env', 'RECOMP_WATCH_EXEC_FIELD=0x4']
         if args.observe_combat:
             command += ['--env', 'RECOMP_TEST_OBSERVATIONS=1']
         if args.trace_profiles:
@@ -470,6 +513,9 @@ def main():
                 raise ValueError('Harness evidence log is outside the research directory')
             expected = verify_menu_matches(log, report, matches, immutable=bool(args.expect_match))
             print('native menu identities verified: ' + '; '.join(','.join(map(str, values)) for values in expected))
+            if args.require_combat or args.require_result:
+                checks = verify_combat(log, matches, humans=args.combat_humans, require_result=args.require_result)
+                print('native combat assertions passed: ' + str(len(checks)))
         if args.expect_save and result.returncode == 0:
             names = verify_saved_kind(journal, monitor.committed, args.expect_save)
             print('native acknowledged ' + args.expect_save + ' saves verified: ' + ', '.join(names))

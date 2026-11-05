@@ -99,7 +99,7 @@ def validate_pack(pack, builtin=False):
               'budget', 'Invalid/oversized definitions list')
     seen = set()
     for resource in pack['resources']:
-        fields(resource, {'id', 'kind', 'compatibility'})
+        fields(resource, {'id', 'kind', 'compatibility'}, {'source'})
         identifier = slug(resource['id'])
         check(identifier not in seen, 'duplicate-resource', 'Duplicate resource identity')
         seen.add(identifier)
@@ -108,6 +108,13 @@ def validate_pack(pack, builtin=False):
         fields(resource['compatibility'], COMPATIBILITY[kind])
         for value in resource['compatibility'].values():
             key(value)
+        if 'source' in resource:
+            check(not builtin and kind == 'appearance', 'resource-source', 'This draft only implements appearance source files')
+            from fighter_resource_files import appearance_source
+            try:
+                appearance_source(resource['source'])
+            except ValueError as error:
+                raise RegistryError('resource-source', str(error)) from error
     seen = set()
     for fighter in pack['fighters']:
         fields(fighter, {'id', 'name', 'components'}, {'inherits'})

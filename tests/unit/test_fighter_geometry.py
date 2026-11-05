@@ -14,7 +14,7 @@ from test_fighter_elf import fixture
 from test_fighter_xsh import texture
 
 
-def geometry_fixture(with_skin=False):
+def geometry_fixture(with_skin=False, with_bindings=False):
     original, sections, table = fixture()
     payload, pointers, exports, sites = bytearray(0xd0), {}, {'__Model:::TEST_alpha': 0}, {}
 
@@ -106,6 +106,16 @@ def geometry_fixture(with_skin=False):
                            for op, args in commands) + bytes(4)
         program = allocate(encoded); sites[f'program{index}'] = program
         pointer(rm, program); pointer(rm + 8, allocate(bytes(4)))
+
+    if with_bindings:
+        key = allocate(b'TEST\0')
+        sites['shape-table'] = table_start = allocate(bytes(16 + 52 + 4))
+        pointer(0xbc, table_start)
+        for at, count, bits in ((table_start, 1, 1), (table_start + 16, 9, 33)):
+            pointer(at, key); word(at + 4, count)
+            for i in range(count):
+                pointer(at + 8 + i * 4, '__EAGL::TAR:::RUNTIME_ALLOC::UID=1;SHAPENAME=TEST,1;')
+            struct.pack_into('<H', payload, at + 8 + count * 4, bits)
 
     image = bytearray(original); image.extend(bytes(-len(image) % 16)); start = len(image); image.extend(payload)
     rows = list(sections); rows[1] = (*rows[1][:4], start, len(payload), *rows[1][6:])

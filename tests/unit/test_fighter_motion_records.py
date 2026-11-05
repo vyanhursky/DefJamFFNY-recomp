@@ -14,7 +14,7 @@ from fighter_motion import MotionIndex
 from test_fighter_motion import stream, table, chunk
 
 
-@pytest.mark.parametrize('kind,size,native', [('move', 32, 64), ('core', 64, 232)])
+@pytest.mark.parametrize('kind,size,native', [('move', 32, 64), ('core', 64, 232), ('parameter', 39, 136)])
 def test_random_wire_roundtrip_and_zero_filled_native_gaps(kind, size, native):
     rng = random.Random(904)
     for _ in range(200):
@@ -23,7 +23,7 @@ def test_random_wire_roundtrip_and_zero_filled_native_gaps(kind, size, native):
         assert decoded.encode() == data
         output = decoded.native_bytes()
         assert len(output) == native
-        gaps = (14, 15, 43) if kind == 'move' else (155,)
+        gaps = {'move': (14, 15, 43), 'core': (155,), 'parameter': (134, 135)}[kind]
         assert all(output[offset] == 0 for offset in gaps)
     assert PackedRecord.decode(kind, bytes(size)).native_bytes() == bytes(native)
 
@@ -55,6 +55,26 @@ def test_core_maxima_sentinel_and_fixed_array_boundaries():
     assert struct.unpack_from('<8I', output, 156) == (7,) * 8
     assert struct.unpack_from('<6I', output, 188) == (127,) * 6
     assert struct.unpack_from('<4I2H', output, 212) == (255, 255, 255, 255, 65535, 65535)
+
+
+def test_parameter_wire_order_conditional_sentinel_and_native_float_scale():
+    record = PackedRecord.decode('parameter', bytes([255]) * 39)
+    output = record.native_bytes()
+    assert record.tail == 1
+    assert struct.unpack_from('<3I', output) == (2047, 2047, 127)
+    assert struct.unpack_from('<2I', output, 0x30) == (0xffffffff, 0xffffffff)
+    assert struct.unpack_from('<2I', output, 0x44) == (2047, 2047)
+    assert output[0x78:0x84] == bytes.fromhex('33332340') * 3
+    fields = {field.offset: i for i, field in enumerate(record.layout[0])}
+    values = list(record.values); values[fields[0x44]] = 0
+    changed = replace(record, values=tuple(values))
+    assert struct.unpack_from('<I', changed.native_bytes(), 0x48)[0] == 0xffffffff
+    values[fields[0x48]] = 2046
+    assert struct.unpack_from('<I', replace(record, values=tuple(values)).native_bytes(), 0x48)[0] == 2046
+    # First eleven wire bits belong to +30; leading native group comes last.
+    first = (1 << (312 - 11)).to_bytes(39, 'big')
+    decoded = PackedRecord.decode('parameter', first).native_bytes()
+    assert struct.unpack_from('<I', decoded, 0x30)[0] == 1 and decoded[:0x30] == bytes(0x30)
 
 
 @pytest.mark.parametrize('value', [-1, 256, True, 1.0, None])

@@ -27,7 +27,7 @@ class MotionIndex:
     def __init__(self, data):
         require(isinstance(data, bytes) and 8 <= len(data) <= MAX_BYTES, 'Invalid motion index byte budget')
         self.data, self.offset = data, 0
-        self.tables, self.move_spans, self.core_spans = [], [], []
+        self.tables, self.move_spans, self.core_spans, self.parameter_spans = [], [], [], []
         for _ in range(2):
             moves = self.chunk(b'WAZA')
             require(len(moves) >= 12, 'Truncated WAZA header')
@@ -49,6 +49,7 @@ class MotionIndex:
             end = 8 + parameter_stride * parameter_count
             require(len(parameters) == ((end + 3) & ~3) and not any(parameters[end:]),
                     'FZUI table span or alignment padding differs')
+            self.parameter_spans.append((self.offset - len(parameters) + 8, parameter_count))
 
             names = self.chunk(b'NAME')
             require(len(names) >= 4, 'Truncated motion NAME header')
@@ -85,11 +86,11 @@ class MotionIndex:
         from fighter_motion_records import PackedRecord
         require(type(partition) is int and partition in (0, 1), 'Invalid motion partition')
         require(type(index) is int and index >= 0, 'Invalid motion record index')
-        if kind == 'move':
-            start, count = self.move_spans[partition]
+        if kind in ('move', 'parameter'):
+            spans, size = (self.move_spans, 32) if kind == 'move' else (self.parameter_spans, 39)
+            start, count = spans[partition]
             require(index < count, 'Motion record index exceeds partition')
-            start += index * 32
-            size = 32
+            start += index * size
         else:
             require(kind == 'core' and partition == 0, 'Core records do not have move partitions')
             require(index < len(self.core_spans), 'Motion core record index exceeds table')

@@ -9,6 +9,7 @@
 #include "hooks/guest_call.h"
 #include "hooks/pc_language.h"
 #include "host.h"
+#include "hooks/mod_sha256.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -45,6 +46,9 @@ static int s_trace;
 static int s_probe, s_probed;
 static char s_research_sod[2048];
 static char s_research_screens[2048];
+static char s_research_assets[3][2048];
+static const char *s_asset_targets[3] = { "assets/v2ip.viv", "assets/entity.xml", "assets/nis.viv" };
+static const char *s_asset_env[3] = { "RECOMP_FIGHTER_RESEARCH_MODELS", "RECOMP_FIGHTER_RESEARCH_ENTITIES", "RECOMP_FIGHTER_RESEARCH_CINEMATICS" };
 static char s_journal[2048];
 static uint8_t s_live_settings[FIGHTER_SETTINGS_SIZE];
 static int s_projecting_settings;
@@ -95,6 +99,8 @@ static int file_name(const char *name, const char *expected) {
 static BOOL research_redirect(const char *relative, fighter_host_char *host_path, DWORD size) {
     const char *replacement = file_name(relative, "assets/djv2.sod") ? s_research_sod
         : file_name(relative, "screens/screens.viv") ? s_research_screens : NULL;
+    for (unsigned i = 0; i < 3; ++i)
+        if (file_name(relative, s_asset_targets[i])) replacement = s_research_assets[i];
     if (replacement && *replacement) {
         /* Fail a shared-file conflict instead of depending on callback order. */
         if (s_previous_redirect && s_previous_redirect(relative, host_path, size)) {
@@ -120,6 +126,26 @@ static int research_start(void) {
     const char *screens_hash = getenv("RECOMP_FIGHTER_RESEARCH_SCREENS_SHA256");
     const char *bindings = getenv("RECOMP_FIGHTER_BINDINGS");
     const char *data = getenv("DEFJAM_DATA"), *settings = getenv("RECOMP_SETTINGS"), *leaf;
+    unsigned assets = 0;
+    for (unsigned i = 0; i < 3; ++i) {
+        const char *path = getenv(s_asset_env[i]);
+        char hash_env[96];
+        const char *hash;
+        snprintf(hash_env, sizeof hash_env, "%s_SHA256", s_asset_env[i]);
+        hash = getenv(hash_env);
+        if (path && *path) {
+            if (!sod || !*sod || !mod_file_matches(path, hash)) {
+                fprintf(stderr, "[FIGHTERS] appearance cache failed its receipt; launch refused\n");
+                return 0;
+            }
+            strcpy(s_research_assets[i], path);
+            ++assets;
+        } else if (hash && *hash) return 0;
+    }
+    if (assets && assets != 3) {
+        fprintf(stderr, "[FIGHTERS] incomplete appearance cache; launch refused\n");
+        return 0;
+    }
     if (!sod || !*sod) return (!screens || !*screens) && (!language_base || !*language_base)
         && (!screens_hash || !*screens_hash);
     /* This development entry point cannot use the normal profile namespace or

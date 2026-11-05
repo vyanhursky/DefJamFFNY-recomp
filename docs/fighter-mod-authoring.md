@@ -345,3 +345,59 @@ and component-specific acceptance cases. Reusable conversion/package/preview
 tools belong in DefJam-Modding-Tools; the game owns runtime adapters and the
 versioned contract. Vendetta conversion must emit this ordinary general format
 once that contract is proven.
+
+### Authored appearance research input (M1, not a released capability)
+
+The ordinary draft resource definition now accepts an appearance `source`.
+It contains `format: "eagl-appearance-1"`, a `donor` such as `retail/blaze`, and
+three file descriptors named `model`, `textures` and `face`. Each descriptor
+has exactly `path` (canonical package-relative path) and `sha256` (lowercase
+hex digest). Paths are resolved beside that pack's manifest. Linked paths,
+traversal, Windows device aliases, file aliasing, unknown fields and changed
+hashes are rejected. Per-file decoded limits are 64 MiB; the current research
+snapshot also has a 256 MiB aggregate appearance payload budget. These are
+compiler budgets, not measured game capacities.
+
+The resource retains its logical `id`, `kind: "appearance"` and compatibility
+profile, for example `{"skeleton":"retail/binding-blaze"}`. A fighter uses it
+through `components.appearance: "pack-id/resource-id"`. Multiple fighters may
+reference one resource, and one pack may define several resources. The source's
+rig donor and declared compatibility profile must agree with the actual
+validated bone names, indices, parent topology and permutation.
+
+The current adapter accepts authored geometry/textures while requiring the
+face payload to equal the verified donor's facial-animation data. New face
+curves remain gated until their native pose-palette schema is validated. The
+compiler selects a hash-verified retail rendering template with the same
+material/mesh arrangement and stream/program layout. It rebuilds the model
+using checked vertex/index buffers, skin palettes, rig transforms and texture
+shape identities. Input rendering controls, pointers and allocation expressions
+are discarded; unsupported layouts fail instead of passing opaque controls
+through. Different vertex/index counts are supported within that layout.
+Two independent compiled appearances have completed native human/CPU combat
+with correct materials. Resource ownership and the remaining milestone matrix
+are still under test. Passing this draft compiler does not authorize installation
+or normal-profile play.
+
+Texture dimensions, pixels, palette colors and shape names are checked as typed
+data. Other texture headers and attachment controls must match a verified retail
+layout, including material text. A different same-name texture conflicts with
+retail content or another appearance and fails composition with both owners
+identified. Rename that shape consistently in the model and texture data before
+retrying; identical shared texture content is allowed.
+
+Native names are allocated from stable resource identities. Packages do not
+choose filenames in the game's namespace. The compiler preserves retail
+archive entries and generates the model/texture/face entries, typed entity
+declarations and intro/victory mappings. Combat reads the latter from
+`assets/IntroExtro.xml` inside `assets/nis.viv`; changing the loose `taunt.xml`
+does not register these cinematics. The created fighter's counted cinematic
+variants are preserved; inheriting that variant scheme is not yet supported.
+
+`compile-native-preview --write-cache` and the isolated runtime probe use this
+same path. Generated model, entity and cinematic files are content-addressed
+with the snapshot and rechecked before use. The native research loader verifies
+their SHA-256 receipts, requires all three files together, and reports a shared
+file conflict instead of overwriting another mod's redirect. The appearance
+path does not need a language-pack wrapper. Launcher activation and ordinary
+profile support remain later milestones.

@@ -38,6 +38,16 @@ CORE_FIELDS = (
     *(Field(0xd4 + i * 4, 8, 'I') for i in range(4)),
     Field(0xe4, 16, 'H'), Field(0xe6, 16, 'H'),
 )
+# Native 1A38B0 reads the tail fields before the four repeated leading groups.
+# Preserve wire order, which differs from decoded output-offset order.
+PARAMETER_FIELDS = (
+    Field(0x30, 11, 'I', 'sentinel'), Field(0x34, 11, 'I', 'sentinel'),
+    *(Field(offset, 11, 'I') for offset in range(0x38, 0x58, 4)),
+    *(Field(0x58 + i * 4, width, 'I') for i, width in enumerate((3, 7, 4, 11, 2, 5, 11, 2))),
+    *(Field(offset, 8, 'f', 'hundredths') for offset in (0x78, 0x7c, 0x80)),
+    Field(0x84, 16, 'H'),
+    *(Field(group * 12 + i * 4, width, 'I') for group in range(4) for i, width in enumerate((11, 11, 7))),
+)
 
 
 @dataclass(frozen=True)
@@ -52,6 +62,8 @@ class PackedRecord:
             return MOVE_FIELDS, 32, 64
         if self.kind == 'core':
             return CORE_FIELDS, 64, 232
+        if self.kind == 'parameter':
+            return PARAMETER_FIELDS, 39, 136
         raise AssetError('Unknown packed motion record kind')
 
     @classmethod
@@ -95,7 +107,14 @@ class PackedRecord:
                 value = (1 << (8 * struct.calcsize(field.storage))) - 1
             elif field.conversion == 'tenths':
                 value = raw * scale
+            elif field.conversion == 'hundredths':
+                # Original float32 multiplier at native 0x292378.
+                value = raw * struct.unpack('<f', bytes.fromhex('0ad7233c'))[0]
             struct.pack_into('<' + field.storage, output, field.offset, value)
+        if self.kind == 'parameter':
+            previous, current = struct.unpack_from('<2I', output, 0x44)
+            if previous != 0x7ff and current == 0x7ff:
+                struct.pack_into('<I', output, 0x48, 0xffffffff)
         return bytes(output)
 
     def metadata(self):

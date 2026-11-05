@@ -21,7 +21,7 @@ import tempfile
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'setup'))
 from fighter_sod import Database, MAX_IMAGE, SodError
-from fighter_registry import resolve, suggest_compatibility, RegistryError, MAX_PACKS
+from fighter_registry import resolve, suggest_compatibility, RegistryError, MAX_PACKS, fingerprint
 from fighter_native import RetailCatalog, ADAPTER
 from fighter_names import encode_names
 from fighter_bindings import encode_bindings
@@ -29,6 +29,7 @@ from fighter_window import encode_window
 from fighter_assets import unpack as unpack_asset, MAX_ASSET
 from fighter_elf import Model
 from mods import ordinary_path
+from fighter_archive import MAX_ARCHIVE
 
 MAX_DOCUMENT = 8 * 1024**2
 MAX_INPUT = 32 * 1024**2
@@ -81,8 +82,56 @@ def retail_catalog(path):
     return RetailCatalog(data, pin['sha256'])
 
 
-def write_preview(data, report):
+def compile_inputs(sod, paths, packs, ledger=None, **options):
+    """Resolve whole packs, validate their data, then compose native resources."""
+    if len(paths) != len(packs):
+        raise ValueError('Each fighter pack needs exactly one source manifest path')
+    catalog = retail_catalog(sod)
+    snapshot = resolve(catalog.baseline(), packs)
+    sourced = {name: resource for name, resource in snapshot['resources'].items() if 'source' in resource}
+    appearances, resources = {}, {}
+    if sourced:
+        from fighter_appearance import Appearance, AppearanceBaseline, MAX_APPEARANCE_BYTES
+        from fighter_resource_files import read_appearance
+        pin = json.loads((ROOT / 'config/fighter-native-baseline.json').read_text(encoding='utf-8'))
+        originals = {}
+        for key, name in [('models', 'v2ip.viv'), ('shared', 'blingfx.viv'), ('entities', 'entity.xml'),
+                          ('cinematics', 'nis.viv'), ('banks', 'v2ta.viv')]:
+            with (sod.parent / name).open('rb') as stream:
+                originals[key] = stream.read(MAX_ARCHIVE + 1)
+            if len(originals[key]) > MAX_ARCHIVE:
+                raise ValueError('Original appearance archive exceeds budget')
+        baseline = AppearanceBaseline(originals, pin)
+        roots = {pack['id']: path.parent for pack, path in zip(packs, paths)}
+        remaining = MAX_APPEARANCE_BYTES
+        for name, resource in sorted(sourced.items()):
+            source = resource['source']
+            if source['donor'] not in catalog.rows:
+                raise ValueError('Appearance rig donor is missing: ' + source['donor'])
+            files = read_appearance(roots[resource['owner']], source, remaining)
+            model = catalog.rows[source['donor']]['fields']['Model']['symbol']
+            appearances[name] = Appearance(name, source, files, baseline, model, remaining)
+            remaining -= appearances[name].byte_count
+        resources = baseline.compose(appearances)
+    data, report = catalog.compile(packs, ledger, appearances=appearances, **options)
+    if resources:
+        report['appearance_files'] = {path: hashlib.sha256(payload).hexdigest() for path, payload in resources.items()}
+        report.pop('cache_key', None)
+        report['cache_key'] = fingerprint(report)
+    return data, report, resources
+
+
+def write_preview(data, report, resources=None):
     """Write only an ignored, content-addressed research cache; never install."""
+    resources = {} if resources is None else resources
+    if bool(report.get('appearance_resources')) != bool(resources):
+        raise ValueError('Appearance resources require their complete composed files')
+    if type(resources) is not dict or resources and set(resources) != {'assets/v2ip.viv', 'assets/entity.xml', 'assets/nis.viv'}:
+        raise ValueError('Invalid composed appearance targets')
+    if any(not isinstance(payload, bytes) or not 0 < len(payload) <= MAX_ARCHIVE for payload in resources.values()):
+        raise ValueError('Composed appearance file exceeds budget')
+    if report.get('appearance_files', {}) != {path: hashlib.sha256(payload).hexdigest() for path, payload in resources.items()}:
+        raise ValueError('Composed appearance receipt differs from its bytes')
     serialized = (json.dumps(report, indent=2, sort_keys=True, allow_nan=False) + '\n').encode('utf-8')
     if len(serialized) > MAX_REPORT:
         raise ValueError('Generated preview report exceeds budget')
@@ -94,6 +143,8 @@ def write_preview(data, report):
             stage = Path(temporary) / 'cache'
             (stage / 'assets').mkdir(parents=True)
             (stage / 'assets/djv2.sod').write_bytes(data)
+            for relative, payload in resources.items():
+                (stage / relative).write_bytes(payload)
             (stage / 'fighter-names.bin').write_bytes(encode_names(report['localization_entries']))
             (stage / 'fighter-bindings.bin').write_bytes(encode_bindings(report['handle_bindings']))
             if 'window' in report:
@@ -109,6 +160,12 @@ def write_preview(data, report):
     for relative in ('assets/djv2.sod', 'fighter-names.bin', 'fighter-bindings.bin',
                      'fighter-window.bin', 'fighter-ledger.json', 'report.json'):
         ordinary_path(destination / relative)
+    for relative, payload in resources.items():
+        path = ordinary_path(destination / relative)
+        with path.open('rb') as stream:
+            actual = stream.read(len(payload) + 1)
+        if actual != payload:
+            raise ValueError('Existing preview appearance cache is corrupt; original data was not changed')
     cached = destination / 'assets/djv2.sod'
     with cached.open('rb') as stream:
         actual = stream.read(MAX_IMAGE + 1)
@@ -156,7 +213,7 @@ def main():
     inspect_motion.add_argument('motion', type=Path)
     inspect_record = sub.add_parser('inspect-motion-record', help='Inspect raw typed fields; semantic links remain unvalidated')
     inspect_record.add_argument('motion', type=Path)
-    inspect_record.add_argument('--kind', choices=('move', 'core'), required=True)
+    inspect_record.add_argument('--kind', choices=('move', 'core', 'parameter'), required=True)
     inspect_record.add_argument('--index', type=int, required=True, help='Zero-based row index')
     inspect_record.add_argument('--partition', type=int, choices=(0, 1), default=0)
     inspect_animation = sub.add_parser('inspect-animation-envelope', help='Inspect split animation ELF/name envelopes; no runtime activation')
@@ -231,9 +288,9 @@ def main():
                 pack, size = document(path, MAX_INPUT - used)
                 used += size
                 packs.append(pack)
-            data, result = retail_catalog(args.sod).compile(packs)
+            data, result, resources = compile_inputs(args.sod, args.packs, packs)
             if args.write_cache:
-                result['preview_directory'] = write_preview(data, result)
+                result['preview_directory'] = write_preview(data, result, resources)
         elif args.command == 'resolve-preview':
             result = resolve(*documents(args.baseline, args.packs))
         else:

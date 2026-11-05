@@ -76,6 +76,24 @@ def test_probe_refuses_to_stop_another_game(tmp_path, monkeypatch):
         probe.require_idle_game()
 
 
+def test_combat_acceptance_requires_each_match_and_explicit_results(tmp_path, monkeypatch):
+    from test_scenario_evidence import played_fight, fight_log
+    probe = driver(tmp_path, monkeypatch)
+    path = tmp_path / 'combat.log'
+    path.write_text(fight_log(played_fight()))
+    matches = [['alpha/first', 'beta/first']]
+    assert len(probe.verify_combat(path, matches, require_result=True)) == 7
+    with pytest.raises(ValueError, match='2:combat.setup'):
+        probe.verify_combat(path, matches * 2, require_result=True)
+    path.write_text(fight_log(played_fight()[:5], summary=False))
+    assert len(probe.verify_combat(path, matches)) == 5
+    with pytest.raises(ValueError, match='combat.result'):
+        probe.verify_combat(path, matches, require_result=True)
+    path.write_text('unrelated diagnostic line\n')
+    with pytest.raises(ValueError, match='combat.telemetry'):
+        probe.verify_combat(path, matches)
+
+
 def test_combat_control_uses_stable_keys_and_keeps_identity_domains_separate(tmp_path, monkeypatch):
     probe = driver(tmp_path, monkeypatch)
     report = {'bindings': {'retail/donor': {'selection_key': 7, 'core_id': 111},
