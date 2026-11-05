@@ -177,10 +177,16 @@ def compile_results(movie, constants, names, *, participants=None):
     list_at = len(output); output += movie[items_at:items_at + count * 4] + struct.pack('<' + 'I' * (len(placements) + 1), *placements, wrapper_record)
     struct.pack_into('<II', output, frames_at, count + len(placements) + 1, list_at)
 
-    field = Action(len(output)); apply_label(field, lines)
-    field_at = len(output); output += field.finish(); output += bytes(-len(output) % 4)
-    item_at = len(output); output += struct.pack('<II', 1, field_at)
+    # Native movie loading relocates each frame occurrence in place. Own both
+    # the action record and its pointer-bearing bytecode for every frame.
+    # Sharing a record makes the second visit add the movie base twice.
+    field_actions = []
     for frame in text_frames:
+        field_at = len(output)
+        field = Action(field_at); apply_label(field, lines)
+        output += field.finish(); output += bytes(-len(output) % 4)
+        field_actions.append(field_at)
+        item_at = len(output); output += struct.pack('<II', 1, field_at)
         frame_at = frames_at + frame * 8
         count, pointers = struct.unpack_from('<II', output, frame_at)
         list_at = len(output); output += output[pointers:pointers + count * 4] + struct.pack('<I', item_at)
@@ -188,4 +194,5 @@ def compile_results(movie, constants, names, *, participants=None):
     if len(output) > MAX_MOVIE:
         raise AssetError('Composed result movie exceeds byte budget')
     return bytes(output), constants, {'original_action': start, 'wrapper_action': wrapper_at,
-                                     'label_frames': text_frames, 'label_action': field_at}
+                                     'label_frames': text_frames, 'label_action': field_actions[0],
+                                     'label_actions': field_actions}

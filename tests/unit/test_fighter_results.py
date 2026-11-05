@@ -105,3 +105,42 @@ def test_long_result_names_have_independent_bounded_lines_and_clear_on_retail(pa
     assert overlays[1]['matrix'][5] - overlays[0]['matrix'][5] == height + 2
     with pytest.raises(AssetError, match='line budget'):
         compile_results(original, constants, {256: 'W' * 40}, participants=participants)
+
+
+@pytest.mark.parametrize('participants', [2, 3, 4])
+def test_repeated_label_frames_survive_native_in_place_action_relocation(participants):
+    original, constants, _ = fitted_result_fixture(participants)
+    output, _, report = compile_results(original, constants, {256: 'Custom Fighter'}, participants=participants)
+    movie = bytearray(output)
+    root = apt.parse_character(output, 16)
+    panel = apt.read_characters_list(output, root)[0]
+    frames = struct.unpack_from('<I', output, panel['offset'] + 12)[0]
+    _, entries = apt.parse_const(constants)
+    base = 0x8004F280
+    records, actions, literal_fields = [], [], []
+    for frame in report['label_frames']:
+        count, items = struct.unpack_from('<II', output, frames + frame * 8)
+        record = struct.unpack_from('<I', output, items + (count - 1) * 4)[0]
+        action = struct.unpack_from('<I', output, record + 4)[0]
+        records.append(record); actions.append(action)
+        # 17DD70@17DE55 adds base on EVERY frame occurrence, without a
+        # visited-record guard. Duplicate records corrupt both frame pointers.
+        previous = struct.unpack_from('<I', movie, record + 4)[0]
+        struct.pack_into('<I', movie, record + 4, (previous + base) & 0xffffffff)
+        for instruction in apt.disassemble_block(output, action, entries):
+            if instruction.name == 'EA_PushString':
+                field = apt.align4(instruction.offset + 1)
+                literal_fields.append(field)
+                pointer = struct.unpack_from('<I', movie, field)[0]
+                struct.pack_into('<I', movie, field, (pointer + base) & 0xffffffff)
+    assert len(records) == 2
+    assert len(set(records)) == len(records)
+    assert len(set(actions)) == len(actions)
+    assert len(set(literal_fields)) == len(literal_fields)
+    assert actions == report['label_actions']
+    for record, action in zip(records, actions):
+        assert struct.unpack_from('<I', movie, record + 4)[0] == base + action
+    for field in literal_fields:
+        pointer = struct.unpack_from('<I', movie, field)[0] - base
+        assert 0 <= pointer < len(output)
+        assert pointer == struct.unpack_from('<I', output, field)[0]
