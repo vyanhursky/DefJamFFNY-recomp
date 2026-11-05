@@ -66,3 +66,22 @@ class ScalarCurve:
                 'bits': self.bits, 'full_channels_only': True,
                 'interpolation_validated': False, 'output_context_validated': False,
                 'runtime_ready': False}
+
+    def interpolated_pose(self, index, weight):
+        """Type11 adjacent-key FC8A0 arithmetic in a separate dense buffer.
+
+        Curve-specific time lookup and scatter into the actor's output remain
+        separate. A generic lerp of rounded endpoint poses is not equivalent.
+        """
+        require(self.info['kind'] == 11,
+                'Type13 interpolation requires the separate four-component blend')
+        require(type(index) is int and 0 <= index < self.keys - 1,
+                'Interpolation needs a key with a following delta')
+        require(type(weight) in (int, float) and math.isfinite(weight) and 0 <= weight <= 1,
+                'Interpolation weight must be finite and within its key interval')
+        weight = f32(weight)
+        for current, pose in enumerate(self.poses()):
+            if current == index:
+                break
+        return tuple(f32(f32(f32(f32(self.quantized(index, scalar) * scale) + offset) * weight) + pose[scalar])
+                     for scalar, (offset, scale, _) in enumerate(self.coefficients))

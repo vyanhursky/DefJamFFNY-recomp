@@ -42,6 +42,8 @@ def test_float32_lane_order_is_observable_and_preserved(bits):
 
 
 def test_overflow_and_resource_exhaustion_fail_without_native_loading():
+    with pytest.raises(AssetError, match='Type13 interpolation'):
+        ScalarCurve(curves(13), 56).interpolated_pose(0, .5)
     with pytest.raises(AssetError, match='work budget'):
         ScalarCurve(curves(11), 56, work_budget=1)
     def authored(data, pointers, record):
@@ -51,3 +53,19 @@ def test_overflow_and_resource_exhaustion_fail_without_native_loading():
         list(ScalarCurve(curves(11, authored), 56).poses())
     with pytest.raises(AssetError, match='record type'):
         ScalarCurve(curves(25), 160)
+
+
+@pytest.mark.parametrize('bits', [4, 8, 16])
+def test_interpolation_accumulates_weighted_deltas_not_rounded_endpoints(bits):
+    def authored(data, pointers, record):
+        data[102] = bits
+        struct.pack_into('<12f', data, 104, *([-16777216., 16777216., 1.] * 4))
+        packed = bytes([0x11] * 4) if bits == 4 else bytes([1] * 8) if bits == 8 else struct.pack('<8H', *([1] * 8))
+        data[152:152 + len(packed)] = packed
+    decoder = ScalarCurve(curves(11, authored), 56)
+    assert decoder.interpolated_pose(0, .5) == (1., 1., 1., 1.)
+    assert decoder.interpolated_pose(0, 1) == (1., 1., 1., 1.)
+    assert list(decoder.poses())[1][0] == 0.
+    for index, weight in ((-1, .5), (2, .5), (0, float('nan')), (0, 1.1)):
+        with pytest.raises(AssetError):
+            decoder.interpolated_pose(index, weight)

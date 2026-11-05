@@ -43,7 +43,7 @@ Subsequent B8/B16 iterations continue at the cursor after n decoded scalars; the
 
 ## FC8A0: mapped weighted delta accumulation
 
-Stack arguments: `(o,n,c,k,source_cache,output,g,destinations,w)`, D in ECX. g is scalar width per output group (ordinary type11/13 calls use4); group count is signed n/g. Require positive g, n divisible by g, nonnegative counts and bounded destinations in any offline profile; native division/loops do not supply these checks.
+Stack arguments: `(o,n,c,k,source_cache,output,g,destinations,w)`, D in ECX. g is scalar width per output group (the ordinary type11 route uses4); group count is signed n/g. Require positive g, n divisible by g, nonnegative counts and bounded destinations in any offline profile; native division/loops do not supply these checks. Type13's ordinary interpolation instead decodes its next group through FC3F0 and blends through EA010; FC8A0 is not its interpolation oracle.
 
 If k==c return immediately without writes. If k==0, c==-1, or k<c, copy descriptor bases to mapped output and reset effective c=0. Otherwise scatter source_cache scalars to mapped output. Source cache is dense: group h, lane l reads source_cache[h*g+l] and writes output[destinations[h]+l]. Coefficients begin at descriptor scalar o and advance densely through groups. Base initialization uses the same mapping.
 
@@ -74,3 +74,21 @@ These cases are proposed, not run against native code in this audit:
 7. Repeated/overlapping destinations and source/output aliases characterize ordered scatter only in an isolated test oracle. Finite coefficient extremes, subnormals, signed zero and overflow establish the numerical policy/MXCSR scope before declaring validation.
 
 Primary stable anchors: FC3F0/FC40B..FC49D cache decisions; FC520,FC5B1,FC630,FC6C0 arithmetic; FC6F7..FC88B nibble machine; FC8A0..FCA4E cache scatter/reset; FCAE0,FCB92,FCC50,FCD00 weighted deltas; FCD4B..FCF2A nibble machine. The previous structural reports remain valid as bounds schemas; they do not by themselves validate these numerical semantics.
+
+## Primary numerical checks, November5
+
+The independent full-channel FC3F0 oracle passed240 synthetic cases,2,160 poses,
+8,640 scalars with identical float32 bytes across fresh, forward-cache and
+backward replay. The separate FC8A0 oracle passed240 cases,1,920 adjacent-key
+evaluations and7,680 scalars at weights0,.25,.5,1, with unchanged sentinel bytes
+around the output. Its source cache contains independently decoded complete
+poses; output uses one group of four at destination0. Native body SHA256:
+`10f7ad12edf065fa8c24351ac954d6169bbddc89da635d15930e6d6aa600a1d2`.
+Reports are `logs/fighter-scalar-oracle/comparison.json` and
+`logs/fighter-scalar-weight-oracle/comparison.json`. The helper bodies came from
+the user's own generated C, compiled separately with MSVC `/fp:strict`.
+
+These checks support `ScalarCurve.poses` and type11 `interpolated_pose` arithmetic;
+they do not validate time lookup, actor output capacity/ownership, filtered
+subsets, overlapping destinations, exceptional floating-point modes or the
+real bank corpus numerically. Runtime admission remains false.
