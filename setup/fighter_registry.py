@@ -109,10 +109,10 @@ def validate_pack(pack, builtin=False):
         for value in resource['compatibility'].values():
             key(value)
         if 'source' in resource:
-            check(not builtin and kind == 'appearance', 'resource-source', 'This draft only implements appearance source files')
-            from fighter_resource_files import appearance_source
+            check(not builtin and kind in ('appearance', 'portrait'), 'resource-source', 'This draft only implements appearance and portrait source files')
+            from fighter_resource_files import appearance_source, portrait_source
             try:
-                appearance_source(resource['source'])
+                (appearance_source if kind == 'appearance' else portrait_source)(resource['source'])
             except ValueError as error:
                 raise RegistryError('resource-source', str(error)) from error
     seen = set()

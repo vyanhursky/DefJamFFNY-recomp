@@ -89,11 +89,15 @@ def compile_inputs(sod, paths, packs, ledger=None, **options):
     catalog = retail_catalog(sod)
     snapshot = resolve(catalog.baseline(), packs)
     sourced = {name: resource for name, resource in snapshot['resources'].items() if 'source' in resource}
-    appearances, resources = {}, {}
+    appearances, portraits, resources = {}, {}, {}
+    roots = {pack['id']: path.parent for pack, path in zip(packs, paths)}
+    appearance_sources = {key: value for key, value in sourced.items() if value['kind'] == 'appearance'}
+    portrait_sources = {key: value for key, value in sourced.items() if value['kind'] == 'portrait'}
     if sourced:
+        pin = json.loads((ROOT / 'config/fighter-native-baseline.json').read_text(encoding='utf-8'))
+    if appearance_sources:
         from fighter_appearance import Appearance, AppearanceBaseline, MAX_APPEARANCE_BYTES
         from fighter_resource_files import read_appearance
-        pin = json.loads((ROOT / 'config/fighter-native-baseline.json').read_text(encoding='utf-8'))
         originals = {}
         for key, name in [('models', 'v2ip.viv'), ('shared', 'blingfx.viv'), ('entities', 'entity.xml'),
                           ('cinematics', 'nis.viv'), ('banks', 'v2ta.viv')]:
@@ -102,9 +106,8 @@ def compile_inputs(sod, paths, packs, ledger=None, **options):
             if len(originals[key]) > MAX_ARCHIVE:
                 raise ValueError('Original appearance archive exceeds budget')
         baseline = AppearanceBaseline(originals, pin)
-        roots = {pack['id']: path.parent for pack, path in zip(packs, paths)}
         remaining = MAX_APPEARANCE_BYTES
-        for name, resource in sorted(sourced.items()):
+        for name, resource in sorted(appearance_sources.items()):
             source = resource['source']
             if source['donor'] not in catalog.rows:
                 raise ValueError('Appearance rig donor is missing: ' + source['donor'])
@@ -113,9 +116,36 @@ def compile_inputs(sod, paths, packs, ledger=None, **options):
             appearances[name] = Appearance(name, source, files, baseline, model, remaining)
             remaining -= appearances[name].byte_count
         resources = baseline.compose(appearances)
-    data, report = catalog.compile(packs, ledger, appearances=appearances, **options)
+    appearance_files = {path: hashlib.sha256(payload).hexdigest() for path, payload in resources.items()}
+    portrait_files = {}
+    if portrait_sources:
+        from fighter_portrait import Portrait, PortraitBaseline
+        from fighter_resource_files import read_portrait
+        with (sod.parents[1] / 'screens/screens.viv').open('rb') as stream:
+            screens = stream.read(MAX_ARCHIVE + 1)
+        if len(screens) > MAX_ARCHIVE:
+            raise ValueError('Original screens archive exceeds budget')
+        baseline = PortraitBaseline(screens, pin['screens_sha256'])
+        remaining = 256 * 1024**2
+        for name, resource in sorted(portrait_sources.items()):
+            source = resource['source']
+            if source['donor'] not in catalog.rows:
+                raise ValueError('Portrait layout donor is missing: ' + source['donor'])
+            files = read_portrait(roots[resource['owner']], source, min(remaining, 16 * 1024**2))
+            selection = catalog.rows[source['donor']]['native_binding']['selection_key']
+            portrait = Portrait(name, source, files, baseline, selection, min(remaining, 16 * 1024**2))
+            remaining -= portrait.byte_count
+            if resources.keys() & portrait.files.keys():
+                raise ValueError('Compiled portrait resource names collide')
+            portraits[name] = portrait
+            resources.update(portrait.files)
+            portrait_files.update({path: hashlib.sha256(payload).hexdigest() for path, payload in portrait.files.items()})
+    data, report = catalog.compile(packs, ledger, appearances=appearances, portraits=portraits, **options)
+    if appearance_files:
+        report['appearance_files'] = appearance_files
+    if portrait_files:
+        report['portrait_files'] = portrait_files
     if resources:
-        report['appearance_files'] = {path: hashlib.sha256(payload).hexdigest() for path, payload in resources.items()}
         report.pop('cache_key', None)
         report['cache_key'] = fingerprint(report)
     return data, report, resources
@@ -124,14 +154,20 @@ def compile_inputs(sod, paths, packs, ledger=None, **options):
 def write_preview(data, report, resources=None):
     """Write only an ignored, content-addressed research cache; never install."""
     resources = {} if resources is None else resources
-    if bool(report.get('appearance_resources')) != bool(resources):
+    from fighter_resource_files import PORTRAIT_PARTS, resource_name
+    appearance_targets = {'assets/v2ip.viv', 'assets/entity.xml', 'assets/nis.viv'} if report.get('appearance_resources') else set()
+    portrait_targets = {f'portraits/{resource_name(identifier)}/{part}.big'
+                        for identifier in report.get('portrait_resources', {}) for part in PORTRAIT_PARTS}
+    if bool(report.get('appearance_resources')) != bool(report.get('appearance_files')):
         raise ValueError('Appearance resources require their complete composed files')
-    if type(resources) is not dict or resources and set(resources) != {'assets/v2ip.viv', 'assets/entity.xml', 'assets/nis.viv'}:
+    if type(resources) is not dict or set(resources) != appearance_targets | portrait_targets:
         raise ValueError('Invalid composed appearance targets')
     if any(not isinstance(payload, bytes) or not 0 < len(payload) <= MAX_ARCHIVE for payload in resources.values()):
         raise ValueError('Composed appearance file exceeds budget')
-    if report.get('appearance_files', {}) != {path: hashlib.sha256(payload).hexdigest() for path, payload in resources.items()}:
+    if report.get('appearance_files', {}) != {path: hashlib.sha256(resources[path]).hexdigest() for path in appearance_targets}:
         raise ValueError('Composed appearance receipt differs from its bytes')
+    if report.get('portrait_files', {}) != {path: hashlib.sha256(resources[path]).hexdigest() for path in portrait_targets}:
+        raise ValueError('Composed portrait receipt differs from its bytes')
     serialized = (json.dumps(report, indent=2, sort_keys=True, allow_nan=False) + '\n').encode('utf-8')
     if len(serialized) > MAX_REPORT:
         raise ValueError('Generated preview report exceeds budget')
@@ -144,6 +180,7 @@ def write_preview(data, report, resources=None):
             (stage / 'assets').mkdir(parents=True)
             (stage / 'assets/djv2.sod').write_bytes(data)
             for relative, payload in resources.items():
+                (stage / relative).parent.mkdir(parents=True, exist_ok=True)
                 (stage / relative).write_bytes(payload)
             (stage / 'fighter-names.bin').write_bytes(encode_names(report['localization_entries']))
             (stage / 'fighter-bindings.bin').write_bytes(encode_bindings(report['handle_bindings']))

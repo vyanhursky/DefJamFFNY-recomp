@@ -228,3 +228,12 @@ def test_visual_stat_percentages_stay_bounded_without_mutating_gameplay_values()
     assert wrapper['params'] == ['SetIndex']
     assert sum(i.name == 'LessThan2' for i in body) == 6
     assert b'_recompFighterGetStats\0' in output and b'&H=88&' in output
+
+
+def test_owned_grid_tokens_do_not_change_semantic_fighter_ids():
+    movie, constants = selector_fixture()
+    output, _, _ = compile_menu(movie, constants, {365: 7}, {365: 'Test'}, artwork={365: 300})
+    assert b'getThumbID\0' in output and b'getID\0' in output
+    for artwork in ({366: 300}, {365: 299}, {365: 65001}, {365: True}):
+        with pytest.raises(AssetError, match='grid artwork'):
+            compile_menu(movie, constants, {365: 7}, {365: 'Test'}, artwork=artwork)

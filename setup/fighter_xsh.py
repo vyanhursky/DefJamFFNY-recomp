@@ -28,6 +28,14 @@ def shape_name(value):
 
 
 class Textures:
+    @staticmethod
+    def _name_bytes(value):
+        return shape_name(value)
+
+    @staticmethod
+    def _material_name_bytes(value):
+        return value.encode('ascii')
+
     def __init__(self, data):
         require(isinstance(data, bytes) and 24 <= len(data) <= MAX_ASSET, 'Invalid SHPX texture size')
         require(data[:4] == b'SHPX', 'Invalid SHPX texture signature')
@@ -42,7 +50,7 @@ class Textures:
                 name = raw.decode('ascii')
             except UnicodeError as error:
                 raise AssetError('Non-ASCII SHPX shape name') from error
-            shape_name(name)
+            self._name_bytes(name)
             require(name not in names and offset % 4 == 0 and 16 + count * 8 <= offset <= size - 16,
                     'Duplicate or invalid SHPX texture directory target')
             names.add(name); roots.append((offset, name))
@@ -95,7 +103,7 @@ class Textures:
                     value, = struct.unpack_from('<I', data, position + 4)
                     require(value in (0, 1), 'Unsupported SHPX material flag')
                 elif kind == 0x70:
-                    require(data[position + 4:position + 8] == name.encode('ascii'),
+                    require(data[position + 4:position + 8] == self._material_name_bytes(name),
                             'SHPX material shape name differs from its directory owner')
                     self.name_sites[name].append(position + 4)
                 elif kind == 0x6f:

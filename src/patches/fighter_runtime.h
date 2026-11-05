@@ -4,6 +4,7 @@
 /* Local R&D hooks. Roster probes require disposable data and no player settings;
  * no shipping fighter capability or normal-profile activation. */
 int defjam_fighter_runtime_start(void);
+int defjam_fighter_research_active(void);
 uint32_t defjam_fighter_localized(uint32_t key, uint32_t native_value, uint32_t localizer);
 void defjam_fighter_order(uint32_t database, uint32_t entries, uint32_t count, const char *source);
 void defjam_fighter_materialized(uint32_t self, uint32_t handle);

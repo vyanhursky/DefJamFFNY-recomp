@@ -7,6 +7,7 @@ from mods import ordinary_path, safe_relative
 
 APPEARANCE_FORMAT = 'eagl-appearance-1'
 PARTS = ('model', 'textures', 'face')
+PORTRAIT_PARTS = tuple(f'{role}_{count}p' for role in ('selector', 'result') for count in (2, 3, 4))
 
 
 def require(condition, message):
@@ -58,3 +59,40 @@ def resource_name(identifier):
     from fighter_registry import key
     key(identifier)
     return 'FM' + hashlib.sha256(identifier.encode('ascii')).hexdigest()[:16].upper()
+
+
+def portrait_source(source):
+    require(isinstance(source, dict) and set(source) == {'format', 'donor', *PORTRAIT_PARTS},
+            'Portrait source needs format, donor and all six selector/result variants')
+    require(source['format'] == 'eagl-portrait-1', 'Unsupported portrait source format')
+    require(isinstance(source['donor'], str) and re.fullmatch(r'retail/[a-z0-9]+(?:-[a-z0-9]+)*', source['donor']),
+            'Portrait source requires a supported retail layout donor')
+    seen = set()
+    for part in PORTRAIT_PARTS:
+        file = source[part]
+        require(isinstance(file, dict) and set(file) == {'path', 'sha256'}, 'Invalid portrait file descriptor')
+        safe_relative(file['path'])
+        require(isinstance(file['sha256'], str) and re.fullmatch('[0-9a-f]{64}', file['sha256']),
+                'Portrait file requires a SHA-256 digest')
+        require(file['path'].casefold() not in seen, 'Portrait variants cannot alias the same file')
+        seen.add(file['path'].casefold())
+    return source
+
+
+def read_portrait(root, source, budget=16 * 1024**2):
+    portrait_source(source)
+    require(type(budget) is int and budget > 0, 'Portrait file budget is exhausted')
+    root = ordinary_path(root)
+    require(root.is_dir(), 'Portrait package directory is missing')
+    output = {}
+    for part in PORTRAIT_PARTS:
+        descriptor = source[part]
+        path = ordinary_path(root.joinpath(*safe_relative(descriptor['path'])))
+        require(path.is_relative_to(root), 'Portrait file escapes its package')
+        with path.open('rb') as stream:
+            data = stream.read(min(MAX_ASSET, budget) + 1)
+        require(0 < len(data) <= min(MAX_ASSET, budget), 'Portrait file exceeds its byte budget')
+        require(hashlib.sha256(data).hexdigest() == descriptor['sha256'], 'Portrait file hash mismatch: ' + part)
+        output[part] = data
+        budget -= len(data)
+    return output

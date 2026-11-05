@@ -87,12 +87,23 @@ class RetailCatalog:
         styles = first + [index for index in range(5) if mask & (1 << index) and index not in first]
         return {'selection_key': selection, 'stats': stats, 'styles': styles}
 
-    def compile(self, packs, ledger=None, *, logical_menu=False, binding_window=False, appearances=None):
+    def compile(self, packs, ledger=None, *, logical_menu=False, binding_window=False, appearances=None, portraits=None):
         check(not (logical_menu and binding_window), 'native-mode', 'Choose one logical binding mode')
         snapshot = resolve(self._baseline, packs)
         appearances = {} if appearances is None else appearances
         check(type(appearances) is dict, 'native-resource', 'Expected validated appearance resources')
         from fighter_appearance import Appearance
+        from fighter_portrait import Portrait
+        portraits = {} if portraits is None else portraits
+        check(type(portraits) is dict, 'native-resource', 'Expected validated portrait resources')
+        for identifier, portrait in portraits.items():
+            resource = snapshot['resources'].get(identifier, {})
+            check(type(portrait) is Portrait and portrait.identifier == identifier
+                  and portrait.donor in self.rows and resource.get('kind') == 'portrait'
+                  and 'source' in resource and portrait.source_sha256 == fingerprint(resource['source']),
+                  'native-resource', 'Portrait does not match its resolved source definition')
+            check(portrait.donor_selection == self.rows[portrait.donor]['native_binding']['selection_key'],
+                  'native-resource', 'Portrait was checked against a different donor layout')
         for identifier, appearance in appearances.items():
             resource = snapshot['resources'].get(identifier, {})
             check(type(appearance) is Appearance and appearance.identifier == identifier
@@ -116,7 +127,8 @@ class RetailCatalog:
                   {'fighter': identifier})
             for group, resource in components.items():
                 if group != 'stats':
-                    check(resource in self.bindings or group == 'appearance' and resource in appearances,
+                    check(resource in self.bindings or group == 'appearance' and resource in appearances
+                          or group == 'portrait' and resource in portraits,
                           'native-resource', 'Resource needs a native asset adapter',
                           {'fighter': identifier, 'component': group, 'resource': resource})
             donor_key = self.bindings[components['moveset']]['donor']
@@ -128,13 +140,16 @@ class RetailCatalog:
                 check(group in components, 'native-component', 'Native preview needs a complete retail donor bundle',
                       {'fighter': identifier, 'component': group})
                 appearance = appearances.get(components[group]) if group == 'appearance' else None
-                resource_row = self.rows[appearance.donor if appearance else self.bindings[components[group]]['donor']]
+                authored = appearance or (portraits.get(components[group]) if group == 'portrait' else None)
+                resource_row = self.rows[authored.donor if authored else self.bindings[components[group]]['donor']]
                 for name in names:
                     field = resource_row['fields'][name]
                     native_fields[name] = field['symbol'] if field['descriptor'] == 1 else field['word']
                 if appearance:
                     native_fields['Model'] = appearance.name
             if identifier in self.rows:
+                check(components['portrait'] not in portraits, 'native-portrait-override',
+                      'Authored retail portrait overrides need a separate ownership adapter')
                 if fighter == original[identifier]:
                     continue
                 check(components['moveset'] == original[identifier]['components']['moveset'],
@@ -147,7 +162,8 @@ class RetailCatalog:
                 if changed:
                     edits.append({'template': row['record_offset'], 'fields': changed})
             else:
-                portrait_donors[identifier] = self.bindings[components['portrait']]['donor']
+                portrait = portraits.get(components['portrait'])
+                portrait_donors[identifier] = portrait.donor if portrait else self.bindings[components['portrait']]['donor']
                 # Public keys can be long and are never copied into bounded
                 # native UI fields. Hash collisions are rejected by the builder.
                 native_name = symbol(identifier)
@@ -201,6 +217,12 @@ class RetailCatalog:
         if appearances:
             report['appearance_resources'] = {key: value.summary for key, value in sorted(appearances.items())}
             report['blockers'].extend(['appearance-render-parameter-acceptance', 'appearance-ownership-acceptance'])
+        if portraits:
+            report['portrait_resources'] = {key: value.summary for key, value in sorted(portraits.items())}
+            report['portrait_bindings'] = {key: fighter['components']['portrait']
+                for key, fighter in snapshot['fighters'].items()
+                if key not in self.rows and fighter['components']['portrait'] in portraits}
+            report['blockers'].extend(['portrait-menu-acceptance', 'portrait-grid-artwork'])
         if logical_menu:
             report.update(binding_mode='logical-menu-only', native_character_count=len(self.rows), menu_roster=menu_roster)
             report['blockers'].append('logical-fighter-confirmation-unbound')

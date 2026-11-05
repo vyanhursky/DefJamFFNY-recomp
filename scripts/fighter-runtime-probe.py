@@ -248,9 +248,10 @@ def prepare_language_screens(screens, folder):
     return language_base(source, edits, hashlib.sha256(source).hexdigest())
 
 
-def prepare_portraits(screens, report, *, language=None):
+def prepare_portraits(screens, report, *, language=None, resource_cache=None):
     root = ordinary_path(ROOT / 'logs/fighter-ui-preview')
     source = original_screens(screens)
+    original = source
     if language is not None:
         composed, receipt = language
         if set(receipt) != {'schema', 'source_sha256', 'base_sha256', 'edits', 'cache_key'} \
@@ -263,6 +264,29 @@ def prepare_portraits(screens, report, *, language=None):
     pairs = {report['bindings'][key]['selection_key']: report['bindings'][donor]['selection_key']
              for key, donor in report['portrait_donors'].items()}
     result = portrait_aliases(source, pairs, results=True)
+    artwork = {}
+    if report.get('portrait_resources'):
+        from fighter_portrait import apply_portraits
+        if resource_cache is None:
+            raise ValueError('Authored portraits require their compiled cache')
+        resources = {}
+        for relative in report['portrait_files']:
+            from mods import safe_relative
+            path = ordinary_path(resource_cache.joinpath(*safe_relative(relative)))
+            with path.open('rb') as stream:
+                data = stream.read(16 * 1024**2 + 1)
+            if len(data) > 16 * 1024**2:
+                raise ValueError('Compiled portrait exceeds its budget')
+            resources[relative] = data
+        bindings = {report['bindings'][key]['selection_key']: (identifier, report['portrait_files'])
+                    for key, identifier in report['portrait_bindings'].items()}
+        if not set(bindings) <= set(pairs):
+            raise ValueError('Authored portrait binding is not an owned custom alias')
+        result = apply_portraits(result, bindings, resources)
+        if bindings:
+            from fighter_grid import compose_grid
+            from fighter_portrait import PortraitBaseline
+            result, artwork = compose_grid(result, report, PortraitBaseline(original, hashlib.sha256(original).hexdigest()))
     archive, replacements = Archive(result), {}
     names = {report['bindings'][key]['selection_key']: report['localization_entries'][report['bindings'][key]['native_name']]
              for key in report['portrait_donors']}
@@ -271,7 +295,7 @@ def prepare_portraits(screens, report, *, language=None):
         path = 'screens/battle/' + stem + '.big'
         inner = Archive(unpack(archive.read(path)))
         records = list(report['menu_roster'].values()) if report.get('binding_mode') in ('logical-menu-only', 'participant-window') else None
-        movie, constants, _ = compile_menu(inner.read(stem + '.apt'), inner.read(stem + '.const'), pairs, names, records, participants=count)
+        movie, constants, _ = compile_menu(inner.read(stem + '.apt'), inner.read(stem + '.const'), pairs, names, records, participants=count, artwork=artwork)
         replacements[path] = store(inner.compose(replacements={stem + '.apt': movie, stem + '.const': constants}))
         stem = f'matchSm{count}'
         path = 'screens/battle/' + stem + '.big'
@@ -342,6 +366,7 @@ def main():
     parser.add_argument('--record', action='store_true', help='Record frame/resource metrics through the existing play-test recorder')
     parser.add_argument('--trace-profiles', action='store_true')
     parser.add_argument('--trace-lifetime', action='store_true', help='Watch reviewed participant model reset/load boundaries; no lifecycle override')
+    parser.add_argument('--trace-appearance-lifetime', action='store_true', help='Watch model registration, instance cleanup and resource release; no lifecycle override')
     parser.add_argument('--logical-menu', action='store_true', help='Browsing-only logical roster prototype; native confirmation blocked')
     parser.add_argument('--binding-window', action='store_true', help='Internal four-participant native binding prototype')
     parser.add_argument('--immutable-reuse', action='store_true', help='Research repeated selections using immutable records after native Game.Quit')
@@ -374,7 +399,8 @@ def main():
             raise ValueError('Profile import requires the binding window and cannot use fresh defaults')
         if args.expect_save and not args.binding_window:
             raise ValueError('Save acceptance requires the isolated binding window')
-        if sum((args.trace_assets, args.trace_cinematics, args.trace_profiles, args.trace_lifetime)) > 1:
+        if sum((args.trace_assets, args.trace_cinematics, args.trace_profiles, args.trace_lifetime,
+                args.trace_appearance_lifetime)) > 1:
             raise ValueError('Select one four-breakpoint trace domain per probe')
         if args.logical_menu:
             if args.route not in ('fighter-roster', 'fighter-roster-4') or args.start_fighter or args.expect_fighter:
@@ -409,7 +435,7 @@ def main():
             expected_fighters(report, keys)  # reject missing/duplicate keys before launching
         screens = args.sod.resolve().parents[1] / 'screens/screens.viv'
         language = prepare_language_screens(screens, args.language_pack) if args.language_pack else None
-        portraits = prepare_portraits(screens, report, language=language)
+        portraits = prepare_portraits(screens, report, language=language, resource_cache=cache)
         data_root = ordinary_path(ROOT / 'logs/fighter-runtime-probe')
         if store is not None:
             generation = None if args.fresh_profiles else initialize(store, args.import_profiles or data_root / 'save', report['binding_ledger'])
@@ -476,6 +502,9 @@ def main():
         if args.trace_lifetime:
             command += ['--env', 'RECOMP_WATCH_EXEC=0x0009ADC0,0x0009D340,0x000AD910,0x0008B730',
                         '--env', 'RECOMP_WATCH_EXEC_ALL=1', '--env', 'RECOMP_WATCH_EXEC_FIELD=0xA234']
+        if args.trace_appearance_lifetime:
+            command += ['--env', 'RECOMP_WATCH_EXEC=0x00097710,0x00097BF0,0x000709B0,0x0006EDC0',
+                        '--env', 'RECOMP_WATCH_EXEC_ALL=1', '--env', 'RECOMP_WATCH_EXEC_FIELD=0x8']
         for stage in args.stage:
             command += ['--stage', stage]
         print(json.dumps({'probe': 'donor-roster', 'cache_key': report['cache_key'],

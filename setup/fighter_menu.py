@@ -469,7 +469,7 @@ def presentation_action(base, movie, constants, pairs, names, records=None, *, l
     return action.finish(), updated_constants, entry, [definition['method'] for definition in visual]
 
 
-def compile_menu(movie, constants, pairs, names, records=None, *, participants=None):
+def compile_menu(movie, constants, pairs, names, records=None, *, participants=None, artwork=None):
     if participants is not None and (type(participants) is not int or participants not in (2, 3, 4)):
         raise AssetError('Invalid native selector participant layout')
     if not 8 <= len(movie) <= MAX_MOVIE or movie[:8] != b'Apt Data' or len(constants) > MAX_MOVIE:
@@ -479,6 +479,10 @@ def compile_menu(movie, constants, pairs, names, records=None, *, participants=N
     if any(type(identity) is not int or not 100 <= identity <= 0x7fffffff
            or type(donor) is not int or not 0 <= donor < 100 for identity, donor in pairs.items()):
         raise AssetError('Selector bindings must separate custom identities and retail artwork')
+    artwork = {} if artwork is None else artwork
+    if type(artwork) is not dict or not set(artwork) <= set(pairs) or any(
+            type(token) is not int or not 300 <= token <= 65000 for token in artwork.values()):
+        raise AssetError('Invalid owned grid artwork bindings')
     if records is not None:
         if not isinstance(records, list) or len(records) != len(pairs):
             raise AssetError('Logical roster must cover exactly the presentation identities')
@@ -496,7 +500,7 @@ def compile_menu(movie, constants, pairs, names, records=None, *, participants=N
             raise AssetError('Native header name exceeds the fitted line budget')
         label_lines = [{key: lines[index] if index < len(lines) else '' for key, lines in wrapped.items()} for index in range(capacity)]
         placements = append_name_fields(output, movie, entry, participants, capacity)
-    code, constants, entry, methods = presentation_action(len(output), movie, constants, pairs, names, records, label_lines=label_lines)
+    code, constants, entry, methods = presentation_action(len(output), movie, constants, pairs | artwork, names, records, label_lines=label_lines)
     action_at = len(output); output += code; output += bytes(-len(output) % 4)
     record_at = len(output); output += struct.pack('<II', 1, action_at)
     frames = struct.unpack_from('<I', movie, entry + 12)[0]

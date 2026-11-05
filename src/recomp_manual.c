@@ -41,6 +41,22 @@
 #include "patches/picture.h"
 #include "patches/menu_geometry.h"
 #include "patches/fighter_runtime.h"
+#include "patches/fighter_ui.h"
+
+/* Preserve native normalization math while avoiding its fixed model-ID table
+ * during validated fighter research runs. Both direct and indirect calls must
+ * reach these real entry points; lookup-only interception is insufficient. */
+extern void sub_001813E0_gen(void);
+void sub_001813E0(void) {
+    if (!defjam_fighter_ui_normalize(MEM32(g_esp + 4))) sub_001813E0_gen();
+}
+extern void sub_0017F080_gen(void);
+void sub_0017F080(void) {
+    if (!defjam_fighter_ui_model_batch(MEM32(g_esp + 4), g_ebx, g_ecx)) {
+        sub_0017F080_gen(); return;
+    }
+    g_eax = 0; g_ecx = 0; g_esp += 4;
+}
 
 /* Local R&D custom-name fallback. The original lookup owns retail/language
  * precedence; direct callers reach this wrapper through the v0.16 lifter. */

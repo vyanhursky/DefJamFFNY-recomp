@@ -411,3 +411,44 @@ their SHA-256 receipts, requires all three files together, and reports a shared
 file conflict instead of overwriting another mod's redirect. The appearance
 path does not need a language-pack wrapper. Launcher activation and ordinary
 profile support remain later milestones.
+
+### Authored portrait research input (M1, not a released capability)
+
+A portrait resource uses `kind: "portrait"`, empty `compatibility: {}`, and a
+`source` with `format: "eagl-portrait-1"`, an original layout `donor`, and six
+file descriptors: `selector_2p`, `selector_3p`, `selector_4p`, `result_2p`,
+`result_3p`, `result_4p`. Each descriptor contains a canonical relative `path`
+and lowercase `sha256`. Fighters reference `components.portrait` by logical
+resource key. One resource can serve several fighters; body and portrait layout
+donors are independent. All six variants are required for whole-pack validation.
+
+Files contain supported SHPX image data, optionally RefPack wrapped. The compiler
+requires the original layout's tile IDs, dimensions, formats and nonpixel control
+signatures. It copies pixels into verified original textures and retains original
+APT/CONST/O. Packages cannot supply UI actions, ELF UI geometry, arbitrary archive
+paths or conversion commands. Unsupported tiling/crop controls require offline
+authoring; they are never guessed from image dimensions alone. The current per-
+resource source/compiled budget is16 MiB and aggregate portrait budget256 MiB.
+These are compiler budgets, not measured native resource capacities.
+
+The isolated probe composes large selection/result artwork and static grid
+frames from original result-movie templates. Grid drawing reuses result artwork
+and has identical selected/ordinary pixels; the native player-colored cursor
+remains the selection indicator. It adds owned images, geometry, symbols and
+frames, preserving original entries. Native selection identities remain separate
+from allocated movie-local artwork IDs. The supported result geometry template
+currently has one image/one shape and1120 bytes of original geometry data;
+other layouts fail pending their typed adapter. The grid is independently bounded
+by4096 images, four-digit image/model names and the generated frame/movie budgets.
+The research runtime enumerates and batches UI models through the original
+normalization operation; it no longer indexes new model IDs into the original
+512-entry scratch table. Image IDs must match their APT character indices,
+and their texture-matrix parameter names must use that same image identity.
+These are compiler/runtime responsibilities, not author-supplied engine IDs.
+
+Original fighter portrait overrides are currently rejected until their ownership
+adapter is implemented. A language mod that changes selector geometry or textures
+also conflicts with the grid compiler; text/action-only language composition uses
+the existing verified-base path. Native visual and menu-state acceptance remains
+required; the draft reports retain runtime/launch gates rather than advertising
+a shipping capability.

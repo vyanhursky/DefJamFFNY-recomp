@@ -49,6 +49,7 @@ static int s_trace;
 static int s_probe, s_probed;
 static char s_research_sod[2048];
 static char s_research_screens[2048];
+int defjam_fighter_research_active(void) { return s_probe && s_research_sod[0]; }
 static char s_research_assets[3][2048];
 static const char *s_asset_targets[3] = { "assets/v2ip.viv", "assets/entity.xml", "assets/nis.viv" };
 static const char *s_asset_env[3] = { "RECOMP_FIGHTER_RESEARCH_MODELS", "RECOMP_FIGHTER_RESEARCH_ENTITIES", "RECOMP_FIGHTER_RESEARCH_CINEMATICS" };

@@ -353,4 +353,191 @@ Full unit gate with the MSVC environment: **1,345 passed,27 skipped,1 deselected
 that environment passed1,113 but skipped259; it is not the native-unit gate.
 The subsequent standalone inspector/CLI checks passed19 tests after fixing the
 new test module's independent import path. Stock golden/menu/fight regression
-is running separately; its result is not yet claimed.
+passed **4/4** (loading, startup/title, main-menu goldens and fight),
+`logs/regress-20261104-232133.txt`. The fight reported median120/min107
+over122 seconds. These are stock regression checks, not Fighter milestone exits.
+
+### Portrait compiler, cleanup and language follow-up
+
+The two appearance packs also passed a combined language/native-lifetime run,
+`logs/run-20261104-232316.log.err`: seven combat assertions, native identities
+100/101, result, two save generations and byte-identical restoration;139 frame
+reports min106/median120/max120, no faults. The runtime verified the language
+screens base before adopting composed fighter presentation. The early selector
+capture is on SELECT USER ID and does not itself establish the later modified
+SELECT FIGHTER string. Captures: `logs/fighter-window-runs/191a50119d8b44aba3edfe6649781e09/captures`.
+
+Registration97710 instances349CC0/3549E0 received model keys811E723C/811E72CC.
+Cleanup97BF0 later received the same instances with those exact keys at+8;
+each immediately entered resource release709B0 (8105D900/81060B00), followed
+by manager-node unlinks6EDC0. Final watch totals2/2/3/124 include one other
+resource release. This establishes the model-instance cleanup path for both
+custom models; it is not a proof of all asset deallocation or an M3 leak bound.
+Native heap stayed5,243,952; contiguous allocation at match completion was
+53,743,616 versus52,449,280 at setup (completion precedes teardown).
+
+CurveLayouts now inspects types11/13/18/19/20/21/25. Focused structural suite
+passed22 tests;445/446 corpus banks still pass. The sole retail base00 rejection
+contains eight unsigned time descents65532->0, not duplicate keys. The native
+consumer zero-extends these values; no signed reinterpretation or relaxation
+was applied. Numerical decoding, output contexts and span ownership remain
+separate, unfulfilled gates. See the type11/type25 audit.
+
+The draft portrait resource `eagl-portrait-1` contains six hash-checked XSH files,
+explicit original layout donor, and no UI code. Compilation copies only pixel
+ranges into the verified original textures and preserves original APT/CONST/O.
+Generated resources are namespaced, receipted, budgeted and compiled through
+the ordinary registry; two independent packs and cache tampering are tested.
+Retail portrait overrides remain rejected until they have an ownership adapter.
+Grid artwork remains explicitly inherited and runtime readiness stays false.
+Focused compiler/probe/native-definition tests passed50 including junction checks.
+
+The first native authored-portrait run233424 displayed a red selector placeholder:
+the compiler had added RefPack to an XSH leaf whose UI loader expects raw SHPX.
+The outer movie remains compressed; the inner texture is now raw. A regression
+test checks raw leaf bytes, and all six portrait tests pass. This failed visual
+attempt is retained separately; a corrected native run is still required.
+
+Full MSVC unit gate after portrait integration and scalar decoder: **1,370 passed,
+27 skipped,1 deselected**,96.53s, `logs/fighter-portraits-scalars-msvc-unit-nov04.txt`.
+The failed visual run233424 nevertheless completed combat/result with seven
+assertions and byte-identical save restoration; visual failure is not hidden by
+those successful telemetry checks.
+
+### Owned grid follow-up, November5
+
+Raw-SHPX run234319 displayed authored portraits and passed seven combat checks,
+two save generations and byte-identical restoration (170 frame reports,
+min109/median120/max121). The fixture accidentally paired Carla/Peewee artwork
+with Briggs/Tank models; this is not correct-fighter visual acceptance. Corrected
+`portraits-matched.json` fixtures use source selections40/41 for models610/611.
+
+The static grid compiler now composes owned Shape/Image characters, original
+result-drawable templates with separate runtime allocation symbols, and two
+thumbnail frames per portrait into the native selector. Original frames and
+geometry remain intact. Structural tests cover relocated image-name consumers,
+symbols, frame collisions and pixels. Native acceptance is still failing:
+run235407 displays the correct large Briggs portrait but padlocks in both new
+grid cells. Combat/result passed seven assertions, two save generations,
+identical restoration;175 frame reports min107/median120/max121. Changing the
+new placement flags6 to7 did not fix the padlocks in run20261105-000057
+(79 frame reports min108/median120/max120, no faults, identical restoration).
+Do not treat either attempt as grid acceptance. A temporary runtime-owned
+diagnostic is checking actual lock state, requested/current frame and frame
+count; it lives under ignored logs, not the package format.
+
+The new shared-motion-table capacity audit identifies append-only shared rows
+as a candidate at the inspected registration boundary; primary WAZA edges
+remain12-bit, and new cores need separate descriptor dispatch. This is static
+evidence, not native behavior admission. M1/M2 remain incomplete.
+
+Native grid diagnostics001045/001418/001818 show unlocked custom characters,
+451 total frames and requested/current frames301/302. Correcting placement
+defaults and a private retail-drawable/remove-object control did not fix the
+image. The actual defect was shared frame item lists: native17DD70 rebases every
+pointer-list element and Action code pointer in place, without an alias guard.
+The compiler now owns separate lists, Action/code and PlaceObject records per
+state. The grid audit records exact instructions and original-bank uniqueness.
+Native acceptance of this fix is pending. The full MSVC gate passed **1,376
+tests,27 skipped,1 deselected**,95.75s
+(`logs/fighter-grid-scalars-msvc-unit-nov05.txt`).
+
+The separate FC8A0 arithmetic oracle matched7,680 scalars across1,920 weighted
+adjacent-key evaluations (240 synthetic cases); output sentinels remained intact.
+`interpolated_pose` is restricted to type11: primary inspection of ED3F7/ED43E
+confirms type13 uses a separate EA010 four-component blend. The new output-context
+audit traces raw destinations and caller-owned buffers but does not establish
+their allocation extent; native animation admission remains false.
+
+`fighter_animation_scalars.py` decodes the full-channel type11/13 scalar poses,
+including unsigned quantization, low nibble first, and format/lane-specific
+float32 arithmetic order. Ten invented-fixture tests pass. An independent oracle
+compiled the user's own FC3F0 body and compared240 synthetic cases,2,160 pose
+evaluations and8,640 scalar outputs, with zero differing bytes across fresh,
+forward-cache and reverse-replay paths. `logs/fighter-scalar-oracle/comparison.json`.
+This scope excludes filtered subsets, interpolation, exceptional floating-point
+states and output ownership; it does not enable native animation admission.
+The scalar-codec audit documents why interpolation needs weighted deltas rather
+than a generic blend of already-rounded endpoints.
+
+### Native grid and motion registration follow-up, November 5
+
+Unique frame records fixed the two-player grid in run002558. Captures at20/42/47s
+show matching Briggs/Tank thumbnails, large portraits and correct hover redraw.
+There were78 frame reports (min108/median120/max120), no faults, one save
+generation and byte-identical restoration. Captures are preserved under
+`logs/fighter-window-runs/4e0abee17f9f4ba6a16c2e4815bce446/captures`.
+
+Four-player grid acceptance is still failing: new cells render flat colors,
+although large portraits work. Run002908 also had an incorrect expected identity
+order in its test invocation; its combat assertion failure is retained. The
+corrected order is alpha/first, beta/first, alpha/second, beta/second, according
+to the stable ledger. Run003438 passed six combat assertions for all four
+custom identities103/104/105/106, with124 frame reports101/120/120, no faults,
+one save generation and identical restoration. Preserving source SHPX raster
+alignment did not fix the visual failure. Run004038 tested the accepted two-player
+64px result artwork/template in all selector layouts: still flat four-player
+cells, six combat assertions passed,123 reports107/120/120, no faults and
+identical restoration. Neither is four-player grid acceptance. A native draw-state
+diagnostic is the next discriminator; normalized ELF relocation checks found
+no copied-geometry defect.
+
+`MotionCoreTemplates` now composes owned WPAR/WWAZ pairs from hash-verified
+original templates while preserving the six shared tables and all original
+cores byte-for-byte. Nine focused tests cover independent packs, deterministic
+allocation, budgets, donor validation and descriptor indices254..257. Receipts
+distinguish zero-based descriptor indices from one-based Character core/bank
+numbers. Core0/1 donors remain rejected because their special behavior needs
+an adapter. A local141-to143 composition passed reinspection, but no native
+descriptor or animation-bank dispatch has been wired; runtime readiness remains
+false. Evidence: `logs/fighter-motion-core-composition-nov05.json`.
+
+The output-context audit now identifies the initialized actor's22A90 allocation
+path: two blend buffers each contain48*N bytes, with N from the attached
+context. This resolves the allocation-size question for that path, not semantic
+animation-to-rig binding or arbitrary external output pointers. M1/M2 remain
+incomplete; M3 has not started.
+
+The draw-state diagnostic004701 established the four-player failure: valid64px
+textures, but sampled UVs spanning0..44 instead of normalized coordinates.
+Source.data+310 points to the typed parameter `ScaleMatrix::1::TextureMatrix`.
+The compiler renamed the texture references but omitted this matrix name;
+native1813E0 therefore normalized it using another image's dimensions. The
+compiler now renames that fourth reference to the owned image ID. A focused
+fixture asserts the semantic matrix identity, beyond relocation correctness.
+The common64px diagnostic policy was removed: each layout again uses its
+matching original result template/artwork. Run005328's four-player24s capture
+now shows matching Briggs/Tank thumbnails for all four participants; its draw
+trace shows32px textures with UVs0..1. Final run/restoration summary is pending.
+
+That trace also exposed an unchecked native512-model temporary table in1813E0
+via17F080. The composer now rejects exceeding it and enforces image IDs equal
+to their APT character indices (the native normalization callback's key).
+This is a temporary safe admission bound, not the intended long-term roster
+limit. A bounded audit recommends replacing the table with direct model
+enumeration. That capacity adapter and acceptance above512 remain outstanding.
+Focused grid/portrait/motion/scalar suite:31 passed.
+
+Run005328 completed:92 frame reports109/120/120, no faults, one save generation
+and identical restoration. Captures are preserved under
+`logs/fighter-window-runs/60a072b1422c48dc996a9c276359d10d/captures`.
+
+The UI capacity adapter is now implemented and rebuilt. It enumerates models,
+validates/sorts their numeric identities and feeds dense512-pointer batches to
+the unchanged native normalization body. This avoids unchecked numeric-ID
+indexing while retaining original matrix arithmetic. Seven compiled invented-
+guest tests cover0/1/511/512/513/1100 models, sparse IDs, once-only order,
+scratch canaries, callback registers/arguments, inactive calls and budget failure.
+Re-lift confirms the real17F080 wrapper is called by1813E0_gen. The compiler's
+temporary512 guard is replaced by the independent four-digit namespace bound.
+
+Native capacity acceptance010829 used402 grid templates and600 module models;
+allocation was reversed so the visible portraits use IDs above1200. It showed
+correct four-player thumbnails, verified identities103/104/105/106 and passed
+six combat assertions, with124 frame reports min78/median120/max121, no faults,
+one save generation and identical restoration. This tests model population and
+sparse IDs; it is not a400-fighter roster or a release performance acceptance.
+Captures: `logs/fighter-window-runs/3efb03d3efdf43d798beae2ab44991d4/captures`.
+Full MSVC unit gate: **1393 passed,27 skipped,1 deselected**,101.26s
+(`logs/fighter-ui-capacity-msvc-unit-nov05.txt`). Three-player visual acceptance
+and stock native regressions on this rebuilt executable are next.
