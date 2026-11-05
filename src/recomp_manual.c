@@ -43,12 +43,24 @@
 #include "patches/fighter_runtime.h"
 #include "patches/fighter_ui.h"
 #include "patches/fighter_motion.h"
+#include "patches/fighter_voice.h"
 
 /* Owned motion descriptors and generation boundaries. Real entry points retain
  * direct-call coverage after re-lift; native retail branches remain delegated. */
 extern void sub_0003E170_gen(void);
 void sub_0003E170(void) {
+    defjam_fighter_voice_select(MEM32(g_esp + 4));
     if (!defjam_fighter_motion_audio(MEM32(g_esp + 4))) sub_0003E170_gen();
+}
+extern void sub_0003DB00_gen(void);
+void sub_0003DB00(void) {
+    if (!defjam_fighter_voice_load(MEM32(g_esp + 4))) sub_0003DB00_gen();
+}
+extern void sub_00135CB0_gen(void);
+void sub_00135CB0(void) {
+    uint32_t family = MEM32(g_esp + 4), voice = MEM32(g_esp + 8);
+    sub_00135CB0_gen();
+    defjam_fighter_voice_observe(family, voice, g_eax);
 }
 extern void sub_001A47B0_gen(void);
 void sub_001A47B0(void) {

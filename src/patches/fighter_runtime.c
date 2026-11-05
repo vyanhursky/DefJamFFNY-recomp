@@ -1,6 +1,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include "fighter_runtime.h"
 #include "fighter_motion.h"
+#include "fighter_voice.h"
 #include "hooks/fighter_names.h"
 #include "hooks/fighter_roster.h"
 #include "hooks/fighter_bindings.h"
@@ -104,7 +105,8 @@ static int file_name(const char *name, const char *expected) {
 static BOOL research_redirect(const char *relative, fighter_host_char *host_path, DWORD size) {
     const char *replacement = file_name(relative, "assets/djv2.sod") ? s_research_sod
         : file_name(relative, "screens/screens.viv") ? s_research_screens
-        : file_name(relative, "motion/main_all.dat") ? defjam_fighter_motion_path() : NULL;
+        : file_name(relative, "motion/main_all.dat") ? defjam_fighter_motion_path()
+        : file_name(relative, "audio/speech2.viv") ? defjam_fighter_voice_path() : NULL;
     for (unsigned i = 0; i < 3; ++i)
         if (file_name(relative, s_asset_targets[i])) replacement = s_research_assets[i];
     if (replacement && *replacement) {
@@ -153,7 +155,7 @@ static int research_start(void) {
         return 0;
     }
     if (!sod || !*sod) return (!screens || !*screens) && (!language_base || !*language_base)
-        && (!screens_hash || !*screens_hash) && defjam_fighter_motion_start();
+        && (!screens_hash || !*screens_hash) && defjam_fighter_motion_start() && defjam_fighter_voice_start();
     /* This development entry point cannot use the normal profile namespace or
      * player settings. The probe driver owns this disposable data root and the
      * harness guards its complete save directory. No runtime capability is
@@ -241,7 +243,7 @@ static int research_start(void) {
         }
     }
     strcpy(s_research_sod, sod);
-    if (!defjam_fighter_motion_start()) {
+    if (!defjam_fighter_motion_start() || !defjam_fighter_voice_start()) {
         fprintf(stderr, "[FIGHTERS] invalid motion research receipt; launch refused\n");
         return 0;
     }

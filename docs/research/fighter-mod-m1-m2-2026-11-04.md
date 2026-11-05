@@ -677,3 +677,36 @@ This is not in-game authored-voice acceptance. See the rewritten voice report
 for the200-byte native loaded-flag limitation, independent WORD bank keys,
 event metadata layout, and remaining family-selection/intro-extro mapping.
 M1/M2 remain incomplete; no M3 or publication.
+
+
+### 2026-11-05 independent voice registration and device playback
+
+Added compiler-owned speech archive composition and FVA1 core-to-voice receipts;
+real3DB00 dispatch avoids the200-byte native flag limit while preserving native
+allocation/unload ownership and supplemental banks.14 MSVC adapter tests pass.
+CPU030757 and four-human031755 pass five/six combat assertions respectively,
+all four cores256..259 and voices600..603, no crash/watchdog/unresolved calls,
+and identical save restoration (one generation each). Detailed frame counts,
+logs and qualifications are in fighter-voice-registration-2026-11-05.md.
+
+A second CPU032502 probe records all four owned entrance tones at exact expected
+997/1499/2001/2503Hz in the device mix. Its software-decoder watches remain zero
+because native129790 also has a hardwarePCM branch; this is independently
+traced, not a failed decoder. Combat requests find all four IDs, but complete
+category/sample/extro coverage is not claimed. Stock quick regression is running.
+
+Authored animation work now has a typed quaternion track encoder and a verified
+bank composer (16 focused tests). It preserves inherited parent timing and
+paired records, requires exact rig identity and full quaternion coverage, and
+bounds measured quantization error. Not yet natively accepted. The WWAZ word1
+join to MNL ordinal is traced through1B4930/1A85A0/A0830. M1 preview clarification
+remains pending: native portraits plus3D entrances/combat is recommended; a new
+live3D selector preview is a different UI addition. M1/M2 remain incomplete.
+No M3 work, push or public PR.
+
+
+Voice runtime stock regression PASS5/5: logs/regress-20261105-034041.txt,
+logs/fighter-authored-voice-quick-regression-nov05.txt. Working-tree full unit
+run1566passed/27skipped/1deselected in101.03s; boot/title/menu goldens match;
+stock fight120s, median120/min114presents per2s. No thresholds or goldens
+changed. This accepts the first voice runtime checkpoint; M2 remains open.

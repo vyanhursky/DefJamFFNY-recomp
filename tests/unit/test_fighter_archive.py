@@ -74,6 +74,24 @@ def test_rejects_conflicts_and_malformed_directory():
             Archive(data)
 
 
+def test_opt_in_native_audio_separators_preserve_source_spelling_and_reject_aliases():
+    original = fixture({'speech\\Character\\022.hdr': b'header',
+                        'speech\\Character\\022.dat': b'samples'})
+    with pytest.raises(AssetError):
+        Archive(original)
+    source = Archive(original, native_separators=True)
+    assert source.read('SPEECH/Character/022.HDR') == b'header'
+    changed = Archive(source.compose({'speech/Character/600.hdr': b'owned'}), native_separators=True)
+    assert changed.entries[0].name == 'speech\\Character\\022.hdr'
+    assert changed.read('speech\\Character\\600.hdr') == b'owned'
+    assert changed.read('speech/Character/022.dat') == b'samples'
+    with pytest.raises(AssetError, match='conflicting'):
+        source.compose({'SPEECH/Character/022.HDR': b'collision'})
+    for name in ('speech\\..\\escape', 'speech\\\\empty', '\\absolute', 'a\\C:drive'):
+        with pytest.raises(AssetError):
+            Archive(fixture({name: b'bad'}), native_separators=True)
+
+
 def test_portrait_alias_keeps_movie_data_and_texture_payloads_exact():
     inners = {}
     for players in (2, 3, 4):

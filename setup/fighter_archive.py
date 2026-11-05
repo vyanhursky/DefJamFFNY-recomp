@@ -22,7 +22,10 @@ class Entry:
 
 
 class Archive:
-    def __init__(self, data):
+    def __init__(self, data, *, native_separators=False):
+        # Some verified retail audio directories use backslashes. Preserve
+        # their exact names on disk while checking aliases canonically.
+        self.native_separators = native_separators
         if not isinstance(data, bytes) or not 16 <= len(data) <= MAX_ARCHIVE or data[:4] not in (b'BIGF', b'BIG4'):
             raise AssetError('Invalid BIG envelope or archive budget')
         if struct.unpack_from('<I', data, 4)[0] != len(data):
@@ -42,10 +45,11 @@ class Archive:
                 name = data[at + 8:end].decode('ascii')
             except UnicodeError as error:
                 raise AssetError('BIG names must be ASCII') from error
-            valid_name(name)
-            if name.lower() in names or offset < header_end or offset + size > len(data):
+            canonical = name.replace('\\', '/') if native_separators else name
+            valid_name(canonical)
+            if canonical.lower() in names or offset < header_end or offset + size > len(data):
                 raise AssetError('Duplicate BIG name or out-of-bounds payload')
-            names.add(name.lower())
+            names.add(canonical.lower())
             entries.append(Entry(name, offset, size))
             at = end + 1
         ranges = sorted((e.offset, e.offset + e.size) for e in entries if e.size)
@@ -60,11 +64,14 @@ class Archive:
         self.data, self.entries = data, tuple(entries)
         self.directory_end, self.header_end, self.first = at, header_end, first
         self.alignment = alignment
-        self.by_name = {e.name.lower(): e for e in entries}
+        self.by_name = {self.name_key(e.name): e for e in entries}
+
+    def name_key(self, name):
+        return (name.replace('\\', '/') if self.native_separators else name).lower()
 
     def read(self, name):
         try:
-            entry = self.by_name[name.lower()]
+            entry = self.by_name[self.name_key(name)]
         except KeyError as error:
             raise AssetError('Missing BIG entry: ' + name) from error
         return self.data[entry.offset:entry.offset + entry.size]
@@ -79,8 +86,8 @@ class Archive:
             raise AssetError('Cannot replace a missing BIG entry')
         output_names = [renames.get(e.name, e.name) for e in self.entries] + sorted(additions)
         for name in output_names:
-            valid_name(name)
-        if len(set(name.lower() for name in output_names)) != len(output_names):
+            valid_name(self.name_key(name) if self.native_separators else name)
+        if len(set(self.name_key(name) for name in output_names)) != len(output_names):
             raise AssetError('BIG composition has conflicting names')
         if len(output_names) > MAX_ENTRIES or any(not isinstance(value, bytes) for value in [*additions.values(), *replacements.values()]):
             raise AssetError('BIG composition budget or payload type')
@@ -118,7 +125,7 @@ class Archive:
         for entry, data in appended:
             output += bytes(entry.offset - len(output)) + data
         result = bytes(output)
-        Archive(result)
+        Archive(result, native_separators=self.native_separators)
         return result
 
 

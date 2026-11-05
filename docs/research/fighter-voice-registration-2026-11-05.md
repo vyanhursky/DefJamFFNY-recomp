@@ -144,3 +144,54 @@ This primitive does not expose raw ordinals as meaningful creator event
 names. Named event bindings still require a verified category-specific mapping.
 Untrusted HDR metadata, arbitrary codecs, custom event opcodes and native
 registration are not admitted merely because a composition receipt exists.
+
+
+## Native registration and first live acceptance (2026-11-05)
+
+The research adapter now binds full core IDs to a separate WORD voice namespace
+using FVA1 receipts. The compiler starts allocation at600, skips existing IDs,
+and emits three verified-template HDR/DAT pairs plus explicitly owned intro and
+extro PCM streams per logical voice. Multiple fighters may share one resource.
+All original speech archive members are retained; native backslash member names
+are supported only by the archive reader's explicit native-separator option.
+
+The real3DB00 entry is wrapped. For custom selections its loader builds a fresh
+per-invocation set of four voice IDs, preserves native Tutorial/Heckles banks,
+checks the256-entry resource cache, and delegates allocation/registration to
+1C960. The original200-byte loaded-flag table is untouched. Native unload still
+owns the headers and registration handles.14 MSVC invented-guest tests pass,
+including shared/mixed IDs, reload, empty slots, malformed receipts and capacity
+failure. The original3E170 input is observed before inherited audio keys are
+mapped; actor core identities remain unchanged.
+
+Native evidence (two independent appearance packs, cores256..259, voices600..603):
+
+- CPU run030757: five combat assertions,174 frame reports min105/median120/max120,
+  no crash/watchdog/unresolved call, one save generation restored identically.
+- Four-controller run031755: six combat assertions,122 reports107/120/121,
+  no crash/watchdog/unresolved call, one generation restored identically.
+- CPU playback probe032502: five combat assertions,174 reports101/120/121,
+  no crash/watchdog/unresolved call, one generation restored identically.
+  Device WAV contains the four invented entrance tones at measured peaks
+  997,1499,2001,2503Hz, matching their distinct authored resources. All four
+  combat voice IDs resolve; random event selection is not claimed to exercise
+  every sample, category or extro. Speech intelligibility is not a tone test.
+
+Evidence: logs/fighter-authored-voice-cpu-native.txt,
+logs/fighter-authored-voice-human-native.txt,
+logs/fighter-authored-voice-decoder-native.txt,
+logs/fighter-authored-voice-distinct-tones-nov05.json. Captured device WAV SHA256
+adee767be74b6fc7b23a69a9c0837088472da9f5d57407b58914a369d5e7faa6.
+The earlier harmonic-tone FFT scan was inconclusive and is not playback proof.
+
+Playback has two paths:129790 tests voice byte+24 mask04. Set selects software
+128A60; codec8 reaches12E520/12E490. Clear selects hardware1298C4; codec20 uses
+Xbox ADPCM while codec8 uses PCM16.123D70 constructs the mono PCM format with
+WAVE tag1,16bits,blockAlign2. Consequently zero software-decoder watch counts
+are compatible with the positive device capture; they are not a failure.
+Native loose-file attempts can fail before the archive fallback succeeds.
+The new archive is positively opened and read, not merely inferred from paths.
+
+Remaining: creator-facing named events, complete source-to-admission validation,
+extro/result and repeated resource-lifetime coverage, and M2's other behavior
+adapters. These live results do not complete M2 or authorize arbitrary HDR data.
