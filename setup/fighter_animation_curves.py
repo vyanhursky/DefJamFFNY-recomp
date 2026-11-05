@@ -12,7 +12,7 @@ from fighter_animation import AnimationIndex, require
 
 
 class CurveLayouts:
-    SUPPORTED = {13, 20, 21, 25}
+    SUPPORTED = {11, 13, 18, 19, 20, 21, 25}
 
     def __init__(self, index):
         require(type(index) is AnimationIndex, 'Expected a validated animation index')
@@ -53,6 +53,37 @@ class CurveLayouts:
 
     def inspect(self, record, kind):
         self.values(record, 2)
+        if kind in (18, 19):
+            keys = self.values(record + 4, 1)[0]
+            channels, extra = self.values(record + 6, 2, 'B')
+            constants = extra if kind == 18 else 0
+            shift = self.values(record + 16, 1, 'B')[0] if kind == 18 else extra
+            require(keys > 0 and shift <= 8, 'Curve key count or block shift exceeds the supported profile')
+            self.times(record + 8, keys, transitions=True, optional=True)
+            destinations = self.values(self.pointer(record + 12, channels), channels, 'B') if channels else ()
+            if not channels:
+                require(record + 12 not in self.model.pointers and self.values(record + 12, 1, 'I') == (0,),
+                        'Empty curve destination table needs a zero field')
+            header, stride, components = (18, 16, 3) if kind == 18 else (16, 14, 1)
+            self.numeric(record + header, stride * channels)
+            if kind == 18:
+                require(self.values(record + 17, 1, 'B') == (0,), 'Unsupported type18 header control')
+            else:
+                require(all(self.values(record + header + stride * i + 12, 1)[0] < 3 for i in range(channels)),
+                        'Curve axis selector exceeds its three-component namespace')
+            packed = record + header + stride * channels
+            width = 1 << shift
+            block = (components * channels * (width + 1) + 1) & ~1
+            end = packed + (keys >> shift) * block
+            remainder = keys & (width - 1)
+            if remainder:
+                end += components * channels * (remainder + 1)
+            self.numeric(packed, end - packed)
+            if kind == 18:
+                destinations += self.values(end, constants, 'B')
+                self.numeric((end + constants + 1) & ~1, constants * 6)
+            return {'kind': kind, 'keys': keys, 'channels': channels, 'constants': constants, 'block_shift': shift,
+                    'required_output_bytes': max(destinations) * 48 + 32 if destinations else 0}
         if kind == 25:
             require(self.values(record - 20, 5, 'I') == (0, 0, 25, 0, 0),
                     'Curve embedded wrapper must have the inert type25 seed')
@@ -63,18 +94,19 @@ class CurveLayouts:
             self.times(record + 12, keys)
             return {'kind': kind, 'keys': keys, 'sample_bank_selector': selector,
                     'required_samples': max(samples) + 1, 'external_context_required': True}
-        if kind == 13:
-            keys = self.values(record + 12, 1)[0]
+        if kind in (11, 13):
+            keys = self.values(record + (8 if kind == 11 else 12), 1)[0]
             descriptor = self.pointer(record + 4, 4)
             scalars = self.values(descriptor, 1)[0]
             bits = self.values(descriptor + 2, 2, 'B')[0]
-            require(keys >= 2 and scalars > 0 and scalars % 4 == 0 and bits in (4, 8, 16),
+            require(keys >= (1 if kind == 11 else 2) and scalars > 0 and scalars % 4 == 0 and bits in (4, 8, 16),
                     'Unsupported compressed four-scalar curve layout')
             self.values(descriptor + 4, scalars * 3, 'f')
             packed = descriptor + 4 + scalars * 12
             self.numeric(packed, (keys - 1) * ((scalars * bits + 7) // 8))
-            self.times(record + 8, keys, transitions=True)
-            destinations = self.values(record + 14, scalars // 4)
+            if kind == 13:
+                self.times(record + 8, keys, transitions=True)
+            destinations = self.values(record + (10 if kind == 11 else 14), scalars // 4)
             return {'kind': kind, 'keys': keys, 'scalars': scalars, 'bits': bits,
                     'required_output_floats': max(destinations) + 4}
         keys, channels = self.values(record + 12, 2)
