@@ -24,6 +24,10 @@ uint32_t g_eax,g_ecx,g_edx,g_esp,g_ebx,g_esi,g_edi,g_ebp;
 int g_fp_top;
 static int enabled=1;
 static unsigned constructed, started, ready;
+static unsigned momentum;
+static unsigned playback_events;
+static char last_playback[48];
+void sub_001A5190(void) {assert(MEM32(g_esp+8)==0x447A0000);momentum++;g_eax=0xBAD;g_esp+=4;}
 void sub_000A2E20(void) { constructed++; g_eax=0xBAD;g_esp+=4; }
 void sub_00087AF0(void) {
  uint32_t c=MEM32(g_esp+4),r=MEM32(g_esp+8);
@@ -39,6 +43,9 @@ void sub_000A3E80(void) {g_eax=ready;g_esp+=4;}
 void sub_000A3130(void) {g_eax=0xBAD;g_esp+=8;}
 int defjam_fighter_research_active(void) {return enabled;}
 void xbox_NoteAnchorEvent(const char *text) {
+ if(!strncmp(text,"fighter-blazin-playback:",23)){
+  playback_events++;snprintf(last_playback,sizeof last_playback,"%s",text);return;
+ }
  if(!strncmp(text,"fighter-blazin:B",16)){assert(strlen(text)==21);return;}
  assert(!strncmp(text,"fighter-cinematic:F",19));
  assert(strlen(text)==25);
@@ -117,11 +124,28 @@ int main(int argc,char **argv) {
   assert(!defjam_fighter_cinematic_cache_ready(manager));
   assert(started==20&&MEM32(manager+0x2D868)==12);
   ready=1;assert(defjam_fighter_cinematic_cache_ready(manager));assert(started==20);
+  assert(defjam_fighter_cinematic_cache_index(manager,2)==32);
+  assert(playback_events==0); /* Preload and ordinary play do not emit the test event. */
+  assert(momentum==0);
+  environment("RECOMP_FIGHTER_TEST_READY_BLAZIN","1");
+  MEM32(0x3B8F30)=1;
+  for(unsigned slot=0;slot<4;++slot){
+   uint32_t actor=0x3B92E0+slot*0x12E8;
+   MEM32(actor+0x28)=slot;MEM32(actor+0x2C)=MEM32(0x3B90B8+slot*4);
+   MEM8(actor+0x933)=MEM8(actor+0x93E)=0;
+  }
+  defjam_fighter_cinematic_cache_poll(manager);assert(momentum==0);
+  environment("RECOMP_TEST_OBSERVATIONS","1");
+  defjam_fighter_cinematic_cache_poll(manager);assert(momentum==2);
+  defjam_fighter_cinematic_cache_poll(manager);assert(momentum==2);
   for(unsigned shot=0;shot<10;++shot)
    assert(defjam_fighter_cinematic_cache_index(manager,2+shot)==12+20+shot);
   MEM32(manager+0x2D844)=1;
   for(unsigned shot=0;shot<10;++shot)
    assert(defjam_fighter_cinematic_cache_index(manager,2+shot)==12+10+shot);
+  assert(playback_events==20&&!strcmp(last_playback,"fighter-blazin-playback:1:3"));
+  environment("RECOMP_TEST_OBSERVATIONS","0");
+  assert(defjam_fighter_cinematic_cache_index(manager,11)==31&&playback_events==20);
   assert(!memcmp(memory+0x80000+(12+10)*0x1AC+0x61,"B00000",7));
   assert(!memcmp(memory+0x80000+(12+20)*0x1AC+0x61,"B00004",7));
   assert(g_esp==0x3F0000&&g_eax==42&&g_ecx==43&&g_edx==44&&g_esi==45);

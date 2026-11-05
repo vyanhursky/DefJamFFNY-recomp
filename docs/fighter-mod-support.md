@@ -30,9 +30,16 @@ available; complete platform release acceptance remains M6. Consequential rig,
 capacity or save tradeoffs return to the owner; routine implementation choices
 remain within the approved hybrid architecture. M1's Windows implementation
 and local acceptance are complete with the owner's 2D-selector decision;
-macOS/Deck smoke checks have not been performed. M2 remains incomplete,
-including independent Blazin cache ownership and paired finishing-move runtime
-registration. M3 has not started.
+macOS/Deck smoke checks have not been performed. Independent Blazin cache
+ownership now has positive human/CPU playback evidence. M2's corrected
+end-to-end paired-finisher/results test and stock quick regression pass.
+The human-initiated finisher has positive playback evidence for both roles.
+M1/M2 implementation is handed off locally with the qualifications in the
+checkpoint: the owner waived another routine stock regression and requested
+handoff after that proof. The focused test was closed normally and its complete
+save tree restored byte-identically; it is not a completed full-match pass.
+The earlier full-match and stock passes remain the acceptance evidence.
+M3 has not been started by this work.
 
 ## Direction already agreed
 

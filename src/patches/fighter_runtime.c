@@ -5,6 +5,7 @@
 #include "fighter_animation.h"
 #include "fighter_ai.h"
 #include "fighter_cinematic.h"
+#include "fighter_finishers.h"
 #include "hooks/fighter_names.h"
 #include "hooks/fighter_roster.h"
 #include "hooks/fighter_bindings.h"
@@ -112,6 +113,7 @@ static BOOL research_redirect(const char *relative, fighter_host_char *host_path
         : file_name(relative, "audio/speech2.viv") ? defjam_fighter_voice_path()
         : file_name(relative, "assets/ai/ai.viv") ? defjam_fighter_ai_path()
         : file_name(relative, "assets/v2ta.viv") ? defjam_fighter_cinematic_path()
+        : file_name(relative, "motion/blazin.viv") ? defjam_fighter_finishers_path()
         : file_name(relative, "motion/wres_all.viv") ? defjam_fighter_animation_path() : NULL;
     for (unsigned i = 0; i < 3; ++i)
         if (file_name(relative, s_asset_targets[i])) replacement = s_research_assets[i];
@@ -163,7 +165,7 @@ static int research_start(void) {
     if (!sod || !*sod) return (!screens || !*screens) && (!language_base || !*language_base)
         && (!screens_hash || !*screens_hash) && defjam_fighter_motion_start()
         && defjam_fighter_voice_start() && defjam_fighter_animation_start() && defjam_fighter_ai_start()
-        && defjam_fighter_cinematic_start();
+        && defjam_fighter_cinematic_start() && defjam_fighter_finishers_start();
     /* This development entry point cannot use the normal profile namespace or
      * player settings. The probe driver owns this disposable data root and the
      * harness guards its complete save directory. No runtime capability is
@@ -252,7 +254,7 @@ static int research_start(void) {
     }
     strcpy(s_research_sod, sod);
     if (!defjam_fighter_motion_start() || !defjam_fighter_voice_start() || !defjam_fighter_animation_start() || !defjam_fighter_ai_start()
-        || !defjam_fighter_cinematic_start()) {
+        || !defjam_fighter_cinematic_start() || !defjam_fighter_finishers_start()) {
         fprintf(stderr, "[FIGHTERS] invalid motion research receipt; launch refused\n");
         return 0;
     }

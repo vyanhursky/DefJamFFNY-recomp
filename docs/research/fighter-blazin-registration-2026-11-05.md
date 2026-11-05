@@ -1,7 +1,10 @@
 # Blazin resource registration and full-core audit
 
 Local M2 investigation using the player's own dump/lifted code. No external
-project code, no completed Blazin authoring or M2 acceptance claim.
+project code. The adapters now have positive owned activation and paired-finisher
+playback evidence for human and CPU participants. The M1/M2 checkpoint carries
+the final local handoff and testing qualifications; entries below retain the
+investigation's earlier counterexamples and corrections.
 
 ## Verified joins
 
@@ -114,7 +117,8 @@ prefix. It authors full-rig quaternion tracks while preserving inherited
 root/event/face/hair records and timing. FBP1 validates full-core-to-choice
 bindings, exact role names, ordinals, part hashes and the final archive hash.
 Eight focused tests pass; four original-data pairs compile at873,875,877,879.
-Native registration and ordinary source admission are still unimplemented.
+Ordinary source admission and native registration were implemented subsequently;
+the live acceptance evidence is recorded below.
 
 The planned provider contract is capacity=164+new motion tokens, base=709,
 and one mask byte per token.1A8260 emits709 then164, but87090 reorders these
@@ -160,4 +164,56 @@ shared group untouched.88DD0 selects the group using manager+2D844, which is
 written before all verified playback selector calls.88FF0 polls the private
 loads. State6/89B30 waits for readiness, preserving the pending activation;
 it is retried by8BE60.89310 owns cleanup of the enlarged allocations. Focused
-tests pass and native retest103546 is running; do not yet claim acceptance.
+tests pass and native retest103546 completed: all four phases evaluated for
+three CPU owners, with zero ownership mismatches. Human activation remained
+unobserved in that run.
+
+## Native paired-motion implementation and live evidence
+
+The FBP1 adapter implements the provider contract above without changing WPAR
+choice width or the existing static name table. It owns one guest allocation
+containing the expanded mask and persistent added names, and releases it only
+after89310's native provider destructor. A0C40's verified caller validates
+loaded key uniqueness, names, record indices and type15/type11 body linkage.
+The1D3800 scope preserves the subject and counterpart across both1A85A0 calls;
+the subject's core selects both roles, including a counterpart from another
+pack. Unrelated motions retain native dispatch.1A8150 resolves only admitted
+external names.63 focused native tests pass, including malformed receipts,
+overflow ordinals, cross-pack roles, nested scopes and cleanup.
+
+Native111321 loaded10 active motions: the two retained original roles plus
+eight authored roles for four fighters. The live sampler positively evaluated
+both roles of two independent pack resources during cross-pack finishers,
+checking indexed names, descriptor hashes and current external actor ordinals.
+All four participants, including human core141, also evaluated their four
+owned activation phases. No sampled ownership mismatch occurred. This run's
+match/result/save checks and final stock regression are still in progress;
+refer to the M1/M2 checkpoint for the completed verdict.
+
+**Counterexample and correction:**111321 timed out without a decisive result;
+112733 was stopped when a separate unchecked parameter index was identified.
+1A8641 uses actor+8C to index the original873-row FZUI table (3B8634, stride at
+3B862C), independently of the expanded animation provider. The visible paired
+poses were correct, but added IDs read unrelated parameter bytes. This invalidates
+paired gameplay acceptance for both runs. The1A38B0 wrapper now substitutes the
+complete inherited39-byte row at the sole verified caller1A867E, with dimensions,
+source-pointer and current-ordinal guards. Animation IDs remain independent.
+The native decoder still owns all136 decoded bytes, including reaction/completion
+fields.66 focused tests pass; corrected native acceptance remains pending.
+
+The motion name has a second behavior consumer:1A3ECF publishes the snapshot
+label used byAC100's camera-script lookup. An owned Pnnnn_A/B resource name has
+no corresponding inherited camera script. AC100's missing-label fallback can
+retain a prior zero multiplier; AC1F0 restores the countdown only in mode0.
+The name adapter therefore returns the inherited donor's static label only for
+the snapshot caller, while retaining the owned label for diagnostics and the
+owned ordinal for actual animation loading. It does not rebind the static table.
+The68 focused native tests include both label domains and complete FZUI rows.
+
+Runs120229 and133930 reached victory but failed on results-screen APT errors.
+A separate presentation compiler defect was identified: a generated Action
+record was shared across two frames despite native in-place relocation on each
+visit. The compiler now owns separate records and instruction/literal data for
+each frame. This is independent of finisher dispatch; neither ignoring the UI
+fault nor reaching a victory animation qualifies as full acceptance. The latest
+M1/M2 checkpoint records the corrected run and final stock regression verdicts.

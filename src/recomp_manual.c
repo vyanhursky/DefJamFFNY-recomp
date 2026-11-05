@@ -47,6 +47,46 @@
 #include "patches/fighter_animation.h"
 #include "patches/fighter_ai.h"
 #include "patches/fighter_cinematic.h"
+#include "patches/fighter_finishers.h"
+
+extern void sub_001A8260_gen(void);
+void sub_001A8260(void) {
+    uint32_t base = MEM32(g_esp + 4), count = MEM32(g_esp + 8), mask = MEM32(g_esp + 12);
+    sub_001A8260_gen();
+    defjam_fighter_finishers_mask(base, count, mask);
+}
+extern void sub_000A0C40_gen(void);
+void sub_000A0C40(void) {
+    uint32_t provider = g_ecx, caller = MEM32(g_esp);
+    sub_000A0C40_gen();
+    if (caller == 0x871C1) defjam_fighter_finishers_loaded(provider);
+}
+extern void sub_001D3800_gen(void);
+void sub_001D3800(void) {
+    FighterFinisherScope previous = defjam_fighter_finisher_enter(MEM32(g_esp + 4));
+    sub_001D3800_gen();
+    defjam_fighter_finisher_leave(previous);
+}
+extern void sub_001A85A0_gen(void);
+void sub_001A85A0(void) {
+    uint32_t address = g_esp + 8, motion = MEM32(address);
+    MEM32(address) = defjam_fighter_finisher_motion(MEM32(g_esp + 4), motion, MEM32(g_esp + 12), MEM32(g_esp));
+    sub_001A85A0_gen();
+    MEM32(address) = motion; /* cdecl: preserve caller-owned argument storage. */
+}
+extern void sub_001A8150_gen(void);
+void sub_001A8150(void) {
+    uint32_t name = defjam_fighter_finisher_name(MEM32(g_esp + 4), MEM32(g_esp + 8), MEM32(g_esp));
+    if (name) { g_eax = name; g_esp += 4; return; }
+    sub_001A8150_gen();
+}
+extern void sub_001A38B0_gen(void);
+void sub_001A38B0(void) {
+    uint32_t address = g_esp + 8, source = MEM32(address);
+    MEM32(address) = defjam_fighter_finisher_parameters(MEM32(g_esp + 4), source, MEM32(g_esp));
+    sub_001A38B0_gen();
+    MEM32(address) = source; /* cdecl; the decoder receives one complete donor row. */
+}
 
 extern void sub_0008ABF0_gen(void);
 void sub_0008ABF0(void) {
@@ -140,9 +180,11 @@ void sub_001A47B0(void) {
 }
 extern void sub_00089310_gen(void);
 void sub_00089310(void) {
+    uint32_t manager = g_ecx;
     defjam_fighter_motion_release(g_ecx);
     defjam_fighter_cinematic_cache_release(g_ecx);
     sub_00089310_gen();
+    defjam_fighter_finishers_release(manager); /* Provider no longer owns the mask. */
 }
 extern void sub_000A02E0_gen(void);
 void sub_000A02E0(void) {

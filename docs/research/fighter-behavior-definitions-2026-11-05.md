@@ -1,7 +1,8 @@
 # Ordinary fighter behavior definitions — local M2 draft
 
 This extends the existing `fighter-registry-draft-1` resources. It is a local
-research format, not a supported installer package or a completed M2 claim.
+research format, not a supported installer package. The M1/M2 native adapters
+are implemented locally; the checkpoint records acceptance and its qualifications.
 The launcher/normal-profile gates remain closed. Resource definitions contain
 data; they cannot provide native archives, binding tables, pointers or code.
 
@@ -97,11 +98,48 @@ Blazin bundles are appended first, then intro/victory bundles. Both receipts
 remain intact, and the binding compiler checks the explicit archive hash chain
 and every selected bundle before binding the final shared archive. FBZ1 and
 FIC1 therefore identify the same final resource generation. Native activation
-now has independent participant caches: three CPU fighters positively play
-all four owned phases, with zero ownership mismatches. Human activation is
-still a pending positive check. Paired finishing-move source admission and
-compilation pass, but their native provider/selection adapter is unimplemented;
-do not launch a `pairs` fixture until that adapter is accepted.
+now has independent participant caches: human and CPU fighters positively play
+all four owned phases, with zero ownership mismatches. Paired finishing-move
+source admission, compilation and native provider/selection fixtures pass;
+final end-to-end acceptance is recorded in the M1/M2 checkpoint. These remain
+guarded research launches.
+
+The paired-motion provider preserves the164 retail tokens starting at external
+ordinal709 and appends at most8192 tokens (4096 pairs), subject to the512MiB
+archive and1GiB generation budgets. This is independent of the16384 core
+domain, the four simultaneous participants and the inherited0..81 WPAR choice.
+The runtime allocates its own byte mask and names, validates every active
+provider key and typed skeletal record after loading, and keeps metadata alive
+through native provider teardown. Only the verified subject/counterpart calls
+inside the finisher state handler are remapped; inherited action semantics stay
+with the donor. The new animation ordinal must not index the original FZUI
+behavior table: a guarded decoder adapter supplies the complete corresponding
+donor parameter row. Sharing a clip across bindings requires the same inherited
+choice. The simulation snapshot uses the donor motion label for inherited
+camera selection; resource loading and diagnostic names retain the owned clip
+identity. These limits are admission bounds, not performance guarantees.
+
+## Resource ceilings
+
+The implementation's separate admission ceilings are:
+
+| Domain | Current bound |
+| --- | --- |
+| Motion cores | 16384 total, including141 original cores; added zero-based indices141..16383 |
+| Active participants | Four native participant records per match |
+| Authored voice resources | 4096 per composition; allocated IDs600..65534, with65535 reserved |
+| Authored AI resources | 4096 per composition |
+| Intro/victory resources | 4096 combined per composition |
+| Activation resources | 4096 four-shot sequences per composition; native private cache10 descriptors per participant |
+| Paired finishers | 4096 added pairs; at most four retained choices per fighter |
+| Input files | 64MiB each,256MiB shared input budget |
+| Generated resources | 64MiB decoded model/motion stream limits,512MiB per archive,1GiB aggregate generation |
+
+Byte budgets or format-specific constraints can stop a generation before a
+count ceiling. None of these numbers is a promise that the largest possible
+roster fits native memory or passes performance acceptance. Stable installed
+fighter identities, menu capacity, resource counts and simultaneously loaded
+participants are distinct domains. M3/M6 retain lifecycle and scale acceptance.
 
 ## Reproducing the local fixtures
 
@@ -113,15 +151,20 @@ these are routing/rig tests, not finished art or voice performances.
 With `--blazin`, it also emits `behavior-full-blazin.json`, including four
 independent activation resources, without replacing the non-Blazin manifest.
 `--finishers` emits `behavior-full-finishers.json` with both authored roles
-of the retained finisher choice; this is currently a compiler fixture only.
+of the retained finisher choice; both human and CPU playback have positive native evidence.
 
 Use those manifests with the ordinary `fighter-runtime-probe.py` command.
 The compiler supplies all resource environment variables from its own receipts;
 the diagnostic no longer needs to patch SODB cores or add binding files by hand.
 The harness uses disposable profiles and verifies complete save restoration.
+For activation tests, `--ready-blazin` fills each authored participant's
+momentum once through the native meter API after combat begins. It requires
+the research and test-observation gates. Controller input still triggers the
+activation; this test control is not part of the package contract.
 
 Synthetic tests exercise independent core allocation, shared resources,
 unchanged retail records, window versus direct bindings, changed-source/output
-rejection, exact cache publication and corrupted-cache refusal. Native testing
-of the ordinary behavior path is in progress; see the M1/M2 checkpoint for
-results and qualifications. No publication or M3 work is authorized by this draft.
+rejection, exact cache publication and corrupted-cache refusal. See the M1/M2
+checkpoint for the ordinary behavior path's local Windows results, the owner's
+regression waiver, and remaining platform/lifecycle qualifications. This draft
+does not authorize publication or start M3 work.

@@ -11,12 +11,12 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT/'setup'))
 from fighter_archive import Archive
 from fighter_cinematic_compile import envelope
-from fighter_animation import AnimationIndex
+from fighter_animation import AnimationEnvelope,AnimationIndex
 spec=importlib.util.spec_from_file_location('peek',ROOT/'scripts/peek-guest.py')
 peek=importlib.util.module_from_spec(spec);spec.loader.exec_module(peek)
 cache,pid,seconds=Path(sys.argv[1]),int(sys.argv[2]),int(sys.argv[3])
 output=Path(sys.argv[4]) if len(sys.argv)>4 else cache/'cinematic-live-named-proof.json'
-owners={}
+owners={};pairs={}
 if (cache/'report.json').is_file():
  report=json.loads((cache/'report.json').read_text(encoding='utf-8'))
  receipt=report['behavior_receipts']['cinematic']
@@ -45,10 +45,31 @@ for key,item in items:
  root=model.export_offset(idx.envelope.bank);cell=model.pointers[root+16]['target']+idx.lookup[name+'_s']*4
  names=model.pointers[root+20]['target'];name_at=model.pointers[names+idx.lookup[name+'_s']*4]['target']
  expected.append((key,name,parent,child,descriptor,size,digest,cell,name_at))
+if (cache/'fighter-finishers.bin').is_file():
+ table=(cache/'fighter-finishers.bin').read_bytes()
+ assert table[:4]==b'FBP1' and len(table)==52+28*struct.unpack_from('<I',table,8)[0]
+ for at in range(52,len(table),28):
+  core,choice,ordinal,a,b=struct.unpack_from('<III8s8s',table,at)
+  for role,raw in enumerate((a,b)):
+   name=raw.rstrip(b'\0').decode('ascii')
+   owners.setdefault(name,set()).add(core);pairs[name]=(role,ordinal+role)
+ archive=Archive((cache/'motion/blazin.viv').read_bytes())
+ for key,pair in report['behavior_receipts']['finishers']['bindings'].items():
+  for role,item in pair['roles'].items():
+   name=item['native_name']
+   env=AnimationEnvelope(*(archive.read(name+'.'+ext) for ext in ('ord','orl')),
+                         struct.pack('<II',1,0)+name.encode('ascii')+b'.')
+   idx=AnimationIndex(env);model=idx.model
+   row=item['animation']['bindings'][item['template']];child=row['child'];parent=row['parent']
+   descriptor=model.pointers[child+4]['target'];size=4+12*row['scalars']+2*row['scalars']*(row['keys']-1)
+   at=model.data_range(descriptor,size);digest=hashlib.sha256(model.data[at:at+size]).hexdigest()
+   root=model.export_offset(env.bank);cell=model.pointers[root+16]['target']+idx.lookup[name+'_s']*4
+   names=model.pointers[root+20]['target'];name_at=model.pointers[names+idx.lookup[name+'_s']*4]['target']
+   expected.append((key+':'+role,name,parent,child,descriptor,size,digest,cell,name_at))
 peek.k32.OpenProcess.restype=wt.HANDLE
 handle=peek.k32.OpenProcess(0x410,False,pid)
 if not handle:raise RuntimeError('Cannot read test process')
-results=[];seen=set();errors=0;mismatches=[]
+results=[];seen=set();errors=0;mismatches=[];manager_states=[];manager_seen=set()
 try:
  symbol=peek.map_symbol(ROOT/'build/win-x64-release/defjam_recomp.map','g_xbox_mem_offset')
  offset=0
@@ -67,6 +88,29 @@ try:
  assert word(0x234768)==0x234770
  deadline=time.monotonic()+seconds
  while time.monotonic()<deadline:
+  try:
+   manager=0x349760
+   state={name:word(manager+relative) for name,relative in
+          (('delta_bits',4),('previous_delta_bits',8),('state',0x2D820),('mode',0x2B9EC),('owner',0x2D844),('selection',0x2D84C),
+           ('winner',0x2D858),('winner_aux',0x2D85C))}
+   state.update({name:word(address) for name,address in
+                 (('phase',0x3B8F30),('match_flags',0x3B9054),('snapshot_flags',0x3BE0F4),
+                  ('snapshot_aux',0x3BE0F8),('completion',0x3B8598),('input_flags',0x3BE120),
+                  ('finish_timer_bits',0x3B9064),('scale_bits',0x3B8F2C),
+                  ('camera_mode',0x377330),('camera_scale_bits',0x377354),
+                  ('camera_restore_bits',0x377358),('camera_cursor',0x377380))})
+   state['camera_label']=read(0x377384,32).split(b'\0',1)[0].decode('ascii',errors='replace')
+   setup=word(manager+0x2FF5C)
+   state['setup_flags']=word(setup+0x198) if setup else 0
+   identity=tuple(state.values())
+   if identity not in manager_seen and len(manager_states)<2000:
+    manager_seen.add(identity)
+    requests=word(manager+0x2D834);count=word(manager+0x2D868)
+    if requests and 12<=count<=29:
+     state['private_requests']=[word(requests+(count+i)*0x24+0x14) for i in range(40)]
+    state['time']=time.time();manager_states.append(state)
+    if state['phase']>=2:print(json.dumps({'manager_snapshot':state}),flush=True)
+  except (ValueError,TypeError,OverflowError):errors+=1
   for slot in range(4):
    try:
     visual=word(0x375120+4*slot)
@@ -86,18 +130,30 @@ try:
      children=word(wrapper+0x10);evaluated=bool(children and word(word(children)+12)==child)
      identity=(slot,key,parent,evaluated)
      if identity in seen:continue
-     seen.add(identity)
      row={'time':time.time(),'phase':word(0x3B8F30),'indexed_name_checked':True,'slot':slot,'core':word(0x3B90B8+4*slot),'key':key,'native_name':name,
           'pose':hex(pose),'wrapper':hex(wrapper),'parent':hex(parent),'child':hex(child),
           'evaluated_child_wrapper':evaluated,'descriptor_sha256':digest}
-     if owners:
+     if name in pairs:
+      role,ordinal=pairs[name];actor=0x3B92E0+slot*0x12E8
+      subject=word(actor) if role else actor
+      if subject<0x3B92E0 or subject>=0x3B92E0+4*0x12E8 or (subject-0x3B92E0)%0x12E8:continue
+      # A sampled transition is not an ownership verdict: require both actor
+      # motion IDs and the paired link to still describe this exact playback.
+      if word(actor+0x88)!=ordinal or word(subject+0x88)!=ordinal-role:continue
+      if role and word(subject)!=actor:continue
+      row['role']='counterpart' if role else 'subject'
+      row['subject_slot']=(subject-0x3B92E0)//0x12E8;row['subject_core']=word(subject+0x2C)
+      row['external_ordinal']=ordinal
+      row['owner_matches_binding']=row['subject_core'] in owners[name]
+      if evaluated and not row['owner_matches_binding']:mismatches.append(row)
+     elif owners:
       row['owner_matches_binding']=row['core'] in owners.get(name,set())
       if evaluated and not row['owner_matches_binding']:mismatches.append(row)
-     results.append(row);print(json.dumps(row),flush=True)
+     seen.add(identity);results.append(row);print(json.dumps(row),flush=True)
    except (ValueError,TypeError,OverflowError):errors+=1
   time.sleep(.1)
 finally:
  peek.k32.CloseHandle(handle)
  output.write_text(json.dumps({'pid':pid,'snapshots':results,'unreadable_samples':errors,
-                              'ownership_mismatches':mismatches},indent=2),encoding='utf-8')
+                              'ownership_mismatches':mismatches,'manager_states':manager_states},indent=2),encoding='utf-8')
 if mismatches:raise SystemExit('Evaluated cinematic resource belongs to a different fighter')

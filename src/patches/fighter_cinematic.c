@@ -20,6 +20,8 @@ static RECOMP_TLS uint32_t s_alloc_manager;
 static uint32_t s_cache_manager, s_cache_count, s_cache_descriptors, s_cache_requests;
 static unsigned s_cache_allocations, s_cache_constructed;
 static uint32_t s_cache_cores[4];
+static unsigned s_test_readied;
+extern void sub_001A5190(void);
 extern void sub_000A2E20(void);
 extern void sub_00087AF0(void);
 extern void sub_000A3E80(void);
@@ -188,6 +190,7 @@ void defjam_fighter_cinematic_cache_finish(uint32_t manager) {
         guest_call(sub_000A2E20, s_cache_descriptors + (s_cache_count + i) * 0x1AC, 0, NULL);
     s_cache_constructed = 40;
     memset(s_cache_cores, 0, sizeof s_cache_cores);
+    s_test_readied = 0;
 }
 static int private_descriptor(uint32_t descriptor) {
     uint32_t first = s_cache_descriptors + s_cache_count * 0x1AC;
@@ -204,6 +207,22 @@ void defjam_fighter_cinematic_cache_poll(uint32_t manager) {
         if (s_cache_cores[slot] && s_cache_cores[slot] != core)
             cin_stop("cinematic participant changed without cache teardown");
         s_cache_cores[slot] = core;
+        /* Explicit harness-only setup: fill momentum through the native rules.
+         * Activation still requires controller input; no pack can request this. */
+        const char *test_ready = getenv("RECOMP_FIGHTER_TEST_READY_BLAZIN");
+        const char *observations = getenv("RECOMP_TEST_OBSERVATIONS");
+        if (defjam_fighter_research_active() && test_ready && !strcmp(test_ready, "1")
+            && observations && !strcmp(observations, "1") && MEM32(0x3B8F30) == 1
+            && !(s_test_readied & (1u << slot))) {
+            uint32_t actor = 0x3B92E0 + slot * 0x12E8;
+            if (MEM32(actor + 0x28) != UINT32_MAX && MEM32(actor + 0x2C) == core
+                && !(MEM8(actor + 0x933) & 2) && !(MEM8(actor + 0x93E) & 3)) {
+                uint32_t args[2] = { actor, 0x447A0000 }; /* IEEE float 1000. */
+                guest_call(sub_001A5190, 0, 2, args);
+                s_test_readied |= 1u << slot;
+                fprintf(stderr, "[FIGHTERS] test momentum readied slot %u core %u\n", slot, core);
+            }
+        }
         for (unsigned shot = 0; shot < 10; ++shot) {
             uint32_t index = s_cache_count + slot * 10 + shot;
             uint32_t descriptor = s_cache_descriptors + index * 0x1AC;
@@ -249,6 +268,16 @@ uint32_t defjam_fighter_cinematic_cache_index(uint32_t manager, uint32_t native)
     uint32_t index = s_cache_count + slot * 10 + native - base;
     if (MEM32(s_cache_requests + index * 0x24 + 0x14) != 2)
         cin_stop("activation selected before its private resources were ready");
+    const char *observations = getenv("RECOMP_TEST_OBSERVATIONS");
+    if (observations && !strcmp(observations, "1")) {
+        /* Playback selection, unlike the earlier asynchronous preload notice.
+         * Input probes can wait for this participant's final activation shot. */
+        uint32_t shot = native - base;
+        unsigned phase = shot == 0 ? 0 : shot <= 4 ? 1 : shot <= 8 ? 2 : 3;
+        char event[48];
+        snprintf(event, sizeof event, "fighter-blazin-playback:%u:%u", slot, phase);
+        xbox_NoteAnchorEvent(event);
+    }
     return index;
 }
 void defjam_fighter_cinematic_cache_release(uint32_t manager) {

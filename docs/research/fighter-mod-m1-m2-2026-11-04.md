@@ -3,9 +3,60 @@
 Local branch `research/custom-fighter-mods`, target v0.15.0. The owner authorized
 M1 and M2, including computer testing. M1 is complete for local Windows
 acceptance with the approved 2D selector/3D entrance-combat scope; macOS/Deck
-smoke checks remain unperformed. M2 is incomplete. Review the results and
-unresolved decisions before M3. No push or public PR. Earlier entries below
+smoke checks remain unperformed. M2 implementation is complete for local
+handoff with the testing qualifications below. No push or public PR. Earlier entries below
 are historical checkpoints; latest results appear at the end.
+
+## Current acceptance summary
+
+M1 has Windows evidence for independently registered appearances, native custom
+portraits/grid artwork, entrances, combat and basic teardown. Two ordinary packs
+coexist; the original resources remain available. Selection stays in native2D
+menus as approved. Cross-platform smoke and broader lifetime stress remain open.
+
+M2's ordinary data pipeline now supports independently bound moveset tracks,
+voices, AI tendencies, intro/victory tracks, four-shot Blazin activations and
+paired finishing animations. Human and CPU playback have positive evidence.
+The corrected full four-participant run135539 passes all eight combat/result
+checks with zero reported native faults and byte-identical save restoration.
+The earlier stock regression passes5/5 (1769 unit tests passed). The final
+controller-driven subject-finisher check has positive proof for both roles,
+including a counterpart from the other pack. At the owner's handoff request,
+the queued routine regression was canceled before starting and the focused
+test was closed normally after that proof. Its save tree restored byte-identically;
+it is not a completed full-match pass. The observation-only final-build event
+has68 focused native checks and full-match145033 evidence; the earlier stock
+pass predates that event. These qualifications accompany the local M1/M2 handoff.
+
+This is local adapter acceptance, not launcher or production-profile readiness.
+Authoring retains verified donor timing, root motion, events, hit behavior,
+facial helpers and cameras. Unknown rigs/render programs and arbitrary new
+gameplay logic are not admitted. Resource count ceilings are admission bounds,
+not measured maximum-performance guarantees. Normal-profile/launcher gates stay
+closed until their milestones; no public PR or publication has occurred.
+
+For M3, the approved first choice remains native profiles plus a versioned
+extension. Stress tests must establish atomic native/extension writes, recovery,
+stable identity through pack changes, repeated-match cleanup and Story/created
+fighter interactions. If that boundary cannot be made safe, the already-approved
+isolated-profile fallback remains available. No new architecture choice is
+required to interpret the M1/M2 result. The owner intends to continue M3;
+this work has not started it.
+
+### Handoff to M3
+
+- Continue on `research/custom-fighter-mods`; keep all work local unless the
+  owner changes the publication instruction. The toolkit pin is unchanged.
+- Implement the already-approved native-profile extension path first, with
+  the isolated-profile fallback if safe atomic writes/recovery cannot be proven.
+- Keep launcher/normal-profile gates closed until lifecycle and integration
+  acceptance. Do not treat count admission limits as performance guarantees.
+- Known testing issues: some forced mid-combat shutdowns exceeded the harness's
+  15-second wait; their saves subsequently restored. An intermittent startup
+  callback to `0x81000344` predates this work and remains unexplained. Failed
+  trials are retained below; neither issue was present in the accepted full runs.
+- macOS/Deck smoke, repeated-match/resource stress, and release acceptance
+  remain future milestones. No additional architectural decision is requested.
 
 ## Implemented and checked
 
@@ -1046,3 +1097,356 @@ regress-20261105-105726.txt.1735passed/27skipped/1deselected; three unchanged
 goldens;120seconds of stock combat,120median/105minimum presents per2seconds.
 Source publication check720files/0failures; no toolkit change or game assets.
 This is the local commit boundary before native paired-finisher work.
+
+### 2026-11-05 native paired-finisher candidate
+
+Saved the preceding accepted batch locally as da3b1ff. No publication.
+The FBP1 adapter now owns an expanded byte mask/name pool, validates loaded
+provider keys and skeletal record links, and remaps the two verified paired
+calls using the subject's full core. Native teardown precedes metadata release.
+An integer-overflow receipt case was corrected before testing.63 focused
+native finisher/cinematic checks pass (fighter-finishers-native-unit-nov05.txt).
+Relift/build pass (fighter-finishers-relift-nov05.txt and
+fighter-finishers-build-nov05.txt), backup20261105-111032.
+
+Native111321 is running two ordinary full-finisher packs/four fighters.
+Cache553d53bb4cff3a98f77e88ccb66cd733ddf1579cb97de9b14a1be71a0a578fe3,
+driver fighter-finishers-native.txt. The read-only sampler now attributes
+subject/counterpart poses by indexed name, compiled quaternion descriptor,
+actual actor ordinal and the subject's core. No native result is claimed yet.
+The harness-only ready-meter control primes native momentum once per fighter;
+positive controller-triggered activation still must be observed. M2 is pending;
+M3 remains unstarted.
+
+### 2026-11-05 paired playback passed; match result timeout retained
+
+Native111321 completed its700-second window with349 frame reports101/120/121,
+zero five native fault categories and byte-identical save restoration. All four
+native menu identities and one isolated save generation verified. The completed
+sampler (fighter-finishers-live-proof.json) has28 positively evaluated resources
+and zero ownership mismatches: four intros, all16 activation phases including
+human core141, and both roles of two independent cross-pack paired finishers
+across several opponents. Capture folder062858b8a06c4bde9a678b58851f369f.
+
+The run **failed** the decisive-result/eliminations/results-screen assertions:
+two CPU fighters were still fighting at timeout. It is not counted as a full
+acceptance pass. The initial combat input stopped most face-button actions
+after112seconds. A second900-second run retains continuous face-button input
+and earlier right-stick gestures, without artificially priming momentum.
+Driver fighter-finishers-result-retest.txt; source/build unchanged. M2 completion
+still awaits the result gate and final stock regression.
+
+### 2026-11-05 separate finisher parameter domain corrected
+
+The result timeout exposed a concrete missing adapter, not merely insufficient
+combat time. Native1A85A0 sets actor+88/+8C to the new external animation ordinal,
+then1A8641 indexes the separate873-row FZUI table at3B8634 with stride39. New
+ordinals873+ therefore read beyond the original parameter table before1A38B0
+decodes timing/reaction fields into actor+2BC. State34's paired-victim recovery
+uses those fields. Correct visible poses alone did not establish valid gameplay.
+
+Stopped native112733 deliberately after discovering this access. It had323
+frame reports108/120/121 and zero five native fault categories; the harness
+reports unexpected exit4294967295, as expected for the deliberate stop, and
+still verifies byte-identical save restoration. It is **not** an acceptance pass.
+Its sampler adds observed P0002 attacker/opponent ownership, but neither this
+run nor111321 accepts paired-move behavior. Both are retained counterexamples.
+
+The correction maps each admitted external ordinal to its complete inherited
+39-byte FZUI row at the sole verified decoder call1A867E, keeping actor animation
+IDs and diagnostic names independent. It validates table dimensions, the computed
+source pointer, active token and both actor ordinal fields before substitution.
+Shared animation bindings must also agree on inherited behavior. No global native
+table is resized or temporarily rebound. Bounded source audit found no other
+direct retrieval of this FZUI base/stride; other+8C uses feed the name adapter.
+66 focused checks pass (fighter-finishers-parameters-unit-nov05.txt). Relift/build
+is running. M2 remains incomplete until corrected native result acceptance.
+
+### 2026-11-05 corrected parameter routing; results transition still pending
+
+Final focused checks68pass. Relift/build passed with backup20261105-114239
+(fighter-finishers-parameters-relift-nov05.txt and
+fighter-finishers-parameters-build-nov05.txt). Native114454 positively routes
+875/876,877/878 and879/880 through inherited FZUI rows713/714. A live state
+sample after a paired move shows the former participants using ordinary
+motions2042/2043 again. The sampler records27 evaluated resources with zero
+ownership mismatches (fighter-finishers-parameters-live-proof.json).
+
+The match reaches a decisive winner and match_over at native clock6:6, then
+phase3. However it never requests victory FV00003 or the results screen by
+the700-second cutoff. Driver fighter-finishers-parameters-native.txt fails
+only combat.results_screen;348frame reports108/120/121, zero five fault
+categories, byte-identical save restoration and one isolated save generation.
+This remains a failed full acceptance run. Capture folder
+2d2ccec3772b412e9e6f9815f0ea6b4f. Do not mark M2 complete.
+
+Native120229 now traces the scheduler read-only at verified manager349760,
+including2D820 state, pending match flags, owner/selection, setup flags and
+the40 private readiness words. Its controller timing separates the right-stick
+gesture from attack edges. No code or pack bytes changed for this run.
+Driver fighter-postmatch-native.txt; sampler fighter-postmatch-live-proof.json.
+M3 remains unstarted; final stock regression awaits this result boundary.
+
+### 2026-11-05 post-match evidence and camera semantics
+
+Native120229 confirms human core141's four activation phases on the corrected
+FZUI build and reaches FV00003 plus all four Game.GetMatchSummary calls. The
+read-only trace records manager states through13, all40 private request words
+ready, and final match/snapshot flags14. However this run is **not a pass**:
+the results screen produces eight unresolved calls to data address2BF410 and
+two non-code call reports. First faults are122315/122334 in
+run-20261105-120229.log.err. Save restoration is byte-identical,349frame reports
+100/120/121. Capture folderad73cd6256584bf28957ffdc489e941b.
+
+Bounded audit identifies the immediate faults as APT opcode dispatch: opcode50
+releases a null stack value, then opcodeCC indexes beyond valid handlers to the
+literal substr string. Do not seed2BF410 as code. The adjacent thumb-control
+binding uses profile indices, not fighter IDs; its appearance beside the faults
+does not establish causation. This UI failure remains under investigation.
+
+A separate source-proven semantic issue was corrected:1A3ECF publishes the
+motion name used by AC100's camera-script lookup. Newly owned Pnnnn_A/B labels
+have no inherited script entry. A missing-script branch can leave a previous
+zero time multiplier unrestored, which is consistent with114454's frozen ramp,
+but that exact live state was not captured.1A8150 now supplies the donor semantic
+name for this snapshot caller while preserving owned names for diagnostic
+callers and owned animation bank selection.68 focused tests pass; rebuild is
+running (fighter-finisher-camera-unit/relift/build-nov05.txt). Native proof and
+the UI-results failure are still required before M2 acceptance.
+
+### 2026-11-05 results action relocation defect isolated
+
+Camera candidate133930 reaches victory and all four summary callbacks, with32
+positively evaluated owned resources and zero ownership mismatches. The complete
+700-second run still fails: eight unresolved calls and two non-code reports;
+349 frame reports103/120/120, byte-identical save restoration and one isolated
+save generation. Driver fighter-finisher-camera-native.txt, sampler
+fighter-finisher-camera-live-proof.json, preserved captures
+7da26a54b1e54fa39814da3dab4eb50d. This remains a failed acceptance run.
+
+The first fault precedes Game.GetMatchSummary, excluding that callback's returned
+statistics as its initiating cause. The fault stack contains action startA44FC;
+the original XBE there begins50/51/68/CC, explaining the observed APT opcodes.
+The composed four-player result movie shares one generated Action record between
+frames0 and89. Native17DD70@17DE55 adds the movie base to that record's instruction
+pointer on every frame occurrence, without a visited guard. Its156110/155AD0
+bytecode relocation also adds the base to string operands. Thus both the record
+and its bytecode must be independently owned, even when the actions are identical.
+The observed low address is consistent with double addition wrapping a high guest
+movie base; that exact live base was not sampled, so retain the qualification.
+
+The compiler now emits a fresh Action and record per affected frame. Three new
+relocation-contract tests reject the old compiler for2/3/4-player layouts and
+pass the corrected compiler. Focused results/menu/grid suite25pass. A source
+census found no other newly appended mutable aliases in those three compilers.
+No native interpreter bypass or toolkit change is involved. A fresh full match
+uses the same native binary and behavior resources with the corrected UI bytes
+(fighter-finisher-results-owned-native.txt). M2 remains pending; M3 unstarted.
+
+### 2026-11-05 corrected paired-finisher/results native acceptance
+
+Native135539 PASS: two ordinary full-finisher packs, four participants (one
+human/three CPUs), logical selections103/105/104/106. All eight combat/result
+assertions pass, including movement, attacks, damage, eliminations, decisive
+winner and native summary. The result occurs at step15389/native clock5:07,
+winner slot3; FV00003 plays and all four summary callbacks execute. Full
+700-second window:349 frame reports103/120/121, zero crashes/watchdogs/debug-layer
+errors/truncated batches/unresolved calls and no non-code reports. Saves restore
+byte-identically; one isolated save generation verified. Driver:
+fighter-finisher-results-owned-native.txt.
+
+Read-only proof fighter-finisher-results-owned-live-proof.json has32 evaluated
+observations and zero ownership mismatches: four intros, all16 owned activation
+phases (human141 and CPUs142/143/144), both roles of three independent paired
+resources across opponents, and victory FV00003. It records70 distinct manager
+snapshots through state13. Paired parameter routing retains FZUI713/714 while
+animation ordinals875..880 remain owned. This is positive playback/behavior
+evidence; it does not claim a human-triggered subject finisher was observed.
+
+Preserved captures are under
+logs/fighter-window-runs/4ab8c0e9fd064761a2ad7e874bb4f65d/captures.
+The1.1s/2.1s summary captures were visually checked: all four custom portraits
+and bounded labels are correct; scores populate normally. The earlier APT
+faults do not recur with independently owned per-frame actions. Earlier failed
+runs remain retained above. Final stock quick regression is running in
+fighter-finishers-final-quick-regression-nov05.txt; M2 completion awaits its
+verdict. Toolkit pin remains d569ca10811cef67ec4e9fa2173088c2f9fd0580.
+
+Stock quick regression PASS5/5 in9minutes, regress-20261105-141654.txt:
+1769passed/27skipped/1slow deselected, all three stock golden screens unchanged,
+120seconds of stock fight with120median/113minimum presents per2seconds. No
+toolkit change. Results relocation fix saved locally as f6d2364, no push.
+
+One targeted follow-up closes the human subject-finisher observation gap. Native
+grapple input uses A;1D1A90 requires active Blazin (+93E bit2) and a fresh right
+stick edge (+43C bit20000) before1D2C30/1D0F80 select action31..34/38..41. The
+earlier script began grapple attempts too late relative to activation. The new
+script advances approach and A to25/26seconds with staggered repeated right-stick
+gestures. No engine code, fixture resource or meter policy changes. Driver:
+fighter-finisher-human-native.txt. M3 remains unstarted.
+
+Targeted trial141757 is **not a pass**. It did not observe human activation or
+a human subject finisher, and its harness p.kill()/wait hit the15-second process
+exit timeout. The native log has199 frame reports103/120/121 and no observed
+native fault signatures; the process subsequently exited. The finally-path
+completed save restoration: an independent comparison against the retained
+guard payload verified the whole disposable save tree byte-identical, with a
+successful guard marker and no unresolved state marker. One isolated save
+generation was verified. No original profile was exposed to this run.
+
+The grapple attempts may have preempted the activation opportunity. A retry
+tests that timing hypothesis with inputs at35/36seconds and timed combat captures; the attempted
+finisher-log screenshot anchor was not an emitted native anchor event. Actual
+playback ownership remains established by the read-only sampler, not by preload
+name logs. Driver fighter-finisher-human-staggered-native.txt. No source or
+resource changes since the accepted stock regression.
+
+Staggered trial142809 also failed to observe human activation/subject playback
+and hit the15-second process-reaping timeout. The process exited, and the
+complete disposable save tree again independently matched its guard payload;
+the success marker was present with no unresolved guard. These additional
+input trials are not accepted gameplay runs, regardless of the earlier full
+match pass. No cause for the slow process exit is established.
+
+The next control adds observation-only fighter-blazin-playback:slot:phase events
+at88DD0's verified private-cache selection boundary. They require
+RECOMP_TEST_OBSERVATIONS=1, preserve the selected descriptor index, and distinguish
+playback selection from asynchronous resource-preload notices. Native fixture
+checks prove the event is absent without observation mode and records the right
+participant/phase across all ten descriptor variants.68 focused checks pass;
+incremental build passes (fighter-playback-anchor-unit/build-nov05.txt).
+
+The event-driven run waits for the human's fourth activation shot before approach,
+grapple and fresh right-stick gestures. It uses the same pack resources and meter
+policy. The read-only sampler will finish before the native shutdown deadline to
+remove that possible observer interaction; this is a control, not an established
+explanation for the prior timeouts. Driver fighter-finisher-human-playback-native.txt.
+
+Event-driven trial144030 positively evaluates all four human activation phases
+and fires the final-shot input anchor. Captures6/12/18seconds after that event
+show the human Blazin state active and grapple scoring. Human subject-finisher
+playback remains unobserved. Its shutdown still exceeds the15-second harness
+wait even though the replacement read-only sampler completed beforehand, so
+the timeout is not explained by that observer alone. The process exited and
+the complete disposable save tree independently matched its guard payload.
+This run remains failed; the forced-shutdown delay is an open testing issue.
+
+The harness's non-direction inputs hold for0.3seconds. The attempted A2.05 then
+right-stick2.33 sequence overlapped by0.02seconds, repeated every second. A new
+control uses A every3seconds and the stick0.78seconds later. Native1D2884 shows
+the required0x100 flag is accepted grapple contact, not a direct strong-grapple
+modifier; no unproven trigger requirement is introduced. The follow-up runs
+the full700-second match/result window rather than stopping mid-fight, with
+the same final native build and ordinary packs. Driver:
+fighter-finisher-human-grapple-native.txt. Final-build stock regression remains
+required after native acceptance; earlier141654 stock pass predates only the
+observation-gated playback event.
+
+
+The input audit corrected the earlier caller attribution: the intended subject
+handler1D3800 uses1D0E80 at1D396D, not1D1A90 (whose callers are in1D41D0).
+Blazin must be active when grapple startup copies +93E bit2 into +91A bit1.
+Normal accepted contact supplies +91A0x100; after ten simulation updates,
+subject state31/substate2 copies current held/rising inputs into +438/+43C.
+A right-stick edge arriving before that state is not buffered. The selection
+gates require +91A0x101, no0x1000 and no +9220x10 diversion; they do not
+explicitly require a strong modifier, stunned target or left-stick direction.
+A scratch controller-only probe will read those fields and send ordinary live
+pad input when the native grapple window opens. It never writes game memory.
+These timing tests remain local evidence collection, not package behavior.
+
+
+Native145033 completes successfully: all8 combat/result assertions, menu keys
+103/105/104/106, zero crash/watchdog/debug-layer/truncated/unresolved reports,
+byte-identical complete save restoration and one isolated save generation.
+348 frame reports span44minimum/120median/121maximum presents per2seconds;
+the low sample is retained, not hidden behind the median. The read-only sampler
+finishes before shutdown with33 observations, zero ownership mismatches and
+zero unreadable samples, including all activation phases and winner FV00003.
+Human subject-finisher playback remains unobserved. Captures are preserved in
+logs/fighter-window-runs/ca0829b43a8342fda5fe749090bd1e84/captures. The process
+exits normally under the harness; the earlier forced mid-match shutdown timeout
+is still an unresolved testing issue rather than an established gameplay fault.
+
+
+Controller trial150415 is invalid: ControllerSetup submitted selection60 for
+P1 (stock core80), while the three CPU selections were correct. Both the actor
+and participant table showed80; this was not transient donor borrowing. The
+controller guard refused input, correctly. The trial was intentionally stopped
+after the owned observer; full save restoration and one isolated generation
+were verified. Its native log additionally contains one startup non-code call
+to0x81000344 atline1163, before combat. No other crash/watchdog/unresolved
+faults were reported;146 frame samples had5minimum/119median/120maximum.
+It is not acceptance evidence. The retry delays initial P1 browsing to10seconds
+with0.8-second spacing and confirms at32seconds; other selections are unchanged.
+The scratch controller watches the stable participant identity and emits A only
+while Blazin is active, then waits for the verified grapple state before rup.
+No runtime or package changes accompany this control.
+
+
+The150415 startup non-code callback is traced to27EC5D/27EC6C: it invokes
+request+8 with request and request+C after the completion-queue path marks
+request+22 bit8. The log lacks the actual request pointer; the printed ECX is
+the callback value, not proof of the request address. The same81000344 target
+and27EC6E return are documented in rc-v0.13.0-macos.md line69, so this predates
+the finisher implementation. Its cause remains unresolved; historical presence
+does not make that failed run clean. A useful future trace would capture the
+request argument at27EC5D and the writer of its callback field.
+
+
+Trial151235 reaches all four summaries and restores saves byte-identically,
+with correct103/105/104/106 selections and zero native fault signatures. It is
+still not an accepted combat run: human movement/attack/damage assertions fail.
+The state observer sees human grapple-start state30, then a CPU-owned paired
+attack on the human; no subject state31/substate2 is observed during Blazin.
+The sampler ends before shutdown with31 observations, zero mismatches and zero
+unreadable samples.352 frame reports have16minimum/120median/120maximum.
+Capture root: logs/fighter-window-runs/ae009c1a034546d084a0bde3a569ed6a/captures.
+
+The focused follow-up uses ordinary behavior-human-finisher.json variants: only
+Alpha first references an authored Blazin sequence, while the other fighters
+inherit retail Blazin. The unchanged harness meter control therefore readies
+only core141 (confirmed single-row FBZ1 receipt), leaving CPUs to earn momentum
+normally. Appearance, moveset, voice, AI, intro and victory definitions remain.
+The controller takes one short approach step before grappling and waits for
+actual native contact readiness before a fresh stick gesture. The all-authored
+four-participant acceptance remains135539/145033; this complementary case
+tests authored-human versus inherited-CPU behavior. No engine code or gameplay
+rules change. Driver fighter-finisher-human-focus-native.txt; cache992e0a01.
+
+
+Focused run152535 positively closes the human-subject playback gap. After an
+ordinary approach and grapple, the read-only controller observes state31/2,
+flags0x101 and neutral input, then sends rup200ms. Native execution enters
+state33 with owned ordinal873. The independent sampler verifies evaluated
+P0000_A on human core141 and P0000_B on the other pack's core144, both owned
+by subject141, with matching indexed names and compiled descriptor hashes.
+Controller output: fighter-human-focus-controller.txt; sampler stream:
+fighter-finisher-human-focus-live-proof.txt. The controller then stops sending
+input. This is scripted ordinary-controller evidence, not a manual playtest.
+Only the running match/save checks, final stock quick regression, documentation
+and local source commit remain; no additional exploratory tests or M3 work.
+
+
+## Final local handoff — 2026-11-05
+
+The owner explicitly requested skipping the queued routine regression and
+handing over the finished features for continued M3 development. That queued
+process was canceled before regress.py started; no final-regression log exists.
+The read-only observer was stopped, then the owned game received normal window
+close and exited0. The harness reports unexpected exit because the scheduled
+720-second test was deliberately shortened; this is not a full-match pass.
+Complete save restoration is byte-identical, with one isolated generation.
+The focused native log has209 frame reports98minimum/120median/121maximum and
+zero crash/watchdog/debug-layer/truncated/unresolved/non-code reports.
+Its preserved stream contains10 evaluated observations and zero ownership
+mismatches, including both human-owned paired roles.
+
+Evidence: fighter-finisher-human-focus-native.txt,
+run-20261105-152535.log.err, fighter-human-focus-controller.txt,
+fighter-finisher-human-focus-live-proof.txt and the explicitly interrupted
+stream summary fighter-finisher-human-focus-stream-summary.json. Captures:
+logs/fighter-window-runs/1ebeac15874e4f72bb61b999a42126e6/captures.
+The accepted full-match results remain135539 and145033; the stock quick pass
+remains regress-20261105-141654.txt. No thresholds or golden images changed.
+No additional exploratory tests, M3 implementation, push or PR were performed.

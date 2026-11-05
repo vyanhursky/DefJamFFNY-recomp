@@ -359,6 +359,7 @@ def main():
                         help='Repeated-match assertion: comma-separated stable keys, once per match in order')
     parser.add_argument('--trace-assets', action='store_true')
     parser.add_argument('--trace-cinematics', action='store_true', help='Observe cinematic names, parser entry and file loads')
+    parser.add_argument('--ready-blazin', action='store_true', help='Test only: fill authored fighters momentum once; activation still uses controller input')
     parser.add_argument('--observe-combat', action='store_true', help='Record native match, movement, attack and damage telemetry')
     parser.add_argument('--require-combat', action='store_true', help='Require observed movement, input-linked attacks and damage in each expected match')
     parser.add_argument('--require-result', action='store_true', help='Also require a decisive result and results screen in each expected match')
@@ -465,6 +466,8 @@ def main():
                    '--env', 'RECOMP_START_LOG=1', '--env', 'RECOMP_TEST_OBSERVATIONS=1']
         if args.record:
             command += ['--env', 'RECOMP_RECORD=1']
+        if args.ready_blazin:
+            command += ['--env', 'RECOMP_FIGHTER_TEST_READY_BLAZIN=1']
         if args.start_fighter:
             command += ['--env', 'RECOMP_START_FIGHTERS=' + start_fighters(report, args.start_fighter)]
         if report.get('appearance_files'):
