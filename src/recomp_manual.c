@@ -44,6 +44,36 @@
 #include "patches/fighter_ui.h"
 #include "patches/fighter_motion.h"
 #include "patches/fighter_voice.h"
+#include "patches/fighter_animation.h"
+#include "patches/fighter_ai.h"
+#include "patches/fighter_cinematic.h"
+
+extern void sub_00087AF0_gen(void);
+void sub_00087AF0(void) {
+    uint32_t request = MEM32(g_esp + 8);
+    uint64_t previous = defjam_fighter_cinematic_enter(g_ecx, MEM32(g_esp + 4), request);
+    sub_00087AF0_gen(); /* Native thiscall ret8; nested scope is host-only. */
+    defjam_fighter_cinematic_leave(previous, request);
+}
+extern void sub_000A1F60_gen(void);
+void sub_000A1F60(void) {
+    uint32_t descriptor = g_ecx;
+    sub_000A1F60_gen(); /* Preserve native post-call registers and ret4. */
+    defjam_fighter_cinematic_name(descriptor);
+}
+extern void sub_000A3160_gen(void);
+void sub_000A3160(void) {
+    defjam_fighter_cinematic_selected(g_ecx, MEM32(g_esp + 4));
+    sub_000A3160_gen(); /* Native owns its actor row and child loaders. */
+}
+
+extern void sub_000C9110_gen(void);
+void sub_000C9110(void) {
+    uint32_t self = g_ecx, config = MEM32(g_esp + 4);
+    defjam_fighter_ai_bind(config);
+    sub_000C9110_gen(); /* Native thiscall ret4 and resource ownership. */
+    defjam_fighter_ai_loaded(self, config);
+}
 
 /* Owned motion descriptors and generation boundaries. Real entry points retain
  * direct-call coverage after re-lift; native retail branches remain delegated. */
@@ -75,7 +105,7 @@ void sub_00089310(void) {
 extern void sub_000A02E0_gen(void);
 void sub_000A02E0(void) {
     uint32_t address = g_esp + 8, bank = MEM32(address);
-    MEM32(address) = defjam_fighter_motion_bank(bank);
+    MEM32(address) = defjam_fighter_animation_bank(bank, defjam_fighter_motion_bank(bank));
     sub_000A02E0_gen();
     MEM32(address) = bank; /* Native ret8 owns stack cleanup. */
 }

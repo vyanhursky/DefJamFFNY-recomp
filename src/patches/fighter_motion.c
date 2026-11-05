@@ -15,8 +15,8 @@
 #define ORIGINAL_CORES 141u
 #define MAX_CORES 16384u
 #define MAX_MOTION (64u * 1024u * 1024u)
-#define MAX_BINDINGS (56u + 16u * (MAX_CORES - ORIGINAL_CORES))
-typedef struct MotionCore { uint32_t parameters, actions, bank; } MotionCore;
+#define MAX_BINDINGS (56u + 280u * (MAX_CORES - ORIGINAL_CORES))
+typedef struct MotionCore { uint32_t parameters, actions, bank; uint64_t pending[3]; } MotionCore;
 static MotionCore s_cores[MAX_CORES - ORIGINAL_CORES];
 static uint32_t s_count, s_size, s_source, s_generation;
 static uint8_t s_digest[32];
@@ -34,6 +34,67 @@ static void motion_stop(const char *message) {
 }
 static uint32_t word(const uint8_t *p) {
     return (uint32_t)p[0] | (uint32_t)p[1]<<8 | (uint32_t)p[2]<<16 | (uint32_t)p[3]<<24;
+}
+static uint32_t half(const uint8_t *p) { return p[0] | (uint32_t)p[1] << 8; }
+static int ordinary_action(uint32_t id) { return id >= 1 && id < 125 && !(id >= 31 && id <= 41); }
+static uint32_t action_owner(const uint8_t *pair, uint32_t local, uint32_t *lower) {
+    uint32_t previous = 1;
+    *lower = 0;
+    for (uint32_t i = 2; i <= 125; ++i) {
+        uint32_t boundary = i == 125 ? 1000 : half(pair + 82 + i * 6);
+        if (local < boundary) return previous;
+        if (boundary > *lower || (boundary == *lower && half(pair + 80 + i * 6) != 65535)) {
+            *lower = boundary; previous = i;
+        }
+    }
+    return 130;
+}
+/* Reconstruct each edited action from its original family. Boundaries and
+ * shared tables remain unchanged; arbitrary native records are not admitted. */
+static int selected_pair(const uint8_t *pair, const uint8_t *original, const uint8_t *proof,
+                         uint32_t moves, uint32_t parameters) {
+    uint32_t count = word(proof), first[130], lengths[130] = {0};
+    unsigned changed = 0;
+    if (count >= 1000 || memcmp(pair, original, 80)) return 0;
+    for (unsigned i = 0; i < 130; ++i) first[i] = UINT32_MAX;
+    for (uint32_t local = 0; local < count; ++local) {
+        uint32_t lower, owner = action_owner(original, local, &lower);
+        if (owner >= 130 || half(original + 84 + owner * 6) + local - lower >= parameters) return 0;
+        if (!lengths[owner]) first[owner] = local;
+        ++lengths[owner];
+    }
+    for (uint32_t target = 0; target < 130; ++target) {
+        uint32_t source = half(proof + 4 + target * 2);
+        const uint8_t *actual = pair + 80 + target * 6, *before = original + 80 + target * 6;
+        if (source == 65535) {
+            if (memcmp(actual, before, 6)) return 0;
+            continue;
+        }
+        if (!count || !ordinary_action(target) || !ordinary_action(source) || target == source) return 0;
+        const uint8_t *chosen = original + 80 + source * 6;
+        uint32_t old = half(before), value = half(chosen);
+        if (old == 65535 || value == 65535 || (old & 0xF000) != (value & 0xF000)
+            || (value & 0xFFF) >= moves || !lengths[target] || lengths[target] > 2
+            || lengths[target] != lengths[source] || first[target] != half(before + 2)
+            || first[source] != half(chosen + 2) || half(actual) != value
+            || half(actual + 2) != half(before + 2) || half(actual + 4) != half(chosen + 4)) return 0;
+        for (unsigned other = 1; other < 130; ++other) {
+            uint32_t start = half(original + 82 + other * 6);
+            if (other != target && half(original + 80 + other * 6) != 65535
+                && start >= first[target] && start - first[target] < lengths[target]) return 0;
+        }
+        ++changed;
+    }
+    if ((!changed) != (!count)) return 0;
+    for (uint32_t local = 0; local < count; ++local) {
+        uint32_t lower, owner = action_owner(original, local, &lower), next_lower;
+        uint32_t next = action_owner(pair, local, &next_lower), source = half(proof + 4 + owner * 2);
+        if (source == 65535) source = owner;
+        if (next != owner || next_lower != lower
+            || half(pair + 84 + next * 6) + local - lower
+                != half(original + 84 + source * 6) + local - lower) return 0;
+    }
+    return 1;
 }
 static int shared_table(const uint8_t *p, uint32_t size, unsigned kind) {
     if (kind == 0) {
@@ -98,22 +159,26 @@ int defjam_fighter_motion_start(void) {
     size_t size = 0, bytes = 0;
     uint8_t *table = read_file(bindings, MAX_BINDINGS, &size);
     uint8_t *data = read_file(path, MAX_MOTION, &bytes);
-    int valid = table && data && size >= 56 && !memcmp(table, "FMC1", 4)
-        && word(table + 4) == 1 && word(table + 8) == ORIGINAL_CORES
+    uint32_t stride = table && size >= 56 && !memcmp(table, "FMC2", 4) && word(table + 4) == 2 ? 280 : 16;
+    int valid = table && data && size >= 56
+        && ((stride == 280) || (!memcmp(table, "FMC1", 4) && word(table + 4) == 1))
+        && word(table + 8) == ORIGINAL_CORES
         && word(table + 12) && word(table + 12) <= MAX_CORES - ORIGINAL_CORES
-        && size == 56u + 16u * word(table + 12) && bytes == word(table + 16) && !word(table + 20);
+        && size == 56u + stride * word(table + 12) && bytes == word(table + 16) && !word(table + 20);
     if (!valid) { free(table); free(data); return 0; }
     uint8_t digest[32]; char encoded[65];
     sha256(data, bytes, digest); hex(digest, encoded);
     valid = !memcmp(digest, table + 24, 32) && !strcmp(encoded, hash);
     /* Establish every native chunk before publishing any sidecar entry. */
-    uint32_t cursor = 0, original[ORIGINAL_CORES];
+    uint32_t cursor = 0, original[ORIGINAL_CORES], moves = 0, parameters = 0;
     static const char *tags[6] = {"WAZA", "FZUI", "NAME", "WAZA", "FZUI", "NAME"};
     for (unsigned i = 0; valid && i < 6; ++i) {
         if (cursor > bytes || bytes - cursor < 8 || memcmp(data + cursor, tags[i], 4)
             || word(data + cursor + 4) > bytes - cursor - 8) { valid = 0; break; }
         uint32_t length = word(data + cursor + 4);
         if (!shared_table(data + cursor + 8, length, i % 3)) { valid = 0; break; }
+        if (i == 0) moves = word(data + cursor + 12);
+        if (i == 1) parameters = word(data + cursor + 12);
         cursor += 8 + length;
     }
     uint32_t count = word(table + 12);
@@ -123,13 +188,20 @@ int defjam_fighter_motion_start(void) {
             || word(data + cursor + 76) != 780) { valid = 0; break; }
         if (i < ORIGINAL_CORES) original[i] = cursor;
         else {
-            const uint8_t *row = table + 56 + (i - ORIGINAL_CORES) * 16;
+            const uint8_t *row = table + 56 + (i - ORIGINAL_CORES) * stride;
             uint32_t bank = word(row + 12);
             if (word(row) != i || word(row + 4) != cursor + 8 || word(row + 8) != cursor + 80
-                || bank < 3 || bank > ORIGINAL_CORES || memcmp(data + cursor, data + original[bank - 1], 860)) {
+                || bank < 3 || bank > ORIGINAL_CORES) {
                 valid = 0; break;
             }
-            s_cores[i - ORIGINAL_CORES] = (MotionCore){cursor + 8, cursor + 80, bank};
+            if (stride == 16 ? memcmp(data + cursor, data + original[bank - 1], 860)
+                : !selected_pair(data + cursor, data + original[bank - 1], row + 16, moves, parameters)) {
+                valid = 0; break;
+            }
+            MotionCore *core = &s_cores[i - ORIGINAL_CORES];
+            *core = (MotionCore){cursor + 8, cursor + 80, bank, {0, 0, 0}};
+            if (stride == 280) for (unsigned action = 0; action < 130; ++action)
+                if (half(row + 20 + action * 2) != 65535) core->pending[action / 64] |= 1ull << (action % 64);
         }
         cursor += 860;
     }
@@ -246,6 +318,13 @@ int defjam_fighter_motion_state(uint32_t output, uint32_t context, uint32_t id) 
         MEM8(output + 0xF68) = !!(value & 0x8000);
         decode_move(output, 0, value & 0xFFF);
         MEM32(output + 0xFB4) = MEM16(at + 2) + slot * 1000;
+        MotionCore *observed = &s_cores[row - s_cores];
+        uint64_t bit = 1ull << (id % 64);
+        if ((observed->pending[id / 64] & bit) && MEM32(0x3B8F30) == 1) {
+            observed->pending[id / 64] &= ~bit;
+            fprintf(stderr, "[FIGHTERS] combat selected action core %u slot %u action %u move %u motion %u actor 0x%08X\n",
+                    MEM32(context + 0x2C), slot, id, value & 0xFFF, MEM16(at + 2), output);
+        }
     }
     MEM32(output + 0x3C0) = (uint32_t)(int32_t)(int16_t)MEM16(output + 0xF6C);
     MEM8(output + 0x926) = (uint8_t)((MEM8(output + 0x926) & 0xFE) | special);

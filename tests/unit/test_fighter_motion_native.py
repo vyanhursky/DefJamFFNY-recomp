@@ -91,6 +91,18 @@ int main(int argc,char **argv) {
     int started=defjam_fighter_motion_start();
     if (!strcmp(mode,"reject") || !strcmp(mode,"inactive")) { assert(!started); return 0; }
     assert(started && !strcmp(defjam_fighter_motion_path(),argv[1]));
+    if (!strcmp(mode,"selected")) {
+        FILE *selected_file=fopen(argv[1],"rb"); assert(selected_file);
+        assert(fread(XBOX_PTR(SOURCE),1,0x100000,selected_file)); fclose(selected_file);
+        defjam_fighter_motion_register(SOURCE);
+        MEM32(CONTEXT+0x2C)=141; MEM32(OUTPUT+0x28)=0;
+        MEM32(0x3B85DC)=32; MEM32(0x3B85E0)=3; MEM32(0x3B85EC)=0x400000;
+        MEM32(0x3B85F8)=4; MEM32(0x3B92E0+0x2C)=141;
+        entry(); assert(defjam_fighter_motion_state(OUTPUT,CONTEXT,2)); preserved();
+        assert(MEM32(OUTPUT+0xF54)==0 && MEM32(OUTPUT+0xFB4)==1 && decoded_source==0x400000);
+        entry(); assert(defjam_fighter_motion_frame(1)); preserved(); assert(g_eax==0);
+        return 0;
+    }
     /* Audio initializes before the source generation exists. */
     memset(XBOX_PTR(0x2000),0xA5,0x84);
     for (uint32_t i=0;i<4;++i) MEM32(0x2020+i*0x18)=(uint32_t[]){257,3,UINT32_MAX,260}[i];

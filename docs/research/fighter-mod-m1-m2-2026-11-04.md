@@ -710,3 +710,136 @@ logs/fighter-authored-voice-quick-regression-nov05.txt. Working-tree full unit
 run1566passed/27skipped/1deselected in101.03s; boot/title/menu goldens match;
 stock fight120s, median120/min114presents per2s. No thresholds or goldens
 changed. This accepts the first voice runtime checkpoint; M2 remains open.
+
+### 2026-11-05 authored animation and AI integration in progress
+
+Animation native oracle PASS20cases/220evaluations/77,880float slots, zero
+byte differences. Native adapter12MSVC checks pass. CPU034831 loads four
+owned banks1000..1003 with cores256..259, five combat assertions,173 frame
+reports106/120/120, zero faults and one byte-identically restored save
+generation. ED000 is positively executed; only two wrapper identities were
+observed, so this does not prove all four authored clips ran. See the authored
+animation report for exact logs and watch totals.
+
+AI now has a data-only profile compiler (24 named tendency fields,23 editable,
+canonical1..5 authoring range; inherited stage/trigger resources). FIA1 binds
+full core IDs to bounded profile names at the native C9110 boundary. The native
+parser retains ownership; post-load checks reject silent profile fallback and
+log actual parsed tendency values.28 focused Python/MSVC checks pass. Re-lift
+and release build pass (`logs/fighter-ai-relift-nov05.txt`,
+`logs/fighter-ai-build-nov05.txt`); combined native AI/animation CPU run ongoing.
+
+Moveset selection composer12tests pass. Edits preserve each target action's
+MNL range while copying source behavior and matching MNL/event-family aliases;
+all actual MNL parameter resolutions are rechecked. Current bounded profile
+accepts same-bank one/two-motion families with matching control flags, excluding
+special action windows. Original shared WAZA/FZUI bytes stay unchanged. Actual
+core5 action6<-5 composes successfully; native receipt/admission is not yet
+implemented. It is not evidence of authored hit logic or Blazin support.
+
+M1 preview clarification remains pending; M2 moveset/event/cinematic coverage
+and final regression remain incomplete. No M3, push or public PR.
+
+### 2026-11-05 AI CPU/four-human acceptance and selected movesets
+
+CPU040424 PASS5combat assertions,174frame reports99/120/120; four-human041104
+PASS6assertions,199reports96/120/120. Both zero crash/watchdog/debug-layer/
+truncated-batch/unresolved-call faults and one byte-identical save generation.
+All16 native AI tendency rows per match show the intended per-core values.
+See fighter-ai-registration-2026-11-05.md for paths and capacity qualifiers.
+Read-only native memory sample also confirms four visual table entries and
+full core IDs (`logs/fighter-animation-human-model-table-nov05.txt`). ED000
+EBX contains a truncated model animation context, not an actor pointer;
+serialized-record membership needs separate evidence.
+
+FMC2 selected-core receipt and native validator implemented;56 combined MSVC
+motion/selection tests pass (`logs/fighter-moveset-native-unit-nov05.txt`).
+14 Python selection tests pass, including coupled bank-name aliases and
+preserved neighboring parameter ownership. Incremental build passes
+`logs/fighter-moveset-build-nov05.txt`; first combined native selected-moveset
+CPU test is running. No completion claim until its assertions and actual
+selected-action execution have been checked. Remaining cinematic/Blazin
+binding work and final stock regression are still required.
+
+### 2026-11-05 selected moveset combat and cinematic compiler checkpoint
+
+Four-human043214 PASS6combat assertions,199frame reports96/120/121; zero
+crash/watchdog/debug-layer/truncated-batch/unresolved-call faults and one
+byte-identically restored save generation. Log: run-20261105-043214.log.err;
+driver: fighter-authored-moveset-human-native.txt. Combat-phase diagnostics
+prove action54 selections for cores256/257 and action56 for core258. No
+claim that every selected action or all four edited cores executed follows.
+
+The selected-moveset compiler/native validator now reject aliases from other
+active actions into the edited MNL interval. Real action98 aliases action55;
+editing55 would also change98. Tests include that non-owning alias.71 focused
+Python/native checks passed before the additional native alias test, then17
+selection-native checks passed. FMC2 preserves complete inherited parameter
+families; arbitrary new hit/event behavior and Blazin remain unsupported.
+
+The CPU042229 read-only combat-phase proof matched28 observed context/record
+pairs to owned track descriptors across all four participant slots. Equal
+duration tracks can have identical descriptors; the next proof additionally
+checks the bank's record cell, parent/child edge and descriptor relocation.
+That stronger live check is still being collected; do not treat the older
+descriptor match as proof of a unique clip token.
+
+A repeat044235 omitted its explicit browsing stage and remained at selection.
+It was deliberately stopped:118frame reports106/120/120, zero fault categories,
+one verified generation and identical save restoration. This is a failed test
+fixture, not combat acceptance. Retest044717 restores the stage, exact command
+saved in logs/fighter-authored-moveset-live-retest.ps1; still running here.
+
+New fighter_cinematic_compile.py has6 focused tests and a real local CI_113A /
+CE_113A composition probe. It generates independent FI00000/FV00000 bundles,
+typed full-rig body quaternions, and retains trusted camera/face/hair/root-motion
+and timing. Renaming only touches parsed symbols and indexed names. FIC1 ties
+full core IDs to independent generated XML labels and hashes both archives.
+Source v2ta SHA7385473c185e40525c2b821888b1e29da3a4d21e6fb69fcdc73725fb6d5da6c7;
+probe logs/fighter-cinematic-compiler-probe/receipt.json. Native registration
+and playback are not implemented yet. No completion, M3 or publication.
+
+### 2026-11-05 cinematic native result checkpoint
+
+The preceding pending items are superseded by the authored-animation and
+cinematic reports. Strong combat proof044717 matched28/28 observed owned
+record/descriptor pairs across all four participant slots, with no unmatched
+pairs. All four edited cores positively executed selected moves in combat.
+
+Cinematic FIC1 adapter and three scoped real wrappers are implemented and
+built. Seven Python and21 MSVC checks pass. Human050022 passes6combat checks;
+CPU051136 passes8combat/result checks,324frame reports101/120/120, zero native
+fault categories, one byte-identical save generation. All four independent
+intros were selected/body-bound; core259's winning FV00003 was also selected,
+bound and matched by the named live pose sampler. Two cores sharing one
+appearance selected different intro resources. Exact evidence and visual
+qualifications: fighter-cinematic-registration-2026-11-05.md.
+
+Stock quick regression for the complete animation/moveset/AI/cinematic batch
+is running. M2 still needs Blazin registration and visual sequence acceptance;
+general pack admission remains deliberately gated. M1 preview clarification
+remains unresolved. M1/M2 are not complete and M3 has not started.
+
+### 2026-11-05 integrated behavior regression
+
+Stock quick regression PASS5/5 in9minutes:
+logs/fighter-animation-ai-cinematic-quick-regression-nov05.txt and
+logs/regress-20261105-053305.txt. Units1673passed/27skipped/1deselected;
+all three goldens unchanged; stock fight120seconds,120median/114minimum
+presents per2seconds. No thresholds changed. This covers the current native
+animation, selected moveset, AI and cinematic wrappers together.
+
+Subsequent Python hardening adds an incremental aggregate animation archive
+budget and validates nested receipts/mixed core-key types before sorting or
+indexing.44 focused animation/moveset checks pass. No further C changes.
+Repeated diagnostic drivers and the named cinematic live sampler are now
+source scripts under scripts/, retaining guarded saves and local-only assets.
+These are reproducible development fixtures, not public package admission.
+
+Ordinary resource-definition integration still needs a shared coordinator
+behind fighter-registry.compile_inputs: allocate owned cores consistently,
+couple FMC2 edits with their MNL aliases, bind voice/AI/cinematics using that
+same core map, compose cinematics on the already-composed NIS archive, then
+hash and emit the exact artifact set. Do not introduce a parallel installer
+or silently enable shipping gates. This belongs to M2, while activation,
+rollback and normal-profile workflows remain M4.
