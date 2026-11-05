@@ -656,3 +656,24 @@ Together with the two high-core combat routes above, this accepts the current
 inherited motion/audio adapter checkpoint. It does not complete M2: genuinely
 authored behavior and independently registered voices remain outstanding.
 No M3 work or public publication.
+
+
+### 2026-11-05 owned PCM voice compiler and native comparison
+
+Added bounded mono PCM16 stream writer/validator and verified-template bank
+composition.71 focused tests pass, including malformed lengths/sample counts,
+independent bank keys, event metadata preservation, explicit inherited samples
+and offset-unit expansion beyond16MiB without truncation. Twelve real local
+templates compose successfully (Character/Taunts/Enviro, donors4/5/22/500).
+Original DAT tails can contain unindexed bytes beyond HDRterminal; the compiler
+excludes/reports them rather than interpreting them as sample data.
+
+Native parser/packet/PCM comparison:120 invented streams,311430 samples, zero
+byte differences; partial reads, final zero-fill and exhaustion checked.
+`logs/fighter-voice-oracle/comparison.json`,
+`logs/fighter-voice-oracle-nov05.txt`,
+`logs/fighter-voice-bank-template-validation-nov05.json`.
+This is not in-game authored-voice acceptance. See the rewritten voice report
+for the200-byte native loaded-flag limitation, independent WORD bank keys,
+event metadata layout, and remaining family-selection/intro-extro mapping.
+M1/M2 remain incomplete; no M3 or publication.
