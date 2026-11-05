@@ -471,6 +471,10 @@ def main():
             for field, relative in [('MODELS', 'assets/v2ip.viv'), ('ENTITIES', 'assets/entity.xml'), ('CINEMATICS', 'assets/nis.viv')]:
                 command += ['--env', 'RECOMP_FIGHTER_RESEARCH_' + field + '=' + str(cache / relative)]
                 command += ['--env', 'RECOMP_FIGHTER_RESEARCH_' + field + '_SHA256=' + report['appearance_files'][relative]]
+        if report.get('behavior_files'):
+            from fighter_behavior import environment as behavior_environment
+            for name, value in behavior_environment(cache, report).items():
+                command += ['--env', name + '=' + value]
         if args.no_unlock:
             command += ['--env', 'RECOMP_UNLOCK_ALL=0']
         for key, value in layers.items():

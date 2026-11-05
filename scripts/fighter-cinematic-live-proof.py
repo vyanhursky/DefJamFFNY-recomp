@@ -1,7 +1,7 @@
 """Sample currently bound cinematic poses without modifying the game.
 
-Usage: python scripts/fighter-cinematic-live-proof.py CACHE PID SECONDS
-CACHE is the generated cinematic diagnostic directory. Windows-only; requires
+Usage: python scripts/fighter-cinematic-live-proof.py CACHE PID SECONDS [OUTPUT]
+CACHE is a generated cinematic diagnostic or ordinary preview directory. Windows-only; requires
 read access to the exact test process and the matching executable map. Output
 is CACHE/cinematic-live-named-proof.json. Samples check current ownership and
 indexed names; absence of a sample does not prove failure to play a sequence.
@@ -15,9 +15,28 @@ from fighter_animation import AnimationIndex
 spec=importlib.util.spec_from_file_location('peek',ROOT/'scripts/peek-guest.py')
 peek=importlib.util.module_from_spec(spec);spec.loader.exec_module(peek)
 cache,pid,seconds=Path(sys.argv[1]),int(sys.argv[2]),int(sys.argv[3])
-receipt=json.loads((cache/'cinematic-receipt.json').read_text(encoding='utf-8'))
+output=Path(sys.argv[4]) if len(sys.argv)>4 else cache/'cinematic-live-named-proof.json'
+owners={}
+if (cache/'report.json').is_file():
+ report=json.loads((cache/'report.json').read_text(encoding='utf-8'))
+ receipt=report['behavior_receipts']['cinematic']
+ for core,pair in report['behavior_receipts']['cinematic_bindings']['bindings'].items():
+  for category in ('intro','victory'):owners.setdefault(pair[category],set()).add(int(core))
+ if 'blazin' in report['behavior_receipts']:
+  table=(cache/'fighter-blazin.bin').read_bytes()
+  assert table[:4]==b'FBZ1' and len(table)==48+36*struct.unpack_from('<I',table,8)[0]
+  for at in range(48,len(table),36):
+   core,*names=struct.unpack_from('<I8s8s8s8s',table,at)
+   for name in names:owners.setdefault(name.rstrip(b'\0').decode('ascii'),set()).add(core)
+ items=list(receipt['bindings'].items())
+ for key,shots in report['behavior_receipts'].get('blazin',{}).get('bindings',{}).items():
+  items.extend((key+':'+str(shot['phase']),shot) for shot in shots)
+else:
+ receipt=json.loads((cache/'cinematic-receipt.json').read_text(encoding='utf-8'))
+ items=list(receipt['bindings'].items())
 archive=Archive((cache/'assets/v2ta.viv').read_bytes());expected=[]
-for key,item in receipt['bindings'].items():
+for key,item in items:
+ if 'bindings' not in item['animation']:continue # inherited body has no authored descriptor oracle
  name=item['native_name'];nested=Archive(archive.read(name+'.viv'))
  idx=AnimationIndex(envelope(nested.read(name+'.o')));model=idx.model
  row=item['animation']['bindings'][item['template']];child=row['child'];parent=row['parent']
@@ -29,7 +48,7 @@ for key,item in receipt['bindings'].items():
 peek.k32.OpenProcess.restype=wt.HANDLE
 handle=peek.k32.OpenProcess(0x410,False,pid)
 if not handle:raise RuntimeError('Cannot read test process')
-results=[];seen=set();errors=0
+results=[];seen=set();errors=0;mismatches=[]
 try:
  symbol=peek.map_symbol(ROOT/'build/win-x64-release/defjam_recomp.map','g_xbox_mem_offset')
  offset=0
@@ -71,9 +90,14 @@ try:
      row={'time':time.time(),'phase':word(0x3B8F30),'indexed_name_checked':True,'slot':slot,'core':word(0x3B90B8+4*slot),'key':key,'native_name':name,
           'pose':hex(pose),'wrapper':hex(wrapper),'parent':hex(parent),'child':hex(child),
           'evaluated_child_wrapper':evaluated,'descriptor_sha256':digest}
+     if owners:
+      row['owner_matches_binding']=row['core'] in owners.get(name,set())
+      if evaluated and not row['owner_matches_binding']:mismatches.append(row)
      results.append(row);print(json.dumps(row),flush=True)
    except (ValueError,TypeError,OverflowError):errors+=1
   time.sleep(.1)
 finally:
  peek.k32.CloseHandle(handle)
- (cache/'cinematic-live-named-proof.json').write_text(json.dumps({'pid':pid,'snapshots':results,'unreadable_samples':errors},indent=2),encoding='utf-8')
+ output.write_text(json.dumps({'pid':pid,'snapshots':results,'unreadable_samples':errors,
+                              'ownership_mismatches':mismatches},indent=2),encoding='utf-8')
+if mismatches:raise SystemExit('Evaluated cinematic resource belongs to a different fighter')

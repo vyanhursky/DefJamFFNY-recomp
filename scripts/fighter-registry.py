@@ -140,7 +140,14 @@ def compile_inputs(sod, paths, packs, ledger=None, **options):
             portraits[name] = portrait
             resources.update(portrait.files)
             portrait_files.update({path: hashlib.sha256(payload).hexdigest() for path, payload in portrait.files.items()})
-    data, report = catalog.compile(packs, ledger, appearances=appearances, portraits=portraits, **options)
+    behavior = None
+    if any(value['kind'] not in ('appearance', 'portrait') for value in sourced.values()):
+        from fighter_behavior import BehaviorPlan
+        behavior = BehaviorPlan(catalog, snapshot, roots, sod.parents[1], pin, appearances, resources)
+        resources.update(behavior.files)
+        appearance_files = {path: hashlib.sha256(resources[path]).hexdigest() for path in appearance_files}
+    data, report = catalog.compile(packs, ledger, appearances=appearances, portraits=portraits,
+                                   behavior=behavior, **options)
     if appearance_files:
         report['appearance_files'] = appearance_files
     if portrait_files:
@@ -158,9 +165,15 @@ def write_preview(data, report, resources=None):
     appearance_targets = {'assets/v2ip.viv', 'assets/entity.xml', 'assets/nis.viv'} if report.get('appearance_resources') else set()
     portrait_targets = {f'portraits/{resource_name(identifier)}/{part}.big'
                         for identifier in report.get('portrait_resources', {}) for part in PORTRAIT_PARTS}
+    behavior_targets = set()
+    if report.get('behavior_files') or report.get('behavior_receipts'):
+        from fighter_behavior import targets
+        behavior_targets = targets(report.get('behavior_receipts'))
+        if set(report.get('behavior_files', {})) != behavior_targets:
+            raise ValueError('Behavior resources require their exact composed files')
     if bool(report.get('appearance_resources')) != bool(report.get('appearance_files')):
         raise ValueError('Appearance resources require their complete composed files')
-    if type(resources) is not dict or set(resources) != appearance_targets | portrait_targets:
+    if type(resources) is not dict or set(resources) != appearance_targets | portrait_targets | behavior_targets:
         raise ValueError('Invalid composed appearance targets')
     if any(not isinstance(payload, bytes) or not 0 < len(payload) <= MAX_ARCHIVE for payload in resources.values()):
         raise ValueError('Composed appearance file exceeds budget')
@@ -168,6 +181,8 @@ def write_preview(data, report, resources=None):
         raise ValueError('Composed appearance receipt differs from its bytes')
     if report.get('portrait_files', {}) != {path: hashlib.sha256(resources[path]).hexdigest() for path in portrait_targets}:
         raise ValueError('Composed portrait receipt differs from its bytes')
+    if report.get('behavior_files', {}) != {path: hashlib.sha256(resources[path]).hexdigest() for path in behavior_targets}:
+        raise ValueError('Composed behavior receipt differs from its bytes')
     serialized = (json.dumps(report, indent=2, sort_keys=True, allow_nan=False) + '\n').encode('utf-8')
     if len(serialized) > MAX_REPORT:
         raise ValueError('Generated preview report exceeds budget')

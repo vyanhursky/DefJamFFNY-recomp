@@ -1,8 +1,11 @@
 # Fighter Mod Support: M1/M2 implementation checkpoint
 
 Local branch `research/custom-fighter-mods`, target v0.15.0. The owner authorized
-M1 and M2, including computer testing. Neither milestone is complete; review
-the results and unresolved decisions before M3. No push or public PR.
+M1 and M2, including computer testing. M1 is complete for local Windows
+acceptance with the approved 2D selector/3D entrance-combat scope; macOS/Deck
+smoke checks remain unperformed. M2 is incomplete. Review the results and
+unresolved decisions before M3. No push or public PR. Earlier entries below
+are historical checkpoints; latest results appear at the end.
 
 ## Implemented and checked
 
@@ -843,3 +846,203 @@ same core map, compose cinematics on the already-composed NIS archive, then
 hash and emit the exact artifact set. Do not introduce a parallel installer
 or silently enable shipping gates. This belongs to M2, while activation,
 rollback and normal-profile workflows remain M4.
+
+### 2026-11-05 Blazin classification and ordinary behavior composition
+
+Native055646 passes8combat/result assertions,349frame reports101/120/120,
+zero crash/watchdog/debug-layer/truncated-batch/unresolved-call categories,
+one byte-identically restored save generation. Driver
+logs/fighter-blazin-mask-cinematic-native.txt; log run-20261105-055646.log.err.
+Cache logs/fighter-motion-probes/a0d7e3ae4d644d00a1e2f8b366fc10ca;
+captures logs/fighter-window-runs/5a368fc51dd8430a8b29038da86973c9/captures.
+The 1A8180 adapter preserves all four owned cores' WPAR choices2,2,2,2.
+Mixed native fixtures also retain retail-created profile overrides, ignore
+inactive slots and reject invalid choices before publishing the mask.
+This proves inherited choice preservation, not authored Blazin playback.
+
+Dedicated fighter-cinematic events produced all16 requested captures.
+Reviewed entrance montage and winner frames show the synthetic arm/rig
+exercise and the beta winning body. Selection events precede presentation:
+the first intro captures still show the venue; later intro captures can show
+the preceding participant. Do not label each screenshot by its load event.
+The independent named live sampler confirms evaluated FI00000..FI00003 for
+their four cores, and FV00003/core259 at phase3. The sampler report is in the
+cache; visual capture timing still needs refinement for individual sequences.
+
+The typed creator reader accepts bounded quaternion JSON, PCM16 WAV, action
+choices, AI tendencies and simple cinematic templates;10focused tests pass.
+SODB now accepts internally allocated character_cores before indexes/windows
+and receipt generation;28SODB/reader checks pass. Partial cinematic authoring
+can clone the other verified category unchanged;35cinematic/resolver checks
+pass. BehaviorPlan and compile_inputs/write_preview/probe integration are
+being implemented and are not yet accepted: all existing gates remain false.
+An AI-only ordinary-manifest compiler probe is currently running.
+
+Inherited AI needs an additional formatting correction. D6EE0(output,input)
+constructs profiles before C9110 consumes them. Only when separate configured
+identity V=input+200[slot] is zero does it use core K=input+40[slot] and format
+char(K+1). A post-return adapter maps admitted owned K to its verified donor
+for that fallback only; nonzero V (including chaXXXXX modes), unoccupied slots,
+input bytes and guest registers remain untouched. Explicit FIA1 overrides
+still win in C9110.64focused motion/cinematic native checks pass; relift/build
+is running. Native inherited-profile acceptance remains pending.
+
+Audit found separate open-ended setup+A8>=87 cinematic/presentation branches
+in87AF0,87E20,89F20,8A300,8B440. Setup+A8 is one-based core, so owned cores do
+enter these branches. Their original HERO/variant and sequence-state behavior
+must be considered beyond the explicit FIC1 lookup. No second WPAR overwrite
+was found. Broad temporary donor substitution is not adopted:8B440 has virtual
+callbacks and the shared setup would expose substituted identity. See the
+Blazin registration report for exact sites and remaining investigation.
+
+M1/M2 remain incomplete. Remaining work includes authored Blazin registration,
+ordinary-manifest integration/native acceptance, these setup assumptions and
+the owner's native-portrait versus new3D-preview clarification. M3 has not begun.
+
+### Owner preview decision — 2026-11-05
+
+D-new: the owner chose custom2D portraits in the native fighter selector,
+with3D models verified in entrances and combat. A new live3D selector preview
+is not part of M1. This closes the earlier preview clarification; the milestone
+table in docs/fighter-mod-support.md now uses the approved acceptance wording.
+Existing entrance/combat geometry and portrait evidence applies to that scope.
+Final integrated checks and M2 work are still pending; M3 has not started.
+
+### 2026-11-05 ordinary behavior and inherited AI acceptance
+
+The ordinary manifest coordinator now composes motion cores, authored animation
+banks, voices, AI and intro/victory resources together. Each added fighter owns
+a core; resources remain independently shareable. Typed JSON/WAV sources,
+shared input/output budgets, exact artifact receipts and immutable cache
+verification apply. General launcher activation remains gated. See
+fighter-behavior-definitions-2026-11-05.md for creator contracts.
+
+The earlier D6EE0 note was incomplete: the normal producer stores
+V=K+1+1000*signed_variant, so ordinary inherited AI also needs the V=K+1 case.
+The adapter now maps V=0 and V=K+1 to the verified donor, preserves other
+variants and native formatting rules, and checks after C9110 that neither
+inherited nor authored owned profiles silently fell back.67 focused native
+tests pass; relift/build passed. Logs:
+fighter-inherited-ai-identity-native-unit-nov05.txt,
+fighter-inherited-ai-identity-relift-nov05.txt,
+fighter-inherited-ai-identity-build-nov05.txt.
+
+Native094636 uses two ordinary manifests with two authored and two inherited
+AI profiles, four owned cores141..144. All four profiles were retained:
+authored fma12cd81a9997efe476d4b8098/fma82c220697db1328958146c91 and
+inherited char0005. PASS5 combat assertions and four menu identities;
+210 frame reports102/120/121, zero five native fault categories, one
+byte-identically restored save generation. No result assertion was requested.
+Driver fighter-ordinary-ai-inheritance-retest-native.txt;
+run-20261105-094636.log.err. Captures:
+logs/fighter-window-runs/9fa5c84446114f29bbb8ef317fd627f1/captures.
+
+Full authored behavior manifests have also compiled successfully using the
+reproducible scripts/fighter-behavior-fixture.py creator-data fixture. Their
+native combined acceptance is pending. Stock quick regression is running
+for the current foundation. The new four-phase Blazin activation compiler
+passes15 combined cinematic/compiler tests and a local original-data probe;
+native registration and ordinary admission are not yet implemented. These
+activation shots are distinct from the paired combat Blazin move resources.
+M1/M2 are not formally complete; no M3 or public work has begun.
+
+### 2026-11-05 stock regression and Blazin ownership counterexample
+
+Stock regression PASS5/5,9minutes:1707passed/27skipped/1deselected, three
+unchanged goldens,120seconds of stock combat with120median/110minimum
+presents per2seconds. Logs fighter-ordinary-behavior-quick-regression-nov05.txt
+and regress-20261105-100911.txt. This precedes the next activation adapter.
+
+The four-phase FBZ1 adapter passed60 focused Python/native tests and built
+successfully (fighter-blazin-native-unit-nov05.txt,
+fighter-blazin-activation-build-nov05.txt). Ordinary full authored manifests
+compile through the normal reader; archive receipts are chained and both
+binding tables hash the same final v2ta resource. Native101354 is running
+two packs/four owned fighters, independently authored animation/moveset,
+voice, AI, intro/victory and activation resources. All four intro poses were
+positively evaluated and all four authored AI profiles retained.
+
+**Activation ownership failed live acceptance.** At preload, native87AF0
+constructs all10 shared activation descriptors with slot0. The current
+adapter consequently selects core141's B00000..B00003 once. The named live
+sampler later catches slot2/core143 and slot3/core144 evaluating those same
+resources, rather than their own. Four-phase playback works, but this is
+not correct per-fighter routing. The earlier request-owner inference applied
+to intro/victory, not this shared activation cache. Repair must distinguish
+preload ownership from87E20's actual playback participant. No M2 acceptance
+is claimed. Exact run:run-20261105-101354.log.err; driver
+fighter-ordinary-full-blazin-native.txt; sampler
+fighter-ordinary-full-blazin-live-proof.txt; cache
+logs/fighter-native-preview/f965a3d343aca78204614be0143fe1457384a66bdc04fb7d93796e94d0cb9305.
+
+Paired combat execution is separately located in1D3800: the selected subject's
+F50/BB8 choice produces10709+2*choice at1D3B72, passed to1A85A0 at1D3BA0;
+the linked counterpart receives the adjacent ordinal at1D3BAA. The new typed
+BlazinPairs compiler appends independent subject/counterpart banks and MNL
+entries while retaining original bytes and donor WAZA behavior.7invented
+fixtures pass; the original-data probe produces four pairs at external
+ordinals873,875,877,879,172total names,6026888bytes. Logs
+fighter-blazin-pairs-unit-nov05.txt and fighter-blazin-pairs-probe.txt.
+This compiler has no native registration or ordinary source admission yet.
+
+### 2026-11-05 full ordinary run result and cache correction
+
+Native101354 finished PASS8combat/result assertions,348frame reports108/120/121,
+zero five native fault categories, four menu identities and one byte-identical
+save restoration. All four authored intros and winner FV00003/core144 were
+positively evaluated. Captures are under
+logs/fighter-window-runs/4fb36698b55d4ebb878be0cea48d346e/captures.
+This does not erase the observed activation ownership failure. The complete
+sampler evidence is preserved as fighter-ordinary-full-blazin-live-proof-101354.json.
+
+The cache fix reserves40 additional native descriptors/requests, ten per
+participant, without changing the native logical load-loop count. It constructs
+and loads each independently, remaps88DD0 using actual playback owner2D844,
+and extends the cleanup count only for89310's native destructor loop. Shared
+retail activation descriptors remain untouched.87AF0 labels only the private
+groups.88FF0 is void-like; it cannot gate readiness by returningfalse. Instead
+the state6/89B30 dispatcher waits until private groups are ready;8BE60 retries
+it each tick without consuming the pending activation.37focused native tests
+pass for allocation, delayed readiness, full-core selection, unchanged guest
+registers, bounded writes and cleanup. Relift/build is running; native retest
+is pending. The sampler now treats evaluated wrong-owner resources as failure.
+
+With the preview decision closed, the two ordinary appearance packs' prior
+human/CPU/four-controller acceptance, geometry/skin validation, entrance/combat
+evidence and current stock regression meet M1's local Windows scope. M1 is
+marked complete with explicit unperformed macOS/Deck smoke qualification.
+M2 is not complete, and M3 remains unstarted.
+
+### 2026-11-05 private activation cache native acceptance
+
+Relift/build PASS: fighter-blazin-private-cache-relift-nov05.txt and
+fighter-blazin-private-cache-build-nov05.txt; backup20261105-103250.
+Native103546 PASS8combat/result assertions,349frame reports100/120/121,
+zero five fault categories and one byte-identical save generation. All four
+menu identities pass. Driver fighter-private-blazin-cache-native.txt;
+captures logs/fighter-window-runs/bbf1bc1c27784638ae675fe71226aeea/captures.
+
+The completed read-only sampler verifies17evaluated sequences with zero
+ownership mismatches: four intros, four Blazin phases each for cores142/143/144,
+and core144's winning FV00003. This directly resolves the preceding shared-cache
+counterexample. Evidence fighter-private-blazin-cache-live-proof.json/.txt.
+Human core141's activation was not observed; scripted right-stick gestures
+alone did not establish it. Positive human activation remains a final check.
+The native fixture now tests two different resources/owners and verifies the
+original shared descriptors remain untouched.
+
+Stock quick regression is running for this cache batch; unit phase already
+PASS1735/27skipped/1deselected. Ordinary Blazin sources now also accept optional
+paired finisher tracks under retained donor choices.24 focused composition/
+reader/pair checks pass. The two full finisher manifests compile successfully
+to cache8997f9352a25eac6f400bf8f30601ef8fba557e7b960a7648b7ce919e13eafe0
+(fighter-behavior-finisher-compile-nov05.txt). **Do not launch that manifest
+yet:** native FBP1/provider/selection adapters are not implemented. Normal
+activation remains gated; M2 and M3 status is unchanged.
+
+Stock quick regression for the private-cache batch PASS5/5 in9minutes:
+fighter-private-blazin-cache-quick-regression-nov05.txt and
+regress-20261105-105726.txt.1735passed/27skipped/1deselected; three unchanged
+goldens;120seconds of stock combat,120median/105minimum presents per2seconds.
+Source publication check720files/0failures; no toolkit change or game assets.
+This is the local commit boundary before native paired-finisher work.

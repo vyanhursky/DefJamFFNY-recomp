@@ -207,7 +207,8 @@ class Database:
                 'table_count': len(self._tables), 'schema_fields': len(self.schema),
                 'string_count': len(self.strings), 'character_count': table.count, 'characters': rows}
 
-    def extend_character_records(self, additions, edits=None, *, selection_keys=None, deferred_keys=None):
+    def extend_character_records(self, additions, edits=None, *, selection_keys=None, deferred_keys=None,
+                                 character_cores=None):
         """Native-cache construction experiment, not a runnable mod installer.
 
         Additions use stable keys, existing template record offsets and named
@@ -217,6 +218,11 @@ class Database:
         for. No native runtime capability is implied by a successful round-trip.
         """
         check(isinstance(additions, list) and len(additions) <= 16384, 'Invalid additions budget')
+        if character_cores is not None:
+            check(type(character_cores) is dict
+                  and set(character_cores) == {a.get('key') for a in additions if isinstance(a, dict)}
+                  and all(type(core) is int and 142 <= core <= 16384 for core in character_cores.values()),
+                  'Owned character cores must cover exactly the added records within the runtime budget')
         deferred_keys = set() if deferred_keys is None else deferred_keys
         check(isinstance(deferred_keys, set) and deferred_keys <= {a.get('key') for a in additions if isinstance(a, dict)},
               'Deferred native records must identify added templates')
@@ -331,13 +337,17 @@ class Database:
             check(next_id <= 0x7fffffff, 'Native selection key exhausted')
             struct.pack_into('<I', row, native_offset * 4, next_id)
             apply_fields(row, addition['fields'])
+            if character_cores is not None:
+                # Internal compiler output, separate from package-authored fields.
+                # Bind before building indexes, participant windows and receipts.
+                struct.pack_into('<I', row, 40, character_cores[key])
             offset = emit(row)
             # Runtime-owned binding windows retain validated templates/string
             # IDs without exposing every logical fighter to fixed native lists.
             if key not in deferred_keys:
                 new_rows.append(offset)
-            # This is the donor's one-based core ID, not a newly allocated core
-            # or zero-based active moveset index. Core storage is a separate adapter.
+            # Legacy receipt key: this is the final one-based character core;
+            # it may now be allocated by the independent motion compiler.
             bindings[key] = {'selection_key': next_id, 'inherited_core_id': struct.unpack_from('<I', row, 40)[0],
                              'record_offset': offset, 'native_name': native_name}
             if key not in deferred_keys:

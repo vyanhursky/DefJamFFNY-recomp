@@ -73,6 +73,18 @@ def test_baseline_hash_and_complete_helper_set_required():
         CinematicTemplate(incomplete, hashlib.sha256(incomplete).hexdigest(), 'CI_0001', RIG, 4)
 
 
+def test_inherited_category_clones_verified_tracks_without_synthetic_animation():
+    from fighter_cinematic_compile import rename_bank
+    source = bundle('CE_0001')
+    compiler = CinematicTemplate(source, hashlib.sha256(source).hexdigest(), 'CE_0001', RIG, 4)
+    result, receipt = compiler.compose('FV00004', None)
+    archive = Archive(result)
+    for name, payload in compiler.members.items():
+        assert archive.read('FV00004' + name[7:]) == rename_bank(payload, 'CE_0001', 'FV00004')
+    assert receipt['animation']['schema'] == 'fighter-cinematic-inherited-body-1'
+    assert not receipt['runtime_ready']
+
+
 def test_cinematic_kind_and_rig_cannot_be_changed_by_a_track():
     data = bundle()
     compiler = CinematicTemplate(data, hashlib.sha256(data).hexdigest(), 'CI_0001', RIG, 4)

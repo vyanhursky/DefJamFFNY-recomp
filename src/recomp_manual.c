@@ -48,6 +48,38 @@
 #include "patches/fighter_ai.h"
 #include "patches/fighter_cinematic.h"
 
+extern void sub_0008ABF0_gen(void);
+void sub_0008ABF0(void) {
+    uint32_t manager = g_ecx;
+    defjam_fighter_cinematic_cache_begin(manager);
+    sub_0008ABF0_gen();
+    defjam_fighter_cinematic_cache_finish(manager);
+}
+extern void sub_000296B0_gen(void);
+void sub_000296B0(void) {
+    uint32_t address = g_esp + 4, bytes = MEM32(address);
+    MEM32(address) = defjam_fighter_cinematic_allocation(MEM32(g_esp), bytes);
+    sub_000296B0_gen();
+    MEM32(address) = bytes;
+}
+extern void sub_00088FF0_gen(void);
+void sub_00088FF0(void) {
+    uint32_t manager = g_ecx;
+    sub_00088FF0_gen();
+    defjam_fighter_cinematic_cache_poll(manager);
+}
+extern void sub_00089B30_gen(void);
+void sub_00089B30(void) {
+    if (!defjam_fighter_cinematic_cache_ready(g_ecx)) { g_esp += 4; return; }
+    sub_00089B30_gen();
+}
+extern void sub_00088DD0_gen(void);
+void sub_00088DD0(void) {
+    uint32_t manager = g_ecx;
+    sub_00088DD0_gen();
+    g_eax = defjam_fighter_cinematic_cache_index(manager, g_eax);
+}
+
 extern void sub_00087AF0_gen(void);
 void sub_00087AF0(void) {
     uint32_t request = MEM32(g_esp + 8);
@@ -68,10 +100,19 @@ void sub_000A3160(void) {
 }
 
 extern void sub_000C9110_gen(void);
+extern void sub_000D6EE0_gen(void);
+void sub_000D6EE0(void) {
+    uint32_t output = MEM32(g_esp + 4), input = MEM32(g_esp + 8);
+    sub_000D6EE0_gen(); /* cdecl; retain native registers and caller cleanup. */
+    defjam_fighter_motion_ai_profiles(output, input);
+}
 void sub_000C9110(void) {
     uint32_t self = g_ecx, config = MEM32(g_esp + 4);
     defjam_fighter_ai_bind(config);
+    char expected[128];
+    uint32_t owned = defjam_fighter_motion_ai_capture(config, expected);
     sub_000C9110_gen(); /* Native thiscall ret4 and resource ownership. */
+    defjam_fighter_motion_ai_verify(config, owned, expected);
     defjam_fighter_ai_loaded(self, config);
 }
 
@@ -100,6 +141,7 @@ void sub_001A47B0(void) {
 extern void sub_00089310_gen(void);
 void sub_00089310(void) {
     defjam_fighter_motion_release(g_ecx);
+    defjam_fighter_cinematic_cache_release(g_ecx);
     sub_00089310_gen();
 }
 extern void sub_000A02E0_gen(void);
@@ -128,6 +170,10 @@ void sub_001A7F30(void) {
 extern void sub_001B2C60_gen(void);
 void sub_001B2C60(void) {
     if (!defjam_fighter_motion_scale()) sub_001B2C60_gen();
+}
+extern void sub_001A8180_gen(void);
+void sub_001A8180(void) {
+    if (!defjam_fighter_motion_blazin_mask()) sub_001A8180_gen();
 }
 
 /* Preserve native normalization math while avoiding its fixed model-ID table

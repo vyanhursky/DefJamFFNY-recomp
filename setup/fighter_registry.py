@@ -16,10 +16,10 @@ SLUG = re.compile(r'[a-z0-9]+(?:-[a-z0-9]+)*\Z')
 VERSION = re.compile(r'(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\Z')
 GROUPS = {'appearance': 'appearance', 'moveset': 'moveset', 'voice': 'voice',
           'ai': 'ai', 'portrait': 'portrait', 'intro': 'cinematic',
-          'victory': 'cinematic', 'blazin': 'cinematic'}
+          'victory': 'cinematic', 'blazin': 'blazin'}
 COMPATIBILITY = {'appearance': {'skeleton'}, 'moveset': {'skeleton', 'events'},
                  'voice': {'events'}, 'ai': set(), 'portrait': set(),
-                 'cinematic': {'skeleton', 'events'}}
+                 'cinematic': {'skeleton', 'events'}, 'blazin': {'skeleton', 'events'}}
 STATS = {'health', 'speed', 'toughness', 'charisma'}
 MAX_DEFINITIONS = 16384
 MAX_PACKS = 1024
@@ -109,10 +109,14 @@ def validate_pack(pack, builtin=False):
         for value in resource['compatibility'].values():
             key(value)
         if 'source' in resource:
-            check(not builtin and kind in ('appearance', 'portrait'), 'resource-source', 'This draft only implements appearance and portrait source files')
+            check(not builtin, 'resource-source', 'Retail resource sources are immutable')
             from fighter_resource_files import appearance_source, portrait_source
             try:
-                (appearance_source if kind == 'appearance' else portrait_source)(resource['source'])
+                if kind in ('appearance', 'portrait'):
+                    (appearance_source if kind == 'appearance' else portrait_source)(resource['source'])
+                else:
+                    from fighter_behavior_files import validate_source
+                    validate_source(kind, resource['source'])
             except ValueError as error:
                 raise RegistryError('resource-source', str(error)) from error
     seen = set()

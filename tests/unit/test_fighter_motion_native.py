@@ -91,6 +91,15 @@ int main(int argc,char **argv) {
     int started=defjam_fighter_motion_start();
     if (!strcmp(mode,"reject") || !strcmp(mode,"inactive")) { assert(!started); return 0; }
     assert(started && !strcmp(defjam_fighter_motion_path(),argv[1]));
+    if (!strcmp(mode,"ai-created")) {
+        memset(XBOX_PTR(0x3000),0,0x210);
+        MEM32(0x3040)=259; MEM32(0x3200)=260;
+        defjam_fighter_motion_ai_profiles(0x4000,0x3000);
+        assert(!strcmp((char *)XBOX_PTR(0x4024),"char0001"));
+        MEM32(0x3200)=0; defjam_fighter_motion_ai_profiles(0x4000,0x3000);
+        assert(!strcmp((char *)XBOX_PTR(0x4024),"char0087"));
+        return 0;
+    }
     if (!strcmp(mode,"selected")) {
         FILE *selected_file=fopen(argv[1],"rb"); assert(selected_file);
         assert(fread(XBOX_PTR(SOURCE),1,0x100000,selected_file)); fclose(selected_file);
@@ -102,6 +111,42 @@ int main(int argc,char **argv) {
         assert(MEM32(OUTPUT+0xF54)==0 && MEM32(OUTPUT+0xFB4)==1 && decoded_source==0x400000);
         entry(); assert(defjam_fighter_motion_frame(1)); preserved(); assert(g_eax==0);
         return 0;
+    }
+    /* AI formatting can run before the motion generation exists. V is an
+     * independent configured identity, never a substitute for the core K. */
+    memset(XBOX_PTR(0x3000),0,0x210);
+    memset(XBOX_PTR(0x4000),0xA5,0xC4);
+    for (uint32_t i=0;i<4;++i) MEM32(0x3040+i*4)=(uint32_t[]){256,3,UINT32_MAX,259}[i];
+    MEM32(0x320C)=0x157C1;
+    entry(); defjam_fighter_motion_ai_profiles(0x4000,0x3000);
+    assert(g_esp==STACK && g_eax==101 && g_ecx==102 && g_edx==103 && g_ebx==104 && g_esi==105 && g_edi==106 && g_ebp==107);
+    assert(!strcmp((char *)XBOX_PTR(0x4024),"char0005") && MEM8(0x4043)==0);
+    for(uint32_t i=0;i<0xC4;++i) if(i<0x24 || i>=0x44) assert(MEM8(0x4000+i)==0xA5);
+    assert(MEM32(0x3040)==256 && MEM32(0x304C)==259 && MEM32(0x320C)==0x157C1);
+    MEM32(0x320C)=0; defjam_fighter_motion_ai_profiles(0x4000,0x3000);
+    assert(!strcmp((char *)XBOX_PTR(0x4084),"char0005"));
+    MEM32(0x3200)=257; defjam_fighter_motion_ai_profiles(0x4000,0x3000);
+    assert(!strcmp((char *)XBOX_PTR(0x4024),"char0005") && MEM32(0x3200)==257);
+    MEM32(0x3000)=2; defjam_fighter_motion_ai_profiles(0x4000,0x3000);
+    assert(!strcmp((char *)XBOX_PTR(0x4024),"cha00005"));
+    assert(!strcmp((char *)XBOX_PTR(0x4084),"char0005")); /* V0 ignores mode2. */
+    MEM32(0x3200)=1257; MEM8(0x4024)='X'; defjam_fighter_motion_ai_profiles(0x4000,0x3000);
+    assert(MEM8(0x4024)=='X' && MEM32(0x3200)==1257); /* Preserve unadapted variants. */
+    MEM32(0x3200)=0; defjam_fighter_motion_ai_profiles(0x4000,0x3000);
+    for(uint32_t i=0;i<4;++i) MEM32(0x3B90B8+i*4)=(uint32_t[]){256,3,UINT32_MAX,259}[i];
+    char expected_ai[128];
+    uint32_t ai_mask=defjam_fighter_motion_ai_capture(0x4000,expected_ai);
+    assert(ai_mask==9); defjam_fighter_motion_ai_verify(0x4000,ai_mask,expected_ai);
+    if (!strcmp(mode,"ai-fallback")) {
+        MEM8(0x4028)='9'; defjam_fighter_motion_ai_verify(0x4000,ai_mask,expected_ai); return 3;
+    }
+    if (!strcmp(mode,"ai-unterminated")) {
+        memset(XBOX_PTR(0x4024),'X',32); defjam_fighter_motion_ai_capture(0x4000,expected_ai); return 3;
+    }
+    enabled=0; MEM8(0x4024)='X'; defjam_fighter_motion_ai_profiles(0x4000,0x3000);
+    assert(MEM8(0x4024)=='X'); enabled=1;
+    if (!strcmp(mode,"ai-unknown")) {
+        MEM32(0x3040)=1000; defjam_fighter_motion_ai_profiles(0x4000,0x3000); return 3;
     }
     /* Audio initializes before the source generation exists. */
     memset(XBOX_PTR(0x2000),0xA5,0x84);
@@ -126,6 +171,35 @@ int main(int argc,char **argv) {
     MEM32(0x3B85E0)=MEM32(0x3B8618)=200;
     MEM32(0x3B85EC)=0x400000; MEM32(0x3B8624)=0x410000; MEM32(0x3B85F8)=100000;
     for (uint32_t i=0;i<4;i++) { uint32_t a=0x3B92E0+i*0x12E8; MEM32(a+0x28)=i; MEM32(a+0x2C)=256+i; }
+    if (!strncmp(mode,"blazin",6)) {
+        for (uint32_t slot=0;slot<4;++slot) {
+            uint32_t actor=0x3B92E0+slot*0x12E8;
+            MEM32(actor+0x2C)=(uint32_t[]){256,4,86,1000}[slot];
+            if(slot==3) MEM32(actor+0x28)=UINT32_MAX;
+            for(uint32_t c=0;c<4;++c) {
+                MEM32(actor+0xBB8+c*4)=slot==2 ? 42+c : 2+slot*10+c;
+                MEM32(0x3B9288+slot*16+c*4)=slot==2 ? 22+c : 70+c;
+            }
+        }
+        if(!strcmp(mode,"blazin-invalid")) MEM32(0x3B92E0+0xBB8)=82;
+        MEM8(0x3BE627)=MEM8(0x3BE6CC)=0xCC;
+        memset(XBOX_PTR(0x3BE628),0xA5,164);
+        entry(); assert(defjam_fighter_motion_blazin_mask()); preserved();
+        for(uint32_t i=0;i<164;++i) {
+            uint32_t choice=i/2;
+            int expected=(choice>=2&&choice<=5)||(choice>=12&&choice<=15)||(choice>=22&&choice<=25);
+            assert(MEM8(0x3BE628+i)==expected);
+        }
+        assert(MEM8(0x3BE627)==0xCC&&MEM8(0x3BE6CC)==0xCC);
+        for(uint32_t c=0;c<4;++c) {
+            assert(MEM32(0x3B92E0+0xBB8+c*4)==2+c);
+            assert(MEM32(0x3B92E0+2*0x12E8+0xBB8+c*4)==22+c);
+        }
+        enabled=0; entry(); assert(!defjam_fighter_motion_blazin_mask()&&g_esp==STACK);
+        enabled=1; MEM32(0x3B92E0+0x2C)=4;
+        entry(); assert(!defjam_fighter_motion_blazin_mask()&&g_esp==STACK);
+        return 0;
+    }
     assert(defjam_fighter_motion_bank(257)==5 && defjam_fighter_motion_bank(258)==5);
     assert(defjam_fighter_motion_bank(5)==5 && !defjam_fighter_motion_bank(0));
     if (!strcmp(mode,"expired")) {
@@ -223,7 +297,7 @@ def files(tmp_path):
     return path, bindings, report['sha256']
 
 
-@pytest.mark.parametrize('mode', ['good', 'inactive'])
+@pytest.mark.parametrize('mode', ['good', 'inactive', 'blazin'])
 def test_owned_core_abi_branches_and_full_width_identity(tool, files, mode):
     result = subprocess.run([tool, *files, mode], capture_output=True, text=True)
     assert result.returncode == 0, result.stdout + result.stderr
@@ -231,10 +305,24 @@ def test_owned_core_abi_branches_and_full_width_identity(tool, files, mode):
 
 @pytest.mark.parametrize('mode,message', [('expired', 'expired'), ('unknown', 'unregistered'),
     ('absent', 'absent action'), ('outside', 'exceeds core'), ('changed', 'differs from validated'),
-    ('audio-unknown', 'unknown audio template')])
+    ('audio-unknown', 'unknown audio template'), ('ai-unknown', 'unknown AI template'),
+    ('ai-fallback', 'silently fell back'), ('ai-unterminated', 'empty or unterminated'),
+    ('blazin-invalid', 'Blazin selection exceeds')])
 def test_invalid_motion_access_fails_before_native_indexing(tool, files, mode, message):
     result = subprocess.run([tool, *files, mode], capture_output=True, text=True)
     assert result.returncode == 1 and message in result.stderr, result.stdout + result.stderr
+
+
+def test_ai_created_donor_range_applies_only_to_nonzero_identity(tool, files):
+    path, bindings, _ = files
+    data = path.read_bytes()
+    original = data[:MotionIndex(data).core_spans[141] - 8]
+    donors = {f'pack/core-{i:03}': 4 for i in range(119)}
+    donors['pack/core-118'] = 86
+    compiled, receipt = MotionCoreTemplates(original, hashlib.sha256(original).hexdigest()).compose(donors)
+    path.write_bytes(compiled); bindings.write_bytes(encode_core_bindings(compiled, receipt))
+    result = subprocess.run([tool, path, bindings, receipt['sha256'], 'ai-created'], capture_output=True, text=True)
+    assert result.returncode == 0, result.stdout + result.stderr
 
 
 @pytest.mark.parametrize('offset,value', [(4, 2), (8, 140), (12, 99999), (16, 0), (20, 1),

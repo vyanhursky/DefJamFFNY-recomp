@@ -9,5 +9,10 @@
   "v2ip_sha256": "b437838337d96eed2ae1c03f6f547f500e19ed9ad534bedef20ae784aba5af96",
   "blingfx_sha256": "da831a4d4f9ce0aedf52b275ef2205a9f6377555083d9028beea3d503e83b750",
   "v2ta_sha256": "7385473c185e40525c2b821888b1e29da3a4d21e6fb69fcdc73725fb6d5da6c7",
+  "motion_sha256": "f81f89f25d8a7d39a425dc45aead5858be03590873d360d78b65f53e24aa1ed4",
+  "animation_sha256": "02447acb0fa38ac0f94a625727d90dccd1c282709b52674a3dc4e3cc75407d80",
+  "speech_sha256": "6bbccf36278df2bec76801f79ec07178c0dc6414934a6d53fae17bd920288a75",
+  "ai_sha256": "6b91192d87694b10fb00c4d4fd394b0826a6a8034dab909865a4cb4e55ceeb24",
+  "blazin_sha256": "b71ff1bc175e64120612283ab1cb838073328200b768872b964bd255b9c16795",
   "comment": "Original supported USA database only. Hash pin verifies the input; no game bytes are shipped. Experimental adapter, not runtime support."
 }

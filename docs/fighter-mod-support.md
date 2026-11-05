@@ -17,7 +17,7 @@ starting M3; do not count structural parsing as native acceptance.
 
 | Milestone | Deliverable and acceptance |
 |---|---|
-| M1 — New fighter appearance | Validated models, skeletons, skinning, materials and textures, with general resource loading and basic cleanup. Genuinely new geometry must appear in native preview and combat, move, attack and receive hits through ordinary resource definitions. Compatible retail animations may be reused initially. Test a second independent pack early. |
+| M1 — New fighter appearance | Validated models, skeletons, skinning, materials and textures, with general resource loading and basic cleanup. Custom 2D portraits stay in the native selector; genuinely new 3D geometry must appear in entrances and combat, move, attack and receive hits through ordinary resource definitions. Compatible retail animations may be reused initially. Test a second independent pack early. |
 | M2 — New fighter behavior | Native adapters for movesets, motion/event links, voices, AI, intros, victories and Blazin sequences, with separately documented resource capacities. Two independent packs must coexist correctly as humans and CPUs, including four participants; inherited retail behavior and genuinely added behavior must both be tested. |
 | M3 — Lifecycle and save reliability | Repeated matches, bounded resource ownership, disconnect/rejoin, pack update/removal/missing content, interrupted native writes, and Story/created-fighter interactions. Preserve stable identities, complete saves and progression under stress and failure. |
 | M4 — Launcher integration | Fighters category; whole-pack install, activation, update, rollback, restart and profile workflow. Failed operations preserve the working configuration and produce actionable errors. |
@@ -28,7 +28,11 @@ Documentation and focused regression tests accompany each milestone. M1's
 first model should receive cross-platform smoke checks where test machines are
 available; complete platform release acceptance remains M6. Consequential rig,
 capacity or save tradeoffs return to the owner; routine implementation choices
-remain within the approved hybrid architecture. M1/M2 are currently incomplete.
+remain within the approved hybrid architecture. M1's Windows implementation
+and local acceptance are complete with the owner's 2D-selector decision;
+macOS/Deck smoke checks have not been performed. M2 remains incomplete,
+including independent Blazin cache ownership and paired finishing-move runtime
+registration. M3 has not started.
 
 ## Direction already agreed
 

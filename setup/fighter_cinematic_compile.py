@@ -26,8 +26,10 @@ def envelope(data, token=None):
 
 def rename_bank(data, original, assigned):
     """Rename only parsed bank symbols and indexed record-name strings."""
-    require(re.fullmatch(r'C[IE]_[A-Za-z0-9]{4}', original)
-            and re.fullmatch(r'F[IV][0-9]{5}', assigned), 'Unsupported cinematic native identifier')
+    ordinary = re.fullmatch(r'C[IE]_[A-Za-z0-9]{4}', original) and re.fullmatch(r'F[IV][0-9]{5}', assigned)
+    blazin = re.fullmatch(r'BT(?:[123]_[0-9]{2}|4C[0-9]{2})', original) and re.fullmatch(r'B[0-9]{5}', assigned)
+    require((ordinary or blazin) and len(original) == len(assigned), 'Unsupported cinematic native identifier')
+    width = len(original)
     parsed = AnimationIndex(envelope(data))
     model, output = parsed.model, bytearray(data)
     require(parsed.envelope.bank.startswith('__AnimationBank:::' + original),
@@ -37,17 +39,17 @@ def rename_bank(data, original, assigned):
         if name.startswith(prefix):
             string_offset, = model.unpack('<I', model.sections[4][4] + i * 16)
             at = model.sections[3][4] + string_offset + len('__AnimationBank:::')
-            output[at:at + 7] = assigned.encode('ascii')
+            output[at:at + width] = assigned.encode('ascii')
     root = model.export_offset(parsed.envelope.bank)
     names = model.local_pointer(root + 20, 4 * len(parsed.names))
     for i, name in enumerate(parsed.names):
         if name.startswith(original + '_'):
             at = model.data_range(model.local_pointer(names + 4 * i, len(name) + 1), len(name) + 1)
-            output[at:at + 7] = assigned.encode('ascii')
+            output[at:at + width] = assigned.encode('ascii')
     result = bytes(output)
     checked = AnimationIndex(envelope(result))
     require(checked.records == parsed.records and checked.model.pointers == model.pointers
-            and checked.names == [assigned + n[7:] if n.startswith(original + '_') else n
+            and checked.names == [assigned + n[width:] if n.startswith(original + '_') else n
                                   for n in parsed.names], 'Cinematic rename changed record ownership')
     return result
 
@@ -85,10 +87,18 @@ class CinematicTemplate:
         prefix = 'FI' if self.token.startswith('CI_') else 'FV'
         require(isinstance(assigned, str) and re.fullmatch(prefix + r'[0-9]{5}', assigned),
                 'Cinematic assigned name differs from its intro/victory kind')
-        authored, receipt = self.body.compose({self.token: tracks})
+        if tracks is None:
+            # Only the coordinator supplies this inheritance marker. Creator
+            # sources still require a validated quaternion file.
+            authored = None
+            receipt = {'schema': 'fighter-cinematic-inherited-body-1',
+                       'sha256': hashlib.sha256(self.members[self.token + '.o']).hexdigest(),
+                       'runtime_ready': False}
+        else:
+            authored, receipt = self.body.compose({self.token: tracks})
         replacements, renames = {}, {}
         for name, member in self.members.items():
-            if name == self.token + '.o':
+            if name == self.token + '.o' and authored is not None:
                 member = authored.model.data
             replacements[name] = rename_bank(member, self.token, assigned)
             renames[name] = assigned + name[7:]

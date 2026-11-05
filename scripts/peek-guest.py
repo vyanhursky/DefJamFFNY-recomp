@@ -21,6 +21,8 @@ import argparse, ctypes, ctypes.wintypes as wt, re, subprocess, sys, time
 PROCESS_VM_READ = 0x10
 PROCESS_QUERY_INFORMATION = 0x400
 k32 = ctypes.WinDLL("kernel32", use_last_error=True)
+k32.OpenProcess.argtypes = [wt.DWORD, wt.BOOL, wt.DWORD]
+k32.OpenProcess.restype = wt.HANDLE
 k32.ReadProcessMemory.argtypes = [wt.HANDLE, ctypes.c_void_p, ctypes.c_void_p,
                                   ctypes.c_size_t, ctypes.POINTER(ctypes.c_size_t)]
 

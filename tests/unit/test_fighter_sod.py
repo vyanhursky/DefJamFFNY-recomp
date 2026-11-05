@@ -226,6 +226,26 @@ def test_empty_native_extension_is_exact_noop():
     assert sod.Database(data).extend_character_records([])[0] == data
 
 
+def test_owned_core_is_bound_before_indexes_and_preserves_original_records():
+    data, layout = native_fixture()
+    additions = [{'key': 'alpha/one', 'template': layout['records'][0], 'fields': {}},
+                 {'key': 'beta/two', 'template': layout['records'][1], 'fields': {}}]
+    assigned = {'alpha/one': 257, 'beta/two': 16384}
+    expanded, report = sod.Database(data).extend_character_records(additions, character_cores=assigned)
+    rows = {r['name']: r for r in sod.Database(expanded).character_metadata()['characters']}
+    for key, core in assigned.items():
+        assert rows[key]['native_binding']['core_id'] == core
+        assert report['bindings'][key]['inherited_core_id'] == core
+    for offset in layout['records']:
+        assert expanded[offset:offset + 104] == data[offset:offset + 104]
+    assert sod.Database(data).extend_character_records(list(reversed(additions)), character_cores=assigned)[0] == expanded
+    for invalid in ({}, {'alpha/one': 257}, {**assigned, 'extra/key': 258},
+                    {**assigned, 'alpha/one': True}, {**assigned, 'alpha/one': 141},
+                    {**assigned, 'alpha/one': 16385}):
+        with pytest.raises(sod.SodError):
+            sod.Database(data).extend_character_records(additions, character_cores=invalid)
+
+
 def test_rebuilt_numeric_index_resolves_high_keys_and_skips_created_token():
     data, layout = native_fixture()
     additions = [{'key': f'large/fighter-{i}', 'template': layout['records'][0], 'fields': {}}

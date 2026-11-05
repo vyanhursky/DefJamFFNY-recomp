@@ -5,14 +5,26 @@
 #include "fighter_cinematic.h"
 #include "fighter_runtime.h"
 #include "hooks/mod_sha256.h"
+#include "hooks/guest_call.h"
 #include <stdlib.h>
 
 #define CIN_CORE_LIMIT 16384u
 #define CIN_TABLE_LIMIT (88u + 20u * (CIN_CORE_LIMIT - 141u))
 static char s_clips[CIN_CORE_LIMIT][2][8];
 static uint32_t s_count;
+static char s_blazin[CIN_CORE_LIMIT][4][8];
+static uint32_t s_blazin_count;
 static char s_archive[2048];
 static RECOMP_TLS uint64_t s_context;
+static RECOMP_TLS uint32_t s_alloc_manager;
+static uint32_t s_cache_manager, s_cache_count, s_cache_descriptors, s_cache_requests;
+static unsigned s_cache_allocations, s_cache_constructed;
+static uint32_t s_cache_cores[4];
+extern void sub_000A2E20(void);
+extern void sub_00087AF0(void);
+extern void sub_000A3E80(void);
+extern void sub_000A3130(void);
+extern void xbox_NoteAnchorEvent(const char *text);
 
 static uint32_t cin_word(const uint8_t *p) {
     return (uint32_t)p[0] | (uint32_t)p[1]<<8 | (uint32_t)p[2]<<16 | (uint32_t)p[3]<<24;
@@ -39,13 +51,53 @@ static int cin_size(const char *path, uint32_t expected) {
     if (fclose(file)) ok = 0;
     return ok;
 }
+static int cin_blazin_start(const char *path, const char *hash) {
+    const char *bindings = getenv("RECOMP_FIGHTER_BLAZIN_BINDINGS");
+    if (!bindings || !*bindings) return 1;
+    if (strlen(bindings) >= 2048) return 0;
+    FILE *file = cin_open(bindings);
+    if (!file) return 0;
+    const size_t limit = 48u + 36u * (CIN_CORE_LIMIT - 141u);
+    uint8_t *table = (uint8_t *)malloc(limit + 1);
+    if (!table) { fclose(file); return 0; }
+    size_t size = fread(table, 1, limit + 1, file);
+    int valid = !ferror(file) && size >= 48 && size <= limit;
+    if (fclose(file)) valid = 0;
+    uint32_t count = valid ? cin_word(table + 8) : 0;
+    char digest[65];
+    if (valid) {
+        hex(table + 16, digest);
+        valid = !memcmp(table, "FBZ1", 4) && cin_word(table + 4) == 1 && count
+            && count <= CIN_CORE_LIMIT - 141 && size == 48u + 36u * count
+            && !strcmp(digest, hash) && cin_size(path, cin_word(table + 12));
+    }
+    uint32_t previous = 140;
+    memset(s_blazin, 0, sizeof s_blazin);
+    for (uint32_t i = 0; valid && i < count; ++i) {
+        const uint8_t *row = table + 48 + 36 * i;
+        uint32_t core = cin_word(row);
+        if (core <= previous || core >= CIN_CORE_LIMIT || !s_clips[core][0][0]) { valid = 0; break; }
+        for (unsigned phase = 0; phase < 4; ++phase) {
+            const uint8_t *name = row + 4 + phase * 8;
+            if (name[0] != 'B' || name[6] || name[7]) valid = 0;
+            for (unsigned j = 1; j < 6; ++j) if (name[j] < '0' || name[j] > '9') valid = 0;
+        }
+        if (valid) { memcpy(s_blazin[core], row + 4, 32); previous = core; }
+    }
+    if (valid) {
+        s_blazin_count = count;
+        fprintf(stderr, "[FIGHTERS] validated %u independent Blazin activation bindings\n", count);
+    }
+    free(table); return valid;
+}
 int defjam_fighter_cinematic_start(void) {
     const char *path = getenv("RECOMP_FIGHTER_CINEMATIC_BANKS");
     const char *bindings = getenv("RECOMP_FIGHTER_CINEMATIC_BINDINGS");
     const char *hash = getenv("RECOMP_FIGHTER_CINEMATIC_BANKS_SHA256");
     const char *nis = getenv("RECOMP_FIGHTER_RESEARCH_CINEMATICS");
     const char *nis_hash = getenv("RECOMP_FIGHTER_RESEARCH_CINEMATICS_SHA256");
-    if (!path || !*path) return (!bindings || !*bindings) && (!hash || !*hash);
+    const char *blazin = getenv("RECOMP_FIGHTER_BLAZIN_BINDINGS");
+    if (!path || !*path) return (!bindings || !*bindings) && (!hash || !*hash) && (!blazin || !*blazin);
     if (!defjam_fighter_research_active() || s_count || !bindings || !*bindings
         || strlen(path) >= sizeof s_archive || strlen(bindings) >= 2048 || !nis || !*nis
         || !mod_file_matches(path, hash) || !mod_file_matches(nis, nis_hash)) return 0;
@@ -78,6 +130,7 @@ int defjam_fighter_cinematic_start(void) {
         }
         if (valid) { memcpy(s_clips[core], row + 4, 16); previous = core; }
     }
+    if (valid) valid = cin_blazin_start(path, hash);
     if (valid) {
         s_count = count; strcpy(s_archive, path);
         fprintf(stderr, "[FIGHTERS] validated %u independent cinematic bindings\n", count);
@@ -86,23 +139,146 @@ int defjam_fighter_cinematic_start(void) {
 }
 const char *defjam_fighter_cinematic_path(void) { return s_archive; }
 
+/* Native keeps ten shared activation descriptors. Append four participant
+ * groups to both allocations, retaining its logical count during stock load.
+ * The same native constructors, asynchronous loaders and destructor own all
+ * resources; no live descriptor or loaded bank is copied between fighters. */
+void defjam_fighter_cinematic_cache_begin(uint32_t manager) {
+    if (!s_blazin_count || !defjam_fighter_research_active()) return;
+    if (s_alloc_manager) cin_stop("nested cinematic cache allocation");
+    if (MEM32(manager + 0x2D830)) {
+        if (s_cache_manager != manager) cin_stop("unowned existing cinematic cache");
+        return;
+    }
+    if (s_cache_manager) cin_stop("previous cinematic cache was not released");
+    s_alloc_manager = manager;
+    s_cache_allocations = 0;
+}
+uint32_t defjam_fighter_cinematic_allocation(uint32_t caller, uint32_t bytes) {
+    if (!s_alloc_manager) return bytes;
+    if (caller == 0x8AE86) {
+        if (bytes < 4 || (bytes - 4) % 0x1AC) cin_stop("invalid native descriptor allocation");
+        s_cache_count = (bytes - 4) / 0x1AC;
+        if (s_cache_count < 12 || s_cache_count > 29 || s_cache_allocations)
+            cin_stop("unsupported native cinematic population");
+        s_cache_allocations = 1;
+        return bytes + 40 * 0x1AC;
+    }
+    if (caller == 0x8AED9) {
+        if (s_cache_allocations != 1 || bytes != s_cache_count * 0x24)
+            cin_stop("cinematic request allocation differs");
+        s_cache_allocations = 2;
+        return bytes + 40 * 0x24;
+    }
+    return bytes;
+}
+void defjam_fighter_cinematic_cache_finish(uint32_t manager) {
+    if (!s_alloc_manager) return;
+    if (s_alloc_manager != manager || s_cache_allocations != 2
+        || MEM32(manager + 0x2D868) != s_cache_count)
+        cin_stop("incomplete cinematic cache allocation");
+    s_alloc_manager = 0;
+    s_cache_manager = manager;
+    s_cache_descriptors = MEM32(manager + 0x2D830);
+    s_cache_requests = MEM32(manager + 0x2D834);
+    if (!s_cache_descriptors || !s_cache_requests) cin_stop("cinematic cache allocation failed");
+    memset((void *)XBOX_PTR(s_cache_descriptors + s_cache_count * 0x1AC), 0, 40 * 0x1AC);
+    memset((void *)XBOX_PTR(s_cache_requests + s_cache_count * 0x24), 0, 40 * 0x24);
+    for (unsigned i = 0; i < 40; ++i)
+        guest_call(sub_000A2E20, s_cache_descriptors + (s_cache_count + i) * 0x1AC, 0, NULL);
+    s_cache_constructed = 40;
+    memset(s_cache_cores, 0, sizeof s_cache_cores);
+}
+static int private_descriptor(uint32_t descriptor) {
+    uint32_t first = s_cache_descriptors + s_cache_count * 0x1AC;
+    return s_cache_constructed && descriptor >= first && descriptor - first < 40 * 0x1AC
+        && (descriptor - first) % 0x1AC == 0;
+}
+void defjam_fighter_cinematic_cache_poll(uint32_t manager) {
+    if (!s_cache_constructed || s_cache_manager != manager) return;
+    if (MEM32(manager + 0x2D830) != s_cache_descriptors || MEM32(manager + 0x2D834) != s_cache_requests)
+        cin_stop("cinematic cache allocation changed during playback");
+    for (unsigned slot = 0; slot < 4; ++slot) {
+        uint32_t core = MEM32(0x3B90B8 + slot * 4);
+        if (core >= CIN_CORE_LIMIT || !s_blazin[core][0][0]) continue;
+        if (s_cache_cores[slot] && s_cache_cores[slot] != core)
+            cin_stop("cinematic participant changed without cache teardown");
+        s_cache_cores[slot] = core;
+        for (unsigned shot = 0; shot < 10; ++shot) {
+            uint32_t index = s_cache_count + slot * 10 + shot;
+            uint32_t descriptor = s_cache_descriptors + index * 0x1AC;
+            uint32_t request = s_cache_requests + index * 0x24;
+            uint32_t state = MEM32(request + 0x14);
+            if (!state) {
+                uint32_t phase = shot == 0 ? 0 : shot < 5 ? 1 : shot < 9 ? 2 : 3;
+                MEM32(request) = 4; MEM32(request + 4) = slot; MEM32(request + 8) = UINT32_MAX;
+                MEM32(request + 12) = 2; MEM32(request + 16) = 1; MEM32(request + 0x1C) = phase;
+                MEM32(descriptor + 0xD8) = shot == 0 || shot == 9 ? 0 : shot < 5 ? shot - 1 : shot - 5;
+                uint32_t args[2] = { descriptor, request }, previous = MEM32(manager + 0x2D854);
+                guest_call(sub_00087AF0, manager, 2, args);
+                MEM32(manager + 0x2D854) = previous;
+                MEM32(request + 0x14) = 1;
+            }
+            if (MEM32(request + 0x14) == 1 && (guest_call(sub_000A3E80, descriptor, 0, NULL) & 0xFF)) {
+                uint32_t zero = 0;
+                guest_call(sub_000A3130, descriptor, 1, &zero);
+                MEM32(request + 0x14) = 2;
+            }
+        }
+    }
+}
+int defjam_fighter_cinematic_cache_ready(uint32_t manager) {
+    if (!s_cache_constructed || s_cache_manager != manager) return 1;
+    defjam_fighter_cinematic_cache_poll(manager);
+    for (unsigned slot = 0; slot < 4; ++slot) {
+        uint32_t core = MEM32(0x3B90B8 + slot * 4);
+        if (core >= CIN_CORE_LIMIT || !s_blazin[core][0][0]) continue;
+        for (unsigned shot = 0; shot < 10; ++shot)
+            if (MEM32(s_cache_requests + (s_cache_count + slot * 10 + shot) * 0x24 + 0x14) != 2) return 0;
+    }
+    return 1;
+}
+uint32_t defjam_fighter_cinematic_cache_index(uint32_t manager, uint32_t native) {
+    if (!s_cache_constructed || s_cache_manager != manager) return native;
+    uint32_t slot = MEM32(manager + 0x2D844), base = MEM32(manager + 0x2D838);
+    if (slot >= 4) cin_stop("invalid activation participant");
+    uint32_t core = MEM32(0x3B90B8 + slot * 4);
+    if (core >= CIN_CORE_LIMIT || !s_blazin[core][0][0]) return native;
+    if (s_cache_cores[slot] != core || native < base || native - base >= 10)
+        cin_stop("activation selection differs from its owned cache");
+    uint32_t index = s_cache_count + slot * 10 + native - base;
+    if (MEM32(s_cache_requests + index * 0x24 + 0x14) != 2)
+        cin_stop("activation selected before its private resources were ready");
+    return index;
+}
+void defjam_fighter_cinematic_cache_release(uint32_t manager) {
+    if (!s_cache_constructed || s_cache_manager != manager) return;
+    if (MEM32(manager + 0x2D868) != s_cache_count) cin_stop("cinematic cleanup count changed");
+    MEM32(manager + 0x2D868) = s_cache_count + s_cache_constructed;
+    s_cache_constructed = s_cache_manager = s_cache_descriptors = s_cache_requests = 0;
+}
+
 /* 87AF0's request supplies the actual visual-table participant. Its camera
  * selector is a different field; descriptor allocation order is irrelevant. */
 uint64_t defjam_fighter_cinematic_enter(uint32_t manager, uint32_t descriptor, uint32_t request) {
     uint64_t previous = s_context;
     s_context = 0;
-    if (!s_count || !defjam_fighter_research_active() || MEM32(request) != 1 || MEM32(request + 12) > 1)
+    if (!s_count || !defjam_fighter_research_active())
         return previous;
+    int blazin = MEM32(request) == 4 && MEM32(request + 12) == 2;
+    if (blazin && !private_descriptor(descriptor)) return previous;
+    if (!blazin && (MEM32(request) != 1 || MEM32(request + 12) > 1)) return previous;
     uint32_t slot = MEM32(request + 4);
     if (slot >= 4) return previous;
     uint32_t core = MEM32(0x3B90B8 + slot * 4);
     if (core >= CIN_CORE_LIMIT || !s_clips[core][0][0]) return previous;
+    if (blazin && (!s_blazin_count || !s_blazin[core][0][0])) return previous;
     uint32_t config = MEM32(manager + 0x2FF5C);
     if (!config || MEM32(config + 0xA8 + slot * 4) != core + 1)
         cin_stop("participant core differs from native cinematic configuration");
-    if (MEM32(manager + 0x2B9EC) & 0x02000000u)
+    if (!blazin && (MEM32(manager + 0x2B9EC) & 0x02000000u))
         cin_stop("owned simple sequence cannot use the two-actor cinematic path");
-    s_context = ((uint64_t)descriptor << 32) | core;
+    s_context = ((uint64_t)descriptor << 32) | core | (blazin ? 0x80000000u : 0u);
     return previous;
 }
 void defjam_fighter_cinematic_leave(uint64_t previous, uint32_t request) {
@@ -113,13 +289,14 @@ void defjam_fighter_cinematic_leave(uint64_t previous, uint32_t request) {
 void defjam_fighter_cinematic_name(uint32_t descriptor) {
     if (!s_context || (uint32_t)(s_context >> 32) != descriptor || !defjam_fighter_research_active()) return;
     char label[9];
-    snprintf(label, sizeof label, "fmc%05u", (uint32_t)s_context);
-    memcpy(XBOX_PTR(descriptor + 0xA8), label, sizeof label);
+    snprintf(label, sizeof label, "fm%c%05u", ((uint32_t)s_context & 0x80000000u) ? 'b' : 'c',
+             (uint32_t)s_context & 0x7FFFFFFFu);
+    memcpy((void *)XBOX_PTR(descriptor + 0xA8), label, sizeof label);
 }
 void defjam_fighter_cinematic_selected(uint32_t descriptor, uint32_t name) {
     if (!s_count || !defjam_fighter_research_active()) return;
     const uint8_t *label = (const uint8_t *)XBOX_PTR(descriptor + 0xA8);
-    if (memcmp(label, "fmc", 3) || label[8]) return;
+    if (memcmp(label, "fm", 2) || (label[2] != 'c' && label[2] != 'b') || label[8]) return;
     uint32_t core = 0;
     for (unsigned i = 3; i < 8; ++i) {
         if (label[i] < '0' || label[i] > '9') return;
@@ -127,8 +304,25 @@ void defjam_fighter_cinematic_selected(uint32_t descriptor, uint32_t name) {
     }
     if (core >= CIN_CORE_LIMIT || !s_clips[core][0][0]) return;
     uint32_t category = MEM32(descriptor + 0xA4);
+    if (label[2] == 'b') {
+        uint32_t phase = MEM32(descriptor + 0xD4);
+        if (!s_blazin_count || !s_blazin[core][0][0] || MEM32(descriptor + 0x19C) != 4
+            || category != 2 || phase >= 4 || MEM32(descriptor + 0xD0) != 4 || name != descriptor + 0x61)
+            cin_stop("owned Blazin activation differs from its four-shot contract");
+        /* Persistent name is used again by the asynchronous bundle loader.
+         * Leave the phase-four venue camera at +1D and all native flags alone. */
+        memcpy((void *)XBOX_PTR(name), s_blazin[core][phase], 7);
+        fprintf(stderr, "[FIGHTERS] Blazin core %u phase %u selected %s\n", core, phase, s_blazin[core][phase]);
+        char event[40];
+        snprintf(event, sizeof event, "fighter-blazin:%s", s_blazin[core][phase]);
+        xbox_NoteAnchorEvent(event);
+        return;
+    }
     if (MEM32(descriptor + 0x19C) != 1 || category > 1
-        || memcmp(XBOX_PTR(name), s_clips[core][category], 8))
+        || memcmp((const void *)XBOX_PTR(name), s_clips[core][category], 8))
         cin_stop("native XML selected a different owned cinematic");
     fprintf(stderr, "[FIGHTERS] cinematic core %u category %u selected %s\n", core, category, s_clips[core][category]);
+    char event[40];
+    snprintf(event, sizeof event, "fighter-cinematic:%s", s_clips[core][category]);
+    xbox_NoteAnchorEvent(event);
 }

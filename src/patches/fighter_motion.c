@@ -215,6 +215,46 @@ int defjam_fighter_motion_start(void) {
 }
 
 const char *defjam_fighter_motion_path(void) { return s_path; }
+/* D6EE0 formats inherited AI names before C9110 loads them. K is the motion
+ * core; 20270 derives ordinary V=K+1+1000*variant. Correct the K fallback and
+ * unvaried V=K+1 case, retaining the native mode/created-profile naming rules.
+ * Other configured identities stay intact until their adapter is verified.
+ * Explicit authored AI bindings in C9110 still take precedence. */
+void defjam_fighter_motion_ai_profiles(uint32_t output, uint32_t input) {
+    if (!defjam_fighter_research_active() || !s_count) return;
+    for (uint32_t slot = 0; slot < 4; ++slot) {
+        uint32_t core = MEM32(input + 0x40 + slot * 4);
+        uint32_t identity = MEM32(input + 0x200 + slot * 4);
+        if ((int32_t)core < 0 || core < ORIGINAL_CORES || (identity && identity != core + 1)) continue;
+        if (core - ORIGINAL_CORES >= s_count) motion_stop("unknown AI template core");
+        uint32_t donor = s_cores[core - ORIGINAL_CORES].bank;
+        char name[32] = {0};
+        if (identity && donor >= 87 && donor <= 141) strcpy(name, "char0001");
+        else snprintf(name, sizeof name, identity && MEM32(input) == 2 ? "cha%05u" : "char%04u", donor);
+        memcpy(XBOX_PTR(output + 0x24 + slot * 32), name, sizeof name);
+        fprintf(stderr, "[FIGHTERS] inherited AI core %u slot %u profile %s\n", core, slot, name);
+    }
+}
+uint32_t defjam_fighter_motion_ai_capture(uint32_t config, char expected[128]) {
+    uint32_t mask = 0;
+    if (!defjam_fighter_research_active() || !s_count) return 0;
+    for (uint32_t slot = 0; slot < 4; ++slot) {
+        uint32_t core = MEM32(0x3B90B8 + slot * 4);
+        if (core < ORIGINAL_CORES || core - ORIGINAL_CORES >= s_count) continue;
+        const char *name = (const char *)XBOX_PTR(config + 0x24 + slot * 32);
+        if (!name[0] || !memchr(name, 0, 32)) motion_stop("owned AI profile is empty or unterminated");
+        memcpy(expected + slot * 32, name, 32); mask |= 1u << slot;
+    }
+    return mask;
+}
+void defjam_fighter_motion_ai_verify(uint32_t config, uint32_t mask, const char expected[128]) {
+    for (uint32_t slot = 0; slot < 4; ++slot) if (mask & (1u << slot)) {
+        const char *name = (const char *)XBOX_PTR(config + 0x24 + slot * 32);
+        if (memcmp(name, expected + slot * 32, 32)) motion_stop("owned AI profile silently fell back");
+        fprintf(stderr, "[FIGHTERS] AI profile retained slot %u core %u profile %s\n",
+                slot, MEM32(0x3B90B8 + slot * 4), name);
+    }
+}
 int defjam_fighter_motion_audio(uint32_t input) {
     if (!defjam_fighter_research_active() || !s_count || MEM8(0x340540)) return 0;
     uint32_t indices[4]; int changed = 0;
@@ -391,6 +431,43 @@ int defjam_fighter_motion_scale(void) {
         args[0] = adjusted ? 0x2C9308 : raw ? 0x2C9324 : 0x2C92E8;
         args[1] = slot + 1; memcpy(args + 2, &value, 8);
         guest_call(sub_00011520, g_ecx, 4, args);
+    }
+    g_esp += 4; return 1;
+}
+
+/* 1A8180 assumes every core>=86 is profile-owned. Added cores have independent
+ * WPAR choices and must not inherit that legacy ordinal classification. */
+int defjam_fighter_motion_blazin_mask(void) {
+    if (!defjam_fighter_research_active() || !s_count) return 0;
+    int any = 0, active[4] = {0}, profile[4] = {0};
+    uint32_t choices[4][4] = {{0}};
+    uint8_t mask[164] = {0};
+    for (uint32_t slot = 0; slot < 4; ++slot) {
+        uint32_t actor = 0x3B92E0 + slot * 0x12E8;
+        if (MEM32(actor + 0x28) == UINT32_MAX) continue;
+        const MotionCore *row = custom(MEM32(actor + 0x2C));
+        if (row) any = 1;
+        active[slot] = 1;
+        profile[slot] = !row && MEM32(actor + 0x2C) >= 86;
+    }
+    if (!any) return 0;
+    for (uint32_t slot = 0; slot < 4; ++slot) if (active[slot]) {
+        uint32_t actor = 0x3B92E0 + slot * 0x12E8;
+        for (uint32_t choice = 0; choice < 4; ++choice) {
+            uint32_t value = MEM32((profile[slot] ? 0x3B9288 + slot * 16 : actor + 0xBB8) + choice * 4);
+            if (value >= 82) motion_stop("Blazin selection exceeds inherited paired resources");
+            choices[slot][choice] = value;
+            mask[value * 2] = mask[value * 2 + 1] = 1;
+        }
+    }
+    /* Publish only after all participant choices passed their bounds checks. */
+    memcpy(XBOX_PTR(0x3BE628), mask, sizeof mask);
+    for (uint32_t slot = 0; slot < 4; ++slot) if (active[slot]) {
+        uint32_t actor = 0x3B92E0 + slot * 0x12E8;
+        if (profile[slot]) memcpy(XBOX_PTR(actor + 0xBB8), choices[slot], sizeof choices[slot]);
+        if (MEM32(actor + 0x2C) >= ORIGINAL_CORES)
+            fprintf(stderr, "[FIGHTERS] Blazin core %u slot %u inherited choices %u,%u,%u,%u\n",
+                    MEM32(actor + 0x2C), slot, choices[slot][0], choices[slot][1], choices[slot][2], choices[slot][3]);
     }
     g_esp += 4; return 1;
 }
