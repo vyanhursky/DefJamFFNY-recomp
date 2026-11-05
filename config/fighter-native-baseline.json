@@ -3,5 +3,6 @@
   "path": "assets/djv2.sod",
   "sha256": "90cc4655680e1f7c1c8ffb140eb81208648682259e5c68e4e8e8cf65b2c8a803",
   "screens_sha256": "389066e1e20a35de850fdd8fbf38edbae3050dabd6b9a49e9b48bf27bbac0b57",
+  "entities_sha256": "d366e9f7ad6a651affb2776c924ec43ccf8f1191b72ab4771b9edfb2ec9d615b",
   "comment": "Original supported USA database only. Hash pin verifies the input; no game bytes are shipped. Experimental adapter, not runtime support."
 }

@@ -141,8 +141,8 @@ unknown fields, invalid references and dependency cycles are rejected.
 
 ## Native inspection and remaining creator tools
 
-`inspect-model`, `inspect-geometry`, `inspect-textures` and
-`inspect-motion-index` and `inspect-animation-envelope` inspect supported native
+`inspect-model`, `inspect-geometry`, `inspect-skin`, `inspect-textures`,
+`inspect-motion-index`, `inspect-motion-record` and `inspect-animation-envelope` inspect supported native
 data structures locally. They
 do not register new resources or certify a pack for play. In particular, motion
 table counts, name counts and grouped rows are separate quantities; an accepted
@@ -150,6 +150,8 @@ container does not prove that its move or animation references are valid.
 
 ```powershell
 python scripts/fighter-registry.py inspect-motion-index path/to/motion/main_all.dat
+python scripts/fighter-registry.py inspect-motion-record path/to/motion/main_all.dat --kind move --partition 0 --index 0
+python scripts/fighter-registry.py inspect-skin path/to/fighter.o
 python scripts/fighter-registry.py inspect-animation-envelope path/to/wres142.ord path/to/wres142.orl --names path/to/wres142.mnl
 ```
 
@@ -158,6 +160,19 @@ hashes. It accepts the currently observed ASCII names and fixed table strides;
 other layouts fail as unsupported. Keep the original stream and all game-derived
 reports local. Creator-owned per-fighter resources will need the verified
 animation/event adapter before runtime activation.
+
+The record inspector reports packed WAZA/WPAR fields by native output offset,
+bit width and storage type. Indices are zero-based within the selected table.
+It preserves unknown fields and padding; their gameplay meanings and resource
+links remain unvalidated. It does not accept a replacement global motion table
+as a fighter pack.
+
+Skin inspection checks numeric weights, referenced bone bounds, and each short
+vertex selector against the palette rows uploaded by the observed command
+sequence. Geometry inspection reads command boundaries to locate index data;
+when a draw count is inherited, it reports that fact instead of guessing a nearby
+header. Neither command certifies shader behavior, inherited render state,
+animation compatibility, or safe native activation.
 
 Animation inspection joins the decoded data/link parts only in memory and
 requires a self-contained data-only ELF with the native split boundary. The

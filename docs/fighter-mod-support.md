@@ -7,6 +7,29 @@ proposal to ship a Vendetta-specific compatibility bundle. Owner decisions are
 recorded below; evidence-dependent implementation details remain
 explicit rather than being treated as approvals.
 
+## Delivery milestones (owner authorized M1 and M2, 2026-11-04)
+
+These are Fighter Mod Support milestones, distinct from the project's original
+M0–M8 port roadmap. The owner authorized implementation and computer testing of
+M1/M2, including bounded independent audits. Keep native runs serial and all
+work local. Report completion and any unresolved architectural decisions before
+starting M3; do not count structural parsing as native acceptance.
+
+| Milestone | Deliverable and acceptance |
+|---|---|
+| M1 — New fighter appearance | Validated models, skeletons, skinning, materials and textures, with general resource loading and basic cleanup. Genuinely new geometry must appear in native preview and combat, move, attack and receive hits through ordinary resource definitions. Compatible retail animations may be reused initially. Test a second independent pack early. |
+| M2 — New fighter behavior | Native adapters for movesets, motion/event links, voices, AI, intros, victories and Blazin sequences, with separately documented resource capacities. Two independent packs must coexist correctly as humans and CPUs, including four participants; inherited retail behavior and genuinely added behavior must both be tested. |
+| M3 — Lifecycle and save reliability | Repeated matches, bounded resource ownership, disconnect/rejoin, pack update/removal/missing content, interrupted native writes, and Story/created-fighter interactions. Preserve stable identities, complete saves and progression under stress and failure. |
+| M4 — Launcher integration | Fighters category; whole-pack install, activation, update, rollback, restart and profile workflow. Failed operations preserve the working configuration and produce actionable errors. |
+| M5 — Creator tools and Vendetta conversion | Inspect, convert, validate, package and authoring documentation. Ordinary-format Vendetta conversion; any remaining technical blocker is reviewed before declaring completion. |
+| M6 — Release acceptance | Windows/macOS/Steam Deck acceptance, stock regressions, performance/resource soaks and owner playtest. |
+
+Documentation and focused regression tests accompany each milestone. M1's
+first model should receive cross-platform smoke checks where test machines are
+available; complete platform release acceptance remains M6. Consequential rig,
+capacity or save tradeoffs return to the owner; routine implementation choices
+remain within the approved hybrid architecture. M1/M2 are currently incomplete.
+
 ## Direction already agreed
 
 - Feature: **Fighter Mod Support**. Launcher category: **Fighters**.

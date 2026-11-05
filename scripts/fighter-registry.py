@@ -145,6 +145,8 @@ def main():
     inspect.add_argument('sod', type=Path)
     inspect_model = sub.add_parser('inspect-model', help='Inspect data-only ELF envelope; no runtime activation')
     inspect_model.add_argument('model', type=Path)
+    inspect_skin = sub.add_parser('inspect-skin', help='Check skin palette and selector bounds; no runtime activation')
+    inspect_skin.add_argument('model', type=Path)
     inspect_geometry = sub.add_parser('inspect-geometry', help='Check observed stream/index/material structures; no runtime activation')
     inspect_geometry.add_argument('model', type=Path)
     inspect_geometry.add_argument('--textures', type=Path, help='Also require every model shape in this validated SHPX file')
@@ -152,6 +154,11 @@ def main():
     inspect_textures.add_argument('textures', type=Path)
     inspect_motion = sub.add_parser('inspect-motion-index', help='Inspect native motion table partitions; no runtime activation')
     inspect_motion.add_argument('motion', type=Path)
+    inspect_record = sub.add_parser('inspect-motion-record', help='Inspect raw typed fields; semantic links remain unvalidated')
+    inspect_record.add_argument('motion', type=Path)
+    inspect_record.add_argument('--kind', choices=('move', 'core'), required=True)
+    inspect_record.add_argument('--index', type=int, required=True, help='Zero-based row index')
+    inspect_record.add_argument('--partition', type=int, choices=(0, 1), default=0)
     inspect_animation = sub.add_parser('inspect-animation-envelope', help='Inspect split animation ELF/name envelopes; no runtime activation')
     inspect_animation.add_argument('data', type=Path, help='Native .ord resource')
     inspect_animation.add_argument('links', type=Path, help='Matching native .orl resource')
@@ -179,21 +186,26 @@ def main():
                 with path.open('rb') as stream:
                     parts.append(unpack_asset(stream.read(MAX_ASSET + 1)))
             result = AnimationEnvelope(*parts).metadata()
-        elif args.command == 'inspect-motion-index':
+        elif args.command in ('inspect-motion-index', 'inspect-motion-record'):
             from fighter_motion import MotionIndex
             with args.motion.open('rb') as stream:
                 data = stream.read(MAX_ASSET + 1)
-            result = MotionIndex(data).metadata()
+            motion = MotionIndex(data)
+            result = (motion.record(args.kind, args.index, args.partition).metadata()
+                      if args.command == 'inspect-motion-record' else motion.metadata())
         elif args.command == 'inspect-textures':
             from fighter_xsh import Textures
             with args.textures.open('rb') as stream:
                 data = stream.read(MAX_ASSET + 1)
             result = Textures(unpack_asset(data)).metadata()
-        elif args.command in ('inspect-model', 'inspect-geometry'):
+        elif args.command in ('inspect-model', 'inspect-geometry', 'inspect-skin'):
             with args.model.open('rb') as stream:
                 data = stream.read(MAX_ASSET + 1)
             model = Model(unpack_asset(data))
             result = model.metadata()
+            if args.command == 'inspect-skin':
+                from fighter_skin import Skin
+                result['skin'] = Skin(model).metadata()
             if args.command == 'inspect-geometry':
                 from fighter_geometry import Geometry
                 geometry = Geometry(model)

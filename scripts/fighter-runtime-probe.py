@@ -308,6 +308,7 @@ def main():
     parser.add_argument('--expect-match', action='append', default=[],
                         help='Repeated-match assertion: comma-separated stable keys, once per match in order')
     parser.add_argument('--trace-assets', action='store_true')
+    parser.add_argument('--observe-combat', action='store_true', help='Record native match, movement, attack and damage telemetry')
     parser.add_argument('--trace-profiles', action='store_true')
     parser.add_argument('--trace-lifetime', action='store_true', help='Watch reviewed participant model reset/load boundaries; no lifecycle override')
     parser.add_argument('--logical-menu', action='store_true', help='Browsing-only logical roster prototype; native confirmation blocked')
@@ -424,6 +425,8 @@ def main():
             command += ['--env', 'RECOMP_WATCH_EXEC=0x001E3FB0,0x00109F80',
                         '--env', 'RECOMP_WATCH_EXEC_ALL=1', '--env', 'RECOMP_WATCH_EXEC_STR=1',
                         '--env', 'RECOMP_WATCH_EXEC_FIELD=0x10']
+        if args.observe_combat:
+            command += ['--env', 'RECOMP_TEST_OBSERVATIONS=1']
         if args.trace_profiles:
             command += ['--env', 'RECOMP_WATCH_EXEC=0x000144B0,0x00014540,0x00016810,0x000D2300',
                         '--env', 'RECOMP_WATCH_EXEC_ALL=1', '--env', 'RECOMP_WATCH_EXEC_FIELD=0x4']

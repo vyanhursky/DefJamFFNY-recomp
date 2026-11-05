@@ -10,6 +10,7 @@ import re
 import struct
 
 from fighter_elf import Model, ModelError, MAX_STRING
+from fighter_render import RenderProgram
 
 MAX_GROUPS = 256
 MAX_MESHES = 4096
@@ -79,6 +80,7 @@ class Geometry:
 
         meshes, total_vertices, total_indices = [], 0, 0
         for index, rm in sorted(rms.items()):
+            program = RenderProgram(model, rm)
             buffers = [self.vertex_buffer(offset) for _, offset in sorted(streams[index])]
             strides = tuple(row['stride'] for row in buffers)
             require(strides in ((12, 8, 4, 4, 2), (12, 4, 4), (12, 2, 4, 4)),
@@ -103,22 +105,28 @@ class Geometry:
             if strides == (12, 8, 4, 4, 2):
                 self.floats(buffers[1]['data'], vertices * 2)
             point = strides == (12, 2, 4, 4)
-            indices, triangles = 0, 0
+            indices, triangles, count_header = 0, 0, None
             if not point:
-                if strides == (12, 4, 4):
-                    field = rm + 0x50
-                else:
-                    candidates = [offset for offset in range(rm + 0x40, rm + 0x80, 4)
-                                  if model.pointers.get(offset, {}).get('symbol') == ANIMATION_BUFFER
-                                  and model.pointers[offset]['imported']]
-                    require(len(candidates) == 1, 'Surface index layout needs one animation-buffer binding')
-                    field = candidates[0] + 8
-                indices = self.word(field + 4)
+                bindings = program.matching(14)
+                require(len(bindings) == 1 and bindings[0].arguments == (0,),
+                        'Surface needs one supported index-data command')
+                field = bindings[0].parameter
+                indices = self.word(field)
                 require(3 <= indices <= MAX_INDICES - total_indices, 'Model index budget')
                 total_indices += indices
-                header = model.local_pointer(field, 16)
-                require(self.words(header, 4) == (indices, 0, 0, 0), f'Unsupported model index header in render resource {index}')
-                data = model.local_pointer(field + 8, indices * 2)
+                headers = program.matching(2)
+                require(len(headers) <= 1, 'Surface has multiple draw-count commands')
+                if headers:
+                    header = headers[0]
+                    require(header.arguments == (0,) and self.word(header.parameter) == 1,
+                            'Unsupported surface draw-count binding')
+                    count_header = self.words(model.local_pointer(header.parameter + 4, 16), 4)
+                    require(count_header == (indices, 0, 0, 0),
+                            f'Unsupported model index header in render resource {index}')
+                # Absence of opcode2 is deliberate state inheritance, never an
+                # alternate guess at an opaque header. Its runtime sequence and
+                # effective draw count still need separate validation.
+                data = model.local_pointer(field + 4, indices * 2)
                 at = self.scalars(data, indices * 2)
                 previous = []
                 for item, in struct.iter_unpack('<H', model.data[at:at + indices * 2]):
@@ -129,7 +137,9 @@ class Geometry:
                     previous.append(item)
             meshes.append({'index': index, 'kind': 'points' if point else 'triangle-strip',
                            'vertex_count': vertices, 'strides': list(strides), 'index_count': indices,
-                           'nondegenerate_triangles': triangles, 'bounds': bounds})
+                           'nondegenerate_triangles': triangles, 'bounds': bounds,
+                           'draw_count_inherited': not point and count_header is None,
+                           'render_program': program.metadata()})
         self.meshes = meshes
         shapes, external = set(), set()
         for name in model.imports:

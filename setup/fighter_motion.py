@@ -27,7 +27,7 @@ class MotionIndex:
     def __init__(self, data):
         require(isinstance(data, bytes) and 8 <= len(data) <= MAX_BYTES, 'Invalid motion index byte budget')
         self.data, self.offset = data, 0
-        self.tables = []
+        self.tables, self.move_spans, self.core_spans = [], [], []
         for _ in range(2):
             moves = self.chunk(b'WAZA')
             require(len(moves) >= 12, 'Truncated WAZA header')
@@ -36,6 +36,7 @@ class MotionIndex:
                     'Unsupported WAZA dimensions')
             require(len(moves) == 12 + groups * 4 + count * stride, 'WAZA table span differs from its dimensions')
             populations = list(struct.unpack_from('<' + 'I' * groups, moves, 12))
+            self.move_spans.append((self.offset - len(moves) + 12 + groups * 4, count))
             # Added rows can follow the originally grouped rows. The community
             # stream does this; group population is not the total move count.
             require(sum(populations) <= count, 'WAZA groups exceed the move table')
@@ -71,12 +72,29 @@ class MotionIndex:
         while self.offset < len(data):
             require(len(self.cores) < MAX_CORES, 'Motion core population exceeds budget')
             parameters = self.chunk(b'WPAR')
+            self.core_spans.append(self.offset - len(parameters))
             moves = self.chunk(b'WWAZ')
             require(len(parameters) == 64 and len(moves) == 780, 'Unsupported core motion pair dimensions')
             self.cores.append({'ordinal': len(self.cores) + 1,
                                'parameters_sha256': hashlib.sha256(parameters).hexdigest(),
                                'moves_sha256': hashlib.sha256(moves).hexdigest()})
         require(self.cores, 'Motion index has no core pairs')
+
+    def record(self, kind, index, partition=0):
+        """Decode one bounded record; native offset names do not imply semantics."""
+        from fighter_motion_records import PackedRecord
+        require(type(partition) is int and partition in (0, 1), 'Invalid motion partition')
+        require(type(index) is int and index >= 0, 'Invalid motion record index')
+        if kind == 'move':
+            start, count = self.move_spans[partition]
+            require(index < count, 'Motion record index exceeds partition')
+            start += index * 32
+            size = 32
+        else:
+            require(kind == 'core' and partition == 0, 'Core records do not have move partitions')
+            require(index < len(self.core_spans), 'Motion core record index exceeds table')
+            start, size = self.core_spans[index], 64
+        return PackedRecord.decode(kind, self.data[start:start + size])
 
     def chunk(self, expected):
         require(self.offset + 8 <= len(self.data), 'Truncated motion chunk header')

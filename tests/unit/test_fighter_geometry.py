@@ -14,7 +14,7 @@ from test_fighter_elf import fixture
 from test_fighter_xsh import texture
 
 
-def geometry_fixture():
+def geometry_fixture(with_skin=False):
     original, sections, table = fixture()
     payload, pointers, exports, sites = bytearray(0xd0), {}, {'__Model:::TEST_alpha': 0}, {}
 
@@ -26,6 +26,17 @@ def geometry_fixture():
     def pointer(at, target):
         pointers[at] = target
         word(at, 0 if isinstance(target, str) else target)
+
+    if with_skin:
+        from fighter_rig import HEADER_TAG
+        bone_words = allocate(struct.pack('<2I', 0, 1))
+        exports.update({'__Bone:::root': bone_words, '__Bone:::root.child': bone_words + 4})
+        rig = allocate(struct.pack('<4I', HEADER_TAG, 0, 2, 0) + bytes(224))
+        exports['__Skeleton:::root'] = rig
+        for i in range(2):
+            struct.pack_into('<3fi4f3fI16f', payload, rig + 16 + i * 112,
+                             1., 1., 1., -1 if i == 0 else 0, 0., 0., 0., 1., 0., 0., 0., i,
+                             *(float(j // 4 == j % 4) for j in range(16)))
 
     struct.pack_into('<16f', payload, 12, *(float(i // 4 == i % 4) for i in range(16)))
     name = allocate(b'TEST_alpha\0'); pointer(0xb4, name)
@@ -65,6 +76,36 @@ def geometry_fixture():
         if index == 0:
             pointer(rm + 0x40, '__EAGL::TAR:::RUNTIME_ALLOC::UID=1;SHAPENAME=TEST,1;')
             pointer(rm + 0x48, '__EAGL::TAR:::spectexture1')
+        # Explicit commands establish each parameter's role. Native RM records
+        # can omit a draw-count command and inherit state from another RM.
+        if index == 0:
+            commands = [(15, (80, 0)), (15, (0, 1)), (29, (0, -96, 56, -36, 104)),
+                        (2, (0,)), (14, (0,)), (26, (0, 5))]
+            word(rm + 0x3c, 1); word(rm + 0x44, 1); word(rm + 0x4c, 40); word(rm + 0x54, 1)
+        elif index == 1:
+            commands = [(1, ()), (1, ()), (2, (0,)), (14, (0,)), (26, (0, 3))]
+            word(rm + 0x4c, 1)
+        else:
+            commands = [(4, (0,)), (25, (0, 4))]
+        if with_skin and index == 0:
+            palette = allocate(struct.pack('<8f', 1., 0., 0., 0., .5, .5, 0., float(1 << 24)))
+            sites['palette'] = palette
+            commands = [(15, (80, 0)), (15, (0, 1)), (31, (0,)), (29, (0, -96, 56, -36, 104)),
+                        (2, (0,)), (14, (0,)), *((9, (0, i, stride)) for i, stride in enumerate(strides)),
+                        (26, (0, 5))]
+            word(rm + 0x4c, 2); pointer(rm + 0x50, palette)
+            word(rm + 0x54, 40); pointer(rm + 0x58, ANIMATION_BUFFER)
+            word(rm + 0x5c, 1); pointer(rm + 0x60, sites['index-header0'])
+            word(rm + 0x64, 6); pointer(rm + 0x68, sites['indices0'])
+            for i in range(len(strides)):
+                word(rm + 0x6c + i * 8, count)
+                pointer(rm + 0x70 + i * 8, sites[f'data0-{i}'])
+            struct.pack_into('<4h', payload, sites['data0-4'], -96, -92, -96, -92)
+        encoded = b''.join(struct.pack('<' + 'I' * (1 + len(args)),
+                                     op << 16 | (1 + len(args)), *(value & 0xffffffff for value in args))
+                           for op, args in commands) + bytes(4)
+        program = allocate(encoded); sites[f'program{index}'] = program
+        pointer(rm, program); pointer(rm + 8, allocate(bytes(4)))
 
     image = bytearray(original); image.extend(bytes(-len(image) % 16)); start = len(image); image.extend(payload)
     rows = list(sections); rows[1] = (*rows[1][:4], start, len(payload), *rows[1][6:])
