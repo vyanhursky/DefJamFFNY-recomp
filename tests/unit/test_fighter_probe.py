@@ -54,6 +54,21 @@ def test_probe_refuses_unadapted_width_and_empty_packs(tmp_path, monkeypatch):
         probe.prepare(tmp_path / 'unused.sod', [path])
 
 
+def test_profile_probe_accepts_last_pack_removal_with_dormant_history(tmp_path, monkeypatch):
+    probe = driver(tmp_path, monkeypatch)
+    source, original, _ = catalog(menu=True)
+    monkeypatch.setattr(probe.registry, 'retail_catalog', lambda _: source)
+    path = tmp_path / 'alpha.json'; path.write_text(json.dumps(pack(count=2)))
+    _, active = probe.prepare(tmp_path / 'unused.sod', [path], binding_window=True)
+    ledger = tmp_path / 'ledger.json'; ledger.write_text(json.dumps(active['binding_ledger']))
+    cache, removed = probe.prepare(tmp_path / 'unused.sod', [], ledger, binding_window=True)
+    assert removed['binding_mode'] == 'retail-only' and removed['added_count'] == 0
+    assert removed['binding_ledger'] == active['binding_ledger']
+    assert all(not row['available'] for key, row in removed['handle_bindings'].items() if key.startswith('alpha/'))
+    assert (cache / 'assets/djv2.sod').read_bytes() == original
+    assert not (cache / 'fighter-window.bin').exists()
+
+
 def test_browsing_large_logical_roster_does_not_expand_native_tables(tmp_path, monkeypatch):
     probe = driver(tmp_path, monkeypatch)
     source, original, _ = catalog(menu=True)
@@ -240,6 +255,14 @@ def test_portrait_cache_verifies_source_and_existing_output(tmp_path, monkeypatc
     source.write_bytes(b'unverified')
     with pytest.raises(ValueError, match='original screens'):
         probe.prepare_portraits(source, report)
+
+
+def test_last_pack_removal_restores_original_native_menus(tmp_path, monkeypatch):
+    probe = driver(tmp_path, monkeypatch)
+    source, _ = portrait_inputs(tmp_path)
+    report = {'binding_mode': 'retail-only', 'bindings': {}, 'portrait_donors': {}, 'localization_entries': {}}
+    output = probe.prepare_portraits(source, report)
+    assert output.read_bytes() == source.read_bytes()
 
 
 def directory_link(target, path):

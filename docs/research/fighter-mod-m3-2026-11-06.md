@@ -12,10 +12,10 @@ be made safe. Original saves remain outside experimental writes.
 |---|---|
 | Competing/stale save sessions | Fixed and focused tests pass; native caller now pins its materialized generation |
 | Interrupted native writes and publication recovery | Five abrupt host publication boundaries and three native save-interruption points pass; clean Story restart/write verified |
-| Pack disable/remove/update/re-enable | Real authored-resource cycle and native Alpha-removal/Beta combat-save pass; native update/re-enable acceptance pending |
+| Pack disable/remove/update/re-enable | Authored-resource cycle, native Alpha removal and last-pack removal with Story save pass; native update/re-enable acceptance pending |
 | Repeated matches and resource ownership | Corrected mixed-pack two-match run passes 10 combat checks, exact identities, release-before-reload and fresh cache/voice ownership |
 | Disconnect/rejoin and ready/cancel | Actual SDL virtual-device detach/rejoin in authored combat passes; updated-pack ready/cancel run pending |
-| Story and created-fighter profiles | Native persistence field audit and integration acceptance pending |
+| Story and created-fighter profiles | Created-vs-authored combat/results/save and Story restart/retail-only saving verified; opaque field audit and custom-player profile coverage remain |
 | Native-profile extension integration | Research Store currently isolated; normal-profile transaction/recovery integration remains pending |
 | Native profile deletion | Confirm and cancel pass; successful deletion persists through restart without re-import |
 
@@ -286,3 +286,42 @@ Independent Store verification proves all historical bindings and prior marks
 remain, including dormant Alpha first; Beta second gains its own progression.
 Evidence: `logs/fighter-m3-removed-pack-evidence.json`. This run precedes the
 new deletion/barrier hook; it accepts pack removal, not that later native code.
+
+## Profile transactions with no active fighter packs
+
+Journal/FUM initialization and native save/delete hooks now depend on the
+configured profile transaction, independently of an active participant window.
+The research driver accepts zero packs only in its explicit profile mode,
+loads a valid empty name table and retains the complete historical bindings.
+It emits no private-bank window and uses byte-identical original menus. The
+isolated-root requirement and normal-profile activation gates remain in place.
+Affected probe/journal tests pass **78/78**
+(`logs/fighter-m3-retail-profile-unit.txt`); release build passes
+(`logs/fighter-m3-retail-profile-build.txt`).
+
+The created-profile check `logs/run-20261106-165037.log.err` signs in VY3, plays
+the original created fighter99 against fully authored Beta second103, reaches
+a decisive result and saves fresh VY3/Options records. The driver expected
+Alpha second101, so its original identity assertion **fails** and is retained
+in `logs/fighter-m3-created-profile-native.txt`. Independent checks of the
+actual99/103 pair pass both immutable identity/materialization and **7/7 combat/
+result checks**; committed files exactly match native close receipts. The
+custom opponent uses Character core145/voice603, while the created fighter
+retains its original core109 and native voice path. The profile payload changes
+16 bytes in its leading362 bytes; field meanings remain opaque. Evidence is
+`logs/fighter-m3-created-profile-evidence.json`. The harness reports105 two-second
+samples, min108/median120/max121, no native faults, two verified generations and
+identical save restoration. No repeat game run was needed for the input mismatch.
+
+The same Store then passes a **zero-pack native Story save** with unlock-all
+disabled: `logs/fighter-m3-all-disabled-native.txt`, native
+`logs/run-20261106-165515.log.err`. Zero custom names and no participant window
+are active; the runtime restores one dormant historical custom mark. VY3 loads,
+exits Story normally, writes/closes both profile and Options, and returns to the
+main menu. One new generation preserves the complete ledger, extension and six
+profile files, including Beta second's dormant mark.64 two-second samples,
+min107/median120/max120, no native faults and identical restoration.
+`logs/fighter-m3-all-disabled-evidence.json` records the exact before/after heads.
+Removing every fighter pack therefore no longer disables persistence or forces
+a separate gameplay profile in this backend. Production launcher adoption is
+still gated.

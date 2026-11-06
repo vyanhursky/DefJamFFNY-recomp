@@ -51,7 +51,7 @@ def require_idle_game():
 
 
 def prepare(sod, packs, ledger_path=None, logical_menu=False, binding_window=False):
-    if not packs or len(packs) > registry.MAX_PACKS:
+    if (not packs and not binding_window) or len(packs) > registry.MAX_PACKS:
         raise ValueError('Probe requires one or more bounded draft packs')
     parsed, used = [], 0
     ledger = None
@@ -63,7 +63,7 @@ def prepare(sod, packs, ledger_path=None, logical_menu=False, binding_window=Fal
         used += count
     options = {'logical_menu': True} if logical_menu else {'binding_window': True} if binding_window else {}
     data, report, resources = registry.compile_inputs(sod, packs, parsed, ledger, **options)
-    if not report['added_count']:
+    if not report['added_count'] and not (binding_window and report.get('binding_mode') == 'retail-only'):
         raise ValueError('Probe needs at least one added fighter')
     # This is an internal vertical slice, not a declared product capacity.
     # The signed selection-byte path has not been widened yet.
@@ -290,7 +290,7 @@ def prepare_portraits(screens, report, *, language=None, resource_cache=None):
     archive, replacements = Archive(result), {}
     names = {report['bindings'][key]['selection_key']: report['localization_entries'][report['bindings'][key]['native_name']]
              for key in report['portrait_donors']}
-    for count in (2, 3, 4):
+    for count in (() if report.get('binding_mode') == 'retail-only' else (2, 3, 4)):
         stem = f'chooseF{count}'
         path = 'screens/battle/' + stem + '.big'
         inner = Archive(unpack(archive.read(path)))
@@ -345,7 +345,7 @@ def verify_saved_kind(journal, committed, kind):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('sod', type=Path)
-    parser.add_argument('packs', nargs='+', type=Path)
+    parser.add_argument('packs', nargs='*', type=Path, help='Zero packs tests continued profile persistence after removing the last pack')
     parser.add_argument('--route', choices=('boot', 'fight', 'ffa', 'versus', 'crib', 'gym', 'intro', 'fighter-roster', 'fighter-roster-3', 'fighter-roster-4', 'fighter-roster-4-human', 'fighter-roster-4-human-browse', 'fighter-roster-3-save', 'fighter-roster-4-save', 'fighter-roster-result', 'fighter-roster-save', 'fighter-roster-two-matches'), default='boot')
     parser.add_argument('--secs', type=int, default=60)
     parser.add_argument('--shots', default='25')
@@ -489,7 +489,8 @@ def main():
         if args.to_end:
             command += ['--to-end']
         if args.binding_window:
-            command += ['--env', 'RECOMP_FIGHTER_WINDOW=' + str(cache / 'fighter-window.bin')]
+            if report.get('binding_mode') == 'participant-window':
+                command += ['--env', 'RECOMP_FIGHTER_WINDOW=' + str(cache / 'fighter-window.bin')]
             if args.immutable_reuse:
                 command += ['--env', 'RECOMP_FIGHTER_IMMUTABLE_REUSE=1']
             command += ['--env', 'RECOMP_FIGHTER_SAVE_JOURNAL=' + str(journal), '--env', 'RECOMP_FIGHTER_UNLOCKS=' + str(unlock_state)]

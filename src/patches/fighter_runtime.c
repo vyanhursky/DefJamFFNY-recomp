@@ -175,7 +175,7 @@ static int research_start(void) {
     leaf = data ? data + strlen(data) : NULL;
     while (leaf && leaf > data && leaf[-1] != '/' && leaf[-1] != '\\') --leaf;
     if (!leaf || strcmp(leaf, "fighter-runtime-probe") || !settings || strcmp(settings, "none")
-        || !s_names.count || strlen(sod) >= sizeof s_research_sod
+        || !s_names.bytes || strlen(sod) >= sizeof s_research_sod
         || (screens && strlen(screens) >= sizeof s_research_screens)) {
         fprintf(stderr, "[FIGHTERS] research roster requires the isolated probe driver; launch refused\n");
         return 0;
@@ -223,7 +223,11 @@ static int research_start(void) {
             path = getenv("RECOMP_FIGHTER_IMMUTABLE_REUSE");
             if (path && strcmp(path, "0") && strcmp(path, "1")) return 0;
             s_immutable_reuse = path && !strcmp(path, "1");
-            path = getenv("RECOMP_FIGHTER_SAVE_JOURNAL");
+        }
+        /* Profile transactions outlive the active roster. Removing the final
+         * pack must still save retail progress and retain dormant identities. */
+        path = getenv("RECOMP_FIGHTER_SAVE_JOURNAL");
+        if (s_window.bytes || (path && *path)) {
             if (!path || !*path || strlen(path) >= sizeof s_journal - 64) return 0;
             strcpy(s_journal, path);
             path = getenv("RECOMP_FIGHTER_TEST_SAVE_STOP");
@@ -543,11 +547,11 @@ static void expect_save(const FighterPendingSave *save) {
 
 void defjam_fighter_settings_saving(void) {
     if (!s_bindings.bytes) return;
-    if (s_window.bytes) await_save_commit();
+    if (s_journal[0]) await_save_commit();
     if (!s_settings || MEM32(s_settings + 0x20) != MEM32(s_settings + 0x1264))
         fighter_stop("Native fighter unlock counts disagree before save staging.");
     defjam_fighter_settings_validate(s_settings, s_settings + 0x4C);
-    if (s_window.bytes) {
+    if (s_journal[0]) {
         uint32_t count = MEM32(s_settings + 0x20), kept = 0;
         FighterPendingSave *save = pending_save();
         if (s_projecting_settings) fighter_stop("Reentrant native Options projection.");
@@ -578,7 +582,7 @@ void defjam_fighter_settings_saved(void) {
 
 void defjam_fighter_profile_staging(uint32_t name, uint32_t payload) {
     FighterPendingSave *save;
-    if (!s_window.bytes) return;
+    if (!s_journal[0]) return;
     await_save_commit();
     save = pending_save(); memset(save, 0, sizeof *save);
     while (save->name_size < 32 && MEM8(name + save->name_size)) {
@@ -662,7 +666,7 @@ static void test_save_stop(int point) {
 
 int defjam_fighter_profile_delete_begin(uint32_t root, uint32_t name, char snapshot[33]) {
     unsigned length = 0;
-    if (!s_window.bytes) return 0;
+    if (!s_journal[0]) return 0;
     if (!root || !name || (MEM8(root) != 'U' && MEM8(root) != 'u')
         || MEM8(root + 1) != ':' || MEM8(root + 2) != '\\' || MEM8(root + 3))
         fighter_stop("Unreviewed native profile deletion namespace.");
@@ -702,7 +706,7 @@ void defjam_fighter_profile_delete_end(const char *name, int success) {
 
 void defjam_fighter_save_write(uint32_t handle, uint32_t buffer, uint32_t size, uint32_t written, int success, int asynchronous) {
     int result;
-    if (!s_window.bytes) return;
+    if (!s_journal[0]) return;
     lock_names();
     result = fighter_save_io_write(&s_save_io, handle, (const uint8_t *)XBOX_PTR(buffer), size, written ? MEM32(written) : 0, success && !asynchronous);
     unlock_names();
@@ -713,7 +717,7 @@ void defjam_fighter_save_write(uint32_t handle, uint32_t buffer, uint32_t size, 
 }
 
 void defjam_fighter_save_seek(uint32_t handle) {
-    if (!s_window.bytes) return;
+    if (!s_journal[0]) return;
     lock_names(); fighter_save_io_seek(&s_save_io, handle); unlock_names();
 }
 
@@ -721,7 +725,7 @@ void defjam_fighter_save_close(uint32_t handle, int success) {
     const uint8_t *bytes = NULL;
     uint32_t size = 0, matches = 0, match = 0;
     int result;
-    if (!s_window.bytes) return;
+    if (!s_journal[0]) return;
     lock_names();
     result = fighter_save_io_close(&s_save_io, handle, success, &bytes, &size);
     if (!result) { unlock_names(); return; }
@@ -754,7 +758,7 @@ void defjam_fighter_save_close(uint32_t handle, int success) {
 void defjam_fighter_save_batch(void) {
     FILE *file;
     char temporary[2112], destination[2112];
-    if (!s_window.bytes || !s_pending_count) return;
+    if (!s_journal[0] || !s_pending_count) return;
     if (s_projecting_settings || ++s_batch_number > 10000) fighter_stop("Invalid fighter save batch lifecycle.");
     snprintf(temporary, sizeof temporary, "%s/%06u.pending", s_journal, s_batch_number);
     snprintf(destination, sizeof destination, "%s/%06u.batch", s_journal, s_batch_number);
@@ -780,7 +784,7 @@ void defjam_fighter_unlock_inserting(uint32_t self) {
      * reject the next insertion before the original unchecked write occurs. */
     if (MEM32(self + 4) >= MEM32(self) || MEM32(self) != FIGHTER_UNLOCK_CAPACITY)
         fighter_stop("Native Character unlock storage is full; expanded persistence is required.");
-    if (s_window.bytes) remember_custom(MEM32(MEM32(g_esp + 4)));
+    if (s_journal[0]) remember_custom(MEM32(MEM32(g_esp + 4)));
 }
 
 void defjam_fighter_selection_gate(uint32_t selection) {
