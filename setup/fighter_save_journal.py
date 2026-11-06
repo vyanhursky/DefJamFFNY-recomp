@@ -20,12 +20,23 @@ from fighter_bindings import allocate
 from fighter_profile_store import MAX_FILE, relative, require, verify_container
 from fighter_registry import fingerprint
 import fighter_unlocks as unlocks
-from mods import atomic_json, linked, sync_directory
+from mods import atomic_bytes, atomic_json, linked, sync_directory
 
 MAX_BATCH = 24 + 16 * (104 + 0x5904) + 16384 * 8
 
 
 def decode(data):
+    if isinstance(data, bytes) and data[:4] == b'FSD1':
+        require(len(data) == 52, 'Invalid native profile deletion receipt')
+        version, number, length, reserved = struct.unpack_from('<4I', data, 4)
+        require(version == 1 and 1 <= number <= 10000 and 1 <= length <= 32 and not reserved,
+                'Invalid native profile deletion header')
+        raw = data[20:]
+        require(all(32 <= c <= 126 for c in raw[:length]) and not any(raw[length:]), 'Invalid deleted profile name')
+        name = raw[:length].decode('ascii')
+        relative('UserData/45410049/000000000000/' + name)
+        require(name.casefold() not in ('options', 'savemeta.xbx', 'saveimage.xbx'), 'Cannot delete native Options or metadata as a profile')
+        return {'number': number, 'deleted': name, 'records': [], 'marks': {}}
     require(isinstance(data, bytes) and 24 <= len(data) <= MAX_BATCH and data[:4] == b'FSB1', 'Invalid fighter save batch')
     version, number, count, total, reserved = struct.unpack_from('<5I', data, 4)
     require(version == 1 and 1 <= number <= 10000 and 1 <= count <= 16 and total <= 16384 and not reserved,
@@ -159,6 +170,8 @@ class Monitor:
         with path.open('rb') as stream:
             batch = decode(stream.read(MAX_BATCH + 1))
         require(batch['number'] == self.next, 'Out-of-order fighter save journal')
+        if 'deleted' in batch:
+            return self.delete_profile(batch)
         updates = completed_records(batch, self.save, self.journal)
         if updates is None:
             return False
@@ -185,9 +198,52 @@ class Monitor:
         projected, extension = unlocks.project(verify_container(data), marks, self.ledger, self.store.baseline)
         require(projected == verify_container(data), 'Native batch did not use the canonical retail-only projection')
         generation = self.store.commit_batch(self.expected_head, updates, self.ledger, extension, options)
+        self.acknowledge(generation)
+        return True
+
+    def acknowledge(self, generation):
+        # The native side may only start another operation after publication.
+        # Losing this acknowledgement on a crash is safe: recovery uses head,
+        # never the old session's working directory or journal.
+        atomic_bytes(self.journal / f'{self.next:06}.committed', b'FSC1' + struct.pack('<I', self.next))
         self.expected_head = generation
         self.committed.append((self.next, generation))
         self.next += 1
+
+    def delete_profile(self, batch):
+        """A native completion witness AND absent exact folder are required.
+
+        This removes a Battle ID/Story profile, not the global Options unlocks.
+        Historical fighter identities and dormant custom progression survive.
+        """
+        previous = self.store.load()
+        require(previous is not None and previous['generation'] == self.expected_head,
+                'Fighter save changed since this session was loaded; reload the latest committed profile')
+        require(previous['ledger'] == self.ledger, 'Deletion requires the session identity ledger')
+        matches = [name for name in previous['files'] if name.rsplit('/', 1)[-1] == batch['deleted']]
+        require(len(matches) == 1, 'Deleted native profile has no unique committed identity')
+        profile = matches[0]
+        require(len(verify_container(previous['files'][profile])) == 0x5904,
+                'Deletion does not identify a native profile')
+        prefix = profile.rsplit('/', 1)[0] + '/'
+        removed = {name for name in previous['files'] if name.startswith(prefix)}
+        require(removed <= {profile, prefix + 'SaveMeta.xbx', prefix + 'saveimage.xbx'},
+                'Deleted profile folder contains unrelated committed records')
+        title = self.save / 'UserData/45410049'
+        require(not any(linked(path) for path in (title, *title.parents)) and title.is_dir(),
+                'Deleted profile workspace is absent or redirected')
+        folder = self.save / prefix
+        require(not linked(folder), 'Deleted profile folder was redirected')
+        try:
+            folder.lstat()
+        except FileNotFoundError:
+            pass
+        else:
+            return False  # Cancelled/partial/failed deletion is not a commit.
+        files = {name: data for name, data in previous['files'].items() if name not in removed}
+        generation = self.store.publish(self.expected_head, files, self.ledger,
+                                        previous['extension'], previous['options'])
+        self.acknowledge(generation)
         return True
 
     def _run(self):

@@ -34,6 +34,147 @@ def put_acks(journal, files, number=1):
         (journal / f'{number:06}-{index:02}.closed').write_bytes(b'FSA1' + struct.pack('<4I', 1, number, index, len(data)) + data)
 
 
+def deletion(name='VY', number=1):
+    raw = name.encode('ascii')
+    return b'FSD1' + struct.pack('<4I', 1, number, len(raw), 0) + raw.ljust(32, b'\0')
+
+
+def remove_test_profile(save):
+    folder = (save / PROFILE).parent
+    for path in folder.iterdir():
+        path.unlink()
+    folder.rmdir()
+
+
+def test_native_deletion_requires_witness_and_absence_then_survives_restart(tmp_path):
+    baseline, ledger, _, files, _ = state()
+    source = tmp_path / 'original'; put_files(source, files)
+    store = Store(tmp_path / 'store', baseline)
+    first = initialize(store, source, ledger)
+    save, journal = tmp_path / 'working', tmp_path / 'journal'
+    put_files(save, files); journal.mkdir()
+    monitor = Monitor(store, save, journal, ledger, expected_head=first['generation'])
+    remove_test_profile(save)
+    assert not monitor.poll()  # Absence alone is never native delete success.
+    assert store.load()['generation'] == first['generation']
+    put_files(save, {PROFILE: files[PROFILE]})
+    (journal / '000001.batch').write_bytes(deletion())
+    assert not monitor.poll()  # A completion witness alone is insufficient.
+    (save / PROFILE).unlink()
+    assert not monitor.poll()  # Partial deletion leaves the original committed.
+    remove_test_profile(save)
+    assert monitor.poll()
+    current = store.load()
+    assert current['parent'] == first['generation']
+    prefix = PROFILE.rsplit('/', 1)[0] + '/'
+    assert current['files'] == {name: data for name, data in first['files'].items() if not name.startswith(prefix)}
+    assert current['extension'] == first['extension'] and current['ledger'] == first['ledger']
+    assert (journal / '000001.committed').read_bytes() == b'FSC1' + struct.pack('<I', 1)
+    assert initialize(store, source, ledger)['generation'] == current['generation']
+    assert (source / PROFILE).read_bytes() == files[PROFILE]  # Read-only import is not re-imported.
+
+
+def test_delete_after_save_is_ordered_and_stale_delete_cannot_win(tmp_path):
+    baseline, ledger, _, files, extension = state()
+    store = Store(tmp_path / 'store', baseline)
+    first = store.publish(None, files, ledger, extension, OPTIONS)
+    save, journal = tmp_path / 'working', tmp_path / 'journal'
+    put_files(save, files); journal.mkdir()
+    monitor = Monitor(store, save, journal, ledger, expected_head=first)
+    (journal / '000002.batch').write_bytes(deletion(number=2))
+    assert not monitor.poll()
+    (journal / '000001.batch').write_bytes(batch({OPTIONS: files[OPTIONS]}, {}))
+    put_acks(journal, {OPTIONS: files[OPTIONS]})
+    assert monitor.poll()
+    current = store.load()
+    newer = store.publish(current['generation'], current['files'], ledger, current['extension'], OPTIONS)
+    remove_test_profile(save)
+    with pytest.raises(ValueError, match='changed'):
+        monitor.poll()
+    assert store.load()['generation'] == newer and PROFILE in store.load()['files']
+    assert not (journal / '000002.committed').exists()
+
+
+def test_new_profile_with_same_name_is_a_new_ordered_save_after_deletion(tmp_path):
+    baseline, ledger, _, files, extension = state()
+    store = Store(tmp_path / 'store', baseline)
+    first = store.publish(None, files, ledger, extension, OPTIONS)
+    save, journal = tmp_path / 'working', tmp_path / 'journal'
+    put_files(save, files); journal.mkdir()
+    monitor = Monitor(store, save, journal, ledger, expected_head=first)
+    remove_test_profile(save)
+    (journal / '000001.batch').write_bytes(deletion())
+    assert monitor.poll()
+    removed = store.load()['generation']
+    payload = bytearray(0x5904); payload[41] = 19
+    replacement = {PROFILE: container(bytes(payload), identity=b'n' * 64)}
+    put_files(save, replacement)
+    (journal / '000002.batch').write_bytes(batch(replacement, {}, 2))
+    assert not monitor.poll()  # Reappearance alone cannot revive old bytes.
+    put_acks(journal, replacement, 2)
+    assert monitor.poll()
+    current = store.load()
+    assert current['parent'] == removed and current['files'][PROFILE] == replacement[PROFILE]
+    assert current['extension'] == extension
+    assert (journal / '000002.committed').read_bytes() == b'FSC1' + struct.pack('<I', 2)
+
+
+def test_lost_acknowledgement_recovers_published_deletion_without_reimport(tmp_path, monkeypatch):
+    import fighter_save_journal as journal_module
+    baseline, ledger, _, files, _ = state()
+    source = tmp_path / 'original'; put_files(source, files)
+    store = Store(tmp_path / 'store', baseline)
+    first = initialize(store, source, ledger)
+    save, journal = tmp_path / 'working', tmp_path / 'journal'
+    put_files(save, files); journal.mkdir()
+    monitor = Monitor(store, save, journal, ledger, expected_head=first['generation'])
+    remove_test_profile(save)
+    (journal / '000001.batch').write_bytes(deletion())
+    def fail_ack(*args):
+        raise OSError('interrupted acknowledgement')
+    monkeypatch.setattr(journal_module, 'atomic_bytes', fail_ack)
+    with pytest.raises(OSError, match='acknowledgement'):
+        monitor.poll()
+    current = initialize(store, source, ledger)
+    assert current['generation'] != first['generation'] and PROFILE not in current['files']
+    assert not (journal / '000001.committed').exists()
+    fresh_journal = tmp_path / 'fresh-journal'; fresh_journal.mkdir()
+    fresh = Monitor(store, tmp_path / 'fresh-work', fresh_journal, ledger, expected_head=current['generation'])
+    assert not fresh.poll()
+
+
+@pytest.mark.parametrize('mutation', ['unknown', 'ambiguous', 'unrelated', 'missing-root'])
+def test_delete_refuses_unverified_identity_or_workspace(tmp_path, mutation):
+    baseline, ledger, _, files, extension = state()
+    if mutation == 'ambiguous':
+        files['UserData/45410049/000000000111/VY'] = files[PROFILE]
+    if mutation == 'unrelated':
+        files[PROFILE.rsplit('/', 1)[0] + '/Another'] = files[PROFILE]
+    store = Store(tmp_path / 'store', baseline)
+    first = store.publish(None, files, ledger, extension, OPTIONS)
+    save, journal = tmp_path / 'working', tmp_path / 'journal'
+    if mutation != 'missing-root': put_files(save, files)
+    journal.mkdir()
+    monitor = Monitor(store, save, journal, ledger, expected_head=first)
+    (journal / '000001.batch').write_bytes(deletion('Unknown' if mutation == 'unknown' else 'VY'))
+    with pytest.raises(ValueError): monitor.poll()
+    assert store.load()['generation'] == first
+
+
+@pytest.mark.parametrize('mutation', ['version', 'number', 'length', 'reserved', 'padding', 'truncated', 'trailing', 'unsafe', 'options'])
+def test_deletion_decoder_rejects_unsafe_receipts(mutation):
+    data = bytearray(deletion())
+    if mutation == 'padding': data[-1] = 1
+    elif mutation == 'truncated': data.pop()
+    elif mutation == 'trailing': data += b'x'
+    elif mutation == 'unsafe': data[20] = ord('/')
+    elif mutation == 'options': data = deletion('Options')
+    else:
+        offset, value = {'version': (4, 2), 'number': (8, 0), 'length': (12, 33), 'reserved': (16, 1)}[mutation]
+        struct.pack_into('<I', data, offset, value)
+    with pytest.raises(ValueError): decode(bytes(data))
+
+
 def test_torn_partial_batch_cannot_publish_and_unstaged_files_are_excluded(tmp_path):
     baseline, ledger, _, files, extension = state()
     store = Store(tmp_path / 'store', baseline)

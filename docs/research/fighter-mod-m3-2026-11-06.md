@@ -11,12 +11,13 @@ be made safe. Original saves remain outside experimental writes.
 | Area | Status |
 |---|---|
 | Competing/stale save sessions | Fixed and focused tests pass; native caller now pins its materialized generation |
-| Interrupted native writes and publication recovery | Fresh-session journal guard and five abrupt writer-death boundaries pass; native interruption acceptance pending |
-| Pack disable/remove/update/re-enable | Real authored-resource compile/migration cycle passes; last-pack removal compiler bug fixed; native changed-pack reload pending |
+| Interrupted native writes and publication recovery | Five abrupt host publication boundaries and three native save-interruption points pass; clean Story restart/write verified |
+| Pack disable/remove/update/re-enable | Real authored-resource cycle and native Alpha-removal/Beta combat-save pass; native update/re-enable acceptance pending |
 | Repeated matches and resource ownership | Corrected mixed-pack two-match run passes 10 combat checks, exact identities, release-before-reload and fresh cache/voice ownership |
 | Disconnect/rejoin and ready/cancel | Earlier selector evidence exists; match-lifetime acceptance pending |
 | Story and created-fighter profiles | Native persistence field audit and integration acceptance pending |
 | Native-profile extension integration | Research Store currently isolated; normal-profile transaction/recovery integration remains pending |
+| Native profile deletion | Confirm and cancel pass; successful deletion persists through restart without re-import |
 
 Testing is focused on changed behavior and these acceptance gaps. The owner's
 request to avoid routine regression work remains in effect. No additional
@@ -153,3 +154,110 @@ configuration remains part of the profile/launcher integration gate.
   profile lifecycle can be declared supported.
 
 M3 is in progress. Launcher integration and release acceptance remain M4/M6.
+
+## Native profile deletion boundary
+
+The disposable VY3 deletion diagnostic reached the native confirmation dialog;
+its default is No. Confirming Yes removed the entire copied profile directory
+at 69.096 seconds, before harness restoration at 131.496 seconds:
+`logs/run-20261106-161123.log.err` and
+`logs/fighter-m3-delete-observed-files.json`. The harness restored the complete
+save tree identically, with zero native fault signatures. Its unrelated
+fighter-selector target was never reached, so the original command reports
+FAIL; this is deletion evidence, not a passing selector run.
+
+The in-memory D32E0 callback correlates with that deletion but does not itself
+check filesystem success. Do not use row clearing alone as a removal receipt.
+The native file-operation success boundary is being audited before hooking it.
+Host support now accepts ordered FSD1 deletion witnesses only with the exact
+unique committed profile identity and absence of its entire working folder.
+Partial deletion, a missing workspace, unknown/ambiguous identities and stale
+sessions cannot publish. The resulting generation excludes that profile and
+its two companion files while retaining Options, the fighter identity ledger
+and global custom unlocks. A restart does not re-import the removed profile.
+FSC1 acknowledgements are written durably only after generation publication.
+Host save/deletion/recovery tests pass **59/59**
+(`logs/fighter-m3-deletion-unit.txt`); native receipt/barrier integration and
+acceptance remain pending.
+
+The implemented native boundary is XDeleteSaveGame at 1F89FD, reached from
+19CA00. Its arguments are the ANSI drive and UTF-16 profile name (the latter
+goes through the existing 1F8360 directory-name hash adapter); its stdcall
+return pops two arguments and reports a DOS error, with zero indicating
+success. Snapshot the name before delegation. A zero native result produces
+FSD1; the host's exact-folder-absence check remains essential because a native
+API success code alone is insufficient proof. The D32E0 row callback is not
+used. Before new save staging/deletion, the runtime waits for the preceding
+operation's FSC1 acknowledgement; after deletion it waits for its own. This
+prevents a later operation from overwriting files awaiting verification.
+The wait is bounded and fails closed without replacing the committed head.
+Internal isolated-research fault points stop the native process after intent
+publication or after the first Options/profile header write, bypassing cleanup.
+Focused host/native-I/O checks pass **84/84**
+(`logs/fighter-m3-save-lifecycle-unit.txt`); release build and re-lift pass
+(`logs/fighter-m3-save-lifecycle-build.txt`, `logs/fighter-m3-save-lifecycle-relift.txt`).
+Native receipt and interruption acceptance are in progress.
+
+Confirmed native deletion now **passes** on that build:
+`logs/fighter-m3-delete-confirm-acceptance.txt`, native
+`logs/run-20261106-162744.log.err`. XDeleteSaveGame reports success, FSD1 is
+published, the verifier observes the exact absent profile folder and commits,
+then the native worker receives FSC1. One generation removes VY3 and its
+companions. Restarting the Store does not re-import VY3; the read-only original
+fixture stays byte-identical. The harness reports54 two-second samples,
+min108/median120/max120, no native fault signatures and identical full save
+restoration. `logs/fighter-m3-delete-confirm-evidence.json` records the session,
+Store and committed generation. A further focused test passes recovery when
+publication succeeds but writing FSC1 is interrupted
+(`logs/fighter-m3-delete-lost-ack-unit.txt`, **1 passed**); recovery uses the new
+head in a fresh session rather than reviving the deleted profile.
+
+Cancellation also **passes**: `logs/fighter-m3-delete-cancel-acceptance.txt`,
+native `logs/run-20261106-163023.log.err`. Choosing No leaves VY3 present, emits
+no FSD1 and commits no generation. Restart retains the profile. The harness
+reports54 two-second samples, min109/median120/max121, no native fault signatures,
+identical save restoration and an unchanged original fixture. Machine-readable
+evidence is `logs/fighter-m3-delete-cancel-evidence.json`.
+
+## Native interrupted-write acceptance
+
+Three deliberate `_Exit(86)` points now pass their independent recovery checks:
+
+| Point | Native log | Evidence |
+|---|---|---|
+| Intent published, native writes not begun | `run-20261106-163310.log.err` | `logs/fighter-m3-interruption-intent-evidence.json` |
+| First76-byte Options header successfully written | `run-20261106-163450.log.err` | `logs/fighter-m3-interruption-options-header-evidence.json` |
+| First76-byte Story-profile header successfully written | `run-20261106-163631.log.err` | `logs/fighter-m3-interruption-profile-header-evidence.json` |
+
+Each retains an uncommitted batch in its abandoned journal while the Store head,
+native profile and extension remain the previous complete generation. The
+original fixture is unchanged. These are expected failing native runs with a
+verified injection marker, not ordinary successful gameplay or power-loss tests.
+Their full harness reports are `logs/fighter-m3-interruption-*-native.txt`.
+The fresh-session restart delegates the original Story/Options writes and
+observes both complete write/close receipts before publishing one generation;
+`run-20261106-163811.log.err` reaches `Game.StartMainMenu(3)`, reports64 two-second
+samples (min107/median120/max120), zero native fault signatures, one verified
+generation and identical save restoration. The native probe accepts the VY3
+write. The outer driver's assertion incorrectly required a normal Story save
+to leave profile bytes unchanged, so that original command **fails** and is
+retained. Independent verification of the existing run proves the committed
+VY3 and Options exactly equal their fresh native close receipts, FSC1 exists,
+and all original fixture files equal the prior generation. Only profile payload
+offset48 changes, from4 to10; its meaning is still opaque, so no field-schema
+claim is made. `logs/fighter-m3-interruption-restart-evidence.json` records this
+qualified restart acceptance. No repeat game run was needed.
+
+## Native removed-pack reload
+
+`logs/fighter-m3-removed-pack-native.txt`, native
+`logs/run-20261106-161702.log.err`, passes the actual changed-pack run: Alpha is
+absent, Beta first/second retain logical selections102/103 while their native
+Character cores move from144/145 to142/143 and voice IDs from602/603 to600/601.
+Both menu identities, **7/7 combat/result checks**, and two acknowledged Options
+saves pass. The harness reports152 two-second frame samples, min106/median120/
+max120, zero native fault signatures and byte-identical full save restoration.
+Independent Store verification proves all historical bindings and prior marks
+remain, including dormant Alpha first; Beta second gains its own progression.
+Evidence: `logs/fighter-m3-removed-pack-evidence.json`. This run precedes the
+new deletion/barrier hook; it accepts pack removal, not that later native code.

@@ -42,8 +42,8 @@ extension. Stress tests must establish atomic native/extension writes, recovery,
 stable identity through pack changes, repeated-match cleanup and Story/created
 fighter interactions. If that boundary cannot be made safe, the already-approved
 isolated-profile fallback remains available. No new architecture choice is
-required to interpret the M1/M2 result. The owner intends to continue M3;
-this work has not started it.
+required to interpret the M1/M2 result. The owner subsequently authorized M3;
+its active implementation and acceptance are recorded in the linked checkpoint.
 
 ### Handoff to M3
 

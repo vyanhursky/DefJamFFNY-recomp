@@ -68,6 +68,8 @@ typedef struct FighterExpectedSave { FighterPendingSave save; uint32_t batch, in
 static FighterExpectedSave s_expected[16];
 static FighterSaveIO s_save_io;
 static uint32_t s_pending_count, s_batch_number, s_custom_count;
+static int s_test_save_stop;
+static void await_save_commit(void);
 static uint32_t s_custom_keys[FIGHTER_BINDINGS_MAX_COUNT], s_custom_metadata[FIGHTER_BINDINGS_MAX_COUNT];
 static uint32_t read_word(const uint8_t *p);
 static int remember_custom(uint32_t mark);
@@ -224,6 +226,13 @@ static int research_start(void) {
             path = getenv("RECOMP_FIGHTER_SAVE_JOURNAL");
             if (!path || !*path || strlen(path) >= sizeof s_journal - 64) return 0;
             strcpy(s_journal, path);
+            path = getenv("RECOMP_FIGHTER_TEST_SAVE_STOP");
+            if (path && *path) {
+                if (!strcmp(path, "intent")) s_test_save_stop = 1;
+                else if (!strcmp(path, "options-header")) s_test_save_stop = 2;
+                else if (!strcmp(path, "profile-header")) s_test_save_stop = 3;
+                else return 0;
+            }
             path = getenv("RECOMP_FIGHTER_UNLOCKS");
             if (!path || !*path) return 0;
             {
@@ -534,6 +543,7 @@ static void expect_save(const FighterPendingSave *save) {
 
 void defjam_fighter_settings_saving(void) {
     if (!s_bindings.bytes) return;
+    if (s_window.bytes) await_save_commit();
     if (!s_settings || MEM32(s_settings + 0x20) != MEM32(s_settings + 0x1264))
         fighter_stop("Native fighter unlock counts disagree before save staging.");
     defjam_fighter_settings_validate(s_settings, s_settings + 0x4C);
@@ -569,6 +579,7 @@ void defjam_fighter_settings_saved(void) {
 void defjam_fighter_profile_staging(uint32_t name, uint32_t payload) {
     FighterPendingSave *save;
     if (!s_window.bytes) return;
+    await_save_commit();
     save = pending_save(); memset(save, 0, sizeof *save);
     while (save->name_size < 32 && MEM8(name + save->name_size)) {
         uint8_t c = MEM8(name + save->name_size);
@@ -615,6 +626,80 @@ static void finish_journal(FILE *file, const char *temporary, const char *destin
 #endif
 }
 
+/* Do not let a subsequent operation overwrite files still being verified.
+ * Waiting here (before staging/deleting), not on the first CloseHandle, lets
+ * the previous native worker finish every file and its companion metadata. */
+static void await_save_commit(void) {
+    char path[2048];
+    if (!s_batch_number) return;
+    snprintf(path, sizeof path, "%s/%06u.committed", s_journal, s_batch_number);
+    for (unsigned attempt = 0; attempt < 1000; ++attempt) {
+        FILE *file = open_utf8(path);
+        if (file) {
+            uint8_t bytes[9];
+            size_t size = fread(bytes, 1, sizeof bytes, file);
+            int failed = ferror(file);
+            fclose(file);
+            if (failed || size != 8 || memcmp(bytes, "FSC1", 4) || read_word(bytes + 4) != s_batch_number)
+                fighter_stop("Invalid fighter save publication acknowledgement.");
+            return;
+        }
+#if defined(_WIN32)
+        Sleep(10);
+#else
+        usleep(10000);
+#endif
+    }
+    fighter_stop("Previous fighter save was not committed; reload the last verified profile.");
+}
+
+static void test_save_stop(int point) {
+    if (s_test_save_stop != point) return;
+    fprintf(stderr, "[FIGHTERS-TEST] interrupted native save: point=%d batch=%u exit=86\n", point, s_batch_number);
+    fflush(stderr);
+    _Exit(86); /* Internal isolated research only; bypass all native cleanup. */
+}
+
+int defjam_fighter_profile_delete_begin(uint32_t root, uint32_t name, char snapshot[33]) {
+    unsigned length = 0;
+    if (!s_window.bytes) return 0;
+    if (!root || !name || (MEM8(root) != 'U' && MEM8(root) != 'u')
+        || MEM8(root + 1) != ':' || MEM8(root + 2) != '\\' || MEM8(root + 3))
+        fighter_stop("Unreviewed native profile deletion namespace.");
+    await_save_commit();
+    if (s_pending_count) fighter_stop("Native deletion crossed an unsealed save operation.");
+    memset(snapshot, 0, 33);
+    while (length < 32 && MEM16(name + length * 2)) {
+        uint16_t c = MEM16(name + length * 2);
+        if (c < 32 || c > 126 || strchr("\\/:*?\"<>|", (char)c))
+            fighter_stop("Unsafe native profile deletion name.");
+        snapshot[length++] = (char)c;
+    }
+    if (!length || MEM16(name + length * 2) || !strcmp(snapshot, "Options"))
+        fighter_stop("Unreviewed native profile deletion identity.");
+    return 1;
+}
+
+void defjam_fighter_profile_delete_end(const char *name, int success) {
+    FILE *file;
+    char temporary[2112], destination[2112];
+    if (!success) {
+        fprintf(stderr, "[FIGHTERS] native profile deletion failed: %s; committed profile retained\n", name);
+        return;
+    }
+    if (++s_batch_number > 10000) fighter_stop("Too many native profile operations.");
+    snprintf(temporary, sizeof temporary, "%s/%06u.pending", s_journal, s_batch_number);
+    snprintf(destination, sizeof destination, "%s/%06u.batch", s_journal, s_batch_number);
+    file = open_journal(temporary);
+    if (!file) fighter_stop("Could not create native profile deletion receipt.");
+    fwrite("FSD1", 1, 4, file); journal_word(file, 1); journal_word(file, s_batch_number);
+    journal_word(file, (uint32_t)strlen(name)); journal_word(file, 0); fwrite(name, 1, 32, file);
+    finish_journal(file, temporary, destination);
+    fprintf(stderr, "[FIGHTERS] native profile deletion completed: batch=%u name=%s; awaiting verified absence\n", s_batch_number, name);
+    await_save_commit();
+    fprintf(stderr, "[FIGHTERS] native profile deletion committed: batch=%u name=%s\n", s_batch_number, name);
+}
+
 void defjam_fighter_save_write(uint32_t handle, uint32_t buffer, uint32_t size, uint32_t written, int success, int asynchronous) {
     int result;
     if (!s_window.bytes) return;
@@ -623,6 +708,8 @@ void defjam_fighter_save_write(uint32_t handle, uint32_t buffer, uint32_t size, 
     unlock_names();
     if (result < 0) fighter_stop("A native fighter save write was incomplete or used an unreviewed IO path.");
     if (result) fprintf(stderr, "[FIGHTERS] completed native save write: handle=%08X bytes=%u\n", handle, size);
+    if (result && size == 0x4C && !memcmp((const void *)XBOX_PTR(buffer), "20CM", 4))
+        test_save_stop(MEM32(buffer + 12) == 0x1490 ? 2 : 3);
 }
 
 void defjam_fighter_save_seek(uint32_t handle) {
@@ -684,6 +771,7 @@ void defjam_fighter_save_batch(void) {
     finish_journal(file, temporary, destination);
     fprintf(stderr, "[FIGHTERS] save batch %u sealed: %u records; awaiting independently verified native files\n", s_batch_number, s_pending_count);
     s_pending_count = 0;
+    test_save_stop(1);
 }
 
 void defjam_fighter_unlock_inserting(uint32_t self) {

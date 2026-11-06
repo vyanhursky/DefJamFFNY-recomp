@@ -355,6 +355,16 @@ void sub_001F8EBB(void) {
     defjam_fighter_save_seek(MEM32(g_esp + 4));
     sub_001F8EBB_gen();
 }
+/* XDeleteSaveGame: ANSI drive, UTF-16 profile name, DWORD error (zero success).
+ * Preserve the name before the original call and acknowledge only its result.
+ * The host verifier independently requires the exact old folder to be absent. */
+extern void sub_001F89FD_gen(void);
+void sub_001F89FD(void) {
+    char name[33];
+    int tracked = defjam_fighter_profile_delete_begin(MEM32(g_esp + 4), MEM32(g_esp + 8), name);
+    sub_001F89FD_gen();
+    if (tracked) defjam_fighter_profile_delete_end(name, g_eax == 0);
+}
 extern void sub_0001E700_gen(void);
 void sub_0001E700(void) {
     sub_0001E700_gen();
