@@ -44,9 +44,9 @@ def test_torn_partial_batch_cannot_publish_and_unstaged_files_are_excluded(tmp_p
     updated = {OPTIONS: container(bytes(native)), PROFILE: container(bytes(profile))}
     handle = ledger['fighters']['alpha/fighter-299']['handle']
     journal = tmp_path / 'journal'; journal.mkdir()
+    monitor = Monitor(store, save, journal, ledger, expected_head=first)
     (journal / '000001.batch').write_bytes(batch(updated, {handle: unlocks.METADATA}))
     put_acks(journal, updated)
-    monitor = Monitor(store, save, journal, ledger)
     assert not monitor.poll() and store.load()['generation'] == first
     put_files(save, {OPTIONS: updated[OPTIONS]})
     assert not monitor.poll() and store.load()['generation'] == first
@@ -80,13 +80,72 @@ def test_initial_import_is_read_only_and_fum_retains_all_custom_progress(tmp_pat
     assert len(encoded) == 16 + 300 * 8
 
 
+@pytest.mark.parametrize('advance_before_monitor', [False, True])
+def test_stale_session_cannot_overwrite_newer_native_progress(tmp_path, advance_before_monitor):
+    baseline, ledger, _, files, extension = state()
+    store = Store(tmp_path / 'store', baseline)
+    first = store.publish(None, files, ledger, extension, OPTIONS)
+    save, journal = tmp_path / 'working', tmp_path / 'journal'
+    put_files(save, files); journal.mkdir()
+    payload = bytearray(verify_container(files[PROFILE])); payload[41] = 7
+    newer = container(bytes(payload))
+    if advance_before_monitor:
+        second = store.commit_batch(first, {PROFILE: newer}, ledger, extension, OPTIONS)
+    monitor = Monitor(store, save, journal, ledger, expected_head=first)
+    if not advance_before_monitor:
+        second = store.commit_batch(first, {PROFILE: newer}, ledger, extension, OPTIONS)
+    # This complete, successful native write came from the older working copy.
+    (journal / '000001.batch').write_bytes(batch({PROFILE: files[PROFILE]}, {}))
+    put_acks(journal, {PROFILE: files[PROFILE]})
+    with pytest.raises(ValueError, match='changed'):
+        monitor.poll()
+    assert store.load()['generation'] == second
+    assert store.load()['files'][PROFILE] == newer
+    assert monitor.committed == []
+
+
+def test_fresh_session_cannot_adopt_another_sessions_first_save(tmp_path):
+    baseline, ledger, _, files, extension = state()
+    store = Store(tmp_path / 'store', baseline)
+    save, journal = tmp_path / 'working', tmp_path / 'journal'
+    put_files(save, files); journal.mkdir()
+    monitor = Monitor(store, save, journal, ledger, expected_head=None)
+    first = store.publish(None, files, ledger, extension, OPTIONS)
+    (journal / '000001.batch').write_bytes(batch(files, {}))
+    put_acks(journal, files)
+    with pytest.raises(ValueError, match='changed'):
+        monitor.poll()
+    assert store.load()['generation'] == first
+
+
+def test_session_advances_only_through_its_own_verified_batches(tmp_path):
+    baseline, ledger, _, files, extension = state()
+    store = Store(tmp_path / 'store', baseline)
+    parent = store.publish(None, files, ledger, extension, OPTIONS)
+    save, journal = tmp_path / 'working', tmp_path / 'journal'
+    journal.mkdir()
+    monitor = Monitor(store, save, journal, ledger, expected_head=parent)
+    for number in (1, 2):
+        payload = bytearray(verify_container(files[PROFILE])); payload[41] = number
+        updates = {PROFILE: container(bytes(payload))}
+        put_files(save, updates)
+        (journal / f'{number:06}.batch').write_bytes(batch(updates, {}, number))
+        put_acks(journal, updates, number)
+        assert monitor.poll()
+        loaded = store.load()
+        assert loaded['parent'] == parent
+        assert loaded['files'][PROFILE] == updates[PROFILE]
+        parent = loaded['generation']
+    assert len(monitor.committed) == 2
+
+
 def test_fresh_namespace_bootstraps_only_from_a_complete_native_options_batch(tmp_path):
     baseline, ledger, _, files, _ = state()
     store = Store(tmp_path / 'fresh', baseline)
     save = tmp_path / 'working'; put_files(save, files)
     journal = tmp_path / 'journal'; journal.mkdir()
+    monitor = Monitor(store, save, journal, ledger, expected_head=None)
     (journal / '000001.batch').write_bytes(batch(files, {}))
-    monitor = Monitor(store, save, journal, ledger)
     assert encode_unlock_state(None, baseline) == b'FUM1' + struct.pack('<III', 1, 0, 0)
     assert not monitor.poll() and store.load() is None
     put_acks(journal, files)
@@ -136,9 +195,9 @@ def test_native_compiler_save_migration_retains_removed_pack_and_updated_identit
     working, journal = tmp_path / 'working', tmp_path / 'journal'
     put_files(working, files); journal.mkdir()
     handle = updated['binding_ledger']['fighters']['gamma/fighter-0']['handle']
+    monitor = Monitor(store, working, journal, updated['binding_ledger'], expected_head=migrated['generation'])
     (journal / '000001.batch').write_bytes(batch({OPTIONS: files[OPTIONS]}, {handle: 0}))
     put_acks(journal, {OPTIONS: files[OPTIONS]})
-    monitor = Monitor(store, working, journal, updated['binding_ledger'])
     assert monitor.poll()
     restored = store.load()
     assert restored['extension']['marks'] == dict(marks, **{'gamma/fighter-0': 0})
@@ -152,8 +211,8 @@ def test_identical_old_files_cannot_acknowledge_a_new_native_save(tmp_path, muta
     first = store.publish(None, files, ledger, extension, OPTIONS)
     save, journal = tmp_path / 'working', tmp_path / 'journal'
     put_files(save, files); journal.mkdir()
+    monitor = Monitor(store, save, journal, ledger, expected_head=first)
     (journal / '000001.batch').write_bytes(batch(files, {}))
-    monitor = Monitor(store, save, journal, ledger)
     if mutation == 'missing':
         assert not monitor.poll()
     else:
@@ -178,14 +237,57 @@ def test_supervisor_reports_verifier_failure_without_replacing_committed_progres
     store = Store(tmp_path / 'store', baseline)
     first = store.publish(None, files, ledger, extension, OPTIONS)
     journal = tmp_path / 'journal'; journal.mkdir()
+    monitor = Monitor(store, tmp_path / 'working', journal, ledger, expected_head=first)
     (journal / '000001.batch').write_bytes(b'invalid intent')
-    monitor = Monitor(store, tmp_path / 'working', journal, ledger)
     monitor.start(); monitor.thread.join(timeout=3)
     assert not monitor.thread.is_alive()
     with pytest.raises(ValueError, match='verification failed'):
         monitor.stop()
     assert json.loads((journal / 'supervisor.json').read_bytes())['state'] == 'failed'
     assert store.load()['generation'] == first
+
+
+@pytest.mark.parametrize('artifact', ['000001.batch', '000001-00.closed', 'session.json'])
+def test_old_journal_cannot_be_adopted_as_a_fresh_session(tmp_path, artifact):
+    baseline, ledger, _, files, extension = state()
+    store = Store(tmp_path / 'store', baseline)
+    first = store.publish(None, files, ledger, extension, OPTIONS)
+    journal = tmp_path / 'old-journal'; journal.mkdir()
+    (journal / artifact).write_bytes(b'retained old attempt')
+    with pytest.raises(ValueError, match='already used'):
+        Monitor(store, tmp_path / 'working', journal, ledger, expected_head=first)
+    assert store.load()['generation'] == first
+    assert (journal / artifact).read_bytes() == b'retained old attempt'
+
+
+def test_restart_loads_committed_generation_and_never_replays_partial_work(tmp_path):
+    baseline, ledger, _, files, extension = state()
+    store = Store(tmp_path / 'store', baseline)
+    first = store.publish(None, files, ledger, extension, OPTIONS)
+    old_work, old_journal = tmp_path / 'old-work', tmp_path / 'old-journal'
+    put_files(old_work, files); old_journal.mkdir()
+    old = Monitor(store, old_work, old_journal, ledger, expected_head=first)
+    payload = bytearray(verify_container(files[PROFILE])); payload[41] = 9
+    updates = {PROFILE: container(bytes(payload))}
+    put_files(old_work, updates)
+    (old_journal / '000001.batch').write_bytes(batch(updates, {}))
+    put_acks(old_journal, updates)
+    assert old.poll()
+    committed = store.load()
+    # Simulate a later interrupted write without a close receipt/publication.
+    (old_work / PROFILE).write_bytes(b'partial second write')
+    (old_journal / '000002.batch').write_bytes(batch({PROFILE: files[PROFILE]}, {}, 2))
+    restored = initialize(store, tmp_path / 'unused-original', ledger)
+    assert restored['generation'] == committed['generation']
+    assert restored['files'][PROFILE] == updates[PROFILE]
+    with pytest.raises(ValueError, match='already used'):
+        Monitor(store, old_work, old_journal, ledger, expected_head=restored['generation'])
+    fresh_work, fresh_journal = tmp_path / 'fresh-work', tmp_path / 'fresh-journal'
+    put_files(fresh_work, restored['files']); fresh_journal.mkdir()
+    fresh = Monitor(store, fresh_work, fresh_journal, ledger, expected_head=restored['generation'])
+    assert not fresh.poll()
+    assert store.load()['generation'] == committed['generation']
+    assert (old_work / PROFILE).read_bytes() == b'partial second write'
 
 
 @pytest.mark.parametrize('mutation', ['header', 'version', 'count', 'records', 'reserved', 'name-length', 'payload-length', 'name', 'truncated', 'trailing', 'metadata'])

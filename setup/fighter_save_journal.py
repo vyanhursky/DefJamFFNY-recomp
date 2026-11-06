@@ -8,6 +8,8 @@ leak into a committed save. Used by the disposable research supervisor for now.
 """
 import hashlib
 import hmac
+import json
+import os
 from pathlib import Path
 import re
 import struct
@@ -16,8 +18,9 @@ import time
 
 from fighter_bindings import allocate
 from fighter_profile_store import MAX_FILE, relative, require, verify_container
+from fighter_registry import fingerprint
 import fighter_unlocks as unlocks
-from mods import atomic_json, linked
+from mods import atomic_json, linked, sync_directory
 
 MAX_BATCH = 24 + 16 * (104 + 0x5904) + 16384 * 8
 
@@ -121,8 +124,26 @@ def replace_payload(container, payload):
 
 
 class Monitor:
-    def __init__(self, store, save, journal, ledger):
+    def __init__(self, store, save, journal, ledger, *, expected_head):
+        # Pin the generation used to materialize this session, not whatever
+        # happens to be current when its first completed batch arrives.
+        require(expected_head is None or isinstance(expected_head, str)
+                and re.fullmatch('[0-9a-f]{64}', expected_head), 'Invalid session save generation')
         self.store, self.save, self.journal, self.ledger = store, Path(save), Path(journal), ledger
+        self.expected_head = expected_head
+        require(not any(linked(path) for path in (self.journal, *self.journal.parents))
+                and self.journal.is_dir(), 'Unsafe fighter save session directory')
+        require(next(self.journal.iterdir(), None) is None,
+                'Fighter save journal was already used; recover the committed profile into a fresh session')
+        # Never resume numbered intents in an old working directory. A crash
+        # restarts from Store.load() in a fresh session, preserving the old
+        # journal for diagnosis rather than replaying stale native progress.
+        session = {'schema': 'fighter-save-session-1', 'parent': expected_head,
+                   'ledger_sha256': fingerprint(ledger)}
+        with (self.journal / 'session.json').open('x', encoding='utf-8') as stream:
+            json.dump(session, stream, sort_keys=True)
+            stream.flush(); os.fsync(stream.fileno())
+        sync_directory(self.journal)
         self.stop_event, self.error, self.committed, self.next = threading.Event(), None, [], 1
         self.thread = threading.Thread(target=self._run, name='fighter-save-verifier', daemon=True)
 
@@ -142,6 +163,8 @@ class Monitor:
         if updates is None:
             return False
         previous = self.store.load()
+        require((previous['generation'] if previous else None) == self.expected_head,
+                'Fighter save changed since this session was loaded; reload the latest committed profile')
         old_ledger = previous['ledger'] if previous else self.ledger
         # A caller cannot substitute a ledger that reassigns any old identity.
         checked = allocate(self.store.baseline, (), self.ledger)['fighters']
@@ -161,7 +184,8 @@ class Monitor:
             marks[known[handle]] = metadata
         projected, extension = unlocks.project(verify_container(data), marks, self.ledger, self.store.baseline)
         require(projected == verify_container(data), 'Native batch did not use the canonical retail-only projection')
-        generation = self.store.commit_batch(previous['generation'] if previous else None, updates, self.ledger, extension, options)
+        generation = self.store.commit_batch(self.expected_head, updates, self.ledger, extension, options)
+        self.expected_head = generation
         self.committed.append((self.next, generation))
         self.next += 1
         return True

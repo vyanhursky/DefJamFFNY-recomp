@@ -449,7 +449,8 @@ def main():
             journal = ordinary_path(session / 'journal'); journal.mkdir(parents=True)
             unlock_state = ordinary_path(session / 'fighter-unlocks.bin')
             unlock_state.write_bytes(encode_unlock_state(generation, store.baseline))
-            monitor = Monitor(store, data_root / 'save', journal, report['binding_ledger'])
+            monitor = Monitor(store, data_root / 'save', journal, report['binding_ledger'],
+                              expected_head=generation['generation'] if generation else None)
         data_root.mkdir(parents=True, exist_ok=True)
         if language is not None:
             atomic_json(ordinary_path(data_root / 'fighter-composition.json'), {'language': language[1],

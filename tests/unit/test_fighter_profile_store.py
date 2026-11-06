@@ -2,7 +2,10 @@
 from copy import deepcopy
 import hashlib
 import hmac
+from pathlib import Path
 import struct
+import subprocess
+import sys
 
 import pytest
 
@@ -64,6 +67,55 @@ def test_interruption_retains_a_complete_old_or_new_generation(tmp_path, phase):
     assert recovered['generation'] == first if phase != 'head' else recovered['generation'] != first
     restored = unlocks.restore(verify_container(recovered['files'][OPTIONS]), recovered['extension'], recovered['ledger'], baseline)
     assert restored['alpha/fighter-299'] == (unlocks.METADATA if phase == 'head' else 0)
+
+
+@pytest.mark.parametrize('phase', ['files', 'manifest', 'generation', 'before-head', 'head'])
+def test_process_death_recovers_coherent_profile_and_extension(tmp_path, phase):
+    """Exit without finally/lock/tempdir cleanup, then reopen in another process."""
+    baseline, ledger, _, files, extension = state()
+    root = tmp_path / 'interrupted'
+    first = Store(root, baseline).publish(None, files, ledger, extension, OPTIONS)
+    script = '''
+import os
+from pathlib import Path
+import sys
+repo, root, phase = sys.argv[1:]
+sys.path[:0] = [str(Path(repo) / 'setup'), str(Path(repo) / 'tests/unit')]
+from test_fighter_profile_store import state, container, OPTIONS, PROFILE
+from fighter_profile_store import Store, verify_container
+import fighter_unlocks as unlocks
+baseline, ledger, marks, files, extension = state()
+store = Store(root, baseline)
+previous = store.load()
+marks['alpha/fighter-299'] = unlocks.METADATA
+native, extension = unlocks.project(verify_container(files[OPTIONS]), marks, ledger, baseline)
+profile = bytearray(verify_container(files[PROFILE]))
+profile[1234] = 77
+def die(at):
+    if at == phase:
+        os._exit(73)
+store.commit_batch(previous['generation'], {OPTIONS: container(native), PROFILE: container(bytes(profile))},
+                   ledger, extension, OPTIONS, checkpoint=die)
+raise AssertionError('Crash checkpoint was not reached')
+'''
+    process = subprocess.run([sys.executable, '-c', script, str(Path(__file__).resolve().parents[2]),
+                              str(root), phase], capture_output=True, text=True, timeout=20)
+    assert process.returncode == 73, process.stdout + process.stderr
+    recovered = Store(root, baseline).load()
+    published = phase == 'head'
+    assert (recovered['generation'] != first) == published
+    restored = unlocks.restore(verify_container(recovered['files'][OPTIONS]), recovered['extension'],
+                               recovered['ledger'], baseline)
+    assert restored['alpha/fighter-299'] == (unlocks.METADATA if published else 0)
+    expected_profile = bytearray(verify_container(files[PROFILE]))
+    if published:
+        expected_profile[1234] = 77
+    assert recovered['files'][PROFILE] == container(bytes(expected_profile))
+    # Recovery must also release the dead writer's lock and permit a new commit.
+    following = Store(root, baseline).commit_batch(recovered['generation'], {PROFILE: recovered['files'][PROFILE]},
+                                                  ledger, recovered['extension'], OPTIONS)
+    assert Store(root, baseline).load()['parent'] == recovered['generation']
+    assert following != recovered['generation']
 
 
 def test_crossed_extension_torn_native_save_and_unknown_updates_cannot_publish(tmp_path):

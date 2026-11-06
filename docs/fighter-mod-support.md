@@ -39,7 +39,8 @@ checkpoint: the owner waived another routine stock regression and requested
 handoff after that proof. The focused test was closed normally and its complete
 save tree restored byte-identically; it is not a completed full-match pass.
 The earlier full-match and stock passes remain the acceptance evidence.
-M3 has not been started by this work.
+The owner authorized continuing M3 here on 2026-11-06. Its active acceptance
+and implementation checkpoint is [M3 lifecycle and save reliability](research/fighter-mod-m3-2026-11-06.md).
 
 ## Direction already agreed
 
