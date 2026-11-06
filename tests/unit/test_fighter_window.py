@@ -34,6 +34,22 @@ def test_compiler_separates_300_templates_from_four_native_banks():
         assert data[at:at + 104] == original[at:at + 104]
 
 
+def test_removing_last_pack_returns_retail_database_without_forgetting_identity():
+    source, _, _ = catalog(menu=True)
+    _, installed = source.compile([pack(count=2)], binding_window=True)
+    data, removed = source.compile([], installed['binding_ledger'], binding_window=True)
+    assert data == source.compile([])[0]
+    assert removed['binding_mode'] == 'retail-only'
+    assert removed['added_count'] == 0 and removed['menu_roster'] == {}
+    assert 'window' not in removed and 'window_sha256' not in removed
+    assert removed['native_character_count'] == len(source.rows)
+    assert removed['binding_ledger'] == installed['binding_ledger']
+    for key, row in removed['handle_bindings'].items():
+        assert row['available'] == key.startswith('retail/')
+    _, restored = source.compile([pack(count=2)], removed['binding_ledger'], binding_window=True)
+    assert restored == installed
+
+
 PROBE = r'''
 #include "fighter_window.h"
 #include <stdio.h>

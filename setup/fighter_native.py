@@ -184,6 +184,12 @@ class RetailCatalog:
                                   'template': donor['record_offset'], 'fields': native_fields})
                 if logical_menu or binding_window:
                     menu_roster[identifier] = self.menu_record(donor, components, ledger['fighters'][identifier]['selection'])
+        # Removing the last pack is a valid lifecycle transition. Keep its
+        # historical ledger dormant, but do not invent native banks without
+        # an active fighter/template or emit an empty window for the runtime.
+        retail_only = binding_window and not additions
+        if retail_only:
+            binding_window = False
         native_additions = [] if logical_menu else additions
         if binding_window:
             check(0 < len(additions) <= MAX_FIGHTERS, 'native-window-count', 'Invalid logical fighter window population')
@@ -242,6 +248,8 @@ class RetailCatalog:
         if logical_menu:
             report.update(binding_mode='logical-menu-only', native_character_count=len(self.rows), menu_roster=menu_roster)
             report['blockers'].append('logical-fighter-confirmation-unbound')
+        if retail_only:
+            report.update(binding_mode='retail-only', native_character_count=len(self.rows), menu_roster={})
         if binding_window:
             report.update(binding_mode='participant-window', native_character_count=len(self.rows) + BANKS,
                           menu_roster=menu_roster, window=build_window(output, native, additions, ledger))
