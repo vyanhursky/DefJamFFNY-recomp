@@ -14,7 +14,7 @@ be made safe. Original saves remain outside experimental writes.
 | Interrupted native writes and publication recovery | Five abrupt host publication boundaries and three native save-interruption points pass; clean Story restart/write verified |
 | Pack disable/remove/update/re-enable | Real authored-resource cycle and native Alpha-removal/Beta combat-save pass; native update/re-enable acceptance pending |
 | Repeated matches and resource ownership | Corrected mixed-pack two-match run passes 10 combat checks, exact identities, release-before-reload and fresh cache/voice ownership |
-| Disconnect/rejoin and ready/cancel | Earlier selector evidence exists; match-lifetime acceptance pending |
+| Disconnect/rejoin and ready/cancel | Actual SDL virtual-device detach/rejoin in authored combat passes; updated-pack ready/cancel run pending |
 | Story and created-fighter profiles | Native persistence field audit and integration acceptance pending |
 | Native-profile extension integration | Research Store currently isolated; normal-profile transaction/recovery integration remains pending |
 | Native profile deletion | Confirm and cancel pass; successful deletion persists through restart without re-import |
@@ -154,6 +154,31 @@ configuration remains part of the profile/launcher integration gate.
   profile lifecycle can be declared supported.
 
 M3 is in progress. Launcher integration and release acceptance remain M4/M6.
+
+## Controller detach and rejoin in combat
+
+`logs/fighter-m3-hotplug-native.txt`, native
+`logs/run-20261106-164430.log.err`, passes exact Alpha first/Beta first identity
+checks and **5/5 combat assertions**, with129 two-second frame samples,
+min103/median120/max120, zero native fault signatures, one verified generation
+and byte-identical save restoration. The test removes SDL virtual joystick1 at
+fight step900. At1080, host slot0 returns disconnected1167 and native held/pressed
+input is zero. It attaches joystick2 at1200; at1320 it occupies player1 again,
+host left-X is32767 and native held input is65544. Subsequent native movement
+and input-linked attacks are observed. Both fighter record identities remain
+fixed through every sampled fight step, and there is no ControllerSetup after
+Game.StartGame. `logs/fighter-m3-hotplug-evidence.json` retains the bounded checks.
+
+This is actual SDL virtual-device removal/addition. The emulated Xbox USB device
+deliberately remains present and reports neutral input during host disconnection;
+this is not guest USB topology removal or physical-device-driver acceptance.
+The test-only game hook requires an isolated fighter window, exactly one known
+virtual pad and no physical joystick. SDL's bundled headers document these
+joystick operations as thread-safe, so no toolkit patch is needed. The harness
+ends menu presses at Game.StartGame and supplies no combat input tail: otherwise
+its raw-script fallback could hide disconnection. The replacement pad is driven
+through SDL, without guest-memory or USB-report writes. Release build passes
+(`logs/fighter-m3-hotplug-build.txt`); toolkit pin is unchanged.
 
 ## Native profile deletion boundary
 
