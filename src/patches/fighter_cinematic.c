@@ -189,6 +189,8 @@ void defjam_fighter_cinematic_cache_finish(uint32_t manager) {
     for (unsigned i = 0; i < 40; ++i)
         guest_call(sub_000A2E20, s_cache_descriptors + (s_cache_count + i) * 0x1AC, 0, NULL);
     s_cache_constructed = 40;
+    fprintf(stderr, "[FIGHTERS] cinematic cache owned manager=%08X descriptors=%08X requests=%08X native=%u added=%u\n",
+            manager, s_cache_descriptors, s_cache_requests, s_cache_count, s_cache_constructed);
     memset(s_cache_cores, 0, sizeof s_cache_cores);
     s_test_readied = 0;
 }
@@ -283,6 +285,8 @@ uint32_t defjam_fighter_cinematic_cache_index(uint32_t manager, uint32_t native)
 void defjam_fighter_cinematic_cache_release(uint32_t manager) {
     if (!s_cache_constructed || s_cache_manager != manager) return;
     if (MEM32(manager + 0x2D868) != s_cache_count) cin_stop("cinematic cleanup count changed");
+    fprintf(stderr, "[FIGHTERS] cinematic cache returning to native destructor manager=%08X descriptors=%08X requests=%08X native=%u added=%u\n",
+            manager, s_cache_descriptors, s_cache_requests, s_cache_count, s_cache_constructed);
     MEM32(manager + 0x2D868) = s_cache_count + s_cache_constructed;
     s_cache_constructed = s_cache_manager = s_cache_descriptors = s_cache_requests = 0;
 }

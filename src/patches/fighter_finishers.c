@@ -177,11 +177,14 @@ void defjam_fighter_finishers_loaded(uint32_t provider) {
         if (!child || MEM8(child) != 11 || MEM8(child + 1)) fin_stop("external authored body has no typed quaternion child");
     }
     s_provider = provider; s_logs = 0; memset(s_parameter_observed, 0, sizeof s_parameter_observed);
-    fprintf(stderr, "[FIGHTERS] paired finisher provider verified %u active motions\n", loaded);
+    fprintf(stderr, "[FIGHTERS] paired finisher provider verified %u active motions provider=%08X storage=%08X\n",
+            loaded, s_provider, s_storage);
 }
 void defjam_fighter_finishers_release(uint32_t manager) {
     if (!s_storage || (s_provider && s_provider != manager + 0x438)) return;
     uint32_t address = s_storage;
+    fprintf(stderr, "[FIGHTERS] paired finisher metadata released after native destructor manager=%08X provider=%08X storage=%08X\n",
+            manager, s_provider, s_storage);
     s_storage = s_provider = 0;
     guest_call(sub_00029760, 0, 1, &address);
 }

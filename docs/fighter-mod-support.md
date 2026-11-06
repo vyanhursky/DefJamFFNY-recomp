@@ -7,13 +7,13 @@ proposal to ship a Vendetta-specific compatibility bundle. Owner decisions are
 recorded below; evidence-dependent implementation details remain
 explicit rather than being treated as approvals.
 
-## Delivery milestones (owner authorized M1 and M2, 2026-11-04)
+## Delivery milestones (M1–M3 authorized)
 
 These are Fighter Mod Support milestones, distinct from the project's original
 M0–M8 port roadmap. The owner authorized implementation and computer testing of
-M1/M2, including bounded independent audits. Keep native runs serial and all
-work local. Report completion and any unresolved architectural decisions before
-starting M3; do not count structural parsing as native acceptance.
+M1/M2 on 2026-11-04, including bounded independent audits, and continued M3
+on 2026-11-06 after the M1/M2 handoff. Keep native runs serial and all work
+local; do not count structural parsing as native acceptance.
 
 | Milestone | Deliverable and acceptance |
 |---|---|

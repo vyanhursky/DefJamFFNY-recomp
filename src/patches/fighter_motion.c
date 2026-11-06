@@ -285,17 +285,19 @@ int defjam_fighter_motion_audio(uint32_t input) {
 }
 void defjam_fighter_motion_register(uint32_t source) {
     if (!s_count) return;
+    if (s_source) motion_stop("previous motion source was not released");
     if (!source || s_size > UINT32_MAX - source) motion_stop("invalid source range");
     uint8_t digest[32]; sha256((const void *)XBOX_PTR(source), s_size, digest);
     if (memcmp(digest, s_digest, 32)) motion_stop("loaded resource differs from validated receipt");
     s_source = source; ++s_generation;
-    fprintf(stderr, "[FIGHTERS] motion generation %u registered: core %u..%u\n",
-            s_generation, ORIGINAL_CORES, ORIGINAL_CORES + s_count - 1);
+    fprintf(stderr, "[FIGHTERS] motion generation %u registered: core %u..%u source=%08X\n",
+            s_generation, ORIGINAL_CORES, ORIGINAL_CORES + s_count - 1, source);
 }
 void defjam_fighter_motion_release(uint32_t owner) {
     if (s_source && MEM32(owner) == s_source) {
+        fprintf(stderr, "[FIGHTERS] motion generation %u invalidated before source release owner=%08X source=%08X\n",
+                s_generation, owner, s_source);
         s_source = 0;
-        fprintf(stderr, "[FIGHTERS] motion generation %u invalidated before source release\n", s_generation);
     }
 }
 static const MotionCore *custom(uint32_t core) {

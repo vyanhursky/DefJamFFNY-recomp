@@ -92,6 +92,8 @@ void defjam_fighter_voice_select(uint32_t input) {
         uint32_t core = MEM32(input + 0x20 + slot * 0x18);
         s_selected[slot] = core && core <= VOICE_CORE_LIMIT && s_voices[core - 1] != UINT16_MAX
             ? s_voices[core - 1] : UINT32_MAX;
+        fprintf(stderr, "[FIGHTERS] voice selection refreshed slot=%u core_id=%u custom_voice=%u\n",
+                slot, core, s_selected[slot]);
     }
 }
 static void add_stem(char stems[STEM_LIMIT][STEM_BYTES], uint32_t *count, const char *value) {

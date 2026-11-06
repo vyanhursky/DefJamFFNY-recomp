@@ -13,7 +13,7 @@ be made safe. Original saves remain outside experimental writes.
 | Competing/stale save sessions | Fixed and focused tests pass; native caller now pins its materialized generation |
 | Interrupted native writes and publication recovery | Fresh-session journal guard and five abrupt writer-death boundaries pass; native interruption acceptance pending |
 | Pack disable/remove/update/re-enable | Real authored-resource compile/migration cycle passes; last-pack removal compiler bug fixed; native changed-pack reload pending |
-| Repeated matches and resource ownership | Full M2 Alpha-pair to Beta-pair transition passes independent identity/combat checks; stronger ownership instrumentation added, native verification pending |
+| Repeated matches and resource ownership | Corrected mixed-pack two-match run passes 10 combat checks, exact identities, release-before-reload and fresh cache/voice ownership |
 | Disconnect/rejoin and ready/cancel | Earlier selector evidence exists; match-lifetime acceptance pending |
 | Story and created-fighter profiles | Native persistence field audit and integration acceptance pending |
 | Native-profile extension integration | Research Store currently isolated; normal-profile transaction/recovery integration remains pending |
@@ -93,10 +93,32 @@ Motion, cinematic-cache, paired-provider and voice selection logs now expose
 their ownership transitions for the next targeted native acceptance.
 Affected native adapter tests pass **130/130** in
 `logs/fighter-m3-resource-ownership-unit.txt`; these changes postdate the
-native run above and are not yet validated in-game. The release build passes
+native run above. The release build passes
 (`logs/fighter-m3-resource-release-build.txt`). Its ignored CMake cache had
 dependency paths into a removed checkout; those now use the already fetched
 pinned SDL3/ImGui source in this checkout. No toolkit revision changed.
+
+The corrected mixed-pack acceptance **passes** on that release build:
+`logs/fighter-m3-ownership-native.txt`, native
+`logs/run-20261106-154942.log.err`. Match one selects Alpha first/Beta first
+(logical100/102), then match two selects Alpha second/Beta second (101/103).
+Both immutable identity/materialization epochs and **10/10 combat assertions**
+pass. There are 280 two-second frame reports, min105/median120/max121, zero
+reported native faults, two verified save generations and byte-identical
+complete save restoration. The second match ends after combat acceptance,
+before results; the first includes results, save, native Quit and teardown.
+
+Motion generation one releases source81829780 from manager00349760 before
+generation two reuses that allocation. Cinematic descriptors82939104 and
+requests8293E810 (12 native +40 added) are handed to that manager's native
+destructor; generation two owns fresh descriptors82938E04/requests8293E510.
+Finisher provider00349B98/storage810A0580 is released after native destruction,
+then the second provider verifies. All four voice slots refresh for each setup:
+600/602/absent/absent then601/603/absent/absent. Guest heap remains5,243,952
+bytes at both setups; contiguous allocation rises98,304 bytes. This establishes
+two-match ownership/reuse, not a long-run leak bound or platform soak.
+The earlier stale-build preflight is retained as
+`logs/fighter-m3-ownership-preflight-stale.txt`; it never launched a game.
 
 ## Whole-pack lifecycle and last-pack removal
 

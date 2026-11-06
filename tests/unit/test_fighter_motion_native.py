@@ -164,6 +164,15 @@ int main(int argc,char **argv) {
     size_t got=fread(XBOX_PTR(SOURCE),1,0x100000,file); assert(got && !ferror(file)); fclose(file);
     if (!strcmp(mode,"changed")) MEM8(SOURCE+9)^=1;
     defjam_fighter_motion_register(SOURCE);
+    if (!strcmp(mode,"unreleased")) { defjam_fighter_motion_register(SOURCE); return 3; }
+    if (!strcmp(mode,"reload")) {
+        MEM32(0x2000)=SOURCE+4; defjam_fighter_motion_release(0x2000);
+        assert(defjam_fighter_motion_bank(257)==5); /* An unrelated owner cannot invalidate it. */
+        MEM32(0x2000)=SOURCE; defjam_fighter_motion_release(0x2000);
+        defjam_fighter_motion_register(SOURCE); /* Allocator reuse is safe after release. */
+        assert(defjam_fighter_motion_bank(257)==5);
+        return 0;
+    }
     MEM32(OUTPUT+0x28)=2; MEM32(OUTPUT+0x2C)=256;
     MEM32(CONTEXT+0x28)=1; MEM32(CONTEXT+0x2C)=257;
     /* Invented original registration values; decoder calls are observable. */
@@ -297,13 +306,14 @@ def files(tmp_path):
     return path, bindings, report['sha256']
 
 
-@pytest.mark.parametrize('mode', ['good', 'inactive', 'blazin'])
+@pytest.mark.parametrize('mode', ['good', 'inactive', 'blazin', 'reload'])
 def test_owned_core_abi_branches_and_full_width_identity(tool, files, mode):
     result = subprocess.run([tool, *files, mode], capture_output=True, text=True)
     assert result.returncode == 0, result.stdout + result.stderr
 
 
 @pytest.mark.parametrize('mode,message', [('expired', 'expired'), ('unknown', 'unregistered'),
+    ('unreleased', 'previous motion source was not released'),
     ('absent', 'absent action'), ('outside', 'exceeds core'), ('changed', 'differs from validated'),
     ('audio-unknown', 'unknown audio template'), ('ai-unknown', 'unknown AI template'),
     ('ai-fallback', 'silently fell back'), ('ai-unterminated', 'empty or unterminated'),

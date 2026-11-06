@@ -5,7 +5,9 @@ M1 and M2, including computer testing. M1 is complete for local Windows
 acceptance with the approved 2D selector/3D entrance-combat scope; macOS/Deck
 smoke checks remain unperformed. M2 implementation is complete for local
 handoff with the testing qualifications below. No push or public PR. Earlier entries below
-are historical checkpoints; latest results appear at the end.
+are historical checkpoints; latest M1/M2 results appear at the end. M3 was
+subsequently authorized on 2026-11-06; its current work is recorded in the
+[M3 checkpoint](fighter-mod-m3-2026-11-06.md).
 
 ## Current acceptance summary
 
