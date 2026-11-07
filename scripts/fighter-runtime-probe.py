@@ -181,20 +181,12 @@ def verify_menu_selection(log, report, keys):
     return verify_menu_matches(log, report, [keys])[0]
 
 
+import fighter_presentation as presentation
+from fighter_presentation import pack_folder
+
+
 def original_screens(screens):
-    pin = json.loads((ROOT / 'config/fighter-native-baseline.json').read_text(encoding='utf-8'))
-    with screens.open('rb') as stream:
-        source = stream.read(MAX_ARCHIVE + 1)
-    if len(source) > MAX_ARCHIVE or hashlib.sha256(source).hexdigest() != pin['screens_sha256']:
-        raise ValueError('Portrait adapter requires the supported original screens archive')
-    return source
-
-
-def pack_folder(folder):
-    folder = ordinary_path(folder)
-    if not re.fullmatch(r'[A-Za-z0-9_.-]{1,63}', folder.name) or '..' in folder.name:
-        raise ValueError('Composition needs an ordinary supported pack folder')
-    return folder
+    return presentation.original_screens(screens, pin_path=ROOT / 'config/fighter-native-baseline.json')
 
 
 def texture_environment(folders, language=None):
@@ -227,102 +219,12 @@ def texture_environment(folders, language=None):
 
 
 def prepare_language_screens(screens, folder):
-    folder = pack_folder(folder)
-    parser = language_manifest(folder)
-    edits, used = [], 0
-    for target, delta in parser['files'].items():
-        parts = tuple(part.strip() for part in target.split('|'))
-        if parts[0].lower() == 'assets/djv2.sod':
-            raise ValueError('Language changes to the fighter database need a semantic composition adapter')
-        if parts[0].lower() != 'screens/screens.viv':
-            continue  # The native language loader retains its other files and data-only XBE patch.
-        path = folder / delta.strip()
-        with path.open('rb') as stream:
-            data = stream.read(MAX_DELTA_BYTES - used + 1)
-        used += len(data)
-        if used > MAX_DELTA_BYTES:
-            raise ValueError('Language composition deltas exceed byte budget')
-        edits.append((parts[1:], data))
-    if not edits:
-        return None
-    source = original_screens(screens)
-    return language_base(source, edits, hashlib.sha256(source).hexdigest())
+    return presentation.prepare_language_screens(screens, folder, original_loader=original_screens, max_delta=MAX_DELTA_BYTES)
 
 
 def prepare_portraits(screens, report, *, language=None, resource_cache=None):
-    root = ordinary_path(ROOT / 'logs/fighter-ui-preview')
-    source = original_screens(screens)
-    original = source
-    if language is not None:
-        composed, receipt = language
-        if set(receipt) != {'schema', 'source_sha256', 'base_sha256', 'edits', 'cache_key'} \
-                or receipt['schema'] != 'fighter-language-base-1' \
-                or receipt['source_sha256'] != hashlib.sha256(source).hexdigest() \
-                or receipt['base_sha256'] != hashlib.sha256(composed).hexdigest() \
-                or receipt['cache_key'] != fingerprint({key: value for key, value in receipt.items() if key != 'cache_key'}):
-            raise ValueError('Language screens provenance does not match its composed bytes')
-        source = composed
-    pairs = {report['bindings'][key]['selection_key']: report['bindings'][donor]['selection_key']
-             for key, donor in report['portrait_donors'].items()}
-    result = portrait_aliases(source, pairs, results=True)
-    artwork = {}
-    if report.get('portrait_resources'):
-        from fighter_portrait import apply_portraits
-        if resource_cache is None:
-            raise ValueError('Authored portraits require their compiled cache')
-        resources = {}
-        for relative in report['portrait_files']:
-            from mods import safe_relative
-            path = ordinary_path(resource_cache.joinpath(*safe_relative(relative)))
-            with path.open('rb') as stream:
-                data = stream.read(16 * 1024**2 + 1)
-            if len(data) > 16 * 1024**2:
-                raise ValueError('Compiled portrait exceeds its budget')
-            resources[relative] = data
-        bindings = {report['bindings'][key]['selection_key']: (identifier, report['portrait_files'])
-                    for key, identifier in report['portrait_bindings'].items()}
-        if not set(bindings) <= set(pairs):
-            raise ValueError('Authored portrait binding is not an owned custom alias')
-        result = apply_portraits(result, bindings, resources)
-        if bindings:
-            from fighter_grid import compose_grid
-            from fighter_portrait import PortraitBaseline
-            result, artwork = compose_grid(result, report, PortraitBaseline(original, hashlib.sha256(original).hexdigest()))
-    archive, replacements = Archive(result), {}
-    names = {report['bindings'][key]['selection_key']: report['localization_entries'][report['bindings'][key]['native_name']]
-             for key in report['portrait_donors']}
-    for count in (() if report.get('binding_mode') == 'retail-only' else (2, 3, 4)):
-        stem = f'chooseF{count}'
-        path = 'screens/battle/' + stem + '.big'
-        inner = Archive(unpack(archive.read(path)))
-        records = list(report['menu_roster'].values()) if report.get('binding_mode') in ('logical-menu-only', 'participant-window') else None
-        movie, constants, _ = compile_menu(inner.read(stem + '.apt'), inner.read(stem + '.const'), pairs, names, records, participants=count, artwork=artwork)
-        replacements[path] = store(inner.compose(replacements={stem + '.apt': movie, stem + '.const': constants}))
-        stem = f'matchSm{count}'
-        path = 'screens/battle/' + stem + '.big'
-        inner = Archive(unpack(archive.read(path)))
-        movie, constants, _ = compile_results(inner.read(stem + '.apt'), inner.read(stem + '.const'), names, participants=count)
-        replacements[path] = store(inner.compose(replacements={stem + '.apt': movie, stem + '.const': constants}))
-    result = archive.compose(replacements=replacements)
-    digest = hashlib.sha256(result).hexdigest()
-    root.mkdir(parents=True, exist_ok=True)
-    destination = ordinary_path(root / digest)
-    if not destination.exists():
-        with tempfile.TemporaryDirectory(dir=root) as temporary:
-            stage = Path(temporary) / 'cache'
-            (stage / 'screens').mkdir(parents=True)
-            (stage / 'screens/screens.viv').write_bytes(result)
-            try:
-                os.rename(stage, destination)
-            except OSError:
-                if not ordinary_path(destination).is_dir():
-                    raise
-    path = ordinary_path(destination / 'screens/screens.viv')
-    with path.open('rb') as stream:
-        actual = stream.read(MAX_ARCHIVE + 1)
-    if len(actual) != len(result) or hashlib.sha256(actual).hexdigest() != digest:
-        raise ValueError('Existing portrait cache is corrupt')
-    return path
+    return presentation.prepare_portraits(screens, report, language=language, resource_cache=resource_cache,
+        cache_root=ROOT / 'logs/fighter-ui-preview', original_loader=original_screens)
 
 
 def verify_saved_kind(journal, committed, kind):
