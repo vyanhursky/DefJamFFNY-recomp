@@ -39,8 +39,14 @@ checkpoint: the owner waived another routine stock regression and requested
 handoff after that proof. The focused test was closed normally and its complete
 save tree restored byte-identically; it is not a completed full-match pass.
 The earlier full-match and stock passes remain the acceptance evidence.
-The owner authorized continuing M3 here on 2026-11-06. Its active acceptance
-and implementation checkpoint is [M3 lifecycle and save reliability](research/fighter-mod-m3-2026-11-06.md).
+The owner authorized continuing M3 here on 2026-11-06. Its implementation and
+focused Windows acceptance are complete locally, using native profiles plus a
+versioned extension. Crash recovery, pack removal/update/re-enable, zero-pack
+saving, native profile deletion, repeated-match ownership, controller rejoin,
+ready/cancel and signed-in custom-player/Story reload checks are documented in
+[M3 lifecycle and save reliability](research/fighter-mod-m3-2026-11-06.md).
+M4 launcher/normal-profile adoption and M6 platform/long-run release acceptance
+remain gated; no public push or PR has been made.
 
 ## Direction already agreed
 

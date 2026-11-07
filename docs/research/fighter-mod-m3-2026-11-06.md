@@ -6,6 +6,13 @@ or PR. Use the approved native-profile/versioned-extension approach first,
 with isolated profiles as the approved fallback if the native boundary cannot
 be made safe. Original saves remain outside experimental writes.
 
+**M3 implementation and focused Windows acceptance are complete locally.**
+The accepted route retains native profiles plus a versioned extension; no
+separate-career fallback is required by this evidence. All game tests used
+disposable copies with complete save restoration. Launcher activation and
+normal-profile adoption remain M4; platform/release regression and long-run
+resource soak remain M6. No public push, PR or additional owner decision.
+
 ## Acceptance work
 
 | Area | Status |
@@ -15,7 +22,7 @@ be made safe. Original saves remain outside experimental writes.
 | Pack disable/remove/update/re-enable | Authored-resource cycle, native Alpha removal, last-pack removal with Story save and updated-pack re-enable pass |
 | Repeated matches and resource ownership | Corrected mixed-pack two-match run passes 10 combat checks, exact identities, release-before-reload and fresh cache/voice ownership |
 | Disconnect/rejoin and ready/cancel | Actual SDL virtual-device detach/rejoin and two-human ready/cancel/reselection with the updated pack pass |
-| Story and created-fighter profiles | Created-vs-authored combat/results/save and Story restart/retail-only saving verified; opaque field audit and custom-player profile coverage remain |
+| Story and created-fighter profiles | Created-vs-authored and signed-in authored-player combat/results/save verified; same Story profile reloads and saves with zero packs. Bounded field audit supports the route; full opaque schema is not claimed |
 | Native-profile extension integration | Shared session backend extracted and used by probe; focused tests pass. Production adoption/launcher workflow remains M4 and gated |
 | Native profile deletion | Confirm and cancel pass; successful deletion persists through restart without re-import |
 
@@ -329,15 +336,17 @@ still gated.
 ## Updated pack and two-player ready cancellation
 
 `logs/fighter-m3-reenable-cancel-native.txt`, native
-`logs/run-20261106-165833.log.err`, passes exact102/101 identities and **6/6**
+`logs/run-20261106-165833.log.err`, passes exact 102/101 identities and **6/6**
 combat assertions, including movement and damaging hits from both humans.
-The same Store used for Alpha removal now loads Alpha1.0.1; its second fighter's
-updated label is present in the compiled name table. Native menu events show
-P1 selecting101, `Fighters.KeepReady(0)` releasing readiness, P2 taking101,
-then P1 selecting102 before the sole Game.StartGame. Both materialize their
+The same Store used for Alpha removal now loads Alpha 1.0.1; its second fighter's
+updated label is present in the compiled name table and visible in the reviewed
+`0c81a17890d349919583ccf789f207d9/captures/versus-25s.png` combat capture under
+`logs/fighter-window-runs`. Native menu events show
+P1 selecting 101, `Fighters.KeepReady(0)` releasing readiness, P2 taking 101,
+then P1 selecting 102 before the sole Game.StartGame. Both materialize their
 correct immutable records. Historical bindings and all three prior custom
-marks are unchanged. One acknowledged generation,119 two-second frame samples
-(min102/median120/max121), no native faults and identical save restoration.
+marks are unchanged. One acknowledged generation, 119 two-second frame samples
+(min 102/median 120/max 121), no native faults and identical save restoration.
 `logs/fighter-m3-reenable-evidence.json` records the checks. This run stops after
 combat acceptance and does not claim a match result.
 
@@ -369,11 +378,62 @@ mod, relax the native research-root guard, or make normal-profile launches
 production-ready. No fallback architecture or user decision is required by the
 evidence so far.
 
-The bounded native-profile audit identifies a verbatim0x5904 payload copy from
-`manager + profile_index*0x5950 + 0x1788` at52B60/D23B0. The result coordinator
-C3FF0 reaches C2F60 and the15B80 profile updater, whose observed writes increment
-stats at payload9C/9E/A0/A2/A4 and AC+4*index. No transient selection/private-core
+The bounded native-profile audit identifies a verbatim 0x5904 payload copy from
+`manager + profile_index*0x5950 + 0x1788` at 52B60/D23B0. The result coordinator
+C3FF0 reaches C2F60 and the 15B80 profile updater, whose observed writes increment
+stats at payload 9C/9E/A0/A2/A4 and AC+4*index. No transient selection/private-core
 ID write is demonstrated in that updater. This is supporting evidence, not a
 complete schema or proof about every indirect writer. Native reload acceptance
 remains essential; opaque profile bytes are preserved rather than rewritten
 using guessed field meanings.
+
+## Signed-in authored player and subsequent retail-only Story reload
+
+`logs/run-20261106-170332.log.err` signs in the same VY3 profile and selects
+fully authored Beta second 103 as the human. CPU navigation selects retail
+Crack 17 rather than the driver's expected Doc 55, so the original command in
+`logs/fighter-m3-custom-profile-native.txt` **fails that identity assertion**.
+Independent exact 103/17 immutable identity checks and **7/7** combat/result
+checks pass; both VY3 and Options in the committed generation exactly match
+their fresh native close receipts. Fifteen profile payload bytes change; the
+rest remain unchanged. No repeat match was needed for the CPU expectation.
+Evidence: `logs/fighter-m3-custom-profile-evidence.json`.
+
+There are 126 two-second frame samples (min 100/median 120/max 121), no native
+fault signatures, two acknowledged generations, results followed by native
+Game.Quit, and byte-identical complete save restoration. The latest head is
+`04c7c40a2ff7c717305057c4ce6d37c0e9cb8c84db4ad2933dc8a68fb45ea469`.
+The subsequent zero-pack Story reload **passes** using this exact Store and the
+newly extracted shared session backend: `logs/fighter-m3-custom-reload-native.txt`,
+native `logs/run-20261106-170825.log.err`. VY3 enters the original Crib, exits
+with save, writes and closes a complete VY3/Options batch, and reaches
+Game.StartMainMenu(3). One acknowledged generation preserves all six files,
+the complete ledger and Beta second's dormant mark. There are 64 two-second
+frame samples (min 105/median 120/max 121), no native fault signatures and
+byte-identical save restoration. Evidence is
+`logs/fighter-m3-custom-reload-evidence.json`; new head
+`0b666ebd9c85e798f06c4891d8b9bcb19b891fe9ddbe1fa0411dd8dfe12669e3`.
+
+## Handoff after M3
+
+- Local implementation commits: `a7edc85` stale-session/recovery protection,
+  `dcf6477` dormant identity retention, `0d7d024` motion lifetime enforcement,
+  `3f04b1f` native deletion and durable save acknowledgement, `1b0e216` real SDL
+  detach/rejoin acceptance, `04d4ce9` zero-pack persistence, and `be4710c` shared
+  session preparation. The Release binary contains the final native changes;
+  later changes are the host session extraction, its tests and documentation.
+- M4 can consume the shared session backend and the contract above. Wire the
+  Fighters category, whole-pack installation/activation/update/rollback,
+  restart and normal-profile adoption/recovery. Keep the current activation
+  gates until that integration has its own acceptance. M4 has not been started.
+- M5 remains authoring tools/documentation and ordinary-format Vendetta
+  conversion. No compatibility-specific runtime was added in M3.
+- M6 owns long-run resource/performance soak, physical controller/platform
+  coverage, Windows/macOS/Steam Deck release checks and owner playtest. Two
+  consecutive matches establish ownership/reuse, not an unlimited leak bound;
+  SDL virtual detach/rejoin is not physical-driver coverage. Deliberate process
+  termination tests do not establish power-loss durability on every filesystem.
+- Retain qualified native script results above: incorrect opponent expectations
+  were not relabeled as passing commands. Their actual match identities,
+  combat/results and saved receipts were independently verified, avoiding
+  redundant games. The owner-requested routine regression was not rerun.
