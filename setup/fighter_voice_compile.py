@@ -2,7 +2,7 @@
 
 Package-facing event names and runtime admission remain separate work. Inputs
 here are already-resolved logical voice keys, template entry ordinals, and
-validated owned PCM streams. Original archive members remain unchanged.
+validated owned PCM or R2 streams. Original archive members remain unchanged.
 """
 import hashlib
 import re
@@ -10,7 +10,7 @@ import struct
 
 from fighter_archive import Archive
 from fighter_registry import key
-from fighter_voice import parse_stream, require
+from fighter_voice import parse_owned_stream, require
 from fighter_voice_bank import VoiceBankTemplate
 
 CATEGORIES = ('Character', 'Taunts', 'Enviro')
@@ -45,8 +45,8 @@ class VoiceCompiler:
             require(type(donor) is int and 0 <= donor < 65535, 'Invalid template voice ID')
             require(type(voice['samples']) is dict and set(voice['samples']) <= set(CATEGORIES),
                     'Unknown voice sample category')
-            parse_stream(voice['intro'])
-            parse_stream(voice['extro'])
+            parse_owned_stream(voice['intro'])
+            parse_owned_stream(voice['extro'])
             while next_id in self.occupied:
                 next_id += 1
             require(next_id < 65535, 'Voice WORD namespace is exhausted')
@@ -71,7 +71,7 @@ class VoiceCompiler:
                 additions[f'speech/streams/{purpose}/{native_id:03d}.asf'.replace('/', '\\')] = voice[purpose]
             bindings[identifier] = {'voice_id': native_id, 'template_voice': donor,
                                     'categories': category_reports,
-                                    'cinematic_policy': 'explicit-owned-pcm'}
+                                    'cinematic_policy': 'explicit-owned-streams'}
         output = self.archive.compose(additions=additions)
         return output, {'schema': 'fighter-voice-archive-1', 'source_sha256': self.source_hash,
                         'sha256': hashlib.sha256(output).hexdigest(), 'bytes': len(output),
@@ -103,6 +103,6 @@ def encode_voice_bindings(data, report, cores):
                     'Voice bank differs from composition receipt')
             require(struct.unpack_from('<H', h, 2)[0] == native_id, 'Voice bank key differs')
         for purpose in ('intro', 'extro'):
-            parse_stream(archive.read(f'speech/streams/{purpose}/{native_id:03d}.asf'))
+            parse_owned_stream(archive.read(f'speech/streams/{purpose}/{native_id:03d}.asf'))
         rows.append(struct.pack('<2I', core, native_id))
     return b'FVA1' + struct.pack('<3I', 1, len(rows), len(data)) + bytes.fromhex(report['sha256']) + b''.join(rows)

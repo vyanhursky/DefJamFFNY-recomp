@@ -42,6 +42,15 @@ def ordinal(value, maximum):
     return int(value)
 
 
+def voice_file_spec(value, version):
+    if version == 'fighter-voice-1':
+        file_spec(value)
+    else:
+        require(type(value) is dict and set(value) == {'path', 'sha256', 'format'}
+                and value['format'] in ('wav-pcm16', 'ea-adpcm-r2'), 'Unsupported typed voice file')
+        file_spec({k: value[k] for k in ('path', 'sha256')})
+
+
 def validate_source(kind, source):
     expected = {
         'moveset': {'format', 'donor', 'selections', 'tracks'},
@@ -52,7 +61,9 @@ def validate_source(kind, source):
     }
     require(kind in KINDS and type(source) is dict
             and (set(source) == expected[kind] or kind == 'blazin' and set(source) == expected[kind] | {'pairs'})
-            and source['format'] == 'fighter-' + kind + '-1', 'Unsupported behavior source fields or format')
+            and (source['format'] == 'fighter-' + kind + '-1'
+                 or kind == 'voice' and source['format'] == 'fighter-voice-2'),
+            'Unsupported behavior source fields or format')
     if kind == 'moveset':
         require(type(source['donor']) is str and re.fullmatch(r'retail/[a-z0-9]+(?:-[a-z0-9]+)*', source['donor']),
                 'Moveset requires an explicit retail behavior template')
@@ -77,9 +88,9 @@ def validate_source(kind, source):
             require(type(entries) is dict and len(entries) <= 255, 'Voice sample population exceeds budget')
             for index, spec in entries.items():
                 ordinal(index, 254)
-                file_spec(spec)
-        file_spec(source['intro'])
-        file_spec(source['extro'])
+                voice_file_spec(spec, source['format'])
+        voice_file_spec(source['intro'], source['format'])
+        voice_file_spec(source['extro'], source['format'])
     elif kind == 'ai':
         basename(source['template_profile'])
         tendencies = source['tendencies']
@@ -191,11 +202,16 @@ class Reader:
             return {'donor': source['donor'], 'selections': {int(a): b for a, b in source['selections'].items()},
                     'tracks': {token: quaternion_file(self.file(root, spec)) for token, spec in source['tracks'].items()}}
         if kind == 'voice':
+            def read_audio(spec):
+                data = self.file(root, {k: spec[k] for k in ('path', 'sha256')})
+                if source['format'] == 'fighter-voice-1' or spec['format'] == 'wav-pcm16':
+                    return wav_file(data)
+                from fighter_voice_r2 import canonical_r2
+                return canonical_r2(data)
             return {'template_voice': source['template_voice'],
-                    'samples': {category: {int(i): wav_file(self.file(root, spec)) for i, spec in entries.items()}
+                    'samples': {category: {int(i): read_audio(spec) for i, spec in entries.items()}
                                 for category, entries in source['samples'].items()},
-                    'intro': wav_file(self.file(root, source['intro'])),
-                    'extro': wav_file(self.file(root, source['extro']))}
+                    'intro': read_audio(source['intro']), 'extro': read_audio(source['extro'])}
         if kind == 'ai':
             return {'template_profile': source['template_profile'],
                     'tendencies': {difficulty: {int(i): dict(edits) for i, edits in rows.items()}

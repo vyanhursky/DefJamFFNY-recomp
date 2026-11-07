@@ -44,6 +44,19 @@ def test_rekey_and_replace_keep_event_contract_and_fallback_samples():
     assert source.header == h and source.data == d and not report['runtime_ready']
 
 
+def test_r2_replacement_requires_canonical_stream_and_preserves_event_metadata():
+    from test_fighter_voice_r2 import source as r2_source
+    from fighter_voice_r2 import canonical_r2
+    h, d = template()
+    original = load(h, d)
+    with pytest.raises(AssetError):
+        original.compose(600, {0: r2_source()})
+    coded = canonical_r2(r2_source())
+    ch, cd, _ = original.compose(600, {0: coded})
+    assert load(ch, cd).streams == (coded, *original.streams[1:])
+    assert ch[24:] == h[24:]
+
+
 def test_two_packs_get_independent_keys_without_mutating_donor():
     source = load(*template())
     a = source.compose(600, {})

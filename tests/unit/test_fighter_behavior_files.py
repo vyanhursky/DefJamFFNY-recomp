@@ -88,6 +88,24 @@ def test_reader_checks_hash_path_and_aggregate_budget(tmp_path):
         Reader().file(tmp_path, {**spec, 'path': '../data'})
 
 
+def test_typed_voice_reader_mixes_pcm_and_validated_r2_without_codec_guessing(tmp_path):
+    from test_fighter_voice_r2 import source as r2_source
+    from fighter_voice import parse_owned_stream
+    from fighter_voice_r2 import inspect_source
+    pcm = {**descriptor(tmp_path, 'spoken.wav', wav()), 'format': 'wav-pcm16'}
+    coded = {**descriptor(tmp_path, 'reaction.bin', r2_source()), 'format': 'ea-adpcm-r2'}
+    source = {'format': 'fighter-voice-2', 'template_voice': 22,
+              'samples': {'Character': {'0': coded}}, 'intro': pcm, 'extro': coded}
+    result = Reader().resource(tmp_path, 'voice', source)
+    assert parse_owned_stream(result['intro']).metadata()['native_codec'] == 8
+    assert parse_owned_stream(result['extro']).metadata()['native_codec'] == 10
+    assert inspect_source(result['extro']).packets == inspect_source(r2_source()).packets
+    with pytest.raises(AssetError, match='Unsupported typed voice'):
+        Reader().resource(tmp_path, 'voice', {**source, 'intro': {**pcm, 'format': 'guess'}})
+    with pytest.raises(AssetError):
+        Reader().resource(tmp_path, 'voice', {**source, 'format': 'fighter-voice-1'})
+
+
 def test_ai_has_closed_named_tendencies():
     source = {'format': 'fighter-ai-1', 'template_profile': 'char0005',
               'tendencies': {d: {str(i): {'Blazin_Frequency': 5} for i in range(4)}

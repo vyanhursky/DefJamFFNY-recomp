@@ -15,7 +15,8 @@ MAX_PACK = 512 * 1024**2
 
 def descriptors(value):
     if isinstance(value, dict):
-        if set(value) == {'path', 'sha256'}:
+        if (set(value) == {'path', 'sha256'} or set(value) == {'path', 'sha256', 'format'}
+                and value['format'] in ('wav-pcm16', 'ea-adpcm-r2')):
             yield value
         else:
             for item in value.values():

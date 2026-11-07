@@ -143,3 +143,11 @@ def encode_stream(pcm16, sample_rate, packet_samples=4096):
     output = b''.join(parts)
     parse_stream(output)
     return output
+
+
+def parse_owned_stream(data):
+    """Admit only the compiler's explicit PCM16 or canonical software R2 profile."""
+    if isinstance(data, bytes) and data[12:18] == property_value(0x06, 101):
+        from fighter_voice_r2 import parse_r2
+        return parse_r2(data)
+    return parse_stream(data)

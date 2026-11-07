@@ -8,7 +8,7 @@ This is a compiler primitive, not runtime admission or a named-event schema.
 import hashlib
 import struct
 
-from fighter_voice import parse_stream, require
+from fighter_voice import parse_owned_stream, require
 from fighter_assets import AssetError
 
 MAX_BANK_BYTES = 64 * 1024**2
@@ -19,7 +19,7 @@ def stream_span(data):
     """Locate SCEl without invoking any codec; check the enclosing alignment.
 
     Unknown chunks/codecs are allowed only for verified original template
-    entries. Authored replacements additionally pass the PCM profile parser.
+    entries. Authored replacements additionally pass the owned codec parser.
     """
     at = 0
     require(data[:4] == b'SCHl', 'Voice bank entry must start with SCHl')
@@ -78,7 +78,7 @@ class VoiceBankTemplate:
         self.streams = tuple(stream_span(data[start:stop]) for start, stop in zip(starts, stops))
 
     def compose(self, voice_key, replacements):
-        """Replace entry ordinals with validated PCM while preserving events.
+        """Replace entry ordinals with validated streams while preserving events.
 
         A higher-level event schema must resolve names to these ordinals. The
         first native bank key belongs to that inherited event contract; the
@@ -90,7 +90,7 @@ class VoiceBankTemplate:
         for index, data in replacements.items():
             require(type(index) is int and 0 <= index < self.count,
                     'Voice replacement exceeds event entry count')
-            parse_stream(data)
+            parse_owned_stream(data)
         streams = [replacements.get(i, value) for i, value in enumerate(self.streams)]
         # Offsets are u16 units; choose the smallest representable unit. This
         # changes alignment only, never the sample bytes or event ordinals.

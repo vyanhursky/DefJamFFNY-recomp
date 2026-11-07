@@ -18,6 +18,24 @@ def archive(tmp_path, manifest, extras=None):
     return path
 
 
+def test_typed_audio_inventory_checks_hash_and_accounts_for_file(tmp_path):
+    from test_fighter_voice_r2 import source as r2_source
+    import hashlib
+    data = r2_source()
+    spec = {'format': 'ea-adpcm-r2', 'path': 'speech.bin', 'sha256': hashlib.sha256(data).hexdigest()}
+    definition = pack()
+    definition['resources'] = [{'id': 'voice', 'kind': 'voice',
+        'compatibility': {'events': 'retail/binding-test-alpha'},
+        'source': {'format': 'fighter-voice-2', 'template_voice': 22,
+                   'samples': {}, 'intro': spec, 'extro': spec}}]
+    (tmp_path / 'fighters.json').write_text(json.dumps(definition), encoding='utf-8')
+    (tmp_path / 'speech.bin').write_bytes(data)
+    assert fighters.inventory(tmp_path)['id'] == 'alpha'
+    (tmp_path / 'speech.bin').write_bytes(data[:-1])
+    with pytest.raises(ValueError, match='hash mismatch'):
+        fighters.inventory(tmp_path)
+
+
 @pytest.fixture
 def manager(tmp_path, monkeypatch):
     source, _, _ = catalog(menu=True)
