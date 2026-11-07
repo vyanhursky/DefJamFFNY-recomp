@@ -32,7 +32,8 @@ from fighter_menu import compile_menu
 from fighter_results import compile_results
 from fighter_bindings import seed
 from fighter_profile_store import Store
-from fighter_save_journal import Monitor, initialize, encode_unlock_state, bounded, closed_record, decode
+from fighter_save_journal import bounded, closed_record, decode
+from fighter_profile_session import prepare as prepare_profile_session
 from mods import atomic_json, language_manifest, ordinary_path, validate_textures
 
 
@@ -439,18 +440,11 @@ def main():
         portraits = prepare_portraits(screens, report, language=language, resource_cache=cache)
         data_root = ordinary_path(ROOT / 'logs/fighter-runtime-probe')
         if store is not None:
-            generation = None if args.fresh_profiles else initialize(store, args.import_profiles or data_root / 'save', report['binding_ledger'])
-            session = ordinary_path(ROOT / 'logs/fighter-window-runs' / uuid.uuid4().hex)
-            data_root = ordinary_path(session / 'fighter-runtime-probe')
-            for name, data in (generation['files'] if generation else {}).items():
-                path = ordinary_path(data_root / 'save' / name)
-                path.parent.mkdir(parents=True, exist_ok=True)
-                path.write_bytes(data)
-            journal = ordinary_path(session / 'journal'); journal.mkdir(parents=True)
-            unlock_state = ordinary_path(session / 'fighter-unlocks.bin')
-            unlock_state.write_bytes(encode_unlock_state(generation, store.baseline))
-            monitor = Monitor(store, data_root / 'save', journal, report['binding_ledger'],
-                              expected_head=generation['generation'] if generation else None)
+            profile_session = prepare_profile_session(store, report['binding_ledger'], ROOT / 'logs/fighter-window-runs',
+                source=None if args.fresh_profiles else args.import_profiles or data_root / 'save', fresh=args.fresh_profiles)
+            session, data_root = profile_session.root, profile_session.data_root
+            journal, unlock_state = profile_session.journal, profile_session.unlock_state
+            monitor = profile_session.monitor
         data_root.mkdir(parents=True, exist_ok=True)
         if language is not None:
             atomic_json(ordinary_path(data_root / 'fighter-composition.json'), {'language': language[1],
@@ -536,10 +530,8 @@ def main():
                 print('preserved fighter captures: ' + str(preserved), flush=True)
         finally:
             if monitor is not None:
-                monitor.stop()
+                profile_session.finish(require_complete='result' in locals() and result.returncode == 0)
                 print('verified fighter save generations: ' + str(len(monitor.committed)), flush=True)
-                if 'result' in locals() and result.returncode == 0 and (journal / f'{monitor.next:06}.batch').exists():
-                    raise ValueError('Native run ended with an unverified fighter save batch; committed generation was preserved')
         if matches:
             if result.returncode:
                 return result.returncode

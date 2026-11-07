@@ -12,11 +12,11 @@ be made safe. Original saves remain outside experimental writes.
 |---|---|
 | Competing/stale save sessions | Fixed and focused tests pass; native caller now pins its materialized generation |
 | Interrupted native writes and publication recovery | Five abrupt host publication boundaries and three native save-interruption points pass; clean Story restart/write verified |
-| Pack disable/remove/update/re-enable | Authored-resource cycle, native Alpha removal and last-pack removal with Story save pass; native update/re-enable acceptance pending |
+| Pack disable/remove/update/re-enable | Authored-resource cycle, native Alpha removal, last-pack removal with Story save and updated-pack re-enable pass |
 | Repeated matches and resource ownership | Corrected mixed-pack two-match run passes 10 combat checks, exact identities, release-before-reload and fresh cache/voice ownership |
-| Disconnect/rejoin and ready/cancel | Actual SDL virtual-device detach/rejoin in authored combat passes; updated-pack ready/cancel run pending |
+| Disconnect/rejoin and ready/cancel | Actual SDL virtual-device detach/rejoin and two-human ready/cancel/reselection with the updated pack pass |
 | Story and created-fighter profiles | Created-vs-authored combat/results/save and Story restart/retail-only saving verified; opaque field audit and custom-player profile coverage remain |
-| Native-profile extension integration | Research Store currently isolated; normal-profile transaction/recovery integration remains pending |
+| Native-profile extension integration | Shared session backend extracted and used by probe; focused tests pass. Production adoption/launcher workflow remains M4 and gated |
 | Native profile deletion | Confirm and cancel pass; successful deletion persists through restart without re-import |
 
 Testing is focused on changed behavior and these acceptance gaps. The owner's
@@ -325,3 +325,55 @@ min107/median120/max120, no native faults and identical restoration.
 Removing every fighter pack therefore no longer disables persistence or forces
 a separate gameplay profile in this backend. Production launcher adoption is
 still gated.
+
+## Updated pack and two-player ready cancellation
+
+`logs/fighter-m3-reenable-cancel-native.txt`, native
+`logs/run-20261106-165833.log.err`, passes exact102/101 identities and **6/6**
+combat assertions, including movement and damaging hits from both humans.
+The same Store used for Alpha removal now loads Alpha1.0.1; its second fighter's
+updated label is present in the compiled name table. Native menu events show
+P1 selecting101, `Fighters.KeepReady(0)` releasing readiness, P2 taking101,
+then P1 selecting102 before the sole Game.StartGame. Both materialize their
+correct immutable records. Historical bindings and all three prior custom
+marks are unchanged. One acknowledged generation,119 two-second frame samples
+(min102/median120/max121), no native faults and identical save restoration.
+`logs/fighter-m3-reenable-evidence.json` records the checks. This run stops after
+combat acceptance and does not claim a match result.
+
+## Shared native-profile session backend and M4 contract
+
+`setup/fighter_profile_session.py` now owns import-once, fresh workspace
+materialization, matching extension restoration, pinned-generation verification
+and clean-exit checks. The research probe calls this same backend. It rejects
+overlapping source/Store/session roots and never reuses an abandoned journal.
+A first-save test cannot reset an adopted Store. Focused session/probe/journal
+tests pass **85/85** (`logs/fighter-m3-session-unit.txt`). The initial new test
+fixture omitted native SaveMeta/image companions, so its save correctly remained
+uncommitted; supplying those synthetic companions resolved the fixture failure.
+
+This implements the approved native-profile-plus-versioned-extension route.
+The test directory is isolation for acceptance, not a decision to require a
+separate player identity or Story career for mods. M4 should adopt an existing
+save into a Store once, preserve its source as a backup, and use that Store on
+every subsequent managed launch, including zero active packs. Native writes go
+to a new session workspace; only verified batches become the authoritative
+generation. Do not copy an unverified working tree back over the source or
+re-import the old source after a crash/deletion. Do not switch to the old source
+when the final pack is disabled. Pack activation must finish validation before
+session preparation. A stale session must reload, never silently overwrite.
+
+M4 still owns the normal-profile adoption/recovery UI, launcher supervision,
+whole-pack transactions and activation gates. The backend does not activate a
+mod, relax the native research-root guard, or make normal-profile launches
+production-ready. No fallback architecture or user decision is required by the
+evidence so far.
+
+The bounded native-profile audit identifies a verbatim0x5904 payload copy from
+`manager + profile_index*0x5950 + 0x1788` at52B60/D23B0. The result coordinator
+C3FF0 reaches C2F60 and the15B80 profile updater, whose observed writes increment
+stats at payload9C/9E/A0/A2/A4 and AC+4*index. No transient selection/private-core
+ID write is demonstrated in that updater. This is supporting evidence, not a
+complete schema or proof about every indirect writer. Native reload acceptance
+remains essential; opaque profile bytes are preserved rather than rewritten
+using guessed field meanings.
