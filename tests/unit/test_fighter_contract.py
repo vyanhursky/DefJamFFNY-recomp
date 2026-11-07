@@ -103,3 +103,21 @@ def test_voice_staging_rejects_predictors_and_native_per_bank_expansion(tmp_path
     monkeypatch.setattr(fighter_voice_bank, 'MAX_BANK_BYTES', 900)
     with pytest.raises(AssetError, match='Composed voice bank exceeds budget'):
         contract.validate_voice(game, path)
+
+
+@pytest.mark.parametrize('target', ['source', 'audio'])
+def test_voice_staging_pins_all_input_bytes_through_compilation(tmp_path, monkeypatch, target):
+    from test_fighter_voice_r2 import source
+    from fighter_voice_compile import VoiceCompiler
+    game, path = voice_workspace(tmp_path, monkeypatch, source())
+    compose = VoiceCompiler.compose
+    def changed(self, voices):
+        output = compose(self, voices)
+        if target == 'source':
+            path.write_text('{}')
+        else:
+            (path.parent / 'clip.bin').write_bytes(b'changed after read')
+        return output
+    monkeypatch.setattr(VoiceCompiler, 'compose', changed)
+    with pytest.raises(ValueError, match='changed during compilation'):
+        contract.validate_voice(game, path)

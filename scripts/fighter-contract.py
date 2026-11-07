@@ -15,8 +15,8 @@ import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'setup'))
-from fighter_build import retail_catalog, compile_inputs, write_preview, document, MAX_INPUT, MAX_PACKS
-from fighter_packages import inventory
+from fighter_build import retail_catalog, compile_inputs, write_preview, unique, non_finite, MAX_DOCUMENT, MAX_INPUT, MAX_PACKS
+from fighter_packages import inventory, descriptors
 from fighter_presentation import prepare_portraits, prepare_language_screens
 from mods import ordinary_path
 
@@ -57,10 +57,14 @@ def voice_catalog(game):
 
 def validate_voice(game, path):
     """Compile an export staging source through the actual shared voice path."""
-    from fighter_behavior_files import Reader
+    from fighter_behavior_files import Reader, MAX_FILE
     from fighter_voice_compile import VoiceCompiler, encode_voice_bindings
     path = ordinary_path(path)
-    source, _ = document(path)
+    with path.open('rb') as stream:
+        before = stream.read(MAX_DOCUMENT + 1)
+    if len(before) > MAX_DOCUMENT:
+        raise ValueError('Voice source exceeds document budget')
+    source = json.loads(before, object_pairs_hook=unique, parse_constant=non_finite)
     voice = Reader().resource(path.parent, 'voice', source)
     pin = json.loads((ROOT / 'config/fighter-native-baseline.json').read_text())
     archive = game / 'audio/speech2.viv'
@@ -68,8 +72,20 @@ def validate_voice(game, path):
         raise ValueError('Voice archive exceeds budget')
     data, report = VoiceCompiler(archive.read_bytes(), pin['speech_sha256']).compose({'authoring/voice': voice})
     table = encode_voice_bindings(data, report, {141: 'authoring/voice'})
+    with path.open('rb') as stream:
+        after = stream.read(MAX_DOCUMENT + 1)
+    if after != before:
+        raise ValueError('Voice source changed during compilation')
+    for spec in descriptors(source):
+        asset = ordinary_path(path.parent / spec['path'])
+        if not asset.is_relative_to(path.parent):
+            raise ValueError('Voice file escapes source folder')
+        with asset.open('rb') as stream:
+            current = stream.read(MAX_FILE + 1)
+        if len(current) > MAX_FILE or hashlib.sha256(current).hexdigest() != spec['sha256']:
+            raise ValueError('Voice files changed during compilation')
     return {'protocol': PROTOCOL, 'ok': True, 'component_compilation': True, 'native_playtest': False,
-            'source_sha256': hashlib.sha256(path.read_bytes()).hexdigest(),
+            'source_sha256': hashlib.sha256(before).hexdigest(),
             'archive_sha256': report['sha256'], 'binding_sha256': hashlib.sha256(table).hexdigest()}
 
 

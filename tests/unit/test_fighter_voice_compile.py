@@ -184,3 +184,14 @@ def test_event_identity_ignores_only_physical_layout_and_explicit_family_when_re
     assert event_identity(header) != event_identity(bytes(changed))
     changed[14] ^= 1
     assert event_identity(header, include_family=False) != event_identity(bytes(changed), include_family=False)
+
+
+def test_legacy_and_absent_voice_resources_share_one_versioned_generation():
+    _, compiler = source()
+    legacy = voice(1)
+    absent = {'banks': {category: {'state': 'absent'} for category in CATEGORIES},
+              'intro': legacy['intro'], 'extro': legacy['extro']}
+    data, report = compiler.compose({'alpha/legacy': legacy, 'beta/absent': absent})
+    table = encode_voice_bindings(data, report, {256: 'alpha/legacy', 257: 'beta/absent'})
+    assert table[:4] == b'FVA2'
+    assert struct.unpack_from('<6I', table, 48) == (256, 601, 7, 257, 602, 0)
