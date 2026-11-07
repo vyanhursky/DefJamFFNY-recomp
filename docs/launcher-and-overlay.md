@@ -46,6 +46,10 @@ pane follows the focused or hovered setting. Existing INI names and saved values
 
 ### Texture packs
 
+Mods separates **Textures**, **Languages** and **Fighters**. Fighter Mod Support
+is under local development for v0.15.0; its current contract and acceptance are
+recorded in [the feature plan](fighter-mod-support.md).
+
 Mods lists selected packs first, including missing selections, then other local folders. The origin badge
 distinguishes manually installed packs from catalogue-managed downloads. Refresh local mods finds new
 folders without enabling them. Unchecking keeps files. **Load Order...** shows all enabled local and

@@ -7,7 +7,7 @@ proposal to ship a Vendetta-specific compatibility bundle. Owner decisions are
 recorded below; evidence-dependent implementation details remain
 explicit rather than being treated as approvals.
 
-## Delivery milestones (M1–M3 authorized)
+## Delivery milestones (M1–M4 authorized)
 
 These are Fighter Mod Support milestones, distinct from the project's original
 M0–M8 port roadmap. The owner authorized implementation and computer testing of
@@ -45,10 +45,63 @@ versioned extension. Crash recovery, pack removal/update/re-enable, zero-pack
 saving, native profile deletion, repeated-match ownership, controller rejoin,
 ready/cancel and signed-in custom-player/Story reload checks are documented in
 [M3 lifecycle and save reliability](research/fighter-mod-m3-2026-11-06.md).
-M4 launcher/normal-profile adoption and M6 platform/long-run release acceptance
-remain gated; no public push or PR has been made.
+The owner then authorized M4. Launcher integration, normal-profile adoption and
+focused Windows acceptance are complete locally, including update/rollback,
+managed native combat saves and the same Story career with all packs disabled.
+See [M4 launcher integration](research/fighter-mod-m4-2026-11-06.md).
+M5 creator tooling/Vendetta conversion and M6 platform/long-run release
+acceptance remain. No public push or PR has been made.
 
 ## Direction already agreed
+
+### Local M4 launcher workflow
+
+Open **Mods > Fighters**, enter the path to a Fighter ZIP and choose **Install
+or update from ZIP**. Installation verifies the files and composes their typed
+resources against the player's dump. It leaves a new pack disabled. Enable its
+checkbox to select every fighter in that pack; changes apply on the next Play.
+In-game selection remains in the native menus. Installation, activation and
+rollback are unavailable during gameplay. Fighter packs do not participate in
+texture load order.
+
+The ZIP contains one folder named after the pack ID, with `fighters.json` at
+its root. It uses the existing `fighter-registry-draft-1` definitions and only
+their declared, hash-checked resource files, plus optional root README/LICENSE
+text. Both one- and multi-fighter packs follow this path. The runtime validates
+resource formats and references, not merely filename extensions. Package code,
+arbitrary native databases and patch tables are not accepted. The schema remains
+a development contract pending M5's creator tooling and examples.
+
+An update keeps the pack's enabled state and validates the complete proposed
+roster before replacing the installed version. **Restore previous version**
+uses the same validation. A failed operation retains the prior installation
+and activation state. Disable dependent packs before disabling their required
+pack; dependency/version conflicts identify the requirement to fix. Disable a
+pack before removing it. Modified installed files are refused, not overwritten.
+Play revalidates the active roster together with the selected language's native
+screen composition; incompatible resources stop launch with a diagnostic.
+
+On the first Play with fighters enabled, existing native profiles are imported
+once into managed save history. This continues the same career. The original
+`<data>/save` is retained unchanged as the import-time backup. Every later Play,
+including after disabling/removing **all** fighter packs, uses the latest verified
+managed generation. Custom progression stays dormant while its pack is absent.
+Re-enabling the same stable fighter identities restores it. Editing the original
+import folder after adoption does not change the active career.
+
+**Open saves** opens `<data>/mod-manager/fighter-profiles` after adoption. For a
+backup, close the game and copy this entire folder together with
+`fighter-adoption.json`; keep the installed packs and manager state to reproduce
+the roster. Generations contain native saves, stable identity mappings and their
+matching extension. Restore those together from one complete backup. Do not
+replace individual native files inside a generation, delete the adoption marker
+to force a re-import, or recover an unfinished `fighter-sessions` workspace.
+A missing/corrupt committed generation stops Play rather than silently loading
+the older import backup. Dedicated backup selection/import tooling remains a
+follow-up; this local M4 workflow does not provide arbitrary post-adoption save
+merging.
+
+### Approved architecture
 
 - Feature: **Fighter Mod Support**. Launcher category: **Fighters**.
 - A pack defines **one fighter or many fighters**. Several independent packs must
