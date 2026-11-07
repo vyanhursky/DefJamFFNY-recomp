@@ -109,3 +109,35 @@ def test_animation_aliases_are_emitted_from_the_same_verified_action_plan():
     request['moveset'] = {'plan': {}, 'selections': {2: 1}}
     with pytest.raises(AssetError, match='typed moveset'):
         compiler.compose({'alpha/motion': request})
+
+
+def test_slot_edits_preserve_every_other_packed_bit_and_ordinary_action():
+    from fighter_motion_compile import MotionCoreTemplates
+    from fighter_moveset import compose_selected_cores
+    data, _, plan = fixture()
+    templates = MotionCoreTemplates(data, hashlib.sha256(data).hexdigest())
+    resources = {'alpha/core': {'donor': 2, 'finisher_slots': {0: 81, 1: 2, 3: 2}}, 'beta/core': 2}
+    compiled, report, proof = compose_selected_cores(templates, resources)
+    assert proof[:8] == b'FMC3\x03\0\0\0' and len(proof) == 56 + 296 * 2
+    assert struct.unpack_from('<4I', proof, 56 + 280) == (81, 2, 0xffffffff, 2)
+    index = MotionIndex(compiled)
+    before, after = templates.index.record('core', 2), index.record('core', 3)
+    assert after.values[:88] == before.values[:88] and after.values[92:] == before.values[92:]
+    assert after.values[88:92] == (81, 2, before.values[90], 2) and after.tail == before.tail
+    assert compiled[:len(data)] == data
+    assert index.data[index.core_spans[3] + 64:index.core_spans[3] + 852] == data[templates.index.core_spans[2] + 64:templates.index.core_spans[2] + 852]
+    resources['alpha/core'].update(envelope=plan.bank.envelope,
+        bank_sha256=hashlib.sha256(plan.bank.envelope.model.data).hexdigest(), selections={2: 1})
+    compiled, _, proof = compose_selected_cores(templates, resources)
+    assert struct.unpack_from('<H', proof, 56 + 24) == (1,)
+    assert MotionIndex(compiled).record('core', 3).values[88] == 81
+
+
+@pytest.mark.parametrize('edits', [{}, {True: 1}, {4: 1}, {0: True}, {0: 82}, {'0': 1}, {0: -1}])
+def test_finisher_slot_choices_are_bounded(edits):
+    from fighter_motion_compile import MotionCoreTemplates
+    from fighter_moveset import compose_selected_cores
+    data, _, _ = fixture()
+    templates = MotionCoreTemplates(data, hashlib.sha256(data).hexdigest())
+    with pytest.raises(AssetError):
+        compose_selected_cores(templates, {'alpha/core': {'donor': 2, 'finisher_slots': edits}})

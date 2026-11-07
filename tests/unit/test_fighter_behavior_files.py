@@ -34,6 +34,21 @@ def wav(channels=1):
     return output.getvalue()
 
 
+def test_voice3_reads_explicit_category_templates_and_typed_files(tmp_path):
+    audio = {**descriptor(tmp_path, 'voice.wav', wav()), 'format': 'wav-pcm16'}
+    source = {'format': 'fighter-voice-3', 'banks': {
+        category: {'template_voice': template, 'family': family, 'samples': {'0': audio}}
+        for category, template, family in [('Character', 0, 1), ('Taunts', 22, 16626), ('Enviro', 12, 40963)]},
+        'intro': audio, 'extro': audio}
+    result = Reader().resource(tmp_path, 'voice', source)
+    assert result['banks']['Taunts']['template_voice'] == 22
+    assert result['banks']['Character']['family'] == 1
+    assert parse_stream(result['banks']['Enviro']['samples'][0]).sample_count == 8
+    source['banks']['Taunts']['family'] = 1
+    with pytest.raises(AssetError, match='family'):
+        validate_source('voice', source)
+
+
 def test_moveset_reader_produces_typed_complete_rig_tracks(tmp_path):
     spec = descriptor(tmp_path, 'pose.json', json.dumps(pose()).encode())
     source = {'format': 'fighter-moveset-1', 'donor': 'retail/example',
@@ -150,3 +165,23 @@ def test_blazin_reader_preserves_roles_and_allows_partial_body_authoring(tmp_pat
     source['shots'].pop()
     with pytest.raises(AssetError):
         validate_source('blazin', source)
+
+
+def test_blazin_slots_are_explicit_bounded_and_cannot_mix_with_choice_pairs(tmp_path):
+    from copy import deepcopy
+    spec = descriptor(tmp_path, 'pose.json', json.dumps(pose()).encode())
+    pair = {'template_choice': 2, 'subject': spec, 'counterpart': spec}
+    source = {'format': 'fighter-blazin-2', 'shots': [{'template': token}
+        for token in ('BT1_01', 'BT2_01', 'BT3_01', 'BT4C01')], 'slots': {'0': pair, '3': pair}}
+    parsed = Reader().resource(tmp_path, 'blazin', source)
+    assert parsed['pairs'] == {} and set(parsed['slots']) == {0, 3}
+    assert parsed['slots'][3]['template_choice'] == 2
+    assert parsed['slots'][0]['counterpart'].bone_count == 1
+    for slots in ({}, {'00': pair}, {'4': pair}, {'0': {**pair, 'template_choice': True}},
+                  {'0': {**pair, 'template_choice': 82}}, {'0': {'template_choice': 2, 'subject': spec}}):
+        with pytest.raises(AssetError):
+            validate_source('blazin', {**source, 'slots': slots})
+    for edit in ({'pairs': {'2': {'subject': spec, 'counterpart': spec}}}, {'format': 'fighter-blazin-1'}):
+        bad = deepcopy(source); bad.update(edit)
+        with pytest.raises(AssetError):
+            validate_source('blazin', bad)

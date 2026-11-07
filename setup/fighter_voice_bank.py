@@ -1,7 +1,7 @@
 """Compose owned voice samples behind verified native event-selection metadata.
 
 The template comes from the verified local game, never a mod-supplied HDR/DAT.
-Only the second bank key and sample offsets change; metadata, entry ordering,
+Only explicit bank keys and sample offsets change; metadata, entry ordering,
 selection masks and history configuration retain the original event contract.
 This is a compiler primitive, not runtime admission or a named-event schema.
 """
@@ -13,6 +13,7 @@ from fighter_assets import AssetError
 
 MAX_BANK_BYTES = 64 * 1024**2
 MAX_HEADER_BYTES = 64 * 1024
+FAMILIES = {'Character': (0, 1), 'Taunts': (16625, 16626), 'Enviro': (40962, 40963)}
 
 
 def stream_span(data):
@@ -77,7 +78,7 @@ class VoiceBankTemplate:
                 'Voice bank offsets must increase within DAT')
         self.streams = tuple(stream_span(data[start:stop]) for start, stop in zip(starts, stops))
 
-    def compose(self, voice_key, replacements):
+    def compose(self, voice_key, replacements, *, family=None):
         """Replace entry ordinals with validated streams while preserving events.
 
         A higher-level event schema must resolve names to these ordinals. The
@@ -86,6 +87,11 @@ class VoiceBankTemplate:
         """
         require(type(voice_key) is int and 0 <= voice_key < 0xFFFF,
                 'Voice bank key must fit the non-sentinel native WORD')
+        selected_family = self.first_key if family is None else family
+        if family is not None:
+            require(type(family) is int and any(self.first_key in group and family in group
+                                              for group in FAMILIES.values()),
+                    'Explicit voice family must retain its verified category')
         require(type(replacements) is dict, 'Voice replacements must map entry ordinals')
         for index, data in replacements.items():
             require(type(index) is int and 0 <= index < self.count,
@@ -103,6 +109,7 @@ class VoiceBankTemplate:
             unit += 256
         require(unit <= 65536 and total <= MAX_BANK_BYTES, 'Composed voice bank exceeds budget')
         header = bytearray(self.header)
+        struct.pack_into('<H', header, 0, selected_family)
         struct.pack_into('<H', header, 2, voice_key)
         header[7] = unit // 256 - 1
         struct.pack_into('<H', header, 8, total // unit)
@@ -116,7 +123,8 @@ class VoiceBankTemplate:
         checked = VoiceBankTemplate(result_header, result_data, *hashes)
         require(checked.streams == tuple(streams), 'Composed voice entry spans differ')
         return result_header, result_data, {
-            'schema': 'fighter-voice-template-1', 'first_key': self.first_key,
+            'schema': 'fighter-voice-template-1', 'first_key': selected_family,
+            'source_first_key': self.first_key,
             'voice_key': voice_key, 'entry_count': self.count,
             'authored_entries': sorted(replacements), 'source_hashes': list(self.source_hashes),
             'discarded_unindexed_bytes': self.unindexed_bytes,

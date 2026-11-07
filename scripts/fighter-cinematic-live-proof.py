@@ -16,7 +16,7 @@ spec=importlib.util.spec_from_file_location('peek',ROOT/'scripts/peek-guest.py')
 peek=importlib.util.module_from_spec(spec);spec.loader.exec_module(peek)
 cache,pid,seconds=Path(sys.argv[1]),int(sys.argv[2]),int(sys.argv[3])
 output=Path(sys.argv[4]) if len(sys.argv)>4 else cache/'cinematic-live-named-proof.json'
-owners={};pairs={}
+owners={};pairs={};pair_slots={}
 if (cache/'report.json').is_file():
  report=json.loads((cache/'report.json').read_text(encoding='utf-8'))
  receipt=report['behavior_receipts']['cinematic']
@@ -47,12 +47,15 @@ for key,item in items:
  expected.append((key,name,parent,child,descriptor,size,digest,cell,name_at))
 if (cache/'fighter-finishers.bin').is_file():
  table=(cache/'fighter-finishers.bin').read_bytes()
- assert table[:4]==b'FBP1' and len(table)==52+28*struct.unpack_from('<I',table,8)[0]
- for at in range(52,len(table),28):
-  core,choice,ordinal,a,b=struct.unpack_from('<III8s8s',table,at)
+ stride=32 if table[:8]==b'FBP2\x02\0\0\0' else 28
+ assert (stride==32 or table[:8]==b'FBP1\x01\0\0\0') and len(table)==52+stride*struct.unpack_from('<I',table,8)[0]
+ for at in range(52,len(table),stride):
+  if stride==32:core,slot,choice,ordinal,a,b=struct.unpack_from('<IIII8s8s',table,at)
+  else:core,choice,ordinal,a,b=struct.unpack_from('<III8s8s',table,at)
   for role,raw in enumerate((a,b)):
    name=raw.rstrip(b'\0').decode('ascii')
    owners.setdefault(name,set()).add(core);pairs[name]=(role,ordinal+role)
+   if stride==32:pair_slots.setdefault(name,set()).add((core,slot,choice))
  archive=Archive((cache/'motion/blazin.viv').read_bytes())
  for key,pair in report['behavior_receipts']['finishers']['bindings'].items():
   for role,item in pair['roles'].items():
@@ -145,6 +148,14 @@ try:
       row['subject_slot']=(subject-0x3B92E0)//0x12E8;row['subject_core']=word(subject+0x2C)
       row['external_ordinal']=ordinal
       row['owner_matches_binding']=row['subject_core'] in owners[name]
+      if name in pair_slots:
+       action=word(subject+0xF50)
+       action_slot=action-31 if 31<=action<=34 else action-38 if 38<=action<=41 else None
+       if action_slot is None:continue
+       choice=word(subject+0xBB8+action_slot*4)
+       if word(subject+0x88)!=ordinal-role or word(subject+0xF50)!=action:continue
+       row['action_slot']=action_slot;row['template_choice']=choice
+       row['owner_matches_binding']=row['owner_matches_binding'] and (row['subject_core'],action_slot,choice) in pair_slots[name]
       if evaluated and not row['owner_matches_binding']:mismatches.append(row)
      elif owners:
       row['owner_matches_binding']=row['core'] in owners.get(name,set())

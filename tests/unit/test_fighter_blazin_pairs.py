@@ -91,3 +91,15 @@ def test_binding_cannot_change_behavior_role_ordinal_or_payload():
     changed['bindings']['alpha/finisher']['roles']['counterpart']['parts_sha256']['ord'] = '0'*64
     with pytest.raises(AssetError):
         encode_pair_bindings(data, changed, {256: {2: 'alpha/finisher'}})
+
+
+def test_slots_using_one_behavior_retain_distinct_owned_pairs():
+    _, compiler = original()
+    data, receipt = compiler.compose({'alpha/first': resource(), 'alpha/second': resource()})
+    table = encode_pair_bindings(data, receipt, {256: {0: 'alpha/first', 3: 'alpha/second'}}, slots=True)
+    assert table[:8] == b'FBP2\x02\0\0\0' and len(table) == 52 + 64
+    assert struct.unpack_from('<4I', table, 52) == (256, 0, 2, 873)
+    assert struct.unpack_from('<4I', table, 84) == (256, 3, 2, 875)
+    for selection in (True, -1, 4, '0'):
+        with pytest.raises(AssetError):
+            encode_pair_bindings(data, receipt, {256: {selection: 'alpha/first'}}, slots=True)

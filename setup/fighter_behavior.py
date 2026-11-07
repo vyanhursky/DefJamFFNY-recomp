@@ -134,6 +134,7 @@ class BehaviorPlan:
         cinematic_resources = {}
         blazin_keys, blazin_resources = {}, {}
         pair_keys, pair_resources = {}, {}
+        slot_bindings = any('slots' in source for source in typed.values())
         for fighter, components in sorted(added.items()):
             moveset = components['moveset']
             authored = typed.get(moveset)
@@ -171,8 +172,11 @@ class BehaviorPlan:
             if voice in typed:
                 family = snapshot['resources'][voice]['compatibility']['events']
                 expected_family = 'retail/binding-' + donor_key.split('/')[1]
-                require(family == expected_family and typed[voice]['template_voice'] ==
-                        catalog.rows[donor_key]['fields']['SpeechId']['word'],
+                # Version3 names each category's verified template and exact
+                # family. The declared event namespace still joins the moveset;
+                # bank identity is no longer inferred from one donor SpeechId.
+                require(family == expected_family and ('banks' in typed[voice] or
+                        typed[voice]['template_voice'] == catalog.rows[donor_key]['fields']['SpeechId']['word']),
                         'Voice template differs from the inherited event family')
                 voice_keys[fighter] = voice
             if 'ai' in components:
@@ -189,14 +193,28 @@ class BehaviorPlan:
                     blazin_resources[resource_key] = {'rig_sha256': rig.pose_sha256,
                         'bone_count': len(rig.rows), 'shots': typed[resource_key]['shots']}
                 blazin_keys[fighter] = resource_key
+                native = templates.index.record('core', donor).native_bytes()
+                inherited_choices = struct.unpack_from('<4I', native, 0xD4)
                 for choice, tracks in typed[resource_key]['pairs'].items():
-                    native = templates.index.record('core', donor).native_bytes()
-                    require(choice in struct.unpack_from('<4I', native, 0xD4),
+                    require(choice in inherited_choices,
                             'Authored finisher is not selected by this moveset template')
                     pair_key = resource_key.split('/')[0] + '/pair-' + fingerprint([resource_key, choice])[:32]
                     pair_resources[pair_key] = {'template_choice': choice, 'rig_sha256': rig.pose_sha256,
                                                'bone_count': len(rig.rows), **tracks}
-                    pair_keys.setdefault(fighter, {})[choice] = pair_key
+                    for selection in ([slot for slot, value in enumerate(inherited_choices) if value == choice]
+                                      if slot_bindings else [choice]):
+                        pair_keys.setdefault(fighter, {})[selection] = pair_key
+                if 'slots' in typed[resource_key]:
+                    choices = {}
+                    for slot, pair in typed[resource_key]['slots'].items():
+                        pair_key = resource_key.split('/')[0] + '/pair-' + fingerprint([resource_key, 'slot', slot])[:32]
+                        pair_resources[pair_key] = {'rig_sha256': rig.pose_sha256,
+                                                   'bone_count': len(rig.rows), **pair}
+                        pair_keys.setdefault(fighter, {})[slot] = pair_key
+                        choices[slot] = pair['template_choice']
+                    if type(motion_resources[fighter]) is int:
+                        motion_resources[fighter] = {'donor': donor}
+                    motion_resources[fighter]['finisher_slots'] = choices
             appearance = components['appearance']
             appearance_donor = appearances[appearance].donor if appearance in appearances else catalog.bindings[appearance]['donor']
             model = catalog.rows[appearance_donor]['fields']['Model']['symbol']
@@ -254,7 +272,7 @@ class BehaviorPlan:
             source = original('motion/blazin.viv', 'blazin_sha256')
             data, receipt = BlazinPairs(source, pins['blazin_sha256']).compose(pair_resources)
             self.files.update({'motion/blazin.viv': data,
-                               'fighter-finishers.bin': encode_pair_bindings(data, receipt, cores(pair_keys))})
+                               'fighter-finishers.bin': encode_pair_bindings(data, receipt, cores(pair_keys), slots=slot_bindings)})
             self.receipts['finishers'] = receipt
         if cinematic_resources:
             source = original('assets/v2ta.viv', 'v2ta_sha256')

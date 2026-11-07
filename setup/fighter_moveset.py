@@ -10,6 +10,7 @@ import struct
 from fighter_animation import AnimationEnvelope, AnimationIndex, require
 from fighter_motion import MotionIndex
 from fighter_motion_links import MotionLinks
+from fighter_motion_records import PackedRecord
 
 
 def owner(rows, local):
@@ -99,7 +100,8 @@ def compose_selected_cores(templates, resources):
     """Atomically emit motion cores, their proof table and required MNL aliases.
 
     An integer resource is explicit inheritance. An edited resource supplies
-    its verified bank plus action selections. FMC2 records all selections;
+    its verified bank plus action selections. FMC2 records those selections;
+    FMC3 additionally proves exactly four optional retail finisher slot choices.
     the native adapter must independently reconstruct and validate each pair.
     The caller must install the returned aliases in the corresponding bank.
     """
@@ -107,19 +109,23 @@ def compose_selected_cores(templates, resources):
     require(type(templates) is MotionCoreTemplates and type(resources) is dict and resources,
             'Selected cores require a verified motion template compiler')
     donors = {}
+    slots = any(type(resource) is dict and 'finisher_slots' in resource for resource in resources.values())
     for identifier, resource in resources.items():
         if type(resource) is int:
             donors[identifier] = resource
         else:
-            require(type(resource) is dict and set(resource) == {
-                'donor', 'envelope', 'bank_sha256', 'selections'}, 'Invalid selected-core resource')
+            require(type(resource) is dict and set(resource) in (
+                {'donor', 'envelope', 'bank_sha256', 'selections'},
+                {'donor', 'finisher_slots'},
+                {'donor', 'envelope', 'bank_sha256', 'selections', 'finisher_slots'}),
+                'Invalid selected-core resource')
             donors[identifier] = resource['donor']
     original, report = templates.compose(donors)
     data, proofs, plans = bytearray(original), [], {}
     for identifier, binding in report['bindings'].items():
         resource = resources[identifier]
         selected, count = [0xffff] * 130, 0
-        if type(resource) is dict:
+        if type(resource) is dict and 'selections' in resource:
             plan = MovesetPlan(templates.index, resource['donor'], resource['envelope'], resource['bank_sha256'])
             pair, names, receipt = plan.compose(resource['selections'])
             start = binding['parameters_offset'] - 8
@@ -128,12 +134,32 @@ def compose_selected_cores(templates, resources):
             for target, source in receipt['selections'].items():
                 selected[target] = source
             plans[identifier] = receipt
-        proofs.append(struct.pack('<5I130H', binding['descriptor_index'], binding['parameters_offset'],
-                                  binding['actions_offset'], binding['inherited_bank_number'], count, *selected))
+        choices = [0xffffffff] * 4
+        if type(resource) is dict and 'finisher_slots' in resource:
+            edits = resource['finisher_slots']
+            require(type(edits) is dict and 0 < len(edits) <= 4
+                    and all(type(slot) is int and 0 <= slot < 4 and type(choice) is int
+                            and 0 <= choice < 82 for slot, choice in edits.items()),
+                    'Finisher slots need explicit slot 0..3 and retail choice 0..81')
+            offset = binding['parameters_offset']
+            packed = PackedRecord.decode('core', bytes(data[offset:offset + 64]))
+            values = list(packed.values)
+            for slot, choice in edits.items():
+                values[88 + slot] = choices[slot] = choice
+            data[offset:offset + 64] = PackedRecord('core', tuple(values), packed.tail).encode()
+            report.setdefault('finisher_slots', {})[identifier] = dict(sorted(edits.items()))
+            if identifier in plans:
+                plans[identifier]['pair_sha256'] = hashlib.sha256(data[offset - 8:offset + 852]).hexdigest()
+        row = struct.pack('<5I130H', binding['descriptor_index'], binding['parameters_offset'],
+                          binding['actions_offset'], binding['inherited_bank_number'], count, *selected)
+        proofs.append(row + struct.pack('<4I', *choices) if slots else row)
     data = bytes(data)
     report.update(schema='fighter-motion-core-selections-1',
                   behavior_policy='verified-same-bank-action-selections',
                   sha256=hashlib.sha256(data).hexdigest(), selections=plans)
-    table = (b'FMC2' + struct.pack('<5I', 2, report['original_core_count'], len(proofs), len(data), 0)
+    if slots:
+        report.update(schema='fighter-motion-core-selections-2',
+                      behavior_policy='verified-action-and-finisher-slot-selections')
+    table = ((b'FMC3' if slots else b'FMC2') + struct.pack('<5I', 3 if slots else 2, report['original_core_count'], len(proofs), len(data), 0)
              + hashlib.sha256(data).digest() + b''.join(proofs))
     return data, report, table

@@ -18,7 +18,7 @@ from fighter_assets import AssetError
 from fighter_sod import Database
 
 
-def setup(tmp_path, blazin=False, finishers=False):
+def setup(tmp_path, blazin=False, finishers=False, voice3=False, slots=False):
     compiler, original, layout = catalog(menu=True)
     model = bytes(geometry_fixture(with_skin=True)[0])
     xml = b'<tauntslist><taunt><name>SyntheticModel</name><intro>CI_0001</intro><extro>CE_0001</extro></taunt></tauntslist>'
@@ -31,6 +31,10 @@ def setup(tmp_path, blazin=False, finishers=False):
         'assets/ai/ai.viv': (ai_source()[0], 'ai_sha256'),
     }
     pins = {'intro_extro_sha256': hashlib.sha256(xml).hexdigest()}
+    if voice3:
+        from test_fighter_voice_compile import explicit_source
+        voice_compiler, voice = explicit_source()
+        files['audio/speech2.viv'] = (voice_compiler.archive.data, 'speech_sha256')
     if blazin:
         from test_fighter_blazin_compile import bundle as activation, TOKENS
         from fighter_archive import Archive
@@ -50,6 +54,13 @@ def setup(tmp_path, blazin=False, finishers=False):
         'format': 'fighter-ai-1', 'template_profile': 'char0005',
         'tendencies': {d: {str(i): {'Attack_versus_Defend': 2} for i in range(4)} for d in ('easy', 'normal', 'hard')}}})
     packs[0]['fighters'][0]['components']['ai'] = 'alpha/brain'
+    if voice3:
+        from test_fighter_behavior_files import wav, descriptor
+        audio = {**descriptor(tmp_path, 'voice.wav', wav()), 'format': 'wav-pcm16'}
+        packs[0]['resources'].append({'id': 'speech', 'kind': 'voice',
+            'compatibility': {'events': 'retail/binding-test-alpha'},
+            'source': {'format': 'fighter-voice-3', 'banks': voice['banks'], 'intro': audio, 'extro': audio}})
+        packs[0]['fighters'][0]['components']['voice'] = 'alpha/speech'
     if blazin:
         family = 'retail/binding-test-alpha'
         # The invented baseline uses this same event/rig family.
@@ -68,10 +79,41 @@ def setup(tmp_path, blazin=False, finishers=False):
             (tmp_path / 'finisher.json').write_bytes(payload)
             spec = {'path': 'finisher.json', 'sha256': hashlib.sha256(payload).hexdigest()}
             packs[0]['resources'][-1]['source']['pairs'] = {'0': {'subject': spec, 'counterpart': spec}}
+            if slots:
+                source = packs[0]['resources'][-1]['source']
+                del source['pairs']
+                source.update(format='fighter-blazin-2', slots={str(slot): {
+                    'template_choice': 2, 'subject': spec, 'counterpart': spec} for slot in (0, 3)})
     snapshot = resolve(compiler.baseline(), packs)
     roots = {p['id']: tmp_path for p in packs}
     plan = BehaviorPlan(compiler, snapshot, roots, tmp_path, pins, {}, {})
     return compiler, original, layout, packs, snapshot, plan
+
+
+def test_slot_pairs_and_motion_choices_compile_as_one_generation(tmp_path):
+    import struct
+    from fighter_motion import MotionIndex
+    compiler, _, _, packs, _, plan = setup(tmp_path, blazin=True, finishers=True, slots=True)
+    compiler.compile(packs, behavior=plan)
+    assert plan.files['fighter-motion.bin'][:4] == b'FMC3'
+    proof = plan.files['fighter-finishers.bin']
+    assert proof[:4] == b'FBP2' and struct.unpack_from('<I', proof, 8) == (4,)
+    rows = [struct.unpack_from('<4I', proof, 52 + 32*i) for i in range(4)]
+    assert [(r[0],r[1],r[2]) for r in rows] == [(141,0,2),(141,3,2),(142,0,2),(142,3,2)]
+    assert rows[0][3] != rows[1][3] and rows[0][3] == rows[2][3]
+    index = MotionIndex(plan.files['motion/main_all.dat'])
+    assert index.record('core', 141).values[88:92] == (2, 0, 0, 2)
+
+
+def test_voice3_category_templates_compose_through_resolved_behavior_plan(tmp_path):
+    compiler, _, _, packs, _, plan = setup(tmp_path, voice3=True)
+    _, report = compiler.compile(packs, binding_window=True, behavior=plan)
+    receipt = plan.receipts['voice']['bindings']['alpha/speech']
+    assert receipt['template_voice'] is None
+    assert receipt['categories']['Taunts']['template_voice'] == 23
+    assert receipt['categories']['Character']['first_key'] == 1
+    assert plan.voice_ids['alpha/speech'] == 600
+    assert 'fighter-voices.bin' in plan.files
 
 
 def test_owned_cores_are_per_fighter_and_every_binding_agrees(tmp_path):

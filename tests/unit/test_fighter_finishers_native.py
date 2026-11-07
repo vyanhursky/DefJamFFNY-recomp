@@ -51,6 +51,8 @@ int main(int argc,char **argv){
  MEM32(b+0x28)=1;MEM32(b+0x2C)=1000;MEM32(b+0xBB8)=2;
  MEM32(a)=b;MEM32(b)=a;MEM8(a+0x926)=MEM8(b+0x926)=1;
  MEM32(a+0xF50)=MEM32(b+0xF50)=31;
+ if(!strncmp(mode,"slots",5))MEM32(a+0xBBC)=2;
+ if(!strcmp(mode,"slots-choice"))MEM32(a+0xBBC)=3;
  MEM32(0x1000)=709;MEM32(0x1004)=164;MEM32(0x1008)=0x3BE628;
  MEM8(0x3BE628+4)=MEM8(0x3BE628+5)=1;
  if(!strcmp(mode,"choice"))MEM32(a+0xBB8)=3;
@@ -109,6 +111,17 @@ int main(int argc,char **argv){
  assert(defjam_fighter_finisher_motion(a,10713,6,0x1D3BA0)==10873);
  if(!strcmp(mode,"role"))defjam_fighter_finisher_motion(a,10714,6,0x1D3BAA);
  assert(defjam_fighter_finisher_motion(b,10714,6,0x1D3BAA)==10874);
+ if(!strncmp(mode,"slots",5)){
+  MEM32(a+0xF50)=32;
+  if(!strcmp(mode,"slots-changed"))MEM32(a+0xBBC)=3;
+  assert(defjam_fighter_finisher_motion(a,10713,6,0x1D3BA0)==10875);
+  assert(defjam_fighter_finisher_motion(b,10714,6,0x1D3BAA)==10876);
+  MEM32(a+0xF50)=39;
+  assert(defjam_fighter_finisher_motion(a,10713,6,0x1D3BA0)==10875);
+  MEM32(a+0xF50)=33;MEM32(a+0xBC0)=2;
+  assert(defjam_fighter_finisher_motion(a,10713,6,0x1D3BA0)==10713);
+  MEM32(a+0xF50)=31;
+ }
  FighterFinisherScope inner=defjam_fighter_finisher_enter(b);
  assert(defjam_fighter_finisher_motion(b,10713,6,0x1D3BA0)==10875);
  assert(defjam_fighter_finisher_motion(a,10714,6,0x1D3BAA)==10876);
@@ -191,4 +204,31 @@ def test_shared_animation_requires_the_same_inherited_behavior(tool, files, choi
     struct.pack_into('<III8s8s', data, 80, 1000, choice, 873, b'P0000_A', b'P0000_B')
     binding.write_bytes(data)
     result = subprocess.run([tool, archive, binding, digest, mode], capture_output=True, text=True)
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+@pytest.fixture
+def slot_files(files):
+    archive, binding, digest = files
+    table = b'FBP2' + struct.pack('<4I', 2, 3, 168, len(archive.read_bytes())) + bytes.fromhex(digest)
+    for core, slot, ordinal, token in [(256, 0, 873, 'P0000_'), (256, 1, 875, 'P0001_'), (1000, 0, 875, 'P0001_')]:
+        table += struct.pack('<4I8s8s', core, slot, 2, ordinal, (token+'A').encode(), (token+'B').encode())
+    binding.write_bytes(table)
+    return files
+
+
+@pytest.mark.parametrize('mode', ['slots', 'slots-choice', 'slots-changed'])
+def test_native_slot_identity_distinguishes_duplicate_behavior_and_rechecks_choice(tool, slot_files, mode):
+    result = subprocess.run([tool, *slot_files, mode], capture_output=True, text=True)
+    expected = 0 if mode == 'slots' else 1
+    assert result.returncode == expected, result.stdout + result.stderr
+    if expected:
+        assert 'finisher stopped:' in result.stderr
+
+
+@pytest.mark.parametrize('offset,value', [(4, 1), (56, 4), (56, 0xffffffff), (60, 82), (88, 0), (88, 4), (92, 3)])
+def test_malformed_slot_receipt_is_rejected(tool, slot_files, offset, value):
+    archive, binding, digest = slot_files
+    table = bytearray(binding.read_bytes()); struct.pack_into('<I', table, offset, value); binding.write_bytes(table)
+    result = subprocess.run([tool, archive, binding, digest, 'reject'], capture_output=True, text=True)
     assert result.returncode == 0, result.stdout + result.stderr

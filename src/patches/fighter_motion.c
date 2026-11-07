@@ -15,7 +15,7 @@
 #define ORIGINAL_CORES 141u
 #define MAX_CORES 16384u
 #define MAX_MOTION (64u * 1024u * 1024u)
-#define MAX_BINDINGS (56u + 280u * (MAX_CORES - ORIGINAL_CORES))
+#define MAX_BINDINGS (56u + 296u * (MAX_CORES - ORIGINAL_CORES))
 typedef struct MotionCore { uint32_t parameters, actions, bank; uint64_t pending[3]; } MotionCore;
 static MotionCore s_cores[MAX_CORES - ORIGINAL_CORES];
 static uint32_t s_count, s_size, s_source, s_generation;
@@ -52,10 +52,20 @@ static uint32_t action_owner(const uint8_t *pair, uint32_t local, uint32_t *lowe
 /* Reconstruct each edited action from its original family. Boundaries and
  * shared tables remain unchanged; arbitrary native records are not admitted. */
 static int selected_pair(const uint8_t *pair, const uint8_t *original, const uint8_t *proof,
-                         uint32_t moves, uint32_t parameters) {
+                         uint32_t moves, uint32_t parameters, const uint8_t *slots) {
     uint32_t count = word(proof), first[130], lengths[130] = {0};
     unsigned changed = 0;
-    if (count >= 1000 || memcmp(pair, original, 80)) return 0;
+    uint8_t expected[80];
+    memcpy(expected, original, sizeof expected);
+    if (slots) for (unsigned slot = 0; slot < 4; ++slot) {
+        uint32_t choice = word(slots + slot * 4);
+        if (choice == UINT32_MAX) continue;
+        if (choice >= 82) return 0;
+        /* Native 1A3AD0: WPAR fields +D4..E0, MSB-first payload bits
+         * 448..479. Reconstruct only the four declared bytes. */
+        expected[8 + 56 + slot] = (uint8_t)choice;
+    }
+    if (count >= 1000 || memcmp(pair, expected, sizeof expected)) return 0;
     for (unsigned i = 0; i < 130; ++i) first[i] = UINT32_MAX;
     for (uint32_t local = 0; local < count; ++local) {
         uint32_t lower, owner = action_owner(original, local, &lower);
@@ -159,9 +169,14 @@ int defjam_fighter_motion_start(void) {
     size_t size = 0, bytes = 0;
     uint8_t *table = read_file(bindings, MAX_BINDINGS, &size);
     uint8_t *data = read_file(path, MAX_MOTION, &bytes);
-    uint32_t stride = table && size >= 56 && !memcmp(table, "FMC2", 4) && word(table + 4) == 2 ? 280 : 16;
+    uint32_t stride = 0;
+    if (table && size >= 56) {
+        if (!memcmp(table, "FMC1", 4) && word(table + 4) == 1) stride = 16;
+        if (!memcmp(table, "FMC2", 4) && word(table + 4) == 2) stride = 280;
+        if (!memcmp(table, "FMC3", 4) && word(table + 4) == 3) stride = 296;
+    }
     int valid = table && data && size >= 56
-        && ((stride == 280) || (!memcmp(table, "FMC1", 4) && word(table + 4) == 1))
+        && stride
         && word(table + 8) == ORIGINAL_CORES
         && word(table + 12) && word(table + 12) <= MAX_CORES - ORIGINAL_CORES
         && size == 56u + stride * word(table + 12) && bytes == word(table + 16) && !word(table + 20);
@@ -195,12 +210,13 @@ int defjam_fighter_motion_start(void) {
                 valid = 0; break;
             }
             if (stride == 16 ? memcmp(data + cursor, data + original[bank - 1], 860)
-                : !selected_pair(data + cursor, data + original[bank - 1], row + 16, moves, parameters)) {
+                : !selected_pair(data + cursor, data + original[bank - 1], row + 16, moves, parameters,
+                                 stride == 296 ? row + 280 : NULL)) {
                 valid = 0; break;
             }
             MotionCore *core = &s_cores[i - ORIGINAL_CORES];
             *core = (MotionCore){cursor + 8, cursor + 80, bank, {0, 0, 0}};
-            if (stride == 280) for (unsigned action = 0; action < 130; ++action)
+            if (stride >= 280) for (unsigned action = 0; action < 130; ++action)
                 if (half(row + 20 + action * 2) != 65535) core->pending[action / 64] |= 1ull << (action % 64);
         }
         cursor += 860;

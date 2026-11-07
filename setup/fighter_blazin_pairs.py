@@ -106,7 +106,7 @@ class BlazinPairs:
                         'bindings': bindings, 'runtime_ready': False}
 
 
-def encode_pair_bindings(data, report, cores):
+def encode_pair_bindings(data, report, cores, *, slots=False):
     require(isinstance(data, bytes) and type(report) is dict
             and report.get('schema') == 'fighter-blazin-pairs-1'
             and report.get('bytes') == len(data)
@@ -129,12 +129,14 @@ def encode_pair_bindings(data, report, cores):
     rows = []
     for core, choices in sorted(cores.items()):
         require(type(choices) is dict and 0 < len(choices) <= 4
-                and all(type(choice) is int and 0 <= choice < RETAIL_PAIRS for choice in choices),
+                and all(type(choice) is int and 0 <= choice < (4 if slots else RETAIL_PAIRS) for choice in choices),
                 'A fighter has at most four inherited finisher choices')
-        for choice, identifier in sorted(choices.items()):
+        for selection, identifier in sorted(choices.items()):
             require(type(identifier) is str and identifier in bindings, 'Unknown paired Blazin resource')
             pair = bindings[identifier]
-            require(type(pair) is dict and pair.get('template_choice') == choice
+            choice = pair.get('template_choice') if type(pair) is dict and slots else selection
+            require(type(pair) is dict and type(choice) is int and 0 <= choice < RETAIL_PAIRS
+                    and pair.get('template_choice') == choice
                     and type(pair.get('external_ordinal')) is int and type(pair.get('roles')) is dict
                     and set(pair['roles']) == {'subject', 'counterpart'},
                     'Paired Blazin binding differs from its inherited behavior')
@@ -156,6 +158,7 @@ def encode_pair_bindings(data, report, cores):
                         'Paired motion differs from its receipt')
                 native_names.append(name.encode('ascii'))
             require(native_names[0][:-1] == native_names[1][:-1], 'Paired roles belong to different resources')
-            rows.append(struct.pack('<III8s8s', core, choice, ordinal, *native_names))
-    return (b'FBP1' + struct.pack('<4I', 1, len(rows), count, len(data))
+            rows.append(struct.pack('<IIII8s8s', core, selection, choice, ordinal, *native_names) if slots
+                        else struct.pack('<III8s8s', core, choice, ordinal, *native_names))
+    return ((b'FBP2' if slots else b'FBP1') + struct.pack('<4I', 2 if slots else 1, len(rows), count, len(data))
             + hashlib.sha256(data).digest() + b''.join(rows))

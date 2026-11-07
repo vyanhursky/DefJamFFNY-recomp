@@ -14,7 +14,7 @@ import wave
 from fighter_assets import AssetError
 from fighter_animation_tracks import QuaternionTracks
 from fighter_ai import DIFFICULTIES, EDITABLE, basename
-from fighter_voice_compile import CATEGORIES
+from fighter_voice_compile import CATEGORIES, bank_spec
 from fighter_voice import encode_stream
 from mods import ordinary_path, safe_relative
 
@@ -59,10 +59,16 @@ def validate_source(kind, source):
         'cinematic': {'format', 'template', 'track'},
         'blazin': {'format', 'shots'},
     }
+    version3 = kind == 'voice' and type(source) is dict and source.get('format') == 'fighter-voice-3'
+    blazin2 = kind == 'blazin' and type(source) is dict and source.get('format') == 'fighter-blazin-2'
+    if version3:
+        expected['voice'] = {'format', 'banks', 'intro', 'extro'}
+    if blazin2:
+        expected['blazin'] = {'format', 'shots', 'slots'}
     require(kind in KINDS and type(source) is dict
-            and (set(source) == expected[kind] or kind == 'blazin' and set(source) == expected[kind] | {'pairs'})
+            and (set(source) == expected[kind] or kind == 'blazin' and not blazin2 and set(source) == expected[kind] | {'pairs'})
             and (source['format'] == 'fighter-' + kind + '-1'
-                 or kind == 'voice' and source['format'] == 'fighter-voice-2'),
+                 or kind == 'voice' and source['format'] in ('fighter-voice-2', 'fighter-voice-3') or blazin2),
             'Unsupported behavior source fields or format')
     if kind == 'moveset':
         require(type(source['donor']) is str and re.fullmatch(r'retail/[a-z0-9]+(?:-[a-z0-9]+)*', source['donor']),
@@ -80,11 +86,17 @@ def validate_source(kind, source):
             file_spec(spec)
         require(source['tracks'] or source['selections'], 'Moveset needs authored tracks or selections')
     elif kind == 'voice':
-        require(type(source['template_voice']) is int and 0 <= source['template_voice'] < 65535,
-                'Invalid voice template')
-        require(type(source['samples']) is dict and set(source['samples']) <= set(CATEGORIES),
-                'Invalid voice sample categories')
-        for entries in source['samples'].values():
+        if version3:
+            require(type(source['banks']) is dict and set(source['banks']) == set(CATEGORIES),
+                    'Explicit voice needs all three category banks')
+            samples = {category: bank_spec(category, bank)['samples'] for category, bank in source['banks'].items()}
+        else:
+            require(type(source['template_voice']) is int and 0 <= source['template_voice'] < 65535,
+                    'Invalid voice template')
+            require(type(source['samples']) is dict and set(source['samples']) <= set(CATEGORIES),
+                    'Invalid voice sample categories')
+            samples = source['samples']
+        for entries in samples.values():
             require(type(entries) is dict and len(entries) <= 255, 'Voice sample population exceeds budget')
             for index, spec in entries.items():
                 ordinal(index, 254)
@@ -122,6 +134,16 @@ def validate_source(kind, source):
                         'Blazin finishing move needs both participant tracks')
                 for spec in pair.values():
                     file_spec(spec)
+        if blazin2:
+            require(type(source['slots']) is dict and 0 < len(source['slots']) <= 4,
+                    'Blazin needs one to four explicit finisher slots')
+            for slot, pair in source['slots'].items():
+                ordinal(slot, 3)
+                require(type(pair) is dict and set(pair) == {'template_choice', 'subject', 'counterpart'}
+                        and type(pair['template_choice']) is int and 0 <= pair['template_choice'] < 82,
+                        'Finisher slot needs a retail behavior template and both participant tracks')
+                for role in ('subject', 'counterpart'):
+                    file_spec(pair[role])
     else:
         require(type(source['template']) is str and re.fullmatch(r'C[IE]_[A-Za-z0-9]{4}', source['template']),
                 'Cinematic requires a supported simple intro/victory template')
@@ -208,6 +230,11 @@ class Reader:
                     return wav_file(data)
                 from fighter_voice_r2 import canonical_r2
                 return canonical_r2(data)
+            if source['format'] == 'fighter-voice-3':
+                return {'banks': {category: {**bank, 'samples': {int(i): read_audio(spec)
+                                    for i, spec in bank['samples'].items()}}
+                                  for category, bank in source['banks'].items()},
+                        'intro': read_audio(source['intro']), 'extro': read_audio(source['extro'])}
             return {'template_voice': source['template_voice'],
                     'samples': {category: {int(i): read_audio(spec) for i, spec in entries.items()}
                                 for category, entries in source['samples'].items()},
@@ -217,9 +244,14 @@ class Reader:
                     'tendencies': {difficulty: {int(i): dict(edits) for i, edits in rows.items()}
                                    for difficulty, rows in source['tendencies'].items()}}
         if kind == 'blazin':
-            return {'shots': [{'template': shot['template'],
+            result = {'shots': [{'template': shot['template'],
                               'tracks': quaternion_file(self.file(root, shot['track'])) if 'track' in shot else None}
                              for shot in source['shots']],
                     'pairs': {int(choice): {role: quaternion_file(self.file(root, spec)) for role, spec in pair.items()}
                               for choice, pair in source.get('pairs', {}).items()}}
+            if 'slots' in source:
+                result['slots'] = {int(slot): {'template_choice': pair['template_choice'],
+                    **{role: quaternion_file(self.file(root, pair[role])) for role in ('subject', 'counterpart')}}
+                    for slot, pair in source['slots'].items()}
+            return result
         return {'template': source['template'], 'tracks': quaternion_file(self.file(root, source['track']))}

@@ -15,10 +15,10 @@
 #define FIN_BASE 709u
 #define FIN_RETAIL 164u
 #define FIN_ROWS (4u * (FIN_CORES - 141u))
-#define FIN_BYTES (52u + FIN_ROWS * 28u)
+#define FIN_BYTES (52u + FIN_ROWS * 32u)
 #define FIN_ACTORS 0x3B92E0u
 #define FIN_STRIDE 0x12E8u
-typedef struct Finisher { uint32_t choice, ordinal; } Finisher;
+typedef struct Finisher { uint32_t choice, ordinal, slot; } Finisher;
 static Finisher s_bindings[FIN_CORES][4];
 static uint8_t s_counts[FIN_CORES];
 static char s_names[FIN_EXTRA][8], s_archive[2048];
@@ -61,11 +61,12 @@ int defjam_fighter_finishers_start(void) {
     if (fclose(file)) valid = 0;
     uint32_t rows = valid ? fin_word(table + 8) : 0;
     uint32_t count = valid ? fin_word(table + 12) : 0;
+    uint32_t stride = valid && !memcmp(table, "FBP2", 4) && fin_word(table + 4) == 2 ? 32 : 28;
     char digest[65];
     if (valid) {
         hex(table + 20, digest);
-        valid = !memcmp(table, "FBP1", 4) && fin_word(table + 4) == 1 && rows && rows <= FIN_ROWS
-            && bytes == 52u + rows * 28u && count > FIN_RETAIL && count <= FIN_RETAIL + FIN_EXTRA
+        valid = (stride == 32 || (!memcmp(table, "FBP1", 4) && fin_word(table + 4) == 1)) && rows && rows <= FIN_ROWS
+            && bytes == 52u + rows * stride && count > FIN_RETAIL && count <= FIN_RETAIL + FIN_EXTRA
             && !(count & 1) && !strcmp(digest, hash);
     }
     if (valid) {
@@ -83,13 +84,17 @@ int defjam_fighter_finishers_start(void) {
     memset(s_parameter_donors, 0xFF, sizeof s_parameter_donors);
     uint32_t previous_core = 140, previous_choice = 0;
     for (uint32_t i = 0; valid && i < rows; ++i) {
-        const uint8_t *row = table + 52 + i * 28;
-        uint32_t core = fin_word(row), choice = fin_word(row + 4), ordinal = fin_word(row + 8);
+        const uint8_t *row = table + 52 + i * stride;
+        uint32_t core = fin_word(row), selection = fin_word(row + 4);
+        uint32_t slot = stride == 32 ? selection : UINT32_MAX;
+        uint32_t choice = fin_word(row + stride - 24), ordinal = fin_word(row + stride - 20);
+        const uint8_t *names = row + stride - 16;
         if (core < 141 || core >= FIN_CORES || core < previous_core || choice >= 82
-            || (core == previous_core && choice <= previous_choice) || s_counts[core] == 4
+            || (stride == 32 && slot >= 4)
+            || (core == previous_core && selection <= previous_choice) || s_counts[core] == 4
             || ordinal < 873 || ordinal >= FIN_BASE + count - 1 || ((ordinal - 873) & 1)) { valid = 0; break; }
         for (unsigned role = 0; role < 2; ++role) {
-            const uint8_t *name = row + 12 + role * 8;
+            const uint8_t *name = names + role * 8;
             if (name[0] != 'P' || name[5] != '_' || name[6] != (role ? 'B' : 'A') || name[7]) valid = 0;
             for (unsigned j = 1; j < 5; ++j) if (name[j] < '0' || name[j] > '9') valid = 0;
             char *destination = s_names[ordinal - 873 + role];
@@ -99,11 +104,11 @@ int defjam_fighter_finishers_start(void) {
             if (*parameter != UINT32_MAX && *parameter != donor) valid = 0;
             if (valid) { memcpy(destination, name, 8); *parameter = donor; }
         }
-        if (memcmp(row + 12, row + 20, 6)) valid = 0;
+        if (memcmp(names, names + 8, 6)) valid = 0;
         if (valid) {
             Finisher *entry = &s_bindings[core][s_counts[core]++];
-            entry->choice = choice; entry->ordinal = ordinal;
-            previous_core = core; previous_choice = choice;
+            entry->choice = choice; entry->ordinal = ordinal; entry->slot = slot;
+            previous_core = core; previous_choice = selection;
         }
     }
     if (valid) {
@@ -135,7 +140,9 @@ void defjam_fighter_finishers_mask(uint32_t base, uint32_t count, uint32_t mask)
         for (unsigned i = 0; i < s_counts[core]; ++i) {
             const Finisher *entry = &s_bindings[core][i];
             int selected = 0;
-            for (unsigned j = 0; j < 4; ++j) if (MEM32(actor + 0xBB8 + j * 4) == entry->choice) selected = 1;
+            for (unsigned j = 0; j < 4; ++j)
+                if ((entry->slot == UINT32_MAX || entry->slot == j)
+                    && MEM32(actor + 0xBB8 + j * 4) == entry->choice) selected = 1;
             if (!selected) fin_stop("paired animation differs from the retained WPAR choice");
             MEM8(s_storage + entry->ordinal - FIN_BASE) = 1;
             MEM8(s_storage + entry->ordinal + 1 - FIN_BASE) = 1;
@@ -238,10 +245,15 @@ uint32_t defjam_fighter_finisher_motion(uint32_t actor, uint32_t motion, uint32_
     uint32_t subject = s_scope.subject, action = MEM32(subject + 0xF50), role = caller == 0x1D3BAA;
     if (!(MEM8(subject + 0x926) & 1)) return motion;
     if (!((action >= 31 && action <= 34) || (action >= 38 && action <= 41))) fin_stop("unexpected paired action slot");
-    uint32_t choice = MEM32(subject + 0xBB8 + 4 * (action >= 38 ? action - 38 : action - 31));
+    uint32_t slot = action >= 38 ? action - 38 : action - 31;
+    uint32_t choice = MEM32(subject + 0xBB8 + 4 * slot);
     for (unsigned i = 0; i < s_counts[s_scope.core]; ++i) {
         const Finisher *entry = &s_bindings[s_scope.core][i];
-        if (entry->choice != choice) continue;
+        if (entry->slot != UINT32_MAX && entry->slot != slot) continue;
+        if (entry->choice != choice) {
+            if (entry->slot != UINT32_MAX) fin_stop("paired action changed its verified slot choice");
+            continue;
+        }
         if (!s_provider || !fin_actor(actor) || actor != (role ? s_scope.counterpart : subject)
             || MEM32(subject + 0x2C) != s_scope.core || mode != 6 || motion != 10709 + 2 * choice + role)
             fin_stop("paired execution differs from its subject/counterpart binding");

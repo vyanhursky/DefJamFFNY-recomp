@@ -67,3 +67,44 @@ def test_aliasing_action_outside_the_native_range_owner_is_rejected(tool, files)
     proof = bytearray(table.read_bytes()); proof[24:56] = digest; table.write_bytes(proof)
     result = subprocess.run([tool, path, table, digest.hex(), 'reject'], capture_output=True, text=True)
     assert result.returncode == 0, result.stdout + result.stderr
+
+
+@pytest.fixture
+def slot_files(tmp_path):
+    data, start, plan = fixture()
+    original = data + data[start - 8:start + 852] * 138
+    compiler = MotionCoreTemplates(original, hashlib.sha256(original).hexdigest())
+    data, report, table = compose_selected_cores(compiler, {'alpha/core': {
+        'donor': 2, 'envelope': plan.bank.envelope,
+        'bank_sha256': hashlib.sha256(plan.bank.envelope.model.data).hexdigest(),
+        'selections': {2: 1}, 'finisher_slots': {0: 81, 1: 2, 3: 2}}, 'beta/core': 2})
+    path, bindings = tmp_path / 'motion.dat', tmp_path / 'proof.bin'
+    path.write_bytes(data); bindings.write_bytes(table)
+    return path, bindings, report
+
+
+def test_native_slot_and_action_proofs_compose(tool, slot_files):
+    path, table, report = slot_files
+    result = subprocess.run([tool, path, table, report['sha256'], 'selected'], capture_output=True, text=True)
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+@pytest.mark.parametrize('bit', [0, 447, 448, 455, 456, 463, 464, 471, 472, 479, 480, 511])
+def test_native_slot_proof_rejects_changed_declared_and_undeclared_bits(tool, slot_files, bit):
+    path, table, report = slot_files
+    data = bytearray(path.read_bytes())
+    data[report['bindings']['alpha/core']['parameters_offset'] + bit // 8] ^= 1 << (7 - bit % 8)
+    path.write_bytes(data)
+    digest = hashlib.sha256(data).digest()
+    proof = bytearray(table.read_bytes()); proof[24:56] = digest; table.write_bytes(proof)
+    result = subprocess.run([tool, path, table, digest.hex(), 'reject'], capture_output=True, text=True)
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+@pytest.mark.parametrize('slot,value', [(0, 82), (0, 0xffffffff), (1, 0), (2, 3), (3, 256)])
+def test_native_slot_proof_rejects_invalid_or_mismatched_choices(tool, slot_files, slot, value):
+    path, table, report = slot_files
+    raw = bytearray(table.read_bytes()); struct.pack_into('<I', raw, 56 + 280 + 4 * slot, value)
+    table.write_bytes(raw)
+    result = subprocess.run([tool, path, table, report['sha256'], 'reject'], capture_output=True, text=True)
+    assert result.returncode == 0, result.stdout + result.stderr

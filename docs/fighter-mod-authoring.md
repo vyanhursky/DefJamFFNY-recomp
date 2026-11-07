@@ -54,22 +54,24 @@ resource. Component references and resource kinds are not always the same:
 |---|---|---|---|
 | appearance | appearance | skeleton | eagl-appearance-1 |
 | moveset | moveset | skeleton, events | fighter-moveset-1 |
-| voice | voice | events | fighter-voice-1 |
+| voice | voice | events | fighter-voice-1 / 2 / 3 |
 | ai | ai | none | fighter-ai-1 |
 | portrait | portrait | none | eagl-portrait-1 |
 | intro, victory | cinematic | skeleton, events | fighter-cinematic-1 |
-| blazin | blazin | skeleton, events | fighter-blazin-1 |
+| blazin | blazin | skeleton, events | fighter-blazin-1 / 2 |
 
 Compatibility values are stable keys such as `retail/binding-ludacris`, exported
 by the verified retail catalog. They are checked against actual rig/template
 relationships during compilation; changing a label cannot adapt incompatible
 assets. An empty compatibility map is `{}`. Stats are inline, not a resource.
 
-Every file descriptor is exactly `{"path":"assets/file.ext","sha256":"..."}`,
+Every ordinary file descriptor is exactly `{"path":"assets/file.ext","sha256":"..."}`,
 with a real 64-character lowercase SHA-256. Paths are relative, portable, and
 must remain inside the package. Links, traversal, duplicate/case-colliding paths,
 missing files and mismatched hashes are rejected. Reused files must have the
 same digest in every descriptor. Documentation is UTF-8 and bounded at 1 MiB.
+Voice2/3 audio descriptors additionally require `format: "wav-pcm16"` or
+`format: "ea-adpcm-r2"`; this is a validated codec choice, not a file extension.
 Current inventory bounds: 65,536 files, 512 MiB total, 64 MiB per asset;
 individual format/aggregate composition budgets are often tighter.
 Manifests are bounded at 8 MiB each and 32 MiB combined. Resolver limits are
@@ -111,6 +113,14 @@ required. File arguments mean hash-checked descriptors, not unverified paths.
   apply. Missing overrides inherit template clips. Intro/extro are mandatory.
   WAV input is mono signed PCM16, 8,000–48,000Hz, at most 4,000,000 samples per
   encoded stream. The runtime encodes its own native bank/stream output.
+  Version2 keeps those fields and accepts explicitly typed WAV or bounded mono
+  revision3/ADPCM R2 descriptors, preserving original R2 coded blocks.
+  Version3 instead has `format`, `banks`, `intro`, `extro`. `banks` contains
+  exactly the three categories; each has `template_voice`, `family`, `samples`.
+  Families are Character0/1, Taunts16625/16626, Enviro40962/40963. Templates are
+  verified separately per category; all other event metadata stays template-owned.
+  Missing entire banks are not supported. The declared events namespace must
+  still match the moveset; family alternatives are not an automatic fallback.
 - **AI:** `format`, `template_profile`, `tendencies`. Template basename is 1–31
   ASCII letters/digits/underscore/hyphen. Tendencies must contain `easy`,
   `normal`, `hard`, each with slots `0`, `1`, `2`, `3`. Each slot has at least
@@ -126,6 +136,13 @@ required. File arguments mean hash-checked descriptors, not unverified paths.
   Optional pairs map 1–4 canonical finisher-choice ordinals 0–81 to objects with
   both `subject` and `counterpart` quaternion files; actual inherited choices,
   rigs and timing must match. Camera/event graphs remain template-owned.
+  Version2 has exactly `format`, `shots`, `slots`, with the same shot rules.
+  `slots` maps 1–4 canonical string slot ordinals0–3 to `template_choice`
+  (integer0–81), `subject`, `counterpart`. It can change the selected verified
+  behavior independently for each slot. Native FMC3 proof permits only these
+  four choice fields plus independently proved ordinary action edits. FBP2 binds
+  core/slot/template to owned paired motions, distinguishing duplicate templates.
+  Omitted slots inherit; `pairs` and `slots` cannot be combined in one source.
 
 Quaternion files have exactly `schema: "fighter-quaternions-1"`, `rig_sha256`,
 `bone_count`, `poses`. Every pose contains a complete bone-ordinal list of
@@ -200,14 +217,18 @@ claimed as a new native playtest. Platform/release acceptance remains M6.
 
 The original Vendetta archive is not an ordinary Fighter ZIP. Current direct
 inspection finds 46 added characters and no changes to the 75 existing SOD
-character records. All 46 appearances fail the donor-face equality gate, after
-passing earlier structural/geometry/rig/texture checks. Compilation after that
-gate and native playback remain unproved.
+character records. All 46 appearances now compile through the bounded facial
+palette adapter, individually and together. Full normal-combat face-context
+provenance and broader native facial acceptance remain open.
 
 Its 46 mapped action tables are identical to their retail donors (5,980 action
-rows); ordered motion tokens and reachable curve-type counts match. This does
-not establish numerical animation equivalence. WPAR fields differ in all 46
-mappings, while secondary WAZA/FZUI contain changes/additions whose ownership
-is unresolved. A faithful converter must account for these data, facial poses,
+rows), and all three unpacked parts of their ordinary combat banks are exactly
+equal to the mapped retail donors. All 47 added finisher behaviors match retail
+templates, but their 94 paired animation banks contain different curves.
+Per-slot binding is implemented; full typed motion/root/helper rebuilding and
+native acceptance of the source animations remain pending. All 129 speech banks
+can preserve their event metadata through version3 templates/families; missing
+categories still require explicit accounting. A faithful converter must account
+for these data, facial poses,
 voices, portraits, AI and cinematic links; it cannot silently substitute donor
 assets or copy whole shared databases. See [M5 investigation](research/fighter-mod-m5-2026-11-06.md).

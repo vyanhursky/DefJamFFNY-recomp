@@ -84,8 +84,12 @@ No reference-project code was copied. Own format readers inspect actual data.
   `%s_h` uses the shared bank at global 33AB30. 980B0 loads the per-object
   PosePaletteBank from manager11. The traced A288 selection uses v2cp_1
   (created-fighter components), so it does not prove the normal appearance
-  bridge. Follow 97AA0/+430 -> 24BE0/CModel+2C0 instead. Exact normal-fighter
-  provenance remains under investigation; neither trace closes that proof.
+  bridge. The normal face owner loads `%s_F.o` at 97710; 97AA0 resolves its
+  handle and 215E0 registers `PosePaletteBank` at face-owner+430. Its destructor
+  97BF0 releases that wrapper through 21670. No alias from that wrapper into
+  ordinary combat's `_f` output context is yet proved. CModel+2C0/+2C4/+2C8
+  are transform floats, not a face-bank pointer; the previously proposed
+  24BE0 bridge was incorrect. Exact normal-fighter provenance remains open.
   22C20 returns the pose pointer stored at context+0xC, not that field's address.
 - `main_all.dat` has 177 core pairs vs 141. All 46 mappings resolve to retail
   donors. All 130 action rows per mapped core match: 5,980/5,980. A subsequent
@@ -103,7 +107,8 @@ No reference-project code was copied. Own format readers inspect actual data.
   template. FBP2 needs slot/template/owned ordinal; a new motion proof must
   permit exactly the four declared WPAR changes. Existing FMC2's byte equality
   cannot admit those edits. Do not merely raise the legacy choice limit or
-  allocate global WAZA rows. Implementation/native acceptance remain pending.
+  allocate global WAZA rows. The FMC3/FBP2 implementation is now present;
+  focused compiled-C checks pass and native acceptance is in progress below.
 - General ELF canonicalization preserves every section payload and relocation
   meaning while fixing exporter-dependent physical section order. Empty curve
   arrays may retain bounded local pointers. All 1,012 supplied cinematic and
@@ -227,6 +232,140 @@ These are **inconclusive playback checks**, not evidence of a codec failure or
 a predictive-clip acceptance pass. The isolated native predictive-decoder oracle
 and synthetic literal-block device playback remain distinct evidence.
 
+### Explicit category templates and original-line probe
+
+`fighter-voice-3` supplies exactly three category banks, each with a verified
+`template_voice`, bounded `family`, and typed sample overrides. Intro/extro remain
+mandatory. Character allows0/1, Taunts16625/16626, Enviro40962/40963; a category
+cannot borrow another category's metadata. The moveset event namespace still
+must match. Voice1/2 keep their existing single-template contract. Missing
+whole categories remain unsupported rather than silently filled with donor audio.
+
+`logs/fighter-m5-voice3-bank-audit.json` checks all129 source banks/2,777 clips,
+including the45 first-key differences. Rebuilt normalized event metadata matches
+every source bank exactly. Original coded blocks are retained through the R2
+adapter. This excludes the separate88 entrance/victory streams and does not
+resolve missing source banks.
+
+Native `run-20261106-213135.log.err`: full original voice600 category content
+bound to a diagnostic Blaze-derived fighter;220seconds,109 frame reports
+101/120/120, no crash/watchdog/unresolved-call/debug-layer failures, identical
+save restoration, one verified profile generation, menu100/17 and five combat
+assertions. Family1/voice600 positively resolves bank row1. Device audio matches
+Character clip030 (also present as Enviro003) at160.356875seconds, normalized
+correlation0.408 in an8kHz comparison (`fighter-m5-voice3-original-correlation.json`).
+The next distinct candidate is0.167. This supports playback of one original line
+amid mixed game sound; it is not all-events or whole-pack acceptance. The digest's
+late-frame heuristic is explained by dense audio tracing between the final
+two-second frame report and the deliberate220second cutoff, not an observed hang.
+
+## Per-slot finisher adapter
+
+`fighter-blazin-2` retains four activation shots and replaces choice-keyed pairs
+with1–4 explicit slots0–3. Each selects a verified retail behavior0–81 and owns
+subject/counterpart quaternion tracks. Omitted slots inherit. Version1 stays
+supported; mixed generations expand its choice bindings to their selected slots.
+
+FMC3 extends the existing independent action proof with four optional choice
+words. The compiler and C validator reconstruct only WPAR fields88–91:
+native offsetsD4/D8/DC/E0, packed payload bytes56–59 (bits448–479). Every other
+WPAR/header bit and unselected action remains donor-equal. An early arithmetic
+error in a read-only audit was caught by the native fixture before gameplay;
+the corrected byte offsets are checked at both declared and neighboring bits.
+FBP2 binds core/slot/template/owned ordinal. Runtime registration checks the
+specific decoded actor slot; execution checks its action-derived slot again.
+Slots sharing a template can therefore select distinct pairs without adding
+global WAZA/FZUI rows. Parameter/camera identity remains the selected template.
+
+Focused Python/native-C suite:164 passed in9.64seconds,
+`logs/fighter-m5-slots-voice3-unit.txt`. C tests cover malformed proofs,
+unrelated changes with recomputed hashes, same-template distinct slots, alternate
+action31/38 families, unchanged slots, mutated runtime choice and lifetime.
+The first four-fighter run (`run-20261106-214617.log.err`) **failed** during
+match startup, after registering16 pairs/196 total provider slots and verifying
+34 active motions. Invalid pointers surfaced in viewport update1A710 and
+allocator29DE0; no cause is yet established.81 frame reports109/120/121,
+byte-identical save restoration and one profile generation. The native table
+allocations audited so far scale with count; do not invent a fixed32-motion
+limit from this failure. The fixture's32 owned role banks total12,516,736bytes.
+A short direct-start attempt did not reach match startup and provides no
+comparison. Native acceptance remains open; source motion/root/helper graph
+conversion is separately unfinished.
+
+Subsequent tracing narrows the startup fault to texture loading. In
+`run-20261106-220023.log.err`, a hardware write watch on the actual viewport
+field8109D6B4 catches native swizzler2115D3 overwriting its valid81014200
+pointer withFF602E15. The preceding watch on8124D264 watched a different object
+and was inconclusive. In `run-20261106-220452.log.err`, an entry watch proves
+the swizzler receives source00000010, destination81080190, width/height256.
+The direct caller return2123BD is verified; deeper stack-scan entries are not
+treated as live callers. The source is invalid, but its origin and destination
+ownership still need tracing before assigning an allocation failure or a
+swizzler defect. Both runs restore saves identically and fail before combat.
+A shared-resource comparison is rejected before launch because the four
+appearances have different verified rigs; that is correct admission behavior,
+not gameplay evidence. A two-owned-slot-per-fighter comparison
+(`run-20261106-221049.log.err`) reaches the match with8 paired bindings,
+180 provider slots and18 active motions, no crash/watchdog,109 frame reports
+101/120/121, all four menu identities and byte-identical save restoration.
+It misses player attack/damage assertions at the220second cutoff; this is a
+diagnostic comparison, not native finisher acceptance. It strengthens the
+resource-footprint hypothesis without proving memory exhaustion.
+
+`run-20261106-221501.log.err` traces the earlier failure. A valid texture
+descriptor839A1EF0 reaches the conversion path; the allocation result retained
+in EBX is zero at the next descriptor lookup (return1DF309). Static data flow
+traces EBX directly to callback2F756C's return at1DF289. The game then copies
+the header through zero, calls the swizzle path with a null source descriptor,
+and obtains pixel pointer00000010. The destination's header is also empty.
+Initializer1A920 registers297E0 for that allocator callback; it delegates
+through295B0/1E9E70 to the native free-list allocator1E9AB0. This establishes
+allocation failure upstream of the swizzler, not a texture swizzle arithmetic
+defect. The cause of allocation rejection still needs pool evidence.
+Boot allocates43,044KiB for the title arena at81000000; kernel live-byte
+counters alone cannot report free space or fragmentation inside that arena.
+
+The next guarded run (`run-20261106-222244.log.err`) captures the rejected
+request as263,378bytes (`0x404D2`), alignment128, offset16 at return1DF289.
+Read-only pool sampling records105 changed snapshots with no failed reads.
+The last pre-crash pool0 snapshot has271,488 total free bytes spread across10
+blocks, but the largest is218,784bytes. This is concrete native arena pressure
+and fragmentation evidence, rather than a fixed motion-count limit. The
+initial sampler attached before guest mapping was ready and failed; the
+corrected standalone sampler attached after initialization and produced
+`logs/fighter-m5-slots-pool-samples.json`. Both are accounted for; no game
+memory was changed. The run restores saves identically.
+
+Next memory adapter investigation: the native allocator has64 registered pool
+keys, and its file-read callback accepts a per-call selector. A dedicated
+CPU-backed pool for admitted owned animation banks could preserve native
+loader/free ownership without expanding the GPU-visible arena or substituting
+assets. This is a candidate, not an implemented or accepted fix: prove the
+small-block manager's fallback free, registration/lifetime and per-read routing
+before using it. Keep all native acceptance gates open.
+
+### Full paired-motion graph boundary
+
+All94 source role banks contain five named type15 graphs: `_s` has a type18
+child, `_t` type20, `_d` type13, and `_f`/`_h` each have two type25 children.
+The hand helpers require palette samples0–20 in both selectors; face maxima
+are11/14. A body-only or body/root-only replacement omits real source behavior.
+
+Comparing the47 independently matched retail behaviors shows identical parent
+type/control words and the same bounded one-entry scale attribute across all470
+parents. Child populations also match, but duration differs in93/94 skeletal
+parents and92/94 of each other role. A typed builder can retain the verified
+control/attribute profile, while explicitly rebuilding source duration, child
+times, destinations, coefficients and samples. It must not keep donor duration
+or transcode everything to uniformly sampled type11 and call that lossless.
+
+The `_d` helper binding runs through A0EA1/A11E0/9FA60/218C0/220A0 into a
+separate helper context, with leaf destinations4–7. Its actual output allocation
+and face/hand palette provenance still need proof. Existing fresh-cache numeric
+oracles do not settle parent timing, retained-cache/filtered evaluation or these
+external contexts. These are concrete admission gates for the next general
+graph adapter, not permission to accept arbitrary serialized animation banks.
+
 ## Timed finisher rotation reader
 
 Added the general type13 reader and repeatable native-body oracle. Its normalized
@@ -243,7 +382,7 @@ unsupported data instead of silently substituting donor components.
 
 1. Finish the combat appearance-to-palette resource provenance check and extend
    native facial acceptance beyond the single component probe.
-2. Implement the general per-slot finisher template/animation bindings and
+2. Complete native acceptance of the per-slot finisher bindings, then implement
    typed full-motion/cinematic rebuilding, preserving timing/root/helper data.
 3. Inventory remaining voice, portrait, AI, cinematic and shared-table changes;
    convert all46 using typed resources and explicit dependencies, with a report

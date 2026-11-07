@@ -8,7 +8,7 @@ import pytest
 from test_fighter_archive import fixture, Archive
 from test_fighter_voice_bank import template
 from fighter_voice import encode_stream
-from fighter_voice_compile import VoiceCompiler, encode_voice_bindings, CATEGORIES
+from fighter_voice_compile import VoiceCompiler, encode_voice_bindings, CATEGORIES, FAMILIES
 from fighter_assets import AssetError
 
 
@@ -76,3 +76,52 @@ def test_receipts_and_core_namespaces_are_checked_before_emission():
     changed['bindings']['alpha/voice']['categories']['Character']['sha256'][0] = '0' * 64
     with pytest.raises(AssetError, match='receipt'):
         encode_voice_bindings(data, changed, {256: 'alpha/voice'})
+
+
+def explicit_source():
+    header, samples = template()
+    entries, banks = {}, {}
+    for category, donor in zip(CATEGORIES, (22, 23, 24)):
+        h = bytearray(header)
+        struct.pack_into('<2H', h, 0, FAMILIES[category][0], donor)
+        stem = f'speech/{category}/Def_Jam_Characters/{donor:03d}'
+        entries[stem + '.hdr'], entries[stem + '.dat'] = bytes(h), samples
+        banks[category] = {'template_voice': donor, 'family': FAMILIES[category][1], 'samples': {}}
+    data = fixture(entries)
+    item = voice(1)
+    return VoiceCompiler(data, hashlib.sha256(data).hexdigest()), {
+        'banks': banks, 'intro': item['intro'], 'extro': item['extro']}
+
+
+def test_per_category_templates_and_explicit_families_preserve_event_metadata():
+    compiler, item = explicit_source()
+    # One category is authored, the others deliberately retain their templates.
+    item['banks']['Character']['samples'][1] = item['intro']
+    data, report = compiler.compose({'alpha/voice': item})
+    output = Archive(data, native_separators=True)
+    for category, bank in item['banks'].items():
+        original = compiler.archive.read(f"speech/{category}/Def_Jam_Characters/{bank['template_voice']:03d}.hdr")
+        generated = output.read(f'speech/{category}/Def_Jam_IP_Characters/600.hdr')
+        assert struct.unpack_from('<2H', generated) == (bank['family'], 600)
+        # Equal-length synthetic streams keep offsets as well as all criteria.
+        assert generated[4:] == original[4:]
+        receipt = report['bindings']['alpha/voice']['categories'][category]
+        assert receipt['source_first_key'] == FAMILIES[category][0]
+        assert receipt['first_key'] == bank['family']
+        assert receipt['template_voice'] == bank['template_voice']
+    assert encode_voice_bindings(data, report, {256: 'alpha/voice'})[:4] == b'FVA1'
+
+
+@pytest.mark.parametrize('change', [
+    lambda v: v['banks'].pop('Enviro'),
+    lambda v: v['banks']['Character'].update(family=16626),
+    lambda v: v['banks']['Character'].update(family=True),
+    lambda v: v['banks']['Character'].update(template_voice=True),
+    lambda v: v['banks']['Character'].update(code=1),
+    lambda v: v['banks']['Character'].update(samples={255: b'x'}),
+])
+def test_explicit_category_contract_rejects_ambiguity_and_cross_category_families(change):
+    compiler, item = explicit_source()
+    change(item)
+    with pytest.raises(AssetError):
+        compiler.compose({'alpha/voice': item})
