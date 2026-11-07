@@ -83,7 +83,10 @@ class RetailCatalog:
         mask = donor['fields']['FightingStyle']['word']
         primary = self.db.word(donor['record_offset'] + 18 * 4)
         first = [index for index in range(5) if mask & primary & (1 << index)]
-        check(0 < mask <= 31 and len(first) == 1, 'native-menu-style', 'Unsupported native fighting-style ordering')
+        check(0 < mask <= 31 and first, 'native-menu-style', 'Unsupported native fighting-style ordering')
+        # Native 48270 exits its scan at the first matching primary bit;
+        # 4829E then appends the other enabled styles in ascending order.
+        first = first[:1]
         styles = first + [index for index in range(5) if mask & (1 << index) and index not in first]
         return {'selection_key': selection, 'stats': stats, 'styles': styles}
 

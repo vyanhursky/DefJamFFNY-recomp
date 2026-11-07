@@ -39,6 +39,20 @@ class CurveLayouts:
     def pointer(self, field, size):
         return self.model.local_pointer(field, size)
 
+    def empty_pointer(self, field):
+        """Zero-length arrays may retain an exporter-generated local pointer.
+
+        No element is read when its channel count is zero. Still reject imports
+        and unrelocated nonzero words; a local one-past target is well formed.
+        This does not relax any numeric or output-context admission gate.
+        """
+        if field in self.model.pointers:
+            pointer = self.model.pointers[field]
+            require(not pointer['imported'], 'Empty curve table must be local')
+            self.model.data_range(pointer['target'], 0)
+        else:
+            require(self.values(field, 1, 'I') == (0,), 'Empty curve table needs zero or a local relocation')
+
     def times(self, field, keys, *, transitions=False, optional=False):
         if optional and field not in self.model.pointers:
             require(self.values(field, 1, 'I') == (0,), 'Curve time field needs a local relocation or zero')
@@ -62,8 +76,7 @@ class CurveLayouts:
             self.times(record + 8, keys, transitions=True, optional=True)
             destinations = self.values(self.pointer(record + 12, channels), channels, 'B') if channels else ()
             if not channels:
-                require(record + 12 not in self.model.pointers and self.values(record + 12, 1, 'I') == (0,),
-                        'Empty curve destination table needs a zero field')
+                self.empty_pointer(record + 12)
             header, stride, components = (18, 16, 3) if kind == 18 else (16, 14, 1)
             self.numeric(record + header, stride * channels)
             if kind == 18:
@@ -115,8 +128,7 @@ class CurveLayouts:
         dimension, stride = (3, 36) if kind == 20 else (1, 12)
         destinations = self.values(self.pointer(record + 4, channels * 2), channels) if channels else ()
         if not channels:
-            require(record + 4 not in self.model.pointers and self.values(record + 4, 1, 'I') == (0,),
-                    'Empty curve destination table needs a zero field')
+            self.empty_pointer(record + 4)
         self.times(record + 8, keys, transitions=True, optional=True)
         for channel in range(channels):
             offset = record + 20 + stride * channel

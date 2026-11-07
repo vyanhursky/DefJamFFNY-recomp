@@ -1,8 +1,8 @@
 """General research appearance composition, with explicit unfulfilled gates.
 
 New geometry/textures get a resource-owned native name and registrations. The
-first adapter reuses verified donor facial animation data. Unknown face curves
-and render parameter semantics remain separate gates; no public launch capability
+adapter rebuilds supported facial pose palettes in a verified donor envelope.
+Other face layouts and render parameter semantics remain separate gates; no public launch capability
 is implied by this module. All archive changes are composed in memory.
 """
 import hashlib
@@ -21,6 +21,7 @@ from fighter_rig import Skeleton
 from fighter_skin import Skin
 from fighter_xsh import Textures
 from fighter_model_compile import compile_geometry, layout
+from fighter_face import compile_palettes
 
 MAX_APPEARANCE_BYTES = 256 * 1024**2
 
@@ -62,8 +63,14 @@ class Appearance:
         donor = Skeleton(Model(unpack(baseline.models.read(donor_model + '.o'))))
         require(skeleton.topology_sha256 == donor.topology_sha256 and skeleton.permutation == donor.permutation,
                 'Appearance skeleton differs from its inherited animation rig')
-        require(decoded['face'] == unpack(baseline.models.read(donor_model + '_F.o')),
-                'Authored face curves need the pose-palette adapter; reuse the verified donor face for now')
+        donor_face = unpack(baseline.models.read(donor_model + '_F.o'))
+        face_receipt = None
+        if decoded['face'] != donor_face:
+            try:
+                compiled_face, face_receipt = compile_palettes(face, Model(donor_face), len(skeleton.rows))
+            except ModelError as error:
+                raise AssetError('Unsupported authored facial palette: ' + str(error)) from error
+            decoded['face'] = compiled_face.data
         compiled, template_name = baseline.compile_model(model, geometry, skeleton, resource_name(identifier))
         Geometry(compiled).require_textures(textures, baseline.shared_shapes)
         decoded['model'] = compiled.data
@@ -79,7 +86,9 @@ class Appearance:
         self.summary = {'resource': identifier, 'native_name': self.name, 'donor': self.donor,
                         'source_sha256': self.source_sha256, 'baseline_sha256': baseline.sha256,
                         'decoded_sha256': {part: hashlib.sha256(data).hexdigest() for part, data in decoded.items()},
-                        'topology_sha256': skeleton.topology_sha256, 'face_policy': 'verified-retail-donor',
+                        'topology_sha256': skeleton.topology_sha256,
+                        'face_policy': 'typed-pose-palettes' if face_receipt else 'verified-retail-donor',
+                        'face_compilation': face_receipt,
                         'render_control_policy': 'verified-retail-template', 'render_template': template_name,
                         'texture_control_policy': 'verified-retail-template',
                         'runtime_ready': False, 'render_parameters_validated': False}

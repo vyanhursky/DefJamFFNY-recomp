@@ -8,7 +8,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'setup'))
 from fighter_animation import AnimationEnvelope, AnimationIndex
 from fighter_assets import AssetError
-from fighter_elf import ModelError
+from fighter_elf import Model, ModelError
 from test_fighter_elf import fixture
 
 
@@ -71,6 +71,48 @@ def test_animation_envelope_requires_self_contained_data_and_a_bank_export():
         AnimationEnvelope(original[:split], original[split:], names)
     with pytest.raises(AssetError, match='bank export'):
         AnimationEnvelope(data, links.replace(b'__AnimationBank:::a', b'__DifferentBank:::a'), names)
+
+
+def test_complete_animation_repacking_preserves_data_graph_and_all_metadata():
+    data, links, names = animation_fixture()
+    original = Model(data + links)
+    # Synthetic exporter variant: section table before string/symbol metadata,
+    # with metadata sections in a different physical order.
+    image = bytearray(data)
+    table_at = len(image)
+    image.extend(bytes(240))
+    rows = list(original.sections)
+    for index in (3, 2, 5, 4):
+        row = list(rows[index]); image.extend(bytes(-len(image) % row[8]))
+        row[4] = len(image)
+        old = original.sections[index]
+        image.extend(original.data[old[4]:old[4] + old[5]])
+        rows[index] = tuple(row)
+    struct.pack_into('<I', image, 32, table_at)
+    image[table_at:table_at + 240] = b''.join(struct.pack('<10I', *r) for r in rows)
+    variant = bytes(image)
+    with pytest.raises(AssetError, match='boundary'):
+        AnimationEnvelope(variant[:len(data)], variant[len(data):], names)
+    envelope = AnimationEnvelope.from_model(variant, names)
+    assert envelope.tokens == ('N0001_A', 'N0001_B')
+    assert envelope.model.symbols == original.symbols
+    assert envelope.model.pointers == original.pointers
+    for before, after in zip(original.sections[1:], envelope.model.sections[1:]):
+        assert original.data[before[4]:before[4] + before[5]] == envelope.model.data[after[4]:after[4] + after[5]]
+    assert envelope.model.canonical_bytes() == envelope.model.data
+    assert not envelope.metadata()['runtime_ready']
+
+
+def test_complete_animation_repacking_keeps_import_and_executable_gates():
+    image, rows, _ = fixture('__AnimationBank:::a', 'unknown-native-import')
+    with pytest.raises(ModelError, match='forbidden model imports'):
+        AnimationEnvelope.from_model(image)
+    changed = bytearray(image)
+    # Executable section flag must fail before any output normalization.
+    sections = struct.unpack_from('<I', changed, 32)[0]
+    struct.pack_into('<I', changed, sections + 40 + 8, 7)
+    with pytest.raises(ModelError, match='executable'):
+        AnimationEnvelope.from_model(bytes(changed))
 
 
 def index_fixture(change=None):

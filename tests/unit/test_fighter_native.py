@@ -85,6 +85,16 @@ def test_two_packs_multiple_fighters_full_pipeline_and_determinism():
         assert compiled[offset:offset + 104] == data[offset:offset + 104]
 
 
+@pytest.mark.parametrize('primary, expected', [(9, [0, 3, 4]), (24, [3, 0, 4]), (26, [3, 0, 4])])
+def test_menu_uses_first_matching_primary_bit_then_remaining_styles(primary, expected):
+    _, data, layout = catalog(menu=True)
+    changed = bytearray(data)
+    struct.pack_into('<I', changed, layout['records'][0] + 18 * 4, primary)
+    source = RetailCatalog(bytes(changed), hashlib.sha256(changed).hexdigest())
+    _, report = source.compile([pack()], logical_menu=True)
+    assert report['menu_roster']['alpha/fighter-0']['styles'] == expected
+
+
 def test_composed_retail_edits_preserve_authored_donor_for_addition():
     source, data, layout = catalog()
     edit = pack('balance', count=0)

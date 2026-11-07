@@ -7,7 +7,7 @@ proposal to ship a Vendetta-specific compatibility bundle. Owner decisions are
 recorded below; evidence-dependent implementation details remain
 explicit rather than being treated as approvals.
 
-## Delivery milestones (M1–M4 authorized)
+## Delivery milestones (M1–M5 authorized)
 
 These are Fighter Mod Support milestones, distinct from the project's original
 M0–M8 port roadmap. The owner authorized implementation and computer testing of
@@ -49,8 +49,13 @@ The owner then authorized M4. Launcher integration, normal-profile adoption and
 focused Windows acceptance are complete locally, including update/rollback,
 managed native combat saves and the same Story career with all packs disabled.
 See [M4 launcher integration](research/fighter-mod-m4-2026-11-06.md).
-M5 creator tooling/Vendetta conversion and M6 platform/long-run release
-acceptance remain. No public push or PR has been made.
+The owner authorized M5 creator tooling and a beginner-first modding guide,
+and explicitly included general adapter R&D for faithful Vendetta conversion.
+Creator commands and shared native validation now work locally; conversion
+remains in progress: facial palettes compile, while complete motion/cinematic
+and voice conversion plus independent-pack native acceptance remain. See
+[M5 investigation](research/fighter-mod-m5-2026-11-06.md). M6 platform/long-run
+release acceptance remains. No public push or PR has been made.
 
 ## Direction already agreed
 
@@ -326,7 +331,7 @@ starting point; it contains logical references, never engine addresses.
 ## Package and authoring contract
 
 This is a checklist, not a frozen schema or supported export command.
-The [local authoring prototype](fighter-mod-authoring.md) documents executable
+The [runtime authoring contract](fighter-mod-authoring.md) documents executable
 definition/conflict checks without advertising installable fighter packages.
 The [native adapter checkpoint](research/fighter-mod-native-adapter-2026-11-02.md)
 records the connected retail-export/resolver/cache pipeline and current limits.

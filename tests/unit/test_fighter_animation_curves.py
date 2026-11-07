@@ -90,6 +90,24 @@ def test_four_scalar_curves_use_element_stride_not_float_slot_destinations(kind,
     assert 'required_output_floats' not in record
 
 
+@pytest.mark.parametrize('target', [200, 256])
+def test_empty_curve_array_can_keep_a_bounded_local_pointer(target):
+    def change(data, pointers, record):
+        data[record + 6] = data[record + 7] = 0
+        struct.pack_into('<I', data, record + 12, target)
+    parsed = curves(18, change)
+    assert parsed.records[56]['channels'] == 0
+    assert parsed.records[56]['required_output_bytes'] == 0
+
+
+def test_empty_curve_array_cannot_smuggle_an_unrelocated_address():
+    def change(data, pointers, record):
+        data[record + 6] = data[record + 7] = 0
+        pointers.remove(record + 12)
+    with pytest.raises(AssetError, match='zero or a local'):
+        curves(18, change)
+
+
 @pytest.mark.parametrize('kind, mutate, message', [
     (18, lambda b,p,r: b.__setitem__(r+16, 255), 'shift'),
     (18, lambda b,p,r: b.__setitem__(r+17, 1), 'header control'),

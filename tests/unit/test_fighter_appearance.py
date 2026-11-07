@@ -90,11 +90,11 @@ def test_source_hashes_and_semantic_resource_bindings_cannot_be_substituted():
         baseline.compose({'beta/body': appearance})
 
 
-def test_custom_face_curves_stay_gated_until_their_native_schema_is_validated():
+def test_untyped_face_data_is_rejected_even_when_it_is_a_valid_model():
     baseline, source, assets, _ = fixture()
     assets['face'] = assets['model']
     source['face']['sha256'] = hashlib.sha256(assets['face']).hexdigest()
-    with pytest.raises(AssetError, match='face curves'):
+    with pytest.raises(AssetError, match='facial palette'):
         Appearance('alpha/body', source, assets, baseline, 'SyntheticModel')
 
 

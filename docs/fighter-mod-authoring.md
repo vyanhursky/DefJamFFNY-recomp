@@ -1,454 +1,213 @@
-# Fighter Mod Support: local authoring prototype
+# Fighter Mod Support: runtime authoring contract
 
-Target v0.15.0; local R&D. The [approved architecture](fighter-mod-support.md)
-defines the intended feature. This document covers the first working definition
-and conflict tools. **These drafts are not installable launcher packages.**
-Internal native acceptance probes run donor-backed fighters using guarded,
-isolated profiles; the production capability remains disabled. The schema
-will evolve as native assets, menus and persistence are integrated.
+Target **v0.15.0**, local development. Ordinary Fighter ZIP installation,
+whole-pack activation, native menus and managed profile persistence are implemented.
+This is the runtime contract reference. The beginner-first creator guide lives in
+`DefJam-Modding-Tools/docs/fighter-modding-guide.md`; offline creator commands are
+maintained in that repository. Neither branch has been published.
 
-## What the prototype checks
+## Package shape and identity
 
-`setup/fighter_registry.py` resolves one or many fighters from each enabled pack,
-including shared resources, exact dependencies, inheritance and component edits.
-All enabled packs are resolved together. It emits a deterministic snapshot with
-an explicit `runtime_ready: false` gate and a content hash.
-
-The baseline is a locally extracted `retail` document using the same shape. The
-retail namespace is reserved. Export the supported original database locally:
-
-```powershell
-python scripts/fighter-registry.py export-retail path/to/assets/djv2.sod > logs/retail-fighters.json
-```
-
-The exporter verifies the original SOD hash pinned in
-`config/fighter-native-baseline.json`; modified/unsupported databases are rejected.
-The output contains 75 retail definitions and 300 resource references, with no
-game assets. The synthetic tests show the shape without distributing extracted
-fixtures: `tests/unit/test_fighter_registry.py`.
-
-Each document has exactly these fields:
+A package is one ZIP root folder named after its pack ID. It contains
+`fighters.json`, its declared resource files and optional root README/LICENSE
+`.md` or `.txt` files. No save, executable, opaque shared database or undeclared
+asset is accepted. File extensions alone never establish format validity.
 
 ```json
 {
   "schema": "fighter-registry-draft-1",
-  "id": "example-pack",
-  "version": "1.0.0",
-  "requires": {},
-  "resources": [],
+  "id": "example-roster", "version": "1.0.0",
+  "requires": {}, "resources": [],
   "fighters": [
-    {
-      "id": "first-fighter",
-      "name": "Example Fighter",
-      "inherits": "retail/ludacris",
-      "components": {"stats": {"health": 60}}
-    },
-    {
-      "id": "second-fighter",
-      "name": "Another Fighter",
-      "inherits": "retail/ludacris",
-      "components": {"stats": {"speed": 70}}
-    }
+    {"id": "river", "name": "River", "inherits": "retail/ludacris", "components": {}},
+    {"id": "stone", "name": "Stone", "inherits": "retail/ludacris", "components": {"stats": {"speed": 70}}}
   ],
   "overrides": []
 }
 ```
 
-This example reuses Ludacris's retail donor bundle; it supplies no new model,
-animation or voice assets. Remove the second entry for a single-fighter pack.
-The resulting permanent keys are
-`example-pack/first-fighter` and `example-pack/second-fighter`. Display names may
-match between independently keyed fighters. Never publish native IDs or record
-offsets as these keys.
+This complete starter adds two identities using retail assets from the player's
+own dump. Remove one fighter for a single-fighter pack. It is not a conversion
+of an external fighter's appearance or behavior.
 
-IDs use lowercase letters/digits separated by single hyphens, up to 80 characters
-per part. Versions are stable `major.minor.patch` values; prereleases/ranges are
-not implemented. Dependencies map pack ID to an exact version. Resource/fighter
-references outside the current pack or retail require an explicit dependency.
+Root fields are exact. IDs use lowercase letters/digits separated by single
+hyphens; the semantic resolver permits 80 characters per part, while creator
+commands conservatively use 63 for launcher folder compatibility. `retail` is
+reserved. Versions are canonical nonnegative `major.minor.patch`, without
+ranges/prereleases. `requires` maps other pack IDs to exact versions.
 
-Inheritance copies the authored donor before overrides. Changing the donor later
-does not silently change independently authored descendants. Numeric stats merge
-with inherited stats; their current draft range is integer 0–100. It is not yet
-a conversion contract for native game stats.
+Each fighter requires `id`, `name`, `components`, with optional `inherits`.
+Use `pack-id/local-id` references. Names may change while IDs remain stable;
+transient selection/core indexes are never permanent identities. Native names
+currently require ASCII and fit the 96-character authoring bound.
+Inheritance copies the donor's authored components before overrides. Partial
+stats merge with inherited stats. Native compilation requires complete health,
+speed, toughness and charisma, each an integer 0–100, plus the required resource
+bundle. All pack dependencies must be present for combined validation/activation.
 
-Supported draft component names are `appearance`, `moveset`, `voice`, `ai`,
-`portrait`, `intro`, `victory`, `blazin` and `stats`. Everything except stats
-references a typed resource key. Resource definitions have `id`, `kind` and
-`compatibility`, for example:
+## Resources and file descriptors
 
-```json
-{"id":"example-moves","kind":"moveset",
- "compatibility":{"skeleton":"example-pack/joints","events":"retail/events"}}
-```
+Resource fields are `id`, `kind`, `compatibility`, plus `source` for an authored
+resource. Component references and resource kinds are not always the same:
 
-Appearance requires a skeleton label; movesets and cinematics require skeleton
-and event labels; voices require an event label; AI/portraits have empty
-compatibility objects. Resolved fighters need appearance and moveset resources.
-Their skeleton/event labels must agree. **These labels are author assertions in
-this prototype.** Production asset decoders must verify the corresponding file
-structures. No assets, paths, archive payloads or executable instructions are
-accepted by this draft resource schema. Pack intake and native format validation
-remain separate work; rejecting unknown JSON fields is not sufficient asset
-validation.
+| Fighter component | Resource kind | Exact compatibility keys | Source format |
+|---|---|---|---|
+| appearance | appearance | skeleton | eagl-appearance-1 |
+| moveset | moveset | skeleton, events | fighter-moveset-1 |
+| voice | voice | events | fighter-voice-1 |
+| ai | ai | none | fighter-ai-1 |
+| portrait | portrait | none | eagl-portrait-1 |
+| intro, victory | cinematic | skeleton, events | fighter-cinematic-1 |
+| blazin | blazin | skeleton, events | fighter-blazin-1 |
 
-The native exporter uses conservative `retail/binding-<fighter>` compatibility
-labels. They identify a known retail donor bundle, not a decoded skeleton or
-event fingerprint. This prevents unverified cross-donor animation/voice mixing;
-it may reject combinations that future asset validation will establish as valid.
+Compatibility values are stable keys such as `retail/binding-ludacris`, exported
+by the verified retail catalog. They are checked against actual rig/template
+relationships during compilation; changing a label cannot adapt incompatible
+assets. An empty compatibility map is `{}`. Stats are inline, not a resource.
 
-## Check packs and diagnose conflicts
+Every file descriptor is exactly `{"path":"assets/file.ext","sha256":"..."}`,
+with a real 64-character lowercase SHA-256. Paths are relative, portable, and
+must remain inside the package. Links, traversal, duplicate/case-colliding paths,
+missing files and mismatched hashes are rejected. Reused files must have the
+same digest in every descriptor. Documentation is UTF-8 and bounded at 1 MiB.
+Current inventory bounds: 65,536 files, 512 MiB total, 64 MiB per asset;
+individual format/aggregate composition budgets are often tighter.
+Manifests are bounded at 8 MiB each and 32 MiB combined. Resolver limits are
+1,024 packs, 16,384 total definitions including baseline, inheritance depth 128.
+These are processing limits, not platform memory guarantees.
 
-```powershell
-python scripts/fighter-registry.py resolve-preview baseline.json alpha.json beta.json
-```
+## Source fields and current admission limits
 
-Success prints a canonical-order JSON snapshot. Failure returns exit code 1 and
-structured JSON with an error code/message/details. Competing edits list the
-fighter, component, providers and each proposed value. Independent portrait and
-voice edits can compose; two different edits to the stats group conflict. Stats
-are deliberately one coarse group for now, including edits to different stats.
-Skeleton/event checks still apply after independent components are combined.
+All field lists below are exact unless marked optional. `format` is always
+required. File arguments mean hash-checked descriptors, not unverified paths.
 
-An override contains `target`, `components` and `supersedes`:
+- **Appearance:** `format`, `donor`, `model`, `textures`, `face`. Three distinct
+  files; raw or supported RefPack data. Models are data-only EAGL ELF, textures
+  are native SHPX. The validator checks geometry, skinning, texture references,
+  render layouts, skeleton topology/names/order and the established permutation.
+  Accepted geometry is rebuilt into trusted render templates. Faces may reuse the verified donor or supply bounded PosePaletteBank data,
+  rebuilt from typed samples/destinations into a trusted donor envelope. The
+  current two-palette profile needs at least 13/15 sample frames, finite active
+  values, unit quaternions and destinations within the matched body rig. This
+  local adapter has one partial native component test; full legacy conversion
+  is still in progress. A Blender/GLB file is not an accepted native model.
+- **Portrait:** `format`, `donor`, `selector_2p`, `selector_3p`, `selector_4p`,
+  `result_2p`, `result_3p`, `result_4p`. Six distinct SHPX files must match the
+  donor layout/dimensions. Current aggregate input is 16 MiB per resource.
+  The runtime owns menu expansion; whole selector/result movie replacement is
+  not an authoring interface. PNG artwork needs a native exporter first.
+- **Moveset:** `format`, `donor`, `selections`, `tracks`. At least one authored
+  selection or track. `selections` has at most 124 canonical string ordinal keys
+  0–124 mapping to integers 1–124. Composition further rejects special actions,
+  self-selections, incompatible flags, aliases and ambiguous motion intervals;
+  supported ordinary families have one or two motion entries in the same donor
+  bank. `tracks` maps at most 999 native ASCII tokens (letters/digits/underscore,
+  1–64 characters) to quaternion files. Global WPAR/WAZA/FZUI replacement is not
+  exposed. Root motion/events remain template-owned.
+- **Voice:** `format`, `template_voice`, `samples`, `intro`, `extro`.
+  `template_voice` is an integer 0–65534, further checked against the template.
+  `samples` maps optional `Character`, `Taunts`, `Enviro` categories to canonical
+  string slot ordinals 0–254 and WAV descriptors; actual template slot counts
+  apply. Missing overrides inherit template clips. Intro/extro are mandatory.
+  WAV input is mono signed PCM16, 8,000–48,000Hz, at most 4,000,000 samples per
+  encoded stream. The runtime encodes its own native bank/stream output.
+- **AI:** `format`, `template_profile`, `tendencies`. Template basename is 1–31
+  ASCII letters/digits/underscore/hyphen. Tendencies must contain `easy`,
+  `normal`, `hard`, each with slots `0`, `1`, `2`, `3`. Each slot has at least
+  one named integer1–5 edit from `fighter_ai.EDITABLE`; stage programs remain
+  inherited. `Specification_environment` is not editable. No raw AI XML input.
+- **Cinematic:** `format`, `template`, `track`. Template names match `CI_XXXX`
+  or `CE_XXXX` (four alphanumerics), but only verified simple plans compose.
+  Track is quaternion data. The intro/victory component determines its use;
+  both resource kinds are `cinematic`.
+- **Blazin:** `format`, `shots`, optionally `pairs`. Four shot objects in native
+  order, each with `template` and optional quaternion `track`. Template forms
+  are `BT1_nn`, `BT2_nn`, `BT3_nn`, `BT4Cnn`, checked per phase and ownership.
+  Optional pairs map 1–4 canonical finisher-choice ordinals 0–81 to objects with
+  both `subject` and `counterpart` quaternion files; actual inherited choices,
+  rigs and timing must match. Camera/event graphs remain template-owned.
 
-```json
-{"target":"retail/ludacris","components":{"stats":{"health":80}},
- "supersedes":[]}
-```
+Quaternion files have exactly `schema: "fighter-quaternions-1"`, `rig_sha256`,
+`bone_count`, `poses`. Every pose contains a complete bone-ordinal list of
+`[x,y,z,w]` unit quaternions; finite values, consistent adjacent hemispheres,
+verified rig digest and template time layout are required. Bounds: 1–4096 bones,
+1–65535 poses, at most 4,194,304 scalar values. These inputs do not contain
+arbitrary frame times, translations, event code or native dispatch words.
+Behavior input is bounded at 64 MiB per file and 256 MiB combined.
 
-An explicit compatibility pack can supersede competing providers. Every
-superseded provider must be an exact dependency. This avoids relying on launcher
-ordering to decide gameplay behavior.
+The executable authorities are `setup/fighter_registry.py`,
+`fighter_resource_files.py`, `fighter_behavior_files.py` and their native
+composers. Successful schema validation alone does not prove native admission.
 
-The helper accepts a choice for **every** conflicting fighter/component and
-prints a draft patch plus the validated preview hash:
+## Runtime authoring API and creator commands
 
-```powershell
-python scripts/fighter-registry.py suggest-compatibility baseline.json alpha.json beta.json --id example-compat --choose retail/ludacris:stats=alpha
-```
-
-The user must choose a provider listed in the error. The helper copies the chosen
-component, declares exact dependencies and supersedes the competing claims. It
-resolves the full composition again, so an incompatible skeleton/event combination
-still fails. It does not adapt assets. Output is a report containing `patch`, not
-a directly installable pack; review/extract that object for further local tests.
-No command changes installed packs, launcher settings, original data or saves.
-
-Input budgets are 1,024 enabled packs, 16,384 total definitions/edits, 8 MiB per
-JSON document and 32 MiB combined CLI input. These are prototype processing
-budgets, not selectable fighter limits. Duplicate JSON keys, non-finite numbers,
-unknown fields, invalid references and dependency cycles are rejected.
-
-## Native inspection and remaining creator tools
-
-`inspect-model`, `inspect-geometry`, `inspect-skin`, `inspect-textures`,
-`inspect-motion-index`, `inspect-motion-record` and `inspect-animation-envelope` inspect supported native
-data structures locally. They
-do not register new resources or certify a pack for play. In particular, motion
-table counts, name counts and grouped rows are separate quantities; an accepted
-container does not prove that its move or animation references are valid.
-
-```powershell
-python scripts/fighter-registry.py inspect-motion-index path/to/motion/main_all.dat
-python scripts/fighter-registry.py inspect-motion-record path/to/motion/main_all.dat --kind move --partition 0 --index 0
-python scripts/fighter-registry.py inspect-skin path/to/fighter.o
-python scripts/fighter-registry.py inspect-animation-envelope path/to/wres142.ord path/to/wres142.orl --names path/to/wres142.mnl
-```
-
-This command reports both native move-table partitions and per-core content
-hashes. It accepts the currently observed ASCII names and fixed table strides;
-other layouts fail as unsupported. Keep the original stream and all game-derived
-reports local. Creator-owned per-fighter resources will need the verified
-animation/event adapter before runtime activation.
-
-The record inspector reports packed WAZA/WPAR fields by native output offset,
-bit width and storage type. Indices are zero-based within the selected table.
-It preserves unknown fields and padding; their gameplay meanings and resource
-links remain unvalidated. It does not accept a replacement global motion table
-as a fighter pack.
-
-Skin inspection checks numeric weights, referenced bone bounds, and each short
-vertex selector against the palette rows uploaded by the observed command
-sequence. Geometry inspection reads command boundaries to locate index data;
-when a draw count is inherited, it reports that fact instead of guessing a nearby
-header. Neither command certifies shader behavior, inherited render state,
-animation compatibility, or safe native activation.
-
-Animation inspection joins the decoded data/link parts only in memory and
-requires a self-contained data-only ELF with the native split boundary. The
-optional name list is checked separately; individual Blazin banks can share a
-list. File envelopes and valid name tokens do not establish curve, pose, event
-or name-to-animation compatibility. Reported part hashes refer to decoded bytes.
-
-Add `--check-links` to the motion-index inspector to check the established
-action/move/parameter namespaces. On the animation-envelope inspector it checks
-the sorted bank name index, `_t`/`_s` token lookups and known child references.
-Missing optional native lookups are reported as missing, not invented mappings.
-`--check-curves` also checks supported curve byte ranges, serialized finite
-values and time profiles. These research checks leave numerical decoding,
-output-context compatibility and runtime admission false; unsupported curve
-types and layouts remain explicit in the report. No supplied native dispatch
-pointer becomes an executable mod capability.
+The matching Modding Tools checkout provides:
 
 ```powershell
-python scripts/fighter-registry.py inspect-native path/to/assets/djv2.sod
+defjam-tools fighter catalog --recomp RECOMP --game GAME
+defjam-tools fighter new --recomp RECOMP --game GAME --out NEW_FOLDER --id example-roster --donor retail/ludacris --fighter 'river=River'
+defjam-tools fighter validate PACK_FOLDER --recomp RECOMP --game GAME
+defjam-tools fighter package PACK_FOLDER --recomp RECOMP --game GAME --out NEW_ZIP
 ```
 
-This prints native Character metadata and source hashes. Its selection key,
-one-based core ID, string IDs and record offsets are separate native concepts;
-none is a stable public fighter key. Keep output/game-derived caches local.
+Repeat `--fighter` for multiple fighters. Repeat `--with-pack` for dependencies
+or coexistence validation; `--language` selects a language pack folder for native
+screen composition. Only the primary folder is packaged; dependencies remain
+separate archives. Starter/output destinations must be new.
 
-Compile packs into a native cache preview:
+The read-only bridge `scripts/fighter-contract.py` exposes JSON protocol
+`fighter-authoring-api-1`, with `catalog --game GAME` and
+`validate --game GAME --pack FOLDER [--pack FOLDER ...] [--language FOLDER]`.
+It uses the same inventory, full native compiler and portrait/menu composer as
+the runtime, in temporary caches, without installing packs or changing profiles.
+The success receipt identifies every validated file by SHA-256 and explicitly
+sets `native_playtest: false`. Errors return nonzero with an error report.
+The packager rereads exactly those files and refuses changes, writes a stable
+ZIP, verifies CRC readback and exclusively creates its output. It does not
+accept a bypass-validation switch or a manually supplied success receipt.
 
-```powershell
-python scripts/fighter-registry.py compile-native-preview path/to/assets/djv2.sod example-pack.json another-pack.json
-```
+Diagnostic `scripts/fighter-registry.py` commands remain available:
+`export-retail`, `inspect-native`, `inspect-model`, `inspect-skin`,
+`inspect-geometry`, `inspect-textures`, `inspect-motion-index`,
+`inspect-motion-record`, `inspect-animation-envelope`, `resolve-preview`,
+`compile-native-preview`, `suggest-compatibility`. Use each command's `--help`.
+An inspection or semantic preview is not full package acceptance.
 
-Without options this prints the preview report and writes no cache. Add
-`--write-cache` to publish a verified content-addressed preview beneath the
-repository's ignored `logs/fighter-native-preview/`. Existing cache bytes and
-reports are checked before reuse; corruption fails without overwriting them.
-Generated reports have a separate 32 MiB budget, checked before publication.
+## Conflicts, installation and testing
 
-This adapter translates retail donor resources, complete stats, localization
-keys and permitted edits into native records. Pack order is irrelevant. It
-retains donor core IDs and all untouched retail record bytes. Donor inheritance
-uses authored retail data before overrides. New asset resources, AI/cinematic
-components and retail core reassignment fail with explicit unsupported errors.
-Complete appearance/moveset/voice/portrait and all four stats must be present,
-directly or through inheritance, for this adapter to produce a preview.
+An override has `target`, `components`, `supersedes`. Incompatible claims to
+the same fighter/component fail; stats form one conflict group. A compatibility
+pack explicitly depends on the competing versions and selects a reviewed result.
+`suggest-compatibility` helps construct that declaration; it cannot repair a rig
+or interpret unsupported native data. No implicit load-order winner is used.
 
-Custom names become a validated FML1 name cache keyed by bounded generated
-native symbols; the report includes its hash. Ordinary preview commands do not
-activate it. The current native preview accepts at most 19 UTF-8 bytes per custom
-display name: the reviewed native formatter has a 20-byte destination including
-its terminator. This is an adapter limit, not the draft semantic schema's
-permanent name limit. Custom names fit into native two-, three- and four-fighter
-selection headers; result-layout acceptance is recorded separately in the
-[runtime report](research/fighter-mod-runtime-2026-11-02.md).
-Selection keys above 127 are reported separately. Every preview
-retains `runtime_ready: false` and `launch_allowed: false`: it does not allocate
-new movesets, install a mod or make fighters playable.
+Install the generated ZIP in **Mods > Fighters**, then enable the whole pack.
+The launcher revalidates installation, activation, update, rollback and launch.
+[Launcher/profile behavior](fighter-mod-support.md#local-m4-launcher-workflow)
+includes stable identity persistence and dormant missing content. Pack contents
+never supply native save files. Logical roster IDs can exceed 255 through the
+four-participant binding window; the 16,380 window-record bound is not a promise
+that every size of fully authored roster fits memory.
 
-The runtime-owned binding ledger now retains historical fighter handles and
-selection tokens across pack removal and re-enable. FMB1 translates those
-identities to each snapshot's physical native rows; authors never choose either
-number. The internal probe can consume a previous cache's ledger with `--ledger`.
-The ledger must remain tied to its profile/save namespace before production use.
+Playtest native 2/3/4-player selection/results, cancel/ready paths, human and CPU
+roles, entrance/combat/victory/Blazin, voices, repeated matches and Story-created
+fighters using a disposable test profile. Check combined language/texture packs.
+Record compilation and actual native acceptance separately. M1–M4 Windows
+fixtures have native evidence; newly generated starter ZIPs are not automatically
+claimed as a new native playtest. Platform/release acceptance remains M6.
 
-Inspect a model/face envelope, either raw or RefPack compressed:
+## Legacy conversion status
 
-```powershell
-python scripts/fighter-registry.py inspect-model path/to/model.o
-```
+The original Vendetta archive is not an ordinary Fighter ZIP. Current direct
+inspection finds 46 added characters and no changes to the 75 existing SOD
+character records. All 46 appearances fail the donor-face equality gate, after
+passing earlier structural/geometry/rig/texture checks. Compilation after that
+gate and native playback remain unproved.
 
-The validator permits the observed data-only ELF layout, bounded symbols and
-pointer relocations. CPU executable sections, absolute address symbols,
-out-of-range/duplicate relocations and oversized expansion are rejected. The
-report lists imports/exports for dependency resolution and the observed exported
-bone name/index map. Bone indices must be unique and contiguous. Matching this
-map establishes only matching names and indices; it does not establish parent
-relationships, bind poses, skin weights or animation compatibility. Typed reader
-helpers distinguish inline data from explicit pointer relocations and reject
-unresolved imported pointers and reads beyond the data section. Passing this inspection
-does not validate EAGL geometry, materials or texture references and
-does not grant a runtime asset capability.
-
-When present, the observed inline `__Skeleton:::root` resource receives a separate
-typed check: bounded 112-byte records, one ordered parent tree, matching exported
-bone indices, finite transforms, normalized quaternions and a complete opaque
-permutation. The reader preserves every stored matrix, including authored
-corrections. It reports topology and pose hashes separately. Matching topology
-does not establish matching poses, skin joint mapping or animation compatibility;
-those last two checks remain false in inspection metadata. A face/pose module
-without a skeleton is reported with `skeleton: null`, rather than treated as a
-complete fighter model.
-
-Inspect the currently understood geometry structures separately:
-
-```powershell
-python scripts/fighter-registry.py inspect-geometry path/to/model.o
-python scripts/fighter-registry.py inspect-geometry path/to/model.o --textures path/to/textures.xsh
-```
-
-This checks explicit material-to-render-resource links, bounded vertex buffers,
-finite positions/UVs, matching stream lengths, known index headers and uint16
-index bounds. It distinguishes surface strips, untextured helpers and sparkle
-point streams. The optional texture check requires every referenced shape in
-the supplied validated file; a missing shared sparkle atlas is an error until
-its original-library dependency is resolved. Unknown index/stream variants are
-rejected. Imported render commands, native parameter bindings and skin weights
-remain unvalidated, and this command still reports `runtime_ready: false`.
-
-Inspect a supported SHPX texture archive, raw or RefPack compressed:
-
-```powershell
-python scripts/fighter-registry.py inspect-textures path/to/textures.xsh
-```
-
-This checks single-level indexed/BGRA/DXT1/3/5 textures, dimensions, complete
-pixel and palette ranges, attachment chains, shape references and overlaps.
-Unknown formats or mip layouts require a validated adapter. The data-only shape
-renamer edits verified directory/material fields and rejects collisions. It
-does not guess references inside model data. All 46 community-pack texture
-archives pass this file-format gate; model/material compatibility and actual
-native loading remain separate requirements.
-
-The [active runtime research note](research/fighter-mod-runtime-2026-11-02.md)
-records isolated native probes. `scripts/fighter-runtime-probe.py` is an internal
-acceptance driver, using disposable guarded saves under `logs`, not an install
-or activation command. Combat start controls do not prove native menu selection.
-The probe's `--expect-fighter` assertions verify original ControllerSetup
-submissions and actual match IDs without overriding them. Two-player custom
-headers, donor thumbnails/portraits and selection now have native evidence;
-other layouts, full save lifecycle and authored resources remain acceptance gates.
-
-The native-menu compiler owns bounded header text fields, with independent
-bindings for each player and line. Display wrapping never changes a fighter's
-saved identity or unwrapped HUD name. Native stat percentages are capped for
-custom fighters after the original display getter; authored gameplay values in
-the database remain intact. Two-player visual tests cover a health-88 update,
-the complete wrapped name and returning to the created fighter without stale
-text. Separate native three-/four-player browsing tests fit19-character wide-
-letter names in every header; multiplayer result acceptance remains required.
-
-The internal probe can also use `--language-pack PATH`. It verifies the existing
-language deltas against the supported original screens archive, applies fighter
-presentation to that language base, and requires native hashes of both the
-actual language cache and final output before one redirect is adopted. Other
-language files keep their native handling. A language pack that edits the fighter
-database receives a composition error until a semantic database adapter exists.
-This research option does not enable a launcher capability.
-
-Use repeated `--texture-pack PATH` options to exercise existing texture packs
-in native precedence order alongside the fighters. The language and texture
-folders must share one native mods root. The probe validates their image paths,
-rejects linked subdirectories, duplicate selections and pack lists that the
-native loader would truncate. Installed packs are read without modification;
-the research option does not enable a launcher category.
-
-For the repeated-match research route, `--immutable-reuse` retains canonical
-custom records for the process lifetime while ending selection ownership after
-native Game.Quit. Repeat `--expect-match key-a,key-b` once per expected match.
-The driver checks each match's fresh submissions, stable bindings and actual
-materialized cores independently. This does not expose process-lifetime native
-IDs to packs, or claim that Game.Quit acknowledges resource destruction.
-
-The internal `--binding-window` prototype appends typed logical CCharacter
-entries while retaining four native participant slots. A 300-custom-fighter
-research roster has selected logical ID 361 through the native menu and reached
-combat with its correct name and stable identity. This is capacity evidence,
-not a supported package capability or a permanent roster limit. The ordinary
-draft format has no bank numbers or engine addresses.
-
-Its profile research uses a separate store of immutable generations. Each
-generation binds native MC02 files to the historical ledger and custom unlock
-extension. A sealed native save journal is only intent: every complete native
-file must verify before the exact batch can replace the committed generation.
-The probe keeps all stores and working copies under `logs`; normal profiles
-remain outside this entry point. Bank lifetime, real custom-progress save/reload,
-missing-content behavior and production helper failure handling remain gates.
-
-Before publishing creator instructions, implement asset conversion/validation,
-native registration, preview/selection, profile lifecycle, package transactions
-and component-specific acceptance cases. Reusable conversion/package/preview
-tools belong in DefJam-Modding-Tools; the game owns runtime adapters and the
-versioned contract. Vendetta conversion must emit this ordinary general format
-once that contract is proven.
-
-### Authored appearance research input (M1, not a released capability)
-
-The ordinary draft resource definition now accepts an appearance `source`.
-It contains `format: "eagl-appearance-1"`, a `donor` such as `retail/blaze`, and
-three file descriptors named `model`, `textures` and `face`. Each descriptor
-has exactly `path` (canonical package-relative path) and `sha256` (lowercase
-hex digest). Paths are resolved beside that pack's manifest. Linked paths,
-traversal, Windows device aliases, file aliasing, unknown fields and changed
-hashes are rejected. Per-file decoded limits are 64 MiB; the current research
-snapshot also has a 256 MiB aggregate appearance payload budget. These are
-compiler budgets, not measured game capacities.
-
-The resource retains its logical `id`, `kind: "appearance"` and compatibility
-profile, for example `{"skeleton":"retail/binding-blaze"}`. A fighter uses it
-through `components.appearance: "pack-id/resource-id"`. Multiple fighters may
-reference one resource, and one pack may define several resources. The source's
-rig donor and declared compatibility profile must agree with the actual
-validated bone names, indices, parent topology and permutation.
-
-The current adapter accepts authored geometry/textures while requiring the
-face payload to equal the verified donor's facial-animation data. New face
-curves remain gated until their native pose-palette schema is validated. The
-compiler selects a hash-verified retail rendering template with the same
-material/mesh arrangement and stream/program layout. It rebuilds the model
-using checked vertex/index buffers, skin palettes, rig transforms and texture
-shape identities. Input rendering controls, pointers and allocation expressions
-are discarded; unsupported layouts fail instead of passing opaque controls
-through. Different vertex/index counts are supported within that layout.
-Two independent compiled appearances have completed native human/CPU combat
-with correct materials. Resource ownership and the remaining milestone matrix
-are still under test. Passing this draft compiler does not authorize installation
-or normal-profile play.
-
-Texture dimensions, pixels, palette colors and shape names are checked as typed
-data. Other texture headers and attachment controls must match a verified retail
-layout, including material text. A different same-name texture conflicts with
-retail content or another appearance and fails composition with both owners
-identified. Rename that shape consistently in the model and texture data before
-retrying; identical shared texture content is allowed.
-
-Native names are allocated from stable resource identities. Packages do not
-choose filenames in the game's namespace. The compiler preserves retail
-archive entries and generates the model/texture/face entries, typed entity
-declarations and intro/victory mappings. Combat reads the latter from
-`assets/IntroExtro.xml` inside `assets/nis.viv`; changing the loose `taunt.xml`
-does not register these cinematics. The created fighter's counted cinematic
-variants are preserved; inheriting that variant scheme is not yet supported.
-
-`compile-native-preview --write-cache` and the isolated runtime probe use this
-same path. Generated model, entity and cinematic files are content-addressed
-with the snapshot and rechecked before use. The native research loader verifies
-their SHA-256 receipts, requires all three files together, and reports a shared
-file conflict instead of overwriting another mod's redirect. The appearance
-path does not need a language-pack wrapper. Launcher activation and ordinary
-profile support remain later milestones.
-
-### Authored portrait research input (M1, not a released capability)
-
-A portrait resource uses `kind: "portrait"`, empty `compatibility: {}`, and a
-`source` with `format: "eagl-portrait-1"`, an original layout `donor`, and six
-file descriptors: `selector_2p`, `selector_3p`, `selector_4p`, `result_2p`,
-`result_3p`, `result_4p`. Each descriptor contains a canonical relative `path`
-and lowercase `sha256`. Fighters reference `components.portrait` by logical
-resource key. One resource can serve several fighters; body and portrait layout
-donors are independent. All six variants are required for whole-pack validation.
-
-Files contain supported SHPX image data, optionally RefPack wrapped. The compiler
-requires the original layout's tile IDs, dimensions, formats and nonpixel control
-signatures. It copies pixels into verified original textures and retains original
-APT/CONST/O. Packages cannot supply UI actions, ELF UI geometry, arbitrary archive
-paths or conversion commands. Unsupported tiling/crop controls require offline
-authoring; they are never guessed from image dimensions alone. The current per-
-resource source/compiled budget is16 MiB and aggregate portrait budget256 MiB.
-These are compiler budgets, not measured native resource capacities.
-
-The isolated probe composes large selection/result artwork and static grid
-frames from original result-movie templates. Grid drawing reuses result artwork
-and has identical selected/ordinary pixels; the native player-colored cursor
-remains the selection indicator. It adds owned images, geometry, symbols and
-frames, preserving original entries. Native selection identities remain separate
-from allocated movie-local artwork IDs. The supported result geometry template
-currently has one image/one shape and1120 bytes of original geometry data;
-other layouts fail pending their typed adapter. The grid is independently bounded
-by4096 images, four-digit image/model names and the generated frame/movie budgets.
-The research runtime enumerates and batches UI models through the original
-normalization operation; it no longer indexes new model IDs into the original
-512-entry scratch table. Image IDs must match their APT character indices,
-and their texture-matrix parameter names must use that same image identity.
-These are compiler/runtime responsibilities, not author-supplied engine IDs.
-
-Original fighter portrait overrides are currently rejected until their ownership
-adapter is implemented. A language mod that changes selector geometry or textures
-also conflicts with the grid compiler; text/action-only language composition uses
-the existing verified-base path. Native visual and menu-state acceptance remains
-required; the draft reports retain runtime/launch gates rather than advertising
-a shipping capability.
+Its 46 mapped action tables are identical to their retail donors (5,980 action
+rows); ordered motion tokens and reachable curve-type counts match. This does
+not establish numerical animation equivalence. WPAR fields differ in all 46
+mappings, while secondary WAZA/FZUI contain changes/additions whose ownership
+is unresolved. A faithful converter must account for these data, facial poses,
+voices, portraits, AI and cinematic links; it cannot silently substitute donor
+assets or copy whole shared databases. See [M5 investigation](research/fighter-mod-m5-2026-11-06.md).

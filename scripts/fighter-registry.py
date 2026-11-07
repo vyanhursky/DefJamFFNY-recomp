@@ -83,6 +83,11 @@ def main():
     inspect_animation.add_argument('--names', type=Path, help='Optional separately validated native .mnl list')
     inspect_animation.add_argument('--check-links', action='store_true', help='Check bank name lookup and established child edges; curves remain unvalidated')
     inspect_animation.add_argument('--check-curves', action='store_true', help='Also inspect supported curve ranges; numerical/output-context validation remains required')
+    inspect_complete = sub.add_parser('inspect-animation-model', help='Repack/inspect a complete animation ELF; no runtime activation')
+    inspect_complete.add_argument('data', type=Path)
+    inspect_complete.add_argument('--names', type=Path)
+    inspect_complete.add_argument('--check-links', action='store_true')
+    inspect_complete.add_argument('--check-curves', action='store_true')
     export = sub.add_parser('export-retail')
     export.add_argument('sod', type=Path)
     compile_preview = sub.add_parser('compile-native-preview')
@@ -99,13 +104,15 @@ def main():
     helper.add_argument('--choose', action='append', required=True, metavar='FIGHTER:COMPONENT=PACK')
     args = parser.parse_args()
     try:
-        if args.command == 'inspect-animation-envelope':
+        if args.command in ('inspect-animation-envelope', 'inspect-animation-model'):
             from fighter_animation import AnimationEnvelope
             parts = []
-            for path in (args.data, args.links) + ((args.names,) if args.names is not None else ()):
+            paths = (args.data, args.links) if args.command == 'inspect-animation-envelope' else (args.data,)
+            for path in paths + ((args.names,) if args.names is not None else ()):
                 with path.open('rb') as stream:
                     parts.append(unpack_asset(stream.read(MAX_ASSET + 1)))
-            envelope = AnimationEnvelope(*parts)
+            envelope = (AnimationEnvelope(*parts) if args.command == 'inspect-animation-envelope'
+                        else AnimationEnvelope.from_model(*parts))
             result = envelope.metadata()
             if args.check_links or args.check_curves:
                 from fighter_animation import AnimationIndex

@@ -23,6 +23,18 @@ def require(condition, message):
 
 
 class AnimationEnvelope:
+    @classmethod
+    def from_model(cls, data, names=None):
+        """Normalize a complete data-only ELF before the usual envelope checks.
+
+        This is inspection/conversion, not permission to execute its curves.
+        Imports, bank names and every downstream curve/context gate still apply.
+        """
+        canonical = Model(data).canonical_bytes()
+        model = Model(canonical)
+        split = model.sections[2][4]
+        return cls(canonical[:split], canonical[split:], names)
+
     def __init__(self, data, links, names=None):
         parts = (data, links) if names is None else (data, links, names)
         require(all(isinstance(part, bytes) for part in parts), 'Animation resources must be bytes')

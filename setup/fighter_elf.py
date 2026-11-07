@@ -169,6 +169,37 @@ class Model:
         missing = self.imports - set(allowed)
         check(not missing, 'Unresolved or forbidden model imports: ' + ', '.join(sorted(missing)[:8]))
 
+    def canonical_bytes(self):
+        """Repack validated sections without interpreting or admitting their data.
+
+        Some tools put the section table before string/symbol sections. Native
+        animation pairs require the data section followed by metadata and a final
+        section table. All symbol values and relocation addends are section-local,
+        so file offsets can change while the complete data graph stays identical.
+        """
+        image, rows = bytearray(self.data[:52]), [self.sections[0]]
+        for index, original in enumerate(self.sections[1:], 1):
+            row = list(original)
+            # String tables have no aligned scalar accesses. Keep section2
+            # immediately after .data so the .ord/.orl split is unambiguous.
+            if index == 2:
+                row[8] = 1
+            image.extend(bytes(-len(image) % row[8]))
+            row[4] = len(image)
+            image.extend(self.data[original[4]:original[4] + original[5]])
+            rows.append(tuple(row))
+        image.extend(bytes(-len(image) % 4))
+        struct.pack_into('<I', image, 32, len(image))
+        image.extend(b''.join(struct.pack('<10I', *row) for row in rows))
+        result = bytes(image)
+        parsed = Model(result)
+        check(parsed.symbols == self.symbols and parsed.pointers == self.pointers,
+              'Canonical model changed symbol or relocation meaning')
+        check(all(self.data[a[4]:a[4] + a[5]] == result[b[4]:b[4] + b[5]]
+                  for a, b in zip(self.sections[1:], parsed.sections[1:])),
+              'Canonical model changed section contents')
+        return result
+
     def metadata(self):
         from fighter_rig import skeleton_metadata
         bones = self.bone_indices()
