@@ -303,6 +303,10 @@ class Database:
         hashes = {name_hash(n) for n in old_names}
         check(len(hashes) == table.count, 'Ambiguous native character names')
         identifiers = {self.word(o + native_offset * 4) for o in table.records}
+        # Logical templates and indexed participant banks are separate selection
+        # domains. They may share a number, regardless of stable-key sort order,
+        # but neither may collide with retail or duplicate within its own domain.
+        deferred_identifiers = set(identifiers)
         next_id = max(identifiers, default=0) + 1
         new_rows = []
         bindings = {}
@@ -329,7 +333,8 @@ class Database:
             struct.pack_into('<I', row, 0, intern(native_name))
             if selection_keys is not None:
                 next_id = selection_keys[key]
-                check(type(next_id) is int and next_id >= 100 and next_id not in identifiers,
+                allocated = deferred_identifiers if key in deferred_keys else identifiers
+                check(type(next_id) is int and next_id >= 100 and next_id not in allocated,
                       'Invalid/colliding allocated selection key')
             else:
                 while next_id in identifiers or next_id in (98, 99):
@@ -352,6 +357,8 @@ class Database:
                              'record_offset': offset, 'native_name': native_name}
             if key not in deferred_keys:
                 identifiers.add(next_id)
+            else:
+                deferred_identifiers.add(next_id)
             next_id += 1
             names.add(native_name)
             hashes.add(name_hash(native_name))

@@ -50,6 +50,24 @@ def test_removing_last_pack_returns_retail_database_without_forgetting_identity(
     assert restored == installed
 
 
+@pytest.mark.parametrize('identifier', ['alpha', 'single-starter', 'zeta'])
+def test_window_selection_domains_do_not_depend_on_pack_name_order(identifier):
+    source, _, _ = catalog(menu=True)
+    data, report = source.compile([pack(identifier, count=1)], binding_window=True)
+    assert report['window']['fighters'][0]['selection_key'] == 100
+    assert [row['selection_key'] for row in report['window']['banks']] == [100, 101, 102, 103]
+    assert len(native_rows(Database(data))) == len(source.rows) + 4
+
+
+def test_deferred_selection_domain_still_rejects_duplicate_logical_keys():
+    source, _, _ = catalog(menu=True)
+    template = next(iter(source.rows.values()))['record_offset']
+    additions = [{'key': key, 'template': template, 'fields': {}} for key in ('zeta/a', 'zeta/b')]
+    with pytest.raises(ValueError, match='colliding allocated selection'):
+        source.db.extend_character_records(additions, selection_keys={'zeta/a': 100, 'zeta/b': 100},
+                                           deferred_keys={'zeta/a', 'zeta/b'})
+
+
 PROBE = r'''
 #include "fighter_window.h"
 #include <stdio.h>

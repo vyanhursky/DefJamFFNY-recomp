@@ -2,7 +2,7 @@
 import hashlib
 from pathlib import Path
 
-from mods import check, ordinary_path, safe_relative
+from mods import check, ordinary_path, safe_relative, ALLOWED, MAX_FILES
 from fighter_build import document, compile_inputs, retail_catalog, write_preview
 from fighter_registry import validate_pack
 from fighter_presentation import prepare_portraits, prepare_language_screens
@@ -39,12 +39,17 @@ def inventory(folder):
             check(name not in hashes or hashes[name] == spec['sha256'], 'Resource has conflicting hashes: ' + name)
             hashes[name] = spec['sha256']
             expected.add(name)
-    used, actual = 0, set()
+    used, actual, folded = 0, set(), set()
     for path in folder.rglob('*'):
         ordinary_path(path)
         if path.is_dir():
             continue
         name = path.relative_to(folder).as_posix()
+        safe_relative(name)
+        check(name.casefold() not in folded, 'Case-colliding fighter package file: ' + name)
+        folded.add(name.casefold())
+        check(len(folded) <= MAX_FILES and path.suffix.lower() in ALLOWED | {'.bin', '.xsh', '.wav', '.elf', '.o'},
+              'Unsupported fighter package file name or population: ' + name)
         documentation = '/' not in name and name.lower() in ('readme.md', 'readme.txt', 'license.md', 'license.txt')
         check(name in expected or documentation, 'Undeclared fighter package file: ' + name)
         size = path.stat().st_size
