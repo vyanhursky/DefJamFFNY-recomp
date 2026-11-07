@@ -144,6 +144,9 @@ static int research_start(void) {
     const char *screens_hash = getenv("RECOMP_FIGHTER_RESEARCH_SCREENS_SHA256");
     const char *bindings = getenv("RECOMP_FIGHTER_BINDINGS");
     const char *data = getenv("DEFJAM_DATA"), *settings = getenv("RECOMP_SETTINGS"), *leaf;
+    extern const char *pc_fighters_data_root(void);
+    const char *managed = pc_fighters_data_root();
+    if (managed) data = managed;
     unsigned assets = 0;
     for (unsigned i = 0; i < 3; ++i) {
         const char *path = getenv(s_asset_env[i]);
@@ -174,7 +177,7 @@ static int research_start(void) {
      * advertised until persistence, menus and authored assets are accepted. */
     leaf = data ? data + strlen(data) : NULL;
     while (leaf && leaf > data && leaf[-1] != '/' && leaf[-1] != '\\') --leaf;
-    if (!leaf || strcmp(leaf, "fighter-runtime-probe") || !settings || strcmp(settings, "none")
+    if (!leaf || strcmp(leaf, "fighter-runtime-probe") || (!managed && (!settings || strcmp(settings, "none")))
         || !s_names.bytes || strlen(sod) >= sizeof s_research_sod
         || (screens && strlen(screens) >= sizeof s_research_screens)) {
         fprintf(stderr, "[FIGHTERS] research roster requires the isolated probe driver; launch refused\n");
@@ -634,6 +637,8 @@ static void finish_journal(FILE *file, const char *temporary, const char *destin
  * Waiting here (before staging/deleting), not on the first CloseHandle, lets
  * the previous native worker finish every file and its companion metadata. */
 static void await_save_commit(void) {
+    extern int pc_fighters_healthy(void);
+    if (!pc_fighters_healthy()) fighter_stop("The Fighter profile supervisor stopped. Restart from the last committed save; do not continue this session.");
     char path[2048];
     if (!s_batch_number) return;
     snprintf(path, sizeof path, "%s/%06u.committed", s_journal, s_batch_number);

@@ -5,11 +5,14 @@
 #include <vector>
 namespace pcui {
 struct ModRow {
-    std::string id, name, authors, description, installed, latest, load_after, channel;
+    std::string id, name, authors, description, installed, latest, load_after, channel, category;
     unsigned long long bytes = 0;
     bool compatible = false, revoked = false, update = false;
 };
-struct ManagedMod { std::string folder, name, version; bool rollback = false; };
+struct ManagedMod {
+    std::string folder, name, version; bool rollback = false;
+    std::string category; bool enabled = false; unsigned fighters = 0;
+};
 struct ModView {
     std::string message, catalogue;
     std::vector<ModRow> catalogue_mods;
@@ -31,6 +34,11 @@ extern "C" {
  * incomplete transaction or an active installer, including --no-launcher. */
 int pc_mods_game_lock(void);
 int pc_mods_needs_recovery(void);
+int pc_fighters_prepare(const char *language);
+const char *pc_fighters_data_root(void);
+int pc_fighters_healthy(void);
+void pc_fighters_finish(void);
+const char *pc_fighters_error(void);
 #ifdef __cplusplus
 }
 #endif

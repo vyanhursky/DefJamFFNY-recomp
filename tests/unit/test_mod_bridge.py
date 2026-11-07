@@ -30,6 +30,13 @@ std::string data;
 namespace pcui { std::string folder_path(Folder which) { return data; } }
 int main(int argc,char **argv) {
  data=argv[1];
+ if(std::string(argv[2])=="fighter") {
+   if(!pc_fighters_prepare("")) {std::cerr<<pc_fighters_error()<<std::endl;return 5;}
+   std::cout<<pc_fighters_healthy()<<std::endl;
+   std::string input;std::getline(std::cin,input);
+   std::cout<<pc_fighters_healthy()<<std::endl;
+   pc_fighters_finish();return 0;
+ }
  if(std::string(argv[2])=="hold") {
    if(!pc_mods_game_lock())return 2;
    std::cout<<"locked"<<std::endl;
@@ -68,6 +75,22 @@ def test_async_status_and_space_paths(bridge,tmp_path):
     assert result.returncode==0,result.stdout+result.stderr
     assert 'inventory refreshed' in result.stdout
     assert (data/'mod-manager/view.ini').exists()
+
+
+def test_native_game_and_python_supervisor_share_runtime_lock(bridge, tmp_path):
+    sys.path.insert(0, str(ROOT / 'setup'))
+    from mods import file_lock
+    data = tmp_path / 'shared launch'
+    parent = subprocess.Popen([str(bridge), str(data), 'hold'], stdin=subprocess.PIPE,
+                              stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    try:
+        assert parent.stdout.readline().strip() == 'locked'
+        with file_lock(data / 'mod-manager/runtime.lock', shared=True):
+            with pytest.raises(ValueError, match='busy'):
+                with file_lock(data / 'mod-manager/runtime.lock'):
+                    pytest.fail('Installer acquired running game lock')
+    finally:
+        parent.communicate('\n', timeout=10)
 
 
 def test_polling_does_not_block_atomic_progress_updates(bridge,tmp_path):
@@ -137,3 +160,64 @@ def test_incomplete_transaction_blocks_game_even_without_launcher(bridge,tmp_pat
     root=tmp_path/'mod-manager';root.mkdir();(root/'journal.json').write_text('{}')
     result=subprocess.run([str(bridge),str(tmp_path),'hold'],capture_output=True,text=True,timeout=10)
     assert result.returncode==2
+
+
+def fighter_helper(tmp_path, environment=''):
+    source = tmp_path / 'helper source'
+    (source / 'setup').mkdir(parents=True)
+    (tmp_path / 'mod-manager').mkdir()
+    (tmp_path / 'mod-manager/state.json').write_text('{}')
+    (source / 'setup/mods.py').write_text(f'''
+import sys, time
+from pathlib import Path
+root=Path(sys.argv[sys.argv.index('--data-dir')+1])/'mod-manager'
+pid=sys.argv[sys.argv.index('--parent-pid')+1]
+session=root/'fighter-sessions'/('a'*32)
+data=session/'fighter-runtime-probe';data.mkdir(parents=True)
+journal=session/'journal';journal.mkdir()
+(journal/'supervisor.json').write_text('{{}}')
+ready=root/('fighter-session-'+pid+'.ini')
+ready.write_text('[session]\\nstate=ready\\nparent_pid='+pid+'\\ndata_root='+str(data)+'\\n{environment}')
+deadline=time.monotonic()+15
+while not (root/('fighter-session-'+pid+'.stop')).exists() and time.monotonic()<deadline:
+    time.sleep(.02)
+ready.write_text('[session]\\nstate=complete\\n')
+''')
+    env = {k:v for k,v in os.environ.items() if not k.startswith('RECOMP_FIGHTER_')}
+    env.pop('DEFJAM_INSTALL_DIR', None)
+    env['DEFJAM_MOD_PYTHON'] = sys.executable
+    return source, env
+
+
+def test_managed_native_bridge_refuses_stale_supervisor_and_acknowledges_exit(bridge, tmp_path):
+    import time
+    source, env = fighter_helper(tmp_path)
+    parent = subprocess.Popen([str(bridge), str(tmp_path), 'fighter'], cwd=source, env=env,
+                              stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    try:
+        assert parent.stdout.readline().strip() == '1'
+        heartbeat = next((tmp_path / 'mod-manager/fighter-sessions').glob('*/journal/supervisor.json'))
+        os.utime(heartbeat, (time.time()-30, time.time()-30))
+        output, error = parent.communicate('\n', timeout=15)
+        assert output.strip() == '0'
+        assert parent.returncode == 0
+        assert 'managed profile session completed' in error
+    finally:
+        if parent.poll() is None:
+            parent.kill(); parent.wait()
+
+
+def test_managed_native_bridge_rejects_test_switch_in_ready_projection(bridge, tmp_path):
+    source, env = fighter_helper(tmp_path, '[environment]\\nRECOMP_FIGHTER_TEST_SAVE_STOP=intent\\n')
+    parent = subprocess.Popen([str(bridge), str(tmp_path), 'fighter'], cwd=source, env=env,
+                              stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    try:
+        _, error = parent.communicate('\n', timeout=10)
+        assert parent.returncode == 5
+        assert 'unsupported runtime setting' in error
+    finally:
+        # The fake helper has no parent watcher; let it exit without waiting for
+        # its timeout even when startup was refused.
+        (tmp_path / f'mod-manager/fighter-session-{parent.pid}.stop').write_text('complete')
+        if parent.poll() is None:
+            parent.kill(); parent.wait()

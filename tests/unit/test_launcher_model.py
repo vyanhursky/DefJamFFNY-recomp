@@ -68,6 +68,16 @@ def pack(mods,name,manifest='[pack]\nschema = 1\n[textures]\n'):
     folder=mods/name;folder.mkdir(parents=True)
     if manifest is not None:(folder/'manifest.ini').write_text(manifest,encoding='utf-8')
 
+
+def test_fighter_packages_never_enter_texture_priority(inventory_tool, tmp_path):
+    fighter = tmp_path / 'alpha'; fighter.mkdir()
+    (fighter / 'fighters.json').write_text('{}')  # Contents are validated by the Python manager.
+    pack(tmp_path, 'texture')
+    result = run(inventory_tool, tmp_path, 'alpha;texture')
+    assert 'alpha|0|' in result
+    assert 'chosen=texture\n' in result
+    assert 'priority=alpha|' not in result
+
 def test_missing_packs_and_priority_are_preserved(inventory_tool,tmp_path):
     pack(tmp_path,'first');pack(tmp_path,'last')
     out=run(inventory_tool,tmp_path,'last;missing;first')

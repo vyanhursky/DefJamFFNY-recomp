@@ -59,6 +59,7 @@ struct Pack
     // [language] pack rather than in the texture load order. title is its name= line.
     bool language = false;
     std::string title;
+    bool fighter = false; // Whole-pack managed activation; never texture priority.
 };
 struct ModGroup {
     std::string id, name;
@@ -111,7 +112,7 @@ inline void select_mod(std::vector<Pack> &packs,const ModGroup &group,bool selec
 inline std::vector<ModGroup> priority_groups(const std::vector<Pack> &packs,const std::vector<ModGroup> &groups) {
     std::vector<size_t> active;
     // Language mods change the game's data beneath every texture pack: not in the order.
-    for(size_t i=0;i<packs.size();++i) if(packs[i].selected && !packs[i].language) active.push_back(i);
+    for(size_t i=0;i<packs.size();++i) if(packs[i].selected && !packs[i].language && !packs[i].fighter) active.push_back(i);
     std::vector<ModGroup> out;
     while(!active.empty()) {
         size_t i=active.back();
@@ -136,7 +137,7 @@ inline bool move_priority(std::vector<Pack> &packs,const std::vector<ModGroup> &
     for(auto group=order.rbegin();group!=order.rend();++group)
         indices.insert(indices.end(),group->members.begin(),group->members.end());
     size_t next=0;
-    for(size_t i=0;i<packs.size();++i) if(original[i].selected && !original[i].language) packs[i]=original[indices[next++]];
+    for(size_t i=0;i<packs.size();++i) if(original[i].selected && !original[i].language && !original[i].fighter) packs[i]=original[indices[next++]];
     return true;
 }
 inline std::string manifest_problem(const fs::path &folder)
@@ -235,6 +236,11 @@ inline std::vector<Pack> inventory(const fs::path &mods, const std::string &chos
             auto folder = mods / fs::u8path(p.name);
             if (!fs::is_directory(folder, folder_error))
                 p.problem = "Not installed";
+            else if (fs::exists(folder / "fighters.json", folder_error))
+            {
+                p.fighter = true;
+                p.selected = false;
+            }
             else if (fs::exists(folder / "language.ini", folder_error))
             {
                 // A manifest.ini beside language.ini holds the mod's own images (texture-pack format).
@@ -258,7 +264,7 @@ inline std::string selected_packs(const std::vector<Pack> &packs)
 {
     std::string result;
     for (const auto &p : packs)
-        if (p.selected && !p.language)
+        if (p.selected && !p.language && !p.fighter)
         {
             if (!result.empty())
                 result += ';';
@@ -299,7 +305,7 @@ inline std::map<std::string,std::string> pack_conflicts(const fs::path &mods,con
 {
     std::map<std::string,std::set<std::string>> keys;
     std::map<std::string,std::string> winner, result;
-    for (const auto &pack:packs) if (pack.selected && pack.problem.empty() && !pack.language) {
+    for (const auto &pack:packs) if (pack.selected && pack.problem.empty() && !pack.language && !pack.fighter) {
         keys[pack.name]=pack_texture_ids(mods/fs::u8path(pack.name));
         for (const auto &key:keys[pack.name]) winner[key]=pack.name;
     }

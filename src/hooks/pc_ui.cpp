@@ -758,7 +758,7 @@ static bool packs_available()
 {
     refresh_packs();
     for (auto &p : g_packs)
-        if (p.selected && p.problem.empty() && !p.language)
+        if (p.selected && p.problem.empty() && !p.language && !p.fighter)
             return true;
     return false;
 }
@@ -781,7 +781,47 @@ static void save_packs()
     g_pack_conflicts = pcui::pack_conflicts(std::filesystem::u8path(g_pack_path),g_packs);
     g_pack_status = "Saved. Higher priority overrides lower priority; applies at next launch.";
 }
-static void page_textures()
+static void mod_catalogue(int category) {
+    const bool launcher = g_mode == UI_LAUNCHER;
+    ImGui::SeparatorText("Project catalogue");
+    if (!launcher) ImGui::TextWrapped("Return to the launcher to download, update or remove mods. Current packs stay in use during this game.");
+    ImGui::BeginDisabled(!launcher || pcui::mod_busy());
+    bool testing_versions = pcui::mod_prerelease();
+    if (ImGui::Checkbox("Show testing versions (release candidates)", &testing_versions)) {
+        pcui::mod_set_prerelease(testing_versions); pcui::mod_start("status");
+    }
+    ui_target("mods.testing-versions");
+    if (ImGui::Button("Refresh catalogue")) pcui::mod_start("refresh");
+    ui_target("mods.catalogue-refresh");
+    ImGui::EndDisabled();
+    if (launcher && pcui::mod_busy()) {
+        ImGui::SameLine();
+        if (ImGui::Button("Cancel")) pcui::mod_cancel();
+        ui_target("mods.cancel");
+    }
+    if (!pcui::mod_status().empty()) ImGui::TextWrapped("%s",pcui::mod_status().c_str());
+    if (!pcui::mod_view().catalogue.empty()) ImGui::TextWrapped("%s",pcui::mod_view().catalogue.c_str());
+    for (const auto &mod : pcui::mod_view().catalogue_mods) {
+        if ((category == 2) != (mod.category == "fighters") || (category == 1) != (mod.category == "language")) continue;
+        ImGui::PushID(mod.id.c_str());
+        ImGui::Separator();
+        ImGui::TextUnformatted(mod.name.c_str());
+        if(!mod.authors.empty()) ImGui::TextWrapped("By %s",mod.authors.c_str());
+        ImGui::TextWrapped("%s",mod.description.c_str());
+        if (mod.revoked) ImGui::TextWrapped("Installed version withdrawn from the catalogue. Disable it or choose a reviewed replacement.");
+        if (!mod.installed.empty()) ImGui::Text("Installed: %s",mod.installed.c_str());
+        if (!mod.latest.empty()) ImGui::Text("Available: %s / %.1f MB",mod.latest.c_str(),mod.bytes/1000000.0);
+        else ImGui::TextWrapped("No compatible version for this runtime and selected channel.");
+        if (mod.channel == "prerelease") ImGui::TextWrapped("Testing version: please report problems before the final release.");
+        if (!mod.load_after.empty()) ImGui::TextWrapped("Suggested after: %s",mod.load_after.c_str());
+        ImGui::BeginDisabled(!launcher || pcui::mod_busy() || !mod.compatible || (!mod.installed.empty() && !mod.update));
+        if (ImGui::Button(mod.installed.empty() ? "Download and install" : "Update available")) pcui::mod_start("install",mod.id);
+        ui_target(("mod.install."+mod.id).c_str());
+        ImGui::EndDisabled(); ImGui::PopID();
+    }
+}
+
+static void page_textures(int category)
 {
     const bool launcher = g_mode == UI_LAUNCHER;
     static bool requested = false;
@@ -797,7 +837,7 @@ static void page_textures()
         ui_target("mods.recover");
         ImGui::EndDisabled();
     }
-    settings_group("textures", {"enabled"});
+    if (category == 0) settings_group("textures", {"enabled"});
     if (locked) ImGui::TextWrapped("Pack selection is set for this run by RECOMP_TEXTURE_PACKS.");
     if (language_locked) ImGui::TextWrapped("The language is set for this run by RECOMP_LANGUAGE_PACK.");
     if (ImGui::Button("Refresh local mods")) {
@@ -807,11 +847,14 @@ static void page_textures()
     ui_target("mods.local-refresh");
     ImGui::SameLine();
     if (ImGui::Button("Open Mods Folder")) pcui::open_path(g_pack_path);
-    if (ImGui::Button("Load Order...")) ImGui::OpenPopup("Load Order");
-    ui_target("mods.order");
-    ImGui::TextWrapped("Enable installed mods below. Load Order sets which mod wins when textures overlap. "
+    if (category == 0) {
+        if (ImGui::Button("Load Order...")) ImGui::OpenPopup("Load Order");
+        ui_target("mods.order");
+    }
+    ImGui::TextWrapped(category == 0 ? "Enable installed mods below. Load Order sets which mod wins when textures overlap. "
                        "A language mod translates the game itself, sits beneath every texture mod, and only one is on "
-                       "at a time; with none the game is in English.");
+                       "at a time; with none the game is in English." :
+                       "Choose one language pack. With none enabled, the game uses its original English. Changes apply on Play.");
     const auto &managed = pcui::mod_view().installed;
     auto display_name = [&](const pcui::ModGroup &group) {
         const auto &first=g_packs[group.members.front()];
@@ -831,6 +874,7 @@ static void page_textures()
             // Missing saved names are warnings, not installed mods to download.
             if(!group.builtin && g_packs[group.members.front()].problem=="Not installed") continue;
             auto &p=g_packs[group.members.front()];
+            if (p.fighter || p.language != (category == 1)) continue;
             const std::string pack_id=p.name;
             auto found=managed.find(pack_id);
             size_t selected=0; bool valid=true;
@@ -902,7 +946,7 @@ static void page_textures()
         ImGui::BeginDisabled(locked || pcui::mod_busy());
         auto order=pcui::priority_groups(g_packs,g_mod_groups);
         size_t priority=0;
-        for(const auto &p:g_packs) if(p.selected && !p.language) ++priority;
+        for(const auto &p:g_packs) if(p.selected && !p.language && !p.fighter) ++priority;
         if(ImGui::BeginTable("priority table",3,ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingStretchProp)) {
             ImGui::TableSetupColumn("Priority",ImGuiTableColumnFlags_WidthFixed,75*modal_scale);
             ImGui::TableSetupColumn("Mod",ImGuiTableColumnFlags_WidthStretch);
@@ -942,42 +986,69 @@ static void page_textures()
         ImGui::EndPopup();
     }
     if (!g_pack_status.empty()) ImGui::TextWrapped("%s",g_pack_status.c_str());
-    ImGui::SeparatorText("Project catalogue");
-    if (!launcher) ImGui::TextWrapped("Return to the launcher to download, update or remove mods. Current packs stay in use during this game.");
+    mod_catalogue(category);
+    if (category == 0 && ImGui::CollapsingHeader("Memory and manual pack list")) settings_group("textures", {"cache_mb", "packs"});
+}
+
+static void page_fighters()
+{
+    const bool launcher = g_mode == UI_LAUNCHER;
+    ImGui::SeparatorText("Fighter Mod Support");
+    ImGui::TextWrapped("Enable one or more fighter packs. Every fighter in a pack is enabled together. Changes apply on Play; disabling a pack keeps its saved progress.");
+    if (!launcher) ImGui::TextWrapped("Return to the launcher to change fighter packs. The current roster stays fixed while playing.");
     ImGui::BeginDisabled(!launcher || pcui::mod_busy());
-    bool testing_versions = pcui::mod_prerelease();
-    if (ImGui::Checkbox("Show testing versions (release candidates)", &testing_versions)) {
-        pcui::mod_set_prerelease(testing_versions); pcui::mod_start("status");
-    }
-    ui_target("mods.testing-versions");
-    if (ImGui::Button("Refresh catalogue")) pcui::mod_start("refresh");
-    ui_target("mods.catalogue-refresh");
+    static char archive[2048] = "";
+    ImGui::InputText("Fighter ZIP file", archive, sizeof archive);
+    ui_target("mods.fighters.archive");
+    ImGui::BeginDisabled(!archive[0]);
+    if (ImGui::Button("Install or update from ZIP")) pcui::mod_start("install-local", archive);
+    ui_target("mods.fighters.import");
     ImGui::EndDisabled();
-    if (pcui::mod_busy()) {
-        ImGui::SameLine();
-        if (ImGui::Button("Cancel")) pcui::mod_cancel();
-        ui_target("mods.cancel");
+    if (ImGui::Button("Refresh Fighter packs")) pcui::mod_start("status");
+    ui_target("mods.fighters.refresh");
+    ImGui::EndDisabled();
+    bool any = false;
+    for (const auto &entry : pcui::mod_view().installed) {
+        const auto &pack = entry.second;
+        if (pack.category != "fighters") continue;
+        any = true;
+        ImGui::PushID(entry.first.c_str()); ImGui::Separator();
+        ImGui::BeginDisabled(!launcher || pcui::mod_busy());
+        bool selected = pack.enabled;
+        if (ImGui::Checkbox(pack.name.c_str(), &selected)) pcui::mod_start(selected ? "fighter-enable" : "fighter-disable", entry.first);
+        ui_target(("mods.fighters.enable." + entry.first).c_str());
+        ImGui::Text("%s  |  %u fighter%s", pack.version.c_str(), pack.fighters, pack.fighters == 1 ? "" : "s");
+        if (pack.rollback) {
+            if (ImGui::Button("Restore previous version")) pcui::mod_start("rollback", entry.first);
+            ui_target(("mods.fighters.rollback." + entry.first).c_str());
+        }
+        ImGui::BeginDisabled(pack.enabled);
+        if (ImGui::Button("Remove pack")) pcui::mod_start("remove", entry.first);
+        ui_target(("mods.fighters.remove." + entry.first).c_str());
+        ImGui::EndDisabled(); ImGui::EndDisabled();
+        if (pack.enabled) ImGui::TextWrapped("Disable this pack before removing it.");
+        ImGui::PopID();
     }
-    if (!pcui::mod_status().empty()) ImGui::TextWrapped("%s",pcui::mod_status().c_str());
-    if (!pcui::mod_view().catalogue.empty()) ImGui::TextWrapped("%s",pcui::mod_view().catalogue.c_str());
-    for (const auto &mod : pcui::mod_view().catalogue_mods) {
-        ImGui::PushID(mod.id.c_str());
-        ImGui::Separator();
-        ImGui::TextUnformatted(mod.name.c_str());
-        if(!mod.authors.empty()) ImGui::TextWrapped("By %s",mod.authors.c_str());
-        ImGui::TextWrapped("%s",mod.description.c_str());
-        if (mod.revoked) ImGui::TextWrapped("Installed version withdrawn from the catalogue. Disable it or choose a reviewed replacement.");
-        if (!mod.installed.empty()) ImGui::Text("Installed: %s",mod.installed.c_str());
-        if (!mod.latest.empty()) ImGui::Text("Available: %s / %.1f MB",mod.latest.c_str(),mod.bytes/1000000.0);
-        else ImGui::TextWrapped("No compatible version for this runtime and selected channel.");
-        if (mod.channel == "prerelease") ImGui::TextWrapped("Testing version: please report problems before the final release.");
-        if (!mod.load_after.empty()) ImGui::TextWrapped("Suggested after: %s",mod.load_after.c_str());
-        ImGui::BeginDisabled(!launcher || pcui::mod_busy() || !mod.compatible || (!mod.installed.empty() && !mod.update));
-        if (ImGui::Button(mod.installed.empty() ? "Download and install" : "Update available")) pcui::mod_start("install",mod.id);
-        ui_target(("mod.install."+mod.id).c_str());
-        ImGui::EndDisabled(); ImGui::PopID();
+    if (!any) ImGui::TextWrapped("No Fighter packs installed. Import a Fighter Mod Support ZIP above.");
+    mod_catalogue(2);
+}
+
+static void page_mods()
+{
+    static bool requested = false;
+    if (g_mode == UI_LAUNCHER && !requested) { pcui::mod_start("status"); requested = true; }
+    if (ImGui::BeginTabBar("Mod categories")) {
+        bool selected = ImGui::BeginTabItem("Textures");
+        ui_target("mods.textures.tab");
+        if (selected) { page_textures(0); ImGui::EndTabItem(); }
+        selected = ImGui::BeginTabItem("Languages");
+        ui_target("mods.languages.tab");
+        if (selected) { page_textures(1); ImGui::EndTabItem(); }
+        selected = ImGui::BeginTabItem("Fighters");
+        ui_target("mods.fighters.tab");
+        if (selected) { page_fighters(); ImGui::EndTabItem(); }
+        ImGui::EndTabBar();
     }
-    if (ImGui::CollapsingHeader("Memory and manual pack list")) settings_group("textures", {"cache_mb", "packs"});
 }
 
 void ui_home_fields()
@@ -1575,7 +1646,7 @@ UiResult ui_draw(UiMode mode, float x, float y, float width, float height)
             controls_page();
             break;
         case 2:
-            page_textures();
+            page_mods();
             break;
         case 3:
             page_general(mode);
