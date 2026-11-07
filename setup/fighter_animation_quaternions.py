@@ -1,9 +1,11 @@
 """Finite type18 quaternion-channel replay, separate from runtime admission.
 
 The original codec interpolates four scalars without normalization or hemisphere
-correction. Replay starts at each block seed; reverse cache traversal and timing
-selection are separate validation gates. All arithmetic follows SSE float32.
+correction. Sampling replays from each block seed. The full unfiltered evaluator
+matches the offline reader in fresh and retained-cache oracle cases; filtered
+output and resource admission remain separate gates. Arithmetic follows SSE float32.
 """
+from bisect import bisect_right
 import math
 import struct
 
@@ -51,6 +53,9 @@ class QuaternionCurve:
         if self.keys % self.width:
             end += 3 * self.channels * (self.keys % self.width + 1)
         self.static = (end + self.constants + 1) & ~1
+        dynamic = layouts.values(layouts.pointer(record + 12, self.channels), self.channels, 'B') if self.channels else ()
+        self.destinations = dynamic + layouts.values(end, self.constants, 'B')
+        self.times = layouts.times(record + 8, self.keys, transitions=True, optional=True)
 
     def read(self, offset, size):
         start = self.layouts.numeric(offset, size)
@@ -82,6 +87,18 @@ class QuaternionCurve:
         dynamic = tuple(tuple(f32(a + f32(f32(b - a) * weight)) for a, b in zip(left, right))
                         for left, right in zip(first[:self.channels], second[:self.channels]))
         return dynamic + first[self.channels:]
+
+    def sample(self, time):
+        """Sample child-time ticks from a fresh block seed, without parent scaling."""
+        require(type(time) in (int, float) and math.isfinite(time) and 0 <= time <= 65535,
+                'Quaternion time exceeds the supported child-time domain')
+        time = f32(time)
+        key = min(int(time), self.keys - 1) if self.times is None else bisect_right(self.times, int(time))
+        if key == self.keys - 1:
+            return self.pose(key)
+        low = key if self.times is None else (self.times[key - 1] if key else 0)
+        high = key + 1 if self.times is None else self.times[key]
+        return self.interpolated_pose(key, f32(f32(time - low) / (high - low)))
 
     def metadata(self):
         return {'kind': 18, 'keys': self.keys, 'channels': self.channels, 'constants': self.constants,

@@ -50,3 +50,34 @@ def test_work_budget_and_type_are_independent_gates():
         QuaternionCurve(curves(18), 56, work_budget=23)
     with pytest.raises(AssetError, match='record type'):
         QuaternionCurve(curves(19), 56)
+
+
+def test_timed_sampling_and_element_destinations_preserve_static_channels():
+    import struct
+    def change(data, pointers, record):
+        struct.pack_into('<2H', data, 208, 2, 5)
+    decoder = QuaternionCurve(curves(18, change), 56)
+    assert decoder.destinations == (2, 4)
+    assert decoder.sample(0) == decoder.pose(0)
+    assert decoder.sample(1) == decoder.interpolated_pose(0, .5)
+    assert decoder.sample(2) == decoder.pose(1)
+    assert decoder.sample(3.5) == decoder.interpolated_pose(1, .5)
+    assert decoder.sample(5) == decoder.sample(65535) == decoder.pose(2)
+
+
+def test_implicit_time_uses_key_ticks():
+    import struct
+    def change(data, pointers, record):
+        pointers.remove(record + 8)
+        struct.pack_into('<I', data, record + 8, 0)
+    decoder = QuaternionCurve(curves(18, change), 56)
+    assert decoder.times is None
+    assert decoder.sample(.25) == decoder.interpolated_pose(0, .25)
+    assert decoder.sample(1) == decoder.pose(1)
+    assert decoder.sample(65535) == decoder.pose(2)
+
+
+@pytest.mark.parametrize('time', [-1, 65536, True, float('inf'), float('nan'), '1'])
+def test_sampling_rejects_invalid_time_before_reads(time):
+    with pytest.raises(AssetError, match='time'):
+        QuaternionCurve(curves(18), 56).sample(time)

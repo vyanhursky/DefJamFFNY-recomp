@@ -517,6 +517,72 @@ sign-selecting interpolation and exact-key behavior match 20,160 evaluations,
 The 94 source curves pass 188 key decodes and 1,128 additional samples. This does
 not install a full paired-motion graph. See [type13 evidence](fighter-animation-type13-2026-11-06.md).
 
+## Five-role reconstruction and retained-cache evidence
+
+The offline `fighter_animation_graphs.py` adapter now reconstructs body, root,
+rotation-helper, face and hand graphs from typed numerical values. It emits
+fresh local pointers, inert type25 wrappers, parent duration/scale attributes,
+and preserves verified template controls and padding. Source conversion rejects
+unknown controls; two-child controls must match by ordinal, not as a set. A
+read-only review caught that distinction and a swapped-control rejection fixture
+now covers it. Body codec shape may change because wrappers are fresh: retail
+often splits its body channels across type19/type18 or type13, whereas these
+source motions use one type18 child. No live parent-cache reattachment occurs.
+
+`fighter-motion-graph-draft-1` currently supports independent type18/type20 block
+seeds, one timed type13 helper, and two explicit type25 palette selectors for each
+of face/hands. It preserves quantized samples, coefficients, time grids and
+source parent timing without resampling. It checks output ranges, exact schema
+keys, bounded lengths/numbers, palette capacities and helper quaternion norms;
+the generated graph is parsed back and its typed values compared. Float inputs
+are canonicalized to float32 without mutating creator input. This is deliberately
+outside the package parser/runtime admission path until the remaining native
+gates are met; it is not a new supported public pack version yet.
+
+`scripts/fighter-full-graph-audit.py` passes all94 source paired-role banks with
+all five graphs rebuilt/read back. Maximum emitted ORL is976 bytes. Receipt:
+`logs/fighter-full-graph-audit.json`. This uses the representative94-bone
+V2IP_610A appearance, its13/15-frame face and the validated57-item,32/32-frame
+shared hand context, plus one verified retail envelope per participant role.
+It proves the graph codec roundtrip, not all actor/context joins, actual matched
+finisher behavior bindings or converted-pack playback. The earlier first probe
+rejected a zero-padding assumption (source/retail type25 padding is234) and a
+donor-channel-coverage assumption; both were corrected before this pass.
+
+The source's40 body destinations differ from the retail36/37 and are sparse in
+the94-bone output. Requiring donor channel equality would change source intent.
+The typed graph preserves source destinations and checks unique bounded bone
+ordinals. `22A90` resolves the resource named `Skeleton` (image string2B726C),
+stores its root at context+4, allocates48*bone_count buffers and callsE9010.
+The three28A9EC/F8/AA04 strings are allocator labels `CSkeleton`, not numeric
+pose templates. Once22A90 succeeds,268C2 sets the bit that enables23F56's
+22BF0 reset before the three component evaluations. E9010's unmasked path
+copies the source skeleton's translation/quaternion/scale, supplies auxiliary
+weight or1 at output+12, and1 at+44. It overwrites every compact output item;
+it is not a raw48-byte memcpy and does not leave stale output lanes behind.
+`scripts/fighter-pose-baseline-oracle.py` passes30 original-body cases covering
+1/2/40/94/256 bones, auxiliary/default weights, repeated changed-source resets
+and output guards. Later virtual component blends and whole-match behavior
+still need integration/native evidence. Receipt:
+`logs/fighter-pose-baseline-oracle/comparison.json`.
+
+Full type18 evaluation now has a repeatable original-body oracle, beyond the
+previous key-decoder test:243 invented curves,32,562 evaluations,36,990,432
+compared bytes, zero differences in fresh or retained caches. It covers dynamic
+and constant channels, explicit/implicit time, ascending/descending/cross-block
+seeks, block shifts0/1/3,40-channel bodies and guarded sparse output. Native body
+SHA256:`96bf013caa1e46342205b94894ff66f11cc7853e79f4e04d7262010e510b1b5e`.
+`scripts/fighter-vector-oracle.py --kind 20` and `--kind 21` each pass405 curves
+and49,410 fresh/retained evaluations, with7,233,624 and6,838,344 bytes compared
+respectively and zero differences. All outputs remain ignored under
+`logs/fighter-quaternion18-full-oracle` and `logs/fighter-vector{20,21}-cache-oracle`.
+Filtered routes are not covered. The focused graph/curve Python suite passes
+83 tests (`logs/pytest-m5-motion-graphs-boundary`). An initial default-temp fixture
+setup failed because the sandbox temporary root could not allocate a directory;
+the same checks passed using an explicit ignored workspace temp directory.
+No routine stock regression, native game rebuild or new in-game acceptance was
+performed for these offline Python/oracle changes.
+
 ## Remaining work and decision
 
 D-new (owner): extend M5 with general adapter R&D rather than close creator tools
@@ -525,8 +591,9 @@ unsupported data instead of silently substituting donor components.
 
 1. Enforce the now-traced normal appearance/hand palette joins in full-graph
    conversion and extend native facial acceptance beyond the single component probe.
-2. Complete native acceptance of the per-slot finisher bindings, then implement
-   typed full-motion/cinematic rebuilding, preserving timing/root/helper data.
+2. Complete slot1 playback coverage, integrate the offline five-role compiler
+   into versioned package/runtime admission and prove native full-graph playback;
+   complete the separate cinematic rebuilding path.
 3. Inventory remaining voice, portrait, AI, cinematic and shared-table changes;
    convert all46 using typed resources and explicit dependencies, with a report
    accounting for every source change and any intentional nonfighter leftovers.
