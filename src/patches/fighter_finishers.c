@@ -6,6 +6,7 @@
 #endif
 #include "fighter_finishers.h"
 #include "fighter_runtime.h"
+#include "fighter_cpu_pool.h"
 #include "hooks/guest_call.h"
 #include "hooks/mod_sha256.h"
 #include <stdlib.h>
@@ -118,6 +119,17 @@ int defjam_fighter_finishers_start(void) {
     free(table); return valid;
 }
 const char *defjam_fighter_finishers_path(void) { return s_archive; }
+int defjam_fighter_finisher_cpu_file(const char *path) {
+    if (!s_rows || !s_storage || s_provider || !defjam_fighter_research_active()
+        || strncmp(path, "motion/blazin.viv|", 18)) return 0;
+    for (uint32_t i = 0; i < s_motion_count - FIN_RETAIL; ++i) {
+        if (!s_names[i][0] || !MEM8(s_storage + FIN_RETAIL + i)) continue;
+        char expected[64];
+        snprintf(expected, sizeof expected, "motion/blazin.viv|%s.ord", s_names[i]);
+        if (!strcmp(path, expected)) return 1;
+    }
+    return 0;
+}
 static int fin_actor(uint32_t actor) {
     return actor >= FIN_ACTORS && actor - FIN_ACTORS < 4 * FIN_STRIDE
         && (actor - FIN_ACTORS) % FIN_STRIDE == 0 && MEM32(actor + 0x28) != UINT32_MAX;
@@ -170,6 +182,7 @@ void defjam_fighter_finishers_loaded(uint32_t provider) {
         if (memcmp((const void *)XBOX_PTR(map + i * 24 + 8), s_names[ordinal - 873], 8)
             || MEM32(map + i * 24 + 4) != i) fin_stop("external key resolves to the wrong named bank");
         uint32_t bank = MEM32(loaders + i * 12 + 4);
+        if (!defjam_fighter_cpu_contains(bank)) fin_stop("owned animation escaped CPU storage");
         if (!bank || !MEM32(bank + 16) || !MEM32(bank + 20) || !MEM32(bank + 4) || MEM32(bank + 4) > 65535)
             fin_stop("external bank has invalid indexed records");
         uint32_t skeletal = MEM32(records + i * 16 + 8), root = MEM32(records + i * 16 + 4);
@@ -194,6 +207,7 @@ void defjam_fighter_finishers_release(uint32_t manager) {
             manager, s_provider, s_storage);
     s_storage = s_provider = 0;
     guest_call(sub_00029760, 0, 1, &address);
+    defjam_fighter_cpu_released();
 }
 uint32_t defjam_fighter_finisher_name(uint32_t mode, uint32_t ordinal, uint32_t caller) {
     if (!s_rows || !s_storage || mode == 1 || ordinal < 873 || ordinal >= FIN_BASE + s_motion_count

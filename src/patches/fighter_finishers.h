@@ -4,6 +4,7 @@
 typedef struct FighterFinisherScope { uint32_t subject, counterpart, core; } FighterFinisherScope;
 int defjam_fighter_finishers_start(void);
 const char *defjam_fighter_finishers_path(void);
+int defjam_fighter_finisher_cpu_file(const char *path);
 void defjam_fighter_finishers_mask(uint32_t base, uint32_t count, uint32_t mask);
 void defjam_fighter_finishers_loaded(uint32_t provider);
 void defjam_fighter_finishers_release(uint32_t manager);

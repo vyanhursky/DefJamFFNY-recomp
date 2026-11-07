@@ -21,6 +21,8 @@ int g_fp_top;
 static unsigned allocations,frees;
 static int enabled=1;
 int defjam_fighter_research_active(void){return enabled;}
+int defjam_fighter_cpu_contains(uint32_t address){return address != 0;}
+void defjam_fighter_cpu_released(void){}
 void sub_00029680(void){
  assert(MEM32(g_esp+4)==200&&MEM32(g_esp+8)==0x29D4B4&&!MEM32(g_esp+12));
  allocations++;g_eax=0x20000;g_ecx=0xBAD;g_esp+=4;
@@ -57,6 +59,10 @@ int main(int argc,char **argv){
  MEM8(0x3BE628+4)=MEM8(0x3BE628+5)=1;
  if(!strcmp(mode,"choice"))MEM32(a+0xBB8)=3;
  defjam_fighter_finishers_mask(0x1000,0x1004,0x1008);
+ assert(defjam_fighter_finisher_cpu_file("motion/blazin.viv|P0000_A.ord"));
+ assert(!defjam_fighter_finisher_cpu_file("motion/blazin.viv|P0000_A.orl"));
+ assert(!defjam_fighter_finisher_cpu_file("motion/other.viv|P0000_A.ord"));
+ assert(!defjam_fighter_finisher_cpu_file("motion/blazin.viv|P9999_A.ord"));
  assert(allocations==1&&MEM32(0x1000)==709&&MEM32(0x1004)==168&&MEM32(0x1008)==0x20000);
  assert(MEM8(0x3BE628+164)==0&&MEM8(0x20000+164)==1&&MEM8(0x20000+167)==1);
  assert(g_esp==0x3F0000&&g_eax==42&&g_ecx==43);
@@ -81,6 +87,7 @@ int main(int argc,char **argv){
  if(!strcmp(mode,"fallback"))MEM32(0x31008+2*16)=1;
  if(!strcmp(mode,"child"))MEM8(0x42500)=9;
  defjam_fighter_finishers_loaded(p);
+ assert(!defjam_fighter_finisher_cpu_file("motion/blazin.viv|P0000_A.ord"));
  MEM32(0x3B8634)=0x50000;MEM32(0x3B862C)=39;MEM32(0x3B8630)=873;
  for(unsigned i=0;i<4;++i){
   MEM32(a+0x84)=0;MEM32(a+0x88)=MEM32(a+0x8C)=873+i;

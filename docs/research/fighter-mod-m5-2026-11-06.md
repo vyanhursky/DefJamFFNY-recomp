@@ -86,10 +86,13 @@ No reference-project code was copied. Own format readers inspect actual data.
   (created-fighter components), so it does not prove the normal appearance
   bridge. The normal face owner loads `%s_F.o` at 97710; 97AA0 resolves its
   handle and 215E0 registers `PosePaletteBank` at face-owner+430. Its destructor
-  97BF0 releases that wrapper through 21670. No alias from that wrapper into
-  ordinary combat's `_f` output context is yet proved. CModel+2C0/+2C4/+2C8
-  are transform floats, not a face-bank pointer; the previously proposed
-  24BE0 bridge was incorrect. Exact normal-fighter provenance remains open.
+  97BF0 releases that wrapper through21670. The normal-fighter bridge is now
+  established:9DC51 explicitly calls97BD0 with owner=visual+20, so owner+430
+  is exactly visual+450.9DF40 stores that wrapper in paired context+20;
+  9FB30/245B0 dereference it and22010/22150 pass the root to type25 evaluation.
+  CModel+2C0/+2C4/+2C8 are transform floats, not a face-bank pointer; the
+  previously proposed24BE0 bridge was incorrect. The created-fighter alternate
+  visual+A6B0 remains outside this normal-appearance proof.
   22C20 returns the pose pointer stored at context+0xC, not that field's address.
 - `main_all.dat` has 177 core pairs vs 141. All 46 mappings resolve to retail
   donors. All 130 action rows per mapped core match: 5,980/5,980. A subsequent
@@ -336,13 +339,80 @@ corrected standalone sampler attached after initialization and produced
 `logs/fighter-m5-slots-pool-samples.json`. Both are accounted for; no game
 memory was changed. The run restores saves identically.
 
-Next memory adapter investigation: the native allocator has64 registered pool
-keys, and its file-read callback accepts a per-call selector. A dedicated
-CPU-backed pool for admitted owned animation banks could preserve native
-loader/free ownership without expanding the GPU-visible arena or substituting
-assets. This is a candidate, not an implemented or accepted fix: prove the
-small-block manager's fallback free, registration/lifetime and per-read routing
-before using it. Keep all native acceptance gates open.
+A CPU animation memory adapter is now implemented and built, with native
+acceptance underway. It registers a bounded32MiB guest-heap region under native
+pool key63, preserving native allocation headers and the normal free path.
+Only exact admitted active `motion/blazin.viv|Pdddd_A/B.ord` reads route there;
+textures, other archives and ordinary allocations keep their existing paths.
+The native small-block manager's free fallback reaches1E9F90, which reads the
+allocation header's pool key. A per-call high-bit selector bypasses29500's
+small-block allocation/default-pool OR without changing global allocation mode.
+The backing remains available across matches; after native provider destruction,
+the adapter requires the pool's original single coalesced free block.
+
+The focused CPU-pool and finisher native C fixtures pass52 cases, including
+registration, flag routing, register/stack preservation, allocation boundaries,
+key collision, rejected flags, retained allocations and reuse. Regeneration and
+the release build pass. These stand-in allocator tests are not native gameplay
+acceptance. The original16-pair/34-active-motion fixture is now testing native
+allocation, combat/result and return-to-menu release; keep its gates open until
+the observed run completes.
+
+The first native adapter run (`run-20261106-223951.log.err`) stops explicitly
+at the loaded-bank ownership check before combat: no CPU pool was registered,
+and the owned banks still use their original allocation. It has zero native
+crash/watchdog signatures,81 presentation reports108/120/121, exit1 and
+byte-identical save restoration. This is a failed routing/admission check,
+not a CPU-pool acceptance pass. Bounded callback/path diagnostics are now
+tracing the rejection; do not remove the ownership assertion to conceal it.
+The diagnostic repeat (`run-20261106-224446.log.err`) exposed that the admitted
+callsite list covered compressed reads but omitted the uncompressed1E4100→1E3FF0
+callback at return1E4057. Generated owned banks take that path. The corrected list
+covers1E3F20/1E4057/1E4453/1E473D/1E477A with verified(filename,bytes,flags) arguments;
+it excludes1E43E8's different argument shape. Temporary path logging was removed.
+All52 focused cases pass again, including every admitted callsite and rejected
+nonmatching callers. The release rebuild passes; full acceptance repeats as
+`run-20261106-224908.log.err`.
+
+That corrected700-second run passes all8 combat/result assertions and the four
+menu identities103/105/104/106, with349 presentation reports105/120/121, zero
+crash/watchdog/debug-layer/unresolved-call signatures and byte-identical save
+restoration. Native pool63 registers at01486180 with33,553,888 free bytes; all34
+active motions verify inside the expected ownership domains. The read-only sampler
+records39 evaluated custom resources, including12 paired role resources across
+six subject/slot combinations, with zero ownership mismatches. Slots0/2/3 execute;
+slot1 remains a targeted coverage gap.960 skipped/unreadable samples include
+unbound/transitional pointers and must not be reported as zero failed reads.
+Receipt:`logs/fighter-m5-slots-cpu-fixed-live-proof.json`.
+
+A separate15-second free-list sample has8 changed consistent snapshots and no
+failed reads. Minimum pool0 free space is7,927,520 bytes, largest block7,876,464;
+pool63 has21,061,344 bytes free in one block. This directly contrasts with the
+prior263,378-byte texture request failing against a218,784-byte largest block.
+Receipt:`logs/fighter-m5-slots-cpu-headroom.json`. The32MiB CPU backing is a bounded
+research budget, not an unlimited asset-size or cross-platform capacity promise.
+
+The result screen was visually confirmed, but the added B input does not select
+its A/Continue action. The run therefore does not establish destructor release.
+A focused full-load/pause/exit follow-up is testing native cleanup; don't report
+cleanup or repeated-match reuse accepted until its full-free-block check runs.
+
+The first cleanup-only run (`run-20261106-230339.log.err`,350seconds) reaches
+pause/quit confirmation, but its deadline expires before the final confirmation.
+It does not prove native release; its optional attack/damage assertions are also
+unmet at that early cutoff. It preserves saves identically. The observed native
+sequence is Start, Down four times, A, Left, A. A300-second repeat scripts that
+sequence at75/80/81/82/83/85/87/89seconds after Game.StartGame.
+
+The scripted repeat (`run-20261106-231010.log.err`) verifies34 active motions,
+then records native provider destruction and complete CPU-pool release:
+32 allocations,33,553,888 bytes free, original single-block/sentinel invariants
+restored. It returns to `battle/cmtype.swf`. This is actual native release evidence;
+within-process second-match reuse remains covered by focused C fixtures, not by
+this particular native run. It completes with150 presentation reports99/120/120,
+zero crash/watchdog/debug-layer/unresolved-call signatures, verified four-fighter
+menu identities and byte-identical save restoration. No game memory was poked
+to force cleanup.
 
 ### Full paired-motion graph boundary
 
@@ -359,12 +429,85 @@ control/attribute profile, while explicitly rebuilding source duration, child
 times, destinations, coefficients and samples. It must not keep donor duration
 or transcode everything to uniformly sampled type11 and call that lossless.
 
-The `_d` helper binding runs through A0EA1/A11E0/9FA60/218C0/220A0 into a
-separate helper context, with leaf destinations4–7. Its actual output allocation
-and face/hand palette provenance still need proof. Existing fresh-cache numeric
-oracles do not settle parent timing, retained-cache/filtered evaluation or these
-external contexts. These are concrete admission gates for the next general
-graph adapter, not permission to accept arbitrary serialized animation banks.
+The `_d` helper output allocation is now proven. A0EA1/A11E0/9FA60/218C0/220A0
+bind the second wrapper in the separate helper context. Its context+20 stores
+time, not an output pointer. Ordinary caller9FAE0 reserves48bytes on its stack;
+9FAF6 calls222A0(time, output, force=0), which temporarily installs time and
+calls22150(output,0). At2223E, the wrapper receives that output and null selection.
+9FB08 passes output+16 (floats4–7) to44E90 and stores its scalar result atB+58.
+The actual allocation therefore contains12floats, independent of body bone count
+or face/hand palettes. All94 source helper records use type13, four scalars,
+destination4; a conservative typed profile can require exactly that mapping.
+
+Paired `_t` also has a traced output allocation:9FCA5/A1190 resolve its record;
+9FCDA/243B0/218C0/220A0 bind it as the first wrapper at CModel+1E0, with `_s`
+second.23F56/22BF0 initialize the pose at CModel+140;22C20 returns its buffer,
+and23F6C/22150 evaluate both wrappers there with null selection.26760/22A90
+allocate48 times Skeleton.N bytes;22BA0 releases it. All94 source root curves
+have one type20 dynamic channel, no constants, destination8 and no explicit
+time array. They write floats8–10 of item0, so the numeric bound is N>=1.
+This establishes the direct unfiltered paired root path, not every vector context.
+
+A fresh source census finds all94 body type18 curves have40 dynamic channels,
+no constants, block shift0 and explicit times; all94 root type20 curves use
+one channel, no constants and block shift0. Parent control words are not zero:
+body/root16163, helper5120, face49729 and hand50460. All470 attribute maps contain
+one key1/size1 entry with low byte60 and retained upper padding bytes. A typed
+builder must validate these against the verified template profile, then rebuild
+source durations and numeric curves. Do not silently zero unknown header words.
+
+Normal paired face/hand palette provenance is now established. The face root
+comes from the owned appearance wrapper at visual+450, through paired context+20
+and9FB30/245B0 into pose context+210+14. The shared hand wrapper33AB30 loads
+`assets/misc.viv|share_hp.o` through1265E/21500;8B440 stores it atvisual+ABB8,
+9DF40 copies it to paired context+24, and9FB30/24790 binds its root atpose+240+14.
+22150 supplies those roots to the type25 evaluation route. Face teardown21670
+and shared-hand teardown216A0 retain resource ownership; motion records borrow.
+
+All46 rebuilt face receipts declare13/15 frames; source maxima11/14 fit both
+selectors. The verified shared hand bank has32/32 frames, each with15 quaternion
+channels and no vectors; maxima20/20 fit. Its largest destination676 requires
+at least57 twelve-float output items. Admission must join exact palette identity,
+selector/sample bounds and the matched output rig, not merely count curve keys.
+These are static ownership and bounded-data proofs; existing fresh-cache numeric
+oracles do not settle parent timing, retained-cache/filtered evaluation or native
+execution of rebuilt full graphs. These remain concrete admission gates, not
+permission to accept arbitrary serialized animation banks.
+
+### Parent timing and explicit voice absence
+
+Type15 parent dispatch caches child wrappers and a scale value separately from
+serialized child curves. E5CD0 reports the parent u16 duration divided by its
+cached scale when scaling is enabled; EDF90 and the other dispatch routes multiply
+incoming time by that scale. EE190 additionally divides its child-returned time.
+EE2D0/EE320 obtain the low byte of attribute key1. FD920 binary-searches sorted
+8-byte attribute rows, so validated count/range/order and a nonzero scale are
+required; a zero scale can collapse playback and divide by zero. Rebuilding must
+preserve source parent duration and scale, not derive them from child key count.
+Use fresh parent wrappers for changed graph shapes. EDEC0 re-attachment destroys
+the existing cache using the new record's child count; a different count could
+walk beyond or incompletely release the previous cache. Same-count re-attachment
+can test cache invalidation, but arbitrary live graph replacement is excluded.
+`scripts/fighter-parent-oracle.py` now extracts12 original generated parent
+routines into an ignored stand-alone executable.48 invented cases pass with
+scales1/2/60/255, durations0/93/65535, one/two children, scaling enabled/disabled,
+reverse child dispatch, inverse time query, cache reuse and same-count reattachment.
+Only manager allocation/factory/free and leaf evaluation are stand-ins; the
+parent behavior executes the original generated bodies. Native body SHA-256:
+`593f2ef9bd8d2965e62e16d5cd7090cd18a30cb7cd595b448aa71e1e124f1ef2`.
+Receipt:`logs/fighter-parent-oracle/comparison.json`. Full leaf graphs, palette
+joins and native converted-pack playback remain separate gates.
+
+For missing voice categories, absence and an empty bank are different native
+states. Exact pair lookup135CB0 leaves the initialized output handle at-1 and
+returnsFFFF on a miss;137780/138070 return false before playback. A zero-entry
+bank can register and become a successful lookup instead, with different selection
+behavior. The proposed general adapter is an explicit absent state plus a versioned
+per-owned-voice category presence mask, skipping registration for absent categories.
+It is not implemented yet. Event alternatives at138EDA and family-only lookup
+modes still need audit/native checks: absent exact-pair data is not a promise that
+no other intentionally referenced event can play. Missing required keys must
+remain errors; absent categories must never be silently populated from a donor.
 
 ## Timed finisher rotation reader
 
@@ -380,8 +523,8 @@ D-new (owner): extend M5 with general adapter R&D rather than close creator tool
 and defer conversion. Preserve exact intended behavior wherever supported; report
 unsupported data instead of silently substituting donor components.
 
-1. Finish the combat appearance-to-palette resource provenance check and extend
-   native facial acceptance beyond the single component probe.
+1. Enforce the now-traced normal appearance/hand palette joins in full-graph
+   conversion and extend native facial acceptance beyond the single component probe.
 2. Complete native acceptance of the per-slot finisher bindings, then implement
    typed full-motion/cinematic rebuilding, preserving timing/root/helper data.
 3. Inventory remaining voice, portrait, AI, cinematic and shared-table changes;

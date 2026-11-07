@@ -51,6 +51,10 @@ packing. Their 188 keys decode; 1,128 additional precision/time samples pass
 the reader (`logs/fighter-m5-type13-source-audit.json`). That corpus check is
 structural/numerical evidence, not a native playtest of the converted finishers.
 
-Filtered evaluation, retained-cache history, parent time transforms, destination
-ownership and full paired-motion rebuilding remain separate acceptance gates.
+The ordinary paired `_d` output owner is independently traced:9FAE0 reserves a
+48-byte stack buffer and222A0/22150 evaluate into it with null selection. The
+source destination4 and four scalars occupy floats4–7 inside that12-float buffer.
+This proves the narrow helper destination contract, not every type13 context.
+Filtered evaluation, retained-cache history, parent time transforms and native
+execution of rebuilt full paired-motion graphs remain separate acceptance gates.
 No external recomp project code was copied, and no game assets are tracked.

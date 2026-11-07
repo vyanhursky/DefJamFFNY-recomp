@@ -48,6 +48,20 @@
 #include "patches/fighter_ai.h"
 #include "patches/fighter_cinematic.h"
 #include "patches/fighter_finishers.h"
+#include "patches/fighter_cpu_pool.h"
+
+/* The archive loader calls this allocator indirectly. Direct callers retain
+ * their original behavior; only admitted owned animation filenames get a
+ * per-call native pool selector. Keep the original cdecl argument intact. */
+extern void sub_00029500(void);
+static void fighter_archive_allocate(void) {
+    uint32_t address = g_esp + 12, flags = MEM32(address), bytes = MEM32(g_esp + 8);
+    uint32_t routed = defjam_fighter_cpu_flags(MEM32(g_esp), MEM32(g_esp + 4), bytes, flags);
+    MEM32(address) = routed;
+    sub_00029500();
+    MEM32(address) = flags;
+    if (routed != flags) defjam_fighter_cpu_result(g_eax, bytes);
+}
 
 extern void sub_001A8260_gen(void);
 void sub_001A8260(void) {
@@ -1350,6 +1364,7 @@ static void trace_voice_render(void)
 
 recomp_func_t recomp_lookup_manual(uint32_t xbox_va)
 {
+    if (xbox_va == 0x00029500u && defjam_fighter_research_active()) return fighter_archive_allocate;
     if (xbox_va == 0x001BAA00u && input_latency_on())
         return sub_001BAA00;
     if (xbox_va == 0x0027E075u && (input_latency_on() || input_consumption_on())) return sub_0027E075;
