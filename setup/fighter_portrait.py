@@ -109,6 +109,44 @@ class PortraitBaseline:
                 'Portrait adapter requires hash-verified original screens')
         self.archive, self.sha256 = Archive(screens), expected_sha256
 
+    def matching_layouts(self, files, candidates):
+        """Find exact six-slot layouts independently of combat/appearance donors.
+
+        This suggests templates, never substitutes their pixels. The ordinary
+        Portrait compiler still validates and composes the selected candidate.
+        """
+        require(type(files) is dict and set(files) == set(PORTRAIT_PARTS)
+                and type(candidates) is dict and 0 < len(candidates) <= 4096
+                and all(type(name) is str and type(selection) is int and 0 <= selection < 0x7fffffff
+                        for name, selection in candidates.items()),
+                'Portrait layout matching needs six files and bounded candidates')
+
+        def profile(texture):
+            return {'controls': texture.controls, 'tiles': {image['name']: {
+                field: image[field] for field in ('kind', 'width', 'height', 'swizzled', 'pixels_bytes')}
+                for image in texture.images}}
+
+        authored = {part: profile(UITextures(unpack(files[part]))) for part in PORTRAIT_PARTS}
+        if not hasattr(self, '_layout_profiles'):
+            self._layout_profiles = {}
+        matches = []
+        for identifier, selection in sorted(candidates.items()):
+            if selection not in self._layout_profiles:
+                try:
+                    layouts = {}
+                    for part in PORTRAIT_PARTS:
+                        path, stem = variant_path(part, selection)
+                        movie = Archive(unpack(self.archive.read(path)))
+                        data = unpack(movie.read(stem + '.xsh'))
+                        template = PortraitTextureTemplate(data, hashlib.sha256(data).hexdigest())
+                        layouts[part] = profile(template.template)
+                    self._layout_profiles[selection] = layouts
+                except ValueError:
+                    self._layout_profiles[selection] = None
+            if self._layout_profiles[selection] == authored:
+                matches.append(identifier)
+        return matches
+
 
 class Portrait:
     def __init__(self, identifier, source, files, baseline, donor_selection, budget=16 * 1024**2):

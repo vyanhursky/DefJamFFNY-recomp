@@ -14,5 +14,7 @@
   "speech_sha256": "6bbccf36278df2bec76801f79ec07178c0dc6414934a6d53fae17bd920288a75",
   "ai_sha256": "6b91192d87694b10fb00c4d4fd394b0826a6a8034dab909865a4cb4e55ceeb24",
   "blazin_sha256": "b71ff1bc175e64120612283ab1cb838073328200b768872b964bd255b9c16795",
+  "misc_sha256": "f3c3145f54fc3817aff51002479bddd4324fafd7fc70b699d67c78dc20f664e4",
+  "shared_hand_sha256": "01dafd9316fa9e569e029207ed8ad34bd74ad8ecf7afcdb3fa8d95d643f5a441",
   "comment": "Original supported USA database only. Hash pin verifies the input; no game bytes are shipped. Experimental adapter, not runtime support."
 }

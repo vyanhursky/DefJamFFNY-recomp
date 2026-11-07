@@ -123,6 +123,22 @@ def test_portrait_files_hashes_budget_and_whole_pack_validation(tmp_path):
         Portrait('alpha/portrait', source, {}, baseline, 1)
 
 
+def test_matching_layouts_checks_every_variant_and_preserves_authored_pixels():
+    _, files, baseline, _ = portrait_fixture()
+    before = dict(files)
+    candidates = {'retail/unavailable': 2, 'retail/test-alpha': 1, 'retail/same-layout': 1}
+    assert baseline.matching_layouts(files, candidates) == ['retail/same-layout', 'retail/test-alpha']
+    assert files == before
+    changed = dict(files)
+    data = bytearray(unpack(changed['result_4p'])); data[12:16] = b'EDIT'
+    changed['result_4p'] = bytes(data)
+    assert baseline.matching_layouts(changed, candidates) == []
+    with pytest.raises(AssetError, match='six files'):
+        baseline.matching_layouts({key: value for key, value in files.items() if key != 'result_4p'}, candidates)
+    with pytest.raises(AssetError, match='bounded candidates'):
+        baseline.matching_layouts(files, {'retail/bool': True})
+
+
 def test_portrait_registry_and_native_binding_reject_wrong_donor_and_retail_override():
     from test_fighter_native import catalog, pack
     from fighter_registry import RegistryError
