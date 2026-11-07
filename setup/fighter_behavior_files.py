@@ -59,7 +59,8 @@ def validate_source(kind, source):
         'cinematic': {'format', 'template', 'track'},
         'blazin': {'format', 'shots'},
     }
-    version3 = kind == 'voice' and type(source) is dict and source.get('format') == 'fighter-voice-3'
+    version3 = kind == 'voice' and type(source) is dict and source.get('format') in ('fighter-voice-3', 'fighter-voice-4')
+    version4 = version3 and source['format'] == 'fighter-voice-4'
     blazin2 = kind == 'blazin' and type(source) is dict and source.get('format') == 'fighter-blazin-2'
     if version3:
         expected['voice'] = {'format', 'banks', 'intro', 'extro'}
@@ -68,7 +69,7 @@ def validate_source(kind, source):
     require(kind in KINDS and type(source) is dict
             and (set(source) == expected[kind] or kind == 'blazin' and not blazin2 and set(source) == expected[kind] | {'pairs'})
             and (source['format'] == 'fighter-' + kind + '-1'
-                 or kind == 'voice' and source['format'] in ('fighter-voice-2', 'fighter-voice-3') or blazin2),
+                 or kind == 'voice' and source['format'] in ('fighter-voice-2', 'fighter-voice-3', 'fighter-voice-4') or blazin2),
             'Unsupported behavior source fields or format')
     if kind == 'moveset':
         require(type(source['donor']) is str and re.fullmatch(r'retail/[a-z0-9]+(?:-[a-z0-9]+)*', source['donor']),
@@ -89,7 +90,8 @@ def validate_source(kind, source):
         if version3:
             require(type(source['banks']) is dict and set(source['banks']) == set(CATEGORIES),
                     'Explicit voice needs all three category banks')
-            samples = {category: bank_spec(category, bank)['samples'] for category, bank in source['banks'].items()}
+            samples = {category: bank_spec(category, bank, states=version4).get('samples', {})
+                       for category, bank in source['banks'].items()}
         else:
             require(type(source['template_voice']) is int and 0 <= source['template_voice'] < 65535,
                     'Invalid voice template')
@@ -230,8 +232,9 @@ class Reader:
                     return wav_file(data)
                 from fighter_voice_r2 import canonical_r2
                 return canonical_r2(data)
-            if source['format'] == 'fighter-voice-3':
-                return {'banks': {category: {**bank, 'samples': {int(i): read_audio(spec)
+            if source['format'] in ('fighter-voice-3', 'fighter-voice-4'):
+                return {'banks': {category: dict(bank) if bank.get('state') == 'absent' else
+                                    {**bank, 'samples': {int(i): read_audio(spec)
                                     for i, spec in bank['samples'].items()}}
                                   for category, bank in source['banks'].items()},
                         'intro': read_audio(source['intro']), 'extro': read_audio(source['extro'])}

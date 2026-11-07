@@ -8,8 +8,9 @@ import subprocess
 import pytest
 
 from test_fighter_ui_native import TYPES
-from test_fighter_voice_compile import source, voice
-from fighter_voice_compile import encode_voice_bindings
+from test_fighter_voice_compile import source, voice, explicit_source
+from fighter_voice_compile import VoiceCompiler, encode_voice_bindings, CATEGORIES
+import hashlib
 
 ROOT = Path(__file__).resolve().parents[2]
 DRIVER = r'''
@@ -59,6 +60,8 @@ int main(int argc,char **argv) {
  int started=defjam_fighter_voice_start();
  if (!strcmp(mode,"reject")||!strcmp(mode,"inactive")) {assert(!started);return 0;}
  assert(started&&!strcmp(defjam_fighter_voice_path(),argv[1]));
+ uint32_t alpha=!strcmp(mode,"partial")?1u:!strcmp(mode,"absent")?0u:3u;
+ uint32_t beta=(!strcmp(mode,"partial")||!strcmp(mode,"absent"))?0u:3u;
  entry();assert(!defjam_fighter_voice_load(1)&&g_esp==0xB00000);
  for(uint32_t slot=0;slot<4;slot++) {
   MEM32(0x2020+slot*0x18)=(uint32_t[]){257,258,3,260}[slot];
@@ -75,17 +78,17 @@ int main(int argc,char **argv) {
  entry();defjam_fighter_voice_select(0x2000);assert(g_esp==0xB00000);
  assert(defjam_fighter_voice_load(1));
  assert(g_esp==0xB00004&&g_ebx==104&&g_esi==105&&g_edi==106&&g_ebp==107&&g_fp_top==3);
- assert(calls==11&&bank601==3&&bank602==3&&bank22==3);
+ assert(calls==5+alpha+beta&&bank601==alpha&&bank602==beta&&bank22==3);
  assert(MEM32(0x3403B4)==601&&MEM32(0x340418)==601&&MEM32(0x34047C)==22&&MEM32(0x3404E0)==602);
  for(uint32_t slot=0;slot<4;slot++) assert(MEM8(0x3403B9+slot*0x64)==1&&MEM32(0x3403A4+slot*0x64)==5);
  for(uint32_t i=0;i<200;i++) assert(MEM8(0x33EA78+i)==0xA5);
  // Reload must rebuild its local set; no stale 'already loaded' state.
  previous[0]=0;MEM8(0x33EBC0)=1;entry();assert(defjam_fighter_voice_load(0));
- assert(calls==21&&bank601==6&&bank602==6&&bank22==6);
+ assert(calls==9+2*(alpha+beta)&&bank601==2*alpha&&bank602==2*beta&&bank22==6);
  // Empty participant clears only native loaded status; absent voice preserves it.
  MEM32(0x340408)=UINT32_MAX;MEM32(0x34047C)=UINT32_MAX;MEM8(0x340481)=42;
  previous[0]=0;entry();assert(defjam_fighter_voice_load(0));
- assert(calls==28&&MEM8(0x34041D)==0&&MEM8(0x340481)==42);
+ assert(calls==10+3*(alpha+beta)&&MEM8(0x34041D)==0&&MEM8(0x340481)==42);
  // Native early-out retains the current selection; a new retail setup clears it.
  MEM8(0x340540)=1;defjam_fighter_voice_select(0);MEM8(0x340540)=0;
  for(uint32_t slot=0;slot<4;slot++) MEM32(0x2020+slot*0x18)=3;
@@ -146,6 +149,40 @@ def test_native_loader_failures_stop_before_invalid_playback(tool, files, mode, 
                                         (48, 140), (48, 16384), (56, 256), (52, 599), (52, 65535)])
 def test_invalid_voice_receipt_is_rejected(tool, files, offset, value):
     path, bindings, digest = files
+    data = bytearray(bindings.read_bytes())
+    struct.pack_into('<I', data, offset, value)
+    bindings.write_bytes(data)
+    result = subprocess.run([tool, path, bindings, digest, 'reject'], capture_output=True, text=True)
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+def absent_files(tmp_path, *, partial=True):
+    compiler, item = explicit_source()
+    # Reserve voice600 exactly as the legacy namespace fixture does.
+    original = compiler.archive.compose(additions={'speech/streams/intro/600.asf': b'reserved'})
+    compiler = VoiceCompiler(original, hashlib.sha256(original).hexdigest())
+    for category in CATEGORIES:
+        item['banks'][category] = ({**item['banks'][category], 'state': 'present'}
+                                  if partial and category == 'Character' else {'state': 'absent'})
+    other = {**item, 'banks': {category: {'state': 'absent'} for category in CATEGORIES}}
+    data, report = compiler.compose({'alpha/voice': item, 'beta/voice': other})
+    path, bindings = tmp_path / 'speech.viv', tmp_path / 'voices.bin'
+    path.write_bytes(data)
+    bindings.write_bytes(encode_voice_bindings(data, report,
+                         {256: 'alpha/voice', 257: 'alpha/voice', 259: 'beta/voice'}))
+    return path, bindings, report['sha256']
+
+
+@pytest.mark.parametrize('partial', [True, False])
+def test_absent_categories_deduplicate_shared_ids_and_reload_without_donor_banks(tool, tmp_path, partial):
+    result = subprocess.run([tool, *absent_files(tmp_path, partial=partial), 'partial' if partial else 'absent'],
+                            capture_output=True, text=True)
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+@pytest.mark.parametrize('offset,value', [(4, 1), (56, 8), (56, 0xFFFFFFFF), (68, 0), (12, 0)])
+def test_fva2_rejects_unknown_masks_and_conflicting_shared_voice_declarations(tool, tmp_path, offset, value):
+    path, bindings, digest = absent_files(tmp_path)
     data = bytearray(bindings.read_bytes())
     struct.pack_into('<I', data, offset, value)
     bindings.write_bytes(data)

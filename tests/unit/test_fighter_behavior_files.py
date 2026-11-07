@@ -49,6 +49,21 @@ def test_voice3_reads_explicit_category_templates_and_typed_files(tmp_path):
         validate_source('voice', source)
 
 
+def test_voice4_requires_explicit_states_and_never_reads_absent_files(tmp_path):
+    audio = {**descriptor(tmp_path, 'voice.wav', wav()), 'format': 'wav-pcm16'}
+    source = {'format': 'fighter-voice-4', 'banks': {
+        'Character': {'state': 'present', 'template_voice': 0, 'family': 1, 'samples': {'0': audio}},
+        'Taunts': {'state': 'absent'}, 'Enviro': {'state': 'absent'}}, 'intro': audio, 'extro': audio}
+    result = Reader().resource(tmp_path, 'voice', source)
+    assert result['banks']['Enviro'] == {'state': 'absent'}
+    assert parse_stream(result['banks']['Character']['samples'][0]).sample_count == 8
+    with pytest.raises(AssetError):
+        validate_source('voice', {**source, 'format': 'fighter-voice-3'})
+    source['banks']['Character'].pop('state')
+    with pytest.raises(AssetError, match='state'):
+        validate_source('voice', source)
+
+
 def test_moveset_reader_produces_typed_complete_rig_tracks(tmp_path):
     spec = descriptor(tmp_path, 'pose.json', json.dumps(pose()).encode())
     source = {'format': 'fighter-moveset-1', 'donor': 'retail/example',

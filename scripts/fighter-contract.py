@@ -15,12 +15,62 @@ import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'setup'))
-from fighter_build import retail_catalog, compile_inputs, write_preview, MAX_INPUT, MAX_PACKS
+from fighter_build import retail_catalog, compile_inputs, write_preview, document, MAX_INPUT, MAX_PACKS
 from fighter_packages import inventory
 from fighter_presentation import prepare_portraits, prepare_language_screens
 from mods import ordinary_path
 
 PROTOCOL = 'fighter-authoring-api-1'
+
+
+def voice_catalog(game):
+    """Only emit event identities for templates accepted by the actual compiler."""
+    import re
+    from fighter_voice_compile import VoiceCompiler
+    from fighter_voice_bank import VoiceBankTemplate, event_identity, FAMILIES
+    pin = json.loads((ROOT / 'config/fighter-native-baseline.json').read_text())
+    path = game / 'audio/speech2.viv'
+    if path.stat().st_size > 512 * 1024**2:
+        raise ValueError('Voice archive exceeds budget')
+    compiler = VoiceCompiler(path.read_bytes(), pin['speech_sha256'])
+    rows = []
+    for entry in compiler.archive.entries:
+        name = compiler.archive.name_key(entry.name)
+        match = re.fullmatch(r'speech/(character|taunts|enviro)/def_jam_(?:ip_)?characters/(\d+)\.hdr', name)
+        if not match:
+            continue
+        category = next(c for c in FAMILIES if c.lower() == match[1])
+        header, data = compiler.archive.read(name), compiler.archive.read(name[:-4] + '.dat')
+        try:
+            template = VoiceBankTemplate(header, data, hashlib.sha256(header).hexdigest(), hashlib.sha256(data).hexdigest())
+        except ValueError:
+            # Unsupported original profiles are unavailable conversion templates.
+            continue
+        if template.first_key not in FAMILIES[category] or template.voice_key != int(match[2]):
+            continue
+        rows.append({'category': category, 'template_voice': template.voice_key,
+                     'event_identity': event_identity(header, include_family=False),
+                     'entries': template.count})
+    return {'protocol': PROTOCOL, 'ok': True, 'archive_sha256': pin['speech_sha256'],
+            'identity': 'fighter-voice-events-1', 'templates': sorted(rows, key=lambda r: (r['category'], r['template_voice']))}
+
+
+def validate_voice(game, path):
+    """Compile an export staging source through the actual shared voice path."""
+    from fighter_behavior_files import Reader
+    from fighter_voice_compile import VoiceCompiler, encode_voice_bindings
+    path = ordinary_path(path)
+    source, _ = document(path)
+    voice = Reader().resource(path.parent, 'voice', source)
+    pin = json.loads((ROOT / 'config/fighter-native-baseline.json').read_text())
+    archive = game / 'audio/speech2.viv'
+    if archive.stat().st_size > 512 * 1024**2:
+        raise ValueError('Voice archive exceeds budget')
+    data, report = VoiceCompiler(archive.read_bytes(), pin['speech_sha256']).compose({'authoring/voice': voice})
+    table = encode_voice_bindings(data, report, {141: 'authoring/voice'})
+    return {'protocol': PROTOCOL, 'ok': True, 'component_compilation': True, 'native_playtest': False,
+            'source_sha256': hashlib.sha256(path.read_bytes()).hexdigest(),
+            'archive_sha256': report['sha256'], 'binding_sha256': hashlib.sha256(table).hexdigest()}
 
 
 def validate(game, folders, language=None):
@@ -55,15 +105,22 @@ def validate(game, folders, language=None):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=('catalog', 'validate'))
+    parser.add_argument('command', choices=('catalog', 'voice-catalog', 'validate-voice', 'validate'))
     parser.add_argument('--game', type=Path, required=True)
     parser.add_argument('--pack', type=Path, action='append', default=[])
     parser.add_argument('--language', type=Path)
+    parser.add_argument('--voice-source', type=Path)
     args = parser.parse_args()
     try:
         if args.command == 'catalog':
             result = {'protocol': PROTOCOL, 'ok': True,
                       'baseline': retail_catalog(args.game / 'assets/djv2.sod').baseline()}
+        elif args.command == 'voice-catalog':
+            result = voice_catalog(args.game)
+        elif args.command == 'validate-voice':
+            if args.voice_source is None:
+                raise ValueError('Choose a voice source JSON file')
+            result = validate_voice(args.game, args.voice_source)
         else:
             if not args.pack:
                 raise ValueError('Choose at least one pack folder')

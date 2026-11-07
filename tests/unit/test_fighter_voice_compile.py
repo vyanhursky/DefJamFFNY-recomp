@@ -125,3 +125,62 @@ def test_explicit_category_contract_rejects_ambiguity_and_cross_category_familie
     change(item)
     with pytest.raises(AssetError):
         compiler.compose({'alpha/voice': item})
+
+
+def test_explicit_absence_omits_members_and_binds_shared_and_all_absent_voices():
+    compiler, item = explicit_source()
+    for bank in item['banks'].values():
+        bank['state'] = 'present'
+    item['banks']['Enviro'] = {'state': 'absent'}
+    silent = deepcopy(item)
+    silent['banks'] = {category: {'state': 'absent'} for category in CATEGORIES}
+    data, report = compiler.compose({'alpha/voice': item, 'beta/voice': silent})
+    archive = Archive(data, native_separators=True)
+    assert report['schema'] == 'fighter-voice-archive-2'
+    assert 'speech/enviro/def_jam_ip_characters/600.hdr' not in archive.by_name
+    assert 'speech/character/def_jam_ip_characters/601.dat' not in archive.by_name
+    receipt = encode_voice_bindings(data, report, {256: 'alpha/voice', 257: 'alpha/voice', 259: 'beta/voice'})
+    assert receipt[:4] == b'FVA2'
+    assert struct.unpack_from('<9I', receipt, 48) == (256, 600, 3, 257, 600, 3, 259, 601, 0)
+    for purpose in ('intro', 'extro'):
+        assert archive.read(f'speech/streams/{purpose}/601.asf') == silent[purpose]
+    # Legacy formats may share the generation, and keep all three banks.
+    compiler, explicit = explicit_source()
+    explicit['banks']['Character'] = {'state': 'absent'}
+    for category in ('Taunts', 'Enviro'):
+        explicit['banks'][category]['state'] = 'present'
+    data, report = compiler.compose({'alpha/voice': explicit})
+    damaged = deepcopy(report)
+    damaged['bindings']['alpha/voice']['categories']['Taunts'] = {'state': 'absent'}
+    with pytest.raises(AssetError, match='unexpected archive'):
+        encode_voice_bindings(data, damaged, {256: 'alpha/voice'})
+    damaged = deepcopy(report)
+    damaged['bindings']['alpha/voice']['categories'].pop('Character')
+    with pytest.raises(AssetError, match='three explicit'):
+        encode_voice_bindings(data, damaged, {256: 'alpha/voice'})
+
+
+@pytest.mark.parametrize('bad', [
+    {}, {'state': 'missing'}, {'state': 'absent', 'samples': {}},
+    {'state': 'present'}, {'state': True},
+])
+def test_absence_contract_rejects_incomplete_or_ambiguous_states(bad):
+    compiler, item = explicit_source()
+    for bank in item['banks'].values():
+        bank['state'] = 'present'
+    item['banks']['Enviro'] = bad
+    with pytest.raises(AssetError):
+        compiler.compose({'alpha/voice': item})
+
+
+def test_event_identity_ignores_only_physical_layout_and_explicit_family_when_requested():
+    from fighter_voice_bank import event_identity
+    header, _ = template()
+    changed = bytearray(header)
+    struct.pack_into('<2H', changed, 0, 1, 626)
+    changed[7:10] = bytes((3, 5, 0))
+    changed[12:14] = bytes((1, 2))
+    assert event_identity(header, include_family=False) == event_identity(bytes(changed), include_family=False)
+    assert event_identity(header) != event_identity(bytes(changed))
+    changed[14] ^= 1
+    assert event_identity(header, include_family=False) != event_identity(bytes(changed), include_family=False)

@@ -16,6 +16,27 @@ MAX_HEADER_BYTES = 64 * 1024
 FAMILIES = {'Character': (0, 1), 'Taunts': (16625, 16626), 'Enviro': (40962, 40963)}
 
 
+def event_identity(header, *, include_family=True):
+    """Identify event metadata independently of clip placement and voice ID.
+
+    This is an offline matching aid, not admission of a supplied header. The
+    compiler always reconstructs from the verified original template instead.
+    Family may be matched separately against the category's explicit allowlist.
+    """
+    require(isinstance(header, bytes) and 12 <= len(header) <= MAX_HEADER_BYTES,
+            'Invalid voice event header budget')
+    count, stride = header[5], (header[4] & 127) + 2
+    require(count and 12 + count * stride <= len(header), 'Truncated voice event entry table')
+    normalized = bytearray(header)
+    normalized[2:4] = bytes(2)
+    if not include_family:
+        normalized[:2] = bytes(2)
+    normalized[7:10] = bytes(3)
+    for index in range(count):
+        normalized[12 + index * stride:14 + index * stride] = bytes(2)
+    return hashlib.sha256(normalized).hexdigest()
+
+
 def stream_span(data):
     """Locate SCEl without invoking any codec; check the enclosing alignment.
 

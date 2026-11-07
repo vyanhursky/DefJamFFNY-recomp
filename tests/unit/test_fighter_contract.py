@@ -50,3 +50,56 @@ def test_contract_rejects_unrelated_files_before_compilation(workspace):
     (folder / 'payload.py').write_text('raise RuntimeError()')
     with pytest.raises(ValueError, match='Unsupported|Undeclared'):
         contract.validate(root / 'game', [folder])
+
+
+def voice_workspace(tmp_path, monkeypatch, data):
+    import hashlib
+    from test_fighter_voice_compile import explicit_source
+    compiler, _ = explicit_source()
+    monkeypatch.setattr(contract, 'ROOT', tmp_path)
+    (tmp_path / 'config').mkdir()
+    (tmp_path / 'config/fighter-native-baseline.json').write_text(json.dumps({'speech_sha256': compiler.source_hash}))
+    game = tmp_path / 'game'; (game / 'audio').mkdir(parents=True)
+    (game / 'audio/speech2.viv').write_bytes(compiler.archive.data)
+    folder = tmp_path / 'export'; folder.mkdir()
+    (folder / 'clip.bin').write_bytes(data)
+    audio = {'path': 'clip.bin', 'sha256': hashlib.sha256(data).hexdigest(), 'format': 'ea-adpcm-r2'}
+    source = {'format': 'fighter-voice-4', 'banks': {
+        'Character': {'state': 'present', 'template_voice': 22, 'family': 1, 'samples': {'0': audio}},
+        'Taunts': {'state': 'absent'}, 'Enviro': {'state': 'absent'}}, 'intro': audio, 'extro': audio}
+    path = folder / 'voice-source.json'; path.write_text(json.dumps(source))
+    return game, path
+
+
+def test_voice_staging_api_uses_shared_compiler_without_installing(tmp_path, monkeypatch):
+    import hashlib
+    from test_fighter_voice_r2 import source
+    game, path = voice_workspace(tmp_path, monkeypatch, source())
+    before = path.read_bytes()
+    report = contract.validate_voice(game, path)
+    assert report['component_compilation'] and not report['native_playtest']
+    assert report['source_sha256'] == hashlib.sha256(before).hexdigest()
+    assert path.read_bytes() == before
+    assert sorted(p.name for p in path.parent.iterdir()) == ['clip.bin', 'voice-source.json']
+
+
+def test_voice_staging_rejects_predictors_and_native_per_bank_expansion(tmp_path, monkeypatch):
+    from test_fighter_voice_r2 import source
+    from fighter_assets import AssetError
+    game, path = voice_workspace(tmp_path, monkeypatch, source((28,), [b'\x40' + bytes(14)]))
+    with pytest.raises(AssetError, match='predictor'):
+        contract.validate_voice(game, path)
+    # A valid source fits its physical bank but rebuilding logical entries at
+    # native256-byte alignment exceeds the smaller invented category budget.
+    import fighter_voice_bank
+    import hashlib
+    literal = b'\xee' + bytes(60)
+    data = source((140,), [literal * 5])
+    (path.parent / 'clip.bin').write_bytes(data)
+    doc = json.loads(path.read_text())
+    for spec in (doc['intro'], doc['extro'], doc['banks']['Character']['samples']['0']):
+        spec['sha256'] = hashlib.sha256(data).hexdigest()
+    path.write_text(json.dumps(doc))
+    monkeypatch.setattr(fighter_voice_bank, 'MAX_BANK_BYTES', 900)
+    with pytest.raises(AssetError, match='Composed voice bank exceeds budget'):
+        contract.validate_voice(game, path)

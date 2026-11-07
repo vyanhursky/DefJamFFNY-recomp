@@ -12,10 +12,12 @@
 #include <stdlib.h>
 
 #define VOICE_CORE_LIMIT 16384u
-#define VOICE_TABLE_LIMIT (48u + 8u * (VOICE_CORE_LIMIT - 141u))
+#define VOICE_TABLE_LIMIT (48u + 12u * (VOICE_CORE_LIMIT - 141u))
 #define STEM_LIMIT 76u
 #define STEM_BYTES 96u
 static uint16_t s_voices[VOICE_CORE_LIMIT];
+/* 0..7 is an owned category mask; FF means native/unrelated voice. */
+static uint8_t s_masks[65536];
 static uint32_t s_selected[4], s_count, s_observed;
 static char s_archive[2048];
 extern void sub_0001C960(void);
@@ -51,11 +53,13 @@ int defjam_fighter_voice_start(void) {
     int valid = !ferror(file) && size >= 48 && size <= VOICE_TABLE_LIMIT;
     if (fclose(file)) valid = 0;
     uint32_t count = valid ? voice_word(table + 8) : 0;
+    uint32_t stride = valid && !memcmp(table, "FVA2", 4) ? 12u : 8u;
     char encoded[65];
     if (valid) {
         hex(table + 16, encoded);
-        valid = !memcmp(table, "FVA1", 4) && voice_word(table + 4) == 1 && count
-            && count <= VOICE_CORE_LIMIT - 141 && size == 48u + count * 8u
+        valid = ((!memcmp(table, "FVA1", 4) && voice_word(table + 4) == 1)
+                 || (!memcmp(table, "FVA2", 4) && voice_word(table + 4) == 2)) && count
+            && count <= VOICE_CORE_LIMIT - 141 && size == 48u + count * stride
             && !strcmp(encoded, hash);
     }
     if (valid) {
@@ -70,13 +74,17 @@ int defjam_fighter_voice_start(void) {
         }
     }
     memset(s_voices, 0xFF, sizeof(s_voices));
+    memset(s_masks, 0xFF, sizeof(s_masks));
     uint32_t previous = 140;
     for (uint32_t i = 0; valid && i < count; ++i) {
-        uint32_t core = voice_word(table + 48 + i * 8), voice = voice_word(table + 52 + i * 8);
-        if (core <= previous || core >= VOICE_CORE_LIMIT || voice < 600 || voice >= 65535) {
+        uint32_t core = voice_word(table + 48 + i * stride), voice = voice_word(table + 52 + i * stride);
+        uint32_t mask = stride == 12u ? voice_word(table + 56 + i * stride) : 7u;
+        if (core <= previous || core >= VOICE_CORE_LIMIT || voice < 600 || voice >= 65535
+            || mask > 7u || (s_masks[voice] != 255 && s_masks[voice] != mask)) {
             valid = 0; break;
         }
         s_voices[core] = (uint16_t)voice; previous = core;
+        s_masks[voice] = (uint8_t)mask;
     }
     if (valid) {
         s_count = count; strcpy(s_archive, path);
@@ -141,6 +149,7 @@ int defjam_fighter_voice_load(uint32_t selector) {
         if (!found) {
             seen[seen_count++] = voice;
             for (unsigned category = 0; category < 3; ++category) {
+                if (s_masks[voice] != 255 && !(s_masks[voice] & (1u << category))) continue;
                 int written = snprintf(name, sizeof(name), "speech/%s/Def_Jam_%sCharacters/%03u",
                     categories[category], voice >= 500 ? "IP_" : "", voice);
                 if (written < 0 || written >= (int)sizeof(name)) voice_stop("bank stem exceeds budget");
