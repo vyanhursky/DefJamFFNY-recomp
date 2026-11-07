@@ -1,5 +1,12 @@
 # Fighter Mod Support agent handover prompt
 
+Continuation evidence: [November7 M5 implementation checkpoint](fighter-mod-m5-2026-11-07.md)
+and [acceptance ledger](../fighter-mod-acceptance.md). They supersede implementation
+status below where explicitly updated; all owner approvals/constraints remain.
+Continuation code commits: runtime `5a9eafb`, `8e0ff36`, `3a45ecf`; Tools `269077f`.
+The owner subsequently requested leaving the other checkout's native game running
+and continuing offline. Do not start serial native work until the machine is free.
+
 Copy the prompt below into the next coding agent, or instruct that agent to read
 this entire file before acting. Snapshot date: November 7, 2026,
 America/Vancouver. This is an implementation handover, not a declaration that

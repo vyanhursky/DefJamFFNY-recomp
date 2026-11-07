@@ -52,9 +52,12 @@ See [M4 launcher integration](research/fighter-mod-m4-2026-11-06.md).
 The owner authorized M5 creator tooling and a beginner-first modding guide,
 and explicitly included general adapter R&D for faithful Vendetta conversion.
 Creator commands and shared native validation now work locally; conversion
-remains in progress: facial palettes compile, while complete motion/cinematic
-and voice conversion plus independent-pack native acceptance remain. See
-[M5 investigation](research/fighter-mod-m5-2026-11-06.md). M6 platform/long-run
+remains in progress:46appearances and276portrait variants compile,44custom
+voices export/compile with explicit absent categories, and94paired roles rebuild
+against47exact behavior matches with actual offline output-context joins.
+Versioned graph admission, broader cinematic conversion and converted-pack native
+acceptance remain. See the [current M5 checkpoint](research/fighter-mod-m5-2026-11-07.md)
+and [acceptance ledger](fighter-mod-acceptance.md). M6 platform/long-run
 release acceptance remains. No public push or PR has been made.
 
 ## Direction already agreed

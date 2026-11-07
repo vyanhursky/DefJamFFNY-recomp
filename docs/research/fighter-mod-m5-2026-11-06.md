@@ -1,5 +1,9 @@
 # M5: creator workflow and faithful conversion
 
+Continued by the [November7 checkpoint](fighter-mod-m5-2026-11-07.md), which updates
+voice absence/export, actual motion/context joins, portraits and complete source
+accounting. Earlier dated results below remain historical evidence.
+
 Target v0.15.0, local only. **M5 remains in progress.** The owner explicitly
 chose to include general adapter R&D before closing the milestone. No public
 PR/push, no donor-substitution conversion and no opaque native archive admission.

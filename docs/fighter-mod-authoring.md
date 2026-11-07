@@ -54,7 +54,7 @@ resource. Component references and resource kinds are not always the same:
 |---|---|---|---|
 | appearance | appearance | skeleton | eagl-appearance-1 |
 | moveset | moveset | skeleton, events | fighter-moveset-1 |
-| voice | voice | events | fighter-voice-1 / 2 / 3 |
+| voice | voice | events | fighter-voice-1 / 2 / 3 / 4 |
 | ai | ai | none | fighter-ai-1 |
 | portrait | portrait | none | eagl-portrait-1 |
 | intro, victory | cinematic | skeleton, events | fighter-cinematic-1 |
@@ -70,7 +70,7 @@ with a real 64-character lowercase SHA-256. Paths are relative, portable, and
 must remain inside the package. Links, traversal, duplicate/case-colliding paths,
 missing files and mismatched hashes are rejected. Reused files must have the
 same digest in every descriptor. Documentation is UTF-8 and bounded at 1 MiB.
-Voice2/3 audio descriptors additionally require `format: "wav-pcm16"` or
+Voice2/3/4 audio descriptors additionally require `format: "wav-pcm16"` or
 `format: "ea-adpcm-r2"`; this is a validated codec choice, not a file extension.
 Current inventory bounds: 65,536 files, 512 MiB total, 64 MiB per asset;
 individual format/aggregate composition budgets are often tighter.
@@ -119,8 +119,19 @@ required. File arguments mean hash-checked descriptors, not unverified paths.
   exactly the three categories; each has `template_voice`, `family`, `samples`.
   Families are Character0/1, Taunts16625/16626, Enviro40962/40963. Templates are
   verified separately per category; all other event metadata stays template-owned.
-  Missing entire banks are not supported. The declared events namespace must
-  still match the moveset; family alternatives are not an automatic fallback.
+  Version4 keeps `format`, `banks`, `intro`, `extro` and requires an explicit
+  `state` for every category. A present bank has exactly `state: "present"`,
+  `template_voice`, `family`, `samples`. An absent category is exactly
+  `{"state":"absent"}`. Missing keys, mixed implicit/explicit declarations and
+  data attached to an absent category are errors. Intro/extro remain mandatory.
+  The compiler emits no HDR/DAT for absent categories. FVA2 binds each owned
+  core/voice ID to Character/Taunts/Enviro bits0/1/2; FVA1 remains all-present.
+  Shared voice IDs must have the same mask, including zero. Hash-checked receipts
+  validate archive members against each declaration before emission.
+  Absence omits this owned bank; native event alternatives and family-only
+  requests can still select another intentionally referenced registered bank.
+  The declared events namespace must match the moveset; family alternatives
+  are not an automatic donor fallback.
 - **AI:** `format`, `template_profile`, `tendencies`. Template basename is 1–31
   ASCII letters/digits/underscore/hyphen. Tendencies must contain `easy`,
   `normal`, `hard`, each with slots `0`, `1`, `2`, `3`. Each slot has at least
@@ -165,6 +176,7 @@ defjam-tools fighter catalog --recomp RECOMP --game GAME
 defjam-tools fighter new --recomp RECOMP --game GAME --out NEW_FOLDER --id example-roster --donor retail/ludacris --fighter 'river=River'
 defjam-tools fighter validate PACK_FOLDER --recomp RECOMP --game GAME
 defjam-tools fighter package PACK_FOLDER --recomp RECOMP --game GAME --out NEW_ZIP
+defjam-tools fighter voice --recomp RECOMP --game GAME --bank Character=SOURCE.hdr --absent Taunts --absent Enviro --intro INTRO.asf --extro EXTRO.asf --out NEW_WORK_FOLDER
 ```
 
 Repeat `--fighter` for multiple fighters. Repeat `--with-pack` for dependencies
@@ -182,6 +194,17 @@ sets `native_playtest: false`. Errors return nonzero with an error report.
 The packager rereads exactly those files and refuses changes, writes a stable
 ZIP, verifies CRC readback and exclusively creates its output. It does not
 accept a bypass-validation switch or a manually supplied success receipt.
+
+`fighter voice` matches normalized legacy category event metadata against
+`voice-catalog` from this same API. The catalog contains only templates accepted
+by the verified compiler. The exporter preserves exact bounded R2 streams,
+logical entry ordinals and explicit family assignments. It writes an authoring
+source fragment, audio files and an accounting report. Before publishing the
+work folder, `validate-voice --voice-source FILE --game GAME` compiles the staged
+source through the shared Reader/compiler/binding encoder. It pins source and
+audio hashes through compilation and enforces the actual R2 and native-bank
+budgets. This does not install or validate a complete fighter. Copy the fragment into a voice resource and its
+audio directory into the pack, leaving reports outside, then validate/package.
 
 Diagnostic `scripts/fighter-registry.py` commands remain available:
 `export-retail`, `inspect-native`, `inspect-model`, `inspect-skin`,
@@ -218,17 +241,20 @@ claimed as a new native playtest. Platform/release acceptance remains M6.
 The original Vendetta archive is not an ordinary Fighter ZIP. Current direct
 inspection finds 46 added characters and no changes to the 75 existing SOD
 character records. All 46 appearances now compile through the bounded facial
-palette adapter, individually and together. Full normal-combat face-context
-provenance and broader native facial acceptance remain open.
+palette adapter, individually and together. Actual offline rig/face/hand identity
+and sample-bound joins cover46rebuilt appearances and75retail normal opponents.
+Broader native facial acceptance and dynamic created-fighter contexts remain open.
 
 Its 46 mapped action tables are identical to their retail donors (5,980 action
 rows), and all three unpacked parts of their ordinary combat banks are exactly
 equal to the mapped retail donors. All 47 added finisher behaviors match retail
 templates, but their 94 paired animation banks contain different curves.
-Per-slot binding is implemented; full typed motion/root/helper rebuilding and
-native acceptance of the source animations remain pending. All 129 speech banks
+Per-slot binding is implemented;94full typed motion/root/helper banks rebuild
+against their actual47matched behaviors, while package admission and native
+acceptance remain pending. All 129 speech banks
 can preserve their event metadata through version3 templates/families; missing
-categories still require explicit accounting. A faithful converter must account
+categories now have an explicit version4 omission contract and template-matched
+exporter; native missing-category acceptance remains separate. A faithful converter must account
 for these data, facial poses,
 voices, portraits, AI and cinematic links; it cannot silently substitute donor
-assets or copy whole shared databases. See [M5 investigation](research/fighter-mod-m5-2026-11-06.md).
+assets or copy whole shared databases. See the [current M5 checkpoint](research/fighter-mod-m5-2026-11-07.md).
