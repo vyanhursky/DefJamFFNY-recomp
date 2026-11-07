@@ -117,6 +117,8 @@ settings (see [Launcher and overlay](launcher-and-overlay.md#cheats)). [How they
 
 See [HD textures](hd-textures.md) for the pack format and local workflow.
 
+On Linux, the game asks glibc to map blocks of 1 MiB and larger, such as decoded pack images, on their own. Each one is returned to the system as soon as it is freed. Without this, the decode threads' heap arenas keep up to about 125 MiB that nothing uses (issue #166). Env `RECOMP_HEAP_MMAP_KB` sets the size in KiB, up to 32768; `0` keeps glibc's defaults. Windows and macOS are unaffected.
+
 ## [input]
 
 | Key | Default | Meaning |
