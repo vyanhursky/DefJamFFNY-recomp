@@ -12,6 +12,20 @@ from fighter_menu import Action
 from fighter_results import compile_results, scan_action
 
 
+def test_authored_result_logo_and_text_fallback_have_separate_visibility():
+    movie,constants=result_fixture()
+    output,_,report=compile_results(movie,constants,{256:'Authored Logo',257:'Text Name'},logos={256})
+    assert b'Authored Logo\0' not in output and b'Text Name\0' in output
+    assert b'_recompResultLogos\0' in output and b'_recompResultHasLogo\0' in output
+    _,entries=apt.parse_const(constants)
+    instructions=apt.disassemble_block(output,report['label_action'],entries)
+    assert any(ins.name=='BranchIfTrue' for ins in instructions)
+    assert any(ins.name=='EA_PushTrue' for ins in instructions)
+    assert any(ins.name=='EA_PushFalse' for ins in instructions)
+    with pytest.raises(AssetError,match='owned identities'):
+        compile_results(movie,constants,{256:'Name'},logos={257})
+
+
 def result_fixture():
     movie = bytearray(b'Apt Data' + bytes(248))
     struct.pack_into('<10I', movie, 16, 9, 0x09876543, 1, 80, 0, 1, 96, 640, 480, 16)

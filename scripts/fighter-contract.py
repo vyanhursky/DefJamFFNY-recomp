@@ -121,11 +121,12 @@ def validate(game, folders, language=None):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=('catalog', 'voice-catalog', 'validate-voice', 'validate'))
+    parser.add_argument('command', choices=('catalog', 'voice-catalog', 'validate-voice', 'export-pair', 'validate'))
     parser.add_argument('--game', type=Path, required=True)
     parser.add_argument('--pack', type=Path, action='append', default=[])
     parser.add_argument('--language', type=Path)
     parser.add_argument('--voice-source', type=Path)
+    parser.add_argument('--pair-request',type=Path)
     args = parser.parse_args()
     try:
         if args.command == 'catalog':
@@ -137,6 +138,12 @@ def main():
             if args.voice_source is None:
                 raise ValueError('Choose a voice source JSON file')
             result = validate_voice(args.game, args.voice_source)
+        elif args.command == 'export-pair':
+            if args.pair_request is None:
+                raise ValueError('Choose a pair export request')
+            from fighter_pair_export import export_pair
+            pins=json.loads((ROOT/'config/fighter-native-baseline.json').read_text())
+            result={'protocol':PROTOCOL,'ok':True,**export_pair(args.game,args.pair_request,pins)}
         else:
             if not args.pack:
                 raise ValueError('Choose at least one pack folder')

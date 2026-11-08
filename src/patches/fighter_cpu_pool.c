@@ -15,6 +15,7 @@
 #define CPU_REGISTRY (0x3C9158u + CPU_KEY * 4u)
 static uint32_t s_backing, s_root, s_first, s_free_bytes, s_allocations;
 static int s_open;
+static struct { uint32_t address,bytes; } s_spans[128];
 extern uint32_t xbox_HeapAlloc(uint32_t size, uint32_t alignment);
 extern void sub_001E9640(void);
 
@@ -25,6 +26,13 @@ static void cpu_stop(const char *message) {
 int defjam_fighter_cpu_contains(uint32_t address) {
     return s_backing && address >= s_backing + CPU_PREFIX
         && address - s_backing < CPU_BYTES;
+}
+int defjam_fighter_cpu_range(uint32_t address,uint32_t bytes) {
+    if (!defjam_fighter_cpu_contains(address) || !bytes || bytes>CPU_BYTES-(address-s_backing)) return 0;
+    for (unsigned i=0;i<s_allocations;++i)
+        if (address>=s_spans[i].address && address-s_spans[i].address<=s_spans[i].bytes
+            && bytes<=s_spans[i].bytes-(address-s_spans[i].address)) return 1;
+    return 0;
 }
 static void cpu_empty(void) {
     if (MEM32(CPU_REGISTRY) != s_root || MEM32(s_root + 0x20) != s_first
@@ -84,6 +92,8 @@ void defjam_fighter_cpu_result(uint32_t address, uint32_t bytes) {
         || bytes > CPU_BYTES - (address - s_backing)
         || (MEM8(address - 14) & 63) != CPU_KEY)
         cpu_stop("owned animation allocation failed or escaped its native CPU pool");
+    if (s_allocations>=128) cpu_stop("owned animation allocation population exceeds the active participant bound");
+    s_spans[s_allocations].address=address;s_spans[s_allocations].bytes=bytes;
     ++s_allocations;
 }
 void defjam_fighter_cpu_released(void) {

@@ -19,7 +19,7 @@ from fighter_animation_timed_quaternions import TimedQuaternionCurve
 from fighter_face import FacePalettes
 from fighter_elf import MAX_BYTES
 
-FORMAT = 'fighter-motion-graph-draft-1'
+FORMAT = 'fighter-motion-graph-1'
 ROLES = {'body': '_s', 'root': '_t', 'helper': '_d', 'face': '_f', 'hands': '_h'}
 MAX_KEYS = 4096
 
@@ -296,9 +296,16 @@ class FullMotionTemplate:
         require(actual == value, 'Rebuilt motion differs from its typed values')
         helper_parent = parsed.records[parsed.lookup[token + '_d']]
         helper = TimedQuaternionCurve(CurveLayouts(parsed), parsed.children[helper_parent][0])
-        for pose in helper.scalar.poses():
+        poses=list(helper.scalar.poses())
+        for pose in poses:
             require(0.000001 <= sum(v * v for v in pose) <= 1_000_000,
                     'Helper quaternion has a degenerate or unbounded norm')
+        for first,second in zip(poses,poses[1:]):
+            delta=[b-a for a,b in zip(first,second)]
+            squared=sum(d*d for d in delta)
+            weight=max(0.,min(1.,-sum(a*d for a,d in zip(first,delta))/squared)) if squared else 0.
+            require(sum((a+weight*d)**2 for a,d in zip(first,delta))>=0.000001,
+                    'Helper quaternion interpolation approaches a degenerate norm')
         # Native interpolation normalizes; ensure neither precision profile can
         # divide by zero on an admitted interval after quantized reconstruction.
         for low, high in zip((0, *helper.times[:-1]), helper.times):

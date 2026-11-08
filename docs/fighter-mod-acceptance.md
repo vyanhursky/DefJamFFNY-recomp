@@ -3,12 +3,12 @@
 Target v0.15.0. This ledger reconciles the approved roadmap with evidence;
 unchecked roadmap boxes do not erase accepted local M1–M4 work. **Extended M5
 and release acceptance remain outstanding.** Publication remains unauthorized.
-Current continuation: [November7 checkpoint](research/fighter-mod-m5-2026-11-07.md).
+Current continuation: [November8 checkpoint](research/fighter-mod-m5-2026-11-08.md).
 
 | Approved criterion | Existing evidence | Remaining acceptance |
 |---|---|---|
 | One/multiple fighters, independent packs, retail preserved | M1/M2 authored Alpha/Beta, M4 ordinary install and native combat; M5 installed creator starters together | Full converted46-fighter pack plus independent authored pack |
-| Every component validated and played | M1/M2 admitted appearance, portrait/grid, motion, AI, voice, intro/victory, activation/paired profiles; M5 actual47-template/94-role rebuilds,5734offline joins,276portrait variants and44voices through shared staging compiler | Versioned full graph admission/native joins, cinematic source semantics, absent-category requests and full converted content |
+| Every component validated and played | M1/M2 admitted components; M5 actual47-template/94-role rebuilds and installed exports,5734offline joins,828portrait/logo variants,44voices; FBP3 CPU native role pair twice; actual missing-category requests while Character registered | Native graph human/retail/created coverage, extended artwork, source event timelines/cinematic semantics and full converted content |
 | Deterministic bindings, actionable conflicts/restart | Resolver/identity/compiler/package tests and M3/M4 update/removal evidence | Expanded formats/cache policy and final release candidate |
 | Separate capacities and bounded resources | Runtime reference documents file/definition limits; native32MiB CPU pool measured | Platform limits, admission resource failure paths, performance and leak slopes; do not infer limits from processing budgets |
 | 254/255/256/257, >256 selectable, sparse/high/sentinel | Prior four-boundary fight and logical361 from300 custom fighters reached combat | Final release candidate boundary/sparse/sentinel matrix and supported limits |
@@ -18,7 +18,7 @@ Current continuation: [November7 checkpoint](research/fighter-mod-m5-2026-11-07.
 | Re-lift direct/indirect hooks; immutable dump | Recorded relifts/builds and original-body oracles; toolkit unchanged | Final changed-adapter relift checks where needed; no generated edits |
 | Cold/warm cache, memory, lifetime/soaks, no roster preloading | M3 two-match teardown/rebind; M5 full16-pair fixture and release/coalescing/headroom | CPU pool native second-match reuse, cold/warm timings, longer load/exit and memory/performance soaks |
 | Unit/native/release checks, all platforms, owner | Focused Windows M1–M4 acceptance; M5 component/unit/oracle evidence | Windows RC checks once at final candidate, macOS/Deck/Linux acceptance, physical controls, installed setup/helper, owner playtest |
-| Faithful ordinary Vendetta package |46appearances compile;184combat/AI files exactly inherited;47behaviors uniquely match complete packed/native records;94roles rebuild against actual templates;129banks/2777clips plus88streams export/compile; all1883files explicitly accounted | Resolve936blocked source rows, versioned graph admission, full cinematic conversion, complete ordinary package and launcher playtest |
+| Faithful ordinary Vendetta package |46appearances compile;184combat/AI files exactly inherited;47behaviors match packed/native records;94graph roles export/compile through installed tools;129banks/2777clips plus88streams compile; all828portrait/logo variants compile; every1883file accounted |384source rows still blocked in artwork-complete accounting; source event timelines, cinematic conversion, complete ordinary package and launcher playtest |
 
 ## Platform and installer access
 

@@ -58,7 +58,7 @@ resource. Component references and resource kinds are not always the same:
 | ai | ai | none | fighter-ai-1 |
 | portrait | portrait | none | eagl-portrait-1 |
 | intro, victory | cinematic | skeleton, events | fighter-cinematic-1 |
-| blazin | blazin | skeleton, events | fighter-blazin-1 / 2 |
+| blazin | blazin | skeleton, events | fighter-blazin-1 / 2 / 3 |
 
 Compatibility values are stable keys such as `retail/binding-ludacris`, exported
 by the verified retail catalog. They are checked against actual rig/template
@@ -98,6 +98,12 @@ required. File arguments mean hash-checked descriptors, not unverified paths.
   donor layout/dimensions. Current aggregate input is 16 MiB per resource.
   The runtime owns menu expansion; whole selector/result movie replacement is
   not an authoring interface. PNG artwork needs a native exporter first.
+  `eagl-portrait-2` adds twelve mandatory files: `selector_logo_Np`,
+  `result_logo_Np`, `loading_Np`, `loading_logo_Np`, each for N=2,3,4. These use
+  the same verified-layout/pixels-only contract. Authored logos replace generated
+  name fields for their identities; other fighters retain text names. Loading
+  aliases use appended logical IDs>=100, outside the verified retail reversed
+  portrait list (maximum82). No reversed variant is inferred from arbitrary IDs.
 - **Moveset:** `format`, `donor`, `selections`, `tracks`. At least one authored
   selection or track. `selections` has at most 124 canonical string ordinal keys
   0–124 mapping to integers 1–124. Composition further rejects special actions,
@@ -154,6 +160,26 @@ required. File arguments mean hash-checked descriptors, not unverified paths.
   four choice fields plus independently proved ordinary action edits. FBP2 binds
   core/slot/template to owned paired motions, distinguishing duplicate templates.
   Omitted slots inherit; `pairs` and `slots` cannot be combined in one source.
+  Version3 keeps the version2 field list and shot rules, but each slot's
+  `subject`/`counterpart` file is `fighter-motion-graph-1`. This explicit profile
+  preserves five coordinated body/root/rotation-helper/face/hand tracks, including
+  their individual time grids and palette references. It supports the observed
+  type18/type20 independent seeds, timed type13 helper and ordered type25 palette
+  selections. Bounds and actual compiled appearance joins are checked. The
+  compiler emits FBP3 relocation/output proofs; packages cannot supply those
+  native tables. FBP1/2 retain their type11-only native guard. Source3 still
+  explicitly inherits the behavior template's camera AND animation-tag timelines;
+  matching combat records alone does not establish legacy source timeline fidelity.
+
+Use installed `defjam-tools fighter pair` with explicit `--recomp`, `--game`,
+`--model`, `--face`, `--subject-data`, `--subject-links`, `--counterpart-data`,
+`--counterpart-links`, `--template-choice` and a new `--out` folder. The runtime
+matches opaque controls to the verified template, rebuilds both roles and seals
+input hashes before the tool publishes typed files. Copy `subject.json` and
+`counterpart.json` into the pack, adjusting the two relative paths in
+`pair-source.json` when assigning it to a version3 slot. Keep `pair-export.json`
+outside the package. Full validation still joins the actual appearance and all
+opponents. Component export is not a native playtest or a complete legacy import.
 
 Quaternion files have exactly `schema: "fighter-quaternions-1"`, `rig_sha256`,
 `bone_count`, `poses`. Every pose contains a complete bone-ordinal list of
@@ -257,4 +283,4 @@ categories now have an explicit version4 omission contract and template-matched
 exporter; native missing-category acceptance remains separate. A faithful converter must account
 for these data, facial poses,
 voices, portraits, AI and cinematic links; it cannot silently substitute donor
-assets or copy whole shared databases. See the [current M5 checkpoint](research/fighter-mod-m5-2026-11-07.md).
+assets or copy whole shared databases. See the [current M5 checkpoint](research/fighter-mod-m5-2026-11-08.md).

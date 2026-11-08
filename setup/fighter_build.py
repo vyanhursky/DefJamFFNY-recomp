@@ -148,10 +148,14 @@ def compile_inputs(sod, paths, packs, ledger=None, *, catalog=None, pin_path=Non
 def write_preview(data, report, resources=None, *, cache_root=None, max_report=MAX_REPORT):
     """Write a verified content-addressed cache; never activate or edit originals."""
     resources = {} if resources is None else resources
-    from fighter_resource_files import PORTRAIT_PARTS, resource_name
+    from fighter_resource_files import PORTRAIT_PARTS, PORTRAIT_EXTENDED_PARTS, resource_name
     appearance_targets = {'assets/v2ip.viv', 'assets/entity.xml', 'assets/nis.viv'} if report.get('appearance_resources') else set()
-    portrait_targets = {f'portraits/{resource_name(identifier)}/{part}.big'
-                        for identifier in report.get('portrait_resources', {}) for part in PORTRAIT_PARTS}
+    portrait_targets=set()
+    for identifier,summary in report.get('portrait_resources',{}).items():
+        parts=set(summary['variants'])
+        if parts not in (set(PORTRAIT_PARTS),set(PORTRAIT_EXTENDED_PARTS)):
+            raise ValueError('Invalid composed portrait variant set')
+        portrait_targets.update(f'portraits/{resource_name(identifier)}/{part}.big' for part in parts)
     behavior_targets = set()
     if report.get('behavior_files') or report.get('behavior_receipts'):
         from fighter_behavior import targets

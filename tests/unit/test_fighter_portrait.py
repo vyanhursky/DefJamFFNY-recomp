@@ -9,7 +9,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'setup'))
 from fighter_assets import AssetError
 from fighter_portrait import PortraitTextureTemplate, UITextures, Portrait, PortraitBaseline, variant_path, apply_portraits
-from fighter_resource_files import PORTRAIT_PARTS, read_portrait
+from fighter_resource_files import PORTRAIT_PARTS, PORTRAIT_EXTENDED_PARTS, read_portrait
 from fighter_archive import Archive, portrait_aliases, store
 from fighter_assets import unpack
 from fighter_xsh import Textures
@@ -60,10 +60,10 @@ def test_portrait_template_rejects_wrong_hash_names_dimensions_and_palettes():
         PortraitTextureTemplate(palette, hashlib.sha256(palette).hexdigest())
 
 
-def portrait_fixture(selection=1, donor='retail/test-alpha'):
+def portrait_fixture(selection=1, donor='retail/test-alpha',extended=False):
     entries, files = {}, {}
-    source = {'format': 'eagl-portrait-1', 'donor': donor}
-    for part in PORTRAIT_PARTS:
+    source = {'format': 'eagl-portrait-2' if extended else 'eagl-portrait-1', 'donor': donor}
+    for part in PORTRAIT_EXTENDED_PARTS if extended else PORTRAIT_PARTS:
         path, stem = variant_path(part, selection)
         entries[path] = store(fixture({stem + '.apt': b'original movie', stem + '.const': b'original constants',
                                       stem + '.o': b'original geometry', stem + '.xsh': ui()}))
@@ -76,6 +76,35 @@ def portrait_fixture(selection=1, donor='retail/test-alpha'):
     screens = fixture(entries)
     baseline = PortraitBaseline(screens, hashlib.sha256(screens).hexdigest())
     return source, files, baseline, screens
+
+
+def test_extended_portraits_preserve_all_eighteen_roles_and_original_movies(tmp_path):
+    source,files,baseline,screens=portrait_fixture(extended=True)
+    for part,data in files.items():
+        (tmp_path/source[part]['path']).write_bytes(data)
+    assert read_portrait(tmp_path,source)==files
+    assert baseline.matching_layouts(files,{'retail/test-alpha':1})==['retail/test-alpha']
+    portrait=Portrait('alpha/portrait',source,files,baseline,1)
+    assert len(portrait.files)==18
+    aliased=portrait_aliases(screens,{100:1},results=True,extended={100})
+    receipt={name:hashlib.sha256(data).hexdigest() for name,data in portrait.files.items()}
+    output=Archive(apply_portraits(aliased,{100:('alpha/portrait',receipt)},portrait.files))
+    original=Archive(screens)
+    assert all(output.read(entry.name)==original.read(entry.name) for entry in original.entries)
+    for part in PORTRAIT_EXTENDED_PARTS:
+        path,stem=variant_path(part,100)
+        movie=Archive(unpack(output.read(path)))
+        assert movie.read(stem+'.apt')==b'original movie'
+        assert movie.read(stem+'.const')==b'original constants'
+        assert movie.read(stem+'.o')==b'original geometry'
+        assert movie.read(stem+'.xsh')==unpack(files[part])
+    assert variant_path('selector_logo_2p',100)==('screens/portrait/l_CF/l_CF_100_2p.big','l_CF_100_2p')
+    assert variant_path('loading_4p',100)==('screens/match/3_fighters/p_ML_101_4p.big','p_ML_101_4p')
+    with pytest.raises(AssetError,match='appended logical'):
+        portrait_aliases(screens,{82:1},results=True,extended={82})
+    changed=dict(source,format='eagl-portrait-1')
+    with pytest.raises(AssetError,match='every declared role'):
+        read_portrait(tmp_path,changed)
 
 
 def test_portrait_six_variants_keep_original_ui_and_replace_only_owned_aliases():

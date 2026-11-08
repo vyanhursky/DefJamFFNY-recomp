@@ -152,7 +152,7 @@ def store(data):
     return bytes(output + data[at:])
 
 
-def portrait_aliases(data, pairs, *, results=False):
+def portrait_aliases(data, pairs, *, results=False,extended=()):
     """Map {custom selection token: retail portrait token}; never alias identity.
 
     Portrait envelopes are renamed together without changing their payloads.
@@ -161,6 +161,8 @@ def portrait_aliases(data, pairs, *, results=False):
     An occupied destination is a conflict, including another mod's same path.
     """
     archive, additions = Archive(data), {}
+    if type(extended) not in (set,frozenset,tuple,list) or not set(extended)<=set(pairs):
+        raise AssetError('Extended portraits require owned selection aliases')
     for target, donor in sorted(pairs.items()):
         if not all(type(value) is int and 0 <= value <= 0x7ffffffe for value in (target, donor)) or target == donor:
             raise AssetError('Invalid portrait selection binding')
@@ -169,6 +171,12 @@ def portrait_aliases(data, pairs, *, results=False):
             # GetMatchSummary's fid is used directly; selector portraits alone
             # add one. These are different namespaces in the original movies.
             families += [('screens/portrait/t_MS/', 't_MS_', 0), ('screens/portrait/', 'l_MS_', 0)]
+        if target in extended:
+            # oldMLoad's verified REVERSE_CHARS list contains only retail IDs
+            # 7..82. Appended logical identities start100 and need no Rvariant.
+            if target<100: raise AssetError('Extended loading portraits require appended logical identities')
+            families += [('screens/portrait/l_CF/','l_CF_',0),
+                         ('screens/match/3_fighters/','p_ML_',1),('screens/match/3_fighters/','l_ML_',0)]
         for prefix, stem, increment in families:
             for players in (2, 3, 4):
                 old, new = f'{stem}{donor + increment}_{players}p', f'{stem}{target + increment}_{players}p'
@@ -178,7 +186,7 @@ def portrait_aliases(data, pairs, *, results=False):
                 # Custom names use our text field. Loading a donor logo would
                 # overwrite an early _visible=false when that movie arrives.
                 # The original blank movie has no model/texture dependencies.
-                if stem == 'l_MS_':
+                if stem == 'l_MS_' and target not in extended:
                     old = 'empty2'
                     inner = Archive(unpack(archive.read('screens/trans/empty2.big')))
                     expected = {old + suffix for suffix in ('.apt', '.const')}

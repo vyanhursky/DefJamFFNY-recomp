@@ -16,7 +16,7 @@ from fighter_archive import Archive
 from fighter_assets import unpack
 from fighter_build import retail_catalog
 from fighter_portrait import Portrait, PortraitBaseline, variant_path
-from fighter_resource_files import PORTRAIT_PARTS
+from fighter_resource_files import PORTRAIT_PARTS, PORTRAIT_EXTENDED_PARTS
 from fighter_sod import Database
 
 
@@ -29,6 +29,7 @@ def main():
     parser.add_argument('--source', type=Path, required=True)
     parser.add_argument('--game', type=Path, default=ROOT / 'game')
     parser.add_argument('--out', type=Path, required=True)
+    parser.add_argument('--extended',action='store_true',help='Include authored selector/result/loading logos and loading portraits')
     args = parser.parse_args()
     if args.out.exists():
         raise ValueError('Choose a new audit report path')
@@ -56,7 +57,7 @@ def main():
         try:
             behavior_donor, _retail = by_core[mapping[core]]
             files = {}
-            for part in PORTRAIT_PARTS:
+            for part in PORTRAIT_EXTENDED_PARTS if args.extended else PORTRAIT_PARTS:
                 path, stem = variant_path(part, row['selection'])
                 source = (args.source / path).read_bytes()
                 archive = Archive(unpack(source))
@@ -68,7 +69,7 @@ def main():
                 raise ValueError('No verified retail donor matches all six source portrait layouts')
             donor = behavior_donor if behavior_donor in matches else matches[0]
             retail = catalog.rows[donor]
-            source = {'format': 'eagl-portrait-1', 'donor': donor,
+            source = {'format': 'eagl-portrait-2' if args.extended else 'eagl-portrait-1', 'donor': donor,
                       **{part: {'path': part + '.xsh', 'sha256': digest(data)} for part, data in files.items()}}
             portrait = Portrait('converted/portrait-' + str(core), source, files, baseline,
                                 retail['native_binding']['selection_key'])
@@ -81,7 +82,8 @@ def main():
               'summary': {'fighters': len(rows), 'passed': sum(row['passed'] for row in rows),
                           'source_files': sum(len(row['inputs']) for row in rows)},
               'native_playtest': False, 'whole_pack_conversion': False,
-              'ancillary_screen_accounting': 'not covered; no other source art is implicitly excluded'}
+              'ancillary_screen_accounting': ('all eighteen portrait/logo variants covered; whole selector movies remain separate'
+                                              if args.extended else 'not covered; no other source art is implicitly excluded')}
     args.out.parent.mkdir(parents=True, exist_ok=True)
     with args.out.open('x', encoding='utf-8') as output:
         output.write(json.dumps(report, indent=2) + '\n')

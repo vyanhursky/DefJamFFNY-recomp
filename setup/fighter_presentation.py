@@ -98,7 +98,9 @@ def prepare_portraits(screens, report, *, language=None, resource_cache=None, ca
         source = composed
     pairs = {report['bindings'][key]['selection_key']: report['bindings'][donor]['selection_key']
              for key, donor in report['portrait_donors'].items()}
-    result = portrait_aliases(source, pairs, results=True)
+    extended={report['bindings'][key]['selection_key'] for key,identifier in report.get('portrait_bindings',{}).items()
+              if 'result_logo_2p' in report['portrait_resources'][identifier]['variants']}
+    result = portrait_aliases(source, pairs, results=True,extended=extended)
     artwork = {}
     if report.get('portrait_resources'):
         from fighter_portrait import apply_portraits
@@ -130,12 +132,12 @@ def prepare_portraits(screens, report, *, language=None, resource_cache=None, ca
         path = 'screens/battle/' + stem + '.big'
         inner = Archive(unpack(archive.read(path)))
         records = list(report['menu_roster'].values()) if report.get('binding_mode') in ('logical-menu-only', 'participant-window') else None
-        movie, constants, _ = compile_menu(inner.read(stem + '.apt'), inner.read(stem + '.const'), pairs, names, records, participants=count, artwork=artwork)
+        movie, constants, _ = compile_menu(inner.read(stem + '.apt'), inner.read(stem + '.const'), pairs, names, records, participants=count, artwork=artwork,logos=extended)
         replacements[path] = store(inner.compose(replacements={stem + '.apt': movie, stem + '.const': constants}))
         stem = f'matchSm{count}'
         path = 'screens/battle/' + stem + '.big'
         inner = Archive(unpack(archive.read(path)))
-        movie, constants, _ = compile_results(inner.read(stem + '.apt'), inner.read(stem + '.const'), names, participants=count)
+        movie, constants, _ = compile_results(inner.read(stem + '.apt'), inner.read(stem + '.const'), names, participants=count,logos=extended)
         replacements[path] = store(inner.compose(replacements={stem + '.apt': movie, stem + '.const': constants}))
     result = archive.compose(replacements=replacements)
     digest = hashlib.sha256(result).hexdigest()

@@ -33,6 +33,48 @@ def resource():
             'subject': track(), 'counterpart': track()}
 
 
+def test_full_graph_profile_generates_versioned_seals_and_explicit_slots():
+    from test_fighter_animation_graphs import graph_template, motion, palettes, RIG as GRAPH_RIG
+    from fighter_animation_graphs import Writer
+    from fighter_animation_compile import rebuild
+    source,_=original()
+    archive=Archive(source)
+    replacements={}
+    for letter in ('A','B'):
+        graph,_=graph_template().compose('A',motion())
+        model,index=graph.model,AnimationIndex(graph)
+        section=model.sections[1]
+        payload=bytearray(model.data[section[4]:section[4]+section[5]])
+        writer=Writer(payload,{at:row['target'] for at,row in model.pointers.items()})
+        table=model.local_pointer(model.export_offset(graph.bank)+20,4*len(index.names))
+        for i,name in enumerate(index.names):
+            writer.pointer(table+4*i,writer.append(('N0002_'+letter+name[1:]).encode()+b'\0'))
+        data,links=rebuild(model,payload,writer.pointers)
+        replacements['N0002_'+letter+'.ord']=data
+        replacements['N0002_'+letter+'.orl']=links
+    source=archive.compose(replacements=replacements)
+    compiler=BlazinPairs(source,hashlib.sha256(source).hexdigest())
+    value={'template_choice':2,'rig_sha256':GRAPH_RIG,'bone_count':2,
+           'subject':motion(),'counterpart':motion(),'profile':'graph-1',
+           'graph_contexts':{'face':palettes(),'hands':palettes(),
+                             'allowed_rigs':{'subject':[GRAPH_RIG],'counterpart':[GRAPH_RIG]}}}
+    data,report=compiler.compose({'alpha/full':value})
+    table=encode_pair_bindings(data,report,{256:{1:'alpha/full'}},slots=True)
+    assert table[:8]==b'FBP3\x03\0\0\0'
+    assert table[84:88]==b'FGP1'
+    assert struct.unpack_from('<III8s8s',table,56)==(1,2,873,b'P0000_A\0',b'P0000_B\0')
+    with pytest.raises(AssetError,match='explicit slots'):
+        encode_pair_bindings(data,report,{256:{2:'alpha/full'}})
+    changed=deepcopy(report)
+    changed['bindings']['alpha/full']['roles']['subject']['graph_proof']['data_sha256']='0'*64
+    with pytest.raises(AssetError,match='Graph proof differs'):
+        encode_pair_bindings(data,changed,{256:{1:'alpha/full'}},slots=True)
+    legacy=resource();legacy['template_choice']=0
+    data,report=compiler.compose({'alpha/full':value,'beta/legacy':legacy})
+    table=encode_pair_bindings(data,report,{256:{1:'alpha/full'},1000:{0:'beta/legacy'}},slots=True)
+    assert table[:4]==b'FBP3' and struct.unpack_from('<I',table,52+64+8)[0]==4
+
+
 def test_independent_pairs_append_external_ordinals_without_replacing_donor():
     source, compiler = original()
     result, report = compiler.compose({'alpha/finisher': resource(), 'beta/finisher': resource()})

@@ -49,6 +49,29 @@
 #include "patches/fighter_cinematic.h"
 #include "patches/fighter_finishers.h"
 #include "patches/fighter_cpu_pool.h"
+#include "patches/fighter_palette_context.h"
+#include "patches/fighter_graph_proof.h"
+
+void sub_000E68A0_enter(void) {
+    if (!defjam_fighter_graph_preconstruct(MEM32(g_esp+4))) {
+        fprintf(stderr,"[FIGHTERS] graph seal stopped before native constructor\n");fflush(stderr);exit(1);
+    }
+}
+
+extern void sub_00021500_gen(void);
+void sub_00021500(void) {
+    FighterPaletteScope previous=defjam_fighter_palette_begin(g_ecx);
+    sub_00021500_gen(); /* Native ret4; raw owned ELF is captured at109F80. */
+    defjam_fighter_palette_end(previous,(g_eax & 255)!=0);
+}
+extern void sub_000215E0_gen(void);
+void sub_000215E0(void) {
+    FighterPaletteScope previous=defjam_fighter_palette_begin(g_ecx);
+    sub_000215E0_gen(); /* Native ret8; created and ordinary borrowed faces. */
+    defjam_fighter_palette_end(previous,(g_eax & 255)!=0);
+}
+void sub_00021670_enter(void) { defjam_fighter_palette_release(g_ecx); }
+void sub_000216A0_enter(void) { defjam_fighter_palette_release(g_ecx); }
 
 /* The archive loader calls this allocator indirectly. Direct callers retain
  * their original behavior; only admitted owned animation filenames get a
@@ -492,6 +515,7 @@ void sub_00056F50_enter(void) { ws_apt_load_done(MEM32(g_esp + 8)); }
 /* DynamicLoader's ELF parser: the input descriptor's +0x10 is the raw header,
  * still before section fixup, relocation and vertex-buffer upload. */
 void sub_00109F80_enter(void) {
+    defjam_fighter_palette_input(g_ecx);
     defjam_fighter_model_input(g_ecx);
     menu_geometry_register(MEM32(g_ecx + 0x10));
 }

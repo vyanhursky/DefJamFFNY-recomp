@@ -62,6 +62,9 @@ int main(int argc,char **argv) {
   assert(defjam_fighter_cpu_flags(callers[i],0x1000,512,256)==0x8000013F);
  MEM32(g_esp)=0x1E4057;MEM32(g_esp+4)=0x1000;MEM32(g_esp+8)=512;MEM32(g_esp+12)=0;
  fighter_archive_allocate();
+ assert(defjam_fighter_cpu_range(first+16,512));
+ assert(!defjam_fighter_cpu_range(first+16,513));
+ assert(!defjam_fighter_cpu_range(first+512,32));
  assert(g_esp==0x4F0004&&g_eax==first+16&&g_ecx==0xBAD&&MEM32(0x4F000C)==0);
  if(!strcmp(mode,"null"))defjam_fighter_cpu_result(0,512);
  if(!strcmp(mode,"escape"))defjam_fighter_cpu_result(0x24FFFF0,512);

@@ -8,6 +8,14 @@ from mods import ordinary_path, safe_relative
 APPEARANCE_FORMAT = 'eagl-appearance-1'
 PARTS = ('model', 'textures', 'face')
 PORTRAIT_PARTS = tuple(f'{role}_{count}p' for role in ('selector', 'result') for count in (2, 3, 4))
+PORTRAIT_EXTENDED_PARTS = PORTRAIT_PARTS + tuple(f'{role}_{count}p' for role in
+                            ('selector_logo','result_logo','loading','loading_logo') for count in (2,3,4))
+
+
+def portrait_parts(source):
+    require(type(source) is dict and source.get('format') in ('eagl-portrait-1','eagl-portrait-2'),
+            'Unsupported portrait source format')
+    return PORTRAIT_EXTENDED_PARTS if source['format']=='eagl-portrait-2' else PORTRAIT_PARTS
 
 
 def require(condition, message):
@@ -62,13 +70,13 @@ def resource_name(identifier):
 
 
 def portrait_source(source):
-    require(isinstance(source, dict) and set(source) == {'format', 'donor', *PORTRAIT_PARTS},
-            'Portrait source needs format, donor and all six selector/result variants')
-    require(source['format'] == 'eagl-portrait-1', 'Unsupported portrait source format')
+    parts=portrait_parts(source)
+    require(isinstance(source, dict) and set(source) == {'format', 'donor', *parts},
+            'Portrait source needs format, donor and every declared role variant')
     require(isinstance(source['donor'], str) and re.fullmatch(r'retail/[a-z0-9]+(?:-[a-z0-9]+)*', source['donor']),
             'Portrait source requires a supported retail layout donor')
     seen = set()
-    for part in PORTRAIT_PARTS:
+    for part in parts:
         file = source[part]
         require(isinstance(file, dict) and set(file) == {'path', 'sha256'}, 'Invalid portrait file descriptor')
         safe_relative(file['path'])
@@ -85,7 +93,7 @@ def read_portrait(root, source, budget=16 * 1024**2):
     root = ordinary_path(root)
     require(root.is_dir(), 'Portrait package directory is missing')
     output = {}
-    for part in PORTRAIT_PARTS:
+    for part in portrait_parts(source):
         descriptor = source[part]
         path = ordinary_path(root.joinpath(*safe_relative(descriptor['path'])))
         require(path.is_relative_to(root), 'Portrait file escapes its package')

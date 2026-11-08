@@ -23,6 +23,8 @@ from fighter_blazin_pairs import BlazinPairs, encode_pair_bindings
 from fighter_cinematics import Cinematics
 from fighter_elf import Model
 from fighter_rig import Skeleton
+from fighter_face import FacePalettes
+from fighter_motion_contexts import MotionOutputContexts
 
 TARGETS = {
     'motion': ('motion/main_all.dat', 'fighter-motion.bin'),
@@ -126,6 +128,24 @@ class BehaviorPlan:
                 rigs[key] = Skeleton(Model(model))
             return rigs[key]
 
+        graph_contexts=None
+        if any(source.get('slots') and any(pair.get('profile')=='graph-1' for pair in source['slots'].values())
+               for source in typed.values()):
+            misc=Archive(original('assets/misc.viv','misc_sha256'))
+            hands=FacePalettes(Model(unpack(misc.read('share_hp.o'))),57,(32,32))
+            graph_contexts=MotionOutputContexts(hands,pins['shared_hand_sha256'])
+            archive=Archive(original('assets/v2ip.viv','v2ip_sha256'))
+            for fighter,row in sorted(snapshot['fighters'].items()):
+                appearance_key=row['components']['appearance']
+                if appearance_key in appearances:
+                    appearance=appearances[appearance_key]
+                    body,face=(unpack(appearance.files[appearance.name+suffix]) for suffix in ('.o','_F.o'))
+                else:
+                    binding=catalog.bindings[appearance_key]
+                    name=catalog.rows[binding['donor']]['fields']['Model']['symbol']
+                    body,face=(unpack(archive.read(name+suffix)) for suffix in ('.o','_F.o'))
+                graph_contexts.add(fighter,body,face,model_sha256=digest(body),face_sha256=digest(face))
+
         motion_source = original('motion/main_all.dat', 'motion_sha256')
         templates = MotionCoreTemplates(motion_source, pins['motion_sha256'])
         animation_source = None
@@ -210,6 +230,16 @@ class BehaviorPlan:
                         pair_key = resource_key.split('/')[0] + '/pair-' + fingerprint([resource_key, 'slot', slot])[:32]
                         pair_resources[pair_key] = {'rig_sha256': rig.pose_sha256,
                                                    'bone_count': len(rig.rows), **pair}
+                        if pair.get('profile')=='graph-1':
+                            require(graph_contexts is not None,'Full graphs require actual output contexts')
+                            origin=graph_contexts.contexts[fighter]
+                            joins={role:graph_contexts.join(pair[role],fighter,
+                                   [fighter] if role=='subject' else sorted(graph_contexts.contexts))
+                                   for role in ('subject','counterpart')}
+                            pair_resources[pair_key]['graph_contexts']={'face':origin[1],
+                                'hands':graph_contexts.hands,
+                                'allowed_rigs':{role:sorted({identity['rig_sha256'] for identity in join['targets'].values()})
+                                                for role,join in joins.items()}}
                         pair_keys.setdefault(fighter, {})[slot] = pair_key
                         choices[slot] = pair['template_choice']
                     if type(motion_resources[fighter]) is int:

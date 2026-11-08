@@ -202,7 +202,7 @@ def main():
             else:
                 row['reason'] = 'Additional source model outside added appearance set requires explicit global/dependency analysis'
     for name in ('mod.ini', 'couverture.png'):
-        classify(name, 'excluded', 'Legacy installer/catalogue metadata or cover art; ordinary fighter package needs neither')
+        classify(name, 'excluded', 'Legacy catalogue metadata or cover art; ordinary fighter package needs neither')
     classify('coreid.txt', 'converted', 'Legacy core/donor/voice association consumed outside the engine; stable keys recorded in this report')
     counts = collections.Counter(row['status'] for row in files.values())
     report = {'schema': 'fighter-conversion-source-accounting-1', 'archive_sha256': inventory['archive_sha256'],

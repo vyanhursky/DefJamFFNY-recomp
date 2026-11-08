@@ -13,11 +13,19 @@ from fighter_assets import AssetError
 from fighter_menu import Action, MAX_MOVIE
 
 
-def apply_label(action, lines=0):
+def apply_label(action, lines=0,logos=False):
     """Use the timeline's variable scope, as its original name action does."""
     done = action.unique()
     for index in range(lines):
         action.variable('_recompResultLine' + str(index)); action.string('text'); action.string(''); action.op('SetMember')
+    if logos:
+        fallback=action.unique()
+        action.variable('_recompResultHasLogo');action.op('EA_PushUndefined');action.op('Equals2');action.branch('BranchIfTrue',fallback)
+        action.variable('szFighterNameMov');action.string('text');action.string('');action.op('SetMember')
+        action.variable('szFighterNameMov');action.string('_visible');action.op('EA_PushFalse');action.op('SetMember')
+        action.string('_parent.logoLoader');action.variable('_recompResultPlayer');action.integer(1);action.op('Add2');action.op('Add2');action.op('GetVariable')
+        action.string('_visible');action.op('EA_PushTrue');action.op('SetMember');action.branch('BranchAlways',done)
+        action.label(fallback)
     action.variable('_recompResultLabel')
     action.op('EA_PushUndefined'); action.op('Equals2'); action.branch('BranchIfTrue', done)
     action.variable('szFighterNameMov'); action.string('text')
@@ -105,7 +113,7 @@ def scan_action(movie, start, entries):
     raise AssetError('Unterminated result action')
 
 
-def compile_results(movie, constants, names, *, participants=None):
+def compile_results(movie, constants, names, *, participants=None,logos=()):
     if participants is not None and (type(participants) is not int or participants not in (2, 3, 4)):
         raise AssetError('Invalid native result participant layout')
     if not 8 <= len(movie) <= MAX_MOVIE or movie[:8] != b'Apt Data' or len(constants) > MAX_MOVIE:
@@ -114,6 +122,9 @@ def compile_results(movie, constants, names, *, participants=None):
             or any(type(key) is not int or not 100 <= key <= 0x7fffffff for key in names) \
             or any(not isinstance(label, str) or '\0' in label or len(label.encode('utf-8')) > 65536 for label in names.values()):
         raise AssetError('Invalid result labels')
+    if type(logos) not in (set,frozenset,tuple,list) or not set(logos)<=set(names):
+        raise AssetError('Authored result logos need owned identities')
+    text_names={key:value for key,value in names.items() if key not in logos}
     entry, entries = apt.parse_const(constants)
     record = apt.parse_character(movie, entry)
     if record['type'] != 'Movie':
@@ -143,7 +154,7 @@ def compile_results(movie, constants, names, *, participants=None):
     placements, wrapped = [], None
     if participants is not None:
         wrapped = {key: textwrap.wrap(label, width={2: 14, 3: 10, 4: 10}[participants], break_on_hyphens=False)
-                   for key, label in names.items()}
+                   for key, label in text_names.items()}
         if any(len(lines) > 2 for lines in wrapped.values()):
             raise AssetError('Native result name exceeds the fitted line budget')
         placements = append_name_fields(output, movie, record, character, participants)
@@ -151,8 +162,12 @@ def compile_results(movie, constants, names, *, participants=None):
     wrapper_at = len(output)
     action = Action(wrapper_at)
     action.string('_recompResultNames'); action.integer(0); action.string('Object'); action.op('NewObject'); action.op('SetVariable')
-    for identity, label in sorted(names.items()):
+    for identity, label in sorted(text_names.items()):
         action.variable('_recompResultNames'); action.integer(identity); action.string(label); action.op('SetMember')
+    if logos:
+        action.string('_recompResultLogos');action.integer(0);action.string('Object');action.op('NewObject');action.op('SetVariable')
+        for identity in sorted(logos):
+            action.variable('_recompResultLogos');action.integer(identity);action.integer(1);action.op('SetMember')
     for index in range(lines):
         owner = '_recompResultLines' + str(index)
         action.string(owner); action.integer(0); action.string('Object'); action.op('NewObject'); action.op('SetVariable')
@@ -167,7 +182,9 @@ def compile_results(movie, constants, names, *, participants=None):
         action.string('_recompResultLabel'); action.variable('_recompResultNames'); action.variable('_recompResultID')
         action.op('GetMember'); action.op('SetVariable')
         action.string('_recompResultPlayer'); action.variable('playerId'); action.op('SetVariable')
-        apply_label(action, lines)
+        if logos:
+            action.string('_recompResultHasLogo');action.variable('_recompResultLogos');action.variable('_recompResultID');action.op('GetMember');action.op('SetVariable')
+        apply_label(action, lines,bool(logos))
         action.op('EA_PushUndefined'); action.op('Return')
     action.function('fillStats', ['playerId'], fill)
     output += action.finish(); output += bytes(-len(output) % 4)
@@ -183,7 +200,7 @@ def compile_results(movie, constants, names, *, participants=None):
     field_actions = []
     for frame in text_frames:
         field_at = len(output)
-        field = Action(field_at); apply_label(field, lines)
+        field = Action(field_at); apply_label(field, lines,bool(logos))
         output += field.finish(); output += bytes(-len(output) % 4)
         field_actions.append(field_at)
         item_at = len(output); output += struct.pack('<II', 1, field_at)

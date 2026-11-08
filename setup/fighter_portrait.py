@@ -11,7 +11,7 @@ import re
 from fighter_archive import Archive, store
 from fighter_assets import unpack
 from fighter_registry import fingerprint, key
-from fighter_resource_files import PORTRAIT_PARTS, portrait_source, resource_name
+from fighter_resource_files import PORTRAIT_PARTS, PORTRAIT_EXTENDED_PARTS, portrait_parts, portrait_source, resource_name
 from fighter_xsh import Textures, require
 
 
@@ -96,11 +96,18 @@ class PortraitTextureTemplate:
 
 
 def variant_path(part, selection):
-    require(part in PORTRAIT_PARTS and type(selection) is int and 0 <= selection <= 0x7ffffffe,
+    require(part in PORTRAIT_EXTENDED_PARTS and type(selection) is int and 0 <= selection <= 0x7ffffffe,
             'Invalid portrait variant or selection identity')
-    role, count = part.split('_')
-    stem = f'p_cf_{selection + 1}_{count}' if role == 'selector' else f't_MS_{selection}_{count}'
-    return ('screens/portrait/p_CF/' if role == 'selector' else 'screens/portrait/t_MS/') + stem + '.big', stem
+    role,count=part.rsplit('_',1)
+    prefix,base,increment={
+        'selector':('screens/portrait/p_CF/','p_cf_',1),
+        'result':('screens/portrait/t_MS/','t_MS_',0),
+        'selector_logo':('screens/portrait/l_CF/','l_CF_',0),
+        'result_logo':('screens/portrait/','l_MS_',0),
+        'loading':('screens/match/3_fighters/','p_ML_',1),
+        'loading_logo':('screens/match/3_fighters/','l_ML_',0)}[role]
+    stem=f'{base}{selection+increment}_{count}'
+    return prefix+stem+'.big',stem
 
 
 class PortraitBaseline:
@@ -115,7 +122,7 @@ class PortraitBaseline:
         This suggests templates, never substitutes their pixels. The ordinary
         Portrait compiler still validates and composes the selected candidate.
         """
-        require(type(files) is dict and set(files) == set(PORTRAIT_PARTS)
+        require(type(files) is dict and set(files) in (set(PORTRAIT_PARTS),set(PORTRAIT_EXTENDED_PARTS))
                 and type(candidates) is dict and 0 < len(candidates) <= 4096
                 and all(type(name) is str and type(selection) is int and 0 <= selection < 0x7fffffff
                         for name, selection in candidates.items()),
@@ -126,24 +133,26 @@ class PortraitBaseline:
                 field: image[field] for field in ('kind', 'width', 'height', 'swizzled', 'pixels_bytes')}
                 for image in texture.images}}
 
-        authored = {part: profile(UITextures(unpack(files[part]))) for part in PORTRAIT_PARTS}
+        parts=PORTRAIT_EXTENDED_PARTS if len(files)==18 else PORTRAIT_PARTS
+        authored = {part: profile(UITextures(unpack(files[part]))) for part in parts}
         if not hasattr(self, '_layout_profiles'):
             self._layout_profiles = {}
         matches = []
         for identifier, selection in sorted(candidates.items()):
-            if selection not in self._layout_profiles:
+            cache_key=(selection,parts)
+            if cache_key not in self._layout_profiles:
                 try:
                     layouts = {}
-                    for part in PORTRAIT_PARTS:
+                    for part in parts:
                         path, stem = variant_path(part, selection)
                         movie = Archive(unpack(self.archive.read(path)))
                         data = unpack(movie.read(stem + '.xsh'))
                         template = PortraitTextureTemplate(data, hashlib.sha256(data).hexdigest())
                         layouts[part] = profile(template.template)
-                    self._layout_profiles[selection] = layouts
+                    self._layout_profiles[cache_key] = layouts
                 except ValueError:
-                    self._layout_profiles[selection] = None
-            if self._layout_profiles[selection] == authored:
+                    self._layout_profiles[cache_key] = None
+            if self._layout_profiles[cache_key] == authored:
                 matches.append(identifier)
         return matches
 
@@ -151,7 +160,8 @@ class PortraitBaseline:
 class Portrait:
     def __init__(self, identifier, source, files, baseline, donor_selection, budget=16 * 1024**2):
         key(identifier); portrait_source(source)
-        require(type(baseline) is PortraitBaseline and set(files) == set(PORTRAIT_PARTS),
+        parts=portrait_parts(source)
+        require(type(baseline) is PortraitBaseline and set(files) == set(parts),
                 'Portrait needs an original baseline and all six texture variants')
         require(type(budget) is int and budget > 0, 'Portrait resource budget is exhausted')
         self.identifier, self.donor = identifier, source['donor']
@@ -159,7 +169,7 @@ class Portrait:
         self.source_sha256, self.baseline_sha256 = fingerprint(source), baseline.sha256
         self.files, summaries = {}, {}
         remaining = budget
-        for part in PORTRAIT_PARTS:
+        for part in parts:
             require(hashlib.sha256(files[part]).hexdigest() == source[part]['sha256'], 'Portrait source hash changed')
             path, stem = variant_path(part, donor_selection)
             movie = Archive(unpack(baseline.archive.read(path)))
@@ -193,7 +203,10 @@ def apply_portraits(screens, bindings, resources):
     archive, replacements = Archive(screens), {}
     for selection, (identifier, files) in sorted(bindings.items()):
         key(identifier)
-        for part in PORTRAIT_PARTS:
+        prefix=f'portraits/{resource_name(identifier)}/'
+        parts=tuple(part for part in PORTRAIT_EXTENDED_PARTS if prefix+part+'.big' in files)
+        require(set(parts) in (set(PORTRAIT_PARTS),set(PORTRAIT_EXTENDED_PARTS)),'Incomplete compiled portrait role set')
+        for part in parts:
             path, stem = variant_path(part, selection)
             require(path.lower() in archive.by_name and path not in replacements,
                     'Authored portrait needs one owned selection alias')

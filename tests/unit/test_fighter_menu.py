@@ -10,6 +10,14 @@ import fighter_apt as apt
 from fighter_menu import Action, AssetError, character_parameters, compile_menu, functions
 
 
+def test_authored_selector_logo_uses_native_loader_and_keeps_other_text_names():
+    movie,constants=selector_fixture()
+    output,_,_=compile_menu(movie,constants,{100:1,101:2},{100:'Authored Logo',101:'Text Name'},logos={100})
+    assert b'Authored Logo\0' not in output and b'Text Name\0' in output
+    with pytest.raises(AssetError,match='owned identities'):
+        compile_menu(movie,constants,{100:1},{100:'Name'},logos={101})
+
+
 def selector_fixture(*, four_player=False, participants=None):
     values = ['getID', 'CThumbGrid', 'prototype', 'redraw', 'deselectChar', 'selectChar', 'CHAR_HERO']
     constants = bytearray(b'Apt constant file' + bytes(3) + struct.pack('<III', 16, len(values), 32))

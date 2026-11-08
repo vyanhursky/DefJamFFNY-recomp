@@ -10,6 +10,8 @@ import struct
 
 from fighter_animation import AnimationEnvelope, AnimationIndex, require
 from fighter_animation_compile import AnimationTemplate
+from fighter_animation_graphs import FullMotionTemplate
+from fighter_graph_proof import graph_proof, payload_proof, encode_graph_proofs
 from fighter_archive import Archive, MAX_ARCHIVE
 from fighter_assets import unpack
 from fighter_registry import key
@@ -67,8 +69,9 @@ class BlazinPairs:
         tokens = list(self.tokens)
         used, number = len(self.archive.data), 0
         for identifier, resource in sorted(resources.items()):
-            require(type(resource) is dict and set(resource) == {
-                'template_choice', 'rig_sha256', 'bone_count', 'subject', 'counterpart'},
+            graph = type(resource) is dict and resource.get('profile') == 'graph-1'
+            expected = {'template_choice', 'rig_sha256', 'bone_count', 'subject', 'counterpart'}
+            require(type(resource) is dict and set(resource) == expected | ({'profile','graph_contexts'} if graph else set()),
                 'Paired Blazin needs a template choice, verified rig and two typed tracks')
             choice = resource['template_choice']
             require(type(choice) is int and 0 <= choice < RETAIL_PAIRS, 'Invalid inherited Blazin choice')
@@ -84,7 +87,11 @@ class BlazinPairs:
                                              struct.pack('<II', 1, 0) + original.encode('ascii') + b'.')
                 compiler = AnimationTemplate(envelope, hashlib.sha256(envelope.model.data).hexdigest(),
                                              resource['rig_sha256'], resource['bone_count'])
-                compiled, receipt = compiler.compose({original: resource[role]})
+                if graph:
+                    context=resource['graph_contexts']
+                    compiled,receipt=FullMotionTemplate(compiler,context['face'],context['hands']).compose(original,resource[role])
+                else:
+                    compiled, receipt = compiler.compose({original: resource[role]})
                 compiled = rename_records(compiled, original, assigned)
                 split = compiled.model.sections[2][4]
                 parts = {'ord': compiled.model.data[:split], 'orl': compiled.model.data[split:]}
@@ -95,6 +102,10 @@ class BlazinPairs:
                 pair['roles'][role] = {'template': original, 'native_name': assigned,
                     'parts_sha256': {suffix: hashlib.sha256(part).hexdigest() for suffix, part in parts.items()},
                     'animation': receipt, 'sha256': hashlib.sha256(compiled.model.data).hexdigest()}
+                if graph:
+                    pair['roles'][role]['graph_rig_sha256']=resource['rig_sha256']
+                    pair['roles'][role]['graph_proof']=graph_proof(compiled,assigned,resource['rig_sha256'],
+                                                                resource['bone_count'],context['allowed_rigs'][role])
                 tokens.append(assigned)
             bindings[identifier] = pair
             number += 1
@@ -126,7 +137,7 @@ def encode_pair_bindings(data, report, cores, *, slots=False):
     require(len(tokens) == count, 'Paired Blazin name population differs')
     bindings = report.get('bindings')
     require(type(bindings) is dict, 'Missing paired Blazin bindings')
-    rows = []
+    rows,proofs,legacy_seals = [],{},{}
     for core, choices in sorted(cores.items()):
         require(type(choices) is dict and 0 < len(choices) <= 4
                 and all(type(choice) is int and 0 <= choice < (4 if slots else RETAIL_PAIRS) for choice in choices),
@@ -156,9 +167,20 @@ def encode_pair_bindings(data, report, cores, *, slots=False):
                         == [item['parts_sha256'].get(suffix) for suffix in ('ord', 'orl')]
                         and hashlib.sha256(b''.join(parts)).hexdigest() == item.get('sha256'),
                         'Paired motion differs from its receipt')
+                if 'graph_proof' in item:
+                    proof=item['graph_proof']
+                    checked=graph_proof(AnimationEnvelope(*parts),name,item['graph_rig_sha256'],
+                                        proof['bone_count'],proof['allowed_rigs'])
+                    require(checked==proof,'Graph proof differs from its compiled bank')
+                    require(ordinal+offset not in proofs or proofs[ordinal+offset]==proof,'Conflicting graph proofs')
+                    proofs[ordinal+offset]=proof
+                else:
+                    legacy_seals[ordinal+offset]=payload_proof(AnimationEnvelope(*parts),name)
                 native_names.append(name.encode('ascii'))
             require(native_names[0][:-1] == native_names[1][:-1], 'Paired roles belong to different resources')
             rows.append(struct.pack('<IIII8s8s', core, selection, choice, ordinal, *native_names) if slots
                         else struct.pack('<III8s8s', core, choice, ordinal, *native_names))
-    return ((b'FBP2' if slots else b'FBP1') + struct.pack('<4I', 2 if slots else 1, len(rows), count, len(data))
-            + hashlib.sha256(data).digest() + b''.join(rows))
+    require(not proofs or slots,'Full graph bindings require explicit slots')
+    return ((b'FBP3' if proofs else b'FBP2' if slots else b'FBP1')
+            + struct.pack('<4I',3 if proofs else 2 if slots else 1,len(rows),count,len(data))
+            + hashlib.sha256(data).digest()+b''.join(rows)+(encode_graph_proofs({**legacy_seals,**proofs}) if proofs else b''))

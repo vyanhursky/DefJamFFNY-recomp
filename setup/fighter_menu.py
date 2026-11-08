@@ -469,13 +469,16 @@ def presentation_action(base, movie, constants, pairs, names, records=None, *, l
     return action.finish(), updated_constants, entry, [definition['method'] for definition in visual]
 
 
-def compile_menu(movie, constants, pairs, names, records=None, *, participants=None, artwork=None):
+def compile_menu(movie, constants, pairs, names, records=None, *, participants=None, artwork=None,logos=()):
     if participants is not None and (type(participants) is not int or participants not in (2, 3, 4)):
         raise AssetError('Invalid native selector participant layout')
     if not 8 <= len(movie) <= MAX_MOVIE or movie[:8] != b'Apt Data' or len(constants) > MAX_MOVIE:
         raise AssetError('Invalid selector input budget')
     if set(pairs) != set(names) or not 0 < len(pairs) <= 16384:
         raise AssetError('Invalid selector presentation bindings')
+    if type(logos) not in (set,frozenset,tuple,list) or not set(logos)<=set(names):
+        raise AssetError('Authored selector logos need owned identities')
+    text_names={key:value for key,value in names.items() if key not in logos}
     if any(type(identity) is not int or not 100 <= identity <= 0x7fffffff
            or type(donor) is not int or not 0 <= donor < 100 for identity, donor in pairs.items()):
         raise AssetError('Selector bindings must separate custom identities and retail artwork')
@@ -495,12 +498,12 @@ def compile_menu(movie, constants, pairs, names, records=None, *, participants=N
     placements, label_lines = [], None
     if participants is not None:
         capacity = {2: 2, 3: 2, 4: 4}[participants]
-        wrapped = {key: textwrap.wrap(name, width={2: 14, 3: 10, 4: 5}[participants], break_on_hyphens=False) for key, name in names.items()}
+        wrapped = {key: textwrap.wrap(name, width={2: 14, 3: 10, 4: 5}[participants], break_on_hyphens=False) for key, name in text_names.items()}
         if any(len(lines) > capacity for lines in wrapped.values()):
             raise AssetError('Native header name exceeds the fitted line budget')
         label_lines = [{key: lines[index] if index < len(lines) else '' for key, lines in wrapped.items()} for index in range(capacity)]
         placements = append_name_fields(output, movie, entry, participants, capacity)
-    code, constants, entry, methods = presentation_action(len(output), movie, constants, pairs | artwork, names, records, label_lines=label_lines)
+    code, constants, entry, methods = presentation_action(len(output), movie, constants, pairs | artwork, text_names, records, label_lines=label_lines)
     action_at = len(output); output += code; output += bytes(-len(output) % 4)
     record_at = len(output); output += struct.pack('<II', 1, action_at)
     frames = struct.unpack_from('<I', movie, entry + 12)[0]

@@ -7,6 +7,7 @@
 #include "fighter_finishers.h"
 #include "fighter_runtime.h"
 #include "fighter_cpu_pool.h"
+#include "fighter_graph_proof.h"
 #include "hooks/guest_call.h"
 #include "hooks/mod_sha256.h"
 #include <stdlib.h>
@@ -30,6 +31,7 @@ static unsigned s_logs;
 static RECOMP_TLS FighterFinisherScope s_scope;
 extern void sub_00029680(void);
 extern void sub_00029760(void);
+extern void xbox_NoteAnchorEvent(const char *text);
 
 static uint32_t fin_word(const uint8_t *p) {
     return (uint32_t)p[0] | (uint32_t)p[1]<<8 | (uint32_t)p[2]<<16 | (uint32_t)p[3]<<24;
@@ -55,20 +57,26 @@ int defjam_fighter_finishers_start(void) {
         || strlen(path) >= sizeof s_archive || strlen(binding) >= 2048 || !mod_file_matches(path, hash)) return 0;
     FILE *file = fin_open(binding);
     if (!file) return 0;
-    uint8_t *table = (uint8_t *)malloc(FIN_BYTES + 1);
+    int sized=!fseek(file,0,SEEK_END);
+    long table_size=sized?ftell(file):-1;
+    if (table_size<52 || (uint64_t)table_size>FIN_BYTES+(64u<<20) || fseek(file,0,SEEK_SET)) { fclose(file);return 0; }
+    uint8_t *table = (uint8_t *)malloc((size_t)table_size + 1);
     if (!table) { fclose(file); return 0; }
-    size_t bytes = fread(table, 1, FIN_BYTES + 1, file);
-    int valid = !ferror(file) && bytes >= 52 && bytes <= FIN_BYTES;
+    size_t bytes = fread(table, 1, (size_t)table_size + 1, file);
+    int valid = !ferror(file) && bytes == (size_t)table_size;
     if (fclose(file)) valid = 0;
     uint32_t rows = valid ? fin_word(table + 8) : 0;
     uint32_t count = valid ? fin_word(table + 12) : 0;
-    uint32_t stride = valid && !memcmp(table, "FBP2", 4) && fin_word(table + 4) == 2 ? 32 : 28;
+    int graph=valid && !memcmp(table,"FBP3",4) && fin_word(table+4)==3;
+    uint32_t stride = graph || (valid && !memcmp(table, "FBP2", 4) && fin_word(table + 4) == 2) ? 32 : 28;
     char digest[65];
     if (valid) {
         hex(table + 20, digest);
         valid = (stride == 32 || (!memcmp(table, "FBP1", 4) && fin_word(table + 4) == 1)) && rows && rows <= FIN_ROWS
-            && bytes == 52u + rows * stride && count > FIN_RETAIL && count <= FIN_RETAIL + FIN_EXTRA
+            && (graph ? bytes > 52u+rows*stride : bytes == 52u+rows*stride)
+            && count > FIN_RETAIL && count <= FIN_RETAIL + FIN_EXTRA
             && !(count & 1) && !strcmp(digest, hash);
+        if (valid && graph) valid=defjam_fighter_graph_start(table+52+rows*stride,bytes-52-rows*stride,count);
     }
     if (valid) {
         file = fin_open(path);
@@ -104,6 +112,7 @@ int defjam_fighter_finishers_start(void) {
             uint32_t *parameter = &s_parameter_donors[ordinal - 873 + role];
             if (*parameter != UINT32_MAX && *parameter != donor) valid = 0;
             if (valid) { memcpy(destination, name, 8); *parameter = donor; }
+            if (valid && graph && !defjam_fighter_graph_known(ordinal+role,destination)) valid=0;
         }
         if (memcmp(names, names + 8, 6)) valid = 0;
         if (valid) {
@@ -112,6 +121,7 @@ int defjam_fighter_finishers_start(void) {
             previous_core = core; previous_choice = selection;
         }
     }
+    if (valid && graph) valid=defjam_fighter_graph_complete();
     if (valid) {
         s_rows = rows; s_motion_count = count; strcpy(s_archive, path);
         fprintf(stderr, "[FIGHTERS] validated %u independent paired finisher bindings (%u motion slots)\n", rows, count);
@@ -183,13 +193,18 @@ void defjam_fighter_finishers_loaded(uint32_t provider) {
             || MEM32(map + i * 24 + 4) != i) fin_stop("external key resolves to the wrong named bank");
         uint32_t bank = MEM32(loaders + i * 12 + 4);
         if (!defjam_fighter_cpu_contains(bank)) fin_stop("owned animation escaped CPU storage");
+        if (!defjam_fighter_graph_bound(ordinal,bank)) fin_stop("owned graph missed its preconstructor seal");
+        uint32_t skeletal = MEM32(records + i * 16 + 8), root = MEM32(records + i * 16 + 4);
+        int full_graph=defjam_fighter_graph_has(ordinal);
+        if (full_graph && !defjam_fighter_graph_bank(ordinal,bank,skeletal,root))
+            fin_stop("full graph differs from its relocated compiler proof");
         if (!bank || !MEM32(bank + 16) || !MEM32(bank + 20) || !MEM32(bank + 4) || MEM32(bank + 4) > 65535)
             fin_stop("external bank has invalid indexed records");
-        uint32_t skeletal = MEM32(records + i * 16 + 8), root = MEM32(records + i * 16 + 4);
         if (skeletal >= MEM32(bank + 4) || root >= MEM32(bank + 4)) fin_stop("external bank omitted paired records");
         uint32_t name = MEM32(MEM32(bank + 20) + skeletal * 4);
         char expected_name[12]; snprintf(expected_name, sizeof expected_name, "%s_s", s_names[ordinal - 873]);
         if (!name || memcmp((const void *)XBOX_PTR(name), expected_name, 10)) fin_stop("external skeletal lookup silently fell back");
+        if (full_graph) continue;
         uint32_t parent = MEM32(MEM32(bank + 16) + skeletal * 4);
         if (!parent || MEM8(parent) != 15 || MEM8(parent + 1) || MEM8(parent + 8) != 1 || MEM8(parent + 9))
             fin_stop("external authored body has an unexpected parent");
@@ -206,15 +221,16 @@ void defjam_fighter_finishers_release(uint32_t manager) {
     fprintf(stderr, "[FIGHTERS] paired finisher metadata released after native destructor manager=%08X provider=%08X storage=%08X\n",
             manager, s_provider, s_storage);
     s_storage = s_provider = 0;
+    defjam_fighter_graph_release();
     guest_call(sub_00029760, 0, 1, &address);
     defjam_fighter_cpu_released();
 }
 uint32_t defjam_fighter_finisher_name(uint32_t mode, uint32_t ordinal, uint32_t caller) {
     if (!s_rows || !s_storage || mode == 1 || ordinal < 873 || ordinal >= FIN_BASE + s_motion_count
         || !s_names[ordinal - 873][0] || !defjam_fighter_research_active()) return 0;
-    /* The simulation snapshot's label selects native camera scripts. It is a
-     * behavior identity, not an archive resource name. Inherit the same camera
-     * as the complete donor FZUI row; diagnostics retain the owned clip label. */
+    /* The snapshot's label selects BOTH camera and animation-tag timelines.
+     * Graph version3 explicitly inherits these two timelines. A later typed
+     * timeline profile must admit both before this identity can become owned. */
     if (caller == 0x1A3ECF) {
         uint32_t donor = s_parameter_donors[ordinal - 873];
         if (donor >= 873 || !MEM32(0x2EC1C8 + donor * 4)) fin_stop("missing inherited camera identity");
@@ -271,9 +287,16 @@ uint32_t defjam_fighter_finisher_motion(uint32_t actor, uint32_t motion, uint32_
         if (!s_provider || !fin_actor(actor) || actor != (role ? s_scope.counterpart : subject)
             || MEM32(subject + 0x2C) != s_scope.core || mode != 6 || motion != 10709 + 2 * choice + role)
             fin_stop("paired execution differs from its subject/counterpart binding");
+        if (defjam_fighter_graph_has(entry->ordinal+role)
+            && !defjam_fighter_graph_actor(entry->ordinal+role,actor))
+            fin_stop("full graph actual body/face/hand context was not admitted");
         if (++s_logs <= 128) fprintf(stderr, "[FIGHTERS] finisher core %u subject %u counterpart %u role %u ordinal %u name %s\n",
             s_scope.core, (subject - FIN_ACTORS) / FIN_STRIDE, (s_scope.counterpart - FIN_ACTORS) / FIN_STRIDE,
             role, entry->ordinal + role, s_names[entry->ordinal - 873 + role]);
+        if (!role) {
+            char anchor[64];snprintf(anchor,sizeof anchor,"fighter-finisher:%s",s_names[entry->ordinal-873]);
+            xbox_NoteAnchorEvent(anchor);
+        }
         return 10000 + entry->ordinal + role;
     }
     return motion;

@@ -1,5 +1,9 @@
 # Fighter Mod Support agent handover prompt
 
+Latest continuation: [November 8 checkpoint](fighter-mod-m5-2026-11-08.md).
+On November 8 the owner made the machine available and authorized up to six
+hours of continued local work, superseding the earlier native-testing pause.
+
 Continuation evidence: [November7 M5 implementation checkpoint](fighter-mod-m5-2026-11-07.md)
 and [acceptance ledger](../fighter-mod-acceptance.md). They supersede implementation
 status below where explicitly updated; all owner approvals/constraints remain.

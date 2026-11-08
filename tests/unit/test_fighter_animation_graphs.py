@@ -176,6 +176,14 @@ def test_float32_canonicalization_does_not_mutate_authored_input():
     assert actual['graphs']['root']['children'][0]['coefficients'][0]['base'][0] == struct.unpack('<f', struct.pack('<f', .1))[0]
 
 
+def test_helper_rejects_zero_norm_between_nonopposite_magnitude_endpoints():
+    value=motion()
+    # Identity to minus twice identity crosses zero at one third, not midpoint.
+    value['graphs']['helper']['children'][0]['coefficients'][3]=[-3.,0.,1.]
+    with pytest.raises(AssetError,match='interpolation approaches a degenerate norm'):
+        graph_template().compose('A',value)
+
+
 def test_degenerate_helper_cannot_reach_native_normalization():
     value = motion()
     value['graphs']['helper']['children'][0]['coefficients'] = [[0., 0., 0.]] * 4

@@ -61,7 +61,8 @@ def validate_source(kind, source):
     }
     version3 = kind == 'voice' and type(source) is dict and source.get('format') in ('fighter-voice-3', 'fighter-voice-4')
     version4 = version3 and source['format'] == 'fighter-voice-4'
-    blazin2 = kind == 'blazin' and type(source) is dict and source.get('format') == 'fighter-blazin-2'
+    blazin3 = kind == 'blazin' and type(source) is dict and source.get('format') == 'fighter-blazin-3'
+    blazin2 = blazin3 or kind == 'blazin' and type(source) is dict and source.get('format') == 'fighter-blazin-2'
     if version3:
         expected['voice'] = {'format', 'banks', 'intro', 'extro'}
     if blazin2:
@@ -253,8 +254,21 @@ class Reader:
                     'pairs': {int(choice): {role: quaternion_file(self.file(root, spec)) for role, spec in pair.items()}
                               for choice, pair in source.get('pairs', {}).items()}}
             if 'slots' in source:
+                def pair_file(spec):
+                    data=self.file(root,spec)
+                    if source['format'] != 'fighter-blazin-3':
+                        return quaternion_file(data)
+                    from fighter_animation_graphs import FORMAT
+                    try:
+                        value=json.loads(data.decode('utf-8'),object_pairs_hook=unique_object,
+                                         parse_constant=lambda _: (_ for _ in ()).throw(AssetError('Nonfinite graph JSON')))
+                    except (UnicodeError,ValueError,RecursionError) as error:
+                        raise AssetError('Invalid typed motion graph JSON') from error
+                    require(type(value) is dict and value.get('format')==FORMAT,'Unsupported paired graph format')
+                    return value
                 result['slots'] = {int(slot): {'template_choice': pair['template_choice'],
-                    **{role: quaternion_file(self.file(root, pair[role])) for role in ('subject', 'counterpart')}}
+                    **{role: pair_file(pair[role]) for role in ('subject', 'counterpart')},
+                    **({'profile':'graph-1'} if source['format']=='fighter-blazin-3' else {})}
                     for slot, pair in source['slots'].items()}
             return result
         return {'template': source['template'], 'tracks': quaternion_file(self.file(root, source['track']))}

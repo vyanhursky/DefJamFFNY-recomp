@@ -23,6 +23,15 @@ static int enabled=1;
 int defjam_fighter_research_active(void){return enabled;}
 int defjam_fighter_cpu_contains(uint32_t address){return address != 0;}
 void defjam_fighter_cpu_released(void){}
+int defjam_fighter_graph_start(const uint8_t *p,size_t n,uint32_t c){(void)p;(void)n;(void)c;return 0;}
+int defjam_fighter_graph_has(uint32_t ordinal){(void)ordinal;return 0;}
+int defjam_fighter_graph_known(uint32_t ordinal,const char *name){(void)ordinal;(void)name;return 0;}
+int defjam_fighter_graph_complete(void){return 1;}
+int defjam_fighter_graph_bound(uint32_t ordinal,uint32_t bank){(void)ordinal;(void)bank;return 1;}
+int defjam_fighter_graph_bank(uint32_t a,uint32_t b,uint32_t c,uint32_t d){(void)a;(void)b;(void)c;(void)d;return 0;}
+int defjam_fighter_graph_actor(uint32_t a,uint32_t b){(void)a;(void)b;return 0;}
+void defjam_fighter_graph_release(void){}
+void xbox_NoteAnchorEvent(const char *text){assert(!strncmp(text,"fighter-finisher:P",18));}
 void sub_00029680(void){
  assert(MEM32(g_esp+4)==200&&MEM32(g_esp+8)==0x29D4B4&&!MEM32(g_esp+12));
  allocations++;g_eax=0x20000;g_ecx=0xBAD;g_esp+=4;
