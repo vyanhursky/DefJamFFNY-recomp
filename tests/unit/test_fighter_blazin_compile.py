@@ -102,3 +102,12 @@ def test_cinematic_extension_requires_unbroken_receipt_chain_and_preserved_shots
     with pytest.raises(AssetError, match='shot differs'):
         encode_blazin_bindings(changed, report, {256: 'alpha/activation'},
                               extension={**extension, 'sha256': hashlib.sha256(changed).hexdigest()})
+
+
+def test_full_graph_receipt_marks_required_activation_phases():
+    _,compiler=original();data,report=compiler.compose({'alpha/activation':resource()})
+    report['bindings']['alpha/activation'][1]['full_graph']=True
+    report['bindings']['alpha/activation'][3]['full_graph']=True
+    table=encode_blazin_bindings(data,report,{256:'alpha/activation'})
+    assert table[:8]==b'FBZ2'+struct.pack('<I',2)
+    assert len(table)==48+40 and struct.unpack_from('<I',table,84)==(10,)

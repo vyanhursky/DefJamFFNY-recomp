@@ -49,6 +49,19 @@ def test_verified_baseline_and_exact_noop():
     assert caught.value.code == 'baseline-hash'
 
 
+def test_explicit_roster_tier_changes_only_the_owned_record_field():
+    source, original, _ = catalog()
+    addition = pack()
+    addition['fighters'][0]['components']['tier'] = 8
+    compiled, report = source.compile([addition])
+    database = Database(compiled)
+    offset = report['bindings']['alpha/fighter-0']['record_offset']
+    assert database.field('Character', 'Tier') == (24, 6)
+    assert database.word(offset + 96) == 8
+    for row in source.rows.values():
+        assert compiled[row['record_offset']:row['record_offset'] + 104] == original[row['record_offset']:row['record_offset'] + 104]
+
+
 def test_large_logical_roster_keeps_native_database_bounded_and_confirmation_gated():
     source, data, _ = catalog(menu=True)
     compiled, report = source.compile([pack(count=300)], logical_menu=True)

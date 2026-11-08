@@ -4,13 +4,15 @@
 #endif
 #include "fighter_cinematic.h"
 #include "fighter_runtime.h"
+#include "fighter_film_proof.h"
 #include "hooks/mod_sha256.h"
 #include "hooks/guest_call.h"
 #include <stdlib.h>
 
 #define CIN_CORE_LIMIT 16384u
-#define CIN_TABLE_LIMIT (88u + 20u * (CIN_CORE_LIMIT - 141u))
+#define CIN_TABLE_LIMIT (88u + 24u * (CIN_CORE_LIMIT - 141u))
 static char s_clips[CIN_CORE_LIMIT][2][8];
+static uint8_t s_full_clips[CIN_CORE_LIMIT],s_full_blazin[CIN_CORE_LIMIT];
 static uint32_t s_count;
 static char s_blazin[CIN_CORE_LIMIT][4][8];
 static uint32_t s_blazin_count;
@@ -21,6 +23,15 @@ static uint32_t s_cache_manager, s_cache_count, s_cache_descriptors, s_cache_req
 static unsigned s_cache_allocations, s_cache_constructed;
 static uint32_t s_cache_cores[4];
 static unsigned s_test_readied;
+static struct {uint32_t descriptor,manager,slot,core;char name[8];} s_owners[256];
+static unsigned owner_record(uint32_t descriptor) {
+    unsigned empty=256;
+    for (unsigned i=0;i<256;++i) {
+        if (s_owners[i].descriptor==descriptor) return i;
+        if (!s_owners[i].descriptor && empty==256) empty=i;
+    }
+    return empty;
+}
 extern void sub_001A5190(void);
 extern void sub_000A2E20(void);
 extern void sub_00087AF0(void);
@@ -59,24 +70,26 @@ static int cin_blazin_start(const char *path, const char *hash) {
     if (strlen(bindings) >= 2048) return 0;
     FILE *file = cin_open(bindings);
     if (!file) return 0;
-    const size_t limit = 48u + 36u * (CIN_CORE_LIMIT - 141u);
+    const size_t limit = 48u + 40u * (CIN_CORE_LIMIT - 141u);
     uint8_t *table = (uint8_t *)malloc(limit + 1);
     if (!table) { fclose(file); return 0; }
     size_t size = fread(table, 1, limit + 1, file);
     int valid = !ferror(file) && size >= 48 && size <= limit;
     if (fclose(file)) valid = 0;
     uint32_t count = valid ? cin_word(table + 8) : 0;
+    uint32_t version=valid?cin_word(table+4):0,stride=version==2?40u:36u;
     char digest[65];
     if (valid) {
         hex(table + 16, digest);
-        valid = !memcmp(table, "FBZ1", 4) && cin_word(table + 4) == 1 && count
-            && count <= CIN_CORE_LIMIT - 141 && size == 48u + 36u * count
+        valid = ((version==1 && !memcmp(table,"FBZ1",4)) || (version==2 && !memcmp(table,"FBZ2",4))) && count
+            && count <= CIN_CORE_LIMIT - 141 && size == 48u + stride * count
             && !strcmp(digest, hash) && cin_size(path, cin_word(table + 12));
     }
     uint32_t previous = 140;
     memset(s_blazin, 0, sizeof s_blazin);
+    memset(s_full_blazin,0,sizeof s_full_blazin);
     for (uint32_t i = 0; valid && i < count; ++i) {
-        const uint8_t *row = table + 48 + 36 * i;
+        const uint8_t *row = table + 48 + stride * i;
         uint32_t core = cin_word(row);
         if (core <= previous || core >= CIN_CORE_LIMIT || !s_clips[core][0][0]) { valid = 0; break; }
         for (unsigned phase = 0; phase < 4; ++phase) {
@@ -84,7 +97,9 @@ static int cin_blazin_start(const char *path, const char *hash) {
             if (name[0] != 'B' || name[6] || name[7]) valid = 0;
             for (unsigned j = 1; j < 6; ++j) if (name[j] < '0' || name[j] > '9') valid = 0;
         }
-        if (valid) { memcpy(s_blazin[core], row + 4, 32); previous = core; }
+        uint32_t flags=version==2?cin_word(row+36):0;
+        if (flags&~15u) valid=0;
+        if (valid) { memcpy(s_blazin[core], row + 4, 32);s_full_blazin[core]=(uint8_t)flags; previous = core; }
     }
     if (valid) {
         s_blazin_count = count;
@@ -111,18 +126,20 @@ int defjam_fighter_cinematic_start(void) {
     int valid = !ferror(file) && size >= 88 && size <= CIN_TABLE_LIMIT;
     if (fclose(file)) valid = 0;
     uint32_t count = valid ? cin_word(table + 8) : 0;
+    uint32_t version=valid?cin_word(table+4):0,stride=version==2?24u:20u;
     char banks_digest[65], nis_digest[65];
     if (valid) {
         hex(table + 24, banks_digest); hex(table + 56, nis_digest);
-        valid = !memcmp(table, "FIC1", 4) && cin_word(table + 4) == 1 && count
-            && count <= CIN_CORE_LIMIT - 141 && size == 88u + count * 20u
+        valid = ((version==1 && !memcmp(table,"FIC1",4)) || (version==2 && !memcmp(table,"FIC2",4))) && count
+            && count <= CIN_CORE_LIMIT - 141 && size == 88u + count * stride
             && cin_word(table + 20) == 0 && !strcmp(banks_digest, hash) && !strcmp(nis_digest, nis_hash)
             && cin_size(path, cin_word(table + 12)) && cin_size(nis, cin_word(table + 16));
     }
     uint32_t previous = 140;
     memset(s_clips, 0, sizeof s_clips);
+    memset(s_full_clips,0,sizeof s_full_clips);
     for (uint32_t i = 0; valid && i < count; ++i) {
-        const uint8_t *row = table + 88 + i * 20;
+        const uint8_t *row = table + 88 + i * stride;
         uint32_t core = cin_word(row);
         if (core <= previous || core >= CIN_CORE_LIMIT) { valid = 0; break; }
         for (unsigned category = 0; category < 2; ++category) {
@@ -130,7 +147,9 @@ int defjam_fighter_cinematic_start(void) {
             if (name[0] != 'F' || name[1] != (category ? 'V' : 'I') || name[7]) valid = 0;
             for (unsigned j = 2; j < 7; ++j) if (name[j] < '0' || name[j] > '9') valid = 0;
         }
-        if (valid) { memcpy(s_clips[core], row + 4, 16); previous = core; }
+        uint32_t flags=version==2?cin_word(row+20):0;
+        if (flags&~3u) valid=0;
+        if (valid) { memcpy(s_clips[core], row + 4, 16);s_full_clips[core]=(uint8_t)flags; previous = core; }
     }
     if (valid) valid = cin_blazin_start(path, hash);
     if (valid) {
@@ -140,6 +159,15 @@ int defjam_fighter_cinematic_start(void) {
     free(table); return valid;
 }
 const char *defjam_fighter_cinematic_path(void) { return s_archive; }
+int defjam_fighter_cinematic_proofs(void) {
+    for (unsigned core=141;core<CIN_CORE_LIMIT;++core) {
+        for (unsigned role=0;role<2;++role)
+            if ((s_full_clips[core]&(1u<<role)) && !defjam_fighter_film_complete(s_clips[core][role],role==0)) return 0;
+        for (unsigned phase=0;phase<4;++phase)
+            if ((s_full_blazin[core]&(1u<<phase)) && !defjam_fighter_film_complete(s_blazin[core][phase],0)) return 0;
+    }
+    return 1;
+}
 
 /* Native keeps ten shared activation descriptors. Append four participant
  * groups to both allocations, retaining its logical count during stock load.
@@ -283,6 +311,7 @@ uint32_t defjam_fighter_cinematic_cache_index(uint32_t manager, uint32_t native)
     return index;
 }
 void defjam_fighter_cinematic_cache_release(uint32_t manager) {
+    for (unsigned i=0;i<256;++i) if (s_owners[i].manager==manager) memset(&s_owners[i],0,sizeof s_owners[i]);
     if (!s_cache_constructed || s_cache_manager != manager) return;
     if (MEM32(manager + 0x2D868) != s_cache_count) cin_stop("cinematic cleanup count changed");
     fprintf(stderr, "[FIGHTERS] cinematic cache returning to native destructor manager=%08X descriptors=%08X requests=%08X native=%u added=%u\n",
@@ -294,6 +323,8 @@ void defjam_fighter_cinematic_cache_release(uint32_t manager) {
 /* 87AF0's request supplies the actual visual-table participant. Its camera
  * selector is a different field; descriptor allocation order is irrelevant. */
 uint64_t defjam_fighter_cinematic_enter(uint32_t manager, uint32_t descriptor, uint32_t request) {
+    unsigned owner=owner_record(descriptor);
+    if (owner<256 && s_owners[owner].descriptor) memset(&s_owners[owner],0,sizeof s_owners[owner]);
     uint64_t previous = s_context;
     s_context = 0;
     if (!s_count || !defjam_fighter_research_active())
@@ -312,6 +343,9 @@ uint64_t defjam_fighter_cinematic_enter(uint32_t manager, uint32_t descriptor, u
     if (!blazin && (MEM32(manager + 0x2B9EC) & 0x02000000u))
         cin_stop("owned simple sequence cannot use the two-actor cinematic path");
     s_context = ((uint64_t)descriptor << 32) | core | (blazin ? 0x80000000u : 0u);
+    if (owner>=256) cin_stop("cinematic descriptor ownership population exceeds bound");
+    s_owners[owner].descriptor=descriptor;s_owners[owner].manager=manager;
+    s_owners[owner].slot=slot;s_owners[owner].core=core;
     return previous;
 }
 void defjam_fighter_cinematic_leave(uint64_t previous, uint32_t request) {
@@ -345,6 +379,9 @@ void defjam_fighter_cinematic_selected(uint32_t descriptor, uint32_t name) {
         /* Persistent name is used again by the asynchronous bundle loader.
          * Leave the phase-four venue camera at +1D and all native flags alone. */
         memcpy((void *)XBOX_PTR(name), s_blazin[core][phase], 7);
+        unsigned owner=owner_record(descriptor);
+        if (owner>=256 || s_owners[owner].descriptor!=descriptor) cin_stop("missing cinematic request owner");
+        memcpy(s_owners[owner].name,s_blazin[core][phase],8);
         fprintf(stderr, "[FIGHTERS] Blazin core %u phase %u selected %s\n", core, phase, s_blazin[core][phase]);
         char event[40];
         snprintf(event, sizeof event, "fighter-blazin:%s", s_blazin[core][phase]);
@@ -355,7 +392,26 @@ void defjam_fighter_cinematic_selected(uint32_t descriptor, uint32_t name) {
         || memcmp((const void *)XBOX_PTR(name), s_clips[core][category], 8))
         cin_stop("native XML selected a different owned cinematic");
     fprintf(stderr, "[FIGHTERS] cinematic core %u category %u selected %s\n", core, category, s_clips[core][category]);
+    unsigned owner=owner_record(descriptor);
+    if (owner>=256 || s_owners[owner].descriptor!=descriptor) cin_stop("missing cinematic request owner");
+    memcpy(s_owners[owner].name,s_clips[core][category],8);
     char event[40];
     snprintf(event, sizeof event, "fighter-cinematic:%s", s_clips[core][category]);
     xbox_NoteAnchorEvent(event);
+}
+void defjam_fighter_cinematic_bind(uint32_t descriptor) {
+    unsigned owner=owner_record(descriptor);
+    if (owner>=256 || s_owners[owner].descriptor!=descriptor || !s_owners[owner].name[0]
+        || !defjam_fighter_film_known(s_owners[owner].name)) return;
+    uint32_t manager=s_owners[owner].manager,slot=s_owners[owner].slot,core=s_owners[owner].core;
+    uint32_t entry=MEM32(descriptor+0x90),config=MEM32(manager+0x2FF5C);
+    if (slot>=4 || !entry || MEM32(descriptor+0x94)!=1 || MEM32(0x3B90B8+4*slot)!=core
+        || !config || MEM32(config+0xA8+4*slot)!=core+1
+        || memcmp((const void *)XBOX_PTR(entry),s_owners[owner].name,strlen(s_owners[owner].name)+1))
+        cin_stop("full cinematic actor differs from its immutable request owner");
+    uint32_t visual=MEM32(manager+0x2B9C0+4*slot);
+    if (!visual || MEM32(entry+0x44)!=visual || !defjam_fighter_film_bind(s_owners[owner].name,entry,visual,descriptor))
+        cin_stop("full cinematic banks or actual output context differ from their proofs");
+    fprintf(stderr,"[FIGHTERS] full cinematic context verified name=%s slot=%u core=%u visual=%08X\n",
+            s_owners[owner].name,slot,core,visual);
 }

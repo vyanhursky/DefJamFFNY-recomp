@@ -7,6 +7,7 @@
 #include "fighter_cinematic.h"
 #include "fighter_finishers.h"
 #include "fighter_events.h"
+#include "fighter_film_proof.h"
 #include "hooks/fighter_names.h"
 #include "hooks/fighter_roster.h"
 #include "hooks/fighter_bindings.h"
@@ -173,7 +174,7 @@ static int research_start(void) {
     if (!sod || !*sod) return (!screens || !*screens) && (!language_base || !*language_base)
         && (!screens_hash || !*screens_hash) && defjam_fighter_motion_start()
         && defjam_fighter_voice_start() && defjam_fighter_animation_start() && defjam_fighter_ai_start()
-        && defjam_fighter_cinematic_start() && defjam_fighter_events_start() && defjam_fighter_finishers_start();
+        && defjam_fighter_cinematic_start() && defjam_fighter_events_start() && defjam_fighter_film_start() && defjam_fighter_finishers_start();
     /* This development entry point cannot use the normal profile namespace or
      * player settings. The probe driver owns this disposable data root and the
      * harness guards its complete save directory. No runtime capability is
@@ -273,7 +274,7 @@ static int research_start(void) {
     }
     strcpy(s_research_sod, sod);
     if (!defjam_fighter_motion_start() || !defjam_fighter_voice_start() || !defjam_fighter_animation_start() || !defjam_fighter_ai_start()
-        || !defjam_fighter_cinematic_start() || !defjam_fighter_events_start() || !defjam_fighter_finishers_start()) {
+        || !defjam_fighter_cinematic_start() || !defjam_fighter_events_start() || !defjam_fighter_film_start() || !defjam_fighter_finishers_start()) {
         fprintf(stderr, "[FIGHTERS] invalid motion research receipt; launch refused\n");
         return 0;
     }

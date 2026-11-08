@@ -35,6 +35,7 @@ TARGETS = {
     'blazin': ('fighter-blazin.bin',),
     'finishers': ('motion/blazin.viv', 'fighter-finishers.bin'),
     'timelines': ('audio/animtags.dat','motion/camera.xml','fighter-timelines.bin'),
+    'film_proofs': ('fighter-film-proofs.bin',),
 }
 
 
@@ -78,6 +79,7 @@ def environment(cache, report):
             result['RECOMP_FIGHTER_'+name]=str(ordinary_path(cache/path))
             result['RECOMP_FIGHTER_'+name+'_SHA256']=hashes[path]
         result['RECOMP_FIGHTER_TIMELINE_BINDINGS']=str(ordinary_path(cache/'fighter-timelines.bin'))
+    if 'film_proofs' in receipts:result['RECOMP_FIGHTER_FILM_PROOFS']=str(ordinary_path(cache/'fighter-film-proofs.bin'))
     return result
 
 
@@ -112,11 +114,18 @@ class BehaviorPlan:
             if resource['kind'] in KINDS and 'source' in resource:
                 typed[key] = reader.resource(roots[resource['owner']], resource['kind'], resource['source'])
                 self.sources[key] = fingerprint(resource['source'])
+        global_tag_overrides={};global_tag_owners={}
+        for key,resource in snapshot['resources'].items():
+            if resource['kind']!='tag-override':continue
+            value=typed[key];name=value['target'];replacement={k:value[k] for k in ('original_sha256','template','timeline')}
+            require(name not in global_tag_overrides or global_tag_overrides[name]==replacement,
+                    'Conflicting animation tag override '+name+' between '+global_tag_owners.get(name,'')+' and '+key)
+            global_tag_overrides[name]=replacement;global_tag_owners[name]=key
         added = {key: row['components'] for key, row in snapshot['fighters'].items() if key not in catalog.rows}
         require(added, 'Behavior composition requires an added fighter')
         for key, row in snapshot['fighters'].items():
             require(key not in catalog.rows or not any(value in typed for group, value in row['components'].items()
-                                                      if group != 'stats'),
+                                                      if group not in ('stats', 'tier')),
                     'Authored retail behavior overrides need a separate identity adapter')
         rigs = {}
 
@@ -135,6 +144,14 @@ class BehaviorPlan:
             return rigs[key]
 
         graph_contexts=None
+        film_graphs=None;film_hands=None;film_tags={}
+        if any(type(source.get('tracks')) is dict and source['tracks'].get('format')=='fighter-cinematic-graph-1'
+               or any(type(shot.get('tracks')) is dict for shot in source.get('shots',[]))
+               for source in typed.values()):
+            from fighter_cinematic_graphs import CinematicGraphs
+            film_graphs=CinematicGraphs(original('assets/v2ta.viv','v2ta_sha256'),pins['v2ta_sha256'])
+            misc=Archive(original('assets/misc.viv','misc_sha256'))
+            film_hands=FacePalettes(Model(unpack(misc.read('share_hp.o'))),57,(32,32))
         if any(source.get('slots') and any(pair.get('profile')=='graph-1' for pair in source['slots'].values())
                for source in typed.values()):
             misc=Archive(original('assets/misc.viv','misc_sha256'))
@@ -231,7 +248,7 @@ class BehaviorPlan:
                                       if slot_bindings else [choice]):
                         pair_keys.setdefault(fighter, {})[selection] = pair_key
                 if 'slots' in typed[resource_key]:
-                    choices = {}
+                    choices = dict(typed[resource_key].get('retail_slots', {}))
                     for slot, pair in typed[resource_key]['slots'].items():
                         pair_key = resource_key.split('/')[0] + '/pair-' + fingerprint([resource_key, 'slot', slot])[:32]
                         pair_resources[pair_key] = {'rig_sha256': rig.pose_sha256,
@@ -248,9 +265,10 @@ class BehaviorPlan:
                                                 for role,join in joins.items()}}
                         pair_keys.setdefault(fighter, {})[slot] = pair_key
                         choices[slot] = pair['template_choice']
-                    if type(motion_resources[fighter]) is int:
-                        motion_resources[fighter] = {'donor': donor}
-                    motion_resources[fighter]['finisher_slots'] = choices
+                    if choices:
+                        if type(motion_resources[fighter]) is int:
+                            motion_resources[fighter] = {'donor': donor}
+                        motion_resources[fighter]['finisher_slots'] = choices
             appearance = components['appearance']
             appearance_donor = appearances[appearance].donor if appearance in appearances else catalog.bindings[appearance]['donor']
             model = catalog.rows[appearance_donor]['fields']['Model']['symbol']
@@ -269,6 +287,7 @@ class BehaviorPlan:
                 # Shared pack resources compile once. The inherited namespace
                 # contains a character forbidden in package identity slugs.
                 internal = resource_key or '@inherited/' + fingerprint([token, rig.pose_sha256])
+                if type(tracks) is dict:film_tags[internal]=(source['tags'],'cinematic-'+category+'-1')
                 if internal in cinematic_resources:
                     require(cinematic_resources[internal]['rig_sha256'] == rig.pose_sha256,
                             'Shared cinematic is bound to different appearance rigs')
@@ -304,15 +323,15 @@ class BehaviorPlan:
             self.files.update({'assets/ai/ai.viv': data,
                                'fighter-ai.bin': encode_ai_bindings(data, receipt, cores(ai_keys))})
             self.receipts['ai'] = receipt
+        tag_additions,camera_additions,timeline_claims={},{},{name:1 for name in global_tag_overrides}
         if pair_resources:
             source = original('motion/blazin.viv', 'blazin_sha256')
             data, receipt = BlazinPairs(source, pins['blazin_sha256']).compose(pair_resources)
-            timeline_claims=None
+            pair_timeline_claims=None
             if any('timelines' in resource for resource in pair_resources.values()):
                 from fighter_timelines import TagTimelines,CameraTimelines,encode_timeline_bindings
                 tags=TagTimelines(original('audio/animtags.dat','tags_sha256'),pins['tags_sha256'])
                 cameras=CameraTimelines(original('motion/camera.xml','camera_sha256'),pins['camera_sha256'])
-                tag_additions,camera_additions,timeline_claims={}, {}, {}
                 for identifier,resource in sorted(pair_resources.items()):
                     if 'timelines' not in resource:continue
                     pair=receipt['bindings'][identifier]
@@ -322,21 +341,22 @@ class BehaviorPlan:
                         timeline_claims[name]=1
                     name=pair['roles']['subject']['native_name']
                     camera_additions[name]=resource['timelines']['camera'];timeline_claims[name]=3
-                tag_data=tags.compose(tag_additions);camera_data=cameras.compose(camera_additions)
+                tag_data=tags.compose(tag_additions,overrides=global_tag_overrides);camera_data=cameras.compose(camera_additions)
                 table=encode_timeline_bindings(tag_data,camera_data,timeline_claims)
+                pair_timeline_claims=timeline_claims
                 self.files.update({'audio/animtags.dat':tag_data,'motion/camera.xml':camera_data,'fighter-timelines.bin':table})
                 self.receipts['timelines']={'schema':'fighter-event-timelines-1','claims':timeline_claims,
                     'tags_sha256':digest(tag_data),'cameras_sha256':digest(camera_data),'bindings_sha256':digest(table)}
             self.files.update({'motion/blazin.viv': data,
                                'fighter-finishers.bin': encode_pair_bindings(data, receipt, cores(pair_keys), slots=slot_bindings,
-                                                                           timeline_claims=timeline_claims)})
+                                                                           timeline_claims=pair_timeline_claims)})
             self.receipts['finishers'] = receipt
         if cinematic_resources:
             source = original('assets/v2ta.viv', 'v2ta_sha256')
             if blazin_resources:
-                source, blazin_receipt = BlazinArchive(source, pins['v2ta_sha256']).compose(blazin_resources)
+                source, blazin_receipt = BlazinArchive(source, pins['v2ta_sha256']).compose(blazin_resources,graphs=film_graphs,hands=film_hands)
                 self.receipts['blazin'] = blazin_receipt
-            data, receipt = CinematicArchive(source, digest(source)).compose(cinematic_resources)
+            data, receipt = CinematicArchive(source, digest(source)).compose(cinematic_resources,graphs=film_graphs,hands=film_hands)
             if blazin_resources:
                 self.files['fighter-blazin.bin'] = encode_blazin_bindings(
                     data, blazin_receipt, cores(blazin_keys), extension=receipt)
@@ -348,6 +368,42 @@ class BehaviorPlan:
             for path, pin in (('assets/v2ip.viv', 'v2ip_sha256'), ('assets/entity.xml', 'entities_sha256')):
                 self.files[path] = composed[path] if path in composed else original(path, pin)
             self.receipts.update(cinematic=receipt, cinematic_bindings=binding)
+            full_films={}
+            for key,info in receipt['bindings'].items():
+                if not info.get('full_graph'):continue
+                timeline,profile=film_tags[key];name=info['native_name']
+                full_films[name]={**info,'tags':int(timeline is not None)};timeline_claims[name]=int(timeline is not None)
+                if timeline is not None:tag_additions[name]={'profile':profile,'timeline':timeline}
+            if blazin_resources:
+                for key,shots in blazin_receipt['bindings'].items():
+                    for phase,info in enumerate(shots):
+                        if not info.get('full_graph'):continue
+                        timeline=blazin_resources[key]['shots'][phase]['tags'];name=info['native_name']
+                        full_films[name]={**info,'tags':int(timeline is not None)};timeline_claims[name]=int(timeline is not None)
+                        if timeline is not None:tag_additions[name]={'profile':'cinematic-activation-1','timeline':timeline}
+            if full_films:
+                from fighter_film_proof import encode_film_proofs
+                from fighter_timelines import TagTimelines,CameraTimelines,encode_timeline_bindings
+                table=encode_film_proofs(data,full_films);self.files['fighter-film-proofs.bin']=table
+                self.receipts['film_proofs']={'sha256':digest(table),'members':sum(info['members'] for info in full_films.values())}
+                tags=TagTimelines(original('audio/animtags.dat','tags_sha256'),pins['tags_sha256'])
+                cameras=CameraTimelines(original('motion/camera.xml','camera_sha256'),pins['camera_sha256'])
+                tag_data=tags.compose(tag_additions,overrides=global_tag_overrides) if tag_additions or global_tag_overrides else tags.data
+                camera_data=cameras.compose(camera_additions) if camera_additions else cameras.data
+                table=encode_timeline_bindings(tag_data,camera_data,timeline_claims)
+                self.files.update({'audio/animtags.dat':tag_data,'motion/camera.xml':camera_data,'fighter-timelines.bin':table})
+                self.receipts['timelines']={'schema':'fighter-event-timelines-1','claims':timeline_claims,
+                    'tags_sha256':digest(tag_data),'cameras_sha256':digest(camera_data),'bindings_sha256':digest(table)}
+        if global_tag_overrides:
+            from fighter_timelines import TagTimelines,CameraTimelines,encode_timeline_bindings
+            tags=TagTimelines(original('audio/animtags.dat','tags_sha256'),pins['tags_sha256'])
+            cameras=CameraTimelines(original('motion/camera.xml','camera_sha256'),pins['camera_sha256'])
+            tag_data=tags.compose(tag_additions,overrides=global_tag_overrides)
+            camera_data=cameras.compose(camera_additions) if camera_additions else cameras.data
+            table=encode_timeline_bindings(tag_data,camera_data,timeline_claims)
+            self.files.update({'audio/animtags.dat':tag_data,'motion/camera.xml':camera_data,'fighter-timelines.bin':table})
+            self.receipts['timelines']={'schema':'fighter-event-timelines-1','claims':timeline_claims,
+                'global_overrides':global_tag_owners,'tags_sha256':digest(tag_data),'cameras_sha256':digest(camera_data),'bindings_sha256':digest(table)}
         require(sum(map(len, self.files.values())) <= 1024**3, 'Behavior generation exceeds its aggregate output budget')
         self.file_hashes = {path: digest(data) for path, data in self.files.items()}
         self.seal = self.binding_fingerprint()

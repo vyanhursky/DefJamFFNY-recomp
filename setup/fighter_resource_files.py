@@ -31,9 +31,15 @@ def require(condition, message):
 
 
 def appearance_source(source):
-    require(isinstance(source, dict) and set(source) == {'format', 'donor', *PARTS},
+    version2=type(source) is dict and source.get('format')=='eagl-appearance-2'
+    require(isinstance(source, dict) and set(source) == {'format', 'donor', *PARTS}|({'shape_names'} if version2 else set()),
             'Appearance source needs format, donor, model, textures and face')
-    require(source['format'] == APPEARANCE_FORMAT, 'Unsupported appearance source format')
+    require(source['format'] == APPEARANCE_FORMAT or version2, 'Unsupported appearance source format')
+    if version2:
+        mapping=source['shape_names']
+        require(type(mapping) is dict and 0<len(mapping)<=4096
+                and all(type(k) is str and type(v) is str and re.fullmatch('[A-Za-z0-9_]{4}',k) and re.fullmatch('[A-Za-z0-9_]{4}',v)
+                        for k,v in mapping.items()) and len(set(mapping.values()))==len(mapping),'Invalid explicit appearance texture names')
     require(isinstance(source['donor'], str) and re.fullmatch(r'retail/[a-z0-9]+(?:-[a-z0-9]+)*', source['donor']),
             'Appearance source requires a supported retail rig donor')
     seen = set()

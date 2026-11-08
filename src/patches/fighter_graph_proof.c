@@ -94,6 +94,7 @@ static int seal(GraphProof *proof,uint32_t bank) {
     return 1;
 }
 int defjam_fighter_graph_preconstruct(uint32_t bank) {
+    if (defjam_fighter_cpu_film(bank)) return 1;
     if (!s_data || !defjam_fighter_cpu_range(bank,24)) return 1;
     uint32_t count=MEM32(bank+4),names=MEM32(bank+20);
     if (!count || count>65535 || !defjam_fighter_cpu_range(names,4*count)) return 0;
@@ -130,24 +131,31 @@ int defjam_fighter_graph_actor(uint32_t ordinal,uint32_t actor) {
     if (!proof->bank || actor<0x3B92E0 || actor-0x3B92E0>=4*0x12E8 || (actor-0x3B92E0)%0x12E8) return 0;
     uint32_t slot=(actor-0x3B92E0)/0x12E8;
     uint32_t visual=guest_call(sub_000441C0,0,1,&slot);
+    uint32_t face_need[2]={word(p+36),word(p+40)},hand_need[2]={word(p+44),word(p+48)};
+    if (!defjam_fighter_graph_visual(visual,word(p+52),p+92+8*word(p+12),word(p+56),face_need,hand_need)) return 0;
+    if (++s_context_logs<=128) fprintf(stderr,"[FIGHTERS] graph context verified ordinal=%u actor=%u created=%d bones=%u face=%08X hands=%08X\n",
+                                      ordinal,slot,(MEM8(visual+0xABB4)&1)!=0,word(p+52),
+                                      MEM32(visual+((MEM8(visual+0xABB4)&1)?0xA6B0:0x450)),MEM32(MEM32(visual+0xABB8)));
+    return 1;
+}
+int defjam_fighter_graph_visual(uint32_t visual,uint32_t bones,const uint8_t *rigs,unsigned rig_count,
+                               const uint32_t *face_need,const uint32_t *hand_need) {
     if (!visual) return 0;
     int created=(MEM8(visual+0xABB4)&1)!=0;
     uint32_t model=created?MEM32(visual+0x9D0):visual+0x30;
     if (!model || !(MEM8(model+0x138)&1) || MEM8(model+0x158)!=1) return 0;
-    uint32_t skeleton=MEM32(model+0x144),bones=word(p+52),rigs=word(p+56),relocs=word(p+12);
+    uint32_t skeleton=MEM32(model+0x144);
     if (!skeleton || skeleton>UINT32_MAX-(16+112*bones) || MEM32(skeleton)!=0x03AC3F23
         || MEM32(skeleton+4) || MEM32(skeleton+8)!=bones || MEM32(skeleton+12)
         || MEM32(model+0x15C)!=bones || MEM32(model+0x16C)!=skeleton
         || !MEM32(model+0x14C) || !MEM32(model+0x150) || !MEM32(model+0x154)) return 0;
     Sha sha;sha_init(&sha);sha_update(&sha,(const void *)XBOX_PTR(skeleton),16+112*bones);
     uint8_t digest[32];sha_final(&sha,digest);int found=0;
-    for (uint32_t i=0;i<rigs;++i) if (!memcmp(digest,p+92+8*relocs+32*i,32)) { found=1;break; }
+    for (uint32_t i=0;i<rig_count;++i) if (!memcmp(digest,rigs+32*i,32)) { found=1;break; }
     uint32_t face=visual+(created?0xA6B0:0x450),hands=MEM32(visual+0xABB8);
-    uint32_t face_need[2]={word(p+36),word(p+40)},hand_need[2]={word(p+44),word(p+48)};
-    if (!found || !defjam_fighter_palette_check(face,MEM32(face),bones,face_need)
-        || !hands || !defjam_fighter_palette_check(hands,MEM32(hands),bones,hand_need)) return 0;
-    if (++s_context_logs<=128) fprintf(stderr,"[FIGHTERS] graph context verified ordinal=%u actor=%u created=%d bones=%u face=%08X hands=%08X\n",
-                                      ordinal,slot,created,bones,MEM32(face),MEM32(hands));
+    if (!found || (face_need && !defjam_fighter_palette_check(face,MEM32(face),bones,face_need))
+        || (hand_need && (!hands || ((hand_need[0] || hand_need[1])
+            && !defjam_fighter_palette_check(hands,MEM32(hands),bones,hand_need))))) return 0;
     return 1;
 }
 void defjam_fighter_graph_release(void) {

@@ -153,3 +153,15 @@ def test_archive_budget_rejects_growth_before_collecting_more_resources(monkeypa
     monkeypatch.setattr(module, 'MAX_ARCHIVE', len(source) + 100)
     with pytest.raises(AssetError, match='byte budget'):
         compiler.compose({'a': {'template': 'CI_0001', 'rig_sha256': RIG, 'bone_count': 4, 'tracks': track()}})
+
+
+def test_full_graph_receipt_marks_each_required_cinematic_role():
+    source=fixture({'CI_0001.viv':bundle(),'CE_0001.viv':bundle('CE_0001')})
+    banks,receipt=CinematicArchive(source,hashlib.sha256(source).hexdigest()).compose({
+        key:{'template':token,'rig_sha256':RIG,'bone_count':4,'tracks':track()}
+        for key,token in [('a','CI_0001'),('b','CE_0001')]})
+    receipt['bindings']['a']['full_graph']=True
+    nis=fixture({'assets/IntroExtro.xml':b'<tauntslist></tauntslist>'})
+    _,table,_=bind_cinematics(banks,receipt,nis,hashlib.sha256(nis).hexdigest(),{256:{'intro':'a','victory':'b'}})
+    assert table[:8]==b'FIC2'+struct.pack('<I',2)
+    assert len(table)==88+24 and struct.unpack_from('<I',table,108)==(1,)

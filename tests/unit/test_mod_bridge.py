@@ -221,3 +221,14 @@ def test_managed_native_bridge_rejects_test_switch_in_ready_projection(bridge, t
         (tmp_path / f'mod-manager/fighter-session-{parent.pid}.stop').write_text('complete')
         if parent.poll() is None:
             parent.kill(); parent.wait()
+
+
+def test_managed_native_bridge_accepts_owned_timeline_and_cinematic_proofs(bridge, tmp_path):
+    names=('TAGS','TAGS_SHA256','CAMERAS','CAMERAS_SHA256','TIMELINE_BINDINGS','FILM_PROOFS')
+    projection='[environment]\\n'+''.join('RECOMP_FIGHTER_'+name+'=sealed-fixture\\n' for name in names)
+    source,env=fighter_helper(tmp_path,projection)
+    result=subprocess.run([str(bridge),str(tmp_path),'fighter'],cwd=source,env=env,
+                          input='\n',capture_output=True,text=True,timeout=15)
+    assert result.returncode==0,result.stderr
+    assert result.stdout.splitlines()==['1','1']
+    assert 'managed profile session completed' in result.stderr

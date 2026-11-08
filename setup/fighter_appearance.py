@@ -50,6 +50,10 @@ class Appearance:
             decoded[part] = unpack(data, maximum=min(MAX_ASSET, remaining))
             remaining -= len(decoded[part])
         model, face = Model(decoded['model']), Model(decoded['face'])
+        if source['format']=='eagl-appearance-2':
+            from fighter_texture_names import renamed
+            model,decoded['textures']=renamed(model,Textures(decoded['textures']),source['shape_names'])
+            decoded['model']=model.data
         geometry, skin, skeleton = Geometry(model), Skin(model), Skeleton(model)
         textures = Textures(decoded['textures'])
         require(set(textures.controls.values()) <= baseline.texture_controls,
@@ -91,6 +95,7 @@ class Appearance:
                         'face_compilation': face_receipt,
                         'render_control_policy': 'verified-retail-template', 'render_template': template_name,
                         'texture_control_policy': 'verified-retail-template',
+                        'texture_shape_names':source.get('shape_names',{}),
                         'runtime_ready': False, 'render_parameters_validated': False}
 
 

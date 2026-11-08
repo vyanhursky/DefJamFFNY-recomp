@@ -46,6 +46,21 @@ def test_tag_retiming_preserves_native_payload_order_and_original_rows():
         bank.compose({'P0000_A':{'template':'N0001_A','timeline':source}})
 
 
+def test_explicit_existing_tag_override_checks_original_row_and_donor_sequence():
+    bank=tags();timeline=bank.library.export(bank.by_name['N0001_A']['events'])
+    value={'original_sha256':hashlib.sha256(bank.by_name['A106']['raw']).hexdigest(),
+           'template':'N0001_A','timeline':timeline}
+    rows={row['name']:row for row in tag_rows(bank.compose({},overrides={'A106':value}))}
+    assert rows['N0001_A']['raw']==bank.by_name['N0001_A']['raw']
+    assert rows['A106']['events']==bank.by_name['N0001_A']['events']
+    with pytest.raises(AssetError,match='original target row'):
+        bank.compose({},overrides={'A106':{**value,'original_sha256':'0'*64}})
+    with pytest.raises(AssetError,match='sequence differs'):
+        bank.compose({},overrides={'A106':{**value,'template':'A106'}})
+    with pytest.raises(AssetError,match='collides'):
+        bank.compose({'A106':{'template':'N0001_A','timeline':timeline}})
+
+
 def test_camera_retiming_and_shake_selection_keep_nonshake_sequence():
     bank=cameras();events=bank.by_name['N0001_A']['events']
     events=[events[0],bank.by_name['Z1']['events'][0],events[2]]

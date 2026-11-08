@@ -303,7 +303,8 @@ extern "C" int pc_fighters_prepare(const char *language) {
                 "MOTION", "MOTION_SHA256", "MOTION_BINDINGS", "ANIMATIONS", "ANIMATIONS_SHA256", "ANIMATION_BINDINGS",
                 "VOICES", "VOICES_SHA256", "VOICE_BINDINGS", "AI", "AI_SHA256", "AI_BINDINGS",
                 "FINISHERS", "FINISHERS_SHA256", "FINISHER_BINDINGS", "CINEMATIC_BANKS", "CINEMATIC_BANKS_SHA256",
-                "CINEMATIC_BINDINGS", "BLAZIN_BINDINGS", "SAVE_JOURNAL", "UNLOCKS"
+                "CINEMATIC_BINDINGS", "BLAZIN_BINDINGS", "SAVE_JOURNAL", "UNLOCKS",
+                "TAGS", "TAGS_SHA256", "CAMERAS", "CAMERAS_SHA256", "TIMELINE_BINDINGS", "FILM_PROOFS"
             };
             for (auto &entry : ready["environment"]) {
                 if (entry.first.rfind("RECOMP_FIGHTER_",0) != 0 || !allowed.count(entry.first.substr(15))) {

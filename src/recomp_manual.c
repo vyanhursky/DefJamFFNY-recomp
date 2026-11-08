@@ -51,12 +51,15 @@
 #include "patches/fighter_cpu_pool.h"
 #include "patches/fighter_palette_context.h"
 #include "patches/fighter_graph_proof.h"
+#include "patches/fighter_film_proof.h"
+#include "patches/fighter_film_async.h"
 
 void sub_000E68A0_enter(void) {
-    if (!defjam_fighter_graph_preconstruct(MEM32(g_esp+4))) {
+    if (!defjam_fighter_graph_preconstruct(MEM32(g_esp+4)) || !defjam_fighter_film_preconstruct(MEM32(g_esp+4))) {
         fprintf(stderr,"[FIGHTERS] graph seal stopped before native constructor\n");fflush(stderr);exit(1);
     }
 }
+void sub_000A1FA0_enter(void) { defjam_fighter_cinematic_bind(g_ecx); }
 
 extern void sub_00021500_gen(void);
 void sub_00021500(void) {
@@ -76,7 +79,26 @@ void sub_000216A0_enter(void) { defjam_fighter_palette_release(g_ecx); }
 /* The archive loader calls this allocator indirectly. Direct callers retain
  * their original behavior; only admitted owned animation filenames get a
  * per-call native pool selector. Keep the original cdecl argument intact. */
-extern void sub_00029500(void);
+extern void sub_00029500_gen(void);
+void sub_00029500(void) {
+    uint32_t address=g_esp+12,flags=MEM32(address),bytes=MEM32(g_esp+8);
+    uint32_t routed=defjam_fighter_film_allocation(MEM32(g_esp),g_esi,bytes,flags);
+    MEM32(address)=routed;sub_00029500_gen();MEM32(address)=flags;
+    if (routed!=flags) defjam_fighter_cpu_result(g_eax,bytes);
+}
+extern void sub_0001AD30_gen(void);
+void sub_0001AD30(void) {
+    unsigned previous=defjam_fighter_film_request_begin(MEM32(g_esp+4));
+    sub_0001AD30_gen();defjam_fighter_film_request_end(previous);
+}
+extern void sub_001E6690_gen(void);
+void sub_001E6690(void) {sub_001E6690_gen();defjam_fighter_film_opened(g_eax);}
+extern void sub_0001AA10_gen(void);
+void sub_0001AA10(void) {
+    FighterFilmAsyncScope previous=defjam_fighter_film_callback_begin(MEM32(g_esp+4));
+    sub_0001AA10_gen();defjam_fighter_film_callback_end(previous);
+}
+void sub_0001ABA0_enter(void) {defjam_fighter_film_cancel(MEM32(g_esp+4));}
 static void fighter_archive_allocate(void) {
     uint32_t address = g_esp + 12, flags = MEM32(address), bytes = MEM32(g_esp + 8);
     uint32_t routed = defjam_fighter_cpu_flags(MEM32(g_esp), MEM32(g_esp + 4), bytes, flags);
@@ -222,6 +244,8 @@ void sub_00089310(void) {
     defjam_fighter_cinematic_cache_release(g_ecx);
     sub_00089310_gen();
     defjam_fighter_finishers_release(manager); /* Provider no longer owns the mask. */
+    defjam_fighter_film_release();
+    defjam_fighter_cpu_released();
 }
 extern void sub_000A02E0_gen(void);
 void sub_000A02E0(void) {

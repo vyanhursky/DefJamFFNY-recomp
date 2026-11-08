@@ -200,3 +200,156 @@ restored byte-identically. Captures are private under
 Moses selector portrait/logo and independent grid artwork were visually reviewed.
 Slot1, late callback dispatch, created counterpart and within-process pool reuse
 remain distinct gates; this run does not close them.
+
+## Complete cinematic graphs and async ownership
+
+The ordinary `fighter-cinematic-2` / `fighter-blazin-5` profiles now rebuild all
+numeric body/root, empty face, hand and camera graphs from fresh ELF/BIG writers.
+Original envelopes supply verified opaque controls only. Constants, independent
+quantized seeds/deltas, explicit timestamps and parent timing are retained; no
+donor tracks or resampling substitute for supplied content. The nested numeric
+leaf profile remains the explicitly named `fighter-numeric-curve-draft-1` inside
+the new outer `fighter-cinematic-graph-1` profile. Original camera `__Model`/BBOX
+exports are not required AnimationBank inputs; independently checked native
+camera consumers resolve only their animation banks. All184bundles/1012members
+round-trip; installed creator export also passes184/184. Earlier numeric oracles
+checked1512leaves with174214pose/interpolation comparisons.
+
+FCP1 authenticates the composed cinematic archive and each relocated data image,
+with exact role, rig, palette requirements and relocation list. E68A0 seals the
+whole CPU-owned bundle before constructors mutate it. A1FA0 joins the selected
+cinematic to its actual live manager/descriptor/visual/actor and camera banks.
+Empty face/hand graphs do not imply unbounded output contexts; nonempty palette
+graphs require the actual face/shared-hand capacities. Created-visual lookup uses
+the already established ABB4 flag and correct Model pointer. Proofs are compiler
+output; packs cannot supply native tables or hooks.
+
+Early native trials073910/074605 rejected safely because the asynchronous loader
+made a later untracked final copy. The native1AD30/1E6690 request and1AA10 callback
+are now correlated by full generation handle, including immediate/nested callbacks
+and cancellation. Only the reviewed1AA99/1AACF final29500copy calls can select the
+CPU pool, after checking native slot/handle/flags/copy state. Native decompression,
+copy and free remain authoritative. The whole bundle is owned; embedded.o members
+borrow that allocation. Per-load seals support repeated instances and release
+after the original native destructor, with bounded tables and fail-closed checks.
+
+Relift/build logs: `fighter-m5-film-async-relift-1108.txt` and
+`fighter-m5-film-async-build-1108.txt`. Native `run-20261108-075857.log.err`, result
+`fighter-m5-fullfilm-async-native-1108.txt`, passes7combat/result checks, native
+menu102/103 and one acknowledged save generation. User save restored identically.
+It admitted15actual full cinematic contexts: both entrance slots, both fighters'
+four activation phases and CPU victory.179two-second counters min104/median120/
+max121; zero reported crash/watchdog/debug-layer/unresolved signatures. Private
+captures: `fighter-window-runs/7f8e26333bce4d8ab158abc81e03fd5d/captures`.
+This run ended at results and does not prove within-process pool reuse.
+
+## Exhaustive source accounting and ordinary candidate
+
+New `fighter-conversion-global-audit.py` reconstructs the entire source
+`animtags.dat` byte-for-byte from typed original-payload references:204new rows
+plus10explicit existing-row edits. The ten edits affect original ordinary motions
+as well as supplied pairs; ignoring collisions would lose source behavior.
+`tag-override` resources pin the original row hash and preserve the declared
+verified template's complete payload sequence. Identical claims deduplicate;
+conflicting claims identify their resources rather than choose load order.
+
+All559original camera schedules remain unchanged.47appended schedules contain
+only verified payloads; five duplicate labels remain shadowed by the native first
+match and are explicitly reported. The source paired-name list preserves all164
+original names and adds exactly94owned names, without collisions. All46source
+core records differ from mapped ordinary-combat donors only in the four finisher
+choices; complete WWAZ and all other native-unpacked WPAR fields match. Packed
+padding does not supply additional native fields. New optional `retail_slots`
+preserves original choices0–81 that differ from a donor, alongside owned pairs.
+
+The original SOD byte prefix differs only at five derived count/index/string
+pointer words; all75original records remain unchanged. Added records have one
+further semantic difference from donors: `Character.Tier` at word24/descriptor6.
+Native47BC0 orders unlocked fighters by equality buckets1,2,4,8. All46source
+additions use8. New inline `tier` preserves it through inheritance, explicit
+conflicts and native compilation; it is separate from combat stats.
+
+Both source XML files preserve original bytes and add48simple registrations.
+46are the actual fighters.606A/607A have no Character references or source/original
+appearance payload; their dangling registrations are explicitly excluded at
+subrecord level, rather than inventing two fighters or substituting models.
+All46activation mappings match their source models. The28`cri` annotations exactly
+equal the actual BZ callback timelines; the other18BZ and all46BY explicitly lack
+tag rows. Four activation phases retain all supplied numeric content.
+
+The extra source `V2IP_126A.o` is an actual retail Crow appearance edit, not one
+of the46additions. Its94bone rig, materials, UVs, indices and skin are unchanged;
+30669bytes in vertex payloads differ, including bounded position edits and an
+uninterpreted four-byte stream. The geometry compiler retains those payloads.
+`eagl-appearance-2` adds explicit shape-name mappings, rewriting only checked
+TAR/SHPX names and symbol tables. It preserves vertex/pixel content and rejects
+automatic collision repair. The converter emits an explicit retail/crow override
+using its original own-dump texture/face files and isolated declared shape names.
+
+`fighter-conversion-grid-audit.py` verifies all three whole source menus and276
+new drawable closures against original controls. Scripts/constants, unaffected
+drawables and original textures are preserved; new state actions are only the
+reviewed identity placements/Stop/End.24independent rasters per fighter compile.
+
+Final offline ledger: `logs/fighter-m5-source-accounting-complete-1108.json`,
+**1697converted /184exactly inherited /2excluded**, all1883input hashes rechecked.
+The archive hash remains42645b4ad0d4b9bb502dec3db88095b7a21f061a20ad9091387b3272137f415f.
+The two whole-file exclusions remain catalogue metadata and cover art; dangling
+XML exclusions are separately enumerated. Converted is an offline classification,
+not native acceptance. Complete faithfulness remains false because the archive
+does not encode the original legacy fourth-shot camera coordinate/use policy.
+The ordinary adapter currently retains the reviewed native venue policy and
+preserves unused helper graphs; it does not infer usage from their presence.
+
+Tools `fighter convert-legacy` assembles all sealed exports and stable mappings
+into a normal46fighter/285resource folder, validates it through the shared compiler
+and publishes only a new local folder. The earlier full ZIP
+`vendetta-roster-1.0.0-local-1108.zip` (SHA256
+dbeeb93285d443024c47507076ec48146d9f410bc0d6c33ef9ff9f6f2e7c5dfc)
+predates the Tier and explicit retail-slot corrections and is superseded as a
+candidate. Installed-wheel corrected conversion is in progress; do not use the
+old ZIP as final fidelity evidence.
+
+## Current validation and normal managed-path correction
+
+Current focused fighter suite:1399passed in46.55s, log
+`fighter-m5-final-focused-b-1108.txt`, including compiled-C cases and permitted
+disposable junctions. Earlier sandbox-only run had14junction WinError5 failures,
+all separately passed with permissions; the final run is fully green. Installed
+creator package/audio/motion40tests pass. New native bridge10tests pass.
+
+The first ordinary full-pack plus independent starter launch correctly refused
+unsupported new timeline/film settings at the native bridge, before guest boot;
+the helper had prepared its supervised profile. Native error was observed and
+dismissed; full save guard restored identically. No combat claim for
+`run-20261108-084756.log.err`. Added the six exact timeline/cinematic proof keys
+to the normal bridge allowlist and a positive managed-helper test, retaining
+rejection of test-only settings. Release build passes in
+`fighter-m5-managed-bridge-build-1108b.txt`; the initial sandbox MSVC C1902 attempt
+is preserved separately. The next normal managed native run must use the corrected
+candidate and prove repeated-match bundle release/reuse.
+
+Extended M5 remains open. Remaining gates include phase4 legacy policy, actual
+slot1 playback, created/mixed/human full-graph contexts, positive/reloaded owned
+audio, full converted-pack menu/result/ownership/lifetime matrix and broader
+visual review. M6 physical inputs, installed Setup/platform acceptance, final RC
+checks and owner playtest are separate. No release/publication is authorized.
+
+The corrected installed-wheel conversion finished: folder
+`logs/fighter-m5-vendetta-candidate-1108`, report
+`logs/fighter-m5-installed-conversion-1108.json`, normal local ZIP
+`logs/vendetta-roster-1.0.0-candidate-1108.zip`,4651files, SHA256
+**e288a716e7f77540e149dfc244a2fa1d8c2664a272f45b94ac1a8cce9552ad0a**.
+Creator wheel SHA25600982e85ea746d4eaa134b9cadb5a79bab1b26fc6f979b99a7a869acfa2fcbe2.
+The installed executable ran outside the Tools checkout, with no PYTHONPATH.
+Packaging rechecked exactly the successfully validated input hashes.
+
+Review then closed an admission gap: FIC2/FBZ2 mark each full-graph role/phase.
+Before loading, the runtime requires all corresponding body/face/hand and expected
+camera FCP1 member proofs, including when the proof file or a whole bundle is
+omitted. FIC1/FBZ1 legacy quaternion inputs retain their separate guard. Empty
+hand tracks still require a nonnull actual hand context because native evaluation
+dereferences it.115focused writer/native cinematic/proof/graph cases pass,
+`fighter-m5-required-film-unit-b-1108.txt`; Release build passes
+`fighter-m5-required-film-build-1108.txt`. These binding bytes change cache hashes;
+the ordinary source ZIP is unchanged. Managed corrected-candidate retest follows.

@@ -78,6 +78,18 @@ def test_independent_component_edits_compose():
     assert snapshot['fighters']['retail/donor']['components']['voice'] == 'speech/new-voice'
 
 
+def test_native_roster_tier_inherits_and_conflicts_as_one_closed_category():
+    a = addition()
+    a['fighters'][0]['components']['tier'] = 8
+    snapshot = registry.resolve(baseline(), [a])
+    assert snapshot['fighters']['alpha/fighter-0']['components']['tier'] == 8
+    for value in (True, 0, 3, 16, '8', {'category': 8}):
+        a['fighters'][0]['components']['tier'] = value
+        fails('tier', baseline(), [a])
+    error = fails('component-conflict', baseline(), [edit('a', tier=2), edit('b', tier=8)])
+    assert error.details['conflicts'][0]['component'] == 'tier'
+
+
 def test_conflict_report_is_actionable_and_deterministic():
     a, b = edit('alpha', stats={'health': 80}), edit('beta', stats={'health': 90})
     error = fails('component-conflict', baseline(), [a, b])
@@ -235,7 +247,7 @@ def test_cli_intake_budgets_precede_resolution(tmp_path, monkeypatch):
         cli.documents(missing, [missing] * (registry.MAX_PACKS + 1))
     path = tmp_path / 'small.json'
     path.write_bytes(b'{}')
-    monkeypatch.setattr(cli, 'MAX_INPUT', 3)
+    monkeypatch.setattr(cli.build, 'MAX_INPUT', 3)
     with pytest.raises(ValueError, match='budget'):
         cli.documents(path, [path])
     assert path.read_bytes() == b'{}'

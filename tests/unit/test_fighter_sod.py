@@ -18,7 +18,7 @@ FIELDS = {'BodySize': (1, 4), 'Charisma': (2, 2), 'CheckIndex': (3, 2), 'Cost': 
           'Entity': (6, 1), 'Ethnicity': (7, 4), 'FightingStyle': (9, 6),
           'Health': (12, 2), 'Model': (14, 1), 'Order': (15, 2),
           'Sex': (19, 4), 'Shadow': (20, 1), 'Speed': (22, 2),
-          'Thumb': (23, 1), 'Toughness': (25, 2)}
+          'Thumb': (23, 1), 'Toughness': (25, 2), 'Tier': (24, 6)}
 
 
 def native_fixture(menu=False):
@@ -58,6 +58,7 @@ def native_fixture(menu=False):
                              4 if name == 'Model' else 5 if name in ('Shadow', 'Thumb') else 25)
         row[8] = name_index
         row[10] = 100 + name_index
+        row[24] = 1
         if menu: row[16:19] = [21, 22, 1]
         record_offsets.append(emit(words(row)))
     pairs = sorted((sod.name_hash(symbol_names[i + 1]), o) for i, o in enumerate(record_offsets))

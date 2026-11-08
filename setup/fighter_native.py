@@ -41,6 +41,7 @@ class RetailCatalog:
             self.rows[identifier] = row
             profile = 'retail/binding-' + local
             components = {'stats': {key: row['fields'][native]['word'] for key, native in STATS.items()}}
+            components['tier'] = row['fields']['Tier']['word']
             for kind in ('appearance', 'moveset', 'voice', 'portrait'):
                 resource_id = local + '-' + kind
                 slug(resource_id)
@@ -127,14 +128,14 @@ class RetailCatalog:
         additions, edits, donor_keys, localization, portrait_donors, menu_roster = [], [], {}, {}, {}, {}
         for identifier, fighter in snapshot['fighters'].items():
             components = fighter['components']
-            unsupported = set(components) - set(RESOURCE_FIELDS) - {'moveset', 'stats'} - ({'ai', 'intro', 'victory', 'blazin'} if behavior else set())
+            unsupported = set(components) - set(RESOURCE_FIELDS) - {'moveset', 'stats', 'tier'} - ({'ai', 'intro', 'victory', 'blazin'} if behavior else set())
             check(not unsupported, 'native-component', 'Native adapter does not yet implement these components',
                   {'fighter': identifier, 'components': sorted(unsupported)})
             check(set(components.get('stats', {})) == set(STATS), 'native-component',
                   'Native preview requires all four stats, explicitly or through inheritance',
                   {'fighter': identifier})
             for group, resource in components.items():
-                if group != 'stats':
+                if group not in ('stats', 'tier'):
                     check(resource in self.bindings or group == 'appearance' and resource in appearances
                           or group == 'portrait' and resource in portraits
                           or behavior is not None and resource in behavior.sources,
@@ -145,6 +146,8 @@ class RetailCatalog:
             donor = self.rows[donor_key]
             native_fields = {native: components['stats'][key] for key, native in STATS.items()
                              if key in components.get('stats', {})}
+            if 'tier' in components:
+                native_fields['Tier'] = components['tier']
             for group, names in RESOURCE_FIELDS.items():
                 check(group in components, 'native-component', 'Native preview needs a complete retail donor bundle',
                       {'fighter': identifier, 'component': group})

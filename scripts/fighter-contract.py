@@ -121,17 +121,25 @@ def validate(game, folders, language=None):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=('catalog', 'voice-catalog', 'validate-voice', 'export-pair', 'validate'))
+    parser.add_argument('command', choices=('catalog','tag-catalog', 'voice-catalog', 'validate-voice', 'export-pair','export-cinematic', 'validate'))
     parser.add_argument('--game', type=Path, required=True)
     parser.add_argument('--pack', type=Path, action='append', default=[])
     parser.add_argument('--language', type=Path)
     parser.add_argument('--voice-source', type=Path)
     parser.add_argument('--pair-request',type=Path)
+    parser.add_argument('--cinematic-request',type=Path)
     args = parser.parse_args()
     try:
         if args.command == 'catalog':
+            catalog=retail_catalog(args.game/'assets/djv2.sod')
             result = {'protocol': PROTOCOL, 'ok': True,
-                      'baseline': retail_catalog(args.game / 'assets/djv2.sod').baseline()}
+                      'baseline': catalog.baseline(),
+                      'native_models':{row['fields']['Model']['symbol']:key for key,row in catalog.rows.items()}}
+        elif args.command=='tag-catalog':
+            from fighter_timelines import TagTimelines
+            pins=json.loads((ROOT/'config/fighter-native-baseline.json').read_text())
+            tags=TagTimelines((args.game/'audio/animtags.dat').read_bytes(),pins['tags_sha256'])
+            result={'protocol':PROTOCOL,'ok':True,'rows':{row['name']:hashlib.sha256(row['raw']).hexdigest() for row in tags.rows}}
         elif args.command == 'voice-catalog':
             result = voice_catalog(args.game)
         elif args.command == 'validate-voice':
@@ -144,6 +152,11 @@ def main():
             from fighter_pair_export import export_pair
             pins=json.loads((ROOT/'config/fighter-native-baseline.json').read_text())
             result={'protocol':PROTOCOL,'ok':True,**export_pair(args.game,args.pair_request,pins)}
+        elif args.command=='export-cinematic':
+            if args.cinematic_request is None:raise ValueError('Choose a cinematic export request')
+            from fighter_film_export import export_film
+            pins=json.loads((ROOT/'config/fighter-native-baseline.json').read_text())
+            result={'protocol':PROTOCOL,'ok':True,**export_film(args.game,args.cinematic_request,pins)}
         else:
             if not args.pack:
                 raise ValueError('Choose at least one pack folder')

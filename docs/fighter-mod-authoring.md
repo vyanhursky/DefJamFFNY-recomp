@@ -44,6 +44,10 @@ Inheritance copies the donor's authored components before overrides. Partial
 stats merge with inherited stats. Native compilation requires complete health,
 speed, toughness and charisma, each an integer 0–100, plus the required resource
 bundle. All pack dependencies must be present for combined validation/activation.
+`tier` is a separate inline integer category, inherited like other components.
+Its only accepted values are1,2,4,8. Native `Character.Tier` orders unlocked
+roster categories; it is not a combat stat or a combinable bitmask. Conflicting
+tier overrides require an explicit compatibility choice.
 
 ## Resources and file descriptors
 
@@ -52,13 +56,13 @@ resource. Component references and resource kinds are not always the same:
 
 | Fighter component | Resource kind | Exact compatibility keys | Source format |
 |---|---|---|---|
-| appearance | appearance | skeleton | eagl-appearance-1 |
+| appearance | appearance | skeleton | eagl-appearance-1 / 2 |
 | moveset | moveset | skeleton, events | fighter-moveset-1 |
 | voice | voice | events | fighter-voice-1 / 2 / 3 / 4 |
 | ai | ai | none | fighter-ai-1 |
-| portrait | portrait | none | eagl-portrait-1 |
-| intro, victory | cinematic | skeleton, events | fighter-cinematic-1 |
-| blazin | blazin | skeleton, events | fighter-blazin-1 / 2 / 3 |
+| portrait | portrait | none | eagl-portrait-1 / 2 / 3 |
+| intro, victory | cinematic | skeleton, events | fighter-cinematic-1 / 2 |
+| blazin | blazin | skeleton, events | fighter-blazin-1 / 2 / 3 / 4 / 5 |
 
 Compatibility values are stable keys such as `retail/binding-ludacris`, exported
 by the verified retail catalog. They are checked against actual rig/template
@@ -93,6 +97,11 @@ required. File arguments mean hash-checked descriptors, not unverified paths.
   values, unit quaternions and destinations within the matched body rig. This
   local adapter has one partial native component test; full legacy conversion
   is still in progress. A Blender/GLB file is not an accepted native model.
+  `eagl-appearance-2` adds an explicit `shape_names` mapping of old to new
+  four-character texture identities. It changes only parsed TAR imports, counted
+  model shape keys and SHPX directory/material names. Vertex/pixel payloads stay
+  intact. Use this declared namespace when reusing original textures with an
+  authored model would otherwise conflict; version1 never silently repairs it.
 - **Portrait:** `format`, `donor`, `selector_2p`, `selector_3p`, `selector_4p`,
   `result_2p`, `result_3p`, `result_4p`. Six distinct SHPX files must match the
   donor layout/dimensions. Current aggregate input is 16 MiB per resource.
@@ -153,6 +162,16 @@ required. File arguments mean hash-checked descriptors, not unverified paths.
   or `CE_XXXX` (four alphanumerics), but only verified simple plans compose.
   Track is quaternion data. The intro/victory component determines its use;
   both resource kinds are `cinematic`.
+  Version2 instead requires `format`, `template`, `graph`, `tags`. Graph is a
+  file descriptor for `fighter-cinematic-graph-1`: exact rig identity/count,
+  intro or single-camera layout and every body/root/face/hand/camera role.
+  Numeric18/20/21 leaves preserve blocks, constants and time grids; empty parents
+  are explicit. Tags are a descriptor for a typed timeline or exactly
+  `{state: "absent"}`. Closed intro/victory/activation payload profiles prohibit
+  arbitrary callbacks. FCP1 seals every fresh member before construction and
+  actual A1FA0 binding joins the loaded body/face/hands and selected camera banks
+  to the participant's initialized rig. Camera output is bounded to256bytes;
+  cinematics use their verified own-body rig, not an opponent wildcard.
 - **Blazin:** `format`, `shots`, optionally `pairs`. Four shot objects in native
   order, each with `template` and optional quaternion `track`. Template forms
   are `BT1_nn`, `BT2_nn`, `BT3_nn`, `BT4Cnn`, checked per phase and ownership.
@@ -188,6 +207,23 @@ required. File arguments mean hash-checked descriptors, not unverified paths.
   camera ticks strictly increase. Event clocks are independent of curve keys.
   Native snapshot names are generation-owned, so cached snapshots do not borrow
   per-match metadata. Versions1–3 retain their original inheritance behavior.
+  Version5 keeps version4 pairs/timelines and uses four complete cinematic shot
+  objects `{template, graph, tags, camera_policy}`. Slots may be empty when all
+  four combat choices are exactly inherited. Policies are `owned-relative` for
+  phases0–2 and `native-venue` for phase3. Unused supplied phase3 camera helpers
+  remain represented; their existence alone does not establish legacy use.
+  Optional `retail_slots` maps canonical slot0–3 strings to verified original
+  choices0–81. It is disjoint from owned `slots` and changes the selected choice
+  without duplicating its exact original animation. Omitted slots inherit.
+  A source's retail choices can differ from its ordinary-combat donor: the
+  converter must preserve these explicitly rather than assume inheritance.
+
+- **Explicit global tag edit:** resource kind `tag-override`, empty compatibility,
+  source `fighter-tag-override-1` with `target`, `original_sha256`, `template`,
+  `timeline`. The original target row must hash exactly; the typed replacement
+  retains the declared verified donor's full payload sequence. It may change
+  ordinary motions using that label. Conflicting edits identify both resources;
+  no last-pack-wins behavior. This is a declared data adapter, not raw TAGS input.
 
 Use installed `defjam-tools fighter pair` with explicit `--recomp`, `--game`,
 `--model`, `--face`, `--subject-data`, `--subject-links`, `--counterpart-data`,
@@ -294,11 +330,17 @@ rows), and all three unpacked parts of their ordinary combat banks are exactly
 equal to the mapped retail donors. All 47 added finisher behaviors match retail
 templates, but their 94 paired animation banks contain different curves.
 Per-slot binding is implemented;94full typed motion/root/helper banks rebuild
-against their actual47matched behaviors, while package admission and native
-acceptance remain pending. All 129 speech banks
+against their actual47matched behaviors and pass ordinary package admission.
+Representative paired/cinematic native proofs pass; whole-pack and broader
+mode/platform acceptance remain incomplete. All 129 speech banks
 can preserve their event metadata through version3 templates/families; missing
 categories now have an explicit version4 omission contract and template-matched
 exporter; native missing-category acceptance remains separate. A faithful converter must account
 for these data, facial poses,
 voices, portraits, AI and cinematic links; it cannot silently substitute donor
-assets or copy whole shared databases. See the [current M5 checkpoint](research/fighter-mod-m5-2026-11-08.md).
+assets or copy whole shared databases. Offline full-component source accounting
+now covers1697converted,184exactly inherited and2excluded files. Two dangling
+nonfighter XML registrations are separately excluded and reported. A local
+ordinary46fighter candidate exists; its phase4 legacy camera-use intent remains
+unproved, so it is not a declaration of complete faithful/native acceptance.
+See the [current M5 checkpoint](research/fighter-mod-m5-2026-11-08.md).

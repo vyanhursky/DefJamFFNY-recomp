@@ -132,17 +132,35 @@ class TagTimelines:
         self.data=data;self.rows=tag_rows(data);self.by_name={row['name']:row for row in self.rows}
         self.library=EventLibrary('tag',self.rows)
 
-    def compose(self,additions):
-        require(type(additions) is dict and 0<len(additions) and len(additions)+len(self.rows)<=MAX_ROWS,
+    def compose(self,additions,*,overrides=None):
+        overrides={} if overrides is None else overrides
+        require(type(additions) is dict and type(overrides) is dict and 0<len(additions)+len(overrides)
+                and not additions.keys()&overrides.keys() and len(additions)+len(self.rows)<=MAX_ROWS,
                 'Tag timeline population exceeds budget')
         rows={row['name']:row['raw'] for row in self.rows}
-        for name,value in additions.items():
-            require(type(name) is str and NAME.fullmatch(name) and name not in rows,'Owned tag name collides or is invalid')
-            fields(value,'template timeline')
-            require(type(value['template']) is str and value['template'] in self.by_name,'Missing verified tag behavior template')
+        for name,value in {**additions,**overrides}.items():
+            require(type(name) is str and NAME.fullmatch(name),'Owned tag name is invalid')
+            if name in overrides:
+                fields(value,'original_sha256 template timeline')
+                require(name in self.by_name and value['original_sha256']==hashlib.sha256(self.by_name[name]['raw']).hexdigest(),
+                        'Explicit tag override differs from its original target row')
+                value={key:value[key] for key in ('template','timeline')}
+            else:require(name not in rows,'Owned tag name collides')
             events=self.library.compile(value['timeline'])
-            require([payload for _,payload in events]==[payload for _,payload in self.by_name[value['template']]['events']],
-                    'Tag payload sequence differs from its verified behavior template')
+            if set(value)=={'profile','timeline'}:
+                allowed={
+                    'cinematic-intro-1':[(59,[0]),(68,[1]),(68,[2]),(25,[1,0,0,0,0])],
+                    'cinematic-victory-1':[(60,[0]),(60,[1]),(68,[1]),(68,[2])],
+                    'cinematic-activation-1':[(65,[4])],
+                }
+                require(type(value['profile']) is str and value['profile'] in allowed
+                        and all((payload[0],payload[1]) in allowed[value['profile']] for _,payload in events),
+                        'Cinematic tag callback is outside its closed native role profile')
+            else:
+                fields(value,'template timeline')
+                require(type(value['template']) is str and value['template'] in self.by_name,'Missing verified tag behavior template')
+                require([payload for _,payload in events]==[payload for _,payload in self.by_name[value['template']]['events']],
+                        'Tag payload sequence differs from its verified behavior template')
             output=bytearray(name.encode().ljust(8,b'\0')[::-1]+struct.pack('<I',len(events)))
             for tick,(opcode,args) in events:
                 output.extend(struct.pack('<3h',tick,len(args),opcode)+struct.pack('<'+'h'*len(args),*args))

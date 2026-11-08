@@ -19,7 +19,7 @@ GROUPS = {'appearance': 'appearance', 'moveset': 'moveset', 'voice': 'voice',
           'victory': 'cinematic', 'blazin': 'blazin'}
 COMPATIBILITY = {'appearance': {'skeleton'}, 'moveset': {'skeleton', 'events'},
                  'voice': {'events'}, 'ai': set(), 'portrait': set(),
-                 'cinematic': {'skeleton', 'events'}, 'blazin': {'skeleton', 'events'}}
+                 'cinematic': {'skeleton', 'events'}, 'blazin': {'skeleton', 'events'},'tag-override':set()}
 STATS = {'health', 'speed', 'toughness', 'charisma'}
 MAX_DEFINITIONS = 16384
 MAX_PACKS = 1024
@@ -70,7 +70,7 @@ def fingerprint(value):
 
 
 def components(value):
-    check(isinstance(value, dict) and value.keys() <= GROUPS.keys() | {'stats'},
+    check(isinstance(value, dict) and value.keys() <= GROUPS.keys() | {'stats', 'tier'},
           'component', 'Unknown fighter component')
     for group, content in value.items():
         if group == 'stats':
@@ -78,6 +78,9 @@ def components(value):
                   'stats', 'Unknown or empty stats group')
             check(all(type(v) is int and 0 <= v <= 100 for v in content.values()),
                   'stats', 'Stats must be integers from 0 to 100')
+        elif group == 'tier':
+            check(type(content) is int and content in (1, 2, 4, 8),
+                  'tier', 'Tier must be one native roster category: 1, 2, 4 or 8')
         else:
             key(content)
 
@@ -219,7 +222,7 @@ def resolve(baseline, packs):
             else:
                 values[group] = deepcopy(value)
         for group, value in source['components'].items():
-            if group != 'stats':
+            if group not in ('stats', 'tier'):
                 reference(source['owner'], value)
         ancestry.remove(identifier)
         resolved[identifier] = {'name': source['name'], 'components': values}
@@ -236,7 +239,7 @@ def resolve(baseline, packs):
             reference(owner, target)
             check(target in resolved, 'missing-fighter', f'Unknown override target {target}')
             for group, value in override['components'].items():
-                if group != 'stats':
+                if group not in ('stats', 'tier'):
                     reference(owner, value)
                 claims.setdefault((target, group), []).append((owner, value, set(override['supersedes'])))
     conflicts, winners = [], {}
@@ -258,7 +261,7 @@ def resolve(baseline, packs):
     for identifier, value in sorted(resolved.items()):
         refs = {}
         for group, resource_key in value['components'].items():
-            if group == 'stats':
+            if group in ('stats', 'tier'):
                 continue
             check(resource_key in resources, 'missing-resource', f'{identifier} references missing {resource_key}')
             resource = resources[resource_key]
@@ -311,7 +314,7 @@ def suggest_compatibility(baseline, packs, identifier, choices):
               'Choice must name a provider listed in the conflict', {'providers': row['providers']})
         value = deepcopy(candidates[selected])
         providers = set(row['providers']) | {row['fighter'].split('/')[0]}
-        if row['component'] != 'stats':
+        if row['component'] not in ('stats', 'tier'):
             providers.add(value.split('/')[0])
         for provider in sorted(providers - {'retail'}):
             patch['requires'][provider] = documents[provider]['version']

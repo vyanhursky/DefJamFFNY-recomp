@@ -25,6 +25,7 @@ unsigned char memory[0x400000];
 uint32_t g_eax,g_ecx,g_edx,g_esp,g_ebx,g_esi,g_edi,g_ebp;
 int g_fp_top;
 static uint32_t allocated;
+unsigned defjam_fighter_cpu_film(uint32_t address){(void)address;return 0;}
 int defjam_fighter_research_active(void){return 1;}
 int defjam_fighter_cpu_range(uint32_t address,uint32_t bytes){
  return address>=0x10000 && address-0x10000<=allocated && bytes && bytes<=allocated-(address-0x10000);
@@ -86,6 +87,11 @@ int main(int argc,char **argv){
  MEM32(model+0x144)=MEM32(model+0x16C)=0x300000;MEM32(model+0x15C)=2;
  MEM32(model+0x14C)=0x310000;MEM32(model+0x150)=0x310060;MEM32(model+0x154)=0x3100C0;
  palette(0x350000,face);palette(0x370000,hands);
+ uint32_t empty_hands[2]={0,0};
+ assert(defjam_fighter_graph_visual(visual,2,proof+104+8*relocs,word(proof+68),NULL,empty_hands));
+ MEM32(visual+0xABB8)=0;
+ assert(!defjam_fighter_graph_visual(visual,2,proof+104+8*relocs,word(proof+68),NULL,empty_hands));
+ MEM32(visual+0xABB8)=hands;
  if(!strcmp(mode,"pose"))memory[0x300020]^=1;
  if(!strcmp(mode,"count"))MEM32(model+0x15C)=3;
  if(!strcmp(mode,"init"))memory[model+0x158]=0;

@@ -20,7 +20,7 @@ SELECTION_FIELD = 0xfcdba74e
 CORE_FIELD = 0x232d89a7
 STRING_FIELDS = {'DisplayName', 'Entity', 'Model', 'Shadow', 'Thumb'}
 INTEGER_FIELDS = {'Charisma', 'CheckIndex', 'Cost', 'Ethnicity', 'FightingStyle',
-                  'Health', 'Order', 'Sex', 'Speed', 'Toughness', 'SpeechId', 'BodySize'}
+                  'Health', 'Order', 'Sex', 'Speed', 'Toughness', 'SpeechId', 'BodySize', 'Tier'}
 
 
 class SodError(ValueError):
@@ -196,7 +196,7 @@ class Database:
                                       'core_id': self.word(offset + self.schema[CORE_FIELD][0] * 4)}}
             for field in ('BodySize', 'Charisma', 'CheckIndex', 'Cost', 'DisplayName', 'Entity',
                           'Ethnicity', 'FightingStyle', 'Health', 'Model', 'Order', 'Sex',
-                          'Shadow', 'SpeechId', 'Speed', 'Thumb', 'Toughness'):
+                          'Shadow', 'SpeechId', 'Speed', 'Thumb', 'Toughness', 'Tier'):
                 value, descriptor = self.record_word(offset, 'Character', field)
                 row['fields'][field] = {'word': value, 'descriptor': descriptor}
                 if field in STRING_FIELDS:
@@ -283,6 +283,9 @@ class Database:
                     value = intern(value)
                 else:
                     check(type(value) is int and 0 <= value <= 0x7fffffff, 'Invalid native integer field')
+                    if name == 'Tier':
+                        check((word_offset, descriptor) == (24, 6) and value in (1, 2, 4, 8),
+                              'Unsupported native roster tier')
                 struct.pack_into('<I', row, word_offset * 4, value)
 
         edited = set()

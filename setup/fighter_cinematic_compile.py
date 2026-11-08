@@ -116,7 +116,7 @@ class CinematicArchive:
                 'Cinematic archive requires a verified local baseline')
         self.archive, self.sha256 = Archive(data), expected_sha256
 
-    def compose(self, resources):
+    def compose(self, resources,*,graphs=None,hands=None):
         require(type(resources) is dict and 0 < len(resources) <= 4096
                 and all(isinstance(k, str) and 0 < len(k) <= 255 for k in resources),
                 'Cinematic resource population exceeds budget')
@@ -131,8 +131,10 @@ class CinematicArchive:
             require(isinstance(token, str) and re.fullmatch(r'C[IE]_[A-Za-z0-9]{4}', token),
                     'Unsupported cinematic template')
             source = unpack(self.archive.read(token + '.viv'))
-            compiler = CinematicTemplate(source, hashlib.sha256(source).hexdigest(), token,
-                                         resource['rig_sha256'], resource['bone_count'])
+            full=type(resource['tracks']) is dict
+            if not full:
+                compiler = CinematicTemplate(source, hashlib.sha256(source).hexdigest(), token,
+                                             resource['rig_sha256'], resource['bone_count'])
             prefix = 'FI' if token.startswith('CI_') else 'FV'
             number = next_number[prefix]
             while number <= 99999 and (prefix + f'{number:05}.viv').lower() in occupied:
@@ -140,7 +142,12 @@ class CinematicArchive:
             require(number <= 99999, 'Cinematic native identifier capacity exhausted')
             assigned = prefix + f'{number:05}'
             native = assigned + '.viv'
-            data, receipt = compiler.compose(assigned, resource['tracks'])
+            if full:
+                require(graphs is not None,'Full cinematic needs its verified graph compiler')
+                data,receipt=graphs.compose(resource['tracks'],assigned,resource['rig_sha256'],resource['bone_count'],hands)
+                require(resource['tracks']['layout']==('intro' if prefix=='FI' else 'single-camera'),'Cinematic layout differs from resource category')
+                receipt.update(native_name=assigned,template=token)
+            else:data, receipt = compiler.compose(assigned, resource['tracks'])
             compiled_bytes += len(data)
             require(compiled_bytes <= MAX_ARCHIVE, 'Cinematic archive exceeds its byte budget')
             additions[native], bindings[key] = data, receipt
@@ -170,11 +177,12 @@ def bind_cinematics(banks, receipt, nis, expected_nis_sha256, cores):
     archive, native = Archive(banks), Archive(nis)
     xml = unpack(native.read('assets/IntroExtro.xml'))
     compiler = Cinematics(xml, hashlib.sha256(xml).hexdigest())
+    version=2 if any(type(value) is dict and value.get('full_graph') for value in receipt['bindings'].values()) else 1
     entries, rows, report = [], bytearray(), {}
     for core, pair in sorted(cores.items()):
         require(type(pair) is dict and set(pair) == {'intro', 'victory'},
                 'Cinematic core needs explicit intro and victory resources')
-        names = []
+        names = [];flags=0
         for kind, prefix in (('intro', 'FI'), ('victory', 'FV')):
             key = pair[kind]
             require(isinstance(key, str) and key in receipt['bindings'], 'Unknown cinematic resource')
@@ -187,13 +195,15 @@ def bind_cinematics(banks, receipt, nis, expected_nis_sha256, cores):
             require(hashlib.sha256(archive.read(name + '.viv')).hexdigest() == resource['sha256'],
                     'Cinematic resource bytes differ from their receipt')
             names.append(name)
+            if resource.get('full_graph'):flags|=1<<(kind=='victory')
         label = f'fmc{core:05d}'
         entries.append(Cinematic(label, *names))
         rows.extend(struct.pack('<I8s8s', core, *(name.encode('ascii') for name in names)))
+        if version==2:rows.extend(struct.pack('<I',flags))
         report[str(core)] = {'label': label, 'intro': names[0], 'victory': names[1]}
     result = native.compose(replacements={'assets/IntroExtro.xml': compiler.compose(entries, {
         entry.name[:-4] for entry in archive.entries if entry.name.endswith('.viv')})})
-    table = (struct.pack('<4s5I', b'FIC1', 1, len(cores), len(banks), len(result), 0)
+    table = (struct.pack('<4s5I', b'FIC2' if version==2 else b'FIC1', version, len(cores), len(banks), len(result), 0)
              + hashlib.sha256(banks).digest() + hashlib.sha256(result).digest() + rows)
     return result, bytes(table), {'schema': 'fighter-cinematic-bindings-1', 'bindings': report,
                                  'banks_sha256': hashlib.sha256(banks).hexdigest(),

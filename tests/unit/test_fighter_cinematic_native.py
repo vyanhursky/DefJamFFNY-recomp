@@ -23,6 +23,13 @@ unsigned char memory[0x400000];
 uint32_t g_eax,g_ecx,g_edx,g_esp,g_ebx,g_esi,g_edi,g_ebp;
 int g_fp_top;
 static int enabled=1;
+static int full;
+static unsigned full_binds;
+static unsigned proof_checks;
+static int proofs_available=1;
+int defjam_fighter_film_complete(const char *name,int intro){assert(name&&name[0]&&(intro==0||intro==1));proof_checks++;return proofs_available;}
+int defjam_fighter_film_known(const char *name){return full&&!strcmp(name,"FV00000");}
+int defjam_fighter_film_bind(const char *name,uint32_t entry,uint32_t visual,uint32_t descriptor){assert(!strcmp(name,"FV00000")&&entry==0x71000&&visual==0x72000&&descriptor);full_binds++;return 1;}
 static unsigned constructed, started, ready;
 static unsigned momentum;
 static unsigned playback_events;
@@ -69,6 +76,10 @@ int main(int argc,char **argv) {
  int ok=defjam_fighter_cinematic_start();
  if(!strcmp(argv[6],"reject")||!strcmp(argv[6],"inactive")){assert(!ok);return 0;}
  assert(ok&&!strcmp(defjam_fighter_cinematic_path(),argv[1]));
+ if(!strcmp(argv[6],"coverage")||!strcmp(argv[6],"missing-proof")){
+  proofs_available=!strcmp(argv[6],"coverage");
+  assert(defjam_fighter_cinematic_proofs()==proofs_available);assert(proof_checks);return 0;
+ }
  memset(memory,0xCD,sizeof(memory));
  uint32_t manager=0x1000,config=0x40000,c=0x50000,request=0x60000;
  MEM32(manager+0x2FF5C)=config;MEM32(manager+0x2B9EC)=0;
@@ -178,6 +189,13 @@ int main(int argc,char **argv) {
  defjam_fighter_cinematic_selected(c,0x70000);
  MEM32(c+0xA4)=1;memcpy(memory+0x70000,"FV00000",8);
  defjam_fighter_cinematic_selected(c,0x70000);
+ full=1;MEM32(c+0x90)=0x71000;MEM32(c+0x94)=1;memcpy(memory+0x71000,"FV00000",8);
+ MEM32(manager+0x2B9C0+8)=0x72000;MEM32(0x71000+0x44)=0x72000;
+ if(!strcmp(argv[6],"wrong-visual"))MEM32(0x71000+0x44)=0x72010;
+ if(!strcmp(argv[6],"wrong-entry-name"))MEM8(0x71000+6)='9';
+ if(!strcmp(argv[6],"wrong-actor-count"))MEM32(c+0x94)=2;
+ defjam_fighter_cinematic_bind(c);assert(full_binds==1);
+ defjam_fighter_cinematic_cache_release(manager);defjam_fighter_cinematic_bind(c);assert(full_binds==1);
  memset(memory+c+0xA8,'z',9);defjam_fighter_cinematic_name(c);assert(MEM8(c+0xA8)=='z');
  /* Full-width cores and invalid participant indices never truncate. */
  for(unsigned mode=0;mode<4;++mode){
@@ -233,7 +251,7 @@ def test_native_scope_and_persistent_label(tool, files, mode):
     assert result.returncode == 0, result.stdout + result.stderr
 
 
-@pytest.mark.parametrize('mode', ['mismatch', 'two-actor', 'bad-owner', 'wrong-clip'])
+@pytest.mark.parametrize('mode', ['mismatch', 'two-actor', 'bad-owner', 'wrong-clip','wrong-visual','wrong-entry-name','wrong-actor-count'])
 def test_native_identity_or_ownership_mismatch_stops_before_wrong_playback(tool, files, mode):
     result = subprocess.run([tool, *files, mode], capture_output=True, text=True)
     assert result.returncode == 1 and 'cinematic stopped:' in result.stderr
@@ -290,3 +308,20 @@ def test_native_blazin_malformed_binding_cannot_activate(tool, blazin_files, off
     target.write_bytes(data)
     result = subprocess.run([tool, *files, 'reject', target], capture_output=True, text=True)
     assert result.returncode == 0, result.stdout + result.stderr
+
+
+@pytest.mark.parametrize('mode',['coverage','missing-proof'])
+@pytest.mark.parametrize('activation',[False,True])
+def test_full_graph_binding_versions_require_explicit_member_proofs(tool,files,blazin_files,mode,activation):
+    files,target=blazin_files
+    table=bytearray(files[1].read_bytes());rows=[]
+    for at in range(88,len(table),20):rows.append(table[at:at+20]+struct.pack('<I',3))
+    table[:4]=b'FIC2';struct.pack_into('<I',table,4,2);table[88:]=b''.join(rows);files[1].write_bytes(table)
+    arguments=[tool,*files,mode]
+    if activation:
+        table=bytearray(target.read_bytes());rows=[]
+        for at in range(48,len(table),36):rows.append(table[at:at+36]+struct.pack('<I',15))
+        table[:4]=b'FBZ2';struct.pack_into('<I',table,4,2);table[48:]=b''.join(rows);target.write_bytes(table)
+        arguments.append(target)
+    result=subprocess.run(arguments,capture_output=True,text=True)
+    assert result.returncode==0,result.stdout+result.stderr

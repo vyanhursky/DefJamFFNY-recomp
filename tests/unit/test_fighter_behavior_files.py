@@ -200,3 +200,17 @@ def test_blazin_slots_are_explicit_bounded_and_cannot_mix_with_choice_pairs(tmp_
         bad = deepcopy(source); bad.update(edit)
         with pytest.raises(AssetError):
             validate_source('blazin', bad)
+
+
+def test_full_cinematic_retail_slots_preserve_distinct_verified_choices(tmp_path):
+    graph=descriptor(tmp_path,'graph.json',json.dumps({'format':'fighter-cinematic-graph-1'}).encode())
+    source={'format':'fighter-blazin-5','shots':[
+        {'template':token,'graph':graph,'tags':{'state':'absent'},
+         'camera_policy':'native-venue' if phase==3 else 'owned-relative'}
+        for phase,token in enumerate(('BT1_01','BT2_01','BT3_01','BT4C01'))],
+        'slots':{},'retail_slots':{'0':30,'1':30,'2':76,'3':76}}
+    assert Reader().resource(tmp_path,'blazin',source)['retail_slots']=={0:30,1:30,2:76,3:76}
+    for values in ({'4':1},{'00':1},{'0':True},{'0':82},{'0':-1}):
+        with pytest.raises(AssetError):validate_source('blazin',{**source,'retail_slots':values})
+    with pytest.raises(AssetError,match='disjoint'):
+        validate_source('blazin',{**source,'slots':{'0':{}},'retail_slots':{'0':30}})

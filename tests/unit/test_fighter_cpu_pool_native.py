@@ -18,6 +18,7 @@ uint32_t g_eax,g_ecx,g_edx,g_esp,g_ebx,g_esi,g_edi,g_ebp,g_seh_ebp;
 int g_fp_top;
 static unsigned reservations,registrations;
 static int enabled=1;
+unsigned defjam_fighter_film_file(const char *path) {(void)path;return 0;}
 static const char *mode;
 static uint32_t first=0x500200,root=0x500110,free_bytes=32u*1024u*1024u-768;
 int defjam_fighter_finisher_cpu_file(const char *path) {

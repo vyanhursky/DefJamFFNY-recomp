@@ -20,7 +20,7 @@ from mods import ordinary_path, safe_relative
 
 MAX_FILE = 64 * 1024**2
 MAX_INPUT = 256 * 1024**2
-KINDS = frozenset(('moveset', 'voice', 'ai', 'cinematic', 'blazin'))
+KINDS = frozenset(('moveset', 'voice', 'ai', 'cinematic', 'blazin','tag-override'))
 
 
 def require(condition, message):
@@ -58,22 +58,34 @@ def validate_source(kind, source):
         'ai': {'format', 'template_profile', 'tendencies'},
         'cinematic': {'format', 'template', 'track'},
         'blazin': {'format', 'shots'},
+        'tag-override':{'format','target','template','original_sha256','timeline'},
     }
     version3 = kind == 'voice' and type(source) is dict and source.get('format') in ('fighter-voice-3', 'fighter-voice-4')
     version4 = version3 and source['format'] == 'fighter-voice-4'
-    blazin4 = kind == 'blazin' and type(source) is dict and source.get('format') == 'fighter-blazin-4'
+    cinematic2=kind=='cinematic' and type(source) is dict and source.get('format')=='fighter-cinematic-2'
+    blazin5=kind=='blazin' and type(source) is dict and source.get('format')=='fighter-blazin-5'
+    blazin4 = blazin5 or kind == 'blazin' and type(source) is dict and source.get('format') == 'fighter-blazin-4'
     blazin3 = blazin4 or kind == 'blazin' and type(source) is dict and source.get('format') == 'fighter-blazin-3'
     blazin2 = blazin3 or kind == 'blazin' and type(source) is dict and source.get('format') == 'fighter-blazin-2'
     if version3:
         expected['voice'] = {'format', 'banks', 'intro', 'extro'}
+    if cinematic2:expected['cinematic']={'format','template','graph','tags'}
     if blazin2:
         expected['blazin'] = {'format', 'shots', 'slots'}
+    if blazin5 and 'retail_slots' in source:
+        expected['blazin'].add('retail_slots')
     require(kind in KINDS and type(source) is dict
             and (set(source) == expected[kind] or kind == 'blazin' and not blazin2 and set(source) == expected[kind] | {'pairs'})
             and (source['format'] == 'fighter-' + kind + '-1'
-                 or kind == 'voice' and source['format'] in ('fighter-voice-2', 'fighter-voice-3', 'fighter-voice-4') or blazin2),
+                 or kind == 'voice' and source['format'] in ('fighter-voice-2', 'fighter-voice-3', 'fighter-voice-4') or blazin2 or cinematic2),
             'Unsupported behavior source fields or format')
-    if kind == 'moveset':
+    if kind=='tag-override':
+        require(all(type(source[name]) is str and re.fullmatch('[A-Za-z0-9_]{1,8}',source[name]) for name in ('target','template')),
+                'Tag override needs bounded native target/template labels')
+        require(type(source['original_sha256']) is str and re.fullmatch('[0-9a-f]{64}',source['original_sha256']),
+                'Tag override requires its exact original row SHA-256')
+        file_spec(source['timeline'])
+    elif kind == 'moveset':
         require(type(source['donor']) is str and re.fullmatch(r'retail/[a-z0-9]+(?:-[a-z0-9]+)*', source['donor']),
                 'Moveset requires an explicit retail behavior template')
         require(type(source['selections']) is dict and len(source['selections']) <= 124,
@@ -121,12 +133,23 @@ def validate_source(kind, source):
                         'AI supports only named tendency values from 1 to 5')
     elif kind == 'blazin':
         from fighter_blazin_compile import phase_template
+        if blazin5 and 'retail_slots' in source:
+            require(type(source['retail_slots']) is dict and type(source['slots']) is dict and len(source['retail_slots'])<=4
+                    and not source['retail_slots'].keys() & source['slots'].keys(),
+                    'Retail and owned finisher slots must be disjoint')
+            for slot,choice in source['retail_slots'].items():
+                ordinal(slot,3)
+                require(type(choice) is int and 0<=choice<82,'Retail slot needs a verified choice0..81')
         require(type(source['shots']) is list and len(source['shots']) == 4,
                 'Blazin activation needs four native shot roles')
         for phase, shot in enumerate(source['shots']):
-            require(type(shot) is dict and set(shot) in ({'template'}, {'template', 'track'}),
+            require(type(shot) is dict and (set(shot)=={'template','graph','tags','camera_policy'} if blazin5 else set(shot) in ({'template'}, {'template', 'track'})),
                     'Unsupported Blazin shot fields')
             phase_template(shot['template'], phase)
+            if blazin5:
+                file_spec(shot['graph'])
+                if shot['tags']!={'state':'absent'}:file_spec(shot['tags'])
+                require(shot['camera_policy']==('native-venue' if phase==3 else 'owned-relative'),'Unsupported shot camera policy')
             if 'track' in shot:
                 file_spec(shot['track'])
         if 'pairs' in source:
@@ -139,7 +162,7 @@ def validate_source(kind, source):
                 for spec in pair.values():
                     file_spec(spec)
         if blazin2:
-            require(type(source['slots']) is dict and 0 < len(source['slots']) <= 4,
+            require(type(source['slots']) is dict and (0 if blazin5 else 1) <= len(source['slots']) <= 4,
                     'Blazin needs one to four explicit finisher slots')
             for slot, pair in source['slots'].items():
                 ordinal(slot, 3)
@@ -159,7 +182,10 @@ def validate_source(kind, source):
     else:
         require(type(source['template']) is str and re.fullmatch(r'C[IE]_[A-Za-z0-9]{4}', source['template']),
                 'Cinematic requires a supported simple intro/victory template')
-        file_spec(source['track'])
+        if cinematic2:
+            file_spec(source['graph'])
+            if source['tags']!={'state':'absent'}:file_spec(source['tags'])
+        else:file_spec(source['track'])
     return source
 
 
@@ -232,6 +258,24 @@ class Reader:
 
     def resource(self, root, kind, source):
         validate_source(kind, source)
+        def typed_json(spec,expected):
+            try:value=json.loads(self.file(root,spec).decode('utf-8'),object_pairs_hook=unique_object,
+                                 parse_constant=lambda _: (_ for _ in ()).throw(AssetError('Nonfinite typed JSON')))
+            except (UnicodeError,ValueError,RecursionError) as error:raise AssetError('Invalid typed behavior JSON') from error
+            require(type(value) is dict and value.get('format')==expected,'Unsupported typed behavior format')
+            return value
+        def film(spec):
+            from fighter_cinematic_graphs import FORMAT
+            return typed_json(spec,FORMAT)
+        def film_tags(spec):
+            from fighter_timelines import TAG_FORMAT
+            return None if spec=={'state':'absent'} else typed_json(spec,TAG_FORMAT)
+        if kind=='tag-override':
+            from fighter_timelines import TAG_FORMAT
+            return {**{key:source[key] for key in ('target','template','original_sha256')},
+                    'timeline':typed_json(source['timeline'],TAG_FORMAT)}
+        if kind=='cinematic' and source['format']=='fighter-cinematic-2':
+            return {'template':source['template'],'tracks':film(source['graph']),'tags':film_tags(source['tags'])}
         if kind == 'moveset':
             return {'donor': source['donor'], 'selections': {int(a): b for a, b in source['selections'].items()},
                     'tracks': {token: quaternion_file(self.file(root, spec)) for token, spec in source['tracks'].items()}}
@@ -257,15 +301,20 @@ class Reader:
                     'tendencies': {difficulty: {int(i): dict(edits) for i, edits in rows.items()}
                                    for difficulty, rows in source['tendencies'].items()}}
         if kind == 'blazin':
-            result = {'shots': [{'template': shot['template'],
+            full=source['format']=='fighter-blazin-5'
+            result = {'shots': [{'template':shot['template'],'tracks':film(shot['graph']),
+                                'tags':film_tags(shot['tags']),'camera_policy':shot['camera_policy']}
+                               if full else {'template': shot['template'],
                               'tracks': quaternion_file(self.file(root, shot['track'])) if 'track' in shot else None}
                              for shot in source['shots']],
                     'pairs': {int(choice): {role: quaternion_file(self.file(root, spec)) for role, spec in pair.items()}
                               for choice, pair in source.get('pairs', {}).items()}}
+            if 'retail_slots' in source:
+                result['retail_slots']={int(slot):choice for slot,choice in source['retail_slots'].items()}
             if 'slots' in source:
                 def pair_file(spec):
                     data=self.file(root,spec)
-                    if source['format'] not in ('fighter-blazin-3','fighter-blazin-4'):
+                    if source['format'] not in ('fighter-blazin-3','fighter-blazin-4','fighter-blazin-5'):
                         return quaternion_file(data)
                     from fighter_animation_graphs import FORMAT
                     try:
@@ -277,9 +326,9 @@ class Reader:
                     return value
                 result['slots'] = {int(slot): {'template_choice': pair['template_choice'],
                     **{role: pair_file(pair[role]) for role in ('subject', 'counterpart')},
-                    **({'profile':'graph-1'} if source['format'] in ('fighter-blazin-3','fighter-blazin-4') else {})}
+                    **({'profile':'graph-1'} if source['format'] in ('fighter-blazin-3','fighter-blazin-4','fighter-blazin-5') else {})}
                     for slot, pair in source['slots'].items()}
-                if source['format']=='fighter-blazin-4':
+                if source['format'] in ('fighter-blazin-4','fighter-blazin-5'):
                     def timeline_file(spec,expected):
                         data=self.file(root,spec)
                         try:

@@ -80,7 +80,7 @@ class BlazinArchive:
                 'Blazin archive requires a verified resource generation')
         self.archive, self.source_sha256 = Archive(data), expected_sha256
 
-    def compose(self, resources):
+    def compose(self, resources,*,graphs=None,hands=None):
         require(type(resources) is dict and 0 < len(resources) <= 4096, 'Blazin resource population exceeds budget')
         for identifier in resources:
             key(identifier)
@@ -93,16 +93,23 @@ class BlazinArchive:
                     'Blazin activation requires exactly four typed native shot roles')
             shots = []
             for phase, shot in enumerate(resource['shots']):
-                require(type(shot) is dict and set(shot) == {'template', 'tracks'}, 'Invalid Blazin shot definition')
+                require(type(shot) is dict and set(shot) in ({'template','tracks'},{'template','tracks','tags','camera_policy'}), 'Invalid Blazin shot definition')
                 token = shot['template']; phase_template(token, phase)
                 source = unpack(self.archive.read(token + '.viv'))
-                compiler = BlazinTemplate(source, hashlib.sha256(source).hexdigest(), token, phase,
-                                          resource['rig_sha256'], resource['bone_count'])
+                full=type(shot['tracks']) is dict
+                if not full:
+                    compiler = BlazinTemplate(source, hashlib.sha256(source).hexdigest(), token, phase,
+                                              resource['rig_sha256'], resource['bone_count'])
                 while next_id <= 99999 and f'b{next_id:05d}.viv' in occupied:
                     next_id += 1
                 require(next_id <= 99999, 'Blazin resource filename namespace exhausted')
                 assigned = f'B{next_id:05d}'; next_id += 1
-                data, receipt = compiler.compose(assigned, shot['tracks'])
+                if full:
+                    require(graphs is not None and shot['tracks']['layout']=='single-camera','Full activation needs verified cinematic graph compiler')
+                    data,receipt=graphs.compose(shot['tracks'],assigned,resource['rig_sha256'],resource['bone_count'],hands)
+                    require(shot['camera_policy']==('native-venue' if phase==3 else 'owned-relative'),'Unsupported activation camera policy')
+                    receipt.update(native_name=assigned,phase=phase,template=token,camera_policy=shot['camera_policy'])
+                else:data, receipt = compiler.compose(assigned, shot['tracks'])
                 used += len(data) + len(assigned) + 13
                 require(used <= MAX_ARCHIVE, 'Blazin resource generation exceeds budget')
                 additions[assigned + '.viv'] = data
@@ -129,10 +136,11 @@ def encode_blazin_bindings(data, report, cores, *, extension=None):
     require(type(cores) is dict and 0 < len(cores) <= 16384 - 141
             and all(type(core) is int and 141 <= core < 16384 for core in cores), 'Invalid core-to-Blazin population')
     archive, rows = Archive(data), []
+    version=2 if any(shot.get('full_graph') for shots in report['bindings'].values() for shot in shots) else 1
     for core, identifier in sorted(cores.items()):
         require(identifier in report['bindings'] and type(report['bindings'][identifier]) is list
                 and len(report['bindings'][identifier]) == 4, 'Unknown or incomplete Blazin resource')
-        names = []
+        names = [];flags=0
         for phase, shot in enumerate(report['bindings'][identifier]):
             require(type(shot) is dict and shot.get('phase') == phase
                     and isinstance(shot.get('native_name'), str)
@@ -141,5 +149,7 @@ def encode_blazin_bindings(data, report, cores, *, extension=None):
             require(hashlib.sha256(archive.read(name + '.viv')).hexdigest() == shot.get('sha256'),
                     'Blazin shot differs from its receipt')
             names.append(name.encode('ascii'))
+            if shot.get('full_graph'):flags|=1<<phase
         rows.append(struct.pack('<I8s8s8s8s', core, *names))
-    return b'FBZ1' + struct.pack('<3I', 1, len(rows), len(data)) + bytes.fromhex(final_hash) + b''.join(rows)
+        if version==2:rows[-1]+=struct.pack('<I',flags)
+    return (b'FBZ2' if version==2 else b'FBZ1') + struct.pack('<3I', version, len(rows), len(data)) + bytes.fromhex(final_hash) + b''.join(rows)

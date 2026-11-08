@@ -4,6 +4,7 @@
  * every bank must be freed by the native provider destructor between matches. */
 #include "fighter_cpu_pool.h"
 #include "fighter_finishers.h"
+#include "fighter_film_proof.h"
 #include "hooks/guest_call.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,7 +16,8 @@
 #define CPU_REGISTRY (0x3C9158u + CPU_KEY * 4u)
 static uint32_t s_backing, s_root, s_first, s_free_bytes, s_allocations;
 static int s_open;
-static struct { uint32_t address,bytes; } s_spans[128];
+static struct { uint32_t address,bytes;unsigned film; } s_spans[512];
+static RECOMP_TLS unsigned s_pending_film;
 extern uint32_t xbox_HeapAlloc(uint32_t size, uint32_t alignment);
 extern void sub_001E9640(void);
 
@@ -32,6 +34,12 @@ int defjam_fighter_cpu_range(uint32_t address,uint32_t bytes) {
     for (unsigned i=0;i<s_allocations;++i)
         if (address>=s_spans[i].address && address-s_spans[i].address<=s_spans[i].bytes
             && bytes<=s_spans[i].bytes-(address-s_spans[i].address)) return 1;
+    return 0;
+}
+unsigned defjam_fighter_cpu_film(uint32_t address) {
+    for (unsigned i=s_allocations;i>0;--i)
+        if (address>=s_spans[i-1].address && address-s_spans[i-1].address<s_spans[i-1].bytes)
+            return s_spans[i-1].film;
     return 0;
 }
 static void cpu_empty(void) {
@@ -67,6 +75,7 @@ static void cpu_prepare(void) {
     if (!s_open) { cpu_empty(); s_open = 1; s_allocations = 0; }
 }
 uint32_t defjam_fighter_cpu_flags(uint32_t caller, uint32_t name, uint32_t bytes, uint32_t flags) {
+    s_pending_film=0;
     /* Only the verified synchronous archive-reader allocation callbacks take
      * (filename, bytes, flags). 1E4057 is the uncompressed 1E4100 path;
      * 1E4453/1E473D/1E477A cover compressed reads. No global mode changes. */
@@ -79,7 +88,9 @@ uint32_t defjam_fighter_cpu_flags(uint32_t caller, uint32_t name, uint32_t bytes
         path[n] = (char)MEM8(name + n);
         if (!path[n]) break;
     }
-    if (n == sizeof(path) - 1 || !defjam_fighter_finisher_cpu_file(path)) return flags;
+    if (n == sizeof(path) - 1) return flags;
+    s_pending_film=defjam_fighter_film_file(path);
+    if (!s_pending_film && !defjam_fighter_finisher_cpu_file(path)) return flags;
     if ((flags & ~0x100u) || !bytes || bytes > CPU_BYTES - CPU_PREFIX - 256)
         cpu_stop("owned animation request exceeds its reviewed flags or memory budget");
     cpu_prepare();
@@ -87,13 +98,21 @@ uint32_t defjam_fighter_cpu_flags(uint32_t caller, uint32_t name, uint32_t bytes
      * 29500. It is removed there; low6 then select the registered native pool. */
     return flags | 0x80000000u | CPU_KEY;
 }
+uint32_t defjam_fighter_cpu_film_flags(unsigned owner,uint32_t bytes,uint32_t flags) {
+    if (!owner) return flags;
+    if ((flags&~0x500u) || !bytes || bytes>CPU_BYTES-CPU_PREFIX-256)
+        cpu_stop("owned final cinematic copy exceeds reviewed flags or byte budget");
+    cpu_prepare();s_pending_film=owner;
+    return flags|0x80000000u|CPU_KEY;
+}
 void defjam_fighter_cpu_result(uint32_t address, uint32_t bytes) {
     if (!s_open || !defjam_fighter_cpu_contains(address)
         || bytes > CPU_BYTES - (address - s_backing)
         || (MEM8(address - 14) & 63) != CPU_KEY)
         cpu_stop("owned animation allocation failed or escaped its native CPU pool");
-    if (s_allocations>=128) cpu_stop("owned animation allocation population exceeds the active participant bound");
+    if (s_allocations>=512) cpu_stop("owned animation allocation population exceeds the active participant bound");
     s_spans[s_allocations].address=address;s_spans[s_allocations].bytes=bytes;
+    s_spans[s_allocations].film=s_pending_film;s_pending_film=0;
     ++s_allocations;
 }
 void defjam_fighter_cpu_released(void) {
