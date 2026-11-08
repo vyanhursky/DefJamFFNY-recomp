@@ -388,6 +388,72 @@ def test_supervisor_reports_verifier_failure_without_replacing_committed_progres
     assert store.load()['generation'] == first
 
 
+@pytest.mark.parametrize('locked', ['000001.batch', '000001-00.closed'])
+def test_transient_receipt_access_lock_still_requires_verified_native_bytes(tmp_path, monkeypatch, locked):
+    from pathlib import Path
+    import fighter_save_journal as journal_api
+    baseline, ledger, _, files, extension = state()
+    store = Store(tmp_path / 'store', baseline)
+    first = store.publish(None, files, ledger, extension, OPTIONS)
+    save, journal = tmp_path / 'working', tmp_path / 'journal'
+    put_files(save, files); journal.mkdir()
+    monitor = Monitor(store, save, journal, ledger, expected_head=first)
+    (journal / '000001.batch').write_bytes(batch({OPTIONS: files[OPTIONS]}, {}))
+    put_acks(journal, {OPTIONS: files[OPTIONS]})
+    original = Path.open
+    denied, waits = [], []
+    def briefly_locked(path, *args, **kwargs):
+        if path == journal / locked and not denied:
+            denied.append(path)
+            raise PermissionError(13, 'Synthetic transient sharing denial', str(path))
+        return original(path, *args, **kwargs)
+    monkeypatch.setattr(Path, 'open', briefly_locked)
+    monkeypatch.setattr(journal_api.time, 'sleep', waits.append)
+    assert monitor.poll()
+    assert denied == [journal / locked] and waits == [.02]
+    assert len(monitor.committed) == 1 and monitor.next == 2
+    prefix = OPTIONS.rsplit('/', 1)[0] + '/'
+    assert store.load()['files'] == {**files,
+        prefix + 'SaveMeta.xbx': ('Name=Options\r\n').encode('utf-16'),
+        prefix + 'saveimage.xbx': b'synthetic image'}
+
+
+@pytest.mark.parametrize('failure', ['persistent-lock', 'invalid-after-lock', 'other-io-error'])
+def test_receipt_read_retry_does_not_hide_failed_or_invalid_saves(tmp_path, monkeypatch, failure):
+    from pathlib import Path
+    import fighter_save_journal as journal_api
+    baseline, ledger, _, files, extension = state()
+    store = Store(tmp_path / 'store', baseline)
+    first = store.publish(None, files, ledger, extension, OPTIONS)
+    save, journal = tmp_path / 'working', tmp_path / 'journal'
+    put_files(save, files); journal.mkdir()
+    monitor = Monitor(store, save, journal, ledger, expected_head=first)
+    (journal / '000001.batch').write_bytes(batch({OPTIONS: files[OPTIONS]}, {}))
+    put_acks(journal, {OPTIONS: files[OPTIONS]})
+    target = journal / '000001-00.closed'
+    if failure == 'invalid-after-lock':
+        target.write_bytes(b'not a native completion receipt')
+    original = Path.open
+    attempts, waits = [], []
+    def locked(path, *args, **kwargs):
+        if path == target:
+            attempts.append(path)
+            if failure == 'other-io-error':
+                raise OSError(5, 'Synthetic I/O failure')
+            if failure == 'persistent-lock' or len(attempts) == 1:
+                raise PermissionError(13, 'Synthetic access denial', str(path))
+        return original(path, *args, **kwargs)
+    monkeypatch.setattr(Path, 'open', locked)
+    monkeypatch.setattr(journal_api.time, 'sleep', waits.append)
+    with pytest.raises((OSError, ValueError)):
+        monitor.poll()
+    assert len(attempts) == {'persistent-lock': 10, 'invalid-after-lock': 2, 'other-io-error': 1}[failure]
+    assert len(waits) == {'persistent-lock': 9, 'invalid-after-lock': 1, 'other-io-error': 0}[failure]
+    assert sum(waits) <= .9000001 and not monitor.committed
+    assert not (journal / '000001.committed').exists()
+    assert store.load()['generation'] == first
+
+
 @pytest.mark.parametrize('artifact', ['000001.batch', '000001-00.closed', 'session.json'])
 def test_old_journal_cannot_be_adopted_as_a_fresh_session(tmp_path, artifact):
     baseline, ledger, _, files, extension = state()

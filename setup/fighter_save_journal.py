@@ -60,12 +60,22 @@ def decode(data):
     return {'number': number, 'records': records, 'marks': marks}
 
 
-def bounded(path):
-    require(not linked(path) and path.is_file() and path.stat().st_size <= MAX_FILE, 'Unsafe native save file')
-    with path.open('rb') as stream:
-        data = stream.read(MAX_FILE + 1)
-    require(len(data) <= MAX_FILE, 'Native save grew beyond budget')
-    return data
+def bounded(path, maximum=MAX_FILE):
+    for attempt in range(10):
+        try:
+            require(not linked(path) and path.is_file() and path.stat().st_size <= maximum, 'Unsafe native save file')
+            with path.open('rb') as stream:
+                data = stream.read(maximum + 1)
+            require(len(data) <= maximum, 'Native save grew beyond budget')
+            return data
+        except PermissionError:
+            # Published receipts are already closed and atomically renamed by
+            # native code, but Windows readers/scanners may briefly lock them.
+            # Retry access only, for <=0.9s; malformed bytes and persistent
+            # denial still fail without publishing or acknowledging a save.
+            if attempt == 9:
+                raise
+            time.sleep(.02 * (attempt + 1))
 
 
 def closed_record(journal, batch, index, record):
@@ -166,9 +176,7 @@ class Monitor:
         path = self.journal / f'{self.next:06}.batch'
         if not path.exists():
             return False
-        require(not linked(path) and path.stat().st_size <= MAX_BATCH, 'Unsafe fighter save journal')
-        with path.open('rb') as stream:
-            batch = decode(stream.read(MAX_BATCH + 1))
+        batch = decode(bounded(path, MAX_BATCH))
         require(batch['number'] == self.next, 'Out-of-order fighter save journal')
         if 'deleted' in batch:
             return self.delete_profile(batch)
