@@ -26,6 +26,8 @@ DRIVER=r'''
 #include <iostream>
 #include <thread>
 #include <chrono>
+#include <cstdlib>
+extern "C" int pc_settings_save_checked(void) { std::abort(); }
 std::string data;
 namespace pcui { std::string folder_path(Folder which) { return data; } }
 int main(int argc,char **argv) {
@@ -42,7 +44,7 @@ int main(int argc,char **argv) {
    std::cout<<"locked"<<std::endl;
    std::string input;std::getline(std::cin,input);return 0;
  }
- if(!pcui::mod_start("status"))return 3;
+ if(!pcui::mod_start(argv[2],argc>3?argv[3]:""))return 3;
  for(int i=0;i<1000 && pcui::mod_busy();i++) {pcui::mod_poll();std::this_thread::sleep_for(std::chrono::milliseconds(10));}
  std::cout<<pcui::mod_status()<<"\n"<<pcui::mod_view().catalogue<<std::endl;
  return pcui::mod_busy()?4:0;
@@ -53,16 +55,30 @@ int main(int argc,char **argv) {
 def bridge(tmp_path_factory):
     folder=tmp_path_factory.mktemp('mod bridge with spaces')
     source=folder/'main.cpp';source.write_text(DRIVER)
+    # This process/lock fixture has no initialized toolkit or settings registry.
+    # Status/recovery must not read or write settings; fail loudly if that changes.
+    (folder/'recomp_settings.h').write_text(r'''#pragma once
+#include <stddef.h>
+#include <stdlib.h>
+#define RECOMP_SETTING_TEXT_MAX 1024
+enum { RECOMP_SETTING_FROM_ENV = 2 };
+struct RecompSetting { int source; };
+static inline const char *recomp_settings_get_text(const char *, const char *, char *, size_t, const char *) { abort(); }
+static inline RecompSetting *recomp_settings_find(const char *, const char *) { abort(); }
+static inline int recomp_settings_set_text(const char *, const char *, const char *) { abort(); }
+static inline int recomp_settings_set(const char *, const char *, int) { abort(); }
+''')
     compiler=shutil.which('cl') or shutil.which('clang++') or shutil.which('g++')
     if not compiler:pytest.skip('C++ compiler required')
     exe=folder/('bridge.exe' if os.name=='nt' else 'bridge')
     if Path(compiler).stem.lower()=='cl':
-        command=[compiler,'/nologo','/std:c++17','/EHsc','/I'+str(ROOT/'src/hooks'),
+        command=[compiler,'/nologo','/std:c++17','/EHsc','/I'+str(folder),'/I'+str(ROOT/'src/hooks'),
                  '/DDEFJAM_MOD_SOURCE_DIR="'+str(ROOT)+'"',str(source),str(ROOT/'src/hooks/pc_mods.cpp'),'/Fe:'+str(exe)]
     else:
-        command=[compiler,'-std=c++17','-pthread','-I'+str(ROOT/'src/hooks'),
+        command=[compiler,'-std=c++17','-pthread','-I'+str(folder),'-I'+str(ROOT/'src/hooks'),
                  '-DDEFJAM_MOD_SOURCE_DIR="'+str(ROOT)+'"',str(source),str(ROOT/'src/hooks/pc_mods.cpp'),'-o',str(exe)]
-    subprocess.run(command,cwd=folder,check=True,capture_output=True)
+    result=subprocess.run(command,cwd=folder,capture_output=True,text=True)
+    assert result.returncode == 0, result.stdout + result.stderr
     return exe
 
 
@@ -75,6 +91,38 @@ def test_async_status_and_space_paths(bridge,tmp_path):
     assert result.returncode==0,result.stdout+result.stderr
     assert 'inventory refreshed' in result.stdout
     assert (data/'mod-manager/view.ini').exists()
+
+
+@pytest.mark.parametrize('activation_ok', [True, False])
+def test_catalogue_fighter_install_uses_activation_transaction_not_texture_settings(bridge, tmp_path, activation_ok):
+    source = tmp_path / 'helper source'
+    (source / 'setup').mkdir(parents=True)
+    (source / 'setup/mods.py').write_text(f'''
+import sys
+from pathlib import Path
+root = Path(sys.argv[sys.argv.index('--data-dir') + 1]) / 'mod-manager'
+root.mkdir(parents=True, exist_ok=True)
+with (root / 'commands.txt').open('a') as record:
+    record.write(sys.argv[1] + '\\n')
+assert sys.argv[sys.argv.index('--id') + 1] == 'synthetic-fighters'
+if sys.argv[1] == 'install':
+    (root / 'view.ini').write_text('[installed.synthetic-fighters]\\nfolder=synthetic-fighters\\ncategory=fighters\\nname=Synthetic\\n')
+elif sys.argv[1] == 'fighter-enable':
+    (root / 'progress.ini').write_text('[progress]\\nmessage=activation {"verified" if activation_ok else "refused"}\\n')
+    sys.exit({0 if activation_ok else 1})
+else:
+    raise AssertionError(sys.argv)
+''', encoding='utf-8')
+    env = {**os.environ, 'DEFJAM_MOD_PYTHON': sys.executable}
+    env.pop('DEFJAM_INSTALL_DIR', None)
+    result = subprocess.run([str(bridge), str(tmp_path / 'data'), 'install-enable', 'synthetic-fighters'],
+                            cwd=source, env=env, capture_output=True, text=True, timeout=20)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert (tmp_path / 'data/mod-manager/commands.txt').read_text().splitlines() == ['install', 'fighter-enable']
+    if not activation_ok:
+        assert 'activation refused' in result.stdout
+    # All toolkit settings functions abort in this driver: either outcome must
+    # avoid the texture/language settings and preserve the helper's decision.
 
 
 def test_native_game_and_python_supervisor_share_runtime_lock(bridge, tmp_path):

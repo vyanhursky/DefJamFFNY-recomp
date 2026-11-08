@@ -22,13 +22,7 @@ and what to do when something misbehaves, see [Controllers, keyboard and mouse](
 | Key | Default | Meaning |
 |---|---|---|
 | `skip` | `false` | Skip the launcher and start the game at once. The launcher shows on every launch unless this is on. Hold **Shift** while the game starts, or start it with `--launcher`, to see it anyway; turn this off in the overlay's Interface page or the launcher's own checkbox. Env `RECOMP_NO_LAUNCHER=1` skips it for one run. |
-
-## [debug]
-
-| Key | Default | Meaning |
-|---|---|---|
-| `unlock_all` | `false` | Every fighter and venue is available on any profile, through the developers' own unlock routine in the game. For testing: it changes the profile in memory and asks the game to save it, so keep it off for a save you care about. Restart. Shown in the launcher and the overlay's Diagnostics page as "Unlock all fighters and venues". Env `RECOMP_UNLOCK_ALL` (`1` on, `0` off). The test harness turns it on for its runs. [How it works](research/unlock-everything.md). |
-| `skip_intro` | `false` | Skip the startup legal screen and EA/THX/intro movies and start at **Press Start**. A brief resource-loading screen and the title's own animation still run. Story cutscenes and idle attract playback keep working. Choose **Interface → Skip startup movies and legal screen** before Play, or restart after changing it in the overlay. Env `RECOMP_SKIP_INTRO` (`1` on, `0` off) overrides the file. [How it works](research/startup-skip-flow.md). |
+| `check_updates` | `true` | The app (`DefJamRecompiled`) checks GitHub for a newer release when it starts, at most every twelve hours, and Home offers the update. Off: no check. The game itself ignores it. Shown in the app's Advanced > Interface > Start-up as "Check for updates when the app starts". |
 
 ## [ui]
 
@@ -39,6 +33,13 @@ and what to do when something misbehaves, see [Controllers, keyboard and mouse](
 | `scale` | `100` | Size of the launcher's and overlay's text and controls in percent, 60-250, on top of your display's scaling (full screen on a large monitor is scaled up automatically). |
 
 ## [debug]
+
+| Key | Default | Meaning |
+|---|---|---|
+| `unlock_all` | `false` | Every fighter and venue is available on any profile, through the developers' own unlock routine in the game. For testing: it changes the profile in memory and asks the game to save it, so keep it off for a save you care about. Restart. Shown in the launcher and the overlay's Diagnostics page as "Unlock all fighters and venues". Env `RECOMP_UNLOCK_ALL` (`1` on, `0` off). The test harness turns it on for its runs. [How it works](research/unlock-everything.md). |
+| `skip_intro` | `false` | Skip the startup legal screen and EA/THX/intro movies and start at **Press Start**. A brief resource-loading screen and the title's own animation still run. Story cutscenes and idle attract playback keep working. Choose **Interface → Skip startup movies and legal screen** before Play, or restart after changing it in the overlay. Env `RECOMP_SKIP_INTRO` (`1` on, `0` off) overrides the file. [How it works](research/startup-skip-flow.md). |
+
+### Recorder keys
 
 The play-test recorder: see [Play-test recorder](playtest-recorder.md). Off by default; `--record` on the command
 line turns it on for one run. Every key here is read at start-up.
@@ -57,6 +58,21 @@ line turns it on for one run. Every key here is read at start-up.
 | `keep_sessions` | `20` | Sessions kept whole; older ones keep their bundles and events only. |
 | `record_guest_ram` | `false` | Crash and hang bundles also hold the game's 64 MB of memory. |
 
+## [cheats]
+
+Cheats for issue [#71](https://github.com/vyanhursky/DefJamFFNY-recomp/issues/71), on the **Cheats** page of
+the launcher and the in-game overlay. All are off by default and apply as they change. None of them is ever
+saved into a profile; the Story one-shots that do change the profile are buttons in the overlay, not
+settings (see [Launcher and overlay](launcher-and-overlay.md#cheats)). [How they work](research/cheat-menu.md).
+
+| Key | Default | Meaning |
+|---|---|---|
+| `infinite_health` | `off` | Fighters who lose no health: `off`, `player 1` (the first fighter on a pad or the keyboard), `every player` (every fighter not played by the computer) or `everyone`. Hits still land and react. Env `RECOMP_CHEAT_INFINITE_HEALTH` (the same words). |
+| `max_blazin` | `off` | The momentum meter stays full and Blazin' is always ready for the same choice of fighters; start it as usual. It fills five seconds into a fight. Env `RECOMP_CHEAT_MAX_BLAZIN`. |
+| `no_regen` | `false` | No fighter gets health back by itself during a fight. Env `RECOMP_CHEAT_NO_REGEN`. |
+| `fighter_size` | `normal` | `giant` or `tiny` fighters. Only the picture changes: reach and collision stay the same. Env `RECOMP_CHEAT_FIGHTER_SIZE`. |
+| `story_hero` | `-1` | In Story fights, play as another fighter, with that fighter's look and moves, instead of your created fighter: the fighter's `<ID>` from `fighter.xml` (the launcher lists them by name), `-1` off. Cutscenes, the crib and the shops still show your own fighter. Env `RECOMP_CHEAT_STORY_HERO`. |
+
 ## [display]
 
 | Key | Default | Meaning |
@@ -69,12 +85,17 @@ line turns it on for one run. Every key here is read at start-up.
 | `widescreen_side_fill` | `blur` | What is beside 4:3 pictures (movies, menu backgrounds) in widescreen: `blur` (a soft blurred extension) or `black`. Restart. |
 | `widescreen_fov_cap` | `150` | The widest horizontal field of view widescreen may use, 90-170 degrees. Restart. |
 | `render_scale` | `2` | Internal render height: 1× = 480p, 2× = 960p, 3× = 1440p, 4× = 1920p; width follows Picture shape. For 1080p output, 2× balances sharpness and cost, or 3× renders above the output height for extra sharpness. For 1440p, 3× matches the height. Window size is separate; higher scales cost GPU time. Restart. Env `RECOMP_RENDER_SCALE`. |
-| `filter` | `smooth` | How the picture is scaled to the window: `smooth` or `sharp`. |
+| `filter` | `smooth` | How the picture is scaled to the window: `smooth`, `sharp` or `smooth (high quality)`. The last is `smooth` with area-averaged downscaling: when the render scale makes the picture larger than the window (4× in a 1080p window, 3× or 4× on a Steam Deck), it averages the extra pixels instead of skipping some, so edges and fine detail shimmer less. Same as `smooth` when the picture is not larger than the window. Applies at once. Env `RECOMP_PRESENT_FILTER` (a choice name). [How it works](research/graphics-enhancements.md). |
+| `msaa` | `off` | Multisample anti-aliasing of the 3D picture: `off`, `2x`, `4x` or `8x`. Smooths the jagged edges of fighters and the arena, as the console's own anti-aliasing did; combines with render scale. Lowered to what the graphics card supports (the log says which). Costs GPU time and memory, more at higher render scales. Restart. Env `RECOMP_MSAA` (a choice name). |
+| `texture_mips` | `false` | Use the smaller copies (mip levels) the game ships with each texture, and filter between them as the console does. Without it the port samples only the full-size copy, so distant floors, walls and crowds shimmer, most at render scale 1-2. Applies at once (textures already loaded keep their shape until next used). Env `RECOMP_TEXTURE_MIPS` (`1` on, `0` off). |
+| `anisotropy` | `off` | Anisotropic filtering: `off`, `2x`, `4x`, `8x` or `16x`. Keeps floors and walls seen at a low angle sharp. Applies to textures the game filters smoothly; cut-out sprites are left as they are. Works best with `texture_mips` on. Applies at once. Env `RECOMP_ANISOTROPY` (a choice name). |
 | `vsync` | `true` | Pace frames on the display. Used when the refresh rate is a multiple of 60 Hz; other displays use the game's own 60 fps timer, and on those (75, 100, 144, 165 Hz) motion can judder because each frame stays up for an uneven number of refreshes. The log's `[DISPLAY]` line names the refresh rate and which of the two paces the game. Env `RECOMP_PRESENT_VSYNC`. |
 | `gamma` | `true` | Apply the game's own brightness curve, as the console does. Restart. Env `RECOMP_GAMMA`. |
 | `brightness` | `100` | Picture brightness, 50-200, on top of the game's curve: a power curve that moves the mid-tones and keeps black and white where they are. 100 is the console's picture; higher is brighter. Applies at once. Env `RECOMP_BRIGHTNESS`. |
 | `vignette` | `true` | The darkened screen edges that venues and some scenes draw (part of the game's post effects). `false` removes them. Applies at once. Env `RECOMP_VIGNETTE` (`1` on, `0` off). |
 | `vignette_strength` | `100` | How dark the vignette is, 0-100 percent of the game's own; 0 is the same as off. Applies at once. Env `RECOMP_VIGNETTE_STRENGTH`. [How both work](research/picture-options.md). |
+| `color_tint` | `100` | Strength of the colour tint venues and scenes put over the picture (the warm, sepia grade of most fights), 0-100 percent of the game's own; 0 shows the picture untinted. Applies at once. Env `RECOMP_COLOR_TINT`. |
+| `scratches` | `true` | The film scratches some scenes draw over the picture. `false` removes them. Applies at once. Env `RECOMP_SCRATCHES` (`1` on, `0` off). |
 
 ## [language]
 
@@ -84,13 +105,25 @@ line turns it on for one run. Every key here is read at start-up.
 | `story_subtitles` | `auto` | Story cutscene subtitles: `auto` (what the language mod asks for; without one, as the game does), `all cutscenes` (every cutscene, English included: the game has English subtitles for all of them), `as the game does` (the opening cutscene only). Restart. Shown in the launcher as **Interface → Language and subtitles**. Env `RECOMP_STORY_SUBTITLES`. |
 | `game` | `english` | The game's own language: `english`, or `french`, the translation built into the game (menus, memory-card messages and Story subtitles, which then show in every cutscene; the voices and the menu icon art stay English). Not used while a language mod is on. Restart. Shown in the launcher as **Interface → Language and subtitles**. Env `RECOMP_GAME_LANGUAGE`. [The game's own French](language-packs.md#the-games-own-french). |
 
+## [songs]
+
+| Key | Default | Meaning |
+|---|---|---|
+| `restored` | `true` | Restored songs: music cut from the release whose audio is still on the disc ("Holler If Ya Hear Me", 2Pac) is in the Beatbox and the playlist like the other songs. The game reads a copy of its song list with the extra rows from `<data>/cache/songs` (built on a language mod's copy when one is on). Restart. Env `RECOMP_SONGS_RESTORED`. [Research](research/custom-songs.md). |
+| `custom` | `true` | Your own songs: MP3, FLAC, Ogg Vorbis and WAV files in `<data>/songs` (and its subfolders) and in `folders` are converted once into `<data>/cache/songs` and play in the Beatbox, the menus and fights like the game's songs, with their tags (or file name) in the song banner. The game holds 60 songs (27 of your own next to its 33); 35 can be on at once. Restart. Env `RECOMP_SONGS_CUSTOM`. [Custom songs](custom-songs.md). |
+| `folders` | *(empty)* | More folders of your own songs, separated by semicolons; `<data>/songs` is always read. Restart. Env `RECOMP_SONGS_FOLDERS`. |
+| `skip_pad` | `right_stick_click+dpad_right` | Pad buttons that skip to the next song, in the menus and in fights; a combination acts when its last button goes down (not while the left stick is also in: L3+R3 is the overlay's). The game sees the buttons too. Alternatives separated by commas; names as in `[gamepad]`; empty for none. Restart. [Custom songs](custom-songs.md#next-song-song-from-the-start). |
+| `restart_pad` | `right_stick_click+dpad_left` | Pad buttons that play the current song from its start. Restart. |
+| `skip_key` | `F8` | The key that skips to the next song (the game does not see it). Empty for none. Restart. |
+| `restart_key` | `F7` | The key that plays the current song from its start. Empty for none. Restart. |
+
 ## [textures]
 
 | Key | Default | Meaning |
 |---|---|---|
 | `enabled` | `false` | Use local HD texture packs. Restart. |
 | `packs` | `faithful-hd` | Folder names beneath `<data>/mods`, separated by semicolons. Later packs win. Restart. An explicit `RECOMP_TEXTURE_PACKS` enables those packs for one run. |
-| `cache_mb` | `2048` | Replacement memory budget in MiB (32–4096), accounting for GPU resources and retained upload data. A budget smaller than a scene's textures makes the game evict and reload them during play. Restart. Env `RECOMP_TEXTURE_CACHE_MB`. |
+| `cache_mb` | `2048` | Replacement memory budget in MiB (32–4096), accounting for GPU resources and retained upload data. A budget smaller than a scene's textures makes the game evict and reload them during play. Try increasing it for texture pop-in, slow texture loading or repeated stutters with texture packs enabled. Higher values use more graphics/system memory; leave room for the game and other apps. Restart. Env `RECOMP_TEXTURE_CACHE_MB`. |
 | `dump` | `false` | Write lossless source PNGs and texture identities to `<data>/hd-work/runtime`. Restart. Env `RECOMP_TEXTURE_DUMP_DIR` can select a different destination. |
 | `dump_limit` | `2000` | Maximum new images captured per run (0–65536). Restart. Env `RECOMP_TEXTURE_DUMP_LIMIT`. |
 
@@ -214,3 +247,8 @@ a = K, Mouse1
 To play the keyboard as part of player 1's pad (menus with the keyboard while a pad is connected), set
 `keyboard_player = merge` in `[input]`. To use pads only and give the game no keyboard controller,
 set it to `off`.
+
+
+## Startup-skip application time
+
+`debug.skip_intro` uses the same default < INI < environment boolean precedence as other registered settings, including explicit `false`/`0`. It is sampled after the launcher on the first screen selection, and that one-time decision is consumed even when the option is off or the initial screen is unexpected. Overlay edits therefore save the next-launch choice; they cannot begin skipping later front-end or Story screens in the current process. [Startup implementation and acceptance](research/startup-skip-flow.md) records this scope and the independent fast-start default used by automated tests.

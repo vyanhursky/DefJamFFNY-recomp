@@ -116,6 +116,13 @@ Full table with source references: `docs/research/toolkit-bringup-notes.md`. Eve
 | `RECOMP_YIELD_DEPRESS=1`, `RECOMP_EXECUTOR_QOS=0` | macOS: yield with `sched_yield()` (which drops the caller to priority 0) instead of `thread_switch()`, and run the push-buffer executor at the default QoS instead of user-interactive -- the two causes of F1's random stalls (D134), to compare |
 | `RECOMP_RECORD_SYNC=1` | the recorder reads its pictures back synchronously (as before the asynchronous read-back), to compare `capture_ms` |
 | `RECOMP_FE_INJECT="anchor#N=>command"` | send the front end's FuncCall handler a command after the Nth call containing the anchor ([scenario launching](research/scenario-launching.md)) |
+| `RECOMP_SONGS_TRACE=1` | songs: the profile's jukebox store at load (keys, states, the order counter) and every music playlist the game builds, with the store and the jukebox's list, and each piece a custom song plays ([custom songs](research/custom-songs.md)) |
+| `RECOMP_SONGS_SEGMENTS=1` | custom songs play in their map's own order (the play-time remap off, for comparison: fights then jump around the song) |
+| `RECOMP_OPTIONS_VOLUME=0` | the saved music, effects and announcer volumes are not handed to the mixer after a load (the original game's behaviour: they fall back to 85 after a restart; `src/patches/options_volume.c`) |
+| `RECOMP_TEST_SONG_SHORTCUT=next@40,start@70` | asks for the [songs] shortcuts (next song, the song from its start) that many seconds after the first frame: scripted runs have no host pads to press them with (`src/patches/song_cursor.c`) |
+| `RECOMP_TEST_SONG_CLONES=N` | test aid: N extra Song rows ("Test Song N") that play the disc's own music folders, to fill the song store (the game holds 36 rows; [limits](research/custom-songs.md#5b-slice-2-how-many-songs-the-game-can-hold-2026-11-05)) |
+| `RECOMP_TEST_SONG_ADD=folder\|title\|artist\|album` | test aid: one extra Song row for a folder the test put under `music/` |
+| `RECOMP_TEST_SONGS_ONLY=<rank or folder>` | test aid: after a profile loads, every song but the one with that record rank is disabled in memory, so the next playlist holds it alone and the main menu's song banner announces it at start-up (`32` = the restored "Holler If Ya Hear Me") |
 | `RECOMP_TEST_CROWD=hold[:N],reseed` | crowd test controls, with `RECOMP_TEST_OBSERVATIONS=1`; measured by `scripts/crowd-lab.py` |
 | `RECOMP_TICK_THREAD=0`, `RECOMP_PRECISE_SLEEP=0`, `RECOMP_GUEST_TURN_PRIO=0`, `RECOMP_GUEST_QOS=0`, `RECOMP_APU_SLICE_PACE=0` | turn off one of the audio crackle fixes (D120-D122), each on by default, to compare; `RECOMP_APU_VOICE_PCM=<prefix>` dumps voices `0xF8`-`0xFA` for `scripts/audio-holes.py` |
 | `RECOMP_PHYS_RAM_ALIAS=0` | name heap pages by their identity again (with the RAM-name record) instead of their alias in the first RAM mirror: brings back the crackle a moved heap block caused in the music stream (a translation's larger string table did it), to compare |
@@ -145,6 +152,9 @@ Compile-time: `-DRECOMP_ICALL_FEEDBACK` plus `python -m tools.recomp.icall_feedb
 2. Nothing else to declare. `scripts/recomp.ps1` passes the file to the lifter with `--exclude-manual`, which scans it for `void sub_XXXXXXXX(void)` definitions and stops generating those bodies, so yours links for direct callers too.
 3. Re-run `scripts/recomp.ps1`, then rebuild. The lifter reports how many it excluded and how many it wrapped.
 
-To **wrap indirect calls**, add `extern void sub_XXXXXXXX_gen(void);` beside your definition and call it from the middle. The real body is emitted under that name, and direct call sites are also rewritten to call `_gen`, bypassing the wrapper. To observe every caller at entry, define `void sub_XXXXXXXX_enter(void)` instead and re-lift; its hook precedes guest instructions while retaining the generated body. Retired overrides can stay inside `#if 0`, which the scanner skips.
+For wrappers and entry hooks, use the canonical [lifter override playbook](agent/lifter-overrides.md).
+Since toolkit v0.16, direct callers reach a manual wrapper through the lookup too;
+the direct-call bypass described in older bring-up notes applies to v0.13 and earlier.
+Re-lift after adding a wrapper or entry hook. The scanner ignores retired overrides inside `#if 0`.
 
 Find candidates by comparing each indexed jump's table arms against its function's detected bounds: arms past the end mean the body was truncated and the lifter could not prove the jump was local, so it emitted an indirect call that fails at runtime.

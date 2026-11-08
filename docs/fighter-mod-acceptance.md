@@ -2,8 +2,10 @@
 
 Target v0.15.0. This ledger reconciles the approved roadmap with evidence;
 unchecked roadmap boxes do not erase accepted local M1Ã¢â‚¬â€œM4 work. **Extended M5
-and release acceptance remain outstanding.** Publication remains unauthorized.
+and release acceptance remain outstanding.** Source-only PR publication is
+authorized; pack/asset publication, PR merge and release remain unauthorized.
 Current continuation: [November8 checkpoint](research/fighter-mod-m5-2026-11-08.md).
+Current-main integration: [November8 integration checks](research/fighter-mod-main-integration-2026-11-08.md).
 
 | Approved criterion | Existing evidence | Remaining acceptance |
 |---|---|---|

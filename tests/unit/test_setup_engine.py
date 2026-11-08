@@ -3,6 +3,7 @@ import argparse
 import importlib.util
 import json
 from pathlib import Path
+import re
 import subprocess
 import sys
 import zipfile
@@ -124,6 +125,28 @@ def test_process_arguments_are_literal_and_failed_stage_is_not_success(tmp_path)
         setup.run([sys.executable, script, '$(not a shell); & literal'])
 
 
+def test_stage_timings_go_to_the_log_and_not_to_the_status_line(tmp_path):
+    # #187: the setup log says how long each stage took, a failed one too; the app's status line
+    # (the status file) keeps showing the stage, not a [TIME] line.
+    setup = installer(tmp_path)
+    status = tmp_path / 'status.txt'
+    setup.args.status_file = str(status)
+    log_path = tmp_path / 'setup.log'
+    with log_path.open('a', encoding='utf-8') as log:
+        setup.log = log
+        setup.event('Analysis in progress (this may take several minutes)')
+        assert setup.timed('Analysis', lambda: 'result') == 'result'
+        with pytest.raises(engine.SetupError, match='exit 3'):
+            setup.timed('Lift', lambda: setup.run([sys.executable, '-c', 'raise SystemExit(3)']))
+        setup.log_time('Setup total', 12.34)
+    setup.log = None
+    text = log_path.read_text(encoding='utf-8')
+    assert re.search(r'^\[TIME\] Analysis: \d+\.\d s$', text, re.M)
+    assert re.search(r'^\[TIME\] Lift: \d+\.\d s$', text, re.M)
+    assert '[TIME] Setup total: 12.3 s' in text
+    assert status.read_text(encoding='utf-8').strip() == 'Analysis in progress (this may take several minutes)'
+
+
 def test_cancellation_prevents_a_new_stage(tmp_path):
     setup = installer(tmp_path)
     cancel = tmp_path/'cancel'
@@ -203,6 +226,54 @@ def test_new_release_only_reuses_lift_after_pipeline_validation(tmp_path):
     # Cached files never imply successful certification: a real verifier reads
     # inputs/outputs and will reject this deliberately incomplete state.
     assert json.loads((setup.source/'src/recomp/gen/lift-state.json').read_text()) == {'synthetic':'uncertified'}
+
+
+def earlier_build(setup):
+    old = setup.install / 'versions/old/source'
+    for relative in ('src/recomp/gen/lift-state.json', 'tools/xboxrecomp/game_files/defjam-analysis-state.json',
+                     'tools/xboxrecomp/tools/disasm/output/functions.json'):
+        (old / relative).parent.mkdir(parents=True, exist_ok=True)
+        (old / relative).write_text('{"synthetic":"uncertified"}')
+    (old / 'tools/xboxrecomp/game_files/default.xbe').write_bytes(b'earlier copy')
+    engine.write_json(setup.install/'installed.json', {'source': str(old)})
+
+
+@pytest.mark.parametrize('operation', ['update', 'downgrade', 'rebuild'])
+def test_update_reuses_only_analysis_and_clean_operations_reuse_nothing(tmp_path, operation):
+    setup = installer(tmp_path)
+    earlier_build(setup)
+    (setup.data / 'extracted').mkdir()
+    (setup.data / 'extracted/default.xbe').write_bytes(b'synthetic')
+    setup.operation = operation
+    setup.prepare_source()
+    toolkit = setup.source / 'tools/xboxrecomp'
+    assert not (setup.source / 'src/recomp/gen').exists()
+    if operation == 'update':
+        # Copied only as candidates: the pipeline's verifier decides whether analysis is reused.
+        assert (toolkit / 'game_files/defjam-analysis-state.json').is_file()
+        assert (toolkit / 'tools/disasm/output/functions.json').is_file()
+        assert (toolkit / 'game_files/default.xbe').read_bytes() == b'synthetic'
+    else:
+        assert not (toolkit / 'game_files').exists()
+
+
+def test_update_before_extraction_drops_the_earlier_xbe_copy(tmp_path):
+    setup = installer(tmp_path)
+    earlier_build(setup)
+    setup.operation = 'update'
+    setup.prepare_source()
+    toolkit = setup.source / 'tools/xboxrecomp'
+    assert (toolkit / 'game_files/defjam-analysis-state.json').is_file()
+    assert not (toolkit / 'game_files/default.xbe').exists()
+
+
+def test_update_without_an_active_install_reuses_nothing(tmp_path):
+    setup = installer(tmp_path)
+    earlier_build(setup)
+    (setup.install / 'installed.json').unlink()
+    setup.operation = 'update'
+    setup.prepare_source()
+    assert not (setup.source / 'tools/xboxrecomp/game_files').exists()
 
 
 def test_unreadable_earlier_attempt_is_skipped_not_fatal(tmp_path, monkeypatch):
@@ -396,6 +467,32 @@ def test_uninstall_preserves_data_and_unrelated_install_files(tmp_path, monkeypa
     assert not (setup.install/'DefJamLauncher.exe').exists()
     assert (setup.install/'unrelated.txt').read_bytes() == b'keep too'
     assert (setup.data/'save/profile').read_bytes() == b'keep'
+
+
+@pytest.mark.skipif(sys.platform != 'win32', reason='Windows uninstall')
+def test_uninstall_reports_each_removed_build_file_and_shortcut_and_the_kept_data(tmp_path, monkeypatch):
+    setup = installer(tmp_path)
+    old = setup.install/'versions/0.13.0-attempt-old'
+    (old/'build').mkdir(parents=True)
+    (old/'build/game.exe').write_bytes(b'x' * 3_000_000)
+    (setup.source/'big.bin').write_bytes(b'y' * 2_000_000)
+    engine.write_json(setup.install/'installed.json', {'schema':1, 'version':'1.0.0', 'source':str(setup.source), 'data':str(setup.data)})
+    (setup.install/'DefJamLauncher.exe').write_bytes(b'synthetic')
+    (setup.install/'unrelated.txt').write_bytes(b'keep')
+    monkeypatch.setattr(engine.subprocess, 'run', lambda *a, **k: engine.subprocess.CompletedProcess(
+        a, 0, stdout='Removed shortcut C:\\Desktop\\Def Jam Recompiled.lnk\r\n', stderr=''))
+    lines = []
+    engine.uninstall(setup.install, lines.append)
+    text = '\n'.join(lines)
+    assert lines[0].startswith('Uninstalling Def Jam Recompiled 1.0.0 from ')
+    assert 'Removed versions\\0.13.0-attempt-old (3 MB)' in lines
+    assert any(line.startswith('Removed versions\\' + setup.source.parent.name) and 'the active build' in line for line in lines)
+    assert 'Removed DefJamLauncher.exe' in lines and 'Removed installed.json' in lines
+    assert 'Removed installed.ini' not in lines            # only what was there
+    assert 'Removed shortcut C:\\Desktop\\Def Jam Recompiled.lnk' in lines
+    assert 'Kept the data folder ' + str(setup.data) in text
+    assert any(line.startswith('Left in ') and 'unrelated.txt' in line for line in lines)
+    assert lines[-1] == 'Application removed. Dump, saves, settings and logs were preserved.'
 
 
 def synthetic_launcher_template(payload):

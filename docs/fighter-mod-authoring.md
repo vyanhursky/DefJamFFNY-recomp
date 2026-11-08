@@ -1,13 +1,15 @@
 # Fighter Mod Support: runtime authoring contract
 
-Target **v0.15.0**, local development. Ordinary Fighter ZIP installation,
+Development feature, originally planned for **v0.15.0**; no current release
+queue assignment. Ordinary Fighter ZIP installation,
 whole-pack activation, native menus and managed profile persistence are implemented.
 This is the runtime contract reference. The beginner-first creator guide lives in
 `DefJam-Modding-Tools/docs/fighter-modding-guide.md`; offline creator commands are
 maintained in that repository. The owner authorized source-only PR publication
 on November 8; converted packs and assets remain local. See the
 [review notes](fighter-mod-review-notes.md) for base-game/resource/save effects,
-known limits and current-main integration work still required.
+known limits, and the [integration checkpoint](research/fighter-mod-main-integration-2026-11-08.md)
+for current-main source/build and outstanding acceptance.
 
 ## Package shape and identity
 

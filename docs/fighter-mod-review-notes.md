@@ -6,10 +6,12 @@ The owner authorized publishing source branches and PR notes on November 8, 2026
 The original mod archive, converted pack, models, textures, animation/audio data,
 screenshots, saves, native executables and generated code remain local.
 
-The runtime branch predates current main's launcher/setup transition. It must be
-integrated with that architecture before shipping; the old Setup integration in
-this branch is not a proposal to restore retired production components. This
-review does not authorize a merge, pack publication or release.
+The branch now integrates main's launcher/app transition and published toolkit
+pin `4801dc1`. The [integration checkpoint](research/fighter-mod-main-integration-2026-11-08.md)
+records the current source/build evidence separately from the earlier native
+results below. Packaged-app and new native acceptance remain open; the retained
+legacy Setup test path does not restore retired production release assets. This
+review does not authorize a PR merge, pack publication or release.
 
 ## What the runtime changes
 

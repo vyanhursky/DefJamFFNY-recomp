@@ -157,3 +157,20 @@ queue or merge authorization. Runtime full suite2209passed/27skipped; companion
 full suite218passed/3skipped/51subtests. Complete outgoing source history passes
 source policy and original/converted Vendetta file-hash comparisons. Audit reports,
 the original archive, converted ordinary pack and all playtest data remain local.
+
+## Current-main integration continuation
+
+The owner authorized resolving both branches against current main and continuing
+M5/M6; no PR merge or release. The [integration checkpoint](fighter-mod-main-integration-2026-11-08.md)
+supersedes the earlier conflict state above. Runtime main15e366b and its clean
+published toolkit4801dc1 are integrated into the feature branch. Source analysis,
+re-lift and Windows Release build pass after combining the overlapping fighter/
+song profile-load hook. Database composition is ordered language/fighters/songs;
+offline native-writer checks preserve all unrelated tables and Character rows.
+Tools main9bb5b83 is integrated in8bda663, retaining CAF plus fighter commands;
+newly installed wheel248passed/3skipped/51subtests. No live authoring state changed.
+
+Next: repeat final integrated tests, build/inspect the current game-free app
+payload, then serial native fighter/song, lifecycle and broader M5/M6 checks.
+Prior native snapshots are not evidence for the new toolkit/runtime combination.
+All private packs, caches, saves, captures, generated code and binaries stay local.
