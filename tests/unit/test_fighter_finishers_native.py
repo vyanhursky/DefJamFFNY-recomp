@@ -20,18 +20,21 @@ uint32_t g_eax,g_ecx,g_edx,g_esp,g_ebx,g_esi,g_edi,g_ebp;
 int g_fp_top;
 static unsigned allocations,frees;
 static int enabled=1;
+static int timed,missing_timelines;
 int defjam_fighter_research_active(void){return enabled;}
 int defjam_fighter_cpu_contains(uint32_t address){return address != 0;}
 void defjam_fighter_cpu_released(void){}
-int defjam_fighter_graph_start(const uint8_t *p,size_t n,uint32_t c){(void)p;(void)n;(void)c;return 0;}
-int defjam_fighter_graph_has(uint32_t ordinal){(void)ordinal;return 0;}
-int defjam_fighter_graph_known(uint32_t ordinal,const char *name){(void)ordinal;(void)name;return 0;}
+int defjam_fighter_graph_start(const uint8_t *p,size_t n,uint32_t c){(void)p;(void)n;(void)c;return timed;}
+int defjam_fighter_graph_has(uint32_t ordinal){return timed&&ordinal>=873&&ordinal<877;}
+int defjam_fighter_graph_known(uint32_t ordinal,const char *name){(void)ordinal;(void)name;return timed;}
 int defjam_fighter_graph_complete(void){return 1;}
 int defjam_fighter_graph_bound(uint32_t ordinal,uint32_t bank){(void)ordinal;(void)bank;return 1;}
-int defjam_fighter_graph_bank(uint32_t a,uint32_t b,uint32_t c,uint32_t d){(void)a;(void)b;(void)c;(void)d;return 0;}
-int defjam_fighter_graph_actor(uint32_t a,uint32_t b){(void)a;(void)b;return 0;}
+int defjam_fighter_graph_bank(uint32_t a,uint32_t b,uint32_t c,uint32_t d){(void)a;(void)b;(void)c;(void)d;return timed;}
+int defjam_fighter_graph_actor(uint32_t a,uint32_t b){(void)a;(void)b;return timed;}
 void defjam_fighter_graph_release(void){}
 void xbox_NoteAnchorEvent(const char *text){assert(!strncmp(text,"fighter-finisher:P",18));}
+int defjam_fighter_events_has(const char *name,unsigned flags){(void)name;return timed&&!missing_timelines&&flags!=0;}
+uint32_t xbox_HeapAlloc(uint32_t bytes,uint32_t alignment){assert(timed&&bytes==32&&alignment==16);return 0x70000;}
 void sub_00029680(void){
  assert(MEM32(g_esp+4)==200&&MEM32(g_esp+8)==0x29D4B4&&!MEM32(g_esp+12));
  allocations++;g_eax=0x20000;g_ecx=0xBAD;g_esp+=4;
@@ -50,9 +53,10 @@ int main(int argc,char **argv){
  environment("RECOMP_FIGHTER_FINISHER_BINDINGS",argv[2]);
  environment("RECOMP_FIGHTER_FINISHERS_SHA256",argv[3]);
  const char *mode=argv[4];
+ timed=!strncmp(mode,"timed",5);missing_timelines=!strcmp(mode,"timed-missing");
  if(!strcmp(mode,"inactive"))enabled=0;
  int ok=defjam_fighter_finishers_start();
- if(!strcmp(mode,"reject")||!strcmp(mode,"inactive")){assert(!ok);return 0;}
+ if(!strcmp(mode,"reject")||!strcmp(mode,"inactive")||!strcmp(mode,"timed-missing")||!strcmp(mode,"timed-reject")){assert(!ok);return 0;}
  assert(ok&&!strcmp(defjam_fighter_finishers_path(),argv[1]));
  if(!strcmp(mode,"admission"))return 0;
  uint32_t a=0x3B92E0,b=a+0x12E8,p=0x10438;
@@ -117,10 +121,10 @@ int main(int argc,char **argv){
  defjam_fighter_finisher_parameters(a+0x2BC,0x50000+873*39,0x1A867E);
  assert(!defjam_fighter_finisher_name(1,873,0)&&!defjam_fighter_finisher_name(6,872,0));
  MEM32(0x2EC1C8+713*4)=0x60100;MEM32(0x2EC1C8+714*4)=0x60200;
- assert(defjam_fighter_finisher_name(0,873,0x1A3ECF)==0x60100);
- assert(defjam_fighter_finisher_name(0,874,0x1A3ECF)==0x60200);
- assert(defjam_fighter_finisher_name(0,875,0x1A3ECF)==0x60100);
- assert(defjam_fighter_finisher_name(0,876,0x1A3ECF)==0x60200);
+ assert(defjam_fighter_finisher_name(0,873,0x1A3ECF)==(timed?0x70000u:0x60100u));
+ assert(defjam_fighter_finisher_name(0,874,0x1A3ECF)==(timed?0x70008u:0x60200u));
+ assert(defjam_fighter_finisher_name(0,875,0x1A3ECF)==(timed?0x70010u:0x60100u));
+ assert(defjam_fighter_finisher_name(0,876,0x1A3ECF)==(timed?0x70018u:0x60200u));
  assert(!memcmp(memory+defjam_fighter_finisher_name(0,873,0x1B252F),"P0000_A",8));
  FighterFinisherScope outer=defjam_fighter_finisher_enter(a);
  assert(defjam_fighter_finisher_motion(a,10713,6,0x123)==10713);
@@ -147,6 +151,7 @@ int main(int argc,char **argv){
  assert(defjam_fighter_finisher_motion(a,10713,6,0x1D3BA0)==10713);
  defjam_fighter_finishers_release(0x2000);assert(!frees);
  defjam_fighter_finishers_release(0x10000);assert(frees==1);
+ if(timed)assert(!memcmp(memory+0x70000,"P0000_A\0P0000_B\0P0001_A\0P0001_B\0",32));
  defjam_fighter_finishers_release(0x10000);assert(frees==1);
  assert(!defjam_fighter_finisher_name(6,873,0)&&g_eax==42&&g_ecx==43&&g_esp==0x3F0000);
  return 0;
@@ -187,6 +192,19 @@ def files(tmp_path):
     archive, binding = tmp_path / 'blazin.viv', tmp_path / 'bindings.bin'
     archive.write_bytes(data); binding.write_bytes(table)
     return archive, binding, digest.hex()
+
+
+@pytest.mark.parametrize('mode',['timed','timed-missing','timed-reject'])
+def test_snapshot_owned_camera_and_tag_identity_is_coupled_and_retained(tool,files,mode):
+    archive,binding,digest=files
+    table=b'FBP4'+struct.pack('<4I',4,2,168,len(archive.read_bytes()))+bytes.fromhex(digest)
+    for core,ordinal,token in [(256,873,'P0000_'),(1000,875,'P0001_')]:
+        table+=struct.pack('<5I8s8s',core,0,2,ordinal,2 if mode=='timed-reject' else 1,
+                           (token+'A').encode(),(token+'B').encode())
+    table+=b'invented sealed graph proof; verified by the dedicated native proof fixture'
+    binding.write_bytes(table)
+    result=subprocess.run([tool,*files,mode],capture_output=True,text=True)
+    assert result.returncode==0,result.stdout+result.stderr
 
 
 @pytest.mark.parametrize('mode', ['good', 'inactive'])

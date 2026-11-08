@@ -73,6 +73,14 @@ def test_full_graph_profile_generates_versioned_seals_and_explicit_slots():
     data,report=compiler.compose({'alpha/full':value,'beta/legacy':legacy})
     table=encode_pair_bindings(data,report,{256:{1:'alpha/full'},1000:{0:'beta/legacy'}},slots=True)
     assert table[:4]==b'FBP3' and struct.unpack_from('<I',table,52+64+8)[0]==4
+    timed=deepcopy(value);timed['timelines']={'subject_tags':{},'counterpart_tags':{},'camera':{}}
+    data,report=compiler.compose({'alpha/timed':timed})
+    with pytest.raises(AssetError,match='both roles'):
+        encode_pair_bindings(data,report,{256:{1:'alpha/timed'}},slots=True)
+    table=encode_pair_bindings(data,report,{256:{1:'alpha/timed'}},slots=True,
+                               timeline_claims={'P0000_A':3,'P0000_B':1})
+    assert table[:8]==b'FBP4\x04\0\0\0' and struct.unpack_from('<I',table,68)[0]==1
+    assert table[88:92]==b'FGP1'
 
 
 def test_independent_pairs_append_external_ordinals_without_replacing_donor():

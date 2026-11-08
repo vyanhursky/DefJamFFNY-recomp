@@ -25,8 +25,11 @@ def export_pair(game,request_path,pins):
         request_bytes=stream.read(65537)
     require(len(request_bytes)<=65536,'Pair export request exceeds budget')
     request=json.loads(request_bytes.decode('utf-8'),object_pairs_hook=unique_object)
+    timed=type(request) is dict and request.get('format')=='fighter-pair-export-request-2'
     require(type(request) is dict and set(request)=={'format','template_choice','model','face','subject','counterpart'}
-            and request['format']=='fighter-pair-export-request-1','Unsupported pair export request')
+            | ({'tags','cameras'} if timed else set())
+            and request['format'] in ('fighter-pair-export-request-1','fighter-pair-export-request-2'),
+            'Unsupported pair export request')
     choice=request['template_choice']
     require(type(choice) is int and 0<=choice<82,'Pair export requires an explicit retail behavior choice')
     inputs,used={},0
@@ -79,6 +82,30 @@ def export_pair(game,request_path,pins):
         graphs[role]=read_motion(source,source_token,rig.pose_sha256,len(rig.rows))
         receipts[role]={'source_token':source_token,'template_token':template_token,
                         'compiled_sha256':receipt['sha256'],'source_controls_matched':True}
+    timelines,validation=None,None
+    if timed:
+        from fighter_timelines import TagTimelines,CameraTimelines,tag_rows,camera_rows
+        tag_base=TagTimelines(original('audio/animtags.dat','tags_sha256'),pins['tags_sha256'])
+        camera_base=CameraTimelines(original('motion/camera.xml','camera_sha256'),pins['camera_sha256'])
+        source_tags={row['name']:row for row in tag_rows(asset(request['tags']))}
+        source_cameras=camera_rows(asset(request['cameras']))
+        timelines={};tag_additions={}
+        for role,letter in (('subject','A'),('counterpart','B')):
+            name=receipts[role]['source_token']
+            require(name in source_tags,'Source paired role has no tag timeline')
+            timeline=tag_base.library.export(source_tags[name]['events'])
+            timelines[role+'_tags']=timeline
+            tag_additions['XPA0000'+letter]={'template':receipts[role]['template_token'],'timeline':timeline}
+        tag_base.compose(tag_additions)
+        name=receipts['subject']['source_token']
+        candidates=[row for row in source_cameras if row['name']==name]
+        require(candidates,'Source paired subject has no camera timetable')
+        template=name if name in camera_base.by_name else receipts['subject']['template_token']
+        timeline=camera_base.library.export(candidates[0]['events'])
+        camera={'template':template,'timeline':timeline}
+        camera_base.compose({'XPA0000A':camera});timelines['camera']=camera
+        validation={'camera_selection':'first-native-match','shadowed_camera_schedules':len(candidates)-1,
+                    'tag_payload_order_matched':True,'camera_nonshake_template_matched':True}
     require(request_path.read_bytes()==request_bytes,'Pair export request changed during compilation')
     for path,digest in inputs.items():
         with path.open('rb') as stream:
@@ -86,4 +113,6 @@ def export_pair(game,request_path,pins):
         require(len(data)<=MAX_FILE and hashlib.sha256(data).hexdigest()==digest,'Pair source changed during compilation')
     return {'component_compilation':True,'native_playtest':False,'template_choice':choice,
             'rig_sha256':rig.pose_sha256,'bone_count':len(rig.rows),'graphs':graphs,
-            'roles':receipts,'inputs':{str(path):digest for path,digest in inputs.items()}}
+            'roles':receipts,'inputs':{str(path):digest for path,digest in inputs.items()},
+            'required_source_format':'fighter-blazin-4' if timed else 'fighter-blazin-3',
+            **({'timelines':timelines,'timeline_validation':validation} if timed else {})}

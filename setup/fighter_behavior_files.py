@@ -61,7 +61,8 @@ def validate_source(kind, source):
     }
     version3 = kind == 'voice' and type(source) is dict and source.get('format') in ('fighter-voice-3', 'fighter-voice-4')
     version4 = version3 and source['format'] == 'fighter-voice-4'
-    blazin3 = kind == 'blazin' and type(source) is dict and source.get('format') == 'fighter-blazin-3'
+    blazin4 = kind == 'blazin' and type(source) is dict and source.get('format') == 'fighter-blazin-4'
+    blazin3 = blazin4 or kind == 'blazin' and type(source) is dict and source.get('format') == 'fighter-blazin-3'
     blazin2 = blazin3 or kind == 'blazin' and type(source) is dict and source.get('format') == 'fighter-blazin-2'
     if version3:
         expected['voice'] = {'format', 'banks', 'intro', 'extro'}
@@ -143,10 +144,18 @@ def validate_source(kind, source):
             for slot, pair in source['slots'].items():
                 ordinal(slot, 3)
                 require(type(pair) is dict and set(pair) == {'template_choice', 'subject', 'counterpart'}
+                        | ({'subject_tags','counterpart_tags','camera'} if blazin4 else set())
                         and type(pair['template_choice']) is int and 0 <= pair['template_choice'] < 82,
                         'Finisher slot needs a retail behavior template and both participant tracks')
                 for role in ('subject', 'counterpart'):
                     file_spec(pair[role])
+                if blazin4:
+                    for role in ('subject_tags','counterpart_tags'):file_spec(pair[role])
+                    require(type(pair['camera']) is dict and set(pair['camera'])=={'template','timeline'}
+                            and type(pair['camera']['template']) is str
+                            and re.fullmatch(r'[A-Za-z0-9_]{1,31}',pair['camera']['template']),
+                            'Camera needs a verified native template and a typed timeline')
+                    file_spec(pair['camera']['timeline'])
     else:
         require(type(source['template']) is str and re.fullmatch(r'C[IE]_[A-Za-z0-9]{4}', source['template']),
                 'Cinematic requires a supported simple intro/victory template')
@@ -256,7 +265,7 @@ class Reader:
             if 'slots' in source:
                 def pair_file(spec):
                     data=self.file(root,spec)
-                    if source['format'] != 'fighter-blazin-3':
+                    if source['format'] not in ('fighter-blazin-3','fighter-blazin-4'):
                         return quaternion_file(data)
                     from fighter_animation_graphs import FORMAT
                     try:
@@ -268,7 +277,25 @@ class Reader:
                     return value
                 result['slots'] = {int(slot): {'template_choice': pair['template_choice'],
                     **{role: pair_file(pair[role]) for role in ('subject', 'counterpart')},
-                    **({'profile':'graph-1'} if source['format']=='fighter-blazin-3' else {})}
+                    **({'profile':'graph-1'} if source['format'] in ('fighter-blazin-3','fighter-blazin-4') else {})}
                     for slot, pair in source['slots'].items()}
+                if source['format']=='fighter-blazin-4':
+                    def timeline_file(spec,expected):
+                        data=self.file(root,spec)
+                        try:
+                            value=json.loads(data.decode('utf-8'),object_pairs_hook=unique_object,
+                                             parse_constant=lambda _: (_ for _ in ()).throw(AssetError('Nonfinite timeline JSON')))
+                        except (UnicodeError,ValueError,RecursionError) as error:
+                            raise AssetError('Invalid typed timeline JSON') from error
+                        require(type(value) is dict and set(value)=={'format','events'} and value['format']==expected,
+                                'Unsupported timeline source fields or format')
+                        return value
+                    from fighter_timelines import TAG_FORMAT,CAMERA_FORMAT
+                    for slot,pair in source['slots'].items():
+                        result['slots'][int(slot)]['timelines']={
+                            'subject_tags':timeline_file(pair['subject_tags'],TAG_FORMAT),
+                            'counterpart_tags':timeline_file(pair['counterpart_tags'],TAG_FORMAT),
+                            'camera':{'template':pair['camera']['template'],
+                                      'timeline':timeline_file(pair['camera']['timeline'],CAMERA_FORMAT)}}
             return result
         return {'template': source['template'], 'tracks': quaternion_file(self.file(root, source['track']))}

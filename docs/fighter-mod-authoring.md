@@ -104,6 +104,12 @@ required. File arguments mean hash-checked descriptors, not unverified paths.
   name fields for their identities; other fighters retain text names. Loading
   aliases use appended logical IDs>=100, outside the verified retail reversed
   portrait list (maximum82). No reversed variant is inferred from arbitrary IDs.
+  `eagl-portrait-3` adds six mandatory pixel sources: `grid_normal_Np` and
+  `grid_selected_Np`, N=2,3,4. Each is a canonical single-image SHPX, ID1,
+  matching the verified original selected-grid texture. The compiler supplies
+  original grid geometry and fresh Stop/placement frames. Normal/selected images
+  remain independent; source APT actions, ELF models and texture controls are
+  never copied into the runtime generation. Versions1/2 keep derived thumbnails.
 - **Moveset:** `format`, `donor`, `selections`, `tracks`. At least one authored
   selection or track. `selections` has at most 124 canonical string ordinal keys
   0–124 mapping to integers 1–124. Composition further rejects special actions,
@@ -170,6 +176,18 @@ required. File arguments mean hash-checked descriptors, not unverified paths.
   native tables. FBP1/2 retain their type11-only native guard. Source3 still
   explicitly inherits the behavior template's camera AND animation-tag timelines;
   matching combat records alone does not establish legacy source timeline fidelity.
+  Version4 retains four shot rules and adds `subject_tags`, `counterpart_tags`
+  and `camera` to each slot. The first two are hash-checked JSON descriptors;
+  camera is exactly `{template, timeline}`, with a verified original timetable
+  name and a JSON descriptor. Tag/camera documents use
+  `fighter-tag-timeline-1` / `fighter-camera-timeline-1`, each with `events` rows
+  `{tick, template}` referencing complete verified payloads. Tags retain the
+  selected behavior's payload sequence; cameras retain non-shake sequence and
+  may select verified shake events. FBP4 and FTE1 couple both native lookups.
+  Tick ranges are tags0–32767 / cameras0–65535; simultaneous tag ticks are valid,
+  camera ticks strictly increase. Event clocks are independent of curve keys.
+  Native snapshot names are generation-owned, so cached snapshots do not borrow
+  per-match metadata. Versions1–3 retain their original inheritance behavior.
 
 Use installed `defjam-tools fighter pair` with explicit `--recomp`, `--game`,
 `--model`, `--face`, `--subject-data`, `--subject-links`, `--counterpart-data`,

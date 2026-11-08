@@ -71,7 +71,9 @@ class BlazinPairs:
         for identifier, resource in sorted(resources.items()):
             graph = type(resource) is dict and resource.get('profile') == 'graph-1'
             expected = {'template_choice', 'rig_sha256', 'bone_count', 'subject', 'counterpart'}
-            require(type(resource) is dict and set(resource) == expected | ({'profile','graph_contexts'} if graph else set()),
+            timed=graph and 'timelines' in resource
+            require(type(resource) is dict and set(resource) == expected | ({'profile','graph_contexts'} if graph else set())
+                    | ({'timelines'} if timed else set()),
                 'Paired Blazin needs a template choice, verified rig and two typed tracks')
             choice = resource['template_choice']
             require(type(choice) is int and 0 <= choice < RETAIL_PAIRS, 'Invalid inherited Blazin choice')
@@ -80,6 +82,7 @@ class BlazinPairs:
                 number += 1
             require(number <= 9999, 'Paired Blazin name namespace exhausted')
             pair = {'template_choice': choice, 'external_ordinal': EXTERNAL_BASE + len(tokens), 'roles': {}}
+            if timed:pair['timelines']=True
             for role, letter, ordinal in (('subject', 'A', 2*choice), ('counterpart', 'B', 2*choice+1)):
                 original, assigned = self.tokens[ordinal], f'P{number:04d}_{letter}'
                 envelope = AnimationEnvelope(*(unpack(self.archive.read(original + '.' + suffix))
@@ -117,7 +120,7 @@ class BlazinPairs:
                         'bindings': bindings, 'runtime_ready': False}
 
 
-def encode_pair_bindings(data, report, cores, *, slots=False):
+def encode_pair_bindings(data, report, cores, *, slots=False,timeline_claims=None):
     require(isinstance(data, bytes) and type(report) is dict
             and report.get('schema') == 'fighter-blazin-pairs-1'
             and report.get('bytes') == len(data)
@@ -178,9 +181,18 @@ def encode_pair_bindings(data, report, cores, *, slots=False):
                     legacy_seals[ordinal+offset]=payload_proof(AnimationEnvelope(*parts),name)
                 native_names.append(name.encode('ascii'))
             require(native_names[0][:-1] == native_names[1][:-1], 'Paired roles belong to different resources')
-            rows.append(struct.pack('<IIII8s8s', core, selection, choice, ordinal, *native_names) if slots
-                        else struct.pack('<III8s8s', core, choice, ordinal, *native_names))
+            timed=pair.get('timelines',False)
+            require(type(timed) is bool and (not timed or slots and type(timeline_claims) is dict
+                    and timeline_claims.get(native_names[0].decode())==3
+                    and timeline_claims.get(native_names[1].decode())==1
+                    and ordinal in proofs and ordinal+1 in proofs),
+                    'Owned paired timelines require both roles and their camera/tag claims')
+            rows.append((core,selection,choice,ordinal,int(timed),native_names))
     require(not proofs or slots,'Full graph bindings require explicit slots')
-    return ((b'FBP3' if proofs else b'FBP2' if slots else b'FBP1')
-            + struct.pack('<4I',3 if proofs else 2 if slots else 1,len(rows),count,len(data))
-            + hashlib.sha256(data).digest()+b''.join(rows)+(encode_graph_proofs({**legacy_seals,**proofs}) if proofs else b''))
+    timed=any(row[4] for row in rows)
+    encoded=[struct.pack('<5I8s8s',*row[:5],*row[5]) if timed else
+             struct.pack('<4I8s8s',*row[:4],*row[5]) if slots else
+             struct.pack('<3I8s8s',row[0],row[2],row[3],*row[5]) for row in rows]
+    return ((b'FBP4' if timed else b'FBP3' if proofs else b'FBP2' if slots else b'FBP1')
+            + struct.pack('<4I',4 if timed else 3 if proofs else 2 if slots else 1,len(rows),count,len(data))
+            + hashlib.sha256(data).digest()+b''.join(encoded)+(encode_graph_proofs({**legacy_seals,**proofs}) if proofs else b''))

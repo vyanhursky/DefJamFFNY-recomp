@@ -8,7 +8,7 @@ from test_fighter_portrait import ui
 from fighter_assets import AssetError
 from fighter_portrait import UITextures
 from fighter_ui_model import UIModel
-from fighter_grid import append_grid
+from fighter_grid import append_grid, GridStates
 import fighter_apt as apt
 
 
@@ -134,3 +134,39 @@ def test_grid_rejects_image_namespace_overflow_and_index_mismatch(monkeypatch):
     model.append_drawable(model_fixture(), 500, 499)
     with pytest.raises(AssetError, match='APT character indices'):
         append_grid(movie_fixture(True), b'', model, texture, {300: template})
+
+
+def selected_model_fixture():
+    model=model_fixture();start=0xF450
+    model.parts[1]=bytearray(bytes(start)+model.parts[1][:0x448])
+    for at,(_,target) in model.pointers.items():
+        if target is not None:struct.pack_into('<I',model.parts[1],start+at,start+target)
+    model.relocations=[(start+at,info) for at,info in model.relocations]
+    for row in model.symbols:
+        if row[5]==1 and row[3]>>4 and not model.names[model.symbols.index(row)].startswith('__EAGL_TOOLLIB'):
+            row[1]+=start
+    data=model.compose();return UIModel(data,hashlib.sha256(data).hexdigest())
+
+
+def test_selected_grid_closure_rebases_all_relocations_and_two_independent_states(monkeypatch):
+    selected=selected_model_fixture().selected_grid(2)
+    assert selected._grid_profile==(16,2,1)
+    assert len(selected.parts[1])==1112 and len(selected.relocations)==42
+    assert selected.exports['__Model:::2']==16+0x378
+    destination=model_fixture();base=destination.append_drawable(selected,900,901)
+    data=destination.compose();parsed=UIModel(data,hashlib.sha256(data).hexdigest())
+    assert parsed.string(1,parsed.pointers[base+16+0x310][1])=='ScaleMatrix::901::TextureMatrix'
+    monkeypatch.setattr(apt,'parse_const',lambda _: (24,[]))
+    source=bytearray(movie_fixture());struct.pack_into('<4f',source,112,-18.5,-18.5,18.5,18.5)
+    normal=UITextures(ui());changed=bytearray(ui());image=normal.images[0]
+    changed[image['pixels_offset']:image['pixels_offset']+image['pixels_bytes']]=bytes([55])*image['pixels_bytes']
+    states=GridStates(bytes(source),b'',selected_model_fixture(),2,normal,UITextures(bytes(changed)))
+    result,geometry,rasters=append_grid(movie_fixture(True),b'',model_fixture(),normal,{300:states})
+    frames=apt.parse_character(result,132)['frames']
+    assert frames[300][1][1]['character']==4 and frames[449][1][1]['character']==6
+    assert frames[300][1][1]['matrix']==(1.,0.,0.,1.,0.,0.)
+    assert frames[449][1][1]['matrix']==(1.,0.,0.,1.,0.,0.)
+    images=UITextures(rasters)
+    assert len(images.images)==3
+    assert [images.data[x['pixels_offset']] for x in images.images[-2:]]==[ui()[image['pixels_offset']],55]
+    UIModel(geometry,hashlib.sha256(geometry).hexdigest())

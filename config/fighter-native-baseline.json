@@ -16,5 +16,7 @@
   "blazin_sha256": "b71ff1bc175e64120612283ab1cb838073328200b768872b964bd255b9c16795",
   "misc_sha256": "f3c3145f54fc3817aff51002479bddd4324fafd7fc70b699d67c78dc20f664e4",
   "shared_hand_sha256": "01dafd9316fa9e569e029207ed8ad34bd74ad8ecf7afcdb3fa8d95d643f5a441",
+  "tags_sha256": "f2b9b1ec64ea81af668c303241043ad33cc656a89b725cc406e171cd253373bb",
+  "camera_sha256": "d34c5bfee9f7a1c559bbb16850b561b8726f5d27c5ad79eb6bf4ee1638c828d0",
   "comment": "Original supported USA database only. Hash pin verifies the input; no game bytes are shipped. Experimental adapter, not runtime support."
 }

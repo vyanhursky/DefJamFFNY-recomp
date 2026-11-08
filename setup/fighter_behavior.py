@@ -34,6 +34,7 @@ TARGETS = {
     'cinematic': ('assets/v2ta.viv', 'assets/nis.viv', 'assets/v2ip.viv', 'assets/entity.xml', 'fighter-cinematics.bin'),
     'blazin': ('fighter-blazin.bin',),
     'finishers': ('motion/blazin.viv', 'fighter-finishers.bin'),
+    'timelines': ('audio/animtags.dat','motion/camera.xml','fighter-timelines.bin'),
 }
 
 
@@ -72,6 +73,11 @@ def environment(cache, report):
     if 'blazin' in receipts:
         require('cinematic' in receipts, 'Blazin needs the composed cinematic archive')
         result['RECOMP_FIGHTER_BLAZIN_BINDINGS'] = str(ordinary_path(cache / 'fighter-blazin.bin'))
+    if 'timelines' in receipts:
+        for name,path in (('TAGS','audio/animtags.dat'),('CAMERAS','motion/camera.xml')):
+            result['RECOMP_FIGHTER_'+name]=str(ordinary_path(cache/path))
+            result['RECOMP_FIGHTER_'+name+'_SHA256']=hashes[path]
+        result['RECOMP_FIGHTER_TIMELINE_BINDINGS']=str(ordinary_path(cache/'fighter-timelines.bin'))
     return result
 
 
@@ -301,8 +307,29 @@ class BehaviorPlan:
         if pair_resources:
             source = original('motion/blazin.viv', 'blazin_sha256')
             data, receipt = BlazinPairs(source, pins['blazin_sha256']).compose(pair_resources)
+            timeline_claims=None
+            if any('timelines' in resource for resource in pair_resources.values()):
+                from fighter_timelines import TagTimelines,CameraTimelines,encode_timeline_bindings
+                tags=TagTimelines(original('audio/animtags.dat','tags_sha256'),pins['tags_sha256'])
+                cameras=CameraTimelines(original('motion/camera.xml','camera_sha256'),pins['camera_sha256'])
+                tag_additions,camera_additions,timeline_claims={}, {}, {}
+                for identifier,resource in sorted(pair_resources.items()):
+                    if 'timelines' not in resource:continue
+                    pair=receipt['bindings'][identifier]
+                    for role in ('subject','counterpart'):
+                        info=pair['roles'][role];name=info['native_name']
+                        tag_additions[name]={'template':info['template'],'timeline':resource['timelines'][role+'_tags']}
+                        timeline_claims[name]=1
+                    name=pair['roles']['subject']['native_name']
+                    camera_additions[name]=resource['timelines']['camera'];timeline_claims[name]=3
+                tag_data=tags.compose(tag_additions);camera_data=cameras.compose(camera_additions)
+                table=encode_timeline_bindings(tag_data,camera_data,timeline_claims)
+                self.files.update({'audio/animtags.dat':tag_data,'motion/camera.xml':camera_data,'fighter-timelines.bin':table})
+                self.receipts['timelines']={'schema':'fighter-event-timelines-1','claims':timeline_claims,
+                    'tags_sha256':digest(tag_data),'cameras_sha256':digest(camera_data),'bindings_sha256':digest(table)}
             self.files.update({'motion/blazin.viv': data,
-                               'fighter-finishers.bin': encode_pair_bindings(data, receipt, cores(pair_keys), slots=slot_bindings)})
+                               'fighter-finishers.bin': encode_pair_bindings(data, receipt, cores(pair_keys), slots=slot_bindings,
+                                                                           timeline_claims=timeline_claims)})
             self.receipts['finishers'] = receipt
         if cinematic_resources:
             source = original('assets/v2ta.viv', 'v2ta_sha256')

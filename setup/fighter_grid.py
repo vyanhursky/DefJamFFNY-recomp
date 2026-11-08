@@ -13,6 +13,26 @@ from fighter_assets import unpack
 from fighter_menu import Action
 from fighter_portrait import PortraitBaseline, UITextures, require, variant_path
 from fighter_ui_model import UIModel
+from fighter_resource_files import portrait_target
+
+
+class GridStates:
+    """Trusted selected-grid geometry with two independently authored rasters."""
+    def __init__(self,movie,constants,model,participants,normal,selected):
+        require(type(model) is UIModel and type(normal) is UITextures and type(selected) is UITextures,
+                'Grid states need original geometry and two compiled pixel sources')
+        self.model=model.selected_grid(participants)
+        root,_=apt.parse_const(constants)
+        count,characters=struct.unpack_from('<II',movie,root+20)
+        identity=2 if participants==2 else 4
+        require(identity<count,'Selected-grid shape is absent')
+        at,=struct.unpack_from('<I',movie,characters+4*identity)
+        self.shape=movie[at:at+28]
+        require(len(self.shape)==28 and struct.unpack_from('<II',self.shape)==(1,0x09876543)
+                and struct.unpack_from('<4f',self.shape,8)==(-18.5,-18.5,18.5,18.5)
+                and struct.unpack_from('<I',self.shape,24)[0]==identity,
+                'Original selected-grid shape differs from its verified contract')
+        self.textures=(normal,selected)
 
 
 def append_grid(movie, constants, model, textures, templates):
@@ -44,9 +64,25 @@ def append_grid(movie, constants, model, textures, templates):
     # lookup. The runtime batches model initialization beyond the original512
     # scratch slots; the remaining four-digit image namespace is independent.
     require(next_id == char_count, 'Grid image IDs must match their APT character indices')
-    require(next_id + 2 * len(templates) <= 10000,
+    require(next_id + 2 * sum(2 if type(value) is GridStates else 1 for value in templates.values()) <= 10000,
             'Custom grid exceeds the four-digit UI image namespace')
-    for token, (source_movie, source_model, source_texture) in sorted(templates.items()):
+    for token,value in sorted(templates.items()):
+        if type(value) is GridStates:
+            for frame,texture in zip((token,token+149),value.textures):
+                image_id,model_id=next_id,next_id+1;next_id+=2
+                model.append_drawable(value.model,model_id,image_id);images[image_id]=texture
+                new_characters.append(append(struct.pack('<III',7,0x09876543,image_id)))
+                shape=bytearray(value.shape);struct.pack_into('<I',shape,24,model_id)
+                shape_character=char_count+len(new_characters);new_characters.append(append(shape))
+                code=Action(len(output));code.op('Stop');code_at=append(code.finish())
+                stop=append(struct.pack('<II',1,code_at))
+                # All verified/source grid placements have identity transforms;
+                # make that identity explicit when replacing an existing state.
+                placement=append(struct.pack('<IIII6f',3,7,1,shape_character,1.,0.,0.,1.,0.,0.)
+                                 +struct.pack('<6I',0xffffffff,0,0,0,0xffffffff,0))
+                new_frames[frame]=(2,append(struct.pack('<II',stop,placement)))
+            continue
+        source_movie,source_model,source_texture=value
         require(type(source_model) is UIModel and type(source_texture) is UITextures, 'Grid requires typed original templates')
         # The hash-verified original result movie has Image1 and Shape2.
         result_root = 24
@@ -87,7 +123,7 @@ def append_grid(movie, constants, model, textures, templates):
     return bytes(output), model.compose(), textures.appended(images)
 
 
-def compose_grid(screens, report, baseline):
+def compose_grid(screens, report, baseline,*,resource_files=None):
     require(type(baseline) is PortraitBaseline, 'Grid templates require the verified original screens')
     archive, replacements = Archive(screens), {}
     resources = sorted(set(report['portrait_bindings'].values()))
@@ -104,6 +140,18 @@ def compose_grid(screens, report, baseline):
         templates = {}
         for identifier in resources:
             info = report['portrait_resources'][identifier]
+            if f'grid_normal_{count}p' in info['variants']:
+                require(type(resource_files) is dict,'Authored grid states need their compiled files')
+                states=[]
+                for state in ('normal','selected'):
+                    resource_path=portrait_target(identifier,f'grid_{state}_{count}p')
+                    require(resource_path in resource_files and resource_path in report['portrait_files']
+                            and hashlib.sha256(resource_files[resource_path]).hexdigest()==report['portrait_files'][resource_path],
+                            'Compiled grid state differs from its receipt')
+                    states.append(UITextures(resource_files[resource_path]))
+                templates[tokens[identifier]]=GridStates(original.read(stem+'.apt'),original.read(stem+'.const'),
+                    UIModel(model_bytes,hashlib.sha256(model_bytes).hexdigest()),count,*states)
+                continue
             donor_path, donor_stem = variant_path(f'result_{count}p', info['donor_selection'])
             donor = Archive(unpack(baseline.archive.read(donor_path)))
             template = donor.read(donor_stem + '.o')

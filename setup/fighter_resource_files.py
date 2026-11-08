@@ -10,12 +10,19 @@ PARTS = ('model', 'textures', 'face')
 PORTRAIT_PARTS = tuple(f'{role}_{count}p' for role in ('selector', 'result') for count in (2, 3, 4))
 PORTRAIT_EXTENDED_PARTS = PORTRAIT_PARTS + tuple(f'{role}_{count}p' for role in
                             ('selector_logo','result_logo','loading','loading_logo') for count in (2,3,4))
+PORTRAIT_GRID_PARTS=tuple(f'grid_{state}_{count}p' for state in ('normal','selected') for count in (2,3,4))
+PORTRAIT_ALL_PARTS=PORTRAIT_EXTENDED_PARTS+PORTRAIT_GRID_PARTS
 
 
 def portrait_parts(source):
-    require(type(source) is dict and source.get('format') in ('eagl-portrait-1','eagl-portrait-2'),
+    require(type(source) is dict and source.get('format') in ('eagl-portrait-1','eagl-portrait-2','eagl-portrait-3'),
             'Unsupported portrait source format')
-    return PORTRAIT_EXTENDED_PARTS if source['format']=='eagl-portrait-2' else PORTRAIT_PARTS
+    return PORTRAIT_ALL_PARTS if source['format']=='eagl-portrait-3' else PORTRAIT_EXTENDED_PARTS if source['format']=='eagl-portrait-2' else PORTRAIT_PARTS
+
+
+def portrait_target(identifier,part):
+    require(part in PORTRAIT_ALL_PARTS,'Unsupported portrait role')
+    return f'portraits/{resource_name(identifier)}/{part}'+('.xsh' if part in PORTRAIT_GRID_PARTS else '.big')
 
 
 def require(condition, message):

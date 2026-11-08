@@ -123,7 +123,8 @@ def prepare_portraits(screens, report, *, language=None, resource_cache=None, ca
         if bindings:
             from fighter_grid import compose_grid
             from fighter_portrait import PortraitBaseline
-            result, artwork = compose_grid(result, report, PortraitBaseline(original, hashlib.sha256(original).hexdigest()))
+            result, artwork = compose_grid(result, report, PortraitBaseline(original, hashlib.sha256(original).hexdigest()),
+                                           resource_files=resources)
     archive, replacements = Archive(result), {}
     names = {report['bindings'][key]['selection_key']: report['localization_entries'][report['bindings'][key]['native_name']]
              for key in report['portrait_donors']}

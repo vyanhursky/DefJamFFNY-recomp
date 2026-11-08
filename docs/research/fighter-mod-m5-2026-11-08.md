@@ -160,4 +160,43 @@ events to animation key count or parent duration:56/94source rows have later
 tags. The source camera XML contains five duplicate labels; original AC100 uses
 the first matching timetable. A faithful conversion must explicitly account for
 the shadowed appended schedules instead of silently selecting a different one.
-This timeline adapter and native late-event scheduling remain outstanding.
+The coupled timeline adapter is now implemented; full callback scheduling
+acceptance remains outstanding.
+
+## Coupled timeline and distinct grid implementation
+
+`fighter-blazin-4` compiles explicit tag/camera timelines, FBP4 ownership flags
+and FTE1 archive/hash/label claims. Baseline payload references prohibit raw
+opcodes, arguments or replacement XML. Exact paired tag payload order and camera
+non-shake order are checked. Native first-match camera lookup is preserved;
+five source appended schedules are shadowed and reported. Installed Tools wheel
+exports/compiles all47pairs/94roles with `--tags` and `--cameras`:
+`logs/fighter-m5-timed-pair-export-1108/report.json`. Creator focused38tests pass.
+Native snapshot labels use bounded process-generation storage after mask release.
+
+`eagl-portrait-3` adds six independently authored normal/selected grid rasters
+to the eighteen other artwork roles. Source chooseF2/3/4 scripts/geometry are not
+pack input. A verified original selected-grid closure supplies geometry/material
+controls; the compiler emits its own identity placements and Stop actions.
+All46fighters/1104role inputs compile, including276grid states:
+`logs/fighter-m5-portrait24-1108.json`. The canonical extractor preserves exact
+source DXT5 pixels; source F2 states differ from F3/F4. Derived result portraits
+would lose those differences. New synthetic closure/state tests pass.
+
+Native `run-20261108-063447.log.err` validated all8timeline identities and
+played both roles of source slot2, but combat/result assertions failed at a
+tutorial/input stall. Do not count it as combat acceptance. Corrected movement
+uses `lright` rather than menu D-pad `right`.
+
+Native `run-20261108-070938.log.err`, driver result
+`logs/fighter-m5-grid24-native-1108c.txt`, passes7combat/result checks and native
+menu identities102/103. A copied native profile retained prior dormant IDs,
+hence allocation begins102; stable keys remain authoritative. It validates all8
+timeline labels and actual pair roles873/874 with actual94bone body/face/hand
+contexts. Zero crash/watchdog/debug-layer/unresolved signatures;180two-second
+counters min105/median120/max120. One native save generation committed; user save
+restored byte-identically. Captures are private under
+`logs/fighter-window-runs/2ce185ef2a2942ad9001e25da1b8e5e6/captures`.
+Moses selector portrait/logo and independent grid artwork were visually reviewed.
+Slot1, late callback dispatch, created counterpart and within-process pool reuse
+remain distinct gates; this run does not close them.

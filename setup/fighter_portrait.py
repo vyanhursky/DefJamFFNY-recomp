@@ -7,11 +7,13 @@ screens archive. All original controls/IDs/layout bytes are retained.
 """
 import hashlib
 import re
+import struct
 
 from fighter_archive import Archive, store
 from fighter_assets import unpack
 from fighter_registry import fingerprint, key
-from fighter_resource_files import PORTRAIT_PARTS, PORTRAIT_EXTENDED_PARTS, portrait_parts, portrait_source, resource_name
+from fighter_resource_files import (PORTRAIT_PARTS,PORTRAIT_EXTENDED_PARTS,PORTRAIT_GRID_PARTS,PORTRAIT_ALL_PARTS,
+                                    portrait_parts,portrait_source,resource_name,portrait_target)
 from fighter_xsh import Textures, require
 
 
@@ -27,6 +29,30 @@ class UITextures(Textures):
     @staticmethod
     def _material_name_bytes(value):
         return value.rstrip().encode('ascii').ljust(4, b'\0')
+
+    def single_image(self,identifier):
+        """Canonical one-image UI source; no atlas pointers leave this container."""
+        name=str(identifier).ljust(4)
+        require(name in self.name_sites,'UI atlas has no requested image')
+        root=struct.unpack_from('<I',self.data,self.name_sites[name][0]+4)[0]
+        at=root
+        for _ in range(64):
+            require(0<=at<=len(self.data)-16,'Truncated UI image attachment')
+            word,=struct.unpack_from('<I',self.data,at)
+            kind,delta=word&255,word>>8
+            if kind==0x70 and not delta:break
+            require(delta>0 and at+delta>at and at+delta<=len(self.data)-16,'Invalid UI image attachment chain')
+            at+=delta
+        else:raise ValueError('UI image attachment chain exceeds budget')
+        payload=bytearray(self.data[root:at+16])
+        for site in self.name_sites[name][1:]:
+            require(root<=site<=at+12,'UI image material name escapes its attachment chain')
+            payload[site-root:site-root+4]=b'1\0\0\0'
+        header=bytearray(self.data[:16]);struct.pack_into('<II',header,4,112+len(payload),1)
+        result=bytes(header)+struct.pack('<4sI',b'1   ',112)+bytes(88)+payload
+        parsed=UITextures(result)
+        require(len(parsed.images)==1 and parsed.images[0]['name']=='1   ','Canonical UI image differs')
+        return result
 
     def appended(self, images):
         """Append single-image typed UI containers, preserving existing pixels."""
@@ -116,13 +142,24 @@ class PortraitBaseline:
                 'Portrait adapter requires hash-verified original screens')
         self.archive, self.sha256 = Archive(screens), expected_sha256
 
+    def grid_template(self,part):
+        require(part in PORTRAIT_GRID_PARTS,'Unsupported thumbnail state role')
+        count=int(part.rsplit('_',1)[1][0])
+        if not hasattr(self,'_grid_templates'):self._grid_templates={}
+        if count not in self._grid_templates:
+            stem=f'chooseF{count}'
+            movie=Archive(unpack(self.archive.read(f'screens/battle/{stem}.big')))
+            data=UITextures(unpack(movie.read(stem+'.xsh'))).single_image(1 if count==2 else 3)
+            self._grid_templates[count]=data
+        return self._grid_templates[count]
+
     def matching_layouts(self, files, candidates):
         """Find exact six-slot layouts independently of combat/appearance donors.
 
         This suggests templates, never substitutes their pixels. The ordinary
         Portrait compiler still validates and composes the selected candidate.
         """
-        require(type(files) is dict and set(files) in (set(PORTRAIT_PARTS),set(PORTRAIT_EXTENDED_PARTS))
+        require(type(files) is dict and set(files) in (set(PORTRAIT_PARTS),set(PORTRAIT_EXTENDED_PARTS),set(PORTRAIT_ALL_PARTS))
                 and type(candidates) is dict and 0 < len(candidates) <= 4096
                 and all(type(name) is str and type(selection) is int and 0 <= selection < 0x7fffffff
                         for name, selection in candidates.items()),
@@ -133,7 +170,7 @@ class PortraitBaseline:
                 field: image[field] for field in ('kind', 'width', 'height', 'swizzled', 'pixels_bytes')}
                 for image in texture.images}}
 
-        parts=PORTRAIT_EXTENDED_PARTS if len(files)==18 else PORTRAIT_PARTS
+        parts=PORTRAIT_ALL_PARTS if len(files)==24 else PORTRAIT_EXTENDED_PARTS if len(files)==18 else PORTRAIT_PARTS
         authored = {part: profile(UITextures(unpack(files[part]))) for part in parts}
         if not hasattr(self, '_layout_profiles'):
             self._layout_profiles = {}
@@ -144,6 +181,10 @@ class PortraitBaseline:
                 try:
                     layouts = {}
                     for part in parts:
+                        if part in PORTRAIT_GRID_PARTS:
+                            data=self.grid_template(part)
+                            layouts[part]=profile(PortraitTextureTemplate(data,hashlib.sha256(data).hexdigest()).template)
+                            continue
                         path, stem = variant_path(part, selection)
                         movie = Archive(unpack(self.archive.read(path)))
                         data = unpack(movie.read(stem + '.xsh'))
@@ -171,6 +212,14 @@ class Portrait:
         remaining = budget
         for part in parts:
             require(hashlib.sha256(files[part]).hexdigest() == source[part]['sha256'], 'Portrait source hash changed')
+            if part in PORTRAIT_GRID_PARTS:
+                original=baseline.grid_template(part)
+                template=PortraitTextureTemplate(original,hashlib.sha256(original).hexdigest())
+                authored=unpack(files[part],maximum=min(remaining,16*1024**2))
+                compiled=template.compile(authored);remaining-=len(authored)+len(compiled)
+                require(remaining>=0,'Composed grid state exceeds its resource budget')
+                self.files[portrait_target(identifier,part)]=compiled;summaries[part]=template.metadata()
+                continue
             path, stem = variant_path(part, donor_selection)
             movie = Archive(unpack(baseline.archive.read(path)))
             expected = {stem + suffix for suffix in ('.apt', '.const', '.o', '.xsh')}
@@ -189,7 +238,7 @@ class Portrait:
                                          renames={name: new + name[len(stem):] for name in expected}))
             require(len(output) <= remaining, 'Composed portrait exceeds its resource budget')
             remaining -= len(output)
-            self.files[f'portraits/{resource_name(identifier)}/{part}.big'] = output
+            self.files[portrait_target(identifier,part)] = output
             summaries[part] = template.metadata()
         self.byte_count = budget - remaining
         self.summary = {'resource': identifier, 'donor': self.donor,

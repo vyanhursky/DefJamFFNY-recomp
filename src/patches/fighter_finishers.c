@@ -8,6 +8,7 @@
 #include "fighter_runtime.h"
 #include "fighter_cpu_pool.h"
 #include "fighter_graph_proof.h"
+#include "fighter_events.h"
 #include "hooks/guest_call.h"
 #include "hooks/mod_sha256.h"
 #include <stdlib.h>
@@ -17,7 +18,7 @@
 #define FIN_BASE 709u
 #define FIN_RETAIL 164u
 #define FIN_ROWS (4u * (FIN_CORES - 141u))
-#define FIN_BYTES (52u + FIN_ROWS * 32u)
+#define FIN_BYTES (52u + FIN_ROWS * 36u)
 #define FIN_ACTORS 0x3B92E0u
 #define FIN_STRIDE 0x12E8u
 typedef struct Finisher { uint32_t choice, ordinal, slot; } Finisher;
@@ -26,12 +27,15 @@ static uint8_t s_counts[FIN_CORES];
 static char s_names[FIN_EXTRA][8], s_archive[2048];
 static uint32_t s_parameter_donors[FIN_EXTRA];
 static uint8_t s_parameter_observed[FIN_EXTRA];
+static uint8_t s_timelines[FIN_EXTRA];
+static uint32_t s_timeline_names;
 static uint32_t s_rows, s_motion_count, s_storage, s_names_offset, s_provider;
 static unsigned s_logs;
 static RECOMP_TLS FighterFinisherScope s_scope;
 extern void sub_00029680(void);
 extern void sub_00029760(void);
 extern void xbox_NoteAnchorEvent(const char *text);
+extern uint32_t xbox_HeapAlloc(uint32_t size,uint32_t alignment);
 
 static uint32_t fin_word(const uint8_t *p) {
     return (uint32_t)p[0] | (uint32_t)p[1]<<8 | (uint32_t)p[2]<<16 | (uint32_t)p[3]<<24;
@@ -67,12 +71,13 @@ int defjam_fighter_finishers_start(void) {
     if (fclose(file)) valid = 0;
     uint32_t rows = valid ? fin_word(table + 8) : 0;
     uint32_t count = valid ? fin_word(table + 12) : 0;
-    int graph=valid && !memcmp(table,"FBP3",4) && fin_word(table+4)==3;
-    uint32_t stride = graph || (valid && !memcmp(table, "FBP2", 4) && fin_word(table + 4) == 2) ? 32 : 28;
+    int timed=valid && !memcmp(table,"FBP4",4) && fin_word(table+4)==4;
+    int graph=timed || (valid && !memcmp(table,"FBP3",4) && fin_word(table+4)==3);
+    uint32_t stride=timed?36:graph || (valid && !memcmp(table,"FBP2",4) && fin_word(table+4)==2)?32:28;
     char digest[65];
     if (valid) {
         hex(table + 20, digest);
-        valid = (stride == 32 || (!memcmp(table, "FBP1", 4) && fin_word(table + 4) == 1)) && rows && rows <= FIN_ROWS
+        valid = (stride >= 32 || (!memcmp(table, "FBP1", 4) && fin_word(table + 4) == 1)) && rows && rows <= FIN_ROWS
             && (graph ? bytes > 52u+rows*stride : bytes == 52u+rows*stride)
             && count > FIN_RETAIL && count <= FIN_RETAIL + FIN_EXTRA
             && !(count & 1) && !strcmp(digest, hash);
@@ -90,16 +95,18 @@ int defjam_fighter_finishers_start(void) {
         }
     }
     memset(s_counts, 0, sizeof s_counts); memset(s_names, 0, sizeof s_names);
+    memset(s_timelines,0,sizeof s_timelines);
     memset(s_parameter_donors, 0xFF, sizeof s_parameter_donors);
     uint32_t previous_core = 140, previous_choice = 0;
     for (uint32_t i = 0; valid && i < rows; ++i) {
         const uint8_t *row = table + 52 + i * stride;
         uint32_t core = fin_word(row), selection = fin_word(row + 4);
-        uint32_t slot = stride == 32 ? selection : UINT32_MAX;
-        uint32_t choice = fin_word(row + stride - 24), ordinal = fin_word(row + stride - 20);
+        uint32_t slot = stride >= 32 ? selection : UINT32_MAX;
+        uint32_t choice=fin_word(row+(stride==28?4:8)),ordinal=fin_word(row+(stride==28?8:12));
+        uint32_t flags=timed?fin_word(row+16):0;
         const uint8_t *names = row + stride - 16;
         if (core < 141 || core >= FIN_CORES || core < previous_core || choice >= 82
-            || (stride == 32 && slot >= 4)
+            || (stride >= 32 && slot >= 4) || flags>1
             || (core == previous_core && selection <= previous_choice) || s_counts[core] == 4
             || ordinal < 873 || ordinal >= FIN_BASE + count - 1 || ((ordinal - 873) & 1)) { valid = 0; break; }
         for (unsigned role = 0; role < 2; ++role) {
@@ -107,11 +114,14 @@ int defjam_fighter_finishers_start(void) {
             if (name[0] != 'P' || name[5] != '_' || name[6] != (role ? 'B' : 'A') || name[7]) valid = 0;
             for (unsigned j = 1; j < 5; ++j) if (name[j] < '0' || name[j] > '9') valid = 0;
             char *destination = s_names[ordinal - 873 + role];
-            if (destination[0] && memcmp(destination, name, 8)) valid = 0;
+            if (destination[0] && (memcmp(destination, name, 8) || s_timelines[ordinal-873+role]!=flags)) valid = 0;
+            if (flags && (!defjam_fighter_graph_has(ordinal+role)
+                || !defjam_fighter_events_has((const char *)name,role?1:3))) valid=0;
+            if (!flags && defjam_fighter_events_has((const char *)name,0)) valid=0;
             uint32_t donor = FIN_BASE + 2 * choice + role;
             uint32_t *parameter = &s_parameter_donors[ordinal - 873 + role];
             if (*parameter != UINT32_MAX && *parameter != donor) valid = 0;
-            if (valid) { memcpy(destination, name, 8); *parameter = donor; }
+            if (valid) { memcpy(destination, name, 8); *parameter = donor;s_timelines[ordinal-873+role]=(uint8_t)flags; }
             if (valid && graph && !defjam_fighter_graph_known(ordinal+role,destination)) valid=0;
         }
         if (memcmp(names, names + 8, 6)) valid = 0;
@@ -156,6 +166,16 @@ void defjam_fighter_finishers_mask(uint32_t base, uint32_t count, uint32_t mask)
     memset((void *)XBOX_PTR(s_storage), 0, size);
     memcpy((void *)XBOX_PTR(s_storage), (const void *)XBOX_PTR(0x3BE628), FIN_RETAIL);
     memcpy((void *)XBOX_PTR(s_storage + s_names_offset), s_names, (s_motion_count - FIN_RETAIL) * 8);
+    if (!s_timeline_names) {
+        int needed=0;for (uint32_t i=0;i<s_motion_count-FIN_RETAIL;++i) if (s_timelines[i]) needed=1;
+        if (needed) {
+            uint32_t bytes=(s_motion_count-FIN_RETAIL)*8;
+            s_timeline_names=xbox_HeapAlloc(bytes,16);
+            if (!s_timeline_names || s_timeline_names>UINT32_MAX-bytes) fin_stop("timeline name allocation failed");
+            memcpy((void *)XBOX_PTR(s_timeline_names),s_names,bytes);
+            fprintf(stderr,"[FIGHTERS] immutable snapshot timeline names retained bytes=%u\n",bytes);
+        }
+    }
     for (unsigned slot = 0; slot < 4; ++slot) {
         uint32_t actor = FIN_ACTORS + slot * FIN_STRIDE, core = MEM32(actor + 0x2C);
         if (!fin_actor(actor) || core >= FIN_CORES) continue;
@@ -228,10 +248,14 @@ void defjam_fighter_finishers_release(uint32_t manager) {
 uint32_t defjam_fighter_finisher_name(uint32_t mode, uint32_t ordinal, uint32_t caller) {
     if (!s_rows || !s_storage || mode == 1 || ordinal < 873 || ordinal >= FIN_BASE + s_motion_count
         || !s_names[ordinal - 873][0] || !defjam_fighter_research_active()) return 0;
-    /* The snapshot's label selects BOTH camera and animation-tag timelines.
-     * Graph version3 explicitly inherits these two timelines. A later typed
-     * timeline profile must admit both before this identity can become owned. */
+    /* The snapshot label selects BOTH camera and animation-tag timelines.
+     * FBP4 admits both together. Keep its name in process-generation storage:
+     * native audio/camera snapshots can outlive the external provider mask. */
     if (caller == 0x1A3ECF) {
+        if (s_timelines[ordinal-873]) {
+            if (!s_timeline_names) fin_stop("owned snapshot timeline has no retained identity");
+            return s_timeline_names+(ordinal-873)*8;
+        }
         uint32_t donor = s_parameter_donors[ordinal - 873];
         if (donor >= 873 || !MEM32(0x2EC1C8 + donor * 4)) fin_stop("missing inherited camera identity");
         return MEM32(0x2EC1C8 + donor * 4);
