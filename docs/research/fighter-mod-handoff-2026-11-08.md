@@ -6,19 +6,21 @@ for approvals, architecture, immutable inputs, workspace boundaries and operatin
 rules. This continuation supersedes its implementation status where stated.
 
 All work remains local. No push, public PR, merge, publication or release is
-authorized. The six-hour machine window is authorized until09:37 Pacific/17:37UTC November8;
-do not assume another unattended window. Never run games concurrently, kill
+authorized. The earlier six-hour machine window ended09:37 Pacific/17:37UTC November8.
+The owner subsequently renewed continued local work, requested a playtest shortcut
+and confirmed the creation-guide draft; no new timebox was specified.
+Never run games concurrently, kill
 another checkout's game, or edit/build native C/run C fixtures while a game runs.
 Use disposable supervised saves and the full save guard. Preserve the routine
 stock-development regression waiver; it does not waive final RC acceptance.
 
 ## Source state
 
-- Runtime `research/custom-fighter-mods`: final implementation4075ad3; earlier
+- Runtime `research/custom-fighter-mods`: latest fixes203821a/aa35b4e, cinematic implementation4075ad3; earlier
   1539007,3c67a3b,bb48186 and224fd98 contain this session's general adapters,
   compiler, source accounting, setup discovery, complete grid-model tail and
   harness corrections. A later documentation-only handover commit may follow.
-- Tools `feature/fighter-authoring-m5`:f7bd523, implementation89b0b06, following00debce,e74a646,4cbba85.
+- Tools `feature/fighter-authoring-m5`:5d6cc06, converter implementation89b0b06, following00debce,e74a646,4cbba85.
   Guide and PROGRESS are current; AGENTS/CLAUDE remain identical.
 - Toolkit remains clean at d569ca10811cef67ec4e9fa2173088c2f9fd0580.
   No generated C, native executables, game data or converted pack is tracked.
@@ -57,13 +59,13 @@ Do not generalize that observation to intro sequencing.
 
 ## Verification and open gates
 
-Final focused fighter suite1416passes in42.16s; installed creator40passes.
+Final focused fighter suite1424passes in42.48s; installed creator40passes.
 Relift/Release build pass. Runtime source policy805tracked/0failures before this
 new handover; Tools524/0. Detailed receipts/logs are in the checkpoint.
 
-Normal installed-layout full pack plus independent pack ran Arrii/Briggs through
+Normal installed-layout full pack plus independent pack ran Arii/Briggs through
 two match epochs, first result/save/quit,23allocation release and same-process
-reuse. Corrected four-participant test selected Arrii, Check, retail Blaze and
+reuse. Corrected four-participant test selected Arii, Check, retail Blaze and
 Briggs, with five combat checks passing; no result/owned pair/Quit claim there.
 Human slot1 subject/counterpart full graphs were evaluated. Latest absolute-camera
 fixture evaluates all four human activation phases, releases32allocations to
@@ -99,3 +101,33 @@ match.40presentation counters min107/median120/max120; zero reported faults and
 save guard restored identically. This closes latest-pack normal startup only.
 The game and native helper are stopped; no background continuation remains.
 Check actual process state again before any future C/build/fixture work.
+
+## Later owner-requested continuation
+
+The confirmed beginner guide was reviewed throughout, not just its newest
+appendix. Main sections now reflect full graphs,24artwork roles, explicit texture
+isolation, Tier, current native observations and correct export-fragment placement.
+Manual BT4 export defaults to native-venue; the guide explains the owned-absolute
+edit and separate asset subfolders. A new installed two-fighter starter/package
+command proof passed. Runtime save reads now retry transient permission denial
+for <=0.9seconds;99focused tests retain rejection of corrupt/persistently denied
+receipts and other I/O failures. Native failed attempt110250and recovered retry
+110817are retained in the checkpoint. Decoder changes preserve the complete
+e9e951e5/ae9b00e1cache/UI bytes; measured warm preparation126.49seconds remains open.
+
+Latest normal full-pack human run111731passes all six combat assertions for
+Arii/Briggs. Both humans walk and land input-linked damaging hits. Both entrances
+pass full-context proofs; native match Quit returns to menus and releases24owned
+allocations, with one acknowledged save and identical guard restoration. No new
+owned activation/pair or natural-result claim; application later ends at harness
+bound and helper recovers the last complete generation. Receipt:
+`logs/fighter-m5-managed-human-live-1108-verified.json`.
+
+Desktop shortcut `Def Jam - Fighter Mod Playtest.lnk` is created and actually
+launched/visually verified. Normal launcher shows vendetta-roster46fighters and
+independent starter1fighter both enabled. It uses the disposable managed data,
+normal input and normal unlock-all test setting. Settings persist across launches;
+pack enable/disable remains available. Wrapper and verified launch receipt are
+in ignored logs; owner instructions `fighter-m5-owner-playtest-1108.md`.
+Launcher closed successfully; no owned game/helper/wrapper left running.
+No source publication or release. Remaining roadmap gates above still apply.

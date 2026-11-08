@@ -375,7 +375,7 @@ choice sets, including exact original choices. Verified report/script:
 `fighter-m5-managed-installed-verified-1108.json` /
 `fighter-m5-managed-installed-verify-1108.py`.
 
-Arrii and Briggs were selected and materialized in two actual native match epochs.
+Arii and Briggs were selected and materialized in two actual native match epochs.
 Both entrances and the CPU's four activation phases passed actual-context proofs
 in each epoch; the first match naturally reached victory/results and native Quit.
 All23owned allocations then released to the original33553888-byte free block;
@@ -431,7 +431,7 @@ private/local. Full ordinary four-participant mixed-pack acceptance is in progre
 ## Expanded selector failure and bounded correction
 
 The first mixed4run `run-20261108-094514.log.err` crashed before combat, after
-only Arrii was selected. Do not count it as mixed-pack/four-participant playback.
+only Arii was selected. Do not count it as mixed-pack/four-participant playback.
 The crash was an arbitrary patch-list write in native111400, called from112610
 with the drawable Model+D0. Its argument00353135 is exactly ASCII`515\0`, the
 model-name string placed immediately after the cloned data. This was a truncated
@@ -457,7 +457,7 @@ No native C/toolkit change or relift is needed. Corrected native rerun is underw
 
 ## Corrected mixed-four acceptance
 
-The corrected run `run-20261108-095445.log.err` selected Arrii100, independent
+The corrected run `run-20261108-095445.log.err` selected Arii100, independent
 Check146, retail Blaze56 and Briggs101. The native participant window and all
 four immutable cores matched. All five available combat assertions passed:
 telemetry, four-participant setup, movement, P1 attack and damage. Receipt:
@@ -548,3 +548,97 @@ earlier complete-pack gameplay and dedicated absolute-camera fixture retain
 their explicitly bounded scopes. Longer warm preparation remains an open gate.
 Final Tools handover commit is f7bd523; source implementation is89b0b06. Final
 continuation instructions are in `fighter-mod-handoff-2026-11-08.md`.
+
+## Owner-requested continuation and creation-guide review
+
+After the earlier bounded window the owner explicitly requested continued local
+work and a playtest shortcut, then confirmed that the human-readable creation
+draft is Tools `docs/fighter-modding-guide.md`. The serial native/save/source rules
+and local-only publication boundary remain in force.
+
+The guide's early sections still described six portrait inputs, missing slot1
+coverage and unavailable full cinematic conversion. Those statements are now
+updated for the actual supported formats and bounded evidence. Export fragments
+now have explicit placement: voice/intro/victory at resource.source, a pair at
+one Blazin slot, and activation at one shot. Separate asset folders/path prefixes
+avoid repeated graph.json collisions. Manual BT4 exports default to native-venue;
+the guide explains the explicit owned-absolute edit and distinguishes shots from
+finisher slots. Installed creator commands built/packaged a new two-fighter
+donor starter; local ZIP SHA256
+ba2759c79182f81df110f540793eb7105cd8b33765163660f66a5b32e0f5aece.
+This is command/compilation evidence, not a new native starter playtest.
+
+Offline profiling confirms normal preparation recompiles before cache checking.
+The profiled300second run has instrumentation overhead; it is not a launch
+measurement. RefPack now copies bounded overlapping periods in bulk, with all
+three command-family boundary tests against bytewise decoding. Across234original
+model/texture members (52102784expanded bytes), old/new in-memory decoding took
+4.32/3.05seconds with every hash equal. Full ordinary pack and UI output remained
+byte-identical to e9e951e5/ae9b00e1; that warm build still took126.49seconds.
+Do not claim the launch-performance gate is closed. R2 canonical validation also
+avoids re-inspecting the same already validated packets while retaining exact
+canonical-byte comparison. No global admission cache or unsupported codec added.
+
+A new native attempt `run-20261108-110250.log.err` stopped before gameplay when
+opening000001-00.closed raised PermissionError. The completed receipt is readable
+after exit; native publication already closes/syncs before atomic rename, and the
+exact lock holder was not identified. The verifier now retries permission errors
+for at most0.9seconds, covering both intents and close receipts. Invalid bytes,
+persistent denial and other I/O errors still fail without acknowledging a batch.
+99focused save/session/audio/asset tests pass, including those negative cases.
+
+The retry `run-20261108-110817.log.err` reaches the two-human fixture, admits full
+activation contexts, acknowledges one save and restores the guard identically.
+179two-second counters min107/median120/max121; zero reported fault signatures.
+P2 still lands no input-linked damaging hit. Its scheduled65–82second pulses
+occurred inside a roughly90second actor-update pause;45two-second reports still
+showed120presents each. This is not evidence of a render/CPU freeze or overshoot.
+The cause of the actor-update scheduling delay remains under investigation.
+
+Final focused fighter suite after these changes:1424passed in42.48seconds,
+`logs/fighter-m5-continued-final-unit-1108.txt`, with no native game during C
+fixtures. A complete ordinary-pack two-human run with pad-only live input is in
+progress separately; it waits for actual advancing gameplay before striking.
+The requested Desktop shortcut is created; its normal launcher/supervised save
+flow is being verified before handoff. No release-readiness claim or publication.
+
+### Complete ordinary-pack human result and verified shortcut
+
+`run-20261108-111731.log.err` uses the actual installed-layout helper and latest
+ordinary ZIP with the independent starter enabled. Arii100 and Briggs101 are
+both human-controlled, with immutable cores141/142 verified. All six unchanged
+combat assertions pass, including a damaging hit for each human (P2input age15,
+P1age14steps; damage occurs in each attack's step). Both actual full entrance
+contexts FI00001/FI00002 pass. This closes this bounded ordinary-pack two-human
+combat gate; earlier failed fixed-schedule fixtures remain recorded.
+
+Ordinary live pad inputs supplied movement/strikes and later taunts; no guest
+state writes or assertion relaxation. The normal helper deliberately clears all
+inherited RECOMP_FIGHTER switches, including the requested ready diagnostic;
+no test-momentum log appears. That setting did not fill momentum in this run.
+No new owned activation/paired playback or natural result is claimed here.
+
+Observed native pause-menu Quit returns to the match-type menu and releases all
+24owned allocations to33553888bytes. One native save batch is acknowledged.
+295two-second counters min107/median120/max121; zero reported fault signatures;
+full save guard restores identically. The application later ends at the720second
+harness bound and the helper recovers its last committed generation; distinguish
+the successful native match Quit from a clean native application exit.
+Report: `logs/fighter-m5-managed-human-live-1108-verified.json`.
+
+The actual Desktop `Def Jam - Fighter Mod Playtest.lnk` was launched. It opens
+the normal native launcher without a terminal window, with separate supervised
+disposable saves. The Fighters tab visibly shows vendetta-roster1.0.0/46fighters
+and zz-fighter-check1.0.0/1fighter both checked. Launcher Quit closes successfully;
+no owned game, helper or wrapper is left running. The wrapper preserves owner
+settings after first creation, exposes normal pack enable/disable controls and
+uses ordinary keyboard/gamepad input. It applies unlock-all only to the private
+test career through the normal debug setting; no readiness/scripted-pad flags.
+Private receipt: `fighter-m5-playtest-shortcut-1108.json`; script/instructions:
+`fighter-m5-owner-playtest-1108.ps1/.md`. Source helper overlays are recorded.
+
+Local source commits203821a (decoder work) and aa35b4e (receipt retry); Tools
+5d6cc06 carries the confirmed beginner-guide revision and updated progress.
+The ZIP and SHA256 remain unchanged. Extended M5/M6 still require broader
+content/audio/callback/visual/mode, performance/lifetime, physical-controller,
+fresh-installer/platform and owner acceptance. No push/publication/merge/release.

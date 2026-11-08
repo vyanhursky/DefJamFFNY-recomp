@@ -1,7 +1,7 @@
 """Typed four-phase Blazin activation clips, separate from combat move pairs.
 
 Preserve the native shot roles: phases 1..3 carry body and camera helpers;
-phase 4 carries body helpers and retains the game's venue-specific camera.
+phase 4 can retain the venue camera or use an explicitly owned absolute camera.
 The runtime selects by full core and native shot ordinal, never a pack pointer.
 """
 import hashlib
