@@ -530,3 +530,21 @@ The new ZIP was installed via the normal Manager transaction into only the
 disposable managed profile. The isolated installed-layout helper overlay hashes
 are in `fighter-m5-installed-absolute-overlay-1108.json`; this is not a fresh
 installer. A final bounded normal managed smoke is recorded separately below.
+
+Final managed smoke `run-20261108-103025.log.err` admitted the latest complete
+pack plus independent starter through the actual isolated helper. All47cores,
+44voices,46activation sets,47cinematics,474timelines,1472full-film member proofs
+and94paired bindings validated. Actual cache:
+`e9e951e51a5ae66718bfb0fe66574110a709ad06e31e07616e1576ba65c18dec`.
+All46FBZ3rows have full mask15/absolute mask8; every source Tier8 and four-slot
+choice set was independently rechecked. Receipt:
+`logs/fighter-m5-managed-absolute-verified-1108.json`.
+
+The210second wall bound includes helper preparation. It reached the selector,
+not a match; do not count new whole-pack gameplay or phase4 playback here.
+40two-second counters min107/median120/max120, zero reported fault signatures,
+save guard restored identically. No native game/helper remains running. The
+earlier complete-pack gameplay and dedicated absolute-camera fixture retain
+their explicitly bounded scopes. Longer warm preparation remains an open gate.
+Final Tools handover commit is f7bd523; source implementation is89b0b06. Final
+continuation instructions are in `fighter-mod-handoff-2026-11-08.md`.

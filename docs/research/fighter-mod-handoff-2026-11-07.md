@@ -1,6 +1,8 @@
 # Fighter Mod Support agent handover prompt
 
 Latest continuation: [November 8 checkpoint](fighter-mod-m5-2026-11-08.md).
+For the final local package, source commits and exact next steps, read the
+[November8 handover](fighter-mod-handoff-2026-11-08.md) after this file.
 On November 8 the owner made the machine available and authorized up to six
 hours of continued local work, superseding the earlier native-testing pause.
 
