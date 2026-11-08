@@ -1134,16 +1134,30 @@ def merge_stages(stages, replacements):
     return result
 
 
+def omit_tail_anchors(tail, replacements):
+    """Explicit stages replace the same combat anchor in a route's raw tail.
+
+    Otherwise stock button repetitions keep running beside the replacement,
+    including through a deliberately scripted pause/quit sequence.
+    """
+    anchors={stage.split('=',1)[0].strip().casefold() for stage in replacements}
+    result=[];omit=False
+    for token in tail.split(','):
+        if token.startswith('@'):omit=token[1:].strip().casefold() in anchors
+        if not omit:result.append(token)
+    return ','.join(result)
+
+
 def run_route(route, preset=RELEASE_PRESET, secs=None, shots=None, env=None, extra_stages=(),
               to_end=False, **kw):
     r = ROUTES[route]
     replacements = extra_stages or r.get("default_stages", ())
     later = {stage.split('=', 1)[0].strip().casefold() for stage in r.get('tail_stages', ())}
     stages = merge_stages(r["stages"], [stage for stage in replacements if stage.split('=', 1)[0].strip().casefold() not in later])
-    tail = r.get('tail', '')
+    tail = omit_tail_anchors(r.get('tail', ''),replacements)
     if later:
         tail += ',' + raw_stages(merge_stages(r['tail_stages'], [stage for stage in replacements if stage.split('=', 1)[0].strip().casefold() in later]))
-        tail += ',' + r.get('final_tail', '')
+        tail += ',' + omit_tail_anchors(r.get('final_tail', ''),replacements)
     if r.get("env"):
         env = dict(r["env"], **(env or {}))     # what the route needs; the caller's values win
     run = run_game(route, stages=stages, tail=tail,

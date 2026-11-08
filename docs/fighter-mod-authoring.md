@@ -208,8 +208,9 @@ required. File arguments mean hash-checked descriptors, not unverified paths.
   Native snapshot names are generation-owned, so cached snapshots do not borrow
   per-match metadata. Versions1–3 retain their original inheritance behavior.
   Version5 keeps version4 pairs/timelines and uses four complete cinematic shot
-  objects `{template, graph, tags, camera_policy}`. Slots may be empty when all
-  four combat choices are exactly inherited. Policies are `owned-relative` for
+  objects `{template, graph, tags, camera_policy}`. Owned slots may be empty;
+  omitted choices inherit, while `retail_slots` can name other exact originals.
+  Policies are `owned-relative` for
   phases0–2 and `native-venue` for phase3. Unused supplied phase3 camera helpers
   remain represented; their existence alone does not establish legacy use.
   Optional `retail_slots` maps canonical slot0–3 strings to verified original
@@ -217,6 +218,9 @@ required. File arguments mean hash-checked descriptors, not unverified paths.
   without duplicating its exact original animation. Omitted slots inherit.
   A source's retail choices can differ from its ordinary-combat donor: the
   converter must preserve these explicitly rather than assume inheritance.
+  Compiler-owned FIC2/FBZ2 bindings mark full-graph roles and require the complete
+  body/face/hand/camera proof set before native loading. Legacy bindings retain
+  their original guards; omitting a full-graph proof is not a legacy fallback.
 
 - **Explicit global tag edit:** resource kind `tag-override`, empty compatibility,
   source `fighter-tag-override-1` with `target`, `original_sha256`, `template`,

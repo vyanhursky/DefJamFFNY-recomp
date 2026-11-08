@@ -37,6 +37,13 @@ from fighter_profile_session import prepare as prepare_profile_session
 from mods import atomic_json, language_manifest, ordinary_path, validate_textures
 
 
+def live_pad_path(path):
+    path=ordinary_path(path)
+    if not path.is_relative_to((ROOT/'logs').resolve()) or not path.is_file() or path.stat().st_size>1024**2:
+        raise ValueError('Live pad input must be an existing ordinary file under logs, at most1MiB')
+    return path
+
+
 def require_idle_game():
     # harness.py's normal interactive convenience can stop a stale game. This
     # research lane must never terminate another checkout's play/test session.
@@ -268,6 +275,7 @@ def main():
     parser.add_argument('--require-result', action='store_true', help='Also require a decisive result and results screen in each expected match')
     parser.add_argument('--combat-humans', type=int, choices=(1, 2, 3, 4), default=1)
     parser.add_argument('--record', action='store_true', help='Record frame/resource metrics through the existing play-test recorder')
+    parser.add_argument('--pad-live',type=Path,help='Existing private logs file for native live pad commands; no guest-state writes')
     parser.add_argument('--trace-profiles', action='store_true')
     parser.add_argument('--trace-lifetime', action='store_true', help='Watch reviewed participant model reset/load boundaries; no lifecycle override')
     parser.add_argument('--trace-appearance-lifetime', action='store_true', help='Watch model registration, instance cleanup and resource release; no lifecycle override')
@@ -284,6 +292,7 @@ def main():
     parser.add_argument('--texture-pack', type=Path, action='append', default=[], help='Existing texture pack under the same native mods root; repeat in precedence order')
     args = parser.parse_args()
     try:
+        pad_live=live_pad_path(args.pad_live) if args.pad_live is not None else None
         if not 10 <= args.secs <= 900:
             raise ValueError('Probe duration must be 10..900 seconds')
         matches = [value.split(',') for value in args.expect_match] if args.expect_match else ([args.expect_fighter] if args.expect_fighter else [])
@@ -363,6 +372,8 @@ def main():
                    '--env', 'RECOMP_START_LOG=1', '--env', 'RECOMP_TEST_OBSERVATIONS=1']
         if args.record:
             command += ['--env', 'RECOMP_RECORD=1']
+        if pad_live is not None:
+            command+=['--env','RECOMP_PAD_LIVE='+str(pad_live)]
         if args.ready_blazin:
             command += ['--env', 'RECOMP_FIGHTER_TEST_READY_BLAZIN=1']
         if args.start_fighter:

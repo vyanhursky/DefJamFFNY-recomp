@@ -138,7 +138,7 @@ def test_grid_rejects_image_namespace_overflow_and_index_mismatch(monkeypatch):
 
 def selected_model_fixture():
     model=model_fixture();start=0xF450
-    model.parts[1]=bytearray(bytes(start)+model.parts[1][:0x448])
+    model.parts[1]=bytearray(bytes(start)+model.parts[1])
     for at,(_,target) in model.pointers.items():
         if target is not None:struct.pack_into('<I',model.parts[1],start+at,start+target)
     model.relocations=[(start+at,info) for at,info in model.relocations]
@@ -151,11 +151,16 @@ def selected_model_fixture():
 def test_selected_grid_closure_rebases_all_relocations_and_two_independent_states(monkeypatch):
     selected=selected_model_fixture().selected_grid(2)
     assert selected._grid_profile==(16,2,1)
-    assert len(selected.parts[1])==1112 and len(selected.relocations)==42
+    assert len(selected.parts[1])==1136 and len(selected.relocations)==42
     assert selected.exports['__Model:::2']==16+0x378
     destination=model_fixture();base=destination.append_drawable(selected,900,901)
     data=destination.compose();parsed=UIModel(data,hashlib.sha256(data).hexdigest())
     assert parsed.string(1,parsed.pointers[base+16+0x310][1])=='ScaleMatrix::901::TextureMatrix'
+    # These native Model fields are consumed even when no optional patch list
+    # exists. Appended identity strings must never become their pointers.
+    model_at=parsed.exports['__Model:::900']
+    assert parsed.parts[1][model_at+0xD0:model_at+0xE0]==bytes(16)
+    assert model_at+0xE0<=base+len(selected.parts[1])
     monkeypatch.setattr(apt,'parse_const',lambda _: (24,[]))
     source=bytearray(movie_fixture());struct.pack_into('<4f',source,112,-18.5,-18.5,18.5,18.5)
     normal=UITextures(ui());changed=bytearray(ui());image=normal.images[0]
@@ -170,3 +175,11 @@ def test_selected_grid_closure_rebases_all_relocations_and_two_independent_state
     assert len(images.images)==3
     assert [images.data[x['pixels_offset']] for x in images.images[-2:]]==[ui()[image['pixels_offset']],55]
     UIModel(geometry,hashlib.sha256(geometry).hexdigest())
+
+
+def test_selected_grid_rejects_truncated_or_changed_native_model_tail():
+    original=selected_model_fixture()
+    original.parts[1]=original.parts[1][:-24]
+    with pytest.raises(AssetError,match='closure'):original.selected_grid(2)
+    original=selected_model_fixture();original.parts[1][0xF450+0x448]=1
+    with pytest.raises(AssetError,match='tail'):original.selected_grid(2)

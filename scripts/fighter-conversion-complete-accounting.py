@@ -39,7 +39,8 @@ def main():
         need(name in global_report['inputs'],'Shared-file audit omitted input hash')
         files[name]['semantic_audit']=row
     for row in grid['rows']:
-        need(row['passed'] and row['original_actions_constants_and_drawables_preserved'],'Grid source audit incomplete')
+        need(row['passed'] and row['original_actions_constants_and_drawables_preserved']
+             and row.get('complete_native_model_tail_verified') is True,'Grid source audit incomplete')
         claim(row['path'],row['sha256'],'All original script/drawables preserved;92 independent normal/selected state closures rebuilt',args.grid_report.name)
     pack=document(args.appearance_pack/'fighters.json')
     resource_by_key={pack['id']+'/'+row['id']:row for row in pack['resources']}

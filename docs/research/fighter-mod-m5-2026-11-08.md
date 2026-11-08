@@ -353,3 +353,104 @@ dereferences it.115focused writer/native cinematic/proof/graph cases pass,
 `fighter-m5-required-film-unit-b-1108.txt`; Release build passes
 `fighter-m5-required-film-build-1108.txt`. These binding bytes change cache hashes;
 the ordinary source ZIP is unchanged. Managed corrected-candidate retest follows.
+
+## Ordinary installed-layout native acceptance
+
+`run-20261108-092012.log.err`, result
+`fighter-m5-managed-installed-native-1108.txt`, used the ordinary Manager with
+the corrected ZIP and independent `zz-fighter-check` pack enabled. Native helper
+discovery ran from a separate source-layout copy using the actual isolated Setup
+Python runtime, not a development interpreter override.1344Python files were
+checked against an existing installed Setup manifest before copying; all71fighter
+modules import under that runtime with `-I`. The tracked source-only Setup copy
+contains the four new modules. Process evidence:
+`fighter-m5-installed-native-processes-1108.json`; layout evidence:
+`fighter-m5-installed-layout-1108.json`. This is installed-layout/helper acceptance,
+not execution of a newly built installer or cross-platform acceptance.
+
+Startup admitted47motion cores,44voice bindings,46activation sets,47cinematic
+bindings,474timeline identities,1472cinematic member proofs and94paired bindings.
+The compiled immutable records preserve all46source Tier values and all46four-slot
+choice sets, including exact original choices. Verified report/script:
+`fighter-m5-managed-installed-verified-1108.json` /
+`fighter-m5-managed-installed-verify-1108.py`.
+
+Arrii and Briggs were selected and materialized in two actual native match epochs.
+Both entrances and the CPU's four activation phases passed actual-context proofs
+in each epoch; the first match naturally reached victory/results and native Quit.
+All23owned allocations then released to the original33553888-byte free block;
+motion generation2 and fresh cinematic seals prove reuse in the same process.
+Two native save batches were acknowledged. User save guard restored identically.
+263two-second presentation counters min107/median120/max121; zero reported fault
+signatures. The independent pack was enabled but its fighter was not selected.
+
+This driver omitted start/combat telemetry, so do not claim new automated damage
+assertions from this log. The second match ended at the harness bound rather than
+native Quit; the helper recovered the last complete generation after process exit.
+Its first native release plus second-match reuse closes that bounded pool gate,
+not every clean-exit or longer-soak requirement. Warm launch preparation still
+took about123seconds with this large validated pack; final launch/cache performance
+needs further work and measurement.
+
+## Slot1 and human contexts
+
+`run-20261108-093617.log.err` selected two actual human participants100/101 in the
+full-film fixture. Join the playback to FBP4 rows, not allocated P filenames:
+core141 slot1/template21 maps to873/874, `P0000_A/B`. Both roles executed with
+actual94bone rig/face/hand checks. Receipt: `fighter-m5-slot1-roles-1108.json`.
+All four P1 activation phases also passed full-context checks; all30owned
+allocations released to33553888bytes. One save generation acknowledged and guard
+restored identically.209two-second counters min108/median120/max121, zero reported
+fault signatures. This deliberately mixed component fixture uses Moses appearance
+and voice626; the real conversion independently preserves Moses voice611 and
+V.Masa voice626. Fixture labels are not a claim of whole-source fighter fidelity.
+
+The two-human combat assertion failed because P2 did not land an input-linked
+damaging hit. Movement, P1 attack/damage and actual human counterpart graph
+admission remain positive observations; do not report the entire combat assertion
+set as passed. Private screenshots are under
+`fighter-window-runs/e95d954661884e19b67d7898f90dca66/captures`.
+
+The harness previously appended stock combat-tail buttons even when an explicit
+same-anchor stage replaced them. It now removes only those matching raw-tail
+groups, preserving later result/reselection stages. This prevents stock input
+from disrupting scripted pause/quit. The probe also exposes a bounded private
+`--pad-live` file for the existing native controller protocol; it cannot write
+guest state.99host harness/probe cases pass,1platform-specific skip. Final focused
+fighter suite before the later live-path test:1412passed in38.79s,
+`fighter-m5-final-focused-c-1108.txt`.
+
+Setup asset inspection now requires every fighter module and imports the complete
+set with the bundled isolated interpreter on its native platform.73game-free
+Setup/source-policy cases pass; missing transitive adapters are tested. This does
+not build/run a new Setup installer. Local owner instructions and launcher:
+`logs/fighter-m5-owner-playtest-1108.md` / `.ps1`. Exact conversion reproduction:
+`logs/fighter-m5-reproduce-conversion-1108.ps1` with a new `-Out` folder. All remain
+private/local. Full ordinary four-participant mixed-pack acceptance is in progress.
+
+## Expanded selector failure and bounded correction
+
+The first mixed4run `run-20261108-094514.log.err` crashed before combat, after
+only Arrii was selected. Do not count it as mixed-pack/four-participant playback.
+The crash was an arbitrary patch-list write in native111400, called from112610
+with the drawable Model+D0. Its argument00353135 is exactly ASCII`515\0`, the
+model-name string placed immediately after the cloned data. This was a truncated
+static drawable, not animation memory exhaustion or a native resource limit.
+
+The selected-grid extractor copied448hex bytes, ending at Model+D0. The original
+native Model consumesE0hex bytes beginning378hex bytes into that closure; its
+D0/D4/D8/DC fields must exist even when zero. All three original templates have
+24zero bytes from448through45F, with no additional relocations or references.
+The compiler now retains the complete aligned460hex-byte closure and verifies
+that tail.42relocations remain exact. Tests explicitly check optional control
+fields after identity strings are appended and reject truncated/changed tails.
+22focused grid/portrait/results tests pass.
+
+Source audit now verifies those complete tails for all276source states:
+`fighter-m5-grid-source-audit-1108b.json`. Updated exhaustive file ledger:
+`fighter-m5-source-accounting-complete-1108b.json`, unchanged1697/184/2totals.
+The ordinary ZIP is unchanged because packages contain typed pixel resources,
+not native UI Models. Content-addressed screen output changes after recompiling.
+The installed-layout overlay is exactly setup/fighter_ui_model.py SHA256
+56e0388cea7b044e6a9b8d1ae7c3a7cad12674832f9ef5d09107edcd9c1dbb89.
+No native C/toolkit change or relift is needed. Corrected native rerun is underway.

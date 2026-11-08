@@ -29,7 +29,9 @@ def target(x):return x-4 if 0x1A0<=x<0x230 or 0x260<=x<0x2B8 else x
 def closure(source,original,model,image,n):
     base=source.exports[f'__Model:::{model}']-0x378
     old,oldmodel,oldimage={2:(0xF450,2,1),3:(0x2ACC0,4,3),4:(0x2AE10,4,3)}[n]
-    require(0<=base and base+0x448<=len(source.parts[1]),'Source grid closure exceeds data')
+    require(0<=base and base+0x460<=len(source.parts[1]),'Source grid closure exceeds data')
+    require(source.parts[1][base+0x448:base+0x460]==original.parts[1][old+0x448:old+0x460]==bytes(24),
+            'Source/original native Model optional patch-list tail differs')
     exports={f'__Model:::{model}':0x378,f'__BBOX:::{model}':0x230,
              f'__VB:::__GPvb_9_0_{model}':0xA0,f'__RM:::__GP_RM_{model}_0':0x1A0}
     require(all(source.exports.get(k)==base+v for k,v in exports.items()),'Source closure exports differ')
@@ -98,7 +100,8 @@ def main():
             model_id=struct.unpack_from('<I',b,shape+24)[0];base=newmodel.exports[f'__Model:::{model_id}'];names=newmodel.pointers[base+0xA0][1];image=int(newmodel.string(1,newmodel.pointers[names][1]));images.add(image)
             closure(newmodel,oldmodel,model_id,image,n)
         require(len(shapes)==len(images)==92,'Source states unexpectedly share static drawables')
-        rows.append({'path':path,'sha256':digest(source_data),'states':92,'closures':92,'original_actions_constants_and_drawables_preserved':True,'passed':True})
+        rows.append({'path':path,'sha256':digest(source_data),'states':92,'closures':92,'original_actions_constants_and_drawables_preserved':True,
+                     'complete_native_model_tail_verified':True,'passed':True})
     report={'schema':'fighter-grid-source-audit-1','rows':rows,'states':sum(r['states'] for r in rows),'native_playtest':False}
     args.out.parent.mkdir(parents=True,exist_ok=True)
     with args.out.open('x',encoding='utf-8') as out:out.write(json.dumps(report,indent=2)+'\n')

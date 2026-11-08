@@ -81,10 +81,14 @@ class UIModel:
     def selected_grid(self,participants):
         """Isolate a hash-verified original grid closure, never package geometry."""
         require(type(participants) is int and participants in (2,3,4),'Unsupported selected-grid template')
-        start,end,original_model,original_image={2:(0xF450,0xF898,2,1),
-            3:(0x2ACC0,0x2B108,4,3),4:(0x2AE10,0x2B258,4,3)}[participants]
+        start,original_model,original_image={2:(0xF450,2,1),3:(0x2ACC0,4,3),4:(0x2AE10,4,3)}[participants]
+        # The native Model consumes0xE0bytes, including optional patch lists at
+        # +D0..DC. Keep its zero tail and alignment padding; ending at+448
+        # places the next appended model-name string in those live fields.
+        end=start+0x460
         require(end<=len(self.parts[1]) and self.exports.get(f'__Model:::{original_model}')==start+0x378,
                 'Original selected-grid closure differs from its supported profile')
+        require(self.parts[1][start+0x448:end]==bytes(24),'Selected-grid Model tail has unsupported controls')
         selected={f'__Model:::{original_model}',f'__BBOX:::{original_model}',
                   f'__VB:::__GPvb_9_0_{original_model}',f'__RM:::__GP_RM_{original_model}_0'}
         sites={at:row for at,row in self.pointers.items() if start<=at<end}
@@ -127,7 +131,7 @@ class UIModel:
                    f'__RM:::__GP_RM_{source_model}_0': f'__RM:::__GP_RM_{model_id}_0'}
         require(set(source.exports) == set(exports) | {'__EAGL_TOOLLIB_VERSION:::EAGL_TOOLLIB_VERSION-4'}
                 and not set(exports.values()) & self.exports.keys(), 'Unsupported or colliding UI drawable exports')
-        require(len(source.parts[1]) == (origin+0x448 if origin else 1120) and len(source.relocations) == 42
+        require(len(source.parts[1]) == (origin+0x460 if origin else 1120) and len(source.relocations) == 42
                 and source.exports[f'__Model:::{source_model}'] == origin+0x378, 'Unsupported original UI drawable layout')
         sections = [i for i, row in enumerate(self.symbols) if row[1:] == [0, 0, 3, 0, 1]]
         require(len(sections) == 1, 'UI destination needs one local data section symbol')

@@ -24,6 +24,16 @@ def driver(tmp_path, monkeypatch):
     return module
 
 
+def test_live_pad_file_is_scoped_and_checked_before_profile_work(tmp_path,monkeypatch):
+    probe=driver(tmp_path,monkeypatch);root=tmp_path/'logs';root.mkdir();path=root/'pad.txt';path.write_text('a:300\n')
+    assert probe.live_pad_path(path)==path
+    outside=tmp_path/'outside.txt';outside.write_text('a:300\n')
+    for invalid in (outside,root,root/'missing'):
+        with pytest.raises(ValueError,match='Live pad input'):probe.live_pad_path(invalid)
+    path.write_bytes(b'x'*(1024**2+1))
+    with pytest.raises(ValueError,match='Live pad input'):probe.live_pad_path(path)
+
+
 def test_probe_uses_ordinary_adapter_and_immutable_cache(tmp_path, monkeypatch):
     probe = driver(tmp_path, monkeypatch)
     paths = [tmp_path / 'alpha.json', tmp_path / 'beta.json']

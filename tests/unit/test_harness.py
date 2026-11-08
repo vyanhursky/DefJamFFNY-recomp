@@ -32,6 +32,22 @@ def test_presses_expand():
     assert harness.expand_presses("down@11+0.6x2") == ["down:11:%g" % (11 + d), "down:11.6:%g" % (11.6 + d)]
 
 
+def test_explicit_combat_stage_replaces_stock_buttons_without_losing_later_flow(monkeypatch):
+    captured={}
+    class Run:
+        summary={'calls':[]}
+    def run_game(*args,**kwargs):captured.update(kwargs);return Run()
+    monkeypatch.setattr(harness,'run_game',run_game)
+    monkeypatch.setattr(harness,'reached',lambda *args:True)
+    harness.run_route('fighter-roster-two-matches',extra_stages=[
+        'Game.StartGame(=start@5','game.startgame(#2=start@7'])
+    tail=captured['tail'].casefold()
+    assert '@game.startgame(' not in tail
+    assert '@game.getmatchsummary(' in tail and '@getscreeninfo(battle/cmtype#2' in tail
+    assert 'Game.StartGame(=start@5' in captured['stages']
+    assert harness.omit_tail_anchors('@a,x:1:2,@b,y:3:4',['a=z@9'])=='@b,y:3:4'
+
+
 def test_route_overrides_keep_later_native_stages_after_the_overridden_anchor(monkeypatch):
     calls = []
     monkeypatch.setattr(harness, 'run_game', lambda *args, **kw: calls.append(kw) or
