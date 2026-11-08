@@ -132,7 +132,9 @@ normal input and normal unlock-all test setting. Settings persist across launche
 pack enable/disable remains available. Wrapper and verified launch receipt are
 in ignored logs; owner instructions `fighter-m5-owner-playtest-1108.md`.
 Launcher closed successfully; no owned game/helper/wrapper left running.
-No source publication or release. Remaining roadmap gates above still apply.
+At that checkpoint no source publication or release had occurred. The later
+source-only authorization and publication below supersede that source restriction;
+remaining roadmap gates above still apply.
 
 ## Source-only PR authorization
 
@@ -145,3 +147,13 @@ source policy and all original/converted asset hashes, not merely the final tree
 Current main is substantially newer; previewed integration conflicts are disclosed
 in draft review PRs rather than presenting this snapshot as a merge-ready release.
 No asset, converted pack, screenshot or native binary is attached to the PRs.
+
+Published draft source PRs:
+- Runtime: https://github.com/vyanhursky/DefJamFFNY-recomp/pull/209
+- Creator tools/guide: https://github.com/vyanhursky/DefJam-Modding-Tools/pull/6
+
+Both are explicitly drafts with current-main integration conflicts, no release
+queue or merge authorization. Runtime full suite2209passed/27skipped; companion
+full suite218passed/3skipped/51subtests. Complete outgoing source history passes
+source policy and original/converted Vendetta file-hash comparisons. Audit reports,
+the original archive, converted ordinary pack and all playtest data remain local.
