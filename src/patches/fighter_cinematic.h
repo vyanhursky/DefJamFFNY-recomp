@@ -3,6 +3,8 @@
 #include "recomp/gen/recomp_types.h"
 int defjam_fighter_cinematic_start(void);
 int defjam_fighter_cinematic_proofs(void);
+int defjam_fighter_cinematic_absolute(uint32_t descriptor);
+void defjam_fighter_cinematic_camera(uint32_t descriptor);
 const char *defjam_fighter_cinematic_path(void);
 void defjam_fighter_cinematic_cache_begin(uint32_t manager);
 uint32_t defjam_fighter_cinematic_allocation(uint32_t caller, uint32_t bytes);

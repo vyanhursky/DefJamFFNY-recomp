@@ -18,6 +18,7 @@ DRIVER=r'''
 unsigned char memory[0x400000];
 static const char *mode;
 static unsigned current;
+int defjam_fighter_cinematic_absolute(uint32_t descriptor){(void)descriptor;return !strcmp(mode,"absolute-missing");}
 int defjam_fighter_cinematic_proofs(void){return !strcmp(mode,"missing-required")||!strcmp(mode,"required")?defjam_fighter_film_complete("FV00000",0):1;}
 unsigned defjam_fighter_cpu_film(uint32_t address){(void)address;return current;}
 int defjam_fighter_cpu_range(uint32_t address,uint32_t bytes){return address>=0x10000&&address<0x40000&&bytes<=64;}
@@ -93,7 +94,7 @@ def files(tmp_path):
     proof=tmp_path/'proof.bin';proof.write_bytes(data)
     return [proof,archive,digest.hex()]
 
-@pytest.mark.parametrize('mode',['good','payload','relocation','wrong-bank','wrong-camera-policy'])
+@pytest.mark.parametrize('mode',['good','payload','relocation','wrong-bank','wrong-camera-policy','absolute-missing'])
 def test_cinematic_seals_and_actual_member_joins(tool,files,mode):
     result=subprocess.run([str(tool),*map(str,files),mode],capture_output=True,text=True)
     assert result.returncode==0,result.stdout+result.stderr

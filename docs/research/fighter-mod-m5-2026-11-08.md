@@ -454,3 +454,79 @@ not native UI Models. Content-addressed screen output changes after recompiling.
 The installed-layout overlay is exactly setup/fighter_ui_model.py SHA256
 56e0388cea7b044e6a9b8d1ae7c3a7cad12674832f9ef5d09107edcd9c1dbb89.
 No native C/toolkit change or relift is needed. Corrected native rerun is underway.
+
+## Corrected mixed-four acceptance
+
+The corrected run `run-20261108-095445.log.err` selected Arrii100, independent
+Check146, retail Blaze56 and Briggs101. The native participant window and all
+four immutable cores matched. All five available combat assertions passed:
+telemetry, four-participant setup, movement, P1 attack and damage. Receipt:
+`logs/fighter-m5-managed-mixed4-verified-1108.json`. Both converted entrances
+passed full actual-context admission. The independent fighter inherits retail
+assets. This bounded run did not prove an owned paired evaluation, result or
+native Quit/pool release. Save guard restored identically; zero reported faults.
+326two-second counters min16/median120/max121; preserve the low sample rather
+than claiming a uniform timing floor.
+
+## Additional legacy runtime reference and absolute camera
+
+The owner identified Comoria's runtime as the additional legacy instructions.
+Behavioral reference was pinned to
+[aca317a0](https://github.com/comoria08/defjam_recomp/blob/aca317a0a84dd6522dd68f02ef7a5e82fb749989/src/recomp_manual.c#L1219-L1234).
+It replaces both body and separate camera names with BY for phase4 while
+retaining flag8. This supersedes the earlier unresolved/native-venue conclusion:
+Vendetta requires its owned camera in absolute coordinates. No third-party
+implementation code was copied.
+
+Own native A3B60 writes the venue name after the existing A3160 hook. A new
+posthook preserves its thiscall/ret4 and return value, then selects the owned
+camera before native allocation. FBZ3 adds a phase4 absolute-policy mask; older
+bindings remain supported. Absolute cameras now require sealed CAM_TARGET/EYE
+members and actual nonnull output context, in addition to the body/face/hand
+proofs.98focused compiler/native tests pass in
+`fighter-m5-absolute-camera-unit-1108.txt`; relift and Release build pass in
+`fighter-m5-absolute-camera-relift-1108.txt` and `...-build-1108.txt`.
+
+The reference's phase1 D0=1 write changes XML shot-count metadata. Own Blazin
+state7 playback uses89BC0 and explicitly compares its phase counter to4; it
+does not consult that descriptor count. Our typed four-phase D0=4 contract has
+no identified playback difference here. Generic intro sequencing does consult
+D0; this finding is restricted to Blazin.
+
+New installed-wheel conversion: `logs/fighter-m5-vendetta-absolute-1108`, report
+`logs/fighter-m5-installed-conversion-absolute-1108.json`. All46fighters and
+285resources compile. Normal4651-file ZIP:
+`logs/vendetta-roster-1.0.0-absolute-1108.zip`, SHA256
+**d493f0aa580748a29a6a45bf99c34f8274d87049e5df70abd04e931c2cfe0c01**.
+This supersedes the e288a716 native-venue draft. Installed creator wheel SHA256
+2d2952ed66abda71b731ce27afa22aac0a74c65212e75de025364b1a633cdefb;
+40focused installed creator tests pass. Source ledger was recomputed with all
+1883hashes: `fighter-m5-source-accounting-absolute-1108.json`, unchanged
+1697converted/184exactly inherited/2excluded. Its global audit includes the pinned
+camera reference. Source classification does not assert complete native fidelity.
+
+Native absolute-camera fixture `run-20261108-102136.log.err` has selected B00003
+and verified actual full contexts for all four human activation phases, including
+the owned absolute camera. Final teardown/save/driver status is recorded below
+when the bounded run ends. The mixed Moses/voice626 fixture is component evidence,
+not a new whole-fighter conversion test. Extended M5 and M6 remain open for the
+broader native/audio/content/mode, lifetime/performance, physical controls,
+platform, fresh installer and owner acceptance matrix. No publication authorized.
+
+The absolute-camera fixture finished420seconds with209two-second counters
+min104/median120/max121, zero reported fault signatures, all32allocations released
+to33553888bytes, one acknowledged save generation and byte-identical guard
+restoration. Native menu identities100/101 verified. Its complete two-human combat
+assertion still fails because P2 did not land an input-linked damaging hit; do not
+claim the entire combat suite passed. Result/clean application exit are not gates
+closed by this fixture. Driver: `logs/fighter-m5-absolute-native-1108.txt`;
+captures: `fighter-window-runs/1f4565152b2045578d1242134b52fed9/captures`.
+
+Final complete focused fighter suite passes1416tests in42.16seconds:
+`logs/fighter-m5-absolute-final-unit-1108.txt`. No game ran during native C
+fixtures. Source checks report805tracked files/0policy failures. Tools source
+commit89b0b06 carries the corrected converter and guide (524files/0failures).
+The new ZIP was installed via the normal Manager transaction into only the
+disposable managed profile. The isolated installed-layout helper overlay hashes
+are in `fighter-m5-installed-absolute-overlay-1108.json`; this is not a fresh
+installer. A final bounded normal managed smoke is recorded separately below.

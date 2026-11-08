@@ -149,7 +149,8 @@ def validate_source(kind, source):
             if blazin5:
                 file_spec(shot['graph'])
                 if shot['tags']!={'state':'absent'}:file_spec(shot['tags'])
-                require(shot['camera_policy']==('native-venue' if phase==3 else 'owned-relative'),'Unsupported shot camera policy')
+                require(shot['camera_policy'] in (('native-venue','owned-absolute') if phase==3 else ('owned-relative',)),
+                        'Unsupported shot camera policy')
             if 'track' in shot:
                 file_spec(shot['track'])
         if 'pairs' in source:

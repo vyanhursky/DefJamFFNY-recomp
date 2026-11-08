@@ -144,7 +144,9 @@ int defjam_fighter_film_bind(const char *name,uint32_t entry,uint32_t visual,uin
     unsigned face=find(name,"_f.o"),hands=find(name,"_h.o");
     if (!sealed(id,MEM32(entry+0x24)) || !sealed(face,MEM32(entry+0x30))
         || !sealed(hands,MEM32(entry+0x3C)) || !defjam_fighter_events_has(name,word(p+60))) return 0;
-    if (!(MEM8(descriptor)&8)) {
+    int absolute=defjam_fighter_cinematic_absolute(descriptor);
+    if (absolute && (!(MEM8(descriptor)&8) || strcmp((const char *)XBOX_PTR(descriptor+0x1D),name))) return 0;
+    if (!(MEM8(descriptor)&8) || absolute) {
         uint32_t table=MEM32(descriptor+0x88);unsigned category=MEM32(descriptor+0xA4),selector=MEM32(descriptor+0x98);
         if (!table || MEM32(descriptor+0x8C)!=2 || (category==0 && selector>1)
             || strcmp((const char *)XBOX_PTR(table),"CAM_TARGET") || strcmp((const char *)XBOX_PTR(table+0x2C),"CAM_EYE")) return 0;

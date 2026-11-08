@@ -193,7 +193,8 @@ def audit(source,game,pair_root,film_root,motion_report):
         activation.append(core)
     need(len(activation)==46 and set(activation)==owned,'Activation roster differs')
     rows['blazin_activation.txt']={'passed':True,'fighters':46,'annotation_preserved_by_actual_tags':True,
-        'phase4_camera_policy':'Native venue; original legacy coordinate-policy intent remains unproved'}
+        'phase4_camera_policy':'Owned absolute; additional legacy runtime reference aca317a0a84dd6522dd68f02ef7a5e82fb749989, src/recomp_manual.c lines1219-1234',
+        'phase4_policy_evidence':'https://github.com/comoria08/defjam_recomp/blob/aca317a0a84dd6522dd68f02ef7a5e82fb749989/src/recomp_manual.c#L1219-L1234'}
     return {'schema':'fighter-conversion-global-audit-1','rows':rows,'inputs':inputs,
             'source_tiers':{str(row['native_binding']['core_id']):row['fields']['Tier']['word'] for row in added},
             'native_acceptance':False,'complete_faithfulness':False}

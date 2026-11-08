@@ -62,3 +62,14 @@ normal managed two-match test released23allocations and reused the pool; a
 separate two-human fixture proves both roles of slot1 and releases30allocations.
 Its two-player combat check fails because P2 did not land a damaging hit.
 See the checkpoint for the exact positive scopes and remaining gates.
+
+The corrected mixed-four test now passes all five available combat checks with
+Arrii, independent Check, retail Blaze and Briggs; all four menu/window/core
+identities match. Result, owned paired evaluation and native Quit are not proved
+by that bounded run. The owner's additional pinned legacy runtime reference
+resolves phase4 as an owned absolute camera. FBZ3 implements it with full camera
+member/context proofs;98focused cases and relift/Release build pass. The updated
+ordinary46fighter candidate compiles and packages4651files. Actual human phase4
+context admission is observed in the dedicated native fixture. See the
+[November8 checkpoint](research/fighter-mod-m5-2026-11-08.md) for exact evidence,
+superseded drafts and remaining acceptance gates; M5/M6 are not marked complete.

@@ -211,14 +211,16 @@ required. File arguments mean hash-checked descriptors, not unverified paths.
   objects `{template, graph, tags, camera_policy}`. Owned slots may be empty;
   omitted choices inherit, while `retail_slots` can name other exact originals.
   Policies are `owned-relative` for
-  phases0–2 and `native-venue` for phase3. Unused supplied phase3 camera helpers
-  remain represented; their existence alone does not establish legacy use.
+  phases0–2. Phase3 accepts `native-venue` or `owned-absolute`; the latter uses
+  the supplied camera graph while retaining native absolute-coordinate flag8.
+  Vendetta conversion uses `owned-absolute`, following the pinned legacy runtime
+  reference identified in the current M5 checkpoint.
   Optional `retail_slots` maps canonical slot0–3 strings to verified original
   choices0–81. It is disjoint from owned `slots` and changes the selected choice
   without duplicating its exact original animation. Omitted slots inherit.
   A source's retail choices can differ from its ordinary-combat donor: the
   converter must preserve these explicitly rather than assume inheritance.
-  Compiler-owned FIC2/FBZ2 bindings mark full-graph roles and require the complete
+  Compiler-owned FIC2/FBZ2/FBZ3 bindings mark full-graph roles and require the complete
   body/face/hand/camera proof set before native loading. Legacy bindings retain
   their original guards; omitting a full-graph proof is not a legacy fallback.
 
@@ -345,6 +347,7 @@ voices, portraits, AI and cinematic links; it cannot silently substitute donor
 assets or copy whole shared databases. Offline full-component source accounting
 now covers1697converted,184exactly inherited and2excluded files. Two dangling
 nonfighter XML registrations are separately excluded and reported. A local
-ordinary46fighter candidate exists; its phase4 legacy camera-use intent remains
-unproved, so it is not a declaration of complete faithful/native acceptance.
+ordinary46fighter candidate exists. The additional legacy runtime reference
+establishes owned absolute phase4 cameras; native and wider acceptance remain
+separate gates before declaring complete faithful acceptance.
 See the [current M5 checkpoint](research/fighter-mod-m5-2026-11-08.md).

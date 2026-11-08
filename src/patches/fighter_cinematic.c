@@ -13,6 +13,7 @@
 #define CIN_TABLE_LIMIT (88u + 24u * (CIN_CORE_LIMIT - 141u))
 static char s_clips[CIN_CORE_LIMIT][2][8];
 static uint8_t s_full_clips[CIN_CORE_LIMIT],s_full_blazin[CIN_CORE_LIMIT];
+static uint8_t s_absolute_blazin[CIN_CORE_LIMIT];
 static uint32_t s_count;
 static char s_blazin[CIN_CORE_LIMIT][4][8];
 static uint32_t s_blazin_count;
@@ -70,24 +71,26 @@ static int cin_blazin_start(const char *path, const char *hash) {
     if (strlen(bindings) >= 2048) return 0;
     FILE *file = cin_open(bindings);
     if (!file) return 0;
-    const size_t limit = 48u + 40u * (CIN_CORE_LIMIT - 141u);
+    const size_t limit = 48u + 44u * (CIN_CORE_LIMIT - 141u);
     uint8_t *table = (uint8_t *)malloc(limit + 1);
     if (!table) { fclose(file); return 0; }
     size_t size = fread(table, 1, limit + 1, file);
     int valid = !ferror(file) && size >= 48 && size <= limit;
     if (fclose(file)) valid = 0;
     uint32_t count = valid ? cin_word(table + 8) : 0;
-    uint32_t version=valid?cin_word(table+4):0,stride=version==2?40u:36u;
+    uint32_t version=valid?cin_word(table+4):0,stride=version==3?44u:version==2?40u:36u;
     char digest[65];
     if (valid) {
         hex(table + 16, digest);
-        valid = ((version==1 && !memcmp(table,"FBZ1",4)) || (version==2 && !memcmp(table,"FBZ2",4))) && count
+        valid = ((version==1 && !memcmp(table,"FBZ1",4)) || (version==2 && !memcmp(table,"FBZ2",4))
+                 || (version==3 && !memcmp(table,"FBZ3",4))) && count
             && count <= CIN_CORE_LIMIT - 141 && size == 48u + stride * count
             && !strcmp(digest, hash) && cin_size(path, cin_word(table + 12));
     }
     uint32_t previous = 140;
     memset(s_blazin, 0, sizeof s_blazin);
     memset(s_full_blazin,0,sizeof s_full_blazin);
+    memset(s_absolute_blazin,0,sizeof s_absolute_blazin);
     for (uint32_t i = 0; valid && i < count; ++i) {
         const uint8_t *row = table + 48 + stride * i;
         uint32_t core = cin_word(row);
@@ -97,9 +100,10 @@ static int cin_blazin_start(const char *path, const char *hash) {
             if (name[0] != 'B' || name[6] || name[7]) valid = 0;
             for (unsigned j = 1; j < 6; ++j) if (name[j] < '0' || name[j] > '9') valid = 0;
         }
-        uint32_t flags=version==2?cin_word(row+36):0;
-        if (flags&~15u) valid=0;
-        if (valid) { memcpy(s_blazin[core], row + 4, 32);s_full_blazin[core]=(uint8_t)flags; previous = core; }
+        uint32_t flags=version>=2?cin_word(row+36):0,absolute=version==3?cin_word(row+40):0;
+        if ((flags&~15u) || (absolute&~8u) || (absolute&~flags)) valid=0;
+        if (valid) { memcpy(s_blazin[core], row + 4, 32);s_full_blazin[core]=(uint8_t)flags;
+            s_absolute_blazin[core]=(uint8_t)absolute; previous = core; }
     }
     if (valid) {
         s_blazin_count = count;
@@ -167,6 +171,23 @@ int defjam_fighter_cinematic_proofs(void) {
             if ((s_full_blazin[core]&(1u<<phase)) && !defjam_fighter_film_complete(s_blazin[core][phase],0)) return 0;
     }
     return 1;
+}
+int defjam_fighter_cinematic_absolute(uint32_t descriptor) {
+    unsigned owner=owner_record(descriptor);
+    if (owner>=256 || s_owners[owner].descriptor!=descriptor) return 0;
+    uint32_t core=s_owners[owner].core;
+    return core<CIN_CORE_LIMIT && (s_absolute_blazin[core]&8)
+        && MEM32(descriptor+0xA4)==2 && MEM32(descriptor+0xD4)==3
+        && !strcmp(s_owners[owner].name,s_blazin[core][3]);
+}
+void defjam_fighter_cinematic_camera(uint32_t descriptor) {
+    if (!defjam_fighter_cinematic_absolute(descriptor)) return;
+    unsigned owner=owner_record(descriptor);
+    if (!(MEM8(descriptor)&8) || !MEM8(descriptor+0x1D)
+        || strcmp((const char *)XBOX_PTR(descriptor+0x61),s_owners[owner].name))
+        cin_stop("owned absolute camera differs from its phase4 body request");
+    memcpy((void *)XBOX_PTR(descriptor+0x1D),s_owners[owner].name,8);
+    fprintf(stderr,"[FIGHTERS] owned absolute cinematic camera selected %s\n",s_owners[owner].name);
 }
 
 /* Native keeps ten shared activation descriptors. Append four participant
@@ -376,8 +397,8 @@ void defjam_fighter_cinematic_selected(uint32_t descriptor, uint32_t name) {
         if (!s_blazin_count || !s_blazin[core][0][0] || MEM32(descriptor + 0x19C) != 4
             || category != 2 || phase >= 4 || MEM32(descriptor + 0xD0) != 4 || name != descriptor + 0x61)
             cin_stop("owned Blazin activation differs from its four-shot contract");
-        /* Persistent name is used again by the asynchronous bundle loader.
-         * Leave the phase-four venue camera at +1D and all native flags alone. */
+        /* Persistent body name is used by the asynchronous loader. The optional
+         * absolute camera is finalized after native A3B60's venue-name write. */
         memcpy((void *)XBOX_PTR(name), s_blazin[core][phase], 7);
         unsigned owner=owner_record(descriptor);
         if (owner>=256 || s_owners[owner].descriptor!=descriptor) cin_stop("missing cinematic request owner");

@@ -197,6 +197,12 @@ void sub_000A3160(void) {
     defjam_fighter_cinematic_selected(g_ecx, MEM32(g_esp + 4));
     sub_000A3160_gen(); /* Native owns its actor row and child loaders. */
 }
+extern void sub_000A3B60_gen(void);
+void sub_000A3B60(void) {
+    uint32_t descriptor=g_ecx;
+    sub_000A3B60_gen(); /* Native thiscall ret4; retain its return/registers. */
+    if (g_eax&255u) defjam_fighter_cinematic_camera(descriptor);
+}
 
 extern void sub_000C9110_gen(void);
 extern void sub_000D6EE0_gen(void);

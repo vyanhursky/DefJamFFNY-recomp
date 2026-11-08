@@ -111,3 +111,7 @@ def test_full_graph_receipt_marks_required_activation_phases():
     table=encode_blazin_bindings(data,report,{256:'alpha/activation'})
     assert table[:8]==b'FBZ2'+struct.pack('<I',2)
     assert len(table)==48+40 and struct.unpack_from('<I',table,84)==(10,)
+    report['bindings']['alpha/activation'][3]['camera_policy']='owned-absolute'
+    table=encode_blazin_bindings(data,report,{256:'alpha/activation'})
+    assert table[:8]==b'FBZ3'+struct.pack('<I',3)
+    assert len(table)==48+44 and struct.unpack_from('<2I',table,84)==(10,8)

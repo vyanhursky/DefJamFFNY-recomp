@@ -59,7 +59,7 @@ def main():
     for fighter in report['fighters']:
         fighter['source_tier']=global_report['source_tiers'][str(fighter['source_core'])]
         fighter['components'].update(stats='converted',portrait='converted24roles',paired_motion='converted; native acceptance incomplete',
-            intro='converted full graph',victory='converted full graph',activation='converted full graph; phase4 legacy policy unproved',tier='converted')
+            intro='converted full graph',victory='converted full graph',activation='converted full graph; owned absolute phase4 per pinned legacy runtime reference',tier='converted')
     report['files']=[files[name] for name in sorted(files)]
     report['summary']=dict(Counter(row['status'] for row in report['files']))
     need(report['summary']=={'converted':1697,'exactly-inherited':184,'excluded':2},'Unaccounted source files remain: '+str(report['summary']))
@@ -67,7 +67,7 @@ def main():
         source_population_reverified=True,extra_appearances=extra_models,
         subrecord_exclusions=[{'files':['assets/IntroExtro.xml','assets/entity.xml'],'models':['V2IP_606A','V2IP_607A'],
           'reason':'Dangling nonfighter registrations: no Character references and no supplied/original appearance; retained as explicit accounting exclusions'}],
-        remaining_gates=['Legacy phase4 camera coordinate/use intent is not encoded in the archive; ordinary adapter currently retains native venue policy',
+        remaining_gates=['Owned absolute phase4 native/component coverage and remaining legacy runtime semantics require acceptance',
             'Whole-pack native acceptance, expanded lifetime/save/input and release-candidate platform/owner tests'],
         evidence={'previous':str(args.previous),'globals':str(args.global_report),'grid':str(args.grid_report)})
     args.out.write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')

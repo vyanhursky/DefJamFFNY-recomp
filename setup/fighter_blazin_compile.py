@@ -107,7 +107,8 @@ class BlazinArchive:
                 if full:
                     require(graphs is not None and shot['tracks']['layout']=='single-camera','Full activation needs verified cinematic graph compiler')
                     data,receipt=graphs.compose(shot['tracks'],assigned,resource['rig_sha256'],resource['bone_count'],hands)
-                    require(shot['camera_policy']==('native-venue' if phase==3 else 'owned-relative'),'Unsupported activation camera policy')
+                    require(shot['camera_policy'] in (('native-venue','owned-absolute') if phase==3 else ('owned-relative',)),
+                            'Unsupported activation camera policy')
                     receipt.update(native_name=assigned,phase=phase,template=token,camera_policy=shot['camera_policy'])
                 else:data, receipt = compiler.compose(assigned, shot['tracks'])
                 used += len(data) + len(assigned) + 13
@@ -137,10 +138,11 @@ def encode_blazin_bindings(data, report, cores, *, extension=None):
             and all(type(core) is int and 141 <= core < 16384 for core in cores), 'Invalid core-to-Blazin population')
     archive, rows = Archive(data), []
     version=2 if any(shot.get('full_graph') for shots in report['bindings'].values() for shot in shots) else 1
+    if any(shot.get('camera_policy')=='owned-absolute' for shots in report['bindings'].values() for shot in shots):version=3
     for core, identifier in sorted(cores.items()):
         require(identifier in report['bindings'] and type(report['bindings'][identifier]) is list
                 and len(report['bindings'][identifier]) == 4, 'Unknown or incomplete Blazin resource')
-        names = [];flags=0
+        names = [];flags=0;absolute=0
         for phase, shot in enumerate(report['bindings'][identifier]):
             require(type(shot) is dict and shot.get('phase') == phase
                     and isinstance(shot.get('native_name'), str)
@@ -150,6 +152,10 @@ def encode_blazin_bindings(data, report, cores, *, extension=None):
                     'Blazin shot differs from its receipt')
             names.append(name.encode('ascii'))
             if shot.get('full_graph'):flags|=1<<phase
+            if shot.get('camera_policy')=='owned-absolute':
+                require(phase==3 and shot.get('full_graph'),'Absolute camera needs a complete phase4 graph')
+                absolute|=1<<phase
         rows.append(struct.pack('<I8s8s8s8s', core, *names))
-        if version==2:rows[-1]+=struct.pack('<I',flags)
-    return (b'FBZ2' if version==2 else b'FBZ1') + struct.pack('<3I', version, len(rows), len(data)) + bytes.fromhex(final_hash) + b''.join(rows)
+        if version>=2:rows[-1]+=struct.pack('<I',flags)
+        if version==3:rows[-1]+=struct.pack('<I',absolute)
+    return ('FBZ'+str(version)).encode()+struct.pack('<3I', version, len(rows), len(data)) + bytes.fromhex(final_hash) + b''.join(rows)

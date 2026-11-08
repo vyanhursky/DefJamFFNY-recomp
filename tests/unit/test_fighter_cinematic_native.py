@@ -25,6 +25,8 @@ int g_fp_top;
 static int enabled=1;
 static int full;
 static unsigned full_binds;
+static int absolute_mode;
+static unsigned absolute_selections;
 static unsigned proof_checks;
 static int proofs_available=1;
 int defjam_fighter_film_complete(const char *name,int intro){assert(name&&name[0]&&(intro==0||intro==1));proof_checks++;return proofs_available;}
@@ -43,6 +45,11 @@ void sub_00087AF0(void) {
  MEM32(c+0x19C)=4;MEM32(c+0xA4)=2;MEM32(c+0xD0)=4;MEM32(c+0xD4)=MEM32(r+0x1C);
  MEM32(r+0x20)=1;
  defjam_fighter_cinematic_selected(c,c+0x61);
+ if(absolute_mode&&MEM32(r+0x1C)==3){
+  MEM8(c)|=8;strcpy((char*)memory+c+0x1D,"native-venue");
+  assert(defjam_fighter_cinematic_absolute(c));defjam_fighter_cinematic_camera(c);
+  assert(!strcmp((char*)memory+c+0x1D,(char*)memory+c+0x61));absolute_selections++;
+ }
  defjam_fighter_cinematic_leave(previous,r);
  started++;g_eax=0xBAD;g_esp+=12;
 }
@@ -76,6 +83,7 @@ int main(int argc,char **argv) {
  int ok=defjam_fighter_cinematic_start();
  if(!strcmp(argv[6],"reject")||!strcmp(argv[6],"inactive")){assert(!ok);return 0;}
  assert(ok&&!strcmp(defjam_fighter_cinematic_path(),argv[1]));
+ absolute_mode=!strcmp(argv[6],"absolute");
  if(!strcmp(argv[6],"coverage")||!strcmp(argv[6],"missing-proof")){
   proofs_available=!strcmp(argv[6],"coverage");
   assert(defjam_fighter_cinematic_proofs()==proofs_available);assert(proof_checks);return 0;
@@ -325,3 +333,13 @@ def test_full_graph_binding_versions_require_explicit_member_proofs(tool,files,b
         arguments.append(target)
     result=subprocess.run(arguments,capture_output=True,text=True)
     assert result.returncode==0,result.stdout+result.stderr
+
+
+def test_native_owned_absolute_phase4_replaces_camera_after_native_venue_selection(tool,blazin_files):
+    files,target=blazin_files
+    table=bytearray(target.read_bytes());rows=[]
+    for at in range(48,len(table),36):rows.append(table[at:at+36]+struct.pack('<2I',15,8))
+    table[:4]=b'FBZ3';struct.pack_into('<I',table,4,3);table[48:]=b''.join(rows);target.write_bytes(table)
+    result=subprocess.run([tool,*files,'absolute',target],capture_output=True,text=True)
+    assert result.returncode==0,result.stdout+result.stderr
+    assert result.stderr.count('owned absolute cinematic camera selected')==2
