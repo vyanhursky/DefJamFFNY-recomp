@@ -1,11 +1,18 @@
 # Fighter Mod Support — approved implementation plan
 
 **Target: v0.15.0. Status: approved architecture; local implementation underway.**
-No public branch push or public PR. This revision follows
+On November 8 the owner authorized source-only branch/PR publication for review;
+Vendetta assets, packs and native binaries remain local. Merge and release
+remain unauthorized. This revision follows
 the owner's request to build the maintainable system first. It supersedes the
 proposal to ship a Vendetta-specific compatibility bundle. Owner decisions are
 recorded below; evidence-dependent implementation details remain
 explicit rather than being treated as approvals.
+
+Current runtime/base-game/save implications and explicit Vendetta overrides are
+summarized in the [PR review notes](fighter-mod-review-notes.md). Current local
+acceptance is recorded in the [November 8 checkpoint](research/fighter-mod-m5-2026-11-08.md);
+historical milestone summaries below retain their narrower evidence dates.
 
 ## Delivery milestones (M1–M5 authorized)
 

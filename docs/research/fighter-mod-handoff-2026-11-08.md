@@ -5,8 +5,10 @@ The [November7 handover](fighter-mod-handoff-2026-11-07.md) remains authoritativ
 for approvals, architecture, immutable inputs, workspace boundaries and operating
 rules. This continuation supersedes its implementation status where stated.
 
-All work remains local. No push, public PR, merge, publication or release is
-authorized. The earlier six-hour machine window ended09:37 Pacific/17:37UTC November8.
+The owner subsequently authorized source-only push and PR publication, explicitly
+excluding every Vendetta modpack/asset file. Merge, pack publication and release
+remain unauthorized. Earlier local-only records below are historical.
+The earlier six-hour machine window ended09:37 Pacific/17:37UTC November8.
 The owner subsequently renewed continued local work, requested a playtest shortcut
 and confirmed the creation-guide draft; no new timebox was specified.
 Never run games concurrently, kill
@@ -131,3 +133,15 @@ pack enable/disable remains available. Wrapper and verified launch receipt are
 in ignored logs; owner instructions `fighter-m5-owner-playtest-1108.md`.
 Launcher closed successfully; no owned game/helper/wrapper left running.
 No source publication or release. Remaining roadmap gates above still apply.
+
+## Source-only PR authorization
+
+The owner requested PR notes at the detailed level of the runtime/memory/save
+explanations, authorized pushing the PR and explicitly prohibited pushing Vendetta
+modpack files. `docs/fighter-mod-review-notes.md` now consolidates those changes,
+resource costs and caveats, source-overwrite inventory, test scopes and creator
+intent questions. Outgoing commit/blob history is audited in ignored logs against
+source policy and all original/converted asset hashes, not merely the final tree.
+Current main is substantially newer; previewed integration conflicts are disclosed
+in draft review PRs rather than presenting this snapshot as a merge-ready release.
+No asset, converted pack, screenshot or native binary is attached to the PRs.
