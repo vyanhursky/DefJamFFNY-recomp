@@ -47,8 +47,15 @@ def unpack(data, maximum=MAX_ASSET):
         if length:
             if distance > len(output):
                 raise AssetError('Invalid RefPack back-reference')
-            for _ in range(length):
-                output.append(output[-distance])
+            start = len(output) - distance
+            if length <= distance:
+                output.extend(output[start:start + length])
+            else:
+                # RefPack may read bytes emitted by this same command. Repeat
+                # its already available period, bounded by the decoded length,
+                # rather than entering Python once for every output byte.
+                period = output[start:]
+                output.extend((period * ((length + distance - 1) // distance))[:length])
         if command >= 0xfc:
             ended = True
             break

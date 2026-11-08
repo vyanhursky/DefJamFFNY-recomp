@@ -112,8 +112,7 @@ def inspect_source(data):
     return R2Stream(rate, count, tuple(packets), hashlib.sha256(data).hexdigest())
 
 
-def canonical_r2(data):
-    source = inspect_source(data)
+def _canonical_stream(source):
     header = b'PT\x07\0' + property_value(0x06, 101) + b'\xfd'
     header += b''.join(property_value(k, v) for k, v in
               zip(R2_PROPERTIES, (3, 10, 1, source.sample_rate, source.sample_count)))
@@ -122,7 +121,12 @@ def canonical_r2(data):
     for count, coded in source.packets:
         parts.append(chunk(b'SCDl', struct.pack('<II', count, 0) + coded))
     parts.append(chunk(b'SCEl', b''))
-    result = b''.join(parts)
+    return b''.join(parts)
+
+
+def canonical_r2(data):
+    source = inspect_source(data)
+    result = _canonical_stream(source)
     checked = inspect_source(result)
     require(checked.packets == source.packets and checked.sample_rate == source.sample_rate,
             'Canonical R2 payload changed')
@@ -131,5 +135,5 @@ def canonical_r2(data):
 
 def parse_r2(data):
     source = inspect_source(data)
-    require(canonical_r2(data) == data, 'Native R2 stream must have a compiler-owned canonical header')
+    require(_canonical_stream(source) == data, 'Native R2 stream must have a compiler-owned canonical header')
     return source
