@@ -24,7 +24,12 @@ Run unit tests and source hygiene for documentation/tools changes. Runtime,
 settings, input and UI changes also run `regress.py --quick` and the affected
 `--only` checks on the target platform. A toolkit migration gets one full local
 run before queueing. The full regression runs once per platform on the combined
-release candidate, not again for every queued PR. See [Contributing](../CONTRIBUTING.md#testing).
+release runtime candidate, not again for every queued PR or the merge/tag/release
+steps. Reuse an applicable full report across behavior-preserving changes,
+including compiler-only fixes, with the affected build/focused checks. Before a
+repeat full run, record the concrete invalidating change or failure and why
+targeted checks cannot cover it; see [Releasing §4–5](releasing.md#4-the-candidate-gate).
+See also [Contributing](../CONTRIBUTING.md#testing).
 
 For Setup, retain the [update acceptance matrix](setup-update-test-plan.md),
 game-free packaging/integrity checks and real install/Clean Update acceptance.

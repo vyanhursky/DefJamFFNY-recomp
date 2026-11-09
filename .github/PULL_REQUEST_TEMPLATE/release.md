@@ -17,7 +17,13 @@ Not included (and why):
 
 ### Candidate gate
 
-Head commit tested: `<sha>`
+Runtime commit tested: `<sha>` · final source/tag commit: `<sha>`
+
+Toolkit / build preset / settings / fixture: `<identity>`
+
+Evidence reused from: `<report and tested commit, or first full run>`
+
+Later differences and focused verification: `<why the tested runtime remains qualified>`
 
 | Gate | Platform | Result | Log / run |
 |---|---|---|---|
@@ -29,7 +35,10 @@ Head commit tested: `<sha>`
 | Clean Update from vPREV | Windows | | |
 | Owner play-test | | | |
 
-A result for an older head counts only if every later commit is records or docs.
+Reuse an applicable full result across merge/tag/release metadata, docs,
+packaging and behavior-preserving compiler fixes; see `docs/releasing.md` §4.
+Do not rerun the full suite for a new SHA alone. Before any repeat full run,
+record the invalidating runtime change/failure and why focused checks are insufficient.
 
 ### Records
 
