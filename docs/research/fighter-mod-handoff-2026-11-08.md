@@ -228,3 +228,36 @@ waiver is not a final-candidate waiver. Do not mark M5/M6 complete.
 
 All private packs, caches, saves, captures, generated code and binaries stay local.
 No PR merge, release, tags, pack publication or catalogue/signing work is authorized.
+
+## Owner playtest investigation continuation
+
+The owner subsequently reports loading portraits for Arii/Briggs, donor voices
+on Rematch and Proof/Funk Flex crashing, and explicitly renews PC access. That
+new instruction supersedes the earlier Computer Use closure above. Latest source
+and guide pushes are authorized; private Vendetta files remain prohibited.
+
+Pushed runtime258715a restores owned voice IDs after native audio setup without
+reloading retained banks; b859477 maps only loading participant IDs through the
+verified bank domain. Pushed Tools3e67622 adds Rematch/loading/exact-venue checks.
+Both latest CI runs42560249080/42560249504 pass.59focused compiled cases pass;
+Windows re-lift/build pass. Actual211701 reaches two natural DMX/Chukklez results
+and uses real Rematch, preserving615/627voice IDs in live audio rows. Its next
+retail-placeholder setup hits the unlock-capacity guard, exit1/guard restored;
+it does not reach the intended third fight. Investigate that separate interaction.
+
+Original owner run202416 fails in1E6EC0 parsing a NULL cinematic module in
+Inferno7/venue24. A private oracle using unchanged native1ACA0/1AB20 reproduces
+full32row I/O admission returning zero and then aliasing a consumed done row
+with a NULL buffer. Owned cinematic admission now serializes body/camera pairs
+and waits for capacity.94focused tests and Release build pass; the new admission
+regression fails before correction. Fresh corrected native214322 Proof/Flex
+Inferno passes five combat checks, natural decisive result, Game.Quit,37allocation
+release/free33553888, normal close/supervisor and exact guard restoration.
+Early loading capture visibly confirms correct Proof/Flex art. Read-only maximum
+two async rows is not a pressure test; original three-bout sequence remains open.
+
+Private evidence uses logs/fighter-owner-*1108* and untouched owner log
+fighter-owner-20261108-202416.stderr.log. Native reproduction uses a copied data
+root;87original save/song/profile hashes remain protected. Root test binary has
+the new fixes; installed fmi active receipt remains0fc3969 until a real inspected
+payload update, so do not represent the installed shortcut as updated yet.

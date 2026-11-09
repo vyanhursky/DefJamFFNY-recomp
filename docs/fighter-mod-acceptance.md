@@ -128,3 +128,24 @@ restoration. It adds no owned activation/pair or natural-result claim. The actua
 Desktop shortcut opens the normal launcher with both packs visibly enabled and
 disposable saves; it was closed after verification. Guide revision: Tools5d6cc06.
 Warm preparation remains about two minutes and broader acceptance stays open.
+
+## Owner playtest corrections
+
+Runtime258715a/b859477 correct owned voice IDs after native Rematch setup and
+the loading-screen participant presentation IDs.59focused compiled cases pass.
+Actual run211701 completes two DMX/Chukklez bouts with natural results and a
+real result-screen Rematch.615/627voice IDs persist in the second bout without
+bank reload. It does not add subjective listening or P1 hit/damage acceptance
+for that second bout. Its subsequent retail-placeholder setup exits1 at the
+unlock-capacity guard before the intended Proof/Flex load; retain that failure.
+
+An unchanged-original-body oracle reproduces a full32row asynchronous loader
+returning zero, followed by a completed-NULL lookup. Owned cinematic admission
+now checks capacity and keeps one body/camera pair pending; the regression fails
+before correction and94focused native cases pass. Corrected fresh run214322
+uses Proof/Flex in Inferno7/venue24, passes five combat checks, reaches a decisive
+result and native Quit, releases37allocations, completes normal close/supervisor
+and restores the save guard identically. The early loading capture visually
+confirms Proof/Funkmaster Flex artwork. Its read-only maximum of two request
+rows is not a saturation stress test. The original crash's preceding two-bout
+sequence, broad fidelity and remaining M5/M6 gates are still separate.

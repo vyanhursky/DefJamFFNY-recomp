@@ -350,3 +350,49 @@ selects Inferno mode7 and venue24. A copied-profile default-venue bout reaches a
 result, so it does not reproduce or close that venue/mode failure. Preserve the
 owner's raw log and test the exact combination before claiming it fixed. All
 private packs, captures, reports and saves remain local.
+
+### Bounded cinematic request admission
+
+Custom activation preloads also need to respect the native asynchronous I/O
+table: 32 request rows, separate from the 32 MiB animation-memory pool. On a
+full table, the native submitter returns zero. Its caller retains that token;
+the completion lookup can then match a previously consumed row whose done flag
+remains set but whose buffer has been cleared. A private CPU oracle executing
+the unchanged original submit/poll bodies reproduces that completed-NULL result.
+The owner's null-resource crash is consistent with this mechanism; that oracle
+alone does not establish that every observed crash has the same cause.
+
+The owned cinematic scheduler now admits one body/camera pair at a time and
+waits for native request capacity before starting it or requesting its camera.
+It continues polling admitted work even when its own requests fill the remaining
+rows. The original manager polls first, allowing retail work to finish while
+custom work waits. Each fighter keeps independent descriptors, native loaders
+and destruction; no live resource is shared or substituted. This general adapter
+applies to supported custom activation content, without pack-specific branches,
+larger native request tables, new pack fields or extra pool reservations. Retail
+matches without owned activation bindings retain their existing path. Custom
+preparation may take more polling turns; there is no claimed universal timing
+improvement.
+
+The compiled regression fails against the old scheduler, then 94 focused
+cinematic/voice/presentation/async/pool cases pass. It covers 32 and 31 occupied
+rows, delayed completion at full occupancy, independent progress across two
+participants and untouched unrelated requests. Logs remain private:
+fighter-owner-cinematic-admission-before-1108.txt,
+fighter-owner-cinematic-admission-unit-1108.txt and
+fighter-owner-async-oracle-1108/comparison.json. Windows Release build passes.
+The corrected fresh Proof/Flex Inferno7/venue24 run214322 passes five combat
+checks, reaches a natural decisive result, returns through native Game.Quit and
+releases all37owned allocations back to the33,553,888byte free block. Normal
+window close exits0, supervisor completes and the save guard restores exactly.
+The early loading capture visibly shows Proof/Funkmaster Flex with their own
+portraits/logos. Read-only sampling observes at most two asynchronous rows in
+this run; this is a bounded observation, not a table-pressure stress result or
+proof of the original preceding two-bout sequence.
+
+The preceding actual DMX/Chukklez sequence reaches two natural results and uses
+the real result-screen Rematch. Owned voice keys 615/627 are reapplied without
+bank reload and remain correct in the second bout's live audio rows. This is
+routing/identity evidence, not a new subjective listening comparison. Its next
+retail-placeholder setup hits the unlock-capacity guard before the intended
+Proof/Flex test; preserve that exit1 and do not report a three-bout pass.

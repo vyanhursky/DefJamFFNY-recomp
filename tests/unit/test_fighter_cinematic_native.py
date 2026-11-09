@@ -32,16 +32,20 @@ static int proofs_available=1;
 int defjam_fighter_film_complete(const char *name,int intro){assert(name&&name[0]&&(intro==0||intro==1));proof_checks++;return proofs_available;}
 int defjam_fighter_film_known(const char *name){return full&&!strcmp(name,"FV00000");}
 int defjam_fighter_film_bind(const char *name,uint32_t entry,uint32_t visual,uint32_t descriptor){assert(!strcmp(name,"FV00000")&&entry==0x71000&&visual==0x72000&&descriptor);full_binds++;return 1;}
-static unsigned constructed, started, ready;
+static unsigned constructed, started, ready, pending, peak_pending;
 static unsigned momentum;
 static unsigned playback_events;
 static char last_playback[48];
 void sub_001A5190(void) {assert(MEM32(g_esp+8)==0x447A0000);momentum++;g_eax=0xBAD;g_esp+=4;}
-void sub_000A2E20(void) { constructed++; g_eax=0xBAD;g_esp+=4; }
+void sub_000A2E20(void) {
+ memset(memory+g_ecx,0,0x1AC);MEM32(g_ecx+0x18)=MEM32(g_ecx+0x5C)=UINT32_MAX;
+ constructed++;g_eax=0xBAD;g_esp+=4;
+}
 void sub_00087AF0(void) {
  uint32_t c=MEM32(g_esp+4),r=MEM32(g_esp+8);
  uint64_t previous=defjam_fighter_cinematic_enter(g_ecx,c,r);
  defjam_fighter_cinematic_name(c);
+ MEM32(c+0x18)=MEM32(c+0x5C)=UINT32_MAX;
  MEM32(c+0x19C)=4;MEM32(c+0xA4)=2;MEM32(c+0xD0)=4;MEM32(c+0xD4)=MEM32(r+0x1C);
  MEM32(r+0x20)=1;
  defjam_fighter_cinematic_selected(c,c+0x61);
@@ -53,7 +57,23 @@ void sub_00087AF0(void) {
  defjam_fighter_cinematic_leave(previous,r);
  started++;g_eax=0xBAD;g_esp+=12;
 }
-void sub_000A3E80(void) {g_eax=ready;g_esp+=4;}
+void sub_000A3E80(void) {
+ uint32_t c=g_ecx;
+ if(MEM32(c+0x5C)==UINT32_MAX){
+  unsigned free_slots[2],count=0;
+  for(unsigned i=0;i<32&&count<2;i++)if(!MEM32(0x3319A0+i*0x14))free_slots[count++]=i;
+  /* A zero submission token cannot be retried safely by the native loader. */
+  assert(count==2);
+  MEM32(c+0x5C)=free_slots[0]+1;MEM32(c+0x18)=free_slots[1]+1;
+  for(unsigned i=0;i<2;i++)MEM32(0x3319A0+free_slots[i]*0x14)=c;
+  pending++;if(pending>peak_pending)peak_pending=pending;
+ }
+ if(ready){
+  MEM32(0x3319A0+(MEM32(c+0x5C)-1)*0x14)=0;
+  MEM32(0x3319A0+(MEM32(c+0x18)-1)*0x14)=0;pending--;
+ }
+ g_eax=ready;g_esp+=4;
+}
 void sub_000A3130(void) {g_eax=0xBAD;g_esp+=8;}
 int defjam_fighter_research_active(void) {return enabled;}
 void xbox_NoteAnchorEvent(const char *text) {
@@ -140,9 +160,20 @@ int main(int argc,char **argv) {
   defjam_fighter_cinematic_leave(previous,request);
   MEM32(config+0xB0)=1001;MEM32(0x3B90C0)=1000;
   MEM32(config+0xAC)=257;MEM32(0x3B90BC)=256;
+  /* With 32 or 31 unrelated requests busy, no owned request may start.
+   * Two free slots admit one body/camera pair, never the next descriptor.
+   * Completion must still be polled when that pair fills the last slots. */
+  for(unsigned i=0;i<32;i++)MEM32(0x3319A0+i*0x14)=0xF000+i;
+  assert(!defjam_fighter_cinematic_cache_ready(manager));assert(started==0);
+  MEM32(0x3319A0)=0;
+  assert(!defjam_fighter_cinematic_cache_ready(manager));assert(started==0);
+  MEM32(0x3319B4)=0;
   assert(!defjam_fighter_cinematic_cache_ready(manager));
-  assert(started==20&&MEM32(manager+0x2D868)==12);
+  assert(started==1&&pending==1&&peak_pending==1&&MEM32(manager+0x2D868)==12);
+  assert(!defjam_fighter_cinematic_cache_ready(manager));assert(started==1);
   ready=1;assert(defjam_fighter_cinematic_cache_ready(manager));assert(started==20);
+  assert(pending==0&&peak_pending==1);
+  for(unsigned i=2;i<32;i++)assert(MEM32(0x3319A0+i*0x14)==0xF000+i);
   assert(defjam_fighter_cinematic_cache_index(manager,2)==32);
   assert(playback_events==0); /* Preload and ordinary play do not emit the test event. */
   assert(momentum==0);
