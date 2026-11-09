@@ -454,3 +454,72 @@ def test_language_package_shape_rejected(tmp_path, ini, delta, message):
     target = tmp_path/'unpacked'
     with pytest.raises(ValueError, match=message):
         mods.unpack_archive(source, row['versions'][0]['archive'], target)
+
+
+@pytest.mark.parametrize('relative', ['patches', 'patches/nested'])
+def test_language_delta_rejects_redirected_intermediate_directory(tmp_path, relative):
+    outside = tmp_path / 'outside'; outside.mkdir()
+    (outside / '001.djd').write_bytes(b'DJDELTA1' + bytes(72) + b'\0')
+    folder = tmp_path / 'pack'; folder.mkdir()
+    link = folder / relative; link.parent.mkdir(parents=True, exist_ok=True)
+    if sys.platform == 'win32':
+        import _winapi
+        _winapi.CreateJunction(str(outside), str(link))
+    else:
+        link.symlink_to(outside, target_is_directory=True)
+    (folder / 'language.ini').write_text('[language]\nschema=1\nname=X\nlanguage=x\n[files]\n'
+                                       'gconfig.xml = ' + relative + '/001.djd\n')
+    with pytest.raises(ValueError, match='Redirected pack file path'):
+        mods.language_manifest(folder)
+
+
+def test_texture_reference_rejects_redirected_intermediate_directory(tmp_path):
+    outside = tmp_path / 'outside'; outside.mkdir()
+    folder = tmp_path / 'pack'; folder.mkdir()
+    if sys.platform == 'win32':
+        import _winapi
+        _winapi.CreateJunction(str(outside), str(folder / 'images'))
+    else:
+        (folder / 'images').symlink_to(outside, target_is_directory=True)
+    (folder / 'manifest.ini').write_text('[pack]\nschema=1\n[textures]\n' + 'a' * 64 + '=images/picture.png\n')
+    with pytest.raises(ValueError, match='Redirected pack file path'):
+        mods.validate_textures(folder)
+
+
+@pytest.mark.parametrize('dangling', [False, True])
+def test_path_admission_rejects_live_and_dangling_directory_redirects(tmp_path, dangling):
+    target = tmp_path / 'target'; target.mkdir()
+    link = tmp_path / 'redirect'
+    if sys.platform == 'win32':
+        import _winapi
+        _winapi.CreateJunction(str(target), str(link))
+    else:
+        link.symlink_to(target, target_is_directory=True)
+    if dangling:
+        target.rmdir()
+    assert mods.linked(link)
+    with pytest.raises(ValueError, match='Refusing redirected path'):
+        mods.ordinary_path(link / 'not-created' / 'asset.bin')
+    assert not (target / 'not-created').exists()
+
+
+def test_path_admission_still_allows_new_ordinary_paths_and_rechecks_redirects(tmp_path):
+    location = tmp_path / 'new'
+    assert not mods.linked(location)
+    assert mods.ordinary_path(location / 'asset.bin') == location / 'asset.bin'
+    target = tmp_path / 'target'; target.mkdir()
+    if sys.platform == 'win32':
+        import _winapi
+        _winapi.CreateJunction(str(target), str(location))
+    else:
+        location.symlink_to(target, target_is_directory=True)
+    with pytest.raises(ValueError, match='Refusing redirected path'):
+        mods.ordinary_path(location / 'asset.bin')
+
+
+def test_unreadable_path_metadata_fails_closed(tmp_path, monkeypatch):
+    def denied(_):
+        raise PermissionError('synthetic metadata denial')
+    monkeypatch.setattr(Path, 'lstat', denied)
+    with pytest.raises(PermissionError, match='synthetic metadata denial'):
+        mods.ordinary_path(tmp_path / 'asset.bin')

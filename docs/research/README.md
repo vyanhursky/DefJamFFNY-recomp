@@ -12,6 +12,22 @@ corresponding topic references below; their original versions remain in Git
 history. A later successful retry does not erase a failed aggregate. Research
 confidence labels and disproved hypotheses remain distinct from measured facts.
 
+## Fighter Mod Support
+
+- [v0.12.1 created-fighter thumbnails](v0121-created-fighter-thumbnail.md) — small guest capture surfaces and normal save/reload recovery for empty profile images.
+- [Fighter Mod Support: active runtime implementation](fighter-mod-runtime-2026-11-02.md): local native menu/combat evidence, stable identities, save/capacity findings and outstanding gates for v0.15.0.
+- [Fighter Mod Support: M1/M2 checkpoint](fighter-mod-m1-m2-2026-11-04.md): current appearance compiler, native acceptance, motion decoding and remaining milestone gates; supersedes earlier tentative audit conclusions.
+- [Appearance loader audit](fighter-m1-loader-audit-2026-11-04.md) and [render audit](fighter-m1-render-audit-2026-11-04.md): supporting native relationships and unresolved ownership details.
+- [Motion semantics audit](fighter-m2-motion-audit-2026-11-04.md): decoder layouts, typed index relationships and boundaries still needing runtime adapters.
+- [Motion-core descriptor table extension audit](fighter-motion-core-table-audit-2026-11-04.md): fixed 141-row native table, four direct consumers, and the narrow owned-sidecar hook surface.
+- [Fighter Mod Support investigation](fighter-mod-support-2026-11-01.md): Vendetta archive inventory, independently checked table limits, compatibility strategy and v0.15.0 plan.
+- [Fighter Mod Support capacity audit](fighter-mod-capacity-2026-11-01.md): byte-width selection, 32-bit runtime indices, and the evidence needed to assess going beyond 255.
+- [Fighter Mod Support implementation checkpoint](fighter-mod-implementation-2026-11-01.md): draft resolver/compatibility helper, native SODB construction, parser evidence and runtime handoff.
+- [Fighter Mod Support native adapter](fighter-mod-native-adapter-2026-11-02.md): verified retail export, semantic-to-native cache pipeline, multi-pack parser checks and native label/order findings.
+- [Fighter record fields](fighter-record-fields.md)
+- [Current runtime compatibility review](../fighter-mod-review-notes.md)
+- [M5/M6 acceptance ledger](../fighter-mod-acceptance.md)
+
 ## Current release qualifications
 
 - [v0.13.0 Windows HD memory investigation — 2026-10-31](rc-v0.13.0-hd-memory.md)

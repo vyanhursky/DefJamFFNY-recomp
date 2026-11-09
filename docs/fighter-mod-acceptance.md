@@ -1,0 +1,175 @@
+# Fighter Mod Support acceptance ledger
+
+Original planning target v0.15.0; no current release queue assignment. This
+ledger reconciles the approved roadmap with evidence;
+unchecked roadmap boxes do not erase accepted local M1Ã¢â‚¬â€œM4 work. **Extended M5
+and release acceptance remain outstanding.** Source-only PR publication is
+authorized; pack/asset publication, PR merge and release remain unauthorized.
+Current continuation: [November8 checkpoint](research/fighter-mod-m5-2026-11-08.md).
+Current-main integration: [November8 integration checks](research/fighter-mod-main-integration-2026-11-08.md).
+
+| Approved criterion | Existing evidence | Remaining acceptance |
+|---|---|---|
+| One/multiple fighters, independent packs, retail preserved | M1/M2 authored Alpha/Beta, M4 ordinary install and native combat; M5 installed creator starters together | Installed-layout normal full46pack plus independent pack enabled; Arii/Briggs two epochs pass. Corrected mixed4 selects Arii, independent Check, retail Blaze and Briggs with five combat checks passing; broader combinations/created opponents still need acceptance |
+| Every component validated and played | M1/M2 admitted components; M5 actual47-template/94-role rebuilds and installed exports,5734offline joins,1104artwork roles,44voices; FBP3 CPU native role pair twice;15full cinematic contexts through results; actual missing-category requests while Character registered | Slot1 both roles and human subject/counterpart contexts now pass; retail/created full-graph coverage, broad artwork/callback/audio semantics and full converted content still need acceptance |
+| Deterministic bindings, actionable conflicts/restart | Resolver/identity/compiler/package tests and M3/M4 update/removal evidence | Expanded formats/cache policy and final release candidate |
+| Separate capacities and bounded resources | Runtime reference documents file/definition limits; native32MiB CPU pool measured | Platform limits, admission resource failure paths, performance and leak slopes; do not infer limits from processing budgets |
+| 254/255/256/257, >256 selectable, sparse/high/sentinel | Prior four-boundary fight and logical361 from300 custom fighters reached combat | Final release candidate boundary/sparse/sentinel matrix and supported limits |
+| Pack lifecycle, stable progression, interrupted saves | M3 native interruption/deletion/removal/update/re-enable, zero-pack Story, M4 transactions/adoption/supervisor | Expanded adapter lifetime/failure checks and release platform durability |
+| Mixed/human/CPU/four participants, Story/created, language/texture | M1/M2 mode/component tests; M3 signed-in custom/created, repeat/rejoin; M4 real managed custom combat and same zero-pack career | New full graphs against actual opponents, expanded voice/cinematic playback and whole-pack matrix |
+| Native menus, P1Ã¢â‚¬â€œP4 navigation/readiness/cancel | M1/M2 2D portraits/grid, four human selection; M3 cancel/rejoin | Converted artwork/names/results, physical inputs and platform menu variants |
+| Re-lift direct/indirect hooks; immutable dump | Recorded relifts/builds and original-body oracles; toolkit unchanged | Final changed-adapter relift checks where needed; no generated edits |
+| Cold/warm cache, memory, lifetime/soaks, no roster preloading | M3 two-match teardown/rebind; M5 full16-pair fixture and release/coalescing/headroom | Bounded native pool release23allocations and same-process second-match reuse now pass; warm launch preparation about123seconds. Broader timings, longer load/exit and memory/performance soaks remain |
+| Unit/native/release checks, all platforms, owner | Focused Windows M1Ã¢â‚¬â€œM4 acceptance; M5 component/unit/oracle evidence | Windows RC checks once at final candidate, macOS/Deck/Linux acceptance, physical controls, installed setup/helper, owner playtest |
+| Faithful ordinary Vendetta package |46appearances compile;184combat/AI files exactly inherited;47behaviors match packed/native records;94graph roles export/compile through installed tools;129banks/2777clips plus88streams compile; all1104artwork roles compile;184full cinematic bundles export/compile; complete source tag file reconstructs byte-for-byte;1697converted/184inherited/2excluded files, with dangling XML subrecords explained;46fighter/285resource ordinary candidate | All46Tier/slot choices and FBZ3absolute policies rechecked in the latest normal startup; broader complete native/component/mode and platform acceptance remains |
+
+## Platform and installer access
+
+Historical Mac evidence names MacBookPro18,3/M1 Pro/macOS26.5.2 in
+`research/rc-v0.13.0-macos.md`. Historical Deck recipes in
+`build-macos-linux.md` use local Podman image `localhost/defjam-dev`, host
+SteamOS/gamescope and the user's local dump. That container tag is not a remote
+host. No current remote host/connection endpoint was found in repository docs,
+scripts or configuration. Historical platform results are not feature acceptance.
+
+Existing CI definitions build game-free macOS/Linux Setup and runtime fixtures;
+they cannot establish fighter native playback using the owner's dump or physical
+controllers. No remote workflow was launched. Current access must be established
+before a new native platform result can be claimed.
+
+Setup copies tracked permitted setup modules. The real isolated Setup Python
+now resolves all71fighter modules and has booted native managed matches from
+the separate installed-layout source copy. Actual first-install/update evidence
+is recorded below, including GUI import/update/repair. Final installed-app
+placement/handoff, default-path and release-candidate gates remain open.
+POSIX close/finalization is wired but not newly exercised here. Owner
+physical-controller and playtest acceptance must be recorded separately. The
+routine stock-development regression waiver remains in effect; it does not
+satisfy these final release-candidate obligations.
+
+The current-main continuation additionally completes one real short-path Windows
+first install from inspected development payload d6f7bac/toolkit4801dc1 in407.2s.
+The installed executable passes its own build-freshness check; actual installed
+manager installs and enables the whole pack plus independent starter. This is
+separate from the earlier source-layout prototype. Native installed repeated
+play/save/helper closure subsequently passes as qualified below. The earlier
+deep SDL/Ninja path failure is retained; default-path, installed-app placement
+and final platform
+acceptance remain open. Latest main482897f/v1.1.1 is integrated at7c6394d; app
+build/payload inspection and141focused setup tests/10skips pass. See the
+integration checkpoint for newer native results rather than inferring them from
+these installation checks.
+
+Corrected installed runtime0d7850d additionally passes a real1.1.0-to1.1.1 CLI
+update in236.69seconds with all25protected data hashes unchanged. Two human
+matches in one process each pass six combat checks; both native pause Quits
+release24allocations and restore the CPU pool's original free block, with one
+registration and stable identities across matches. Normal Windows window close
+exits0 after supervisor acknowledgement; save guard restores identically. The
+earlier installed repeat's frozen-selection failure remains recorded, alongside
+its teardown-boundary fix and113focused tests. This closes this bounded Windows
+installed helper/repeat/close gate, not GUI repair/handoff, other platforms,
+physical controls, broad content fidelity or final RC/owner acceptance.
+
+Actual app GUI now imports the independent starter and complete46fighter ZIP,
+preserving profiles, enabled packs and stable identities. App Play boots the
+installed executable and completes a normal close/save-guard cycle. Corrected
+source0fc3969 additionally passes GUI Update Game in369.8s and Mods/Fighters use
+followed by GUI Repair in133.7s: all47protected data/settings hashes unchanged,
+exact payload inventory retained, installed executable freshness verified.
+The first repair's64unlisted pyc files and safe pre-mutation refusal remain
+recorded; shared-helper Python-B fixes their creation without changing formats
+or disabling compiled asset caches. These results qualify the local short-path
+Windows development workflow, not default app placement or official RC/platform
+acceptance. The installed mixed-four run191803 also passes five combat checks,
+native Quit/resource release and normal close; no natural result or owned-pair/
+activation claim from that run. The owner has closed Computer Use; continue
+offline and obtain remaining native/platform/human evidence separately.
+
+## November8 continuation
+
+Current focused fighter suite passes1412tests; native managed bridge10tests and
+installed creator40tests pass. The full-film Moses/component fixture reached results
+with15actual cinematic context admissions and one acknowledged save generation;
+save guard restored byte-identically. The first ordinary whole-pack attempt
+refused newly added timeline/film settings before boot. Its native allowlist is
+now corrected and tested; this failed attempt is not launcher combat acceptance.
+See the November8 checkpoint for exact logs, superseded ZIP and corrected
+installed-wheel candidate. Source conversion classifications do not settle
+the legacy fourth activation camera policy or close extended M5.
+
+Installed-layout native helper boot now passes with the actual isolated Setup
+Python runtime and all71fighter modules; the source payload checker now requires
+these modules and probes imports. This closes transitive helper discovery for
+this local Windows layout, not a new installer run or POSIX acceptance. The
+normal managed two-match test released23allocations and reused the pool; a
+separate two-human fixture proves both roles of slot1 and releases30allocations.
+Its two-player combat check fails because P2 did not land a damaging hit.
+See the checkpoint for the exact positive scopes and remaining gates.
+
+The corrected mixed-four test now passes all five available combat checks with
+Arii, independent Check, retail Blaze and Briggs; all four menu/window/core
+identities match. Result, owned paired evaluation and native Quit are not proved
+by that bounded run. The owner's additional pinned legacy runtime reference
+resolves phase4 as an owned absolute camera. FBZ3 implements it with full camera
+member/context proofs;98focused cases and relift/Release build pass. The updated
+ordinary46fighter candidate compiles and packages4651files. Actual human phase4
+context admission is observed in the dedicated native fixture. See the
+[November8 checkpoint](research/fighter-mod-m5-2026-11-08.md) for exact evidence,
+superseded drafts and remaining acceptance gates; M5/M6 are not marked complete.
+
+Owner-requested continuation now passes1424focused tests. A bounded0.9second
+permission-read retry fixes transient native receipt access without accepting
+invalid or persistently unreadable saves. Latest normal installed-layout full-pack
+two-human run111731passes all six combat checks with Arii/Briggs and the independent
+starter enabled. Both humans walk and land input-linked damage; native Quit/menu
+return releases24allocations and one save is acknowledged, with identical guard
+restoration. It adds no owned activation/pair or natural-result claim. The actual
+Desktop shortcut opens the normal launcher with both packs visibly enabled and
+disposable saves; it was closed after verification. Guide revision: Tools5d6cc06.
+Warm preparation remains about two minutes and broader acceptance stays open.
+
+## Owner playtest corrections
+
+Runtime258715a/b859477 correct owned voice IDs after native Rematch setup and
+the loading-screen participant presentation IDs.59focused compiled cases pass.
+Actual run211701 completes two DMX/Chukklez bouts with natural results and a
+real result-screen Rematch.615/627voice IDs persist in the second bout without
+bank reload. It does not add subjective listening or P1 hit/damage acceptance
+for that second bout. Its subsequent retail-placeholder setup exits1 at the
+unlock-capacity guard before the intended Proof/Flex load; retain that failure.
+
+An unchanged-original-body oracle reproduces a full32row asynchronous loader
+returning zero, followed by a completed-NULL lookup. Owned cinematic admission
+now checks capacity and keeps one body/camera pair pending; the regression fails
+before correction and94focused native cases pass. Corrected fresh run214322
+uses Proof/Flex in Inferno7/venue24, passes five combat checks, reaches a decisive
+result and native Quit, releases37allocations, completes normal close/supervisor
+and restores the save guard identically. The early loading capture visually
+confirms Proof/Funkmaster Flex artwork. Its read-only maximum of two request
+rows is not a saturation stress test. The original crash's preceding two-bout
+sequence, broad fidelity and remaining M5/M6 gates are still separate.
+
+Corrected runtime d811cda subsequently completes the same-process three-bout
+sequence in215657, including real Rematch, the formerly failing retail selection,
+and Proof/Flex Inferno7/venue24. All three bouts reach natural results; the third
+passes all seven combat/result checks. The first two intentionally idle human
+bouts add no movement/hit/damage acceptance. Both loading portraits/logos are
+visually correct. Rematch retains615/627; Proof/Flex loads602/617. Native Quit
+after bouts2and3 releases40and37allocations, restoring free33553888 each time.
+Normal close exits0 after supervisor completion; guard restoration is identical
+and87protected original hashes are unchanged. The raw exit0 label and earlier
+exit1 failure remain preserved. Verdict:
+fighter-owner-sequence-fixed-verdict-1108.json. Runtime/tools CI
+42564807476/42564818857 is green. Broad fidelity, listening, saturation/soak,
+physical/platform and final RC/owner acceptance remain open.
+
+Actual same-version local Clean Rebuild then activates d811cda in398.19seconds
+from its inspected game-free development payload; all48protected files are
+unchanged and the previous installation is retained. Same-version Update's safe
+pre-mutation refusal remains recorded. Installed freshness and the Desktop
+shortcut's compiled-launcher target pass; actual Fighters UI retains the46fighter
+pack plus independent starter enabled. Normal Quit exits0, guard restores
+identically and48hashes remain unchanged. This is installed launcher/maintenance
+evidence, separate from the source-build three-bout gameplay result. No default
+placement, physical-input, other-platform or final RC qualification is added.

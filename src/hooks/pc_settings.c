@@ -497,7 +497,26 @@ int pc_settings_init(void)
     /* [language] pack: rebuild the pack's files from the dump if needed and serve them in place of
      * the originals. After the launcher, which chooses it, and before the XBE is loaded. */
     pc_language_start(have_root ? root : NULL, "game");
-    /* [songs]: extra songs in the song list, on top of a language pack's copy of the database. */
+    {
+        extern int pc_fighters_prepare(const char *language);
+        char language[RECOMP_SETTING_TEXT_MAX];
+        recomp_settings_get_text("language", "pack", language, sizeof language, "");
+        if (!pc_fighters_prepare(language)) {
+            extern const char *pc_fighters_error(void);
+            char message[2048];
+            snprintf(message, sizeof message, "Fighter Mod Support could not prepare this launch.\n\n%s\n\nThe last committed profiles and mod selection were preserved. Open Mods > Fighters to resolve the problem.", pc_fighters_error());
+            host_fatal(message);
+            return 0;
+        }
+    }
+    /* Publish the admitted fighter database before songs compose their table.
+     * Both adapters preserve unrelated tables; reversing this order would make
+     * the fighter redirect correctly reject a competing djv2.sod owner. */
+    {
+        extern int defjam_fighter_runtime_start(void);
+        if (!defjam_fighter_runtime_start()) return 0;
+    }
+    /* [songs]: compose on the admitted fighter/language database, before XBE loading. */
     pc_songs_start(have_root ? root : NULL, "game");
 
     /* [debug] unlock_all: src/patches/dev_unlock.c reads the variable once the game runs. */

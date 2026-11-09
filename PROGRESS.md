@@ -8,6 +8,8 @@
 
 ## 0. Status at a glance
 
+- v1.2.0-beta.1: preparation authorized November 9, 2026 (D371). Fighter Mod Support from #209; first full Windows stock candidate passes17/17 plus four inapplicable skips in48minutes; fresh candidate rebuild/full rerun required after the six Clang portability casts (D381). Actual Windows app install/update qualification is underway. Beta remains a prerelease, never Latest or an automatic update. All Vendetta files stay local. Toolkit4801dc1 unchanged; broader M5/M6 and native macOS/Deck acceptance remain open.
+
 - v1.1.1: GA/Latest published November 8, 2026 at 21:16 UTC (D366-D370), within the owner's hour. #207 only runtime fix; #210 merged at afaa9b1, annotated tag90efaebe. Toolkit4801dc1 unchanged; app-only publication retained. Candidate CI35/35, tagged Source37/37; all nine asset digests/checksums and exact source/toolkit/payloads verified. Windows candidate update1.1.0 to1.1.1 passed299.0s with settings/save marker unchanged and no journal. Full regression waived by owner; final earlier GUI qualification and v1.1.0 known issues remain unclaimed. Notes: docs/releases/v1.1.1.md.
 
 - v1.1.0: ✅ GA published November 8, 2026, owner-authorized qualifications D363. Release PR #206 and all seven train PRs merged; annotated `v1.1.0` at `0e90a3a`. Source workflow 37/37; all 15 original game-free release assets verified against GitHub SHA-256, checksum files and provenance. Nine app assets remain after legacy setup retirement (D365). Latest/GA and Linux update offer from 1.0.1 verified. Mac stock/HD 21/21; Linux stock/HD20/21 and two pre-existing Zig cinema fixture failures remain recorded; owner play-test/Steam Deck GA update follow next morning. Notes: docs/releases/v1.1.0.md.
@@ -490,6 +492,20 @@ Run-log citations from retired status/planning prose remain protected by
 
 | D370 | 2026-11-08 | Publish v1.1.1 GA/Latest at 21:16:13 UTC, 36m26s after the owner's expedited request (D369). #210 and #207 merged; annotated tag90efaebe at main mergeafaa9b1, source tree69712705 exactly equals tested candidate6d75725/CI merge04c1464. Release438523428 has exactly nine app assets. | Candidate CI42521574111 passed35/35; tagged Source42522957108 passed37/37. Release-head local unit906/56 skipped, source605/0 failures. Candidate app payload updated isolated1.1.0 to1.1.1 in299.0s, settings/save marker byte-identical, valid receipt/executable and no journal. All nine GitHub asset digests/checksums and all three non-development provenances/payloads verified at exact sourceafaa9b1/toolkit4801dc1. All three public app selectors offer1.1.1 from1.1.0. Pages main dispatch42524352127 passed. Full game regression was explicitly waived; incomplete earlier GUI and prior1.1.0 qualifications remain. Close milestone10; move still-open #166 to newv1.1.2 milestone11. |
 
+| D371 | 2026-11-09 | Owner authorizes full Windows regression followed by publication of experimental v1.2.0-beta.1 with Fighter Mod Support. This supersedes the earlier no-release restriction for this beta only; all Vendetta files remain local. | Freeze the candidate at CMake1.2.0, qualify Windows, retain unresolved fidelity/platform/physical-input/soak limitations, require green CI and inspected game-free app artifacts. Publish as a prerelease with Latest=false; stable1.1.1 and automatic stable-update selection remain unchanged. |
+
+| D372 | 2026-11-09 | Source-only publication of Fighter PR209 and creator PR6; every original and converted Vendetta file remains private. | The owner permitted source/PR publication with an explicit asset prohibition. D371 separately authorizes the runtime beta; no companion Tools release, pack publication or catalogue/signing follows from it. |
+| D373 | 2026-11-09 | Represent custom fighters through ordinary validated components and explicit existing-content overrides, with no Vendetta-specific runtime branch. | Preserve source fidelity through general ownership and admission interfaces. A legacy archive is converted offline and is not itself an installable ordinary fighter ZIP. |
+| D374 | 2026-11-09 | Use a bounded lazy 32 MiB CPU animation arena with native headers, evaluation and destructors, separate from the fragmented GPU-capable arena. | Owned motion storage needs an independent contiguous budget; donor-only packs do not reserve it. Retained backing until process exit is an implementation limit, not zero overhead or an arbitrary-asset capacity promise. |
+| D375 | 2026-11-09 | Use independent participant activation descriptors and generation-tagged asynchronous ownership. | Shared native slots/request reuse must not substitute resources from another actor. Forty descriptors and forty owned request records cost 18,560 bytes when bindings are enabled; the native 32-row I/O table remains unchanged. Owned body/camera preload is capacity checked and serialized; native polls run first. |
+| D376 | 2026-11-09 | Require complete versioned cinematic graph/timeline proof, including an explicit fourth activation-shot camera policy. | Validate native evaluation joins, callbacks and event timing. The private legacy conversion uses the actual owned absolute phase-four camera established from the additional pinned Comoria reference supplied by the owner; ordinary packs may declare supported owned or native-venue policy. No arbitrary native callback program is admitted. |
+| D377 | 2026-11-09 | Keep stable logical roster identities separate from four audited native match bindings. | Installed identities outlive private byte-sized banks 100..103 without changing match participant count. Loading presentation translates only verified participant identity fields; retail/created/sentinel and venue/mode values keep their existing paths. |
+| D378 | 2026-11-09 | Keep transactional managed fighter saves active after all packs are disabled. | One verified authoritative career generation preserves dormant stable-identity progress. Disable is not adoption rollback; never delete adoption markers or restore individual stale save files after managed Play. |
+| D379 | 2026-11-09 | Preserve the explicit retail Crow appearance and ten existing TAG-row overrides, and native first-match camera lookup, pending creator intent. | Dropping existing-content changes would silently alter fidelity. The inventory has 47 camera schedules with five shadowed appended schedules. Creator intent about global retail scope is unconfirmed; changing it is a separate compatibility-policy decision. |
+| D380 | 2026-11-09 | Do not claim zero overhead, full fidelity, whole-launch optimization or cross-platform/native/physical acceptance from component tests. | Preparation remains roughly two minutes in bounded full-roster measurements. Broad M5/M6 fidelity, created/retail/mixed contexts, negative-resource stress, long sessions, physical controls and other native platforms remain open; experimental Windows beta qualification is narrower. |
+
+| D381 | 2026-11-09 | Extract only the six existing-code Clang pointer casts from PR213 commit673e641, and compile all game-side objects in macOS CI without game data. Keep the CAF extension separate. | XBOX_PTR is an integer-sized address; explicit C library pointer conversions preserve Windows semantics and are needed by Clang. The first Windows48-minute17/17 run remains evidence for dca56f2; rebuild and rerun the full Windows candidate after this source fix. CAF coexistence limitations are not resolved or shipped by this extraction. |
+
 ## 2. Historical environment inventory (2026-09-17)
 
 - Current Windows RC test host (2026-10-23): Windows11Pro10.0.26200, RTX4070TiSUPER/driver32.0.16.1088; VS2019/MSVC14.29, CMake3.20/Ninja1.10.2. D3D11 `win-x64-release`; isolated app/data and copied harness saves in an isolated local work root. No original user saves/settings changed. Normal Windows process/compiler access required outside the restricted execution sandbox; no OS security settings changed.
@@ -538,6 +554,8 @@ defjam-recomp/
 
 ## 5. Open questions for Vlad
 
+- No owner-only beta decision is pending: D371 authorizes Windows qualification and experimental v1.2.0-beta.1 publication when checks pass. Native macOS/Deck, physical controls and broad M5/M6 acceptance remain explicitly unqualified.
+
 - v1.1.1 is published under D369-D370; no release approval remains pending. Full regression was waived. Preserve the incomplete earlier GUI integration qualification and prior v1.1.0 known issues; #166 stays open in v1.1.2.
 
 - No release-blocking question for v1.1.0: GA is published under D363. Owner will play-test and update the Steam Deck through GA the next morning; record that result when received.
@@ -562,36 +580,18 @@ Upstream PR submissions still need the owner's separate approval.
 - 2026-11-08 09:57 — D365: retired six legacy v1.1.0 setup assets after verified backup; nine app assets retained, live notes corrected. All-platform app-only packaging, explicit nine-file release upload, current guides/site/agent policy updated. Focused packaging/source/site/instruction tests 167 passed/42 platform skips; source policy 0 failures, site build passes. No runtime/toolkit changes. Backup: defjam/release-evidence-1.1.0/retired-setup. PR/CI verify future publication.
 - 2026-11-08 20:43 UTC — Prepare owner-authorized single-fix v1.1.1 hotfix (#207, D366-D369), from app-only main15e366b/#208; toolkit4801dc1 unchanged. Fix CI35/35, local unit901/53 skipped, focused139/10 skipped, real-dump install374.7s pass. Actual GUI handoff succeeded; later cache/compiler-temp permission failures and stopped Computer Use leave final GUI repair unqualified. Owner explicitly waives full regression and requests publication within an hour. Release candidate/tag CI and nine app-asset verification pending.
 - 2026-11-08 21:18 UTC — D370: v1.1.1 GA/Latest published21:16:13UTC within36m26s; #210/#207 merged, annotated90efaebe at afaa9b1, toolkit4801dc1 unchanged. Candidate CI35/35; tagged Source37/37; unit906/56 skipped, source605/0. Candidate Windows update299.0s pass/data markers identical/no journal; all9asset digests/checksums/3provenance+payloads verified. All3app selectors offer1.1.1; Pages42524352127 passed. Owner waived full regression; earlier GUI/1.1.0 qualifications retained. Milestone10 closed, #166 carried to v1.1.2/#11. Evidence: defjam/release-evidence-1.1.1/afaa9b1.
+- 2026-11-09 06:50 — D371: owner authorizes experimental v1.2.0-beta.1 after full Windows regression; integrate #209/source0cfc354 on main482897f, toolkit4801dc1 unchanged. CMake1.2.0; source-only prerelease and private Vendetta constraints retained. Candidate checks underway, no publication yet.
+- 2026-11-09 07:22 — Record Fighter PR209 decisions as D372-D380 without closing M5/M6. Candidate CI42639487447 passes35/35; final-feature retry and Tools guide CI42642611404 pass. Windows CI app is game-free/nondevelopment,4668files/71Fighter imports, identical candidate tree; full stock regression still running, real install/update and publication remain pending. Private beta-120b1-candidate-verification-retry receipts.
+- 2026-11-09 08:28 — Candidate dca56f2 full Windows stock regression passes17/17 with four inapplicable skips in2912.25s;2391unit passes/60skips/one standard slow exclusion. Replay80records and both rapid-input traces pass;25stock plus87fighter-career/song/profile hashes unchanged. Real stable1.1.1 app GUI self-placement and handoff pass in synthetic default user layout; first install is building before candidate update. Supplementary #213/b8abe48 reviewed separately: clean merge/CI35green/41focused tests, reproduced CAF-versus-independent-owned-pack refusal; not integrated or added to this beta.
+- 2026-11-09 08:35 — Stable GA1.1.1 actual GUI self-placement/handoff/default synthetic-user-layout first install passes373.3s, Ready to Play, exact afaa9b1 receipt and toolkit4801dc1. Normal Quit succeeds. Extract six PR213 Clang casts and add Mac all-game-side-object CI; fresh build/full Windows rerun required before beta. No CAF extension integration.
 
 ## 7. Hand-off
 
-### v1.1.1 GA complete — 2026-11-08
+### v1.2.0-beta.1 candidate — 2026-11-09
 
-- Published stable/Latest: https://github.com/vyanhursky/DefJamFFNY-recomp/releases/tag/v1.1.1
-  (release438523428), 21:16:13 UTC, within36m26s of the owner's request. #210 and #207 MERGED.
-  Main merge/tag target `afaa9b1c5ee3cc277f56d7f101874dbc0210b22f`; annotated tag object
-  `90efaebe66acf3044f93bca5e74c59709989a4b9`. Tree69712705 equals candidate6d75725/CI merge04c1464.
-- #207 is the only new runtime fix. Main already contained #208's app-only publication policy.
-  Toolkit `4801dc171da7d39ebf23c2fe709d14e4b50a1733` unchanged. No legacy setup assets published.
-- Candidate CI42521574111:35/35. Tagged Source42522957108:37/37. Local unit906 passed/56 skipped;
-  source605 files/0 failures. Candidate Windows app payload update1.1.0 to1.1.1: exit0,299.0s,
-  settings/save marker byte-identical, valid receipt/executable, no pending activation journal.
-- All nine final asset bytes match GitHub digests and checksum files. All three provenances and
-  embedded payload inventories verified non-development1.1.1/exact sourceafaa9b1/toolkit4801dc1:
-  Windows4525 files, Mac5240, Linux9795. Windows file/product versions both1.1.1.
-- Public newest_app selectors offer1.1.1 from1.1.0 for Windows/macOS/Linux. Pages main dispatch
-  42524352127 passed; latest release and platform downloads are live.
-- The tag-triggered Pages run42524349808 failed at deployment; the supported main-branch
-  dispatch above passed. No deployment protection was changed.
-- D369 explicitly waived full game regression for this expedited hotfix. No new gameplay,
-  live Steam session or physical Deck test is claimed. Earlier actual GUI handoff worked;
-  cache/compiler-temp test-environment failures and stopped Computer Use left final GUI repair
-  unqualified. The later isolated candidate CLI update passed; keep these separate.
-- Milestonev1.1.1(#10) closed. Still-open memory investigation #166 moved to v1.1.2(#11),
-  not fixed/closed. #202 excluded. Prior v1.1.0 qualifications (Deck replay#98, Zig cinema
-  fixtures, deferred play-test/extra Mac visual references) remain in its notes and evidence.
-- Private release evidence is retained at `defjam/release-evidence-1.1.1/afaa9b1` under the
-  workspace: final/candidate assets, verification JSON, native update logs and scripts.
-  No game executable, dump, save, capture or generated game code was published.
-
-Decisions are read by number or keyword: `decision D<n>`, `decisions --grep TEXT`.
+- D371 authorizes preparing and publishing this experimental prerelease after full Windows regression. Stable1.1.1 stays Latest. No Vendetta source or converted pack, native game executable, generated code, captures or saves may be published.
+- Release branch release/v1.2.0-beta.1 integrates current main482897f plus Fighter Mod Support PR209/head0cfc354. Toolkit4801dc171da7d39ebf23c2fe709d14e4b50a1733 unchanged. Tools/guide PR6/head e41b6c5 remains the companion source.
+- Final feature CI42567170769 initially failed downloading Ninja/SDL (invalid ZIP/HTTP504); failed-job retry passes. Candidate CI42639487447 passes35/35. Companion guide e41b6c5 passes CI42642611404. Code-head d811cda previously passed all CI. Do not describe failed or unrun checks as passes.
+- Previous native Windows sequence215657: two natural DMX/Chukklez results with actual Rematch, then Proof/Flex Inferno7/venue24 with seven combat/result checks, two complete pool releases and exact save restoration. First two idle-human bouts are lifecycle/routing coverage, not human-hit or subjective listening acceptance. Local installed d811cda rebuild/shortcut checks passed with48protected hashes unchanged.
+- Candidate dca56f2 is built/fresh; full scripts/regress.py passes 17/17 applicable checks and four Windows-inapplicable skips in 2912.25 seconds (48 minutes), using an isolated copy of stock saves and no custom packs. Unit stage:2391 passed/60 skipped/one slow branding test excluded by the standard harness; CI covers the full suite. Table logs/regress-20261109-084244.txt; verdict logs/beta-120b1-full-regression-verdict.json. All25 original stock-save hashes and87 original fighter-career/song/profile hashes match. Preserve raw reports and failed backups. Native games and native compiler/fixture runs stay serial. After the final code changes, repeat only the checks justified by their scope, following the release playbook.
+- Windows CI app a04bce7 (PR merge, identical tree8844b5d to dca56f2) passes nondevelopment/hash/provenance/game-free inspection:4668files,71Fighter imports;852source blobs match with446Windows line-ending transformations only. Stable1.1.1 GA app verified. Real Windows install/update, final evidence notes and tagged-asset provenance/source-history audit remain required before the annotated tag and prerelease publication. All other-platform native/physical/fidelity/performance gates remain explicitly unqualified. Do not turn this beta into stable GA or claim M5/M6 complete.

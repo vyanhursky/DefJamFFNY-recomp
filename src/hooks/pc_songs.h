@@ -21,8 +21,8 @@ extern "C" {
 struct RecompSetting;
 size_t pc_songs_settings(struct RecompSetting *out, size_t max);
 
-/* After pc_language_start: add the enabled extra songs to a copy of assets/djv2.sod (built on a
- * language pack's copy when one is served), keep it in <data_root>/cache/songs and serve it in
+/* After language/fighter admission: add the enabled extra songs to a copy of assets/djv2.sod
+ * (built on the current redirected copy), keep it in <data_root>/cache/songs and serve it in
  * place of the original. Reports and plays the game's own soundtrack when that is not possible. */
 void pc_songs_start(const char *data_root, const char *game_dir);
 

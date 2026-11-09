@@ -44,6 +44,437 @@
 #include "patches/song_cursor.h"
 #include "patches/options_volume.h"
 #include "patches/menu_geometry.h"
+#include "patches/fighter_runtime.h"
+#include "patches/fighter_ui.h"
+#include "patches/fighter_motion.h"
+#include "patches/fighter_voice.h"
+#include "patches/fighter_animation.h"
+#include "patches/fighter_ai.h"
+#include "patches/fighter_cinematic.h"
+#include "patches/fighter_finishers.h"
+#include "patches/fighter_cpu_pool.h"
+#include "patches/fighter_palette_context.h"
+#include "patches/fighter_graph_proof.h"
+#include "patches/fighter_film_proof.h"
+#include "patches/fighter_film_async.h"
+
+void sub_000E68A0_enter(void) {
+    if (!defjam_fighter_graph_preconstruct(MEM32(g_esp+4)) || !defjam_fighter_film_preconstruct(MEM32(g_esp+4))) {
+        fprintf(stderr,"[FIGHTERS] graph seal stopped before native constructor\n");fflush(stderr);exit(1);
+    }
+}
+void sub_000A1FA0_enter(void) { defjam_fighter_cinematic_bind(g_ecx); }
+
+extern void sub_00021500_gen(void);
+void sub_00021500(void) {
+    FighterPaletteScope previous=defjam_fighter_palette_begin(g_ecx);
+    sub_00021500_gen(); /* Native ret4; raw owned ELF is captured at109F80. */
+    defjam_fighter_palette_end(previous,(g_eax & 255)!=0);
+}
+extern void sub_000215E0_gen(void);
+void sub_000215E0(void) {
+    FighterPaletteScope previous=defjam_fighter_palette_begin(g_ecx);
+    sub_000215E0_gen(); /* Native ret8; created and ordinary borrowed faces. */
+    defjam_fighter_palette_end(previous,(g_eax & 255)!=0);
+}
+void sub_00021670_enter(void) { defjam_fighter_palette_release(g_ecx); }
+void sub_000216A0_enter(void) { defjam_fighter_palette_release(g_ecx); }
+
+/* The archive loader calls this allocator indirectly. Direct callers retain
+ * their original behavior; only admitted owned animation filenames get a
+ * per-call native pool selector. Keep the original cdecl argument intact. */
+extern void sub_00029500_gen(void);
+void sub_00029500(void) {
+    uint32_t address=g_esp+12,flags=MEM32(address),bytes=MEM32(g_esp+8);
+    uint32_t routed=defjam_fighter_film_allocation(MEM32(g_esp),g_esi,bytes,flags);
+    MEM32(address)=routed;sub_00029500_gen();MEM32(address)=flags;
+    if (routed!=flags) defjam_fighter_cpu_result(g_eax,bytes);
+}
+extern void sub_0001AD30_gen(void);
+void sub_0001AD30(void) {
+    unsigned previous=defjam_fighter_film_request_begin(MEM32(g_esp+4));
+    sub_0001AD30_gen();defjam_fighter_film_request_end(previous);
+}
+extern void sub_001E6690_gen(void);
+void sub_001E6690(void) {sub_001E6690_gen();defjam_fighter_film_opened(g_eax);}
+extern void sub_0001AA10_gen(void);
+void sub_0001AA10(void) {
+    FighterFilmAsyncScope previous=defjam_fighter_film_callback_begin(MEM32(g_esp+4));
+    sub_0001AA10_gen();defjam_fighter_film_callback_end(previous);
+}
+void sub_0001ABA0_enter(void) {defjam_fighter_film_cancel(MEM32(g_esp+4));}
+static void fighter_archive_allocate(void) {
+    uint32_t address = g_esp + 12, flags = MEM32(address), bytes = MEM32(g_esp + 8);
+    uint32_t routed = defjam_fighter_cpu_flags(MEM32(g_esp), MEM32(g_esp + 4), bytes, flags);
+    MEM32(address) = routed;
+    sub_00029500();
+    MEM32(address) = flags;
+    if (routed != flags) defjam_fighter_cpu_result(g_eax, bytes);
+}
+
+extern void sub_001A8260_gen(void);
+void sub_001A8260(void) {
+    uint32_t base = MEM32(g_esp + 4), count = MEM32(g_esp + 8), mask = MEM32(g_esp + 12);
+    sub_001A8260_gen();
+    defjam_fighter_finishers_mask(base, count, mask);
+}
+extern void sub_000A0C40_gen(void);
+void sub_000A0C40(void) {
+    uint32_t provider = g_ecx, caller = MEM32(g_esp);
+    sub_000A0C40_gen();
+    if (caller == 0x871C1) defjam_fighter_finishers_loaded(provider);
+}
+extern void sub_001D3800_gen(void);
+void sub_001D3800(void) {
+    FighterFinisherScope previous = defjam_fighter_finisher_enter(MEM32(g_esp + 4));
+    sub_001D3800_gen();
+    defjam_fighter_finisher_leave(previous);
+}
+extern void sub_001A85A0_gen(void);
+void sub_001A85A0(void) {
+    uint32_t address = g_esp + 8, motion = MEM32(address);
+    MEM32(address) = defjam_fighter_finisher_motion(MEM32(g_esp + 4), motion, MEM32(g_esp + 12), MEM32(g_esp));
+    sub_001A85A0_gen();
+    MEM32(address) = motion; /* cdecl: preserve caller-owned argument storage. */
+}
+extern void sub_001A8150_gen(void);
+void sub_001A8150(void) {
+    uint32_t name = defjam_fighter_finisher_name(MEM32(g_esp + 4), MEM32(g_esp + 8), MEM32(g_esp));
+    if (name) { g_eax = name; g_esp += 4; return; }
+    sub_001A8150_gen();
+}
+extern void sub_001A38B0_gen(void);
+void sub_001A38B0(void) {
+    uint32_t address = g_esp + 8, source = MEM32(address);
+    MEM32(address) = defjam_fighter_finisher_parameters(MEM32(g_esp + 4), source, MEM32(g_esp));
+    sub_001A38B0_gen();
+    MEM32(address) = source; /* cdecl; the decoder receives one complete donor row. */
+}
+
+extern void sub_0008ABF0_gen(void);
+void sub_0008ABF0(void) {
+    uint32_t manager = g_ecx;
+    defjam_fighter_cinematic_cache_begin(manager);
+    sub_0008ABF0_gen();
+    defjam_fighter_cinematic_cache_finish(manager);
+}
+extern void sub_000296B0_gen(void);
+void sub_000296B0(void) {
+    uint32_t address = g_esp + 4, bytes = MEM32(address);
+    MEM32(address) = defjam_fighter_cinematic_allocation(MEM32(g_esp), bytes);
+    sub_000296B0_gen();
+    MEM32(address) = bytes;
+}
+extern void sub_00088FF0_gen(void);
+void sub_00088FF0(void) {
+    uint32_t manager = g_ecx;
+    sub_00088FF0_gen();
+    defjam_fighter_cinematic_cache_poll(manager);
+}
+extern void sub_00089B30_gen(void);
+void sub_00089B30(void) {
+    if (!defjam_fighter_cinematic_cache_ready(g_ecx)) { g_esp += 4; return; }
+    sub_00089B30_gen();
+}
+extern void sub_00088DD0_gen(void);
+void sub_00088DD0(void) {
+    uint32_t manager = g_ecx;
+    sub_00088DD0_gen();
+    g_eax = defjam_fighter_cinematic_cache_index(manager, g_eax);
+}
+
+extern void sub_00087AF0_gen(void);
+void sub_00087AF0(void) {
+    uint32_t request = MEM32(g_esp + 8);
+    uint64_t previous = defjam_fighter_cinematic_enter(g_ecx, MEM32(g_esp + 4), request);
+    sub_00087AF0_gen(); /* Native thiscall ret8; nested scope is host-only. */
+    defjam_fighter_cinematic_leave(previous, request);
+}
+extern void sub_000A1F60_gen(void);
+void sub_000A1F60(void) {
+    uint32_t descriptor = g_ecx;
+    sub_000A1F60_gen(); /* Preserve native post-call registers and ret4. */
+    defjam_fighter_cinematic_name(descriptor);
+}
+extern void sub_000A3160_gen(void);
+void sub_000A3160(void) {
+    defjam_fighter_cinematic_selected(g_ecx, MEM32(g_esp + 4));
+    sub_000A3160_gen(); /* Native owns its actor row and child loaders. */
+}
+extern void sub_000A3B60_gen(void);
+void sub_000A3B60(void) {
+    uint32_t descriptor=g_ecx;
+    sub_000A3B60_gen(); /* Native thiscall ret4; retain its return/registers. */
+    if (g_eax&255u) defjam_fighter_cinematic_camera(descriptor);
+}
+
+extern void sub_000C9110_gen(void);
+extern void sub_000D6EE0_gen(void);
+void sub_000D6EE0(void) {
+    uint32_t output = MEM32(g_esp + 4), input = MEM32(g_esp + 8);
+    sub_000D6EE0_gen(); /* cdecl; retain native registers and caller cleanup. */
+    defjam_fighter_motion_ai_profiles(output, input);
+}
+void sub_000C9110(void) {
+    uint32_t self = g_ecx, config = MEM32(g_esp + 4);
+    defjam_fighter_ai_bind(config);
+    char expected[128];
+    uint32_t owned = defjam_fighter_motion_ai_capture(config, expected);
+    sub_000C9110_gen(); /* Native thiscall ret4 and resource ownership. */
+    defjam_fighter_motion_ai_verify(config, owned, expected);
+    defjam_fighter_ai_loaded(self, config);
+}
+
+/* Owned motion descriptors and generation boundaries. Real entry points retain
+ * direct-call coverage after re-lift; native retail branches remain delegated. */
+extern void sub_0003E170_gen(void);
+void sub_0003E170(void) {
+    defjam_fighter_voice_select(MEM32(g_esp + 4));
+    if (!defjam_fighter_motion_audio(MEM32(g_esp + 4))) sub_0003E170_gen();
+    defjam_fighter_voice_restore();
+}
+extern void sub_0003DB00_gen(void);
+void sub_0003DB00(void) {
+    if (!defjam_fighter_voice_load(MEM32(g_esp + 4))) sub_0003DB00_gen();
+}
+extern void sub_00135CB0_gen(void);
+void sub_00135CB0(void) {
+    uint32_t family = MEM32(g_esp + 4), voice = MEM32(g_esp + 8);
+    sub_00135CB0_gen();
+    defjam_fighter_voice_observe(family, voice, g_eax);
+}
+extern void sub_001A47B0_gen(void);
+void sub_001A47B0(void) {
+    defjam_fighter_motion_register(g_eax);
+    sub_001A47B0_gen();
+}
+extern void sub_00089310_gen(void);
+void sub_00089310(void) {
+    uint32_t manager = g_ecx;
+    defjam_fighter_motion_release(g_ecx);
+    defjam_fighter_cinematic_cache_release(g_ecx);
+    sub_00089310_gen();
+    defjam_fighter_finishers_release(manager); /* Provider no longer owns the mask. */
+    defjam_fighter_film_release();
+    defjam_fighter_cpu_released();
+    /* Pause-menu Quit reaches CLogic teardown without front-end Game.Quit.
+     * Retained selection can thaw only after native destruction and all owned
+     * motion/film/pool lifetime checks above have completed. */
+    defjam_fighter_match_unloaded();
+}
+extern void sub_000A02E0_gen(void);
+void sub_000A02E0(void) {
+    uint32_t address = g_esp + 8, bank = MEM32(address);
+    MEM32(address) = defjam_fighter_animation_bank(bank, defjam_fighter_motion_bank(bank));
+    sub_000A02E0_gen();
+    MEM32(address) = bank; /* Native ret8 owns stack cleanup. */
+}
+extern void sub_001B2090_gen(void);
+void sub_001B2090(void) {
+    if (!defjam_fighter_motion_parameters(MEM32(g_esp + 4))) sub_001B2090_gen();
+}
+extern void sub_001B4930_gen(void);
+void sub_001B4930(void) {
+    if (!defjam_fighter_motion_state(MEM32(g_esp + 4), MEM32(g_esp + 8), MEM32(g_esp + 12))) sub_001B4930_gen();
+}
+extern void sub_001B4BA0_gen(void);
+void sub_001B4BA0(void) {
+    if (!defjam_fighter_motion_present(MEM32(g_esp + 4), MEM32(g_esp + 8))) sub_001B4BA0_gen();
+}
+extern void sub_001A7F30_gen(void);
+void sub_001A7F30(void) {
+    if (!defjam_fighter_motion_frame(g_ecx)) sub_001A7F30_gen();
+}
+extern void sub_001B2C60_gen(void);
+void sub_001B2C60(void) {
+    if (!defjam_fighter_motion_scale()) sub_001B2C60_gen();
+}
+extern void sub_001A8180_gen(void);
+void sub_001A8180(void) {
+    if (!defjam_fighter_motion_blazin_mask()) sub_001A8180_gen();
+}
+
+/* Preserve native normalization math while avoiding its fixed model-ID table
+ * during validated fighter research runs. Both direct and indirect calls must
+ * reach these real entry points; lookup-only interception is insufficient. */
+extern void sub_001813E0_gen(void);
+void sub_001813E0(void) {
+    if (!defjam_fighter_ui_normalize(MEM32(g_esp + 4))) sub_001813E0_gen();
+}
+extern void sub_0017F080_gen(void);
+void sub_0017F080(void) {
+    if (!defjam_fighter_ui_model_batch(MEM32(g_esp + 4), g_ebx, g_ecx)) {
+        sub_0017F080_gen(); return;
+    }
+    g_eax = 0; g_ecx = 0; g_esp += 4;
+}
+
+/* Local R&D custom-name fallback. The original lookup owns retail/language
+ * precedence; direct callers reach this wrapper through the v0.16 lifter. */
+extern void sub_00045180_gen(void);
+void sub_00045180(void)
+{
+    uint32_t key = MEM32(g_esp + 4), self = g_ecx;
+    sub_00045180_gen();
+    g_eax = defjam_fighter_localized(key, g_eax, self);
+}
+
+/* Packed Character handles cross a stable identity boundary here. Other SOD
+ * tables retain the original implementation and tuple/sentinel behavior. */
+extern void sub_000BE870_gen(void);
+void sub_000BE870(void)
+{
+    uint32_t database = g_ecx, output = MEM32(g_esp + 4), table = MEM32(g_esp + 8);
+    sub_000BE870_gen();
+    defjam_fighter_handle_produced(database, table, output);
+}
+extern void sub_000BE760_gen(void);
+void sub_000BE760(void)
+{
+    uint32_t argument = g_esp + 8, handle = MEM32(argument), output = MEM32(g_esp + 4);
+    if (defjam_fighter_native_record(g_ecx, output, handle)) {
+        g_eax = output; g_esp += 16; return; /* Original typed result and ret 12. */
+    }
+    MEM32(argument) = defjam_fighter_native_handle(handle);
+    sub_000BE760_gen();
+    MEM32(argument) = handle;
+}
+
+/* Native menu producers keep their original filtering and retail context
+ * ordering. Partition only the completed token list, never a shared roster
+ * snapshot for a single participant. These wrappers are inactive normally. */
+extern void sub_00053A10_gen(void);
+void sub_00053A10(void)
+{
+    uint32_t entries = MEM32(g_esp + 4), count = MEM32(g_esp + 8);
+    sub_00053A10_gen();
+    defjam_fighter_order(MEM32(0x00341540u), entries, count, "Game.GetCharacterList");
+}
+
+extern void sub_00047BC0_gen(void);
+void sub_00047BC0(void)
+{
+    uint32_t self = g_ecx;
+    sub_00047BC0_gen();
+    MEM32(self + 4) = defjam_fighter_filter_banks(0x003A07B0u, MEM32(self + 4));
+    defjam_fighter_order(MEM32(self + 0x2C), 0x003A07B0u, MEM32(self + 4), "GameMode");
+}
+
+extern void sub_00020270_gen(void);
+void sub_00020270(void)
+{
+    uint32_t self = g_ecx, handle = MEM32(g_esp + 4), fighters = MEM32(g_esp + 12);
+    sub_00020270_gen();
+    defjam_fighter_materialized(self, handle);
+    defjam_fighter_match_setup(self, fighters);
+}
+
+extern void sub_000462C0_gen(void);
+void sub_000462C0(void)
+{
+    sub_000462C0_gen();
+    defjam_fighter_match_finished();
+}
+
+/* Bound the original fixed Options set before loading, insertion and staging.
+ * Expansion cannot ship until its companion persistence is connected. */
+extern void sub_000144B0_gen(void);
+void sub_000144B0(void) {
+    uint32_t self = g_ecx;
+    sub_000144B0_gen();
+    defjam_fighter_settings_bound(self);
+}
+extern void sub_00016810_gen(void);
+void sub_00016810(void) {
+    defjam_fighter_unlock_inserting(g_ecx);
+    sub_00016810_gen();
+}
+extern void sub_000D2300_gen(void);
+void sub_000D2300(void) {
+    defjam_fighter_settings_saving();
+    sub_000D2300_gen();
+    defjam_fighter_settings_saved();
+}
+extern void sub_000D23B0_gen(void);
+void sub_000D23B0(void) {
+    defjam_fighter_profile_staging(MEM32(g_esp + 4), MEM32(g_esp + 8));
+    sub_000D23B0_gen();
+}
+extern void sub_000D2780_gen(void);
+void sub_000D2780(void) {
+    defjam_fighter_save_batch();
+    sub_000D2780_gen();
+}
+
+/* Observe actual synchronous writes and native close results. Queue sealing or
+ * identical pre-existing files alone cannot acknowledge this save attempt. */
+extern void sub_001F8D61_gen(void);
+void sub_001F8D61(void) {
+    uint32_t handle = MEM32(g_esp + 4), buffer = MEM32(g_esp + 8), size = MEM32(g_esp + 12);
+    uint32_t written = MEM32(g_esp + 16), asynchronous = MEM32(g_esp + 20);
+    sub_001F8D61_gen();
+    defjam_fighter_save_write(handle, buffer, size, written, g_eax != 0, asynchronous != 0);
+}
+extern void sub_001F694D_gen(void);
+void sub_001F694D(void) {
+    uint32_t handle = MEM32(g_esp + 4);
+    sub_001F694D_gen();
+    defjam_fighter_save_close(handle, g_eax != 0);
+}
+extern void sub_001F8EBB_gen(void);
+void sub_001F8EBB(void) {
+    defjam_fighter_save_seek(MEM32(g_esp + 4));
+    sub_001F8EBB_gen();
+}
+/* XDeleteSaveGame: ANSI drive, UTF-16 profile name, DWORD error (zero success).
+ * Preserve the name before the original call and acknowledge only its result.
+ * The host verifier independently requires the exact old folder to be absent. */
+extern void sub_001F89FD_gen(void);
+void sub_001F89FD(void) {
+    char name[33];
+    int tracked = defjam_fighter_profile_delete_begin(MEM32(g_esp + 4), MEM32(g_esp + 8), name);
+    sub_001F89FD_gen();
+    if (tracked) defjam_fighter_profile_delete_end(name, g_eax == 0);
+}
+extern void sub_0001E700_gen(void);
+void sub_0001E700(void) {
+    sub_0001E700_gen();
+}
+
+extern void sub_000558E0_gen(void);
+void sub_000558E0(void) {
+    uint32_t stack = g_esp, arguments = MEM32(stack + 4);
+    uint32_t selection = defjam_fighter_controller_submission(arguments);
+    if (selection == UINT32_MAX) { sub_000558E0_gen(); return; }
+    /* Keep all original command strings immutable. A complete temporary native
+     * call frame owns the rewritten vector and text above the callee's stack. */
+    g_esp -= 64;
+    MEM32(g_esp) = MEM32(stack);
+    MEM32(g_esp + 4) = g_esp + 16; MEM32(g_esp + 8) = MEM32(stack + 8);
+    for (uint32_t i = 0; i < 4; ++i) MEM32(g_esp + 16 + i * 4) = MEM32(arguments + i * 4);
+    MEM32(g_esp + 24) = g_esp + 32;
+    MEM8(g_esp + 32) = '1'; MEM8(g_esp + 33) = '0'; MEM8(g_esp + 34) = (uint8_t)('0' + selection - 100);
+    MEM8(g_esp + 35) = 0;
+    sub_000558E0_gen();
+    g_esp = stack + 12; /* Native thiscall ret 8. */
+}
+
+/* Match-summary fid and GetMatchInfo participant fields are UI identities.
+ * Adapt only these verified formatter callsites after their native byte reads.
+ * Venue, mode, other fields, gameplay and the created sentinel stay native. */
+extern void sub_0005F810_gen(void);
+void sub_0005F810(void) {
+    uint32_t stack = g_esp, value = MEM32(stack + 8), adapted = value;
+    if (MEM32(stack) == 0x00065653u && MEM32(stack + 4) == 0x00298C70u)
+        adapted = defjam_fighter_result_identity(g_ebx, value);
+    else if (MEM32(stack) == 0x00046DA9u)
+        adapted = defjam_fighter_loading_identity(value);
+    if (adapted == value) { sub_0005F810_gen(); return; }
+    g_esp -= 16;
+    MEM32(g_esp) = MEM32(stack); MEM32(g_esp + 4) = MEM32(stack + 4); MEM32(g_esp + 8) = adapted;
+    sub_0005F810_gen();
+    g_esp = stack + 12;
+}
 #include "patches/cinema_timing.h"
 
 /* Crowd test controls (src/hooks/crowd_control.c, RECOMP_TEST_CROWD; off unless set). */
@@ -122,7 +553,11 @@ void sub_001810B0_enter(void) { ws_apt_load_begin(MEM32(g_esp + 8)); }
 void sub_00056F50_enter(void) { ws_apt_load_done(MEM32(g_esp + 8)); }
 /* DynamicLoader's ELF parser: the input descriptor's +0x10 is the raw header,
  * still before section fixup, relocation and vertex-buffer upload. */
-void sub_00109F80_enter(void) { menu_geometry_register(MEM32(g_ecx + 0x10)); }
+void sub_00109F80_enter(void) {
+    defjam_fighter_palette_input(g_ecx);
+    defjam_fighter_model_input(g_ecx);
+    menu_geometry_register(MEM32(g_ecx + 0x10));
+}
 
 /* ---- Story shops: no LOADING frame on an item change (issue #119) ------
  *
@@ -243,6 +678,7 @@ extern void sub_00014540_gen(void);
 void sub_00014540(void)
 {
     uint32_t manager=g_ecx;
+    defjam_fighter_settings_validate(manager, MEM32(g_esp + 4));
     song_store_before_load(manager);
     sub_00014540_gen();
     song_store_after_load(manager);
@@ -876,6 +1312,15 @@ void sub_00044FC0(void)
 }
 
 extern void sub_00068BA0(void);
+/* FuncCall's native bridge copies the dispatcher's borrowed result through its
+ * own allocator. Keep that original allocation/ownership path intact. */
+extern void sub_000457D0_gen(void);
+void sub_000457D0(void)
+{
+    if (!defjam_fighter_ui_command(MEM32(g_esp + 4))) { sub_000457D0_gen(); return; }
+    g_eax = 0; /* The original bridge normalizes NULL to its own empty string. */
+    g_esp += 4; /* Original cdecl ret; caller owns the argument. */
+}
 extern void xbox_NoteAnchorEvent(const char *text);
 extern void defjam_unlock_all_on_funccall(const char *text);
 
@@ -899,6 +1344,7 @@ static void funccall_hook(void)
     recorder_event_text("fe", "text", text);
     xbox_NoteAnchorEvent(text);
     defjam_unlock_all_on_funccall(text);   /* RECOMP_UNLOCK_ALL, src/patches/dev_unlock.c */
+    defjam_fighter_menu_event(text);
     cheats_on_funccall(text);              /* Story tracking and Story cheats, src/patches/cheats.c */
     song_store_on_funccall(text);          /* songs: the save's copy before MemCard.*, src/patches/song_store.c */
     sub_00068BA0();
@@ -1033,6 +1479,7 @@ static void trace_voice_render(void)
 
 recomp_func_t recomp_lookup_manual(uint32_t xbox_va)
 {
+    if (xbox_va == 0x00029500u && defjam_fighter_research_active()) return fighter_archive_allocate;
     if (xbox_va == 0x000766B0u)
         return sub_000766B0;
     if (xbox_va == 0x001BAA00u && input_latency_on())

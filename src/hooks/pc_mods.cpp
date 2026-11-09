@@ -11,12 +11,16 @@
 #include <cerrno>
 #include <cstdio>
 #include <sstream>
+#include <chrono>
+#include <thread>
+#include <set>
 #if defined(_WIN32)
 #include <windows.h>
 #else
 #include <spawn.h>
 #include <sys/wait.h>
 #include <sys/file.h>
+#include <signal.h>
 #include <fcntl.h>
 #include <unistd.h>
 extern char **environ;
@@ -35,6 +39,9 @@ static bool running = false;
 static std::string enable_after_install;
 static bool testing_versions = false;
 static fs::path job_root;
+static std::string fighter_data, fighter_language;
+static fs::path fighter_ready, fighter_stop;
+static bool fighter_active = false;
 #if defined(_WIN32)
 static HANDLE process = nullptr;
 static std::wstring wide(const std::string &s) {
@@ -81,11 +88,13 @@ static void read_view() {
             ModRow mod;
             mod.id = row["id"]; mod.name = row["name"]; mod.authors = row["authors"]; mod.description = row["description"];
             mod.installed = row["installed"]; mod.latest = row["latest"]; mod.load_after = row["load_after"]; mod.channel = row["channel"];
+            mod.category = row["category"];
             mod.bytes = strtoull(row["bytes"].c_str(), nullptr, 10);
             mod.compatible = row["compatible"] == "1"; mod.revoked = row["revoked"] == "1"; mod.update = row["update"] == "1";
             if (pack_name(mod.id)) next.catalogue_mods.push_back(mod);
         } else if (entry.first.rfind("installed.",0) == 0 && pack_name(row["folder"])) {
-            next.installed[row["folder"]] = {row["folder"], row["name"], row["version"], row["rollback"] == "1"};
+            next.installed[row["folder"]] = {row["folder"], row["name"], row["version"], row["rollback"] == "1",
+                row["category"], row["enabled"] == "1", (unsigned)strtoul(row["fighters"].c_str(), nullptr, 10)};
         }
     }
     view = std::move(next);
@@ -104,10 +113,11 @@ void mod_cancel() {
 bool mod_start(const std::string &requested, const std::string &id) {
     std::string command = requested == "install-enable" ? "install" : requested;
     if (running) return false;
-    if (command != "status" && command != "refresh" && command != "install" && command != "remove" && command != "rollback" && command != "recover") return false;
-    if (!id.empty() && !pack_name(id)) return false;
+    if (command != "status" && command != "refresh" && command != "install" && command != "remove" && command != "rollback" && command != "recover"
+        && command != "install-local" && command != "fighter-enable" && command != "fighter-disable" && command != "fighter-session") return false;
+    if (!id.empty() && command != "install-local" && !pack_name(id)) return false;
     const char *override_root = getenv("RECOMP_TEXTURE_ROOT");
-    if (override_root && *override_root && command != "status" && command != "refresh") {
+    if (override_root && *override_root && command != "status" && command != "refresh" && command != "fighter-session") {
         status = "Managed installs use the data folder's mods directory; unset RECOMP_TEXTURE_ROOT first."; return false;
     }
     std::error_code error;
@@ -147,15 +157,27 @@ bool mod_start(const std::string &requested, const std::string &id) {
 #if defined(DEFJAM_APP)
     if (app::install().installed) runtime = app::install().version;
 #endif
-    std::vector<std::string> args = {interpreter, path_utf8(script), command, "--data-dir", folder_path(Folder::Data), "--runtime", runtime,
+    // App helpers import directly from the verified payload. Keep its exact
+    // inventory immutable so using Mods cannot make the next Repair reject it.
+    std::vector<std::string> args = {interpreter, "-B", path_utf8(script), command, "--data-dir", folder_path(Folder::Data), "--runtime", runtime,
                                    "--cancel-file", path_utf8(job_root / "cancel")};
 #if defined(DEFJAM_MOD_WIDE)
     args.insert(args.end(), {"--capability", "wide-v1"});
 #endif
     // Language mods (src/hooks/pc_language.c): every build with this launcher loads them.
     args.insert(args.end(), {"--capability", "language-v1"});
+    args.insert(args.end(), {"--capability", "fighters-v1", "--game-dir", path_utf8(fs::current_path() / "game")});
     if (testing_versions) args.push_back("--prerelease");
-    if (!id.empty()) args.insert(args.end(), {"--id",id});
+    if (!id.empty()) args.insert(args.end(), {command == "install-local" ? "--archive" : "--id",id});
+    if (command == "fighter-session") {
+#if defined(_WIN32)
+        auto pid = GetCurrentProcessId();
+#else
+        auto pid = getpid();
+#endif
+        args.insert(args.end(), {"--parent-pid", std::to_string(pid)});
+        if (!fighter_language.empty()) args.insert(args.end(), {"--language-pack", fighter_language});
+    }
 #if defined(_WIN32)
     std::wstring cmd;
     for (auto &arg : args) { if (!cmd.empty()) cmd += L' '; cmd += quote(wide(arg)); }
@@ -206,6 +228,16 @@ bool mod_poll() {
     if (ok) status = view.message.empty() ? "Mod inventory refreshed." : view.message;
     else if (progress["progress"]["message"].empty()) status = "Mod helper failed. Local packs are unchanged; see the launcher log.";
     if (ok && !enable_after_install.empty()) {
+        auto managed = view.installed.find(enable_after_install);
+        if (managed != view.installed.end() && managed->second.category == "fighters") {
+            // Fighter activation validates resources and publishes its own
+            // ledger transaction. It must never enter the texture-pack setting.
+            auto id = enable_after_install;
+            enable_after_install.clear();
+            if (!mod_start("fighter-enable", id))
+                status = "Installed, but the fighter pack could not be enabled. Open Fighters and retry.";
+            return true;
+        }
         char selected[RECOMP_SETTING_TEXT_MAX], language[RECOMP_SETTING_TEXT_MAX];
         recomp_settings_get_text("textures", "packs", selected, sizeof selected, "");
         recomp_settings_get_text("language", "pack", language, sizeof language, "");
@@ -239,7 +271,159 @@ bool mod_poll() {
     enable_after_install.clear();
     return true;
 }
+
+// A refused ready projection never becomes a live session. Stop and reap its
+// owned helper now, including on POSIX where its inherited output pipes would
+// otherwise outlive the failed launch. Preserve the original refusal detail.
+struct PendingFighterSession {
+    bool admitted = false;
+    ~PendingFighterSession() {
+        if (admitted || !running) return;
+        auto detail = status;
+        { std::ofstream stop(fighter_stop); stop << "complete\n"; }
+        for (int i=0; i<100 && running; ++i) {
+            mod_poll(); std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
+        if (running) {
+#if defined(_WIN32)
+            TerminateProcess(process, 1);
+            WaitForSingleObject(process, 1000);
+            CloseHandle(process); process = nullptr;
+#else
+            kill(process, SIGKILL);
+            while (waitpid(process, nullptr, 0) < 0 && errno == EINTR) {}
+            process = -1;
+#endif
+            running = false;
+        }
+        status = detail;
+    }
+};
 } // namespace pcui
+
+extern "C" void pc_fighters_finish(void) {
+    using namespace pcui;
+    if (!fighter_active) return;
+    { std::ofstream stop(fighter_stop); stop << "complete\n"; }
+    for (int i=0; i<1000 && running; ++i) {
+        mod_poll(); std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+    auto result = projection(fighter_ready)["session"];
+    if (running || result["state"] != "complete")
+        fprintf(stderr, "[FIGHTERS] Profile supervisor did not acknowledge a clean exit: %s. Last committed generation retained.\n", result["detail"].c_str());
+    else fprintf(stderr, "[FIGHTERS] managed profile session completed\n");
+    fighter_active = false;
+}
+
+extern "C" const char *pc_fighters_data_root(void) {
+    return pcui::fighter_active ? pcui::fighter_data.c_str() : nullptr;
+}
+extern "C" const char *pc_fighters_error(void) { return pcui::status.c_str(); }
+
+extern "C" int pc_fighters_healthy(void) {
+    using namespace pcui;
+    if (!fighter_active) return 1;
+    std::error_code error;
+    auto heartbeat = fs::last_write_time(fs::u8path(fighter_data).parent_path() / "journal/supervisor.json", error);
+    return !error && fs::file_time_type::clock::now() - heartbeat < std::chrono::seconds(10)
+        && projection(fighter_ready)["session"]["state"] == "ready";
+}
+
+extern "C" int pc_fighters_prepare(const char *language) {
+    using namespace pcui;
+    // Explicit isolated diagnostics retain their own supervisor and environment.
+    if (getenv("RECOMP_FIGHTER_RESEARCH_SOD")) return 1;
+    // Managed Play gets its entire runtime contract from the verified helper.
+    // Inherited diagnostic switches must not affect normal profile saves.
+#if defined(_WIN32)
+    char **environment = _environ;
+#else
+    char **environment = environ;
+#endif
+    std::vector<std::string> inherited;
+    for (char **p = environment; p && *p; ++p) {
+        std::string item(*p);
+        if (item.rfind("RECOMP_FIGHTER_", 0) == 0) inherited.push_back(item.substr(0, item.find('=')));
+    }
+    for (auto &key : inherited) {
+#if defined(_WIN32)
+        _putenv_s(key.c_str(), "");
+#else
+        unsetenv(key.c_str());
+#endif
+    }
+    std::error_code error;
+    if (!fs::exists(root() / "state.json", error) && !fs::exists(root() / "fighter-adoption.json", error)) return 1;
+#if defined(_WIN32)
+    auto pid = GetCurrentProcessId();
+#else
+    auto pid = getpid();
+#endif
+    fighter_ready = root() / ("fighter-session-" + std::to_string(pid) + ".ini");
+    fighter_stop = root() / ("fighter-session-" + std::to_string(pid) + ".stop");
+    if (fs::is_symlink(fighter_ready,error) || fs::is_symlink(fighter_stop,error)) return 0;
+    fs::remove(fighter_ready,error); fs::remove(fighter_stop,error);
+    if (language && *language && !pack_name(language)) { status = "Invalid language pack folder. Choose an installed language before Play."; return 0; }
+    fighter_language = language && *language ? path_utf8(fs::u8path(folder_path(Folder::Mods)) / fs::u8path(language)) : "";
+    if (!mod_start("fighter-session")) return 0;
+    PendingFighterSession pending;
+    for (int i=0; i<30000; ++i) {
+        auto ready = projection(fighter_ready);
+        auto state = ready["session"]["state"];
+        if (state == "unused") {
+            while (running) { mod_poll(); std::this_thread::sleep_for(std::chrono::milliseconds(10)); }
+            return 1;
+        }
+        if (state == "ready") {
+            auto path = fs::u8path(ready["session"]["data_root"]);
+            auto expected = fs::weakly_canonical(root() / "fighter-sessions", error);
+            auto identity = path_utf8(path.parent_path().filename());
+            if (error || path.filename() != "fighter-runtime-probe" || !fs::is_directory(path,error)
+                || ready["session"]["parent_pid"] != std::to_string(pid) || identity.size() != 32
+                || identity.find_first_not_of("0123456789abcdef") != std::string::npos
+                || fs::weakly_canonical(path,error) != expected / identity / "fighter-runtime-probe" || error) {
+                status = "Fighter supervisor returned an invalid private save workspace."; return 0;
+            }
+            fighter_data = path_utf8(path);
+            static const std::set<std::string> allowed = {
+                "NAMES", "BINDINGS", "RESEARCH_SOD", "RESEARCH_SCREENS", "NAMES_PROBE", "IMMUTABLE_REUSE", "WINDOW",
+                "RESEARCH_MODELS", "RESEARCH_MODELS_SHA256", "RESEARCH_ENTITIES", "RESEARCH_ENTITIES_SHA256",
+                "RESEARCH_CINEMATICS", "RESEARCH_CINEMATICS_SHA256", "RESEARCH_LANGUAGE_BASE", "RESEARCH_SCREENS_SHA256",
+                "MOTION", "MOTION_SHA256", "MOTION_BINDINGS", "ANIMATIONS", "ANIMATIONS_SHA256", "ANIMATION_BINDINGS",
+                "VOICES", "VOICES_SHA256", "VOICE_BINDINGS", "AI", "AI_SHA256", "AI_BINDINGS",
+                "FINISHERS", "FINISHERS_SHA256", "FINISHER_BINDINGS", "CINEMATIC_BANKS", "CINEMATIC_BANKS_SHA256",
+                "CINEMATIC_BINDINGS", "BLAZIN_BINDINGS", "SAVE_JOURNAL", "UNLOCKS",
+                "TAGS", "TAGS_SHA256", "CAMERAS", "CAMERAS_SHA256", "TIMELINE_BINDINGS", "FILM_PROOFS"
+            };
+            for (auto &entry : ready["environment"]) {
+                if (entry.first.rfind("RECOMP_FIGHTER_",0) != 0 || !allowed.count(entry.first.substr(15))) {
+                    status = "Fighter supervisor returned an unsupported runtime setting."; return 0;
+                }
+#if defined(_WIN32)
+                if (_putenv_s(entry.first.c_str(),entry.second.c_str())) return 0;
+#else
+                if (setenv(entry.first.c_str(),entry.second.c_str(),1)) return 0;
+#endif
+            }
+            fighter_active = true; pending.admitted = true; atexit(pc_fighters_finish);
+            fprintf(stderr,"[FIGHTERS] managed profile session ready: %s\n",fighter_data.c_str());
+            return 1;
+        }
+        if (state == "failed") { status = ready["session"]["detail"]; fprintf(stderr,"[FIGHTERS] launch refused: %s\n",status.c_str()); return 0; }
+        mod_poll();
+        if (!running) {
+            // Publication may have completed between the first read and waitpid.
+            if (projection(fighter_ready)["session"]["state"] == "unused") return 1;
+            auto detail = projection(fighter_ready)["session"]["detail"];
+            if (!detail.empty()) status = detail;
+            fprintf(stderr,"[FIGHTERS] supervisor exited before launch: %s\n",status.c_str()); return 0;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+    status = "Fighter preparation timed out; original profiles preserved.";
+    fprintf(stderr,"[FIGHTERS] %s\n",status.c_str());
+    return 0;
+}
 
 extern "C" int pc_mods_needs_recovery(void) { return pcui::mod_recovery_needed() ? 1 : 0; }
 

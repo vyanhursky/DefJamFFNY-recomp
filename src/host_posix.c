@@ -414,6 +414,10 @@ static void handle_event(const SDL_Event *ev)
     switch (ev->type) {
     case SDL_EVENT_QUIT:
     case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
+        {
+            extern void pc_fighters_finish(void);
+            pc_fighters_finish(); /* _Exit bypasses atexit. */
+        }
         /* Closing the window ends the run; the line keeps a deliberate close
          * from reading like a crash. */
         fprintf(stderr, "[TRANS] window closed by the user; exiting (%s)\n",
