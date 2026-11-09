@@ -261,3 +261,45 @@ fighter-owner-20261108-202416.stderr.log. Native reproduction uses a copied data
 root;87original save/song/profile hashes remain protected. Root test binary has
 the new fixes; installed fmi active receipt remains0fc3969 until a real inspected
 payload update, so do not represent the installed shortcut as updated yet.
+
+### Corrected same-process sequence passes
+
+Latest pushed source is runtime d811cda and Tools46f48a9, both draft PRs, with
+CI42564807476/42564818857 green. Runtime d811cda also prunes stale custom/private
+live unlock marks when ControllerSetup/KeepReady clears ownership, retaining
+retail/still-bound marks and managed historical progression. Five actual-handler
+regressions fail before correction;148focused cases and Release build pass.
+
+Native215657 then completes two DMX/Chukklez natural results with actual Rematch,
+native Quit/40allocation release, ordinary retail-placeholder selection past the
+former guard, and Proof/Flex Inferno7/venue24 with seven combat/result checks,
+natural result and native Quit/37allocation release. Both releases restore
+free33553888. Both loading art pairs are visually verified. Rematch voice IDs
+remain615/627, third bout602/617. First two bouts intentionally idle the human;
+do not claim their human damage checks. Normal close exits0, supervisor completes,
+guard restores identically and87original protected hashes remain unchanged.
+Private verdict: logs/fighter-owner-sequence-fixed-verdict-1108.json. Preserve
+the earlier exit1 guard failure and original owner crash; no exact complete
+pre-fix reproduction or subjective listening/universal crash-freedom claim.
+
+Local d811cda game-free development payload is inspected:4668files, SHA256
+50f6d448849310e664eb6a7b53529b3ad8d99ba1e55daa3c3057f9a9b07d1c92.
+Same-version Update correctly refuses before mutation (48protected hashes and
+receipt unchanged). Supported Clean Rebuild subsequently passes398.19seconds,
+activates d811cda and retains old0fc3969. All48protected files remain identical;
+installed freshness passes. Inspect logs/fighter-owner-installed-rebuild-1108.json
+and fmi/i/installed.json. The unchanged Desktop Installed Fighter Playtest target
+then opens the exact new installed runtime; actual Fighters UI shows Vendetta46
+and independent1 enabled. Normal Quit exits0, guard restores identically and
+all48hashes remain unchanged. Receipt:
+logs/fighter-owner-installed-shortcut-check-1108.json. This adds installed launcher
+verification, not a second installed combat claim. No app/game remains running.
+
+Owner instructions: logs/fighter-installed-owner-playtest-1108.md. Prefer Desktop
+Def Jam - Installed Fighter Playtest; the original shortcut/career is preserved.
+The installed version still displays1.1.1 because this is a local feature build,
+not a released version. Native gameplay code is d811cda; subsequent documentation
+commits do not alter the tested source. Source-only PRs209/6 stay drafts, with
+no merge, tags, release, pack publication or catalogue/signing authorization.
+Next work is owner listening/playtest and broader M5 fidelity/resource/soak,
+physical/platform/default-placement and final RC gates, not redoing these passes.

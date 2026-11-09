@@ -420,5 +420,38 @@ marks/history/metadata and rejection of a malformed over-capacity count.
 Windows Release build passes. Logs:
 fighter-owner-unlock-projection-before-c-1108.txt,
 fighter-owner-unlock-projection-unit-final-1108.txt and
-fighter-owner-unlock-projection-build-1108.txt. The complete three-bout native
-sequence is being repeated; do not infer its result from these CPU-only cases.
+fighter-owner-unlock-projection-build-1108.txt.
+
+Corrected source d811cda then completes the full same-process sequence in native
+run215657: DMX/Chukklez natural result, real Rematch and second natural result,
+native Quit/teardown, ordinary retail-placeholder selection past the former
+capacity failure, then Proof/Flex in Inferno7/venue24 through its natural result
+and another native Quit. All seven Proof/Flex telemetry/setup/movement/attack/
+damage/result/results-screen checks pass. The first two deliberately idle human
+bouts qualify results, voices and lifecycle; they do not add human hit/damage
+acceptance. Both pairs' early loading captures visibly show their own art/logos.
+Rematch retains voice IDs615/627; the third bout loads602/617.
+
+The two teardown cycles release40and37owned allocations and each restore the
+33,553,888byte free block. Normal close exits0, supervisor completes and the save
+guard restores identically; all87protected original save/song/profile hashes
+remain unchanged. The raw harness unexpected-exit0 label is preserved because
+the completed test was closed normally before its timeout. Separate verdict:
+fighter-owner-sequence-fixed-verdict-1108.json. Current runtime/tools CI
+42564807476/42564818857 passes. The earlier failed sequence remains recorded;
+there was no full before/after reproduction of the original crash. These positive
+results plus the original-body queue oracle support the correction without
+claiming universal crash freedom, subjective voice listening or completed M5/M6.
+
+The existing local installed playtest is then rebuilt from the inspected d811cda
+development payload through the normal engine. Same-version Update first refuses
+before mutation; supported Clean Rebuild passes in398.19seconds and activates
+the verified receipt, retaining the old0fc3969installation. All48protected
+save/progression/song/settings files remain identical. Installed build freshness
+passes. The Desktop shortcut's existing compiled-launcher target opens the new
+installed runtime; its Fighters UI shows the46fighter pack and independent
+starter enabled. Normal launcher Quit exits0 with exact save-guard restoration
+and all48hashes unchanged. This final shortcut check adds no installed combat
+claim; the three-bout combat evidence above is the source build. Private receipts:
+fighter-owner-installed-rebuild-1108.json and
+fighter-owner-installed-shortcut-check-1108.json. No app/game remains running.
