@@ -247,7 +247,7 @@ void defjam_fighter_motion_ai_profiles(uint32_t output, uint32_t input) {
         char name[32] = {0};
         if (identity && donor >= 87 && donor <= 141) strcpy(name, "char0001");
         else snprintf(name, sizeof name, identity && MEM32(input) == 2 ? "cha%05u" : "char%04u", donor);
-        memcpy(XBOX_PTR(output + 0x24 + slot * 32), name, sizeof name);
+        memcpy((void *)XBOX_PTR(output + 0x24 + slot * 32), name, sizeof name);
         fprintf(stderr, "[FIGHTERS] inherited AI core %u slot %u profile %s\n", core, slot, name);
     }
 }
@@ -479,10 +479,10 @@ int defjam_fighter_motion_blazin_mask(void) {
         }
     }
     /* Publish only after all participant choices passed their bounds checks. */
-    memcpy(XBOX_PTR(0x3BE628), mask, sizeof mask);
+    memcpy((void *)XBOX_PTR(0x3BE628), mask, sizeof mask);
     for (uint32_t slot = 0; slot < 4; ++slot) if (active[slot]) {
         uint32_t actor = 0x3B92E0 + slot * 0x12E8;
-        if (profile[slot]) memcpy(XBOX_PTR(actor + 0xBB8), choices[slot], sizeof choices[slot]);
+        if (profile[slot]) memcpy((void *)XBOX_PTR(actor + 0xBB8), choices[slot], sizeof choices[slot]);
         if (MEM32(actor + 0x2C) >= ORIGINAL_CORES)
             fprintf(stderr, "[FIGHTERS] Blazin core %u slot %u inherited choices %u,%u,%u,%u\n",
                     MEM32(actor + 0x2C), slot, choices[slot][0], choices[slot][1], choices[slot][2], choices[slot][3]);

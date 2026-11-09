@@ -88,7 +88,7 @@ void defjam_fighter_ai_bind(uint32_t config) {
     for (unsigned slot = 0; slot < 4; ++slot) {
         uint32_t core = MEM32(0x3B90B8 + slot * 4);
         if (core >= AI_CORE_LIMIT || !s_profiles[core][0] || !MEM8(config + 0x24 + slot * 32)) continue;
-        memcpy(XBOX_PTR(config + 0x24 + slot * 32), s_profiles[core], 32);
+        memcpy((void *)XBOX_PTR(config + 0x24 + slot * 32), s_profiles[core], 32);
         fprintf(stderr, "[FIGHTERS] AI slot %u core %u profile %s\n", slot, core, s_profiles[core]);
     }
 }
@@ -97,7 +97,7 @@ void defjam_fighter_ai_loaded(uint32_t self, uint32_t config) {
     for (unsigned slot = 0; slot < 4; ++slot) {
         uint32_t core = MEM32(0x3B90B8 + slot * 4);
         if (core >= AI_CORE_LIMIT || !s_profiles[core][0] || !MEM8(config + 0x24 + slot * 32)) continue;
-        if (memcmp(XBOX_PTR(config + 0x24 + slot * 32), s_profiles[core], 32)) {
+        if (memcmp((const void *)XBOX_PTR(config + 0x24 + slot * 32), s_profiles[core], 32)) {
             fprintf(stderr, "[FIGHTERS] AI stopped: owned profile fell back in slot %u\n", slot);
             fflush(stderr); exit(1);
         }
