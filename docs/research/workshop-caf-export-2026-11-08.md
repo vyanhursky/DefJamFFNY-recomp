@@ -149,7 +149,8 @@ before this integration; hosted CI remains game-free.
 CI explicitly runs CAF recipe/portrait/lifecycle checks on MSVC and POSIX.
 Windows already compiled all game-side sources without game data; Mac/Linux
 now do so too, using the existing template-header/empty-dispatch helper. Linux
-passes its existing SDL2 setting through a tested CMake-option argument.
+keeps its SDL2 runtime-library check separate and configures game-side objects
+with full SDL3 through tested CMake-option forwarding.
 The original toolkit pin and source-publication restrictions are unchanged.
 
 The first hosted Linux source check failed at configuration because full SDL3
@@ -161,3 +162,7 @@ The first full-SDL configure then identified the missing XTEST development
 package. The Linux lane now installs the additional SDL3 host dependencies
 listed by SDL's Linux build guide, including XTEST, instead of disabling that
 host feature or dropping the compile check.
+Once full SDL3 was available, CMake rejected linking SDL2 runtime targets and
+SDL3 host targets into the same game object graph. The no-game-code source
+check now enables SDL3 just like the real POSIX game build; the earlier
+runtime-only Linux check keeps its independent SDL2 coverage.

@@ -300,7 +300,7 @@ jobs:
       - name: Game-side sources compile (no game code)
         run: |
           if [ "$RUNNER_OS" = Linux ]; then
-            python scripts/compile-game-sources.py --cmake-arg=-DDEFJAM_SDL3=OFF "--cmake-arg=-DCMAKE_PREFIX_PATH=$PWD/build/ci-host-sdl3/install"
+            python scripts/compile-game-sources.py --cmake-arg=-DDEFJAM_SDL3=ON "--cmake-arg=-DCMAKE_PREFIX_PATH=$PWD/build/ci-host-sdl3/install"
           else
             python scripts/compile-game-sources.py
           fi
