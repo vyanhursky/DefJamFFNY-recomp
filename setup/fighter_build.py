@@ -79,17 +79,26 @@ def compile_inputs(sod, paths, packs, ledger=None, *, catalog=None, pin_path=Non
     appearances, portraits, resources = {}, {}, {}
     from fighter_caf import load as load_caf, encode as encode_caf
     caf_sources = {name: value for name, value in sourced.items() if value['kind'] == 'caf'}
-    caf_recipes = {name: load_caf(paths[[p['id'] for p in packs].index(value['owner'])].parent, value['source'], catalog, sod.parents[1]) for name,value in caf_sources.items()}
-    if caf_sources and any('caf' in row['components'] for row in snapshot['fighters'].values()) and any(value['kind'] not in ('caf','portrait') for value in sourced.values()):
-        raise ValueError('CAF recipes currently support retail behavior and optional portraits only')
+    roots = {pack['id']: path.parent for pack, path in zip(packs, paths)}
+    for key, row in snapshot['fighters'].items():
+        components = row['components']
+        if 'caf' not in components:
+            continue
+        if key.startswith('retail/'):
+            raise ValueError('CAF recipes add independent fighters; retail CAF overrides are not supported')
+        # This restriction belongs to this CAF, not to unrelated enabled packs.
+        # CAF construction owns its body and styles; other fighters keep their
+        # independently validated appearance, behavior and voice adapters.
+        if any(group not in ('appearance', 'moveset', 'voice') or value not in catalog.bindings
+               for group, value in components.items() if group not in ('caf', 'portrait', 'stats', 'tier')):
+            raise ValueError('CAF recipes currently support retail behavior and optional portraits only: ' + key)
+    caf_recipes = {name: load_caf(roots[value['owner']], value['source'], catalog, sod.parents[1])
+                   for name, value in caf_sources.items()}
     caf = {key:dict(caf_recipes[row['components']['caf']],
                     audio_core=catalog.rows[catalog.bindings[row['components']['voice']]['donor']]['native_binding']['core_id'])
            for key,row in snapshot['fighters'].items() if 'caf' in row['components']}
     if any(not 1 <= item['audio_core'] <= 86 for item in caf.values()):
         raise ValueError('CAF voice requires a retail presentation donor')
-    if any(key.startswith('retail/') for key in caf):
-        raise ValueError('CAF recipes add independent fighters; retail CAF overrides are not supported')
-    roots = {pack['id']: path.parent for pack, path in zip(packs, paths)}
     appearance_sources = {key: value for key, value in sourced.items() if value['kind'] == 'appearance'}
     portrait_sources = {key: value for key, value in sourced.items() if value['kind'] == 'portrait'}
     if sourced:

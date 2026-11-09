@@ -218,16 +218,15 @@ class Database:
         for. No native runtime capability is implied by a successful round-trip.
         """
         check(isinstance(additions, list) and len(additions) <= 16384, 'Invalid additions budget')
-        if character_cores is not None:
-            check(type(character_cores) is dict
-                  and set(character_cores) == {a.get('key') for a in additions if isinstance(a, dict)}
-                  and all(type(core) is int and 142 <= core <= 16384 for core in character_cores.values()),
-                  'Owned character cores must cover exactly the added records within the runtime budget')
         caf_cores = {} if caf_cores is None else caf_cores
         check(type(caf_cores) is dict and set(caf_cores) <= {a.get('key') for a in additions}
-              and all(type(core) is int and 87 <= core <= 141 for core in caf_cores.values())
-              and not (character_cores and set(caf_cores) & set(character_cores)),
+              and all(type(core) is int and 87 <= core <= 141 for core in caf_cores.values()),
               'CAF cores must be verified retail style combinations on added fighters only')
+        if character_cores is not None:
+            check(type(character_cores) is dict
+                  and set(character_cores) == {a.get('key') for a in additions if isinstance(a, dict)} - set(caf_cores)
+                  and all(type(core) is int and 142 <= core <= 16384 for core in character_cores.values()),
+                  'Owned character cores must cover exactly the non-CAF added records within the runtime budget')
         deferred_keys = set() if deferred_keys is None else deferred_keys
         check(isinstance(deferred_keys, set) and deferred_keys <= {a.get('key') for a in additions if isinstance(a, dict)},
               'Deferred native records must identify added templates')
@@ -350,7 +349,7 @@ class Database:
             check(next_id <= 0x7fffffff, 'Native selection key exhausted')
             struct.pack_into('<I', row, native_offset * 4, next_id)
             apply_fields(row, addition['fields'])
-            if character_cores is not None:
+            if character_cores is not None and key in character_cores:
                 # Internal compiler output, separate from package-authored fields.
                 # Bind before building indexes, participant windows and receipts.
                 struct.pack_into('<I', row, 40, character_cores[key])

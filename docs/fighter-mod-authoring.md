@@ -1,7 +1,7 @@
 # Fighter Mod Support: runtime authoring contract
 
-Development feature, originally planned for **v0.15.0**; no current release
-queue assignment. Ordinary Fighter ZIP installation,
+Experimental ordinary-format support is available in **v1.2.0-beta.1**;
+the original **v0.15.0** target is historical. Ordinary Fighter ZIP installation,
 whole-pack activation, native menus and managed profile persistence are implemented.
 This is the runtime contract reference. The beginner-first creator guide lives in
 `DefJam-Modding-Tools/docs/fighter-modding-guide.md`; offline creator commands are
@@ -17,6 +17,13 @@ PNG-derived native portraits. It uses this same ZIP and installation workflow;
 it does not import a Story container. See the [CAF contract and native
 acceptance](research/workshop-caf-export-2026-11-08.md) for validated fields,
 current composition limits and platform qualifications.
+This extension is in PR213 and is **not in v1.2.0-beta.1**. On that branch,
+CAF fighters can compile alongside independent packs with owned appearance,
+voice, AI, motion and cinematic resources. Each CAF still uses retail behavior
+and voice donors, its recipe-built appearance and optional sourced portraits;
+giving the CAF itself owned behavior or an authored body is refused. Mixed
+pack gameplay, Rematch and cleanup need qualification with actual CAF packs
+before this development feature can ship.
 
 ## Package shape and identity
 

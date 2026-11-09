@@ -121,7 +121,8 @@ class BehaviorPlan:
             require(name not in global_tag_overrides or global_tag_overrides[name]==replacement,
                     'Conflicting animation tag override '+name+' between '+global_tag_owners.get(name,'')+' and '+key)
             global_tag_overrides[name]=replacement;global_tag_owners[name]=key
-        added = {key: row['components'] for key, row in snapshot['fighters'].items() if key not in catalog.rows}
+        added = {key: row['components'] for key, row in snapshot['fighters'].items()
+                 if key not in catalog.rows and 'caf' not in row['components']}
         require(added, 'Behavior composition requires an added fighter')
         for key, row in snapshot['fighters'].items():
             require(key not in catalog.rows or not any(value in typed for group, value in row['components'].items()
@@ -159,6 +160,8 @@ class BehaviorPlan:
             graph_contexts=MotionOutputContexts(hands,pins['shared_hand_sha256'])
             archive=Archive(original('assets/v2ip.viv','v2ip_sha256'))
             for fighter,row in sorted(snapshot['fighters'].items()):
+                if 'caf' in row['components']:
+                    continue
                 appearance_key=row['components']['appearance']
                 if appearance_key in appearances:
                     appearance=appearances[appearance_key]
@@ -168,6 +171,10 @@ class BehaviorPlan:
                     name=catalog.rows[binding['donor']]['fields']['Model']['symbol']
                     body,face=(unpack(archive.read(name+suffix)) for suffix in ('.o','_F.o'))
                 graph_contexts.add(fighter,body,face,model_sha256=digest(body),face_sha256=digest(face))
+            if any('caf' in row['components'] for row in snapshot['fighters'].values()):
+                from fighter_caf import output_contexts
+                for context, (body, face) in output_contexts(game).items():
+                    graph_contexts.add(context, body, face, model_sha256=digest(body), face_sha256=digest(face))
 
         motion_source = original('motion/main_all.dat', 'motion_sha256')
         templates = MotionCoreTemplates(motion_source, pins['motion_sha256'])

@@ -210,14 +210,23 @@ class RetailCatalog:
                 native_additions.append({'key': bank_key(index), 'native_name': f'fw-bank-{index}',
                                          'template': first['template'], 'fields': dict(first['fields'])})
         selections = {addition['key']: ledger['fighters'][addition['key']]['selection'] for addition in additions}
+        cores = {addition['key']: caf[addition['key']]['core'] if addition['key'] in caf
+                 else behavior.character_cores[addition['key']] if behavior
+                 else self.rows[donor_keys[addition['key']]]['native_binding']['core_id']
+                 for addition in additions}
+        caf_keys = set(caf)
         if binding_window:
             selections.update({bank_key(index): FIRST_SELECTION + index for index in range(BANKS)})
+            cores.update({bank_key(index): cores[additions[0]['key']] for index in range(BANKS)})
+            if additions[0]['key'] in caf:
+                caf_keys.update(bank_key(index) for index in range(BANKS))
         output, native = self.db.extend_character_records(native_additions, edits,
             selection_keys={addition['key']: selections[addition['key']] for addition in native_additions},
             deferred_keys={addition['key'] for addition in additions} if binding_window else None,
-            character_cores={addition['key']: behavior.character_cores.get(addition['key'],
-                behavior.character_cores[additions[0]['key']]) for addition in native_additions} if behavior else None,
-            caf_cores={addition['key']:caf[addition['key']]['core'] for addition in native_additions if addition['key'] in caf})
+            character_cores={addition['key']: cores[addition['key']] for addition in native_additions
+                             if cores[addition['key']] >= 142} if behavior else None,
+            caf_cores={addition['key']: cores[addition['key']] for addition in native_additions
+                       if addition['key'] in caf_keys})
         bindings = {key: dict(row['native_binding'], record_offset=row['record_offset'], native_name=row['name'])
                     for key, row in self.rows.items()}
         for key, binding in native['bindings'].items():
@@ -230,7 +239,7 @@ class RetailCatalog:
             for addition in additions:
                 key = addition['key']
                 bindings[key] = {'selection_key': ledger['fighters'][key]['selection'],
-                                 'core_id': behavior.character_cores[key] if behavior else self.rows[donor_keys[key]]['native_binding']['core_id'],
+                                 'core_id': cores[key],
                                  'record_offset': 0, 'native_name': addition['native_name']}
         report = {'adapter': ADAPTER, 'cache_layout': 2, 'runtime_ready': False, 'launch_allowed': False,
                   'source_sha256': self.source_sha256, 'snapshot_sha256': snapshot['sha256'],

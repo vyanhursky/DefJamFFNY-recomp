@@ -1,6 +1,7 @@
 /* Retail CAF recipe adapter. Own-dump resources, original assembly and cleanup.
  * No profile import: compiler-owned records contain selections/training only. */
 #include "fighter_caf.h"
+#include "fighter_motion.h"
 #include "hooks/guest_call.h"
 #include "hooks/mod_sha256.h"
 #include <stdio.h>
@@ -52,7 +53,10 @@ int defjam_fighter_caf_start(void) {
     s_rows=data;s_count=count;fprintf(stderr,"[FIGHTERS] validated %u CAF recipes\n",count);return 1;
 }
 /* Called before each match/after it finishes: no stale context may be reused. */
-void defjam_fighter_caf_clear(void) { s_service=0;memset(s_contexts,0,sizeof s_contexts);memset(s_recipes,0,sizeof s_recipes); }
+void defjam_fighter_caf_clear(void) {
+    s_service=0;
+    for(unsigned i=0;i<4;++i) {s_contexts[i]=0;s_recipes[i]=NULL;}
+}
 static uint32_t prepare_profile(const uint8_t *row) {
     if(!s_profile_workspace) {
         uint32_t args[]={0x5c000,0x298908,0x100};
@@ -150,6 +154,7 @@ void defjam_fighter_caf_decode_trace(uint32_t output,uint32_t source,uint32_t ca
  * Story CAFs choose a voice from their profile instead. Bind our declared
  * retail voice donor on a nested audio-setup value; never rewrite actor cores. */
 int defjam_fighter_caf_audio(uint32_t input) {
+    if(MEM8(0x340540)) return 0; /* Native early-out may not supply a new setup. */
     int changed=0;
     for(unsigned i=0;i<4;++i) if(s_recipes[i]) {
         if(MEM32(input+0x20+i*0x18)!=word(s_recipes[i]+4)) stop("CAF audio core differs from participant");
@@ -161,7 +166,10 @@ int defjam_fighter_caf_audio(uint32_t input) {
     g_esp-=0x90;uint32_t copy=g_esp;
     memcpy((void *)XBOX_PTR(copy),(const void *)XBOX_PTR(input),0x84);
     for(unsigned i=0;i<4;++i) if(s_recipes[i]) MEM32(copy+0x20+i*0x18)=word(s_recipes[i]+228);
-    g_eax=guest_call(sub_0003E170_gen,g_ecx,1,&copy);
+    /* A mixed match also needs owned motion cores translated on this copy.
+     * Both adapters are synchronous; native setup runs once and the wrapper
+     * restores owned voice IDs using the untouched original participant rows. */
+    if(!defjam_fighter_motion_audio(copy)) g_eax=guest_call(sub_0003E170_gen,g_ecx,1,&copy);
     g_esp=stack+4;
     fprintf(stderr,"[FIGHTERS] CAF inherited audio templates %u/%u/%u/%u\n",
         MEM32(copy+0x20),MEM32(copy+0x38),MEM32(copy+0x50),MEM32(copy+0x68));

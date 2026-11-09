@@ -19,9 +19,12 @@ IDs87–141; these are separate from authored owned cores142 and above.
 
 The shared compiler emits `fighter-caf.bin` (`FCA1`, version1, 232-byte rows)
 and a hash in the normal cache/environment receipt. The native reader checks
-that receipt and bounded row structure before activation. CAF generation may
-currently coexist with sourced portraits, but combining it with other sourced
-fighter components is refused. No new installation path or private workshop
+that receipt and bounded row structure before activation. The component limit
+applies to each CAF: retail behavior/voice donors, recipe-built appearance and
+optional sourced portraits. Independent fighters retain their own validated
+appearance, voice, AI, motion and cinematic resources in the same generation.
+The original global restriction is superseded by the November9 fix below.
+No new installation path or private workshop
 pack format is introduced.
 
 `fighter-contract.py export-caf-portrait` reads a bounded PNG and converts it
@@ -166,3 +169,58 @@ Once full SDL3 was available, CMake rejected linking SDL2 runtime targets and
 SDL3 host targets into the same game object graph. The no-game-code source
 check now enables SDL3 just like the real POSIX game build; the earlier
 runtime-only Linux check keeps its independent SDL2 coverage.
+
+## November9 — independent-pack coexistence correction
+
+The review of PR213 reproduced a CAF plus unrelated owned-appearance pack
+being refused. Removing that global guard alone exposed two further problems:
+CAF fighters were assigned owned motion cores, and CAF audio bypassed the owned
+motion template transformation. The compiler now keeps CAF cores87–141 separate
+from independently allocated owned cores142+, including logical menus and native
+participant-window templates regardless of stable-key sort order. Native core
+maps must still cover the complete added set exactly, with no overlapping claims.
+
+The behavior compiler does not emit owned motion/cinematic copies for CAFs.
+For a mixed match, CAF audio translates its participant donors on a nested copy,
+then applies the existing owned-motion transformation to that copy. Native setup
+runs once. The outer wrapper observes the untouched participant identities and
+restores owned voice IDs after both first setup and Rematch. Actor cores and the
+caller's input remain unchanged. Native early-out, retail fallback and CAF clear
+remain supported.
+
+Paired graph output admission also needs actual CAF contexts. The menu donor's
+rig is not the assembled CAF rig. The compiler verifies original `v2cp_0.viv`
+against the existing CAF pin and validates the two original skeleton templates
+with both original face palettes. It conservatively joins all four combinations
+as potential opponent contexts, preserving their exact rig hashes and palette
+bounds; it does not guess a particular native fit from a recipe. Native graph
+admission still checks the actual assembled skeleton hash and live face/hand
+palettes before evaluation. No hash, lifetime, rig or sample-bound check is removed.
+
+New synthetic composition tests first reproduced nine failures against the old
+compiler/core-map validation. The corrected focused suite passes169 tests,
+including mixed compiler modes/order, negative per-CAF component admission,
+CAF palette/rig joins and compiled native audio/voice/teardown/graph contracts.
+The actual CAF and shared audio wrapper bodies run with the real motion/voice
+adapters on invented guest memory: four slot rotations, shared CAF style cores
+with different speech donors, Rematch without bank reload, sparse participants,
+retail/owned transitions, early-out, invalid cores and cleanup are covered.
+
+A separate local offline check uses the complete private46-fighter Vendetta
+conversion plus two synthetic CAF fighters. The ordinary CAF loader verifies
+their recipe against the actual supported SOD and all pinned CAF archives;
+there is no loader injection in this check. Mixed composition and sealed cache
+publication pass in133.83 seconds with48added fighters,46owned motion bindings
+and two CAFs sharing core87 but using different retail speech donors5/63.
+All94full-graph counterpart proofs admit both verified CAF template rig hashes.
+No game/profile is launched or installed, and the Vendetta manifest is unchanged.
+Private evidence: `logs/caf-vendetta-offline/verdict.json` and
+`logs/caf-vendetta-proof-check.py`. The synthetic CAFs are offline test inputs,
+not the owner's forthcoming playable CAF packs.
+
+These are game-free checks, not mixed-pack gameplay acceptance. The owner will
+provide CAF packs for subsequent in-game tests. No new full native regression,
+native CAF playtest, merge, tag or release is claimed by this correction.
+Published `v1.2.0-beta.1` remains immutable and does not include the CAF extension.
+All original and converted Vendetta bytes, private canaries and compiled caches
+remain local. Source-only PR updates are authorized; pack publication is not.

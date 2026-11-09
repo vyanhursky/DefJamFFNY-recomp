@@ -90,8 +90,33 @@ def recipe(value, database):
     return core
 
 
+def baseline_pins():
+    return json.loads((Path(__file__).resolve().parents[1]/'config/fighter-caf-baseline.json').read_text())
+
+
+def output_contexts(game):
+    """Conservative original CAF template/palette combinations, not donor rigs.
+
+    Native construction chooses from these pinned templates. Admit both choices
+    rather than guessing the selected native fit; runtime still hashes the live
+    skeleton and checks each actual face/hand palette before owned graph use.
+    """
+    from fighter_archive import Archive
+    from fighter_assets import unpack
+    path = ordinary_path(Path(game) / 'assets/v2cp_0.viv')
+    with path.open('rb') as stream:
+        data = stream.read(128 * 1024**2 + 1)
+    require(len(data) <= 128 * 1024**2 and hashlib.sha256(data).hexdigest() == baseline_pins()['archives']['v2cp_0.viv'],
+            'CAF graph contexts require the supported original v2cp_0.viv')
+    archive = Archive(data)
+    return {'caf-context/template-' + fit + '-face-' + str(face):
+            (unpack(archive.read('V2CP_Template_' + fit.title() + '.o')),
+             unpack(archive.read(f'V2CP_532_{face:04d}_C_F.o')))
+            for fit in ('long', 'norm') for face in (1, 2)}
+
+
 def validate_assets(value, game):
-    pins=json.loads((Path(__file__).resolve().parents[1]/'config/fighter-caf-baseline.json').read_text())
+    pins=baseline_pins()
     names=set()
     for name,digest in pins['archives'].items():
         path=ordinary_path(Path(game)/'assets'/name)
