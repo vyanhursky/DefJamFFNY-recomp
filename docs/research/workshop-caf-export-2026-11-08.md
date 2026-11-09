@@ -157,3 +157,7 @@ was absent: the existing runtime-only lane intentionally uses SDL2. CI now
 builds/caches a complete SDL3 host library from the exact published toolkit
 version/hash and supplies its local prefix to the game-side object check.
 The failing run remains recorded; no test is skipped to address it.
+The first full-SDL configure then identified the missing XTEST development
+package. The Linux lane now installs the additional SDL3 host dependencies
+listed by SDL's Linux build guide, including XTEST, instead of disabling that
+host feature or dropping the compile check.

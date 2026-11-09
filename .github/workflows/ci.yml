@@ -258,7 +258,10 @@ jobs:
         run: python -m pytest -q tests/unit/test_skip_intro.py
       - name: Dependencies (Linux)
         if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y ninja-build pkg-config libsdl2-dev libepoxy-dev libssl-dev libvulkan-dev libshaderc-dev
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build pkg-config libsdl2-dev libepoxy-dev libssl-dev libvulkan-dev libshaderc-dev \
+            libxtst-dev libfribidi-dev libthai-dev libusb-1.0-0-dev libpipewire-0.3-dev libdecor-0-dev liburing-dev
       - name: Dependencies (macOS)
         if: runner.os == 'macOS'
         run: brew install ninja pkg-config sdl2 libepoxy openssl@3 vulkan-headers vulkan-loader shaderc molten-vk sdl3
