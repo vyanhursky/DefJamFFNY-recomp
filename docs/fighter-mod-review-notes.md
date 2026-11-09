@@ -396,3 +396,29 @@ bank reload and remain correct in the second bout's live audio rows. This is
 routing/identity evidence, not a new subjective listening comparison. Its next
 retail-placeholder setup hits the unlock-capacity guard before the intended
 Proof/Flex test; preserve that exit1 and do not report a three-bout pass.
+
+### Retiring live unlock projections
+
+The extra setup failure is distinct from the NULL-resource crash. Native
+Options has an 80-entry unlock set. Clearing a custom selection previously
+cleared its participant binding but left that fighter's temporary live unlock
+mark. A later unlock-all pass could then insert the private bank placeholders
+alongside those stale marks and hit the capacity guard during retail selection.
+
+Selection clear and native ready-mask clear now prune unbound custom/private
+marks from the live set, retaining retail entries and still-bound participants
+with their metadata. Both native count fields are kept in agreement. The
+managed extension retains historical custom identities/progression unchanged;
+no save schema, adoption marker, unlock budget or guard is relaxed. The existing
+binding path already performed this projection when choosing another custom
+fighter; the correction also handles clearing/reverting to retail.
+
+Five actual-handler synthetic cases fail before correction; the corrected
+unlock/window/save/presentation suite passes148cases. It covers one/all cleared
+participants, ready-mask clearing, subsequent custom binding, preserved retail
+marks/history/metadata and rejection of a malformed over-capacity count.
+Windows Release build passes. Logs:
+fighter-owner-unlock-projection-before-c-1108.txt,
+fighter-owner-unlock-projection-unit-final-1108.txt and
+fighter-owner-unlock-projection-build-1108.txt. The complete three-bout native
+sequence is being repeated; do not infer its result from these CPU-only cases.

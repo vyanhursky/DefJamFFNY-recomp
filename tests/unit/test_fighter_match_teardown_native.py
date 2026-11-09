@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 def definition(text, name):
-    match = re.search(r'(?:static )?(?:void|uint32_t) ' + re.escape(name) + r'\([^)]*\)\s*\{', text)
+    match = re.search(r'(?:static )?(?:void|uint32_t|int) ' + re.escape(name) + r'\([^)]*\)\s*\{', text)
     assert match, name
     end, depth = match.end(), 1
     while depth:
