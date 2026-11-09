@@ -1,7 +1,7 @@
 # Fighter Mod Support — approved implementation plan
 
 **Original planning target: v0.15.0. Status: implementation and acceptance underway;
-no current release queue assignment.** Current main is v1.1.0; the earlier target
+no current release queue assignment.** Current main is v1.1.1; the earlier target
 does not promise inclusion in a published version.
 On November 8 the owner authorized source-only branch/PR publication for review;
 Vendetta assets, packs and native binaries remain local. Merge and release

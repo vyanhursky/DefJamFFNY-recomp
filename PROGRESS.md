@@ -8,11 +8,13 @@
 
 ## 0. Status at a glance
 
+- v1.1.1: GA/Latest published November 8, 2026 at 21:16 UTC (D366-D370), within the owner's hour. #207 only runtime fix; #210 merged at afaa9b1, annotated tag90efaebe. Toolkit4801dc1 unchanged; app-only publication retained. Candidate CI35/35, tagged Source37/37; all nine asset digests/checksums and exact source/toolkit/payloads verified. Windows candidate update1.1.0 to1.1.1 passed299.0s with settings/save marker unchanged and no journal. Full regression waived by owner; final earlier GUI qualification and v1.1.0 known issues remain unclaimed. Notes: docs/releases/v1.1.1.md.
+
 - v1.1.0: ✅ GA published November 8, 2026, owner-authorized qualifications D363. Release PR #206 and all seven train PRs merged; annotated `v1.1.0` at `0e90a3a`. Source workflow 37/37; all 15 original game-free release assets verified against GitHub SHA-256, checksum files and provenance. Nine app assets remain after legacy setup retirement (D365). Latest/GA and Linux update offer from 1.0.1 verified. Mac stock/HD 21/21; Linux stock/HD20/21 and two pre-existing Zig cinema fixture failures remain recorded; owner play-test/Steam Deck GA update follow next morning. Notes: docs/releases/v1.1.0.md.
 - v1.0.1: ✅ hotfix, release PR = main after v1.0.0 + #199 only (D341, D342): Linux ships only the AppImage, renamed `DefJamRecompiled-1.0.1-linux-x86_64.AppImage`; no game, setup-engine or toolkit change besides the release-asset name (toolkit `6c0bd55` unchanged). Gate: unit tests, source policy and CI (three app/setup builds); no regression rerun (owner asked to ship it now). Notes: docs/releases/v1.0.1.md.
 - v1.0.0: ✅ stable, release PR #197 = main after beta 2 + #190 (Shops border #162, venue pins) + #198 (combo call-out #196), toolkit `6c0bd55`. Windows results below are on `4b73e78` (before #198, toolkit `351e28a`); no full regression after #198 (owner). Qualified on Windows only (D340): stock full regression 17/17, 16:9 HD lane 16/17 (combat memory-growth check fails, post-fight transition sample, #166), Clean Update from v0.13.0 and a fresh install pass. macOS/Deck not rerun on this head. Notes: docs/releases/v1.0.0.md; results: docs/regression-v1.0.0.md.
 
-Current baseline: **v1.1.0**, published November 8, 2026. Previous stable: v1.0.1 (November 6 hotfix of v1.0.0).
+Current baseline: **v1.1.1**, published November 8, 2026. Previous stable: v1.1.0 (November 8).
 describe their original builds; they do not override this baseline or the current source.
 
 | Area | State | Notes |
@@ -21,7 +23,7 @@ describe their original builds; they do not override this baseline or the curren
 | Toolkit | ✅ published pin | `4801dc171da7d39ebf23c2fe709d14e4b50a1733` on fork `defjam/release-1.1.0`; `.gitmodules` integration branch `defjam/upstream-v0.16` fast-forwarded from `6c0bd55` after publication. |
 | Input, launcher/overlay, HD/mod management, updates, language, custom/restored songs | ✅ shipped | See current guides and versioned release notes; old draft-PR statuses have been retired. |
 | v0.13 acceptance | ⚠ qualified | Windows16/17; Mac16/21 then4/5; Deck memory/golden discrepancies. Preserve original failures and omissions in docs/releases/v0.13.0.md and its linked evidence. No all-green claim. |
-| Open bugs and future work | ⏳ tracked in GitHub | Memory-allocation investigation #166 carried to v1.1.1 (D364); passing settled memory gates does not close it. Deck replay #98 and recorded Zig cinema fixture failures remain. Other scope is owned by issues/milestones. |
+| Open bugs and future work | ⏳ tracked in GitHub | Memory-allocation investigation #166 carried to v1.1.2 (D370); passing settled memory gates does not close it. Deck replay #98 and recorded Zig cinema fixture failures remain. Other scope is owned by issues/milestones. |
 | Public documentation cleanup | ⏳ PR171 review | Owner approved consolidation and pruning on November2. Preserve durable findings, release qualifications, decision IDs, standalone export and run-log citations. |
 
 ## 1. Decisions log
@@ -481,6 +483,13 @@ Run-log citations from retired status/planning prose remain protected by
 
 | D365 | 2026-11-08 | Owner requests removing legacy setup downloads from v1.1.0 and publishing only the new app packages in every future release. Remove both Windows/macOS setup triples; keep exactly three app packages plus their SHA-256 and provenance (nine assets). | RecompLauncher selected the legacy wizard through its catalog pattern `DefJamSetup-*-windows-x64.exe`. All six retired files were backed up and checked against GitHub SHA-256 before removal; original tag and app binaries are unchanged. Packaging with `--app` now emits only app assets on all platforms, and the release upload uses an explicit nine-file allowlist. RecompLauncher still needs its external catalog patterns updated; missing setup matches can select an older release. |
 
+| D366 | 2026-11-08 | PR #207: release an installed Windows shortcut wrapper through a controlled app restart before setup; resume its operation, paths, HD selection and Build Tools consent. Normal play retains the wrapper wait. | An already released wrapper holds its executable mapped while waiting for the app; updating only a new wrapper cannot release the old one. No process is terminated. |
+| D367 | 2026-11-08 | PR #207: identify the exact installation wrapper and pass restricted inherited process handles, with a 10-second wait; check running wrappers before recovery/build and activation. | Prevent PID reuse, unrelated-process termination, inherited locks and unbounded waits. Native Windows tests cover real executable locks, quoting/Unicode, foreign installs, timeout and failed startup. |
+| D368 | 2026-11-08 | PR #207: skip recovery targets already matching their verified backup and retain activation plus recovery errors on all platforms. Keep macOS/Linux exec forwarding unchanged. | Unchanged-file restoration can repeat the Windows executable-lock error; repeated recovery and masked failures are shared defects. POSIX forwarding has no waiting wrapper. |
+| D369 | 2026-11-08 | Owner explicitly authorizes cutting and publishing v1.1.1 with #207 as the only new runtime fix, within an hour, without full regression. Keep the existing app-only publication policy and unchanged toolkit 4801dc1. | Expedite this setup hotfix using targeted tests, app/setup builds, source hygiene and verified release assets. Full gameplay regression, final GUI repair completion and new Steam/Deck play-tests are not claimed as passes. |
+
+| D370 | 2026-11-08 | Publish v1.1.1 GA/Latest at 21:16:13 UTC, 36m26s after the owner's expedited request (D369). #210 and #207 merged; annotated tag90efaebe at main mergeafaa9b1, source tree69712705 exactly equals tested candidate6d75725/CI merge04c1464. Release438523428 has exactly nine app assets. | Candidate CI42521574111 passed35/35; tagged Source42522957108 passed37/37. Release-head local unit906/56 skipped, source605/0 failures. Candidate app payload updated isolated1.1.0 to1.1.1 in299.0s, settings/save marker byte-identical, valid receipt/executable and no journal. All nine GitHub asset digests/checksums and all three non-development provenances/payloads verified at exact sourceafaa9b1/toolkit4801dc1. All three public app selectors offer1.1.1 from1.1.0. Pages main dispatch42524352127 passed. Full game regression was explicitly waived; incomplete earlier GUI and prior1.1.0 qualifications remain. Close milestone10; move still-open #166 to newv1.1.2 milestone11. |
+
 ## 2. Historical environment inventory (2026-09-17)
 
 - Current Windows RC test host (2026-10-23): Windows11Pro10.0.26200, RTX4070TiSUPER/driver32.0.16.1088; VS2019/MSVC14.29, CMake3.20/Ninja1.10.2. D3D11 `win-x64-release`; isolated app/data and copied harness saves in an isolated local work root. No original user saves/settings changed. Normal Windows process/compiler access required outside the restricted execution sandbox; no OS security settings changed.
@@ -529,6 +538,8 @@ defjam-recomp/
 
 ## 5. Open questions for Vlad
 
+- v1.1.1 is published under D369-D370; no release approval remains pending. Full regression was waived. Preserve the incomplete earlier GUI integration qualification and prior v1.1.0 known issues; #166 stays open in v1.1.2.
+
 - No release-blocking question for v1.1.0: GA is published under D363. Owner will play-test and update the Steam Deck through GA the next morning; record that result when received.
 - Deferred evidence stays deferred: Linux replay79/80 (#98) and two Zig cinema-fixture crashes remain failures; Deck CI-AppImage install/update, physical Game Mode/pad/audio checks were not completed before GA. Extra Mac Story references remain unapproved and the official additional visual check was not run. Do not turn release authorization into a test pass.
 - None for v1.0.0: the owner set the stable gate (D340) and chose to publish with the HD-lane memory check recorded as a failure.
@@ -543,67 +554,44 @@ Upstream PR submissions still need the owner's separate approval.
 
 > Recent entries only; older entries remain unchanged in the local `docs/worklog/` archive.
 
-- 2026-11-07 20:30 — v1.1.0 Windows gate: CI 35/35, full regress 17/17 stock (`logs/regress-20261107-183752.txt`) and 17/17 `--release-profile` (`-193219`), unit 889, source tree 0 failures. CI setup assets (checksums match): v1.0.1 install, then Clean Update to 1.1.0 exit 0 in 838 s, data folder 120 files 0 differences; fresh install 359 s; the updated game stays up 40 s with `[D3D]` present lines at 60 fps. Settings-kept not verified (no `settings.ini` before the first run). The gate script's install timings are inflated by an orphan `mspdbsrv.exe` that kept `Start-Process -Wait` from returning. Open: macOS and Linux/Deck regressions, play-test, D348 review.
-- 2026-11-07 21:16 — PR #206 macOS clean RC build: analyze 18,446 functions, re-lift 21 C files; first game build failed on #203's undefined VK_F7/VK_F8 (app-only CI omits this code). Added POSIX UI definitions and native compile test (1/1); rebuilt posix-release successfully on macOS 26.5.2 arm64 / AppleClang 21.0.0. Unit before fix 870 passed/73 skipped; combined toolkit widescreen fixture 1/1, 82 draws. Logs: `logs/rc110-analyze.txt`, `rc110-recomp.txt`, `rc110-build.txt` (preserved failure), `rc110-build-fixed.txt`, `rc110-unit.txt`, `rc110-ws-fixture-build.txt`. Full regression/functional qualification running next; no Mac approval yet.
 - 2026-11-07 21:45 — PR #206 release copy corrected: README/site now list custom/restored songs as available and link `docs/custom-songs.md`, rather than carrying the completed feature as future work. Site checks 6/6, build publishes the same 17 approved media, source policy 601 files/0 failures (`logs/rc110-site-unit.txt`, `rc110-site-build.txt`). Owner approved D348's 256 MiB transition limit; combined-RC play-test pending. Mac stock qualification still running: first 12 checks passed including combat 28/28; settled RSS growth -61.5 MiB, transition peak +12.0 MiB (`logs/scenarios/regress-combat-20261107-213757/report.json`, `logs/rc110-stock-console.txt`). CI 35/35 on dec1ef6. CI Mac assets verified against checksums and artifact digest; payload source 52cedef is the GitHub test merge containing dec1ef6.
 - 2026-11-07 23:02 — PR #206 Mac qualification: stock full 21/21 in 48 min (`logs/regress-20261107-220503.txt`); native song order/UI/SDL shortcuts/60–35 Beatbox/cache and accepted volumes 80/82/82 pass; French-base private review pack 5/5. CI-payload fresh setup 204 s, v1.0.1 install 206 s → Clean Update 97 s, 137 data files/0 differences incl. settings/profiles; both built games boot 40 s, median 120 presents/2 s, guards restore (`logs/rc110-setup/results.json`). Initial ad-hoc Quit/dropdown/Cancel/injection recipe failures remain in raw receipts, final targeted checks pass. D362 prepares stable v1.0.1 visual candidates (human review pending). HD two/five-fight checks running; full HD/cache/final units remain. Linux reports 20/21 stock and HD (known replay #98) plus two Zig cinema-fixture crashes also on main; owner exception requested, not assumed.
 - 2026-11-08 07:46 UTC — PR #206 Mac qualification complete: stock21/21 and HD 21/21 (48min each), extended HD memory 36/36+56/56 (five-fight RSS −695.5 MiB, transition +0.4 MiB); native songs/volumes/French-base5/5 and expanded banner 2/2, setup fresh 204 s/update97s (137 files unchanged), opening PCM330.5s/2clicks/1dropout. ccache cold 29.89 s/warm 1.95 s,142/142 hits, code identical to uncached; full unit 871/73 skipped and cachedquick 5/5. Retained sandbox invocation failure1/21 and ad-hoc route limitations; owner play-test/Linux exception/visual reference review and platform sign-offs pending. Reports logs/regress-20261108-001930.txt, logs/regress-20261107-232541.txt, logs/regress-20261108-004421.txt; no monitor created (background delegation rejected by automatic review).
 - 2026-11-08 11:34 UTC — D363: owner explicitly authorizes merge/tag/GA publication of PR #206 after Linux failure explanation; candidate play-test and Steam Deck GA update deferred to next morning. Mac stock/HD21/21, full unit 871/73 skipped, cachequick5/5 and CI 35/35 onfe7c91d retained. Linux stock/HD 20/21 and two pre-existing Zig fixture SIGSEGVs remain qualifications; extra Mac Story refs remain unapproved. All seven train heads are ancestors of the tested RC; no runtime/build-input change.
 - 2026-11-08 12:29 UTC — v1.1.0 GA/Latest published (D363), PR #206+7trainPRs merged, annotated tag at0e90a3a. Source workflow 42478114248 passed 37/37 after dependency retries; all15assetSHA/5binaryprovenances/exactsource-toolkit verified (`logs/rc110-ga-asset-verification.json`), live Linux updater from 1.0.1 offers1.1.0. Pages manualmain42480179921 passed after protected tag deployment rejection. Toolkit integrationFF6c0bd55→4801dc1; milestone1.1 closed, #166 carried to1.1.1(D364). Linux20/21/twoZigfixturefails and deferred owner play-test/extra visual evidence remain qualified, not passed.
 - 2026-11-08 09:57 — D365: retired six legacy v1.1.0 setup assets after verified backup; nine app assets retained, live notes corrected. All-platform app-only packaging, explicit nine-file release upload, current guides/site/agent policy updated. Focused packaging/source/site/instruction tests 167 passed/42 platform skips; source policy 0 failures, site build passes. No runtime/toolkit changes. Backup: defjam/release-evidence-1.1.0/retired-setup. PR/CI verify future publication.
+- 2026-11-08 20:43 UTC — Prepare owner-authorized single-fix v1.1.1 hotfix (#207, D366-D369), from app-only main15e366b/#208; toolkit4801dc1 unchanged. Fix CI35/35, local unit901/53 skipped, focused139/10 skipped, real-dump install374.7s pass. Actual GUI handoff succeeded; later cache/compiler-temp permission failures and stopped Computer Use leave final GUI repair unqualified. Owner explicitly waives full regression and requests publication within an hour. Release candidate/tag CI and nine app-asset verification pending.
+- 2026-11-08 21:18 UTC — D370: v1.1.1 GA/Latest published21:16:13UTC within36m26s; #210/#207 merged, annotated90efaebe at afaa9b1, toolkit4801dc1 unchanged. Candidate CI35/35; tagged Source37/37; unit906/56 skipped, source605/0. Candidate Windows update299.0s pass/data markers identical/no journal; all9asset digests/checksums/3provenance+payloads verified. All3app selectors offer1.1.1; Pages42524352127 passed. Owner waived full regression; earlier GUI/1.1.0 qualifications retained. Milestone10 closed, #166 carried to v1.1.2/#11. Evidence: defjam/release-evidence-1.1.1/afaa9b1.
 
 ## 7. Hand-off
 
-### v1.1.0 GA complete — 2026-11-08
+### v1.1.1 GA complete — 2026-11-08
 
-- D365: app-only publication maintenance. The six Windows/macOS legacy setup assets were removed from
-  v1.1.0 after a checksum-verified local backup; release notes now describe the nine retained app assets.
-  All future release uploads explicitly allow only the three app packages, checksums and provenance.
-  Legacy setups remain built/tested in CI; no game/app runtime or toolkit change. RecompLauncher
-  catalog Windows/macOS patterns still require its owner/developer hub to select `DefJamRecompiled`.
+- Published stable/Latest: https://github.com/vyanhursky/DefJamFFNY-recomp/releases/tag/v1.1.1
+  (release438523428), 21:16:13 UTC, within36m26s of the owner's request. #210 and #207 MERGED.
+  Main merge/tag target `afaa9b1c5ee3cc277f56d7f101874dbc0210b22f`; annotated tag object
+  `90efaebe66acf3044f93bca5e74c59709989a4b9`. Tree69712705 equals candidate6d75725/CI merge04c1464.
+- #207 is the only new runtime fix. Main already contained #208's app-only publication policy.
+  Toolkit `4801dc171da7d39ebf23c2fe709d14e4b50a1733` unchanged. No legacy setup assets published.
+- Candidate CI42521574111:35/35. Tagged Source42522957108:37/37. Local unit906 passed/56 skipped;
+  source605 files/0 failures. Candidate Windows app payload update1.1.0 to1.1.1: exit0,299.0s,
+  settings/save marker byte-identical, valid receipt/executable, no pending activation journal.
+- All nine final asset bytes match GitHub digests and checksum files. All three provenances and
+  embedded payload inventories verified non-development1.1.1/exact sourceafaa9b1/toolkit4801dc1:
+  Windows4525 files, Mac5240, Linux9795. Windows file/product versions both1.1.1.
+- Public newest_app selectors offer1.1.1 from1.1.0 for Windows/macOS/Linux. Pages main dispatch
+  42524352127 passed; latest release and platform downloads are live.
+- The tag-triggered Pages run42524349808 failed at deployment; the supported main-branch
+  dispatch above passed. No deployment protection was changed.
+- D369 explicitly waived full game regression for this expedited hotfix. No new gameplay,
+  live Steam session or physical Deck test is claimed. Earlier actual GUI handoff worked;
+  cache/compiler-temp test-environment failures and stopped Computer Use left final GUI repair
+  unqualified. The later isolated candidate CLI update passed; keep these separate.
+- Milestonev1.1.1(#10) closed. Still-open memory investigation #166 moved to v1.1.2(#11),
+  not fixed/closed. #202 excluded. Prior v1.1.0 qualifications (Deck replay#98, Zig cinema
+  fixtures, deferred play-test/extra Mac visual references) remain in its notes and evidence.
+- Private release evidence is retained at `defjam/release-evidence-1.1.1/afaa9b1` under the
+  workspace: final/candidate assets, verification JSON, native update logs and scripts.
+  No game executable, dump, save, capture or generated game code was published.
 
-- Published stable/Latest: https://github.com/vyanhursky/DefJamFFNY-recomp/releases/tag/v1.1.0 (release 438224854).
-  PR #206 plus #192/#195/#201/#185/#203/#204/#205 all MERGED; #202 stays excluded. Annotated tag at merge
-  `0e90a3a79686e60e081b0e594a96e95a819fe318`, tag object `8bd67fa30664aee2bfb52aa9dfb951077fb90b33`.
-- Toolkit `4801dc1` remains pinned. Fork integration `defjam/upstream-v0.16` fast-forwarded 6c0bd55→4801dc1;
-  no source change. Milestone v1.1.0(#8) closed; v1.1.1 (#10) opened, #166 carried forward (D364), not closed.
-- D363 is the owner's explicit instruction to merge/tag/GA now after Linux issues were explained. Combined
-  candidate play-test and Steam Deck GA-channel update follow next morning. Separate pre-GA sign-off/extra visual
-  gates were deferred, not recorded as received or passing. No persistent automation was created.
-- Mac game source fix `dec1ef6`: missing POSIX UI F7/F8 definitions broke the RC's complete game build on Mac/Linux.
-  Fixed with native compile regression test; subsequent commits are records/docs only. Clean analyze 18,446/lift 21 C files.
-  Full stock 21/21 (`logs/regress-20261107-220503.txt`), full 16:9 HD 21/21 (`logs/regress-20261108-001930.txt`),48 min each.
-  Both replay 80/1,800/exact hash, combat 28/28, versus 27/27, soak 3/3/UI/Story/language/input pass. HD memory extras
-  two matches 36/36 and five fights 56/56, final 90 s menu; five-fight RSS −695.5 MiB/transition +0.4 MiB.
-- Native songs/SDL F8/F7/full Straight+Interactive order/Beatbox 60–35/Songs UI/save-volume reload pass;
-  unchanged private French-base pack 5/5, expanded plain/HD banner 2/2 with inspected text, shared Release fixture
-  1/1, 82 draws, four HUD slots. Actual Mac submission-meter capture and by-ear/physical-pad acceptance were not scripted.
-  Setup fresh 204 s, Clean Update 97 s from real 1.0.1, 137 data files identical including settings/profiles; both games 40 s.
-  Opening PCM 330.5 s, 2 clicks/1 dropout; full unit 871 passed/73 skipped; ccache cold 29.89 s/warm 1.95 s, 142/142 hits,
-  executable code identical to uncached; cached quick 5/5 (`logs/regress-20261108-004421.txt`). Version notes/PR contain full matrix.
-- Premerge CI 42476421442 passed 35/35 on f0d80ba (attempt 4). Tagged Source workflow 42478114248 passed 37/37
-  (attempt 3). Retained retry history: dependency HTTP504/invalid Ninja archives, plus one input_host_edges line107
-  assertion that passed unchanged confirmation. Local static audit did not establish a runtime defect:
-  `logs/rc110-input-edge-static-audit.md`; do not silently treat that single failed attempt as if it never happened.
-- All 15 release asset bytes match GitHub digests; 5 binaries match checksum/provenance; app/setup payloads match;
-  source_commit=tagged merge 0e90a3a, toolkit_commit=4801dc1, non-development and updater-compatible. Receipt
-  `logs/rc110-ga-asset-verification.json`; assets `logs/rc110-ga-assets`. Public Latest and actual Linux app selector
-  from 1.0.1 offer 1.1.0 (`logs/rc110-ga-selector-result.json`). No game executable/data/captures were uploaded.
-- Pages release-event run 42479990529 rejected tag deployment by existing github-pages environment protection.
-  Supported main-branch manual run 42480179921 build/deploy passed; no protection rule changed.
-  Site: https://vyanhursky.github.io/DefJamFFNY-recomp/ .
-- Linux qualifications stay in version notes/PR: stock+HD 20/21, known replay 79 vs 80(#98), isolated repeat matches
-  its golden; two Zig cinema fixture SIGSEGVs also occur on 1.0.1. Owner accepted GA with these under D363.
-  Extra Story reference manifest remains approved:false at `logs/rc110-data/test-baselines/story-tour-v1/manifest.json`;
-  exact fixture in `logs/rc110-visual-fixture.json`, gallery `logs/rc110-visual-comparison-review.png`. Only approve
-  reviewed images on an explicit future owner reply, then run stock `--only visual` with that exact fixture.
-- Active worktree/private evidence retained for review, no game process running. Build `build/posix-release/defjam_recomp`;
-  Python `/tmp/defjam-rc110-venv/bin/python`, DEFJAM_DATA=$PWD/logs/rc110-data. Saves cloned/guarded, own dump via game link.
-  Local CMake opts into `logs/rc110-tools/ccache-4.14.2-darwin/ccache`; reapply env from `logs/rc110-cache-check.py`
-  to reuse test cache. Shipping default OFF. All native game tests need require_escalated display/shared memory;
-  accidental sandboxed HD 1/21 and other bad ad-hoc recipe receipts remain qualified, final native runs pass.
-- Next: await owner's post-GA play-test/Deck update result; investigate reported faults through the play-test/triage
-  playbooks and existing issues. v1.1.1 is the follow-up milestone, not a bumped game version. Preserve source/tag
-  immutability and private test artifacts; current baseline is shipped 1.1.0 plus main-only documentation.
-
-Detailed private evidence: `logs/rc110-MAC-RESULTS.md`, current publication state `logs/rc110-ga-state.json`.
+Decisions are read by number or keyword: `decision D<n>`, `decisions --grep TEXT`.

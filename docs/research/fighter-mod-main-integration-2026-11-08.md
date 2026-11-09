@@ -136,3 +136,45 @@ sidecars. They are separate from the native-profile/Fighter-extension transactio
 the integration does not silently relocate or adopt those preferences into the
 Fighter Store. Backups should retain the complete data folder, and coexistence
 acceptance must keep this boundary explicit.
+
+## New integrated native observation and newer main
+
+Normal development-source helper plus the actual isolated payload Python runs
+the complete pack and independent starter on d6f7bac/toolkit4801dc1. Native log
+`run-20261108-172016.log.err` verifies47logical bindings, both owned entrance
+contexts FI00001/FI00002 and the composed33-song database. The House profile's
+jukebox loads33rows through the combined profile hook. All six two-human combat
+assertions pass: both participants walk and land input-linked damaging attacks.
+Original save guard restores identically and one native batch is acknowledged.
+The actual game renders Arii/Briggs and the native pause/quit confirmation.
+
+The run reaches its720second cap before final quit confirmation; it does not
+reach the second battle-mode menu, release the pool through native match
+destruction or exit the application cleanly. Preserve the failed lifecycle
+criterion despite the six combat passes. The early live pause navigation was
+not reliable with tightly queued presses; individually observed menu inputs
+reach Quit and its confirmation. Repeat with a focused, calibrated lifecycle
+route after the fresh install. Receipt: `fighter-main-managed-native-1108.json`.
+Frame reports297two-second samples, minimum107presents, median120; this is bounded
+evidence, not a universal rate guarantee.
+
+Main subsequently advanced independently to482897f (v1.1.1 setup handoff hotfix).
+It merges into this feature branch without conflicts; toolkit4801dc1 stays
+unchanged. Neither feature PR is merged or released. The current first-install
+test retains its frozen d6f7bac development payload in the short disposable
+`fmi`workspace; do not relabel its result as the newer source snapshot. Validate
+the newer setup path separately, including its update/repair handoff.
+
+The short-path first installation now passes in407.2seconds using the inspected
+current development payload (d6f7bac/toolkit4801dc1), the immutable own dump,
+isolated per-user locks and compiler temp, and no shortcut creation. Real engine
+analysis179.6seconds, lift83.2seconds, configuration and game build complete,
+followed by verified activation. Log: `fighter-main-fresh-short-1108.txt` and the
+private `fmi/setup.log`/installation receipt. This is a local development payload
+first-install result in a short Windows path; it does not erase the failed deep
+path, establish the default installation path, or substitute for final RC/app UI,
+update and platform acceptance. Native installed fighter admission/play remains
+to be exercised.
+
+Latest main's setup-handoff/engine/update and fighter packaging focused suite
+passes141tests/10platform skips (`fighter-main-hotfix-integration-unit-1108.txt`).
