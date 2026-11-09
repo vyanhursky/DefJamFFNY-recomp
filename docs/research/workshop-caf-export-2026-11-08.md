@@ -151,3 +151,9 @@ Windows already compiled all game-side sources without game data; Mac/Linux
 now do so too, using the existing template-header/empty-dispatch helper. Linux
 passes its existing SDL2 setting through a tested CMake-option argument.
 The original toolkit pin and source-publication restrictions are unchanged.
+
+The first hosted Linux source check failed at configuration because full SDL3
+was absent: the existing runtime-only lane intentionally uses SDL2. CI now
+builds/caches a complete SDL3 host library from the exact published toolkit
+version/hash and supplies its local prefix to the game-side object check.
+The failing run remains recorded; no test is skipped to address it.
