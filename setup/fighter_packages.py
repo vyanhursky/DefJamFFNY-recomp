@@ -142,6 +142,9 @@ def runtime_environment(cache, report, screens, language=None):
                    'RECOMP_FIGHTER_NAMES_PROBE': '1', 'RECOMP_FIGHTER_IMMUTABLE_REUSE': '1'}
     if report.get('binding_mode') == 'participant-window':
         environment['RECOMP_FIGHTER_WINDOW'] = str(cache / 'fighter-window.bin')
+    if report.get('caf_fighters'):
+        environment['RECOMP_FIGHTER_CAF'] = str(cache / 'fighter-caf.bin')
+        environment['RECOMP_FIGHTER_CAF_SHA256'] = report['caf_sha256']
     if report.get('appearance_files'):
         for field, relative in [('MODELS', 'assets/v2ip.viv'), ('ENTITIES', 'assets/entity.xml'), ('CINEMATICS', 'assets/nis.viv')]:
             environment['RECOMP_FIGHTER_RESEARCH_' + field] = str(cache / relative)

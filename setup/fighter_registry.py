@@ -16,10 +16,10 @@ SLUG = re.compile(r'[a-z0-9]+(?:-[a-z0-9]+)*\Z')
 VERSION = re.compile(r'(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\Z')
 GROUPS = {'appearance': 'appearance', 'moveset': 'moveset', 'voice': 'voice',
           'ai': 'ai', 'portrait': 'portrait', 'intro': 'cinematic',
-          'victory': 'cinematic', 'blazin': 'blazin'}
+          'victory': 'cinematic', 'blazin': 'blazin', 'caf': 'caf'}
 COMPATIBILITY = {'appearance': {'skeleton'}, 'moveset': {'skeleton', 'events'},
                  'voice': {'events'}, 'ai': set(), 'portrait': set(),
-                 'cinematic': {'skeleton', 'events'}, 'blazin': {'skeleton', 'events'},'tag-override':set()}
+                 'cinematic': {'skeleton', 'events'}, 'blazin': {'skeleton', 'events'},'tag-override':set(), 'caf':set()}
 STATS = {'health', 'speed', 'toughness', 'charisma'}
 MAX_DEFINITIONS = 16384
 MAX_PACKS = 1024
@@ -115,7 +115,10 @@ def validate_pack(pack, builtin=False):
             check(not builtin, 'resource-source', 'Retail resource sources are immutable')
             from fighter_resource_files import appearance_source, portrait_source
             try:
-                if kind in ('appearance', 'portrait'):
+                if kind == 'caf':
+                    from fighter_caf import source
+                    source(resource['source'])
+                elif kind in ('appearance', 'portrait'):
                     (appearance_source if kind == 'appearance' else portrait_source)(resource['source'])
                 else:
                     from fighter_behavior_files import validate_source

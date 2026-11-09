@@ -208,7 +208,7 @@ class Database:
                 'string_count': len(self.strings), 'character_count': table.count, 'characters': rows}
 
     def extend_character_records(self, additions, edits=None, *, selection_keys=None, deferred_keys=None,
-                                 character_cores=None):
+                                 character_cores=None, caf_cores=None):
         """Native-cache construction experiment, not a runnable mod installer.
 
         Additions use stable keys, existing template record offsets and named
@@ -223,6 +223,11 @@ class Database:
                   and set(character_cores) == {a.get('key') for a in additions if isinstance(a, dict)}
                   and all(type(core) is int and 142 <= core <= 16384 for core in character_cores.values()),
                   'Owned character cores must cover exactly the added records within the runtime budget')
+        caf_cores = {} if caf_cores is None else caf_cores
+        check(type(caf_cores) is dict and set(caf_cores) <= {a.get('key') for a in additions}
+              and all(type(core) is int and 87 <= core <= 141 for core in caf_cores.values())
+              and not (character_cores and set(caf_cores) & set(character_cores)),
+              'CAF cores must be verified retail style combinations on added fighters only')
         deferred_keys = set() if deferred_keys is None else deferred_keys
         check(isinstance(deferred_keys, set) and deferred_keys <= {a.get('key') for a in additions if isinstance(a, dict)},
               'Deferred native records must identify added templates')
@@ -349,6 +354,8 @@ class Database:
                 # Internal compiler output, separate from package-authored fields.
                 # Bind before building indexes, participant windows and receipts.
                 struct.pack_into('<I', row, 40, character_cores[key])
+            if key in caf_cores:
+                struct.pack_into('<I', row, 40, caf_cores[key])
             offset = emit(row)
             # Runtime-owned binding windows retain validated templates/string
             # IDs without exposing every logical fighter to fixed native lists.

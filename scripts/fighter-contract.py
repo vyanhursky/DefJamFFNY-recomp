@@ -100,7 +100,7 @@ def validate(game, folders, language=None):
     before = [{p.relative_to(folder).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
                for p in folder.rglob('*') if p.is_file()} for folder in folders]
     data, report, resources = compile_inputs(game / 'assets/djv2.sod', paths, packs, binding_window=True)
-    with tempfile.TemporaryDirectory(prefix='fighter-validation-') as temporary:
+    with tempfile.TemporaryDirectory(prefix='fighter-validation-', dir=Path(tempfile.gettempdir()).resolve()) as temporary:
         cache = Path(write_preview(data, report, resources, cache_root=Path(temporary) / 'native'))
         screens = game / 'screens/screens.viv'
         composed = prepare_language_screens(screens, language) if language else None
@@ -121,10 +121,12 @@ def validate(game, folders, language=None):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=('catalog','tag-catalog', 'voice-catalog', 'validate-voice', 'export-pair','export-cinematic', 'validate'))
+    parser.add_argument('command', choices=('catalog','tag-catalog', 'voice-catalog', 'validate-voice', 'export-pair','export-cinematic', 'export-caf-portrait', 'validate'))
     parser.add_argument('--game', type=Path, required=True)
     parser.add_argument('--pack', type=Path, action='append', default=[])
     parser.add_argument('--language', type=Path)
+    parser.add_argument('--portrait-png', type=Path)
+    parser.add_argument('--portrait-out', type=Path)
     parser.add_argument('--voice-source', type=Path)
     parser.add_argument('--pair-request',type=Path)
     parser.add_argument('--cinematic-request',type=Path)
@@ -135,6 +137,11 @@ def main():
             result = {'protocol': PROTOCOL, 'ok': True,
                       'baseline': catalog.baseline(),
                       'native_models':{row['fields']['Model']['symbol']:key for key,row in catalog.rows.items()}}
+        elif args.command=='export-caf-portrait':
+            if args.portrait_png is None or args.portrait_out is None:raise ValueError('Choose a PNG and a new portrait output folder')
+            from fighter_caf_portrait import export_png
+            pin=json.loads((ROOT/'config/fighter-native-baseline.json').read_text())
+            result={'protocol':PROTOCOL,'ok':True,**export_png(args.game,args.portrait_png,args.portrait_out,retail_catalog(args.game/'assets/djv2.sod'),pin)}
         elif args.command=='tag-catalog':
             from fighter_timelines import TagTimelines
             pins=json.loads((ROOT/'config/fighter-native-baseline.json').read_text())

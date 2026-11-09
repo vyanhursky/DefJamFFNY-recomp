@@ -14,6 +14,8 @@ confidence labels and disproved hypotheses remain distinct from measured facts.
 
 ## Fighter Mod Support
 
+- [Workshop standalone CAF export](workshop-caf-export-2026-11-08.md) — fighter-only recipe contract, native CAF lifecycle, portraits and qualified development evidence.
+
 - [v0.12.1 created-fighter thumbnails](v0121-created-fighter-thumbnail.md) — small guest capture surfaces and normal save/reload recovery for empty profile images.
 - [Fighter Mod Support: active runtime implementation](fighter-mod-runtime-2026-11-02.md): local native menu/combat evidence, stable identities, save/capacity findings and outstanding gates for v0.15.0.
 - [Fighter Mod Support: M1/M2 checkpoint](fighter-mod-m1-m2-2026-11-04.md): current appearance compiler, native acceptance, motion decoding and remaining milestone gates; supersedes earlier tentative audit conclusions.

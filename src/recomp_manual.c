@@ -143,11 +143,14 @@ void sub_001A8150(void) {
     if (name) { g_eax = name; g_esp += 4; return; }
     sub_001A8150_gen();
 }
+extern void defjam_fighter_caf_decode_trace(uint32_t output, uint32_t source, uint32_t caller, int done);
 extern void sub_001A38B0_gen(void);
 void sub_001A38B0(void) {
     uint32_t address = g_esp + 8, source = MEM32(address);
     MEM32(address) = defjam_fighter_finisher_parameters(MEM32(g_esp + 4), source, MEM32(g_esp));
+    defjam_fighter_caf_decode_trace(MEM32(g_esp + 4), source, MEM32(g_esp), 0);
     sub_001A38B0_gen();
+    defjam_fighter_caf_decode_trace(0, source, 0, 1);
     MEM32(address) = source; /* cdecl; the decoder receives one complete donor row. */
 }
 
@@ -228,9 +231,10 @@ void sub_000C9110(void) {
 /* Owned motion descriptors and generation boundaries. Real entry points retain
  * direct-call coverage after re-lift; native retail branches remain delegated. */
 extern void sub_0003E170_gen(void);
+extern int defjam_fighter_caf_audio(uint32_t input);
 void sub_0003E170(void) {
     defjam_fighter_voice_select(MEM32(g_esp + 4));
-    if (!defjam_fighter_motion_audio(MEM32(g_esp + 4))) sub_0003E170_gen();
+    if (!defjam_fighter_caf_audio(MEM32(g_esp + 4)) && !defjam_fighter_motion_audio(MEM32(g_esp + 4))) sub_0003E170_gen();
 }
 extern void sub_0003DB00_gen(void);
 void sub_0003DB00(void) {
@@ -357,6 +361,32 @@ void sub_00047BC0(void)
     sub_00047BC0_gen();
     MEM32(self + 4) = defjam_fighter_filter_banks(0x003A07B0u, MEM32(self + 4));
     defjam_fighter_order(MEM32(self + 0x2C), 0x003A07B0u, MEM32(self + 4), "GameMode");
+}
+
+/* Standalone CAFs retain their fully initialized native participant contexts;
+ * the debug cp_def XML path cannot supply an independent fighter recipe. */
+extern int defjam_fighter_caf_context(uint32_t service, uint32_t participant, uint32_t *output);
+extern void sub_0001E410_gen(void);
+void sub_0001E410(void)
+{
+    uint32_t context;
+    if (defjam_fighter_caf_context(g_ecx, MEM32(g_esp + 4), &context)) {
+        g_eax = context; g_esp += 8; return; /* Original ret4. */
+    }
+    sub_0001E410_gen();
+}
+extern int defjam_fighter_caf_visual(uint32_t visual, uint32_t participant, int apply);
+extern void sub_000994C0_gen(void);
+void sub_000994C0(void)
+{
+    if (defjam_fighter_caf_visual(g_ecx, 0, 0)) { g_esp += 4; return; }
+    sub_000994C0_gen();
+}
+extern void sub_0009D0E0_gen(void);
+void sub_0009D0E0(void)
+{
+    if (defjam_fighter_caf_visual(g_ecx, MEM32(g_esp + 4), 1)) { g_esp += 8; return; }
+    sub_0009D0E0_gen();
 }
 
 extern void sub_00020270_gen(void);

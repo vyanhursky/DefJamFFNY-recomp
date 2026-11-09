@@ -1,5 +1,6 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include "fighter_runtime.h"
+#include "fighter_caf.h"
 #include "fighter_motion.h"
 #include "fighter_voice.h"
 #include "fighter_animation.h"
@@ -142,6 +143,7 @@ static BOOL research_redirect(const char *relative, fighter_host_char *host_path
 }
 
 static int research_start(void) {
+    if (!defjam_fighter_caf_start()) return 0;
     const char *sod = getenv("RECOMP_FIGHTER_RESEARCH_SOD");
     const char *screens = getenv("RECOMP_FIGHTER_RESEARCH_SCREENS");
     const char *language_base = getenv("RECOMP_FIGHTER_RESEARCH_LANGUAGE_BASE");
@@ -442,6 +444,7 @@ int defjam_fighter_native_record(uint32_t database, uint32_t output, uint32_t st
 }
 
 void defjam_fighter_match_setup(uint32_t self, uint32_t fighters) {
+    defjam_fighter_caf_clear();
     if (!s_window.bytes) return;
     validate_immutable_banks();
     fprintf(stderr, "[FIGHTERS] resource observation phase=match_setup heap=%u contiguous=%u\n",
@@ -454,6 +457,7 @@ void defjam_fighter_match_setup(uint32_t self, uint32_t fighters) {
             fighter_stop("Native match setup did not materialize the immutable fighter core.");
         fprintf(stderr, "[FIGHTERS] materialized participant=%u stable=%08X logical=%u core=%u immutable=1\n",
                 i, stable, row.selection_key, row.core_id);
+        defjam_fighter_caf_participant(self,i,row.selection_key);
     }
 }
 
@@ -466,8 +470,9 @@ static void finish_selection(const char *boundary) {
             xbox_HeapLiveBytes(), xbox_ContiguousLiveBytes());
 }
 
-void defjam_fighter_match_finished(void) { finish_selection("Game.Quit"); }
-void defjam_fighter_match_unloaded(void) { finish_selection("match teardown"); }
+void defjam_fighter_match_finished(void) {
+    defjam_fighter_caf_clear(); finish_selection("Game.Quit"); }
+void defjam_fighter_match_unloaded(void) { defjam_fighter_caf_clear(); finish_selection("match teardown"); }
 
 void defjam_fighter_handle_produced(uint32_t database, uint32_t table, uint32_t output) {
     FighterBinding binding;

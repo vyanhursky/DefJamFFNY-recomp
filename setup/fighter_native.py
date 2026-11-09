@@ -92,13 +92,14 @@ class RetailCatalog:
         return {'selection_key': selection, 'stats': stats, 'styles': styles}
 
     def compile(self, packs, ledger=None, *, logical_menu=False, binding_window=False, appearances=None, portraits=None,
-                behavior=None):
+                behavior=None, caf=None):
         check(not (logical_menu and binding_window), 'native-mode', 'Choose one logical binding mode')
         snapshot = resolve(self._baseline, packs)
         if behavior is not None:
             from fighter_behavior import BehaviorPlan
             check(type(behavior) is BehaviorPlan, 'native-behavior', 'Expected a validated behavior generation')
             behavior.validate(self, snapshot)
+        caf = {} if caf is None else caf
         appearances = {} if appearances is None else appearances
         check(type(appearances) is dict, 'native-resource', 'Expected validated appearance resources')
         from fighter_appearance import Appearance
@@ -128,14 +129,14 @@ class RetailCatalog:
         additions, edits, donor_keys, localization, portrait_donors, menu_roster = [], [], {}, {}, {}, {}
         for identifier, fighter in snapshot['fighters'].items():
             components = fighter['components']
-            unsupported = set(components) - set(RESOURCE_FIELDS) - {'moveset', 'stats', 'tier'} - ({'ai', 'intro', 'victory', 'blazin'} if behavior else set())
+            unsupported = set(components) - set(RESOURCE_FIELDS) - {'moveset', 'stats', 'tier', 'caf'} - ({'ai', 'intro', 'victory', 'blazin'} if behavior else set())
             check(not unsupported, 'native-component', 'Native adapter does not yet implement these components',
                   {'fighter': identifier, 'components': sorted(unsupported)})
             check(set(components.get('stats', {})) == set(STATS), 'native-component',
                   'Native preview requires all four stats, explicitly or through inheritance',
                   {'fighter': identifier})
             for group, resource in components.items():
-                if group not in ('stats', 'tier'):
+                if group not in ('stats', 'tier', 'caf'):
                     check(resource in self.bindings or group == 'appearance' and resource in appearances
                           or group == 'portrait' and resource in portraits
                           or behavior is not None and resource in behavior.sources,
@@ -189,7 +190,11 @@ class RetailCatalog:
                 additions.append({'key': identifier, 'native_name': native_name,
                                   'template': donor['record_offset'], 'fields': native_fields})
                 if logical_menu or binding_window:
-                    menu_roster[identifier] = self.menu_record(donor, components, ledger['fighters'][identifier]['selection'])
+                    if identifier in caf:
+                        from fighter_caf import menu_record
+                        menu_roster[identifier] = menu_record(caf[identifier]['recipe'], ledger['fighters'][identifier]['selection'])
+                    else:
+                        menu_roster[identifier] = self.menu_record(donor, components, ledger['fighters'][identifier]['selection'])
         # Removing the last pack is a valid lifecycle transition. Keep its
         # historical ledger dormant, but do not invent native banks without
         # an active fighter/template or emit an empty window for the runtime.
@@ -211,7 +216,8 @@ class RetailCatalog:
             selection_keys={addition['key']: selections[addition['key']] for addition in native_additions},
             deferred_keys={addition['key'] for addition in additions} if binding_window else None,
             character_cores={addition['key']: behavior.character_cores.get(addition['key'],
-                behavior.character_cores[additions[0]['key']]) for addition in native_additions} if behavior else None)
+                behavior.character_cores[additions[0]['key']]) for addition in native_additions} if behavior else None,
+            caf_cores={addition['key']:caf[addition['key']]['core'] for addition in native_additions if addition['key'] in caf})
         bindings = {key: dict(row['native_binding'], record_offset=row['record_offset'], native_name=row['name'])
                     for key, row in self.rows.items()}
         for key, binding in native['bindings'].items():

@@ -77,6 +77,18 @@ def compile_inputs(sod, paths, packs, ledger=None, *, catalog=None, pin_path=Non
     snapshot = resolve(catalog.baseline(), packs)
     sourced = {name: resource for name, resource in snapshot['resources'].items() if 'source' in resource}
     appearances, portraits, resources = {}, {}, {}
+    from fighter_caf import load as load_caf, encode as encode_caf
+    caf_sources = {name: value for name, value in sourced.items() if value['kind'] == 'caf'}
+    caf_recipes = {name: load_caf(paths[[p['id'] for p in packs].index(value['owner'])].parent, value['source'], catalog, sod.parents[1]) for name,value in caf_sources.items()}
+    if caf_sources and any('caf' in row['components'] for row in snapshot['fighters'].values()) and any(value['kind'] not in ('caf','portrait') for value in sourced.values()):
+        raise ValueError('CAF recipes currently support retail behavior and optional portraits only')
+    caf = {key:dict(caf_recipes[row['components']['caf']],
+                    audio_core=catalog.rows[catalog.bindings[row['components']['voice']]['donor']]['native_binding']['core_id'])
+           for key,row in snapshot['fighters'].items() if 'caf' in row['components']}
+    if any(not 1 <= item['audio_core'] <= 86 for item in caf.values()):
+        raise ValueError('CAF voice requires a retail presentation donor')
+    if any(key.startswith('retail/') for key in caf):
+        raise ValueError('CAF recipes add independent fighters; retail CAF overrides are not supported')
     roots = {pack['id']: path.parent for pack, path in zip(packs, paths)}
     appearance_sources = {key: value for key, value in sourced.items() if value['kind'] == 'appearance'}
     portrait_sources = {key: value for key, value in sourced.items() if value['kind'] == 'portrait'}
@@ -128,13 +140,17 @@ def compile_inputs(sod, paths, packs, ledger=None, *, catalog=None, pin_path=Non
             resources.update(portrait.files)
             portrait_files.update({path: hashlib.sha256(payload).hexdigest() for path, payload in portrait.files.items()})
     behavior = None
-    if any(value['kind'] not in ('appearance', 'portrait') for value in sourced.values()):
+    if any(value['kind'] not in ('appearance', 'portrait', 'caf') for value in sourced.values()):
         from fighter_behavior import BehaviorPlan
         behavior = BehaviorPlan(catalog, snapshot, roots, sod.parents[1], pin, appearances, resources)
         resources.update(behavior.files)
         appearance_files = {path: hashlib.sha256(resources[path]).hexdigest() for path in appearance_files}
     data, report = catalog.compile(packs, ledger, appearances=appearances, portraits=portraits,
-                                   behavior=behavior, **options)
+                                   behavior=behavior, caf=caf, **options)
+    if caf:
+        resources['fighter-caf.bin'] = encode_caf(caf, report)
+        report['caf_sha256'] = hashlib.sha256(resources['fighter-caf.bin']).hexdigest()
+        report['caf_fighters'] = {key: {'core':item['core'],'audio_core':item['audio_core'],'recipe_sha256':item['sha256']} for key,item in caf.items()}
     if appearance_files:
         report['appearance_files'] = appearance_files
     if portrait_files:
@@ -164,7 +180,7 @@ def write_preview(data, report, resources=None, *, cache_root=None, max_report=M
             raise ValueError('Behavior resources require their exact composed files')
     if bool(report.get('appearance_resources')) != bool(report.get('appearance_files')):
         raise ValueError('Appearance resources require their complete composed files')
-    if type(resources) is not dict or set(resources) != appearance_targets | portrait_targets | behavior_targets:
+    if type(resources) is not dict or set(resources) != appearance_targets | portrait_targets | behavior_targets | ({'fighter-caf.bin'} if report.get('caf_fighters') else set()):
         raise ValueError('Invalid composed appearance targets')
     if any(not isinstance(payload, bytes) or not 0 < len(payload) <= MAX_ARCHIVE for payload in resources.values()):
         raise ValueError('Composed appearance file exceeds budget')
@@ -174,6 +190,8 @@ def write_preview(data, report, resources=None, *, cache_root=None, max_report=M
         raise ValueError('Composed portrait receipt differs from its bytes')
     if report.get('behavior_files', {}) != {path: hashlib.sha256(resources[path]).hexdigest() for path in behavior_targets}:
         raise ValueError('Composed behavior receipt differs from its bytes')
+    if report.get('caf_fighters') and hashlib.sha256(resources['fighter-caf.bin']).hexdigest() != report.get('caf_sha256'):
+        raise ValueError('Compiled CAF recipe checksum differs')
     serialized = (json.dumps(report, indent=2, sort_keys=True, allow_nan=False) + '\n').encode('utf-8')
     if len(serialized) > max_report:
         raise ValueError('Generated preview report exceeds budget')
