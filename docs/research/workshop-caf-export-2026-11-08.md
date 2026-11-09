@@ -135,3 +135,19 @@ Ready for source review on local `codex/workshop-caf-export` and Workshop
 `codex/fighter-projects`. Keep the tested development pair together.
 Before release, qualify Windows/Linux natively and retain the existing public
 Custom Fighter installation, profile and capacity gates. No source push, publication or new release is authorized this turn.
+
+## PR publication and CI — 2026-11-09
+
+The owner authorized pushing both feature branches and opening PRs against
+Workshop develop/0.1 and recomp research/custom-fighter-mods, with Windows, Mac
+and Linux CI passing. No merge or release is requested. The recomp branch now
+integrates research head0cfc354, preserving its owned-voice rematch restoration
+alongside CAF speech routing. The native voice fixture covers native, motion
+and CAF audio-setup return paths. Earlier in-game evidence above was measured
+before this integration; hosted CI remains game-free.
+
+CI explicitly runs CAF recipe/portrait/lifecycle checks on MSVC and POSIX.
+Windows already compiled all game-side sources without game data; Mac/Linux
+now do so too, using the existing template-header/empty-dispatch helper. Linux
+passes its existing SDL2 setting through a tested CMake-option argument.
+The original toolkit pin and source-publication restrictions are unchanged.

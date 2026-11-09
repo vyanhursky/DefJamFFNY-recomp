@@ -41,6 +41,7 @@ def game_objects(build):
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split('\n\n')[0])
     ap.add_argument('--build', default=str(REPO / 'build' / 'ci-game-sources'))
+    ap.add_argument('--cmake-arg', action='append', default=[], help='Extra CMake configure argument (repeatable)')
     ap.add_argument('--keep', action='store_true', help='leave the stand-ins in src/recomp/gen')
     a = ap.parse_args(argv)
     if (GEN / 'recomp_0000.c').exists():
@@ -59,7 +60,7 @@ def main(argv=None):
     try:
         build = Path(a.build)
         subprocess.run(['cmake', '-S', str(REPO), '-B', str(build), '-G', 'Ninja', '-DCMAKE_BUILD_TYPE=Release',
-                        '-DDEFJAM_BUILD_GAME=ON'], check=True)
+                        '-DDEFJAM_BUILD_GAME=ON', *a.cmake_arg], check=True)
         objects = game_objects(build)
         if not objects:
             sys.exit('the game target has no objects: did the configure keep DEFJAM_BUILD_GAME on?')
