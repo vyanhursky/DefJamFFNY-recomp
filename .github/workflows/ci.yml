@@ -291,11 +291,16 @@ jobs:
           with tarfile.open(archive) as source:
               source.extractall(root / 'source', filter='data')
           PYSDL
-          cmake -S build/ci-host-sdl3/source/SDL3-* -B build/ci-host-sdl3/build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$PWD/build/ci-host-sdl3/install" -DSDL_SHARED=ON -DSDL_STATIC=OFF -DSDL_TEST_LIBRARY=OFF -DSDL_TESTS=OFF -DSDL_EXAMPLES=OFF
+          cmake -S build/ci-host-sdl3/source/SDL3-* -B build/ci-host-sdl3/build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$PWD/build/ci-host-sdl3/install" -DSDL_SHARED=ON -DSDL_STATIC=OFF -DSDL_INSTALL=ON -DSDL_TEST_LIBRARY=OFF -DSDL_TESTS=OFF -DSDL_EXAMPLES=OFF
           cmake --build build/ci-host-sdl3/build --parallel 2
           cmake --install build/ci-host-sdl3/build
       - name: Game-side sources compile (no game code)
-        run: python scripts/compile-game-sources.py ${{ runner.os == 'Linux' && '--cmake-arg=-DDEFJAM_SDL3=OFF --cmake-arg=-DCMAKE_PREFIX_PATH=build/ci-host-sdl3/install' || '' }}
+        run: |
+          if [ "$RUNNER_OS" = Linux ]; then
+            python scripts/compile-game-sources.py --cmake-arg=-DDEFJAM_SDL3=OFF "--cmake-arg=-DCMAKE_PREFIX_PATH=$PWD/build/ci-host-sdl3/install"
+          else
+            python scripts/compile-game-sources.py
+          fi
       - name: Hardware-free fixtures
         run: |
           for t in mmio_trap_posix guest_cpu_posix memory_layout_posix windows_guest_layout kernel_memory_posix kernel_path_posix kernel_bridge nv2a_vsh settings texture_pack nv2a_texture_signature nv2a_small_capture nv2a_ws_left_tag d3d8_vk_cache; do
