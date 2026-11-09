@@ -256,6 +256,10 @@ void sub_00089310(void) {
     defjam_fighter_finishers_release(manager); /* Provider no longer owns the mask. */
     defjam_fighter_film_release();
     defjam_fighter_cpu_released();
+    /* Pause-menu Quit reaches CLogic teardown without front-end Game.Quit.
+     * Retained selection can thaw only after native destruction and all owned
+     * motion/film/pool lifetime checks above have completed. */
+    defjam_fighter_match_unloaded();
 }
 extern void sub_000A02E0_gen(void);
 void sub_000A02E0(void) {

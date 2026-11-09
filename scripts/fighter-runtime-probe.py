@@ -159,7 +159,7 @@ def verify_menu_matches(log, report, matches, *, immutable=False):
             match = re.search(r'\[FIGHTERS\] materialized participant=(\d+) stable=([0-9A-F]{8}) logical=(\d+) core=(\d+) immutable=1', line)
             if match and current is not None:
                 current['materialized'][int(match[1])] = (int(match[3]), int(match[2], 16), int(match[4]))
-            if '[FIGHTERS] selection ownership finished after native Game.Quit; immutable records retained' in line:
+            if re.search(r'\[FIGHTERS\] selection ownership finished after native (?:Game\.Quit|match teardown); immutable records retained', line):
                 released += 1
     if len(epochs) != len(matches):
         raise ValueError('Native menu did not start exactly the expected number of matches')

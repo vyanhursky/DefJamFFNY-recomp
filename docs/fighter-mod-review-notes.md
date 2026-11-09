@@ -235,10 +235,10 @@ The [acceptance ledger](fighter-mod-acceptance.md) and
 [November 8 checkpoint](research/fighter-mod-m5-2026-11-08.md) retain exact local
 logs and limitations. Key evidence includes:
 
-- Complete runtime unit suite: 2,209 passed, 27 platform/optional skips in 133.98
+- Earlier complete runtime unit suite: 2,209 passed, 27 platform/optional skips in 133.98
   seconds (`fighter-pr-full-unit-1108.txt`). The earlier focused fighter suite
   passed 1,424 tests, including compiled native fixtures.
-- Complete companion creator suite: 218 passed, three skipped and 51 subtests
+- Earlier complete companion creator suite: 218 passed, three skipped and 51 subtests
   passed in 4.99 seconds (`fighter-pr-full-unit-b-1108.txt`).
 - Re-lift and Windows Release build after the cinematic posthook.
 - Installed creator exports, complete ordinary validation and a separate source
@@ -259,10 +259,30 @@ logs and limitations. Key evidence includes:
 - Save guards restore byte-identically; the actual local playtest shortcut opens
   the normal launcher with both packs enabled and was closed after verification.
 
-Remaining work includes integration with current main, broad content/audio/event
+Current main v1.1.1 (`482897f`) is integrated at `7c6394d`, retaining toolkit
+`4801dc1`, the app/launcher and CAF authoring commands. Integrated runtime tests
+pass 2,356/56 skips before the subsequent strict-CI/helper cleanup; 140 focused
+native cases pass afterward. Preparation changes pass 97 manager/probe and 69
+voice/resource cases. All-platform source CI is green at `d6f7bac`. Latest main's
+setup-handoff/engine/update/Fighter packaging suite passes 141/10 skips. Companion
+source and newly installed wheel each pass 248/3 skips/51 subtests.
+
+The newer native `d6f7bac` run passes six two-human combat checks, both owned
+entrances and the composed music database. It times out before final Quit; it
+does not replace the earlier positive lifecycle evidence or prove that lifecycle
+on the newer snapshot. A real Windows first install from the inspected local
+development payload passes in 407.2 seconds in a short isolated path. Earlier
+compiler Temp/deep SDL/Ninja path failures remain recorded. The v1.1.1 app builds
+and passes payload/import inspection, including 71 Fighter modules. These local
+development checks do not establish the default install path, final app GUI,
+update/repair, RC or POSIX acceptance. The integration checkpoint records exact
+snapshots and subsequent actual-installed-runtime results.
+
+Remaining work includes broad content/audio/event
 and created/retail/mixed contexts, source-fidelity visual review, negative resource
 paths, performance and long-run lifecycle measurements, physical controllers,
-fresh installers, macOS/Deck/Linux and final release-candidate/owner acceptance.
+final app GUI/update/repair, default-path installation, macOS/Deck/Linux and
+final release-candidate/owner acceptance.
 An approximately 90-second actor-update pause in an earlier diagnostic fixture
 occurred while rendering remained regular; its cause is not established.
 

@@ -457,14 +457,17 @@ void defjam_fighter_match_setup(uint32_t self, uint32_t fighters) {
     }
 }
 
-void defjam_fighter_match_finished(void) {
+static void finish_selection(const char *boundary) {
     if (!s_window.bytes || !s_window.frozen || !s_immutable_reuse) return;
     validate_immutable_banks();
     if (!fighter_window_finish(&s_window)) fighter_stop("Could not finish native fighter selection ownership.");
-    fprintf(stderr, "[FIGHTERS] selection ownership finished after native Game.Quit; immutable records retained\n");
+    fprintf(stderr, "[FIGHTERS] selection ownership finished after native %s; immutable records retained\n", boundary);
     fprintf(stderr, "[FIGHTERS] resource observation phase=match_finished heap=%u contiguous=%u\n",
             xbox_HeapLiveBytes(), xbox_ContiguousLiveBytes());
 }
+
+void defjam_fighter_match_finished(void) { finish_selection("Game.Quit"); }
+void defjam_fighter_match_unloaded(void) { finish_selection("match teardown"); }
 
 void defjam_fighter_handle_produced(uint32_t database, uint32_t table, uint32_t output) {
     FighterBinding binding;

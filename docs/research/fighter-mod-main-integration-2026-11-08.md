@@ -7,7 +7,8 @@ merged and no pack or release may be published without further authorization.
 
 ## Integration scope
 
-Runtime main `15e366b` is integrated into the feature branch. This imports the
+Runtime main initially `15e366b`, then `482897f` (v1.1.1), is integrated into the
+feature branch; latest integration commit `7c6394d`. This imports the
 current app/launcher, songs, cheats, settings catalogue and rendering repairs.
 Its published toolkit pin is `4801dc171da7d39ebf23c2fe709d14e4b50a1733`, replacing
 this branch's earlier `d569ca1` pin. No toolkit source is modified. Earlier native
@@ -178,3 +179,46 @@ to be exercised.
 
 Latest main's setup-handoff/engine/update and fighter packaging focused suite
 passes141tests/10platform skips (`fighter-main-hotfix-integration-unit-1108.txt`).
+
+The7c6394d development app builds and its fresh-directory asset inspection passes
+all71Fighter imports. The first final packaging check correctly rejects the reused
+output directory containing both1.1.0 and1.1.1 artifacts; the preserved old files
+are not removed to conceal that failure. Logs: `fighter-main-hotfix-app-build-1108.txt`
+and `fighter-main-hotfix-app-inspection-1108.txt`. The extracted inspected payload
+records1.1.1/source7c6394d/toolkit4801dc1; it remains local development material.
+
+The actual first-installed d6f7bac source/executable passes its own build-state
+verification. Its adjacent installed Python runs ordinary Manager ZIP installation
+and whole-pack activation of Vendetta plus independent starter. No interpreter
+override is used for the subsequent native process; process evidence confirms its
+direct child runs that adjacent Python and installed `setup/mods.py`. The complete
+immutable private save fixture was copied and hash-checked into the fresh disposable
+data root; the source baseline remains unchanged. Receipt:
+`fighter-real-install-prepare-1108.json`. Native repeated play/teardown is pending.
+
+## Actual installed pause-Quit failure and correction
+
+The real first-installed run `run-20261108-180515.log.err` passes all six
+two-human combat assertions, both owned entrances and song/profile coexistence.
+Native pause Quit returns to Battle and releases all 24 owned allocations,
+restoring the CPU pool's original 33,553,888-byte free block. A native save batch
+is acknowledged and the original save guard restores identically. This is real
+installed admission/play evidence, with no Python override.
+
+Second-match setup then stops safely at `ControllerSetup(-1,0,0,0)` because the
+selection window is still frozen. The process exits 1; the supervisor completes
+cleanly, but this is a failed repeat test, not clean game exit or pool reuse.
+The pause path reaches native CLogic teardown `89310` without calling the
+front-end `Game.Quit` callback `462C0`, where selection was previously thawed.
+
+The correction also finishes immutable selection ownership after `89310` returns
+and after motion, cinematic, finisher, film and CPU-pool lifetime checks. It does
+not permit a menu command to clear an active match or free retained model records.
+The older front-end callback remains supported. A compiled probe uses the actual
+wrapper/selection implementation and real window state: clearing stays blocked at
+every teardown phase, a pool-check failure prevents thaw, inactive/unapproved
+reuse modes stay unchanged, and two cycles retain identities until explicit clear.
+Focused window/probe/pool/finisher/teardown checks pass 113 tests in 5.48 seconds
+(`fighter-pause-quit-unit-1108.txt`). Re-lift/build and a new installed repeat test
+are required before the correction receives native acceptance. Keep the first
+installed failure report `fighter-real-install-native-1108.json` unchanged.

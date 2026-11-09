@@ -170,7 +170,19 @@ offline native-writer checks preserve all unrelated tables and Character rows.
 Tools main9bb5b83 is integrated in8bda663, retaining CAF plus fighter commands;
 newly installed wheel248passed/3skipped/51subtests. No live authoring state changed.
 
-Next: repeat final integrated tests, build/inspect the current game-free app
-payload, then serial native fighter/song, lifecycle and broader M5/M6 checks.
+Latest continuation integrates main482897f/v1.1.1 at7c6394d without further
+conflicts; source-only PR heads are pushed and remain drafts. Integrated source
+CI is green at d6f7bac. Local1.1.1 app and payload inspection pass71Fighter imports;
+latest setup focused tests141/10skips pass. A frozen d6f7bac development payload
+completes a real short-path Windows first install in407.2s; earlier deep-path
+failure remains recorded. Its own installed executable passes freshness checks,
+and its installed Manager enables both private packs using adjacent Python.
+Actual installed repeated-match/teardown is now under test. Native d6f7bac combat
+passes six two-human checks, but the earlier720s run times out before final Quit.
+
+Next: inspect the real installed native repeat/save/helper result, test the new
+payload update/repair path, then continue broader M5/M6 fidelity/performance,
+platform and physical-input gates. Keep these local-development observations
+separate from final app UI/RC/default-path acceptance.
 Prior native snapshots are not evidence for the new toolkit/runtime combination.
 All private packs, caches, saves, captures, generated code and binaries stay local.

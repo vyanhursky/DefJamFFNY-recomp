@@ -1,6 +1,7 @@
 # Fighter Mod Support acceptance ledger
 
-Target v0.15.0. This ledger reconciles the approved roadmap with evidence;
+Original planning target v0.15.0; no current release queue assignment. This
+ledger reconciles the approved roadmap with evidence;
 unchecked roadmap boxes do not erase accepted local M1Ã¢â‚¬â€œM4 work. **Extended M5
 and release acceptance remain outstanding.** Source-only PR publication is
 authorized; pack/asset publication, PR merge and release remain unauthorized.
@@ -43,6 +44,18 @@ outstanding. POSIX close/finalization is wired but not newly exercised here. Own
 physical-controller and playtest acceptance must be recorded separately. The
 routine stock-development regression waiver remains in effect; it does not
 satisfy these final release-candidate obligations.
+
+The current-main continuation additionally completes one real short-path Windows
+first install from inspected development payload d6f7bac/toolkit4801dc1 in407.2s.
+The installed executable passes its own build-freshness check; actual installed
+manager installs and enables the whole pack plus independent starter. This is
+separate from the earlier source-layout prototype. Native installed repeated
+play/save/helper closure remains under test. The earlier deep SDL/Ninja path
+failure is retained; default-path, final app GUI/update/repair and platform
+acceptance remain open. Latest main482897f/v1.1.1 is integrated at7c6394d; app
+build/payload inspection and141focused setup tests/10skips pass. See the
+integration checkpoint for newer native results rather than inferring them from
+these installation checks.
 
 ## November8 continuation
 

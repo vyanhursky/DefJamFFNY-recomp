@@ -13,6 +13,7 @@ uint32_t defjam_fighter_native_handle(uint32_t handle);
 int defjam_fighter_native_record(uint32_t database, uint32_t output, uint32_t stable);
 void defjam_fighter_match_setup(uint32_t self, uint32_t fighters);
 void defjam_fighter_match_finished(void);
+void defjam_fighter_match_unloaded(void);
 void defjam_fighter_handle_produced(uint32_t database, uint32_t table, uint32_t output);
 void defjam_fighter_settings_bound(uint32_t self);
 void defjam_fighter_settings_validate(uint32_t self, uint32_t payload);

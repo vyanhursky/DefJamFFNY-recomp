@@ -163,7 +163,8 @@ def test_window_acceptance_requires_full_logical_identity_and_the_bound_core(tmp
             probe.verify_menu_selection(path, report, ['alpha/new', 'retail/blaze'])
 
 
-def test_repeated_matches_require_fresh_submissions_release_and_actual_cores(tmp_path, monkeypatch):
+@pytest.mark.parametrize('boundary', ['Game.Quit', 'match teardown'])
+def test_repeated_matches_require_fresh_submissions_release_and_actual_cores(tmp_path, monkeypatch, boundary):
     probe = driver(tmp_path, monkeypatch)
     report = {'binding_mode': 'participant-window',
               'bindings': {'alpha/one': {'selection_key': 100, 'core_id': 4},
@@ -184,7 +185,7 @@ def test_repeated_matches_require_fresh_submissions_release_and_actual_cores(tmp
         return text
     matches = [['alpha/two', 'beta/one'], ['alpha/one', 'alpha/two']]
     first, second = map(epoch, matches)
-    release = '[FIGHTERS] selection ownership finished after native Game.Quit; immutable records retained\n'
+    release = f'[FIGHTERS] selection ownership finished after native {boundary}; immutable records retained\n'
     path = tmp_path / 'repeated.log'; path.write_text(first + release + second)
     assert probe.verify_menu_matches(path, report, matches, immutable=True) == [[101, 102], [100, 101]]
     for invalid in (first + second + release, first + release + second.replace('logical=100 core=4 immutable=1', 'logical=100 core=5 immutable=1'),
