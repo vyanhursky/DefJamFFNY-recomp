@@ -44,12 +44,15 @@ checklist. Version `X.Y.Z` below; the GitHub milestone `vX.Y.Z` lists the queued
    link, remaining-issue links and release qualifications. Run `pytest -q tests/unit` and `check-source-tree.py`.
 6. **Release PR.** Push the branch; `gh pr create --base main --head release/vX.Y.Z --milestone vX.Y.Z
    --body-file <file>` from `.github/PULL_REQUEST_TEMPLATE/release.md`, filled in.
-7. **Build the candidate** from a clean state: analyze, recomp, build (Release preset). A toolkit pin change
-   needs the full re-lift.
-8. **Candidate gate.** Start the full `regress.py` in the background on this platform; ask the owner (or the
-   agents on those machines) for macOS and Steam Deck runs on the release PR's head commit, and for the
-   play-test. Install from the release PR's CI setup artifacts and Clean Update from the previous release.
-   Record each result in the release PR's table with log names.
+7. **Build the candidate** in the Release preset, using verified pipeline state. Analyze/re-lift when their
+   actual inputs change; a new commit hash or tag alone is not a reason to rebuild verified work. A toolkit
+   pin change needs the full re-lift.
+8. **Candidate gate.** First look for an applicable passing full `regress.py` report on each qualified platform.
+   Reuse it under `docs/releasing.md` §4; otherwise run the full suite once in the background on that platform.
+   Ask the owner (or agents on the other machines) for missing platform evidence and the play-test. Record the
+   tested runtime commit, toolkit/preset/settings/fixture, report and any later behavior-preserving differences.
+   Install from the release PR's CI artifacts and Clean Update from the previous release. Keep those packaging
+   checks separate from the native full regression; they do not trigger another full game run.
 9. **A failure.** `docs/releasing.md` §5: confirm with `--only`, find the PR, fix on the release branch or
    revert its merge and move the PR to the next milestone. Update the release PR.
 10. **Publish** when every gate is ticked and CI is green: `gh pr merge N --merge`, annotated tag at the merge
@@ -67,3 +70,7 @@ checklist. Version `X.Y.Z` below; the GitHub milestone `vX.Y.Z` lists the queued
   main). That is what makes GitHub mark the queued PRs merged.
 - `Fixes #N` in a merged commit closes the issue on merge, even when the fix is unconfirmed by the reporter.
 - Do not rerun a PR's full regression to "refresh" it while it waits; the candidate gate supersedes it.
+- Never repeat an applicable full regression just to test the merge SHA, tag or release. Records, version/banner
+  metadata, packaging and behavior-preserving compiler fixes reuse the passing runtime evidence with appropriate
+  focused checks. Before any repeat full run, record the concrete invalidating change/failure and why focused
+  checks cannot cover it. Merely touching runtime source is not a reason.

@@ -12,7 +12,10 @@ Full reference: `docs/agent/harness.md` and `docs/09-testing-harness.md`.
 - `python scripts/regress.py --quick` (unit tests, three golden frames, a fight) after every fix, plus
   `--only <checks>` for the area (table in `docs/agent/release.md`). The full `python scripts/regress.py`
   (about an hour) runs once per platform on a release candidate, not on each PR; a toolkit migration gets one
-  full run before it is queued. Run the full one in the background and read its table, not the logs. A failing row prints a
+  full run before it is queued. Reuse applicable full evidence through merges, metadata/compiler-only fixes,
+  tagging and publication; do not run it again for a new SHA alone. Before repeating it, record the specific
+  invalidating runtime change/failure and why focused checks are insufficient (`docs/releasing.md` §4–5).
+  Run the full one in the background and read its table, not the logs. A failing row prints a
   `python scripts/triage.py <log>` line: use it (skill `triage-run`).
 - Game runs are serial. Never start two at once: timing floors, audio, input and the save area are shared.
 - Every run goes through the complete-save-root guard and must restore it byte-identical. Captures stay
