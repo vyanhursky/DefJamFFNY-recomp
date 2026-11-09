@@ -97,3 +97,42 @@ AppData lock. Retry uses a fresh disposable install/data root and an isolated
 per-user lock/cache directory. Desktop app access approval timed out; visual
 acceptance is pending, while command-line setup/native checks continue. No live
 installation, original career, shortcut, pack publication or release was changed.
+
+CI42538105548 is green on103b81e, including strict Linux scripts/unit, Windows
+runtime, macOS/Linux runtime fixtures, source hygiene and three game-free setup
+builds. This is synthetic/source CI, not native fighter gameplay on POSIX.
+
+## Preparation and remaining first-install gate
+
+The profile records666million calls and440.92seconds with profiling plus a
+competing build; that duration is not a launch benchmark. It identifies repeated
+path metadata reads and repeated R2 scans as useful targets. Each link check now
+uses one `lstat` result, retaining Windows junction and POSIX symlink rejection.
+Every admission still checks the current leaf and ancestors; no global trust
+cache is added. Live/dangling redirects, newly introduced redirects and denied
+metadata remain negative cases. Manager/probe/launch suite97passes.
+
+Canonical R2 input still receives complete source packet validation. When the
+reconstructed output is byte-identical, a second scan of those same bytes is
+unnecessary; changed headers keep the independent output inspection. Voice/R2/
+behavior/package suite69passes. Validation budgets and coded samples are unchanged.
+
+An unprofiled paired warm comparison on the same installed complete pack and
+independent starter measures146.05seconds with the103b81e functions and126.77seconds
+with these changes (13.2% in this pair). Both produce runtime keye9e951e5 and UI
+SHAae9b00e1; the manager state hash is unchanged. Reports:
+`fighter-main-preparation-legacy-1108.json` and
+`fighter-main-preparation-optimized-1108.json`. This single Windows comparison
+does not promise a universal improvement or close the roughly two-minute
+preparation gate; earlier runs also measured about126seconds under other load.
+
+The fresh-engine retry's compiler temp is now isolated. It then fails in the
+deeply nested SDL architecture probe with Ninja unable to load its rules file;
+the long test-install path is retained as failed evidence. A shorter isolated
+destination remains to be tested; do not claim a fresh install passed yet.
+
+Main's soundtrack preferences remain in its existing outer-data `song-state`
+sidecars. They are separate from the native-profile/Fighter-extension transaction;
+the integration does not silently relocate or adopt those preferences into the
+Fighter Store. Backups should retain the complete data folder, and coexistence
+acceptance must keep this boundary explicit.

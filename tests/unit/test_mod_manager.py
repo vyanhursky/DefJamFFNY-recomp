@@ -484,3 +484,42 @@ def test_texture_reference_rejects_redirected_intermediate_directory(tmp_path):
     (folder / 'manifest.ini').write_text('[pack]\nschema=1\n[textures]\n' + 'a' * 64 + '=images/picture.png\n')
     with pytest.raises(ValueError, match='Redirected pack file path'):
         mods.validate_textures(folder)
+
+
+@pytest.mark.parametrize('dangling', [False, True])
+def test_path_admission_rejects_live_and_dangling_directory_redirects(tmp_path, dangling):
+    target = tmp_path / 'target'; target.mkdir()
+    link = tmp_path / 'redirect'
+    if sys.platform == 'win32':
+        import _winapi
+        _winapi.CreateJunction(str(target), str(link))
+    else:
+        link.symlink_to(target, target_is_directory=True)
+    if dangling:
+        target.rmdir()
+    assert mods.linked(link)
+    with pytest.raises(ValueError, match='Refusing redirected path'):
+        mods.ordinary_path(link / 'not-created' / 'asset.bin')
+    assert not (target / 'not-created').exists()
+
+
+def test_path_admission_still_allows_new_ordinary_paths_and_rechecks_redirects(tmp_path):
+    location = tmp_path / 'new'
+    assert not mods.linked(location)
+    assert mods.ordinary_path(location / 'asset.bin') == location / 'asset.bin'
+    target = tmp_path / 'target'; target.mkdir()
+    if sys.platform == 'win32':
+        import _winapi
+        _winapi.CreateJunction(str(target), str(location))
+    else:
+        location.symlink_to(target, target_is_directory=True)
+    with pytest.raises(ValueError, match='Refusing redirected path'):
+        mods.ordinary_path(location / 'asset.bin')
+
+
+def test_unreadable_path_metadata_fails_closed(tmp_path, monkeypatch):
+    def denied(_):
+        raise PermissionError('synthetic metadata denial')
+    monkeypatch.setattr(Path, 'lstat', denied)
+    with pytest.raises(PermissionError, match='synthetic metadata denial'):
+        mods.ordinary_path(tmp_path / 'asset.bin')

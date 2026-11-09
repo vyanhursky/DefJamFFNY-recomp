@@ -54,8 +54,14 @@ def sha(path):
 
 
 def linked(path):
-    path = Path(path)
-    return path.is_symlink() or (hasattr(path, 'is_junction') and path.is_junction())
+    # One metadata read per check, including junctions on Windows. Do not cache
+    # trust across calls: every admission still checks its leaf and ancestors.
+    try:
+        info = Path(path).lstat()
+    except (FileNotFoundError, NotADirectoryError, ValueError):
+        return False
+    return stat.S_ISLNK(info.st_mode) or getattr(info, 'st_reparse_tag', 0) == getattr(
+        stat, 'IO_REPARSE_TAG_MOUNT_POINT', -1)
 
 
 def ordinary_path(path):

@@ -127,6 +127,11 @@ def _canonical_stream(source):
 def canonical_r2(data):
     source = inspect_source(data)
     result = _canonical_stream(source)
+    # Authored exports are commonly canonical already. The input has just
+    # passed the complete packet checks; byte-identical output needs no second
+    # scan. Changed headers still take the independent output inspection below.
+    if result == data:
+        return result
     checked = inspect_source(result)
     require(checked.packets == source.packets and checked.sample_rate == source.sample_rate,
             'Canonical R2 payload changed')
