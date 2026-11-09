@@ -248,6 +248,15 @@ static int private_descriptor(uint32_t descriptor) {
     return s_cache_constructed && descriptor >= first && descriptor - first < 40 * 0x1AC
         && (descriptor - first) % 0x1AC == 0;
 }
+static unsigned cinematic_io_free(void) {
+    unsigned available = 0;
+    /* Native 1ACA0/1AD30 admit into 32 rows; zero means no free row.
+     * The request manager does not reject that token, and 1AB20 can mistake
+     * it for a consumed row whose done flag survived with a NULL buffer. */
+    for (unsigned i = 0; i < 32; ++i)
+        if (!MEM32(0x3319A0 + i * 0x14)) ++available;
+    return available;
+}
 void defjam_fighter_cinematic_cache_poll(uint32_t manager) {
     if (!s_cache_constructed || s_cache_manager != manager) return;
     if (MEM32(manager + 0x2D830) != s_cache_descriptors || MEM32(manager + 0x2D834) != s_cache_requests)
@@ -280,6 +289,10 @@ void defjam_fighter_cinematic_cache_poll(uint32_t manager) {
             uint32_t request = s_cache_requests + index * 0x24;
             uint32_t state = MEM32(request + 0x14);
             if (!state) {
+                /* Admit one owned body/camera pair at a time. The original
+                 * manager still polls first, so retail requests can finish
+                 * while an owned pair waits for capacity. */
+                if (cinematic_io_free() < 2) return;
                 uint32_t phase = shot == 0 ? 0 : shot < 5 ? 1 : shot < 9 ? 2 : 3;
                 MEM32(request) = 4; MEM32(request + 4) = slot; MEM32(request + 8) = UINT32_MAX;
                 MEM32(request + 12) = 2; MEM32(request + 16) = 1; MEM32(request + 0x1C) = phase;
@@ -289,11 +302,15 @@ void defjam_fighter_cinematic_cache_poll(uint32_t manager) {
                 MEM32(manager + 0x2D854) = previous;
                 MEM32(request + 0x14) = 1;
             }
-            if (MEM32(request + 0x14) == 1 && (guest_call(sub_000A3E80, descriptor, 0, NULL) & 0xFF)) {
+            if (MEM32(request + 0x14) != 1) continue;
+            unsigned needed = MEM32(descriptor + 0x5C) == UINT32_MAX ? 2u
+                : (MEM8(descriptor) & 8) && MEM32(descriptor + 0x18) == UINT32_MAX ? 1u : 0u;
+            if (cinematic_io_free() < needed) return;
+            if (guest_call(sub_000A3E80, descriptor, 0, NULL) & 0xFF) {
                 uint32_t zero = 0;
                 guest_call(sub_000A3130, descriptor, 1, &zero);
                 MEM32(request + 0x14) = 2;
-            }
+            } else return; /* Poll this pair again before admitting another. */
         }
     }
 }

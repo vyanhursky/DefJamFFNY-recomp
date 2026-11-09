@@ -235,6 +235,7 @@ extern int defjam_fighter_caf_audio(uint32_t input);
 void sub_0003E170(void) {
     defjam_fighter_voice_select(MEM32(g_esp + 4));
     if (!defjam_fighter_caf_audio(MEM32(g_esp + 4)) && !defjam_fighter_motion_audio(MEM32(g_esp + 4))) sub_0003E170_gen();
+    defjam_fighter_voice_restore();
 }
 extern void sub_0003DB00_gen(void);
 void sub_0003DB00(void) {
@@ -488,14 +489,16 @@ void sub_000558E0(void) {
     g_esp = stack + 12; /* Native thiscall ret 8. */
 }
 
-/* Match-summary fid is a UI identity. Adapt only this verified formatter
- * callsite, after the original signed-byte read, before decimal formatting.
- * Other summary fields, gameplay consumers and the created sentinel stay native. */
+/* Match-summary fid and GetMatchInfo participant fields are UI identities.
+ * Adapt only these verified formatter callsites after their native byte reads.
+ * Venue, mode, other fields, gameplay and the created sentinel stay native. */
 extern void sub_0005F810_gen(void);
 void sub_0005F810(void) {
     uint32_t stack = g_esp, value = MEM32(stack + 8), adapted = value;
     if (MEM32(stack) == 0x00065653u && MEM32(stack + 4) == 0x00298C70u)
         adapted = defjam_fighter_result_identity(g_ebx, value);
+    else if (MEM32(stack) == 0x00046DA9u)
+        adapted = defjam_fighter_loading_identity(value);
     if (adapted == value) { sub_0005F810_gen(); return; }
     g_esp -= 16;
     MEM32(g_esp) = MEM32(stack); MEM32(g_esp + 4) = MEM32(stack + 4); MEM32(g_esp + 8) = adapted;

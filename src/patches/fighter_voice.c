@@ -104,6 +104,20 @@ void defjam_fighter_voice_select(uint32_t input) {
                 slot, core, s_selected[slot]);
     }
 }
+void defjam_fighter_voice_restore(void) {
+    if (!s_count || !defjam_fighter_research_active() || MEM8(0x340540)) return;
+    /* A rematch rebuilds the native audio-template rows but can deliberately
+     * retain the registered banks, bypassing3DB00. Restore only their owned
+     * voice keys after setup as well; do not reload or replace live resources. */
+    for (uint32_t slot = 0; slot < 4; ++slot) {
+        uint32_t row = 0x3403A4 + slot * 0x64;
+        if (s_selected[slot] == UINT32_MAX || MEM32(row) == UINT32_MAX
+            || MEM32(row + 0x10) == s_selected[slot]) continue;
+        MEM32(row + 0x10) = s_selected[slot];
+        fprintf(stderr, "[FIGHTERS] retained voice restored slot=%u custom_voice=%u\n",
+                slot, s_selected[slot]);
+    }
+}
 static void add_stem(char stems[STEM_LIMIT][STEM_BYTES], uint32_t *count, const char *value) {
     if (*count >= STEM_LIMIT || strlen(value) >= STEM_BYTES) voice_stop("resource stem budget");
     strcpy(stems[(*count)++], value);

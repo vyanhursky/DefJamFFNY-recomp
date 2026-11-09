@@ -128,3 +128,48 @@ restoration. It adds no owned activation/pair or natural-result claim. The actua
 Desktop shortcut opens the normal launcher with both packs visibly enabled and
 disposable saves; it was closed after verification. Guide revision: Tools5d6cc06.
 Warm preparation remains about two minutes and broader acceptance stays open.
+
+## Owner playtest corrections
+
+Runtime258715a/b859477 correct owned voice IDs after native Rematch setup and
+the loading-screen participant presentation IDs.59focused compiled cases pass.
+Actual run211701 completes two DMX/Chukklez bouts with natural results and a
+real result-screen Rematch.615/627voice IDs persist in the second bout without
+bank reload. It does not add subjective listening or P1 hit/damage acceptance
+for that second bout. Its subsequent retail-placeholder setup exits1 at the
+unlock-capacity guard before the intended Proof/Flex load; retain that failure.
+
+An unchanged-original-body oracle reproduces a full32row asynchronous loader
+returning zero, followed by a completed-NULL lookup. Owned cinematic admission
+now checks capacity and keeps one body/camera pair pending; the regression fails
+before correction and94focused native cases pass. Corrected fresh run214322
+uses Proof/Flex in Inferno7/venue24, passes five combat checks, reaches a decisive
+result and native Quit, releases37allocations, completes normal close/supervisor
+and restores the save guard identically. The early loading capture visually
+confirms Proof/Funkmaster Flex artwork. Its read-only maximum of two request
+rows is not a saturation stress test. The original crash's preceding two-bout
+sequence, broad fidelity and remaining M5/M6 gates are still separate.
+
+Corrected runtime d811cda subsequently completes the same-process three-bout
+sequence in215657, including real Rematch, the formerly failing retail selection,
+and Proof/Flex Inferno7/venue24. All three bouts reach natural results; the third
+passes all seven combat/result checks. The first two intentionally idle human
+bouts add no movement/hit/damage acceptance. Both loading portraits/logos are
+visually correct. Rematch retains615/627; Proof/Flex loads602/617. Native Quit
+after bouts2and3 releases40and37allocations, restoring free33553888 each time.
+Normal close exits0 after supervisor completion; guard restoration is identical
+and87protected original hashes are unchanged. The raw exit0 label and earlier
+exit1 failure remain preserved. Verdict:
+fighter-owner-sequence-fixed-verdict-1108.json. Runtime/tools CI
+42564807476/42564818857 is green. Broad fidelity, listening, saturation/soak,
+physical/platform and final RC/owner acceptance remain open.
+
+Actual same-version local Clean Rebuild then activates d811cda in398.19seconds
+from its inspected game-free development payload; all48protected files are
+unchanged and the previous installation is retained. Same-version Update's safe
+pre-mutation refusal remains recorded. Installed freshness and the Desktop
+shortcut's compiled-launcher target pass; actual Fighters UI retains the46fighter
+pack plus independent starter enabled. Normal Quit exits0, guard restores
+identically and48hashes remain unchanged. This is installed launcher/maintenance
+evidence, separate from the source-build three-bout gameplay result. No default
+placement, physical-input, other-platform or final RC qualification is added.

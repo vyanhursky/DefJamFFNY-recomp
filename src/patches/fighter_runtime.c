@@ -812,6 +812,31 @@ void defjam_fighter_selection_gate(uint32_t selection) {
         fighter_stop("Logical fighter selection has no safe native binding; confirmation is blocked.");
 }
 
+static void prune_participant_unlocks(void) {
+    uint32_t count, kept = 0;
+    if (!s_window.bytes || !s_settings) return;
+    count = MEM32(s_settings + 0x20);
+    if (count > FIGHTER_UNLOCK_CAPACITY)
+        fighter_stop("Native unlock storage is malformed before selection cleanup.");
+    /* Selection clearing must retire its live unlock projection too. Otherwise
+     * unlock-all can insert the four bank placeholders beside stale custom
+     * marks and overflow the native 80-entry set on a later retail selection.
+     * Historical custom marks/metadata remain in the managed extension. */
+    for (uint32_t i = 0; i < count; ++i) {
+        uint32_t mark = MEM32(s_settings + 0x12E0 + i * 4), identity = mark & ~FIGHTER_UNLOCK_METADATA;
+        FighterBinding binding;
+        int retain = fighter_bindings_find(&s_bindings, FIGHTER_BINDING_STABLE, identity, &binding) && !(binding.flags & 1);
+        for (uint32_t slot = 0; slot < FIGHTER_WINDOW_BANKS; ++slot) {
+            FighterWindowRow selected;
+            if (s_window.selected[slot] && fighter_window_at(&s_window, s_window.selected[slot] - 1, &selected)
+                && selected.stable_handle == identity) retain = 1;
+        }
+        if (retain) MEM32(s_settings + 0x12E0 + kept++ * 4) = mark;
+    }
+    for (uint32_t i = kept; i < FIGHTER_UNLOCK_CAPACITY; ++i) MEM32(s_settings + 0x12E0 + i * 4) = 0;
+    MEM32(s_settings + 0x20) = MEM32(s_settings + 0x1264) = kept;
+}
+
 static int submission_integer(uint32_t pointer, int32_t *value) {
     char text[40]; uint32_t i;
     if (!pointer) return 0;
@@ -833,6 +858,7 @@ uint32_t defjam_fighter_controller_submission(uint32_t arguments) {
         uint32_t participant = values[0] < 0 ? UINT32_MAX : (uint32_t)values[0];
         if (!fighter_window_clear(&s_window, participant))
             fighter_stop("Cannot clear participant ownership before verified match teardown.");
+        prune_participant_unlocks();
         fprintf(stderr, "[FIGHTERS] cleared pre-match participant ownership: %d\n", values[0]);
     }
     if (values[0] < 0 || values[2] < 100) return UINT32_MAX;
@@ -897,6 +923,7 @@ int defjam_fighter_ui_command(uint32_t command) {
     }
     if (i == sizeof text || fighter_window_command(&s_window, text) != 1)
         fighter_stop("Native ready ownership differs from the participant bindings, or the match is still active.");
+    prune_participant_unlocks();
     fprintf(stderr, "[FIGHTERS] synchronized pre-match ready ownership: %s\n", text);
     return 1;
 }
@@ -916,6 +943,22 @@ uint32_t defjam_fighter_result_identity(uint32_t participant, uint32_t native) {
         || !fighter_window_at(&s_window, s_window.selected[participant] - 1, &row))
         fighter_stop("Result identity does not match its frozen participant binding.");
     fprintf(stderr, "[FIGHTERS] result participant=%u native=%u logical=%u stable=%08X\n",
+            participant, native, row.selection_key, row.stable_handle);
+    return row.selection_key;
+}
+
+uint32_t defjam_fighter_loading_identity(uint32_t native) {
+    FighterWindowRow row;
+    /* FWR1 reserves100..103 for participant0..3. Derive ownership from that
+     * verified bank domain, not a caller's locally lifted EBP loop counter. */
+    uint32_t participant = native - 100u;
+    if (!s_window.bytes || participant >= FIGHTER_WINDOW_BANKS || !s_window.selected[participant]) return native;
+    /* GetMatchInfo is also queried before StartGame freezes the selection.
+     * Only its presentation response changes; native participants keep banks. */
+    if (native != s_window.banks[participant].selection_key
+        || !fighter_window_at(&s_window, s_window.selected[participant] - 1, &row))
+        fighter_stop("Loading identity does not match its participant binding.");
+    fprintf(stderr, "[FIGHTERS] loading participant=%u native=%u logical=%u stable=%08X\n",
             participant, native, row.selection_key, row.stable_handle);
     return row.selection_key;
 }
