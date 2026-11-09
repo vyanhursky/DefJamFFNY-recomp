@@ -171,18 +171,60 @@ Tools main9bb5b83 is integrated in8bda663, retaining CAF plus fighter commands;
 newly installed wheel248passed/3skipped/51subtests. No live authoring state changed.
 
 Latest continuation integrates main482897f/v1.1.1 at7c6394d without further
-conflicts; source-only PR heads are pushed and remain drafts. Integrated source
-CI is green at d6f7bac. Local1.1.1 app and payload inspection pass71Fighter imports;
-latest setup focused tests141/10skips pass. A frozen d6f7bac development payload
-completes a real short-path Windows first install in407.2s; earlier deep-path
-failure remains recorded. Its own installed executable passes freshness checks,
-and its installed Manager enables both private packs using adjacent Python.
-Actual installed repeated-match/teardown is now under test. Native d6f7bac combat
-passes six two-human checks, but the earlier720s run times out before final Quit.
+conflicts; source-only PRs remain drafts. Toolkit4801dc1 is unchanged. Runtime
+code0fc3969 includes the pause-Quit teardown fix0d7850d and shared-helper Python-B
+payload fix. Later documentation-only commits do not change the tested runtime.
+Tools sourcefe51747 retains CAF/fighter dispatch and248passed/3skipped/51subtests
+for both source and installed wheel; later guide-only commits add these findings.
 
-Next: inspect the real installed native repeat/save/helper result, test the new
-payload update/repair path, then continue broader M5/M6 fidelity/performance,
-platform and physical-input gates. Keep these local-development observations
-separate from final app UI/RC/default-path acceptance.
-Prior native snapshots are not evidence for the new toolkit/runtime combination.
+A real short-path first install from inspected d6f7bac development payload passes
+in407.2s. CLI update to0d7850d passes in236.69s with25protected hashes unchanged.
+Its actual adjacent-Python managed two-human repeat passes six combat checks per
+bout, both pause Quits,24allocation release each, pool reuse, acknowledged normal
+close and identical save-guard restoration. Corrected mixed-four191803 passes
+five combat checks for Arii/independent Check/retail Blaze/Briggs, native Quit,
+pool release and normal close. No new natural-result or owned-pair/activation
+claim follows. Original failed repeats/calibration/raw reports remain intact;
+separate verdict receipts adjudicate intended observed window closes at exit0.
+
+Actual game-free app UI imports independent and full46fighter ZIPs, preserves
+enabled packs/stable identities/profiles, and starts/closes the installed game
+through Play. Repair catches64unexpected helper-created pyc files before mutation;
+all47protected files and receipt are unchanged. Fix0fc3969 adds-B to every shared
+mod helper without changing pack schemas or compiled Fighter asset caches.
+The compiled regression fails before the fix, then97focused tests/4skips pass.
+Native build and inspected clean app/payload pass71Fighter imports.
+
+The clean0fc3969 payload then passes actual GUI Update Game/rebuild in369.8s and,
+after Mods/Fighters use, GUI Repair in133.7s. All47protected profile/progression/
+adoption/config/settings hashes remain identical; payload inventory is exact and
+installed executable freshness passes. Test app exits normally; no owned app or
+native game remains. Owner closes Computer Use: continue offline and do not
+reopen desktop tests under this handoff. The failed payload is preserved.
+
+## Current local playtest and next work
+
+New Desktop shortcut `Def Jam - Installed Fighter Playtest.lnk` targets the
+compiled installed launcher with `--launch`; it resolves the active0fc3969
+receipt. Original `Def Jam - Fighter Mod Playtest.lnk` and career are preserved.
+Private instructions: `logs/fighter-installed-owner-playtest-1108.md`.
+The obsolete PowerShell draft is not the new shortcut target; no execution-policy
+override was used. Local test data is disposable and separate from the old career.
+
+CI42545347940 is green at0d7850d. At0fc3969, CI42552824992 passes the other
+source/native/setup jobs; initial Linux app setup and the failed-jobs rerun both
+stop fetching Ubuntu dependencies before app build, exit100. Keep that packaging
+check unresolved and distinguish it from local Windows acceptance.
+
+Next: complete offline source/docs/history audits and PR notes; continue broader
+M5 content/audio/callback/visual fidelity, actual graph/opponent contexts,
+failure/resource stress and longer performance/lifetime evidence when access is
+available. M6 still requires default installed-app placement/handoff and paths,
+POSIX native/platform acceptance, physical controls and final RC/owner playtest.
+The current GUI uses an explicit external development payload and short Windows
+paths with isolated compiler/per-user state; it does not establish official RC
+or the in-install app replacement/handoff protocol. Routine development-regression
+waiver is not a final-candidate waiver. Do not mark M5/M6 complete.
+
 All private packs, caches, saves, captures, generated code and binaries stay local.
+No PR merge, release, tags, pack publication or catalogue/signing work is authorized.

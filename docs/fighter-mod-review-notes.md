@@ -281,10 +281,45 @@ snapshots and subsequent actual-installed-runtime results.
 Remaining work includes broad content/audio/event
 and created/retail/mixed contexts, source-fidelity visual review, negative resource
 paths, performance and long-run lifecycle measurements, physical controllers,
-final app GUI/update/repair, default-path installation, macOS/Deck/Linux and
+final installed-app placement/handoff, default-path installation, macOS/Deck/Linux and
 final release-candidate/owner acceptance.
 An approximately 90-second actor-update pause in an earlier diagnostic fixture
 occurred while rendering remained regular; its cause is not established.
 
 Source publication is authorized. Asset/pack publication and release readiness
 remain separate decisions.
+
+The subsequent actual installed 0d7850d run passes two human matches in one
+process, six combat checks each, both pause-Quit menu returns, one pool
+registration/reuse, two complete24allocation releases and acknowledged normal
+window close. A separate installed mixed-four run passes five combat checks,
+native Quit/release/close with Arii, independent Check, retail Blaze and Briggs.
+Both save guards restore identically. Neither adds a natural-result or owned
+paired/activation playback claim. The earlier pause-Quit repeat failure and its
+teardown-boundary fix remain recorded in the integration checkpoint.
+
+Actual inspected development-payload CLI update passes in236.69seconds with
+all25protected data hashes unchanged. Actual app GUI now imports both the
+independent and complete46fighter ZIPs, retains enabled packs/stable identities
+and protected profile hashes, then starts/closes the installed game through
+Play. The compiled installed playtest launcher is separately verified. These
+are local Windows observations, not final RC/default-path/platform acceptance.
+
+GUI Repair additionally exposes a general helper issue: Python writes64pyc
+files into the otherwise verified payload, so its exact allowlist rejects the
+next setup operation before mutation. All47protected files and the receipt
+remain unchanged. Fix0fc3969 invokes shared mod helpers with Python-B, preserving
+the payload without disabling compiled Fighter asset caches or changing pack
+formats. A compiled regression fails before the fix, then97focused tests/4skips,
+native rebuild and inspected app rebuild pass. The subsequent clean-payload
+GUI update/repair results follow below. Keep the failed payload and repair evidence;
+do not describe allowlist relaxation or deleting unexpected files as the fix.
+
+The clean 0fc3969 payload subsequently passes actual GUI Update Game (369.8s)
+and, after actual Mods/Fighters use, GUI Repair (133.7s). All 47 protected file
+hashes remain unchanged after both operations, the payload inventory stays exact,
+and the installed executable passes freshness verification. The test app is
+closed. This is bounded local Windows development/short-path evidence; default
+placement, final RC/platform/input and broader M5 fidelity/performance gates are
+still open. The integration checkpoint preserves the failed repair and exact
+positive receipts instead of overwriting the failure.

@@ -330,5 +330,41 @@ and reruns the actual setup verifier afterward. It fails before the fix with
 `no_bytecode:false`, then passes. Mod bridge/Fighter payload/handoff/update focused
 checks pass97tests/4platform skips in13.41s (`fighter-payload-no-bytecode-unit-1108.txt`).
 No generated guest code or ABI wrapper changed, so this fix needs a native/app
-rebuild but no new re-lift. A clean rebuilt payload and actual GUI Repair retry
-remain required. The old contaminated payload is evidence, not silently cleaned.
+rebuild but no new re-lift. The clean-payload GUI retry is recorded below.
+The old contaminated payload is evidence, not silently cleaned.
+
+## Corrected GUI update and repair accepted locally
+
+The rebuilt 0fc3969 app/payload passes inspection and all 71 Fighter imports.
+Actual GUI Update Game rebuilds the disposable installation from 0d7850d to
+0fc3969 in 369.8 seconds of engine time. All 47 protected hashes remain identical
+across raw save backup, managed profiles/progression, adoption, pack configuration
+and identity ledger, data settings and the separate test-app settings file.
+Receipt: `fighter-gui-update-no-bytecode-1108.json`; log:
+`setup-20261108-194543.log`. The old installation is retained.
+
+After that update, actual GUI Mods/Fighters inventory refresh succeeds and the
+same clean payload still passes the exact setup verifier. Actual GUI Repair then
+passes in 133.7 seconds, activates the verified installation and shows Ready to
+Play. The same 47 protected hashes are unchanged, and the payload inventory is
+still exact. The installed executable passes its own pipeline freshness check.
+Receipt: `fighter-real-gui-repair-fixed-1108.json`; log:
+`setup-20261108-195444.log`. This closes the reproduced Mods-to-Repair bytecode
+regression without removing unexpected files or relaxing validation.
+
+The test app exits through Quit; no owned app or native game remains. The owner
+then closes Computer Use. Continue offline; do not reopen desktop tests on this
+handoff. The compiled Desktop shortcut resolves the active installation receipt,
+so it now launches the corrected 0fc3969 installed build. The obsolete private
+PowerShell draft is not its target. The original shortcut/career is preserved.
+
+These are local Windows development-payload and short-path results with isolated
+per-user/compiler temp paths. Default installed-app placement, other paths,
+official RC, POSIX gameplay, physical controls, broad source-fidelity/audio/event
+and longer performance/lifetime acceptance remain separate. M5/M6 stay open.
+CI42552824992 passes the other source/native/setup jobs, but both the initial
+Linux setup attempt and its failed-jobs rerun fail fetching dependencies from
+archive.ubuntu.com:80 before the app build (exit100). The Linux app packaging
+check is therefore unresolved at0fc3969; no all-green claim follows. Both
+network-failure logs are retained locally. No source or dependency pin changed
+to bypass this failure.

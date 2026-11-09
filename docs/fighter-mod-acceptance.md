@@ -40,7 +40,8 @@ before a new native platform result can be claimed.
 Setup copies tracked permitted setup modules. The real isolated Setup Python
 now resolves all71fighter modules and has booted native managed matches from
 the separate installed-layout source copy. Actual first-install/update evidence
-is recorded below; final app GUI/repair and default-path gates remain open.
+is recorded below, including GUI import/update/repair. Final installed-app
+placement/handoff, default-path and release-candidate gates remain open.
 POSIX close/finalization is wired but not newly exercised here. Owner
 physical-controller and playtest acceptance must be recorded separately. The
 routine stock-development regression waiver remains in effect; it does not
@@ -51,8 +52,9 @@ first install from inspected development payload d6f7bac/toolkit4801dc1 in407.2s
 The installed executable passes its own build-freshness check; actual installed
 manager installs and enables the whole pack plus independent starter. This is
 separate from the earlier source-layout prototype. Native installed repeated
-play/save/helper closure remains under test. The earlier deep SDL/Ninja path
-failure is retained; default-path, final app GUI/update/repair and platform
+play/save/helper closure subsequently passes as qualified below. The earlier
+deep SDL/Ninja path failure is retained; default-path, installed-app placement
+and final platform
 acceptance remain open. Latest main482897f/v1.1.1 is integrated at7c6394d; app
 build/payload inspection and141focused setup tests/10skips pass. See the
 integration checkpoint for newer native results rather than inferring them from
@@ -68,6 +70,21 @@ earlier installed repeat's frozen-selection failure remains recorded, alongside
 its teardown-boundary fix and113focused tests. This closes this bounded Windows
 installed helper/repeat/close gate, not GUI repair/handoff, other platforms,
 physical controls, broad content fidelity or final RC/owner acceptance.
+
+Actual app GUI now imports the independent starter and complete46fighter ZIP,
+preserving profiles, enabled packs and stable identities. App Play boots the
+installed executable and completes a normal close/save-guard cycle. Corrected
+source0fc3969 additionally passes GUI Update Game in369.8s and Mods/Fighters use
+followed by GUI Repair in133.7s: all47protected data/settings hashes unchanged,
+exact payload inventory retained, installed executable freshness verified.
+The first repair's64unlisted pyc files and safe pre-mutation refusal remain
+recorded; shared-helper Python-B fixes their creation without changing formats
+or disabling compiled asset caches. These results qualify the local short-path
+Windows development workflow, not default app placement or official RC/platform
+acceptance. The installed mixed-four run191803 also passes five combat checks,
+native Quit/resource release and normal close; no natural result or owned-pair/
+activation claim from that run. The owner has closed Computer Use; continue
+offline and obtain remaining native/platform/human evidence separately.
 
 ## November8 continuation
 
