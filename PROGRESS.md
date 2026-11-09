@@ -8,6 +8,8 @@
 
 ## 0. Status at a glance
 
+- v1.2.0-beta.1: preparation authorized November 9, 2026 (D371). Fighter Mod Support from #209; full Windows candidate regression required before publication. Beta remains a prerelease, never Latest or an automatic update. All Vendetta files stay local. Toolkit4801dc1 unchanged; broader M5/M6 and native macOS/Deck acceptance remain open.
+
 - v1.1.1: GA/Latest published November 8, 2026 at 21:16 UTC (D366-D370), within the owner's hour. #207 only runtime fix; #210 merged at afaa9b1, annotated tag90efaebe. Toolkit4801dc1 unchanged; app-only publication retained. Candidate CI35/35, tagged Source37/37; all nine asset digests/checksums and exact source/toolkit/payloads verified. Windows candidate update1.1.0 to1.1.1 passed299.0s with settings/save marker unchanged and no journal. Full regression waived by owner; final earlier GUI qualification and v1.1.0 known issues remain unclaimed. Notes: docs/releases/v1.1.1.md.
 
 - v1.1.0: ✅ GA published November 8, 2026, owner-authorized qualifications D363. Release PR #206 and all seven train PRs merged; annotated `v1.1.0` at `0e90a3a`. Source workflow 37/37; all 15 original game-free release assets verified against GitHub SHA-256, checksum files and provenance. Nine app assets remain after legacy setup retirement (D365). Latest/GA and Linux update offer from 1.0.1 verified. Mac stock/HD 21/21; Linux stock/HD20/21 and two pre-existing Zig cinema fixture failures remain recorded; owner play-test/Steam Deck GA update follow next morning. Notes: docs/releases/v1.1.0.md.
@@ -490,6 +492,8 @@ Run-log citations from retired status/planning prose remain protected by
 
 | D370 | 2026-11-08 | Publish v1.1.1 GA/Latest at 21:16:13 UTC, 36m26s after the owner's expedited request (D369). #210 and #207 merged; annotated tag90efaebe at main mergeafaa9b1, source tree69712705 exactly equals tested candidate6d75725/CI merge04c1464. Release438523428 has exactly nine app assets. | Candidate CI42521574111 passed35/35; tagged Source42522957108 passed37/37. Release-head local unit906/56 skipped, source605/0 failures. Candidate app payload updated isolated1.1.0 to1.1.1 in299.0s, settings/save marker byte-identical, valid receipt/executable and no journal. All nine GitHub asset digests/checksums and all three non-development provenances/payloads verified at exact sourceafaa9b1/toolkit4801dc1. All three public app selectors offer1.1.1 from1.1.0. Pages main dispatch42524352127 passed. Full game regression was explicitly waived; incomplete earlier GUI and prior1.1.0 qualifications remain. Close milestone10; move still-open #166 to newv1.1.2 milestone11. |
 
+| D371 | 2026-11-09 | Owner authorizes full Windows regression followed by publication of experimental v1.2.0-beta.1 with Fighter Mod Support. This supersedes the earlier no-release restriction for this beta only; all Vendetta files remain local. | Freeze the candidate at CMake1.2.0, qualify Windows, retain unresolved fidelity/platform/physical-input/soak limitations, require green CI and inspected game-free app artifacts. Publish as a prerelease with Latest=false; stable1.1.1 and automatic stable-update selection remain unchanged. |
+
 ## 2. Historical environment inventory (2026-09-17)
 
 - Current Windows RC test host (2026-10-23): Windows11Pro10.0.26200, RTX4070TiSUPER/driver32.0.16.1088; VS2019/MSVC14.29, CMake3.20/Ninja1.10.2. D3D11 `win-x64-release`; isolated app/data and copied harness saves in an isolated local work root. No original user saves/settings changed. Normal Windows process/compiler access required outside the restricted execution sandbox; no OS security settings changed.
@@ -562,36 +566,15 @@ Upstream PR submissions still need the owner's separate approval.
 - 2026-11-08 09:57 — D365: retired six legacy v1.1.0 setup assets after verified backup; nine app assets retained, live notes corrected. All-platform app-only packaging, explicit nine-file release upload, current guides/site/agent policy updated. Focused packaging/source/site/instruction tests 167 passed/42 platform skips; source policy 0 failures, site build passes. No runtime/toolkit changes. Backup: defjam/release-evidence-1.1.0/retired-setup. PR/CI verify future publication.
 - 2026-11-08 20:43 UTC — Prepare owner-authorized single-fix v1.1.1 hotfix (#207, D366-D369), from app-only main15e366b/#208; toolkit4801dc1 unchanged. Fix CI35/35, local unit901/53 skipped, focused139/10 skipped, real-dump install374.7s pass. Actual GUI handoff succeeded; later cache/compiler-temp permission failures and stopped Computer Use leave final GUI repair unqualified. Owner explicitly waives full regression and requests publication within an hour. Release candidate/tag CI and nine app-asset verification pending.
 - 2026-11-08 21:18 UTC — D370: v1.1.1 GA/Latest published21:16:13UTC within36m26s; #210/#207 merged, annotated90efaebe at afaa9b1, toolkit4801dc1 unchanged. Candidate CI35/35; tagged Source37/37; unit906/56 skipped, source605/0. Candidate Windows update299.0s pass/data markers identical/no journal; all9asset digests/checksums/3provenance+payloads verified. All3app selectors offer1.1.1; Pages42524352127 passed. Owner waived full regression; earlier GUI/1.1.0 qualifications retained. Milestone10 closed, #166 carried to v1.1.2/#11. Evidence: defjam/release-evidence-1.1.1/afaa9b1.
+- 2026-11-09 06:50 — D371: owner authorizes experimental v1.2.0-beta.1 after full Windows regression; integrate #209/source0cfc354 on main482897f, toolkit4801dc1 unchanged. CMake1.2.0; source-only prerelease and private Vendetta constraints retained. Candidate checks underway, no publication yet.
 
 ## 7. Hand-off
 
-### v1.1.1 GA complete — 2026-11-08
+### v1.2.0-beta.1 candidate — 2026-11-09
 
-- Published stable/Latest: https://github.com/vyanhursky/DefJamFFNY-recomp/releases/tag/v1.1.1
-  (release438523428), 21:16:13 UTC, within36m26s of the owner's request. #210 and #207 MERGED.
-  Main merge/tag target `afaa9b1c5ee3cc277f56d7f101874dbc0210b22f`; annotated tag object
-  `90efaebe66acf3044f93bca5e74c59709989a4b9`. Tree69712705 equals candidate6d75725/CI merge04c1464.
-- #207 is the only new runtime fix. Main already contained #208's app-only publication policy.
-  Toolkit `4801dc171da7d39ebf23c2fe709d14e4b50a1733` unchanged. No legacy setup assets published.
-- Candidate CI42521574111:35/35. Tagged Source42522957108:37/37. Local unit906 passed/56 skipped;
-  source605 files/0 failures. Candidate Windows app payload update1.1.0 to1.1.1: exit0,299.0s,
-  settings/save marker byte-identical, valid receipt/executable, no pending activation journal.
-- All nine final asset bytes match GitHub digests and checksum files. All three provenances and
-  embedded payload inventories verified non-development1.1.1/exact sourceafaa9b1/toolkit4801dc1:
-  Windows4525 files, Mac5240, Linux9795. Windows file/product versions both1.1.1.
-- Public newest_app selectors offer1.1.1 from1.1.0 for Windows/macOS/Linux. Pages main dispatch
-  42524352127 passed; latest release and platform downloads are live.
-- The tag-triggered Pages run42524349808 failed at deployment; the supported main-branch
-  dispatch above passed. No deployment protection was changed.
-- D369 explicitly waived full game regression for this expedited hotfix. No new gameplay,
-  live Steam session or physical Deck test is claimed. Earlier actual GUI handoff worked;
-  cache/compiler-temp test-environment failures and stopped Computer Use left final GUI repair
-  unqualified. The later isolated candidate CLI update passed; keep these separate.
-- Milestonev1.1.1(#10) closed. Still-open memory investigation #166 moved to v1.1.2(#11),
-  not fixed/closed. #202 excluded. Prior v1.1.0 qualifications (Deck replay#98, Zig cinema
-  fixtures, deferred play-test/extra Mac visual references) remain in its notes and evidence.
-- Private release evidence is retained at `defjam/release-evidence-1.1.1/afaa9b1` under the
-  workspace: final/candidate assets, verification JSON, native update logs and scripts.
-  No game executable, dump, save, capture or generated game code was published.
-
-Decisions are read by number or keyword: `decision D<n>`, `decisions --grep TEXT`.
+- D371 authorizes preparing and publishing this experimental prerelease after full Windows regression. Stable1.1.1 stays Latest. No Vendetta source or converted pack, native game executable, generated code, captures or saves may be published.
+- Release branch release/v1.2.0-beta.1 integrates current main482897f plus Fighter Mod Support PR209/head0cfc354. Toolkit4801dc171da7d39ebf23c2fe709d14e4b50a1733 unchanged. Tools/guide PR6/head e381801 remains the companion source.
+- Final feature CI42567170769 failed downloading Ninja/SDL (invalid ZIP/HTTP504); failed jobs are retried. Code-head d811cda previously passed all CI. Do not describe failed or unrun checks as passes.
+- Previous native Windows sequence215657: two natural DMX/Chukklez results with actual Rematch, then Proof/Flex Inferno7/venue24 with seven combat/result checks, two complete pool releases and exact save restoration. First two idle-human bouts are lifecycle/routing coverage, not human-hit or subjective listening acceptance. Local installed d811cda rebuild/shortcut checks passed with48protected hashes unchanged.
+- Prepare candidate build and run full scripts/regress.py with an isolated copy of stock saves, no custom packs. Preserve raw reports and failed backups. Native games and native compiler/fixture runs stay serial. After the final code changes, repeat only the checks justified by their scope, following the release playbook.
+- Beta source, release notes, CI app artifacts, real Windows install/update and asset provenance/source-history audit must be reviewed before the annotated tag and prerelease publication. All other-platform native/physical/fidelity/performance gates remain explicitly unqualified. Do not turn this beta into stable GA or claim M5/M6 complete.

@@ -617,7 +617,6 @@ static int host_main(void)
      * reads the environment. See src/hooks/pc_settings.c. */
     if (!pc_settings_init())
         return 1;
-
     printf("=== Def Jam: Fight for NY - Static Recompilation ===\n");
     printf("Loading XBE...\n");
 
@@ -775,6 +774,8 @@ static int host_main(void)
     {
         extern void xbox_path_init(const char *game_dir, const char *save_dir);
         const char *data = getenv("DEFJAM_DATA");
+        extern const char *pc_fighters_data_root(void);
+        if (pc_fighters_data_root()) data = pc_fighters_data_root();
         char save[512];
         xbox_host_char user_data[MAX_PATH];
         char user_data_utf8[1024];

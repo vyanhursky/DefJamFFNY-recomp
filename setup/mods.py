@@ -54,8 +54,26 @@ def sha(path):
 
 
 def linked(path):
-    path = Path(path)
-    return path.is_symlink() or (hasattr(path, 'is_junction') and path.is_junction())
+    # One metadata read per check, including junctions on Windows. Do not cache
+    # trust across calls: every admission still checks its leaf and ancestors.
+    try:
+        info = Path(path).lstat()
+    except (FileNotFoundError, NotADirectoryError, ValueError):
+        return False
+    return stat.S_ISLNK(info.st_mode) or getattr(info, 'st_reparse_tag', 0) == getattr(
+        stat, 'IO_REPARSE_TAG_MOUNT_POINT', -1)
+
+
+def ordinary_path(path):
+    """Reject redirected leaves/ancestors before research IO creates anything.
+
+    This checks the current directory structure, not concurrent hostile renames.
+    Do not resolve first: resolution would hide the redirect being checked.
+    """
+    path = Path(path).absolute()
+    check('..' not in path.parts and not any(linked(item) for item in (path, *path.parents)),
+          'Refusing redirected path: ' + str(path))
+    return path
 
 
 def read_json(path, default=None, maximum=MAX_INDEX):
@@ -139,11 +157,27 @@ def file_lock(path, shared=False):
         try:
             if os.name == 'nt':
                 import msvcrt
+                import ctypes
+                from ctypes import wintypes
+                class Overlapped(ctypes.Structure):
+                    _fields_ = [('internal', ctypes.c_size_t), ('internal_high', ctypes.c_size_t),
+                                ('offset', wintypes.DWORD), ('offset_high', wintypes.DWORD), ('event', wintypes.HANDLE)]
+                kernel = ctypes.WinDLL('kernel32', use_last_error=True)
+                kernel.LockFileEx.argtypes = [wintypes.HANDLE, wintypes.DWORD, wintypes.DWORD,
+                                             wintypes.DWORD, wintypes.DWORD, ctypes.POINTER(Overlapped)]
+                kernel.LockFileEx.restype = wintypes.BOOL
+                kernel.UnlockFileEx.argtypes = [wintypes.HANDLE, wintypes.DWORD, wintypes.DWORD,
+                                               wintypes.DWORD, ctypes.POINTER(Overlapped)]
+                kernel.UnlockFileEx.restype = wintypes.BOOL
+                handle = msvcrt.get_osfhandle(stream.fileno())
+                overlapped = Overlapped()
                 # Byte-range locks may cover EOF. Do not initialize the byte:
                 # a running game holds it, and buffered writes can fail again
                 # during close, escaping the normal busy-error handler.
-                stream.seek(0)
-                msvcrt.locking(stream.fileno(), msvcrt.LK_NBRLCK if shared else msvcrt.LK_NBLCK, 1)
+                # CRT LK_NBRLCK is exclusive on Windows. Use the same real
+                # shared LockFileEx protocol as the native launcher's lock.
+                if not kernel.LockFileEx(handle, 1 | (0 if shared else 2), 0, 1, 0, ctypes.byref(overlapped)):
+                    raise ctypes.WinError(ctypes.get_last_error())
             else:
                 import fcntl
                 fcntl.flock(stream, (fcntl.LOCK_SH if shared else fcntl.LOCK_EX) | fcntl.LOCK_NB)
@@ -153,8 +187,8 @@ def file_lock(path, shared=False):
             yield
         finally:
             if os.name == 'nt':
-                stream.seek(0)
-                msvcrt.locking(stream.fileno(), msvcrt.LK_UNLCK, 1)
+                if not kernel.UnlockFileEx(handle, 0, 1, 0, ctypes.byref(overlapped)):
+                    raise ctypes.WinError(ctypes.get_last_error())
             # Closing releases the OS-held lock, including on process exit.
 
 
@@ -204,9 +238,25 @@ LANGUAGE_TARGET = re.compile(r'[A-Za-z0-9_.-]+(/[A-Za-z0-9_.-]+)*')
 LANGUAGE_DELTA = re.compile(r'[A-Za-z0-9_-]+(/[A-Za-z0-9_.-]+)*\.djd')
 
 
-def validate_language(folder):
-    """A language mod (docs/language-packs.md): language.ini and its deltas. The game checks each delta
-    against the player's dump when it builds the pack; here only the shape and the files' presence."""
+def pack_file(folder, relative):
+    """Validate every component before opening an installed pack's data file."""
+    safe_relative(relative)
+    path = Path(folder)
+    check(not linked(path), 'Redirected pack folder')
+    for part in PurePosixPath(relative).parts:
+        path = path / part
+        check(not linked(path), 'Redirected pack file path: ' + relative)
+    return path
+
+
+def language_manifest(folder):
+    """Read one validated manifest snapshot for installation or composition.
+
+    Native/application adapters verify the deltas against the player's dump.
+    This checks the manifest shape, paths and presence of its delta files.
+    """
+    folder = Path(folder)
+    check(not linked(folder), 'Redirected language pack folder')
     ini = folder / 'language.ini'
     check(ini.is_file() and not linked(ini) and ini.stat().st_size <= 1024**2, 'Missing/oversized language.ini')
     raw = ini.read_text(encoding='utf-8-sig')
@@ -231,15 +281,24 @@ def validate_language(folder):
         targets.add('|'.join(parts).casefold())
         delta = delta.strip()
         check(LANGUAGE_DELTA.fullmatch(delta), 'Invalid language delta path')
-        safe_relative(delta)
-        path = folder.joinpath(*PurePosixPath(delta).parts)
-        check(path.is_file() and not linked(path), 'Missing delta: ' + delta)
+        path = pack_file(folder, delta)
+        check(path.is_file(), 'Missing delta: ' + delta)
         with path.open('rb') as stream:
             check(stream.read(8) == b'DJDELTA1', 'Not a language delta: ' + delta)
+    return parser
+
+
+def validate_language(folder):
+    language_manifest(folder)
     return {'capabilities': ['language-v1'], 'texture_ids': [], 'wide_ids': []}
 
 
 def validate_pack(folder):
+    if (folder / 'fighters.json').exists():
+        check(not (folder / 'language.ini').exists() and not (folder / 'manifest.ini').exists(),
+              'Fighter packages cannot also be texture or language packages')
+        from fighter_packages import receipt
+        return receipt(folder)
     if (folder / 'language.ini').exists():
         result = validate_language(folder)
         if (folder / 'manifest.ini').exists():
@@ -265,8 +324,7 @@ def validate_textures(folder):
     check(parser.has_section('textures') and 0 < len(parser['textures']) <= MAX_FILES, 'Missing texture entries')
     refs, dimensions = set(), {}
     def reference(value, png_only=False):
-        safe_relative(value)
-        path = folder.joinpath(*PurePosixPath(value).parts)
+        path = pack_file(folder, value)
         check(path.is_file() and not linked(path), 'Missing image: ' + value)
         dims = image_shape(path, png_only)
         refs.add(value)
@@ -300,6 +358,8 @@ def unpack_archive(archive, descriptor, destination, cancelled=lambda: None):
     contract.slug(root)
     files, seen, size = [], set(), 0
     with zipfile.ZipFile(archive) as bundle:
+        fighter = root + '/fighters.json' in bundle.namelist()
+        allowed = ALLOWED | {'.bin', '.xsh', '.wav', '.elf', '.o'} if fighter else ALLOWED
         check(len(bundle.infolist()) <= MAX_FILES * 2, 'Too many archive entries')
         for row in bundle.infolist():
             cancelled()
@@ -313,7 +373,7 @@ def unpack_archive(archive, descriptor, destination, cancelled=lambda: None):
             check(not row.flag_bits & 1 and stat.S_IFMT(mode) in (0, stat.S_IFREG, stat.S_IFDIR), 'Links/encrypted/special entries forbidden')
             if row.is_dir():
                 continue
-            check(len(parts) > 1 and PurePosixPath(name).suffix.lower() in ALLOWED
+            check(len(parts) > 1 and PurePosixPath(name).suffix.lower() in allowed
                   and row.file_size <= MAX_FILE, 'Unsupported/oversized archive file')
             size += row.file_size
             files.append((row, parts[1:]))
@@ -400,7 +460,7 @@ def verify_index(raw, signature, keys, highest=0, digest=None, now=None, fresh=F
 
 
 class Manager:
-    def __init__(self, data, runtime='0.0.0', capabilities=('textures-v1',), keys=None, cancel=None, prerelease=False):
+    def __init__(self, data, runtime='0.0.0', capabilities=('textures-v1',), keys=None, cancel=None, prerelease=False, game=None):
         self.data = Path(data).resolve()
         safe_dir(self.data)
         self.root = safe_dir(self.data / 'mod-manager')
@@ -414,6 +474,7 @@ class Manager:
         self.cancel_file = Path(cancel) if cancel else None
         self.message = ''
         self.prerelease = prerelease
+        self.game = Path(game or Path.cwd() / 'game').resolve()  # The verified dump may use the normal game junction.
 
     def cancelled(self):
         check(not (self.cancel_file and self.cancel_file.exists()), 'Operation cancelled; previous installation preserved')
@@ -528,6 +589,8 @@ class Manager:
         state = self.state()
         if new and self.unchanged(target, new):
             state['installed'][journal['id']] = new
+            if journal.get('fighter_ledger') is not None:
+                state['fighter_ledger'] = journal['fighter_ledger']
         elif old and self.unchanged(target, old):
             state['installed'][journal['id']] = old
         elif not target.exists() and not linked(target) and old and self.unchanged(backup, old):
@@ -551,6 +614,9 @@ class Manager:
             self.recover()
             state = self.state()
             old = state['installed'].get(mod_id)
+            if 'fighters-v1' in (new or {}).get('capabilities', []) or 'fighters-v1' in (old or {}).get('capabilities', []):
+                from fighter_packages import candidate
+                candidate(self, state, mod_id, stage, new)
             target, backup = self.mods / mod_id, self.backups / mod_id
             if old:
                 check(self.unchanged(target, old), 'Managed mod has local edits/missing files; preserve them before replacing')
@@ -569,7 +635,8 @@ class Manager:
             # Refuse a receipt the bounded reader could not reopen, before any
             # pack moves. The journal's own bound is checked by atomic_json.
             json_bytes(state)
-            atomic_json(self.root / 'journal.json', dict(id=mod_id, old=old, new=new))
+            atomic_json(self.root / 'journal.json', dict(id=mod_id, old=old, new=new,
+                                                        fighter_ledger=state.get('fighter_ledger')))
             if backup.exists():
                 shutil.rmtree(backup)
                 sync_directory(self.backups)
@@ -616,6 +683,52 @@ class Manager:
         self.commit(mod_id, None, None)
         self.progress('Removed managed mod; local folders were preserved')
 
+    def install_local(self, archive):
+        """Offline Fighter ZIP import uses the same verified install transaction."""
+        check('fighters-v1' in self.capabilities, 'This runtime does not support Fighter packs')
+        archive = ordinary_path(archive)
+        check(archive.is_file() and archive.stat().st_size <= MAX_ARCHIVE, 'Missing or oversized Fighter ZIP')
+        with zipfile.ZipFile(archive) as bundle:
+            entries = bundle.infolist()
+            check(0 < len(entries) <= MAX_FILES * 2, 'Fighter ZIP entry budget exceeded')
+            roots = {safe_relative(row.filename.rstrip('/'))[0] for row in entries}
+            check(len(roots) == 1, 'Fighter ZIP needs one pack-id root folder')
+            root = roots.pop(); contract.slug(root)
+            check(root + '/fighters.json' in bundle.namelist(), 'Fighter ZIP is missing fighters.json')
+            files = [row for row in entries if not row.is_dir()]
+            descriptor = dict(root=root, size=archive.stat().st_size, sha256=sha(archive),
+                              file_count=len(files), unpacked_size=sum(row.file_size for row in files))
+        stage = self.staging / uuid.uuid4().hex
+        try:
+            self.progress('Validating Fighter package')
+            receipt = unpack_archive(archive, descriptor, stage, self.cancelled)
+            check(receipt.get('category') == 'fighters', 'Expected a Fighter package')
+            receipt.update(id=root, folder=root, version=receipt['fighter_version'], name=root,
+                           archive_sha256=descriptor['sha256'], conflicts=[], origin='local')
+            self.cancelled()
+            self.commit(root, stage, receipt)
+            self.progress('Fighter package installed. Enable the whole pack in Fighters; applies on Play.')
+        finally:
+            if stage.exists():
+                shutil.rmtree(stage)
+
+    def activate_fighter(self, identifier, selected):
+        from fighter_packages import build, enabled
+        contract.slug(identifier)
+        with file_lock(self.root / 'runtime.lock'):
+            self.recover()
+            state = self.state()
+            current = enabled(state)
+            chosen = sorted(set(current) | {identifier}) if selected else [item for item in current if item != identifier]
+            check(not selected or identifier in state['installed'], 'Install this Fighter package before enabling it')
+            proposed = {**state, 'fighters': chosen}
+            self.progress('Checking fighter resources and compatibility')
+            _, report, _, _ = build(self, proposed)
+            proposed['fighter_ledger'] = report['binding_ledger']
+            self.cancelled()
+            atomic_json(self.root / 'state.json', proposed)
+            self.progress('Fighter selection saved. Applies on Play; custom progress is retained when disabled.')
+
     def rollback(self, mod_id):
         contract.slug(mod_id)
         receipt = self.state()['installed'].get(mod_id, {}).get('previous')
@@ -645,6 +758,8 @@ class Manager:
                 latest = max(choices, key=lambda v: semver(v['version'])) if choices else None
                 revoked = installed.get('version') in mod['revoked_versions']
                 rows.append(dict(id=mod['id'], name=mod['name'], authors=', '.join(mod['authors']), description=mod['description'],
+                    category='fighters' if 'fighters-v1' in (latest or mod['versions'][-1])['capabilities'] else
+                             'language' if 'language-v1' in (latest or mod['versions'][-1])['capabilities'] else 'textures',
                     installed=installed.get('version', ''), latest=latest['version'] if latest else '',
                     bytes=latest['archive']['size'] if latest else 0,
                     channel=latest['channel'] if latest else '', compatible=int(bool(latest) and not stale),
@@ -663,13 +778,15 @@ class Manager:
         for mod_id, receipt in state['installed'].items():
             contract.slug(mod_id)
             section('installed.' + mod_id, dict(id=mod_id, folder=receipt['folder'], name=receipt['name'],
-                    version=receipt['version'], rollback=int(bool(receipt.get('previous')))))
+                    version=receipt['version'], rollback=int(bool(receipt.get('previous'))),
+                    category=receipt.get('category', 'language' if 'language-v1' in receipt['capabilities'] else 'textures'),
+                    enabled=int(mod_id in state.get('fighters', [])), fighters=receipt.get('fighter_count', 0)))
         atomic_bytes(self.root / 'view.ini', ('\n'.join(lines) + '\n').encode())
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=('status', 'refresh', 'install', 'remove', 'rollback', 'recover'))
+    parser.add_argument('command', choices=('status', 'refresh', 'install', 'remove', 'rollback', 'recover', 'install-local', 'fighter-enable', 'fighter-disable', 'fighter-session'))
     parser.add_argument('--data-dir', type=Path, required=True)
     parser.add_argument('--runtime', default='0.0.0')
     parser.add_argument('--capability', action='append', default=['textures-v1'])
@@ -677,13 +794,21 @@ def main():
     parser.add_argument('--version')
     parser.add_argument('--prerelease', action='store_true')
     parser.add_argument('--cancel-file')
+    parser.add_argument('--archive', type=Path)
+    parser.add_argument('--game-dir', type=Path)
+    parser.add_argument('--parent-pid', type=int)
+    parser.add_argument('--language-pack', type=Path)
     args = parser.parse_args()
     manager = None
     def failure(error):
         print(json.dumps(dict(event='error', message=str(error))), flush=True)
         return 1
     try:
-        manager = Manager(args.data_dir, args.runtime, args.capability, cancel=args.cancel_file, prerelease=args.prerelease)
+        manager = Manager(args.data_dir, args.runtime, args.capability, cancel=args.cancel_file, prerelease=args.prerelease, game=args.game_dir)
+        if args.command == 'fighter-session':
+            from fighter_launch import supervise
+            supervise(manager, args.parent_pid, language=args.language_pack)
+            return 0
         with file_lock(manager.root / 'writer.lock'):
             try:
                 if (manager.root / 'journal.json').exists():
@@ -697,6 +822,11 @@ def main():
                     manager.remove(args.id)
                 elif args.command == 'rollback':
                     manager.rollback(args.id)
+                elif args.command == 'install-local':
+                    check(args.archive is not None, 'Choose a Fighter ZIP file')
+                    manager.install_local(args.archive)
+                elif args.command in ('fighter-enable', 'fighter-disable'):
+                    manager.activate_fighter(args.id, args.command == 'fighter-enable')
                 manager.view()
             except (ValueError, OSError, ImportError, KeyError, TypeError, configparser.Error, zipfile.BadZipFile) as error:
                 manager.progress(str(error))

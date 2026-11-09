@@ -38,11 +38,30 @@ package = load('asset_setup_package', ROOT / 'scripts/package-setup.py')
 releases = load('asset_setup_releases', ROOT / 'setup/releases.py')
 
 
+def verify_fighter_sources(manifest):
+    """Lazy gameplay imports must survive source-only Setup packaging too."""
+    required={'source/'+path.relative_to(ROOT).as_posix() for path in (ROOT/'setup').glob('fighter_*.py')}
+    missing=required-set(manifest['files'])
+    if missing:
+        raise ValueError('Required Fighter setup sources missing: '+', '.join(sorted(missing)))
+
+
+def fighter_import_probe(folder,python,*,env=None):
+    import subprocess
+    script=('import importlib,pathlib,sys; root=pathlib.Path(sys.argv[1]); '
+            'sys.path.insert(0,str(root)); names=sorted(p.stem for p in root.glob("fighter_*.py")); '
+            'assert names,"Fighter setup modules missing"; '
+            '[importlib.import_module(name) for name in names]; '
+            'print("Bundled Fighter imports OK:",len(names))')
+    subprocess.run([python,'-B','-I','-c',script,folder/'source/setup'],check=True,env=env)
+
+
 def inspect_payload(archive):
     with tempfile.TemporaryDirectory() as temporary:
         folder = Path(temporary)
         package.safe_unpack(archive, folder)
         manifest = engine.verify_payload(folder, platform_of(archive))
+        verify_fighter_sources(manifest)
         for name in package.HD_SOURCES + package.MOD_SOURCES:
             if 'source/' + name not in manifest['files']:
                 raise ValueError('Required HD setup source missing: ' + name)
@@ -79,6 +98,7 @@ def inspect_payload(archive):
                     check=True, env={'PATH': '/usr/bin:/bin'})
                 subprocess.run([python, '-B', folder / 'source/scripts/build-hd-pack.py', '--help'], check=True,
                                stdout=subprocess.DEVNULL, env={'PATH': '/usr/bin:/bin'})
+                fighter_import_probe(folder,python,env={'PATH':'/usr/bin:/bin'})
                 check_linux_toolchain(folder)
         elif manifest['platform'] == 'macos-arm64':
             if sys.platform == 'darwin':
@@ -91,6 +111,7 @@ def inspect_payload(archive):
                                stdout=subprocess.DEVNULL, env={'PATH': '/usr/bin:/bin'})
                 subprocess.run([folder / 'tools/bin/cmake', '--version'], check=True, stdout=subprocess.DEVNULL)
                 subprocess.run([folder / 'tools/bin/ninja', '--version'], check=True, stdout=subprocess.DEVNULL)
+                fighter_import_probe(folder,python)
         elif sys.platform == 'win32':
             import subprocess
             subprocess.run([folder / 'python/python.exe', '-B', '-c',
@@ -101,6 +122,7 @@ def inspect_payload(archive):
             subprocess.run([folder / 'python/python.exe', '-B',
                             folder / 'source/setup/mods.py', '--help'], check=True,
                            stdout=subprocess.DEVNULL)
+            fighter_import_probe(folder,folder/'python/python.exe')
         return manifest
 
 

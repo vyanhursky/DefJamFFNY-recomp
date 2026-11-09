@@ -1,0 +1,41 @@
+#ifndef DEFJAM_FIGHTER_RUNTIME_H
+#define DEFJAM_FIGHTER_RUNTIME_H
+#include <stdint.h>
+/* Local R&D hooks. Roster probes require disposable data and no player settings;
+ * no shipping fighter capability or normal-profile activation. */
+int defjam_fighter_runtime_start(void);
+int defjam_fighter_research_active(void);
+uint32_t defjam_fighter_localized(uint32_t key, uint32_t native_value, uint32_t localizer);
+void defjam_fighter_order(uint32_t database, uint32_t entries, uint32_t count, const char *source);
+void defjam_fighter_materialized(uint32_t self, uint32_t handle);
+void defjam_fighter_model_input(uint32_t object);
+uint32_t defjam_fighter_native_handle(uint32_t handle);
+int defjam_fighter_native_record(uint32_t database, uint32_t output, uint32_t stable);
+void defjam_fighter_match_setup(uint32_t self, uint32_t fighters);
+void defjam_fighter_match_finished(void);
+void defjam_fighter_match_unloaded(void);
+void defjam_fighter_handle_produced(uint32_t database, uint32_t table, uint32_t output);
+void defjam_fighter_settings_bound(uint32_t self);
+void defjam_fighter_settings_validate(uint32_t self, uint32_t payload);
+void defjam_fighter_settings_saving(void);
+void defjam_fighter_settings_saved(void);
+void defjam_fighter_profile_staging(uint32_t name, uint32_t payload);
+void defjam_fighter_save_batch(void);
+/* written is the original guest output-count pointer; read only when active. */
+void defjam_fighter_save_write(uint32_t handle, uint32_t buffer, uint32_t size, uint32_t written, int success, int asynchronous);
+void defjam_fighter_save_seek(uint32_t handle);
+void defjam_fighter_save_close(uint32_t handle, int success);
+int defjam_fighter_profile_delete_begin(uint32_t root, uint32_t name, char snapshot[33]);
+void defjam_fighter_profile_delete_end(const char *name, int success);
+void defjam_fighter_unlock_inserting(uint32_t self);
+void defjam_fighter_selection_gate(uint32_t selection);
+/* Reads the original string vector before the native dispatcher narrows it.
+ * UINT32_MAX means preserve the original submission/sentinel. */
+uint32_t defjam_fighter_controller_submission(uint32_t arguments);
+/* Intercepts only the fixed runtime-owned selector command when active. */
+int defjam_fighter_ui_command(uint32_t command);
+void defjam_fighter_menu_event(const char *text);
+uint32_t defjam_fighter_filter_banks(uint32_t entries, uint32_t count);
+uint32_t defjam_fighter_result_identity(uint32_t participant, uint32_t native);
+uint32_t defjam_fighter_loading_identity(uint32_t native);
+#endif

@@ -34,6 +34,129 @@ def test_presses_expand():
     assert harness.expand_presses("down@11+0.6x2") == ["down:11:%g" % (11 + d), "down:11.6:%g" % (11.6 + d)]
 
 
+def test_explicit_combat_stage_replaces_stock_buttons_without_losing_later_flow(monkeypatch):
+    captured={}
+    class Run:
+        summary={'calls':[]}
+    def run_game(*args,**kwargs):captured.update(kwargs);return Run()
+    monkeypatch.setattr(harness,'run_game',run_game)
+    monkeypatch.setattr(harness,'reached',lambda *args:True)
+    harness.run_route('fighter-roster-two-matches',extra_stages=[
+        'Game.StartGame(=start@5','game.startgame(#2=start@7'])
+    tail=captured['tail'].casefold()
+    assert '@game.startgame(' not in tail
+    assert '@game.getmatchsummary(' in tail and '@getscreeninfo(battle/cmtype#2' in tail
+    assert 'Game.StartGame(=start@5' in captured['stages']
+    assert harness.omit_tail_anchors('@a,x:1:2,@b,y:3:4',['a=z@9'])=='@b,y:3:4'
+
+
+def test_route_overrides_keep_later_native_stages_after_the_overridden_anchor(monkeypatch):
+    calls = []
+    monkeypatch.setattr(harness, 'run_game', lambda *args, **kw: calls.append(kw) or
+                        type('Result', (), {'summary': {'funccalls': []}})())
+    monkeypatch.setattr(harness, 'reached', lambda *args: True)
+    replacement = 'GetScreenInfo(options/userid=a@9;a@13'
+    harness.run_route('crib', extra_stages=[replacement])
+    assert calls[0]['stages'] == [harness.ROUTES['crib']['stages'][0], replacement,
+                                  harness.ROUTES['crib']['stages'][2]]
+    assert harness.merge_stages(['screen=a@1'], ['screen=a@2', 'screen#2=b@1', 'screen=a@3']) == [
+        'screen=a@3', 'screen#2=b@1']
+
+
+def test_long_roster_navigation_compacts_without_losing_press_times_or_pad_ownership():
+    stages = [f'selector{i}=p{i + 1}-down@10+0.8x75;a@76' for i in range(4)]
+    script = harness.build_pad_script(stages)
+    assert len(script.encode()) <= 4095 and len(script.split(',')) <= 256
+    harness.validate_shots(harness.ROUTES['fighter-roster-two-matches']['shots'])
+    for index in range(4):
+        expected = f'p{index + 1}-down:10:69.5:0.8:{harness.DIRECTION_HOLD:g}'
+        # Last press is at 69.2, with the normal platform-specific hold.
+        expected = expected.replace('69.5', f'{69.2 + harness.DIRECTION_HOLD:g}')
+        assert expected in script
+    with pytest.raises(ValueError, match='native byte/entry budget'):
+        harness.build_pad_script(['x' * 4096 + '=a@1'])
+    for compiler in (harness.build_pad_script, harness.raw_stages):
+        with pytest.raises(ValueError, match='comma before its occurrence count'):
+            compiler(['controllersetup(0,0#2=a@1'])
+
+
+def test_second_match_overrides_stay_after_the_first_fight_and_result(monkeypatch):
+    calls = []
+    monkeypatch.setattr(harness, 'run_game', lambda *args, **kw: calls.append(kw) or
+                        type('Result', (), {'summary': {'funccalls': []}})())
+    monkeypatch.setattr(harness, 'reached', lambda *args: True)
+    first = 'getscreeninfo(battle/choosef2=down@6;a@29'
+    second = 'getscreeninfo(battle/choosef2#2=up@6;a@29'
+    cpu = 'controllersetup(0#2=right@6;a@29'
+    harness.run_route('fighter-roster-two-matches', extra_stages=[first, second, cpu])
+    stages, tail = calls[0]['stages'], calls[0]['tail']
+    assert first in stages and second not in stages and cpu not in stages
+    script = harness.build_pad_script(stages, tail)
+    assert tail.index('@game.startgame(') < tail.index('@game.getmatchsummary(') < tail.index('@getscreeninfo(battle/choosef2#2')
+    assert tail.index('@getscreeninfo(battle/choosef2#2') < tail.index('@controllersetup(0#2') < tail.index('@getscreeninfo(battle/chsvenue#2')
+    assert len(script.encode()) <= 4095 and len(script.split(',')) <= 256
+
+
+def test_research_save_supervisor_requires_a_fresh_active_heartbeat(tmp_path):
+    path = tmp_path / 'supervisor.json'
+    state = {'schema': 'fighter-save-supervisor-1', 'state': 'active', 'heartbeat': 99, 'detail': ''}
+    assert harness.supervisor_fault(path, now=100)
+    path.write_text(json.dumps(state))
+    assert harness.supervisor_fault(path, now=100) is None
+    assert harness.supervisor_fault(path, now=115)
+    for change in ({'state': 'failed'}, {'state': 'stopped'}, {'heartbeat': float('nan')}, {'heartbeat': True}, {'schema': 'other'}):
+        path.write_text(json.dumps(dict(state, **change)))
+        assert harness.supervisor_fault(path, now=100)
+
+
+def test_supervisor_sharing_race_cannot_extend_last_verified_heartbeat(tmp_path, monkeypatch):
+    path = tmp_path / 'supervisor.json'
+    path.write_text(json.dumps({'schema': 'fighter-save-supervisor-1', 'state': 'active', 'heartbeat': 99, 'detail': ''}))
+    cache = {}
+    assert harness.supervisor_fault(path, now=100, cache=cache) is None
+    original, calls = type(path).open, []
+    def sharing_error(self, *args, **kwargs):
+        calls.append(self)
+        if self == path:
+            raise PermissionError('atomic replacement sharing race')
+        return original(self, *args, **kwargs)
+    monkeypatch.setattr(type(path), 'open', sharing_error)
+    monkeypatch.setattr(harness.time, 'sleep', lambda _: None)
+    assert harness.supervisor_fault(path, now=101, cache=cache) is None
+    assert cache == {'heartbeat': 99} and len(calls) == 4
+    assert harness.supervisor_fault(path, now=115, cache=cache)
+    assert harness.supervisor_fault(path, now=101, cache={})
+
+
+@pytest.mark.parametrize('route,screen', [('fighter-roster', 'choosef2'), ('fighter-roster-3', 'choosef3'),
+                                        ('fighter-roster-4', 'choosef4')])
+def test_roster_probe_browsing_replaces_idle_stage_without_duplicate_anchor(monkeypatch, route, screen):
+    calls = []
+    def fake_run(*args, **kwargs):
+        calls.append(kwargs)
+        run = harness.Run('synthetic', 'unused', '')
+        run.summary = {}
+        return run
+    monkeypatch.setattr(harness, 'run_game', fake_run)
+    monkeypatch.setattr(harness, 'reached', lambda *_: True)
+    anchor = 'getscreeninfo(battle/' + screen + '='
+    harness.run_route(route)
+    assert calls[-1]['stages'][-1] == anchor + 'back@9999'
+    browsing = anchor + 'down@10;a@20'
+    harness.run_route(route, extra_stages=[browsing])
+    assert calls[-1]['stages'][-1] == browsing
+    assert sum(anchor in stage for stage in calls[-1]['stages']) == 1
+
+
+@pytest.mark.parametrize('participants', [3, 4])
+def test_multiplayer_fighter_save_routes_require_return_after_result(participants):
+    route = harness.ROUTES[f'fighter-roster-{participants}-save']
+    assert route['until'] == 'getscreeninfo(battle/cmtype#2'
+    assert route['tail'].index('@game.startgame(') < route['tail'].index('@game.getmatchsummary(')
+    script = harness.build_pad_script(route['stages'], route['tail'])
+    assert len(script.encode()) <= 4095 and len(script.split(',')) <= 256
+
+
 def test_guarded_data_root_matches_child_cwd(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     assert harness.guarded_data_root('runtime-data') == os.path.join(harness.REPO, 'runtime-data')
@@ -382,6 +505,15 @@ def test_missing_story_route_is_a_failure(monkeypatch):
     args = type('Args', (), {'preset': 'synthetic'})()
     assert not regress.check_crib(args)[0]
     assert not regress.check_gym(args)[0]
+
+
+def test_cli_reports_a_missing_route_target_after_the_game_summary(monkeypatch, capsys):
+    run = harness.Run('crib', 'synthetic.log', '')
+    run.save_ok = True
+    run.missing_anchor = 'getscreeninfo(story/crib'
+    monkeypatch.setattr(harness, 'run_route', lambda *args, **kw: run)
+    assert harness.main(['run', 'crib']) == 1
+    assert 'FAIL     never reached getscreeninfo(story/crib' in capsys.readouterr().out
 
 
 def test_clean_log_without_route_target_still_fails(monkeypatch):

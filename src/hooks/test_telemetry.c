@@ -39,6 +39,10 @@
 #include "test_observations.h"
 #include "input_latency.h"
 #include "input_consumption.h"
+#ifdef XBOXRECOMP_HAVE_SDL3
+#include <SDL3/SDL.h>
+#include "input_host.h"
+#endif
 
 #define ACTORS        0x003B92E0u
 #define STRIDE        0x12E8u
@@ -159,6 +163,113 @@ static void begin_line(const char *tag, const char *event)
     put("[%s] {\"event\":\"%s\",\"match\":%ld,\"step\":%lld,\"host_ms\":%llu",
         tag, event, (long)s_match, (long long)s_step, (unsigned long long)GetTickCount64());
 }
+
+/* Isolated fighter lifecycle acceptance: actual SDL device removal/addition,
+ * not a neutral guest-input override. SDL's joystick APIs are thread-safe.
+ * The harness must end its menu script at Game.StartGame and have no combat
+ * tail, otherwise its raw-report fallback could conceal a disconnected pad. */
+#ifdef XBOXRECOMP_HAVE_SDL3
+static SDL_Joystick *s_lifecycle_pad;
+static SDL_JoystickID s_lifecycle_id;
+static uint32_t s_lifecycle_characters[SLOTS], s_lifecycle_slots;
+
+static void controller_lifecycle_fail(const char *why) {
+    fprintf(stderr, "[TEST-EVENT] {\"event\":\"controller_lifecycle_error\",\"detail\":\"%s\"}\n", why);
+    fflush(stderr); abort();
+}
+
+static void controller_lifecycle_cleanup(void) {
+    if (!SDL_WasInit(SDL_INIT_JOYSTICK)) return;
+    if (s_lifecycle_pad) SDL_CloseJoystick(s_lifecycle_pad);
+    if (s_lifecycle_id) SDL_DetachVirtualJoystick(s_lifecycle_id);
+    s_lifecycle_pad = NULL; s_lifecycle_id = 0;
+}
+
+static void controller_lifecycle_step(void) {
+    static int enabled = -1;
+    char name[80];
+    XBOX_INPUT_STATE state;
+    if (enabled < 0) {
+        const char *flag = getenv("RECOMP_FIGHTER_TEST_HOTPLUG");
+        enabled = flag && !strcmp(flag, "1");
+    }
+    if (!enabled) return;
+    if (s_match != 1) controller_lifecycle_fail("Hotplug control requires a single match");
+    if (s_step == 1) {
+        int count = 0;
+        SDL_JoystickID *ids = SDL_GetJoysticks(&count);
+        if (!getenv("RECOMP_FIGHTER_WINDOW") || !getenv("RECOMP_FIGHTER_RESEARCH_SOD")
+            || !xbox_HostInputActive() || !xbox_HostInputSlotIsVirtual(0)
+            || xbox_HostInputSlotInfo(0, name, sizeof name) != 1 || strcmp(name, "Virtual test pad")
+            || !ids || count != 1 || !SDL_IsJoystickVirtual(ids[0]))
+            controller_lifecycle_fail("Hotplug control requires one isolated virtual pad and no physical devices");
+        s_lifecycle_id = ids[0]; SDL_free(ids);
+        s_lifecycle_pad = SDL_OpenJoystick(s_lifecycle_id);
+        if (!s_lifecycle_pad) controller_lifecycle_fail("Cannot retain test joystick");
+        atexit(controller_lifecycle_cleanup);
+        for (int slot = 0; slot < SLOTS; ++slot) if (active(slot)) {
+            s_lifecycle_slots |= 1u << slot;
+            s_lifecycle_characters[slot] = MEM32(record(slot) + F_CHARACTER);
+        }
+    }
+    for (int slot = 0; slot < SLOTS; ++slot) if (s_lifecycle_slots & (1u << slot))
+        if (!active(slot) || MEM32(record(slot) + F_CHARACTER) != s_lifecycle_characters[slot])
+            controller_lifecycle_fail("Participant identity changed during controller lifecycle");
+    if (s_step == 900) {
+        SDL_CloseJoystick(s_lifecycle_pad); s_lifecycle_pad = NULL;
+        if (!SDL_DetachVirtualJoystick(s_lifecycle_id)) controller_lifecycle_fail("Cannot detach test joystick");
+        begin_line("TEST-EVENT", "controller_detach"); put(",\"id\":%u,\"slot\":0", s_lifecycle_id); end_line();
+        s_lifecycle_id = 0;
+    }
+    if (s_step == 1080) {
+        DWORD status = xbox_HostInputCurrentState(0, &state);
+        uint32_t held = MEM32(record(0) + F_HELD), pressed = MEM32(record(0) + F_PRESSED);
+        if (status != ERROR_DEVICE_NOT_CONNECTED || (held | pressed) & (ACTION_BITS | DIRECTION_BITS))
+            controller_lifecycle_fail("Disconnected controller did not produce neutral native input");
+        begin_line("TEST-EVENT", "controller_neutral");
+        put(",\"slot\":0,\"status\":%lu,\"held\":%u,\"pressed\":%u", (unsigned long)status, held, pressed); end_line();
+    }
+    if (s_step == 1200) {
+        SDL_VirtualJoystickDesc desc;
+        SDL_INIT_INTERFACE(&desc);
+        desc.type = SDL_JOYSTICK_TYPE_GAMEPAD;
+        desc.naxes = SDL_GAMEPAD_AXIS_COUNT; desc.nbuttons = SDL_GAMEPAD_BUTTON_COUNT;
+        desc.name = "Fighter lifecycle test pad";
+        s_lifecycle_id = SDL_AttachVirtualJoystick(&desc);
+        s_lifecycle_pad = s_lifecycle_id ? SDL_OpenJoystick(s_lifecycle_id) : NULL;
+        if (!s_lifecycle_pad) controller_lifecycle_fail("Cannot reattach test joystick");
+        SDL_SetJoystickVirtualAxis(s_lifecycle_pad, SDL_GAMEPAD_AXIS_LEFT_TRIGGER, -32768);
+        SDL_SetJoystickVirtualAxis(s_lifecycle_pad, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER, -32768);
+        begin_line("TEST-EVENT", "controller_reattach"); put(",\"id\":%u,\"slot\":0", s_lifecycle_id); end_line();
+    }
+    if (s_step == 1320) {
+        if (xbox_HostInputSlotInfo(0, name, sizeof name) != 1 || strcmp(name, "Fighter lifecycle test pad")
+            || xbox_HostInputCurrentState(0, &state) != ERROR_SUCCESS || state.Gamepad.sThumbLX != 32767)
+            controller_lifecycle_fail("Reattached controller did not resume its original host slot");
+        begin_line("TEST-EVENT", "controller_rejoined");
+        put(",\"id\":%u,\"slot\":0,\"host_lx\":%d,\"guest_held\":%u,\"identities_unchanged\":true",
+            s_lifecycle_id, state.Gamepad.sThumbLX, MEM32(record(0) + F_HELD)); end_line();
+    }
+    if (s_lifecycle_pad && s_step >= 1200) {
+        /* The replacement belongs to this test, so the menu script cannot
+         * overwrite its controls through the toolkit's private virtual IDs.
+         * No guest memory or USB report writes are used. */
+        static const SDL_GamepadButton buttons[] = { SDL_GAMEPAD_BUTTON_SOUTH, SDL_GAMEPAD_BUTTON_EAST,
+                                                    SDL_GAMEPAD_BUTTON_WEST, SDL_GAMEPAD_BUTTON_NORTH };
+        SDL_SetJoystickVirtualAxis(s_lifecycle_pad, SDL_GAMEPAD_AXIS_LEFTX, 32767);
+        for (unsigned i = 0; i < 4; ++i)
+            if (!SDL_SetJoystickVirtualButton(s_lifecycle_pad, buttons[i], (s_step + i * 12) % 48 < 9))
+                controller_lifecycle_fail("Cannot drive test joystick buttons");
+    }
+}
+#else
+static void controller_lifecycle_step(void) {
+    if (getenv("RECOMP_FIGHTER_TEST_HOTPLUG")) {
+        fprintf(stderr, "[TEST-EVENT] {\"event\":\"controller_lifecycle_error\",\"detail\":\"SDL3 required\"}\n");
+        abort();
+    }
+}
+#endif
 
 static void put_fighters(void)
 {
@@ -335,6 +446,7 @@ void defjam_test_step(void)
     int slot;
     if (!defjam_test_observations_enabled() || !s_in_match) return;
     s_step++;
+    controller_lifecycle_step();
     if (isolating()) {
         MEM32(SPECTATOR_COUNT) = 0;
         /* The general-purpose generator (G_RNG_UTIL) is also drawn by effects that run once per presented

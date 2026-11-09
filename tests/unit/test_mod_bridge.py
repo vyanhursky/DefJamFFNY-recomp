@@ -1,5 +1,7 @@
 """Native process/argv/OS lock checks without renderer or game data."""
 from pathlib import Path
+import hashlib
+import json
 import os
 import shutil
 import subprocess
@@ -32,12 +34,19 @@ std::string data;
 namespace pcui { std::string folder_path(Folder which) { return data; } }
 int main(int argc,char **argv) {
  data=argv[1];
+ if(std::string(argv[2])=="fighter") {
+   if(!pc_fighters_prepare("")) {std::cerr<<pc_fighters_error()<<std::endl;return 5;}
+   std::cout<<pc_fighters_healthy()<<std::endl;
+   std::string input;std::getline(std::cin,input);
+   std::cout<<pc_fighters_healthy()<<std::endl;
+   pc_fighters_finish();return 0;
+ }
  if(std::string(argv[2])=="hold") {
    if(!pc_mods_game_lock())return 2;
    std::cout<<"locked"<<std::endl;
    std::string input;std::getline(std::cin,input);return 0;
  }
- if(!pcui::mod_start("status"))return 3;
+ if(!pcui::mod_start(argv[2],argc>3?argv[3]:""))return 3;
  for(int i=0;i<1000 && pcui::mod_busy();i++) {pcui::mod_poll();std::this_thread::sleep_for(std::chrono::milliseconds(10));}
  std::cout<<pcui::mod_status()<<"\n"<<pcui::mod_view().catalogue<<std::endl;
  return pcui::mod_busy()?4:0;
@@ -84,6 +93,97 @@ def test_async_status_and_space_paths(bridge,tmp_path):
     assert result.returncode==0,result.stdout+result.stderr
     assert 'inventory refreshed' in result.stdout
     assert (data/'mod-manager/view.ini').exists()
+
+
+def test_helper_preserves_verified_payload_after_importing_modules(bridge, tmp_path):
+    # Real GUI helpers run from the inspected app payload. Importing a module
+    # must not add bytecode that makes the next Repair reject its inventory.
+    sys.path.insert(0, str(ROOT / 'setup'))
+    try:
+        import engine
+    finally:
+        sys.path.pop(0)
+    payload = tmp_path / 'sealed payload'
+    source = payload / 'source'
+    setup = source / 'setup'
+    setup.mkdir(parents=True)
+    (setup / 'readonly_dependency.py').write_text('VALUE = 7\n', encoding='utf-8')
+    (setup / 'mods.py').write_text('''
+import json, sys
+from pathlib import Path
+import readonly_dependency
+root = Path(sys.argv[sys.argv.index('--data-dir') + 1]) / 'mod-manager'
+(root / 'helper-proof.json').write_text(json.dumps({
+    'no_bytecode': sys.dont_write_bytecode,
+    'value': readonly_dependency.VALUE,
+    'command': sys.argv[1],
+}))
+''', encoding='utf-8')
+    files = {p.relative_to(payload).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
+             for p in setup.iterdir()}
+    manifest = dict(schema=1, platform=engine.HOST_PLATFORM, version='1.1.1',
+                    source_commit='0' * 40, toolkit_commit='1' * 40, files=files)
+    (payload / 'manifest.json').write_text(json.dumps(manifest), encoding='utf-8')
+    engine.verify_payload(payload)
+    env = {k: v for k, v in os.environ.items()
+           if k not in {'DEFJAM_INSTALL_DIR', 'PYTHONDONTWRITEBYTECODE', 'PYTHONPYCACHEPREFIX'}}
+    env['DEFJAM_MOD_PYTHON'] = sys.executable
+    data = tmp_path / 'external data'
+    result = subprocess.run([str(bridge), str(data), 'status'], cwd=source, env=env,
+                            capture_output=True, text=True, timeout=20)
+    assert result.returncode == 0, result.stdout + result.stderr
+    proof = json.loads((data / 'mod-manager/helper-proof.json').read_text(encoding='utf-8'))
+    assert proof == dict(no_bytecode=True, value=7, command='status')
+    engine.verify_payload(payload)
+    assert not list(payload.rglob('__pycache__'))
+
+
+@pytest.mark.parametrize('activation_ok', [True, False])
+def test_catalogue_fighter_install_uses_activation_transaction_not_texture_settings(bridge, tmp_path, activation_ok):
+    source = tmp_path / 'helper source'
+    (source / 'setup').mkdir(parents=True)
+    (source / 'setup/mods.py').write_text(f'''
+import sys
+from pathlib import Path
+root = Path(sys.argv[sys.argv.index('--data-dir') + 1]) / 'mod-manager'
+root.mkdir(parents=True, exist_ok=True)
+with (root / 'commands.txt').open('a') as record:
+    record.write(sys.argv[1] + '\\n')
+assert sys.argv[sys.argv.index('--id') + 1] == 'synthetic-fighters'
+if sys.argv[1] == 'install':
+    (root / 'view.ini').write_text('[installed.synthetic-fighters]\\nfolder=synthetic-fighters\\ncategory=fighters\\nname=Synthetic\\n')
+elif sys.argv[1] == 'fighter-enable':
+    (root / 'progress.ini').write_text('[progress]\\nmessage=activation {"verified" if activation_ok else "refused"}\\n')
+    sys.exit({0 if activation_ok else 1})
+else:
+    raise AssertionError(sys.argv)
+''', encoding='utf-8')
+    env = {**os.environ, 'DEFJAM_MOD_PYTHON': sys.executable}
+    env.pop('DEFJAM_INSTALL_DIR', None)
+    result = subprocess.run([str(bridge), str(tmp_path / 'data'), 'install-enable', 'synthetic-fighters'],
+                            cwd=source, env=env, capture_output=True, text=True, timeout=20)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert (tmp_path / 'data/mod-manager/commands.txt').read_text().splitlines() == ['install', 'fighter-enable']
+    if not activation_ok:
+        assert 'activation refused' in result.stdout
+    # All toolkit settings functions abort in this driver: either outcome must
+    # avoid the texture/language settings and preserve the helper's decision.
+
+
+def test_native_game_and_python_supervisor_share_runtime_lock(bridge, tmp_path):
+    sys.path.insert(0, str(ROOT / 'setup'))
+    from mods import file_lock
+    data = tmp_path / 'shared launch'
+    parent = subprocess.Popen([str(bridge), str(data), 'hold'], stdin=subprocess.PIPE,
+                              stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    try:
+        assert parent.stdout.readline().strip() == 'locked'
+        with file_lock(data / 'mod-manager/runtime.lock', shared=True):
+            with pytest.raises(ValueError, match='busy'):
+                with file_lock(data / 'mod-manager/runtime.lock'):
+                    pytest.fail('Installer acquired running game lock')
+    finally:
+        parent.communicate('\n', timeout=10)
 
 
 def test_polling_does_not_block_atomic_progress_updates(bridge,tmp_path):
@@ -153,3 +253,81 @@ def test_incomplete_transaction_blocks_game_even_without_launcher(bridge,tmp_pat
     root=tmp_path/'mod-manager';root.mkdir();(root/'journal.json').write_text('{}')
     result=subprocess.run([str(bridge),str(tmp_path),'hold'],capture_output=True,text=True,timeout=10)
     assert result.returncode==2
+
+
+def fighter_helper(tmp_path, environment='', *, ignore_stop=False):
+    source = tmp_path / 'helper source'
+    (source / 'setup').mkdir(parents=True)
+    (tmp_path / 'mod-manager').mkdir()
+    (tmp_path / 'mod-manager/state.json').write_text('{}')
+    (source / 'setup/mods.py').write_text(f'''
+import sys, time
+from pathlib import Path
+root=Path(sys.argv[sys.argv.index('--data-dir')+1])/'mod-manager'
+pid=sys.argv[sys.argv.index('--parent-pid')+1]
+session=root/'fighter-sessions'/('a'*32)
+data=session/'fighter-runtime-probe';data.mkdir(parents=True)
+journal=session/'journal';journal.mkdir()
+(journal/'supervisor.json').write_text('{{}}')
+ready=root/('fighter-session-'+pid+'.ini')
+ready.write_text('[session]\\nstate=ready\\nparent_pid='+pid+'\\ndata_root='+str(data)+'\\n{environment}')
+deadline=time.monotonic()+15
+while ({ignore_stop!r} or not (root/('fighter-session-'+pid+'.stop')).exists()) and time.monotonic()<deadline:
+    time.sleep(.02)
+ready.write_text('[session]\\nstate=complete\\n')
+''')
+    env = {k:v for k,v in os.environ.items() if not k.startswith('RECOMP_FIGHTER_')}
+    env.pop('DEFJAM_INSTALL_DIR', None)
+    env['DEFJAM_MOD_PYTHON'] = sys.executable
+    return source, env
+
+
+def test_managed_native_bridge_refuses_stale_supervisor_and_acknowledges_exit(bridge, tmp_path):
+    import time
+    source, env = fighter_helper(tmp_path)
+    parent = subprocess.Popen([str(bridge), str(tmp_path), 'fighter'], cwd=source, env=env,
+                              stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    try:
+        assert parent.stdout.readline().strip() == '1'
+        heartbeat = next((tmp_path / 'mod-manager/fighter-sessions').glob('*/journal/supervisor.json'))
+        os.utime(heartbeat, (time.time()-30, time.time()-30))
+        output, error = parent.communicate('\n', timeout=15)
+        assert output.strip() == '0'
+        assert parent.returncode == 0
+        assert 'managed profile session completed' in error
+    finally:
+        if parent.poll() is None:
+            parent.kill(); parent.wait()
+
+
+@pytest.mark.parametrize('ignore_stop', [False, True])
+def test_managed_native_bridge_rejects_test_switch_in_ready_projection(bridge, tmp_path, ignore_stop):
+    source, env = fighter_helper(tmp_path, '[environment]\\nRECOMP_FIGHTER_TEST_SAVE_STOP=intent\\n',
+                                 ignore_stop=ignore_stop)
+    parent = subprocess.Popen([str(bridge), str(tmp_path), 'fighter'], cwd=source, env=env,
+                              stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    try:
+        _, error = parent.communicate('\n', timeout=10)
+        assert parent.returncode == 5
+        assert 'unsupported runtime setting' in error
+        assert (tmp_path / f'mod-manager/fighter-session-{parent.pid}.stop').read_text() == 'complete\n'
+        if not ignore_stop:
+            ready=(tmp_path / f'mod-manager/fighter-session-{parent.pid}.ini').read_text()
+            assert 'state=complete' in ready
+    finally:
+        # The fake helper has no parent watcher; let it exit without waiting for
+        # its timeout even when startup was refused.
+        (tmp_path / f'mod-manager/fighter-session-{parent.pid}.stop').write_text('complete')
+        if parent.poll() is None:
+            parent.kill(); parent.wait()
+
+
+def test_managed_native_bridge_accepts_owned_timeline_and_cinematic_proofs(bridge, tmp_path):
+    names=('TAGS','TAGS_SHA256','CAMERAS','CAMERAS_SHA256','TIMELINE_BINDINGS','FILM_PROOFS')
+    projection='[environment]\\n'+''.join('RECOMP_FIGHTER_'+name+'=sealed-fixture\\n' for name in names)
+    source,env=fighter_helper(tmp_path,projection)
+    result=subprocess.run([str(bridge),str(tmp_path),'fighter'],cwd=source,env=env,
+                          input='\n',capture_output=True,text=True,timeout=15)
+    assert result.returncode==0,result.stderr
+    assert result.stdout.splitlines()==['1','1']
+    assert 'managed profile session completed' in result.stderr
