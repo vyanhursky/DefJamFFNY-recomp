@@ -376,10 +376,11 @@ void defjam_fighter_cinematic_leave(uint64_t previous, uint32_t request) {
 }
 void defjam_fighter_cinematic_name(uint32_t descriptor) {
     if (!s_context || (uint32_t)(s_context >> 32) != descriptor || !defjam_fighter_research_active()) return;
-    char label[9];
-    snprintf(label, sizeof label, "fm%c%05u", ((uint32_t)s_context & 0x80000000u) ? 'b' : 'c',
-             (uint32_t)s_context & 0x7FFFFFFFu);
-    memcpy((void *)XBOX_PTR(descriptor + 0xA8), label, sizeof label);
+    char label[14]; /* Enough for any uint32; the admitted native token is eight bytes. */
+    int length=snprintf(label, sizeof label, "fm%c%05u", ((uint32_t)s_context & 0x80000000u) ? 'b' : 'c',
+                        (uint32_t)s_context & 0x7FFFFFFFu);
+    if (length!=8) {cin_stop("owned cinematic descriptor token exceeds native width");return;}
+    memcpy((void *)XBOX_PTR(descriptor + 0xA8), label, 9);
 }
 void defjam_fighter_cinematic_selected(uint32_t descriptor, uint32_t name) {
     if (!s_count || !defjam_fighter_research_active()) return;

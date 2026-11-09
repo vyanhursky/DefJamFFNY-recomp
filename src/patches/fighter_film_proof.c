@@ -22,7 +22,8 @@ static uint32_t word(const uint8_t *p) { return (uint32_t)p[0]|(uint32_t)p[1]<<8
 static int equal_fold(const char *a,const char *b,size_t length) {
     for (size_t i=0;i<length;++i) {
         unsigned x=(unsigned char)a[i],y=(unsigned char)b[i];
-        if (x>='A'&&x<='Z') x+=32;if (y>='A'&&y<='Z') y+=32;
+        if (x>='A'&&x<='Z') x+=32;
+        if (y>='A'&&y<='Z') y+=32;
         if (x!=y) return 0;
     }
     return 1;
@@ -70,7 +71,8 @@ int defjam_fighter_film_start(void) {
         uint32_t end=0;
         for (unsigned j=0;valid && j<relocs;++j) {
             uint32_t field=word(p+128+8*j),target=word(p+132+8*j);
-            if (field<end || (field&3) || field>size-4 || target>=size) valid=0;end=field+4;
+            if (field<end || (field&3) || field>size-4 || target>=size) valid=0;
+            end=field+4;
         }
         s_films[i].record=p;previous=p;at+=record_bytes;
     }
@@ -95,7 +97,8 @@ unsigned defjam_fighter_film_file(const char *path) {
 }
 static int seal(unsigned owner,uint32_t bank) {
     const uint8_t *p=s_films[owner-1].record;uint32_t size=word(p+32),root=word(p+36),relocs=word(p+40);
-    if (bank<root) return 0;uint32_t base=bank-root;
+    if (bank<root) return 0;
+    uint32_t base=bank-root;
     if (!defjam_fighter_cpu_range(base,size)) return 0;
     Sha sha;sha_init(&sha);uint32_t end=0;
     for (unsigned j=0;j<relocs;++j) {

@@ -20,6 +20,7 @@
 #include <spawn.h>
 #include <sys/wait.h>
 #include <sys/file.h>
+#include <signal.h>
 #include <fcntl.h>
 #include <unistd.h>
 extern char **environ;
@@ -268,6 +269,34 @@ bool mod_poll() {
     enable_after_install.clear();
     return true;
 }
+
+// A refused ready projection never becomes a live session. Stop and reap its
+// owned helper now, including on POSIX where its inherited output pipes would
+// otherwise outlive the failed launch. Preserve the original refusal detail.
+struct PendingFighterSession {
+    bool admitted = false;
+    ~PendingFighterSession() {
+        if (admitted || !running) return;
+        auto detail = status;
+        { std::ofstream stop(fighter_stop); stop << "complete\n"; }
+        for (int i=0; i<100 && running; ++i) {
+            mod_poll(); std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
+        if (running) {
+#if defined(_WIN32)
+            TerminateProcess(process, 1);
+            WaitForSingleObject(process, 1000);
+            CloseHandle(process); process = nullptr;
+#else
+            kill(process, SIGKILL);
+            while (waitpid(process, nullptr, 0) < 0 && errno == EINTR) {}
+            process = -1;
+#endif
+            running = false;
+        }
+        status = detail;
+    }
+};
 } // namespace pcui
 
 extern "C" void pc_fighters_finish(void) {
@@ -335,6 +364,7 @@ extern "C" int pc_fighters_prepare(const char *language) {
     if (language && *language && !pack_name(language)) { status = "Invalid language pack folder. Choose an installed language before Play."; return 0; }
     fighter_language = language && *language ? path_utf8(fs::u8path(folder_path(Folder::Mods)) / fs::u8path(language)) : "";
     if (!mod_start("fighter-session")) return 0;
+    PendingFighterSession pending;
     for (int i=0; i<30000; ++i) {
         auto ready = projection(fighter_ready);
         auto state = ready["session"]["state"];
@@ -373,7 +403,7 @@ extern "C" int pc_fighters_prepare(const char *language) {
                 if (setenv(entry.first.c_str(),entry.second.c_str(),1)) return 0;
 #endif
             }
-            fighter_active = true; atexit(pc_fighters_finish);
+            fighter_active = true; pending.admitted = true; atexit(pc_fighters_finish);
             fprintf(stderr,"[FIGHTERS] managed profile session ready: %s\n",fighter_data.c_str());
             return 1;
         }

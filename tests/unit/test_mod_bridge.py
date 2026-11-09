@@ -210,7 +210,7 @@ def test_incomplete_transaction_blocks_game_even_without_launcher(bridge,tmp_pat
     assert result.returncode==2
 
 
-def fighter_helper(tmp_path, environment=''):
+def fighter_helper(tmp_path, environment='', *, ignore_stop=False):
     source = tmp_path / 'helper source'
     (source / 'setup').mkdir(parents=True)
     (tmp_path / 'mod-manager').mkdir()
@@ -227,7 +227,7 @@ journal=session/'journal';journal.mkdir()
 ready=root/('fighter-session-'+pid+'.ini')
 ready.write_text('[session]\\nstate=ready\\nparent_pid='+pid+'\\ndata_root='+str(data)+'\\n{environment}')
 deadline=time.monotonic()+15
-while not (root/('fighter-session-'+pid+'.stop')).exists() and time.monotonic()<deadline:
+while ({ignore_stop!r} or not (root/('fighter-session-'+pid+'.stop')).exists()) and time.monotonic()<deadline:
     time.sleep(.02)
 ready.write_text('[session]\\nstate=complete\\n')
 ''')
@@ -255,14 +255,20 @@ def test_managed_native_bridge_refuses_stale_supervisor_and_acknowledges_exit(br
             parent.kill(); parent.wait()
 
 
-def test_managed_native_bridge_rejects_test_switch_in_ready_projection(bridge, tmp_path):
-    source, env = fighter_helper(tmp_path, '[environment]\\nRECOMP_FIGHTER_TEST_SAVE_STOP=intent\\n')
+@pytest.mark.parametrize('ignore_stop', [False, True])
+def test_managed_native_bridge_rejects_test_switch_in_ready_projection(bridge, tmp_path, ignore_stop):
+    source, env = fighter_helper(tmp_path, '[environment]\\nRECOMP_FIGHTER_TEST_SAVE_STOP=intent\\n',
+                                 ignore_stop=ignore_stop)
     parent = subprocess.Popen([str(bridge), str(tmp_path), 'fighter'], cwd=source, env=env,
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     try:
         _, error = parent.communicate('\n', timeout=10)
         assert parent.returncode == 5
         assert 'unsupported runtime setting' in error
+        assert (tmp_path / f'mod-manager/fighter-session-{parent.pid}.stop').read_text() == 'complete\n'
+        if not ignore_stop:
+            ready=(tmp_path / f'mod-manager/fighter-session-{parent.pid}.ini').read_text()
+            assert 'state=complete' in ready
     finally:
         # The fake helper has no parent watcher; let it exit without waiting for
         # its timeout even when startup was refused.

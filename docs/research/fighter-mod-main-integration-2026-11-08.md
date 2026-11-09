@@ -69,3 +69,31 @@ Do not infer them from these offline results. The
 [acceptance ledger](../fighter-mod-acceptance.md) and subsequent results below
 must retain the remaining M5/M6 fidelity, audio/event, lifecycle/performance,
 physical-controller, fresh-install and platform gates.
+
+## CI and packaging continuation
+
+Final integrated full Windows suite passes2,356tests/56skips in154.14seconds
+(`fighter-main-final-unit-1108.txt`). Local game-free app/payload build and
+inspection pass, including all71fighter imports (`fighter-main-app-build-1108.txt`).
+It is an explicitly local development candidate, not a published release asset.
+
+First integrated CI42523388374 passes the no-game-data gate, Windows runtime,
+macOS/Linux runtime fixtures and all three game-free setup builds, but its Linux
+scripts/unit job fails: unused header helper, misleading indentation, cinematic
+token formatting and a refused-launch helper retaining its inherited pipes.
+Warnings are fixed in source without weakening `-Werror`. A descriptor token
+uses a buffer large enough for any formatted integer and must still be exactly
+eight characters before its nine-byte native field is copied.
+
+An unadmitted managed session now requests helper stop, waits a bounded interval,
+and terminates/reaps only its own unresponsive helper; the original refusal is
+preserved. Admitted supervisors keep their existing lifetime. Focused native
+suite140passes, including cooperative and ignored-stop refusal cases, file hashes,
+AI/animation/cinematic/film-proof and voice fixtures (`fighter-main-ci-fix-unit-b-1108.txt`).
+POSIX CI revalidation remains pending; Windows passing is not a POSIX claim.
+
+The first fresh-engine attempt stopped before installation on a denied global
+AppData lock. Retry uses a fresh disposable install/data root and an isolated
+per-user lock/cache directory. Desktop app access approval timed out; visual
+acceptance is pending, while command-line setup/native checks continue. No live
+installation, original career, shortcut, pack publication or release was changed.

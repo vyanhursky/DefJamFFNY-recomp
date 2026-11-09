@@ -78,7 +78,7 @@ static void sha_final(Sha *s, uint8_t out[32])
     }
 }
 
-static void sha256(const void *data, size_t n, uint8_t out[32])
+static inline void sha256(const void *data, size_t n, uint8_t out[32])
 {
     Sha s;
     sha_init(&s);
