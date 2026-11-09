@@ -382,6 +382,9 @@ def main():
         if report.get('caf_fighters'):
             command += ['--env','RECOMP_FIGHTER_CAF='+str(cache/'fighter-caf.bin'),
                         '--env','RECOMP_FIGHTER_CAF_SHA256='+report['caf_sha256']]
+        if report.get('caf_extras_sha256'):
+            command += ['--env','RECOMP_FIGHTER_CAF_EXTRAS='+str(cache/'fighter-caf-extras.bin'),
+                        '--env','RECOMP_FIGHTER_CAF_EXTRAS_SHA256='+report['caf_extras_sha256']]
         if report.get('appearance_files'):
             for field, relative in [('MODELS', 'assets/v2ip.viv'), ('ENTITIES', 'assets/entity.xml'), ('CINEMATICS', 'assets/nis.viv')]:
                 command += ['--env', 'RECOMP_FIGHTER_RESEARCH_' + field + '=' + str(cache / relative)]

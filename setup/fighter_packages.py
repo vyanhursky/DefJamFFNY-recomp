@@ -34,7 +34,24 @@ def inventory(folder):
     expected = {MANIFEST}
     hashes = {}
     for resource in manifest['resources']:
-        for spec in descriptors(resource.get('source', {})):
+        source = resource.get('source', {})
+        declared = list(descriptors(source))
+        if resource['kind'] == 'caf' and source.get('format') == 'caf-fighter-2':
+            descriptor = source['selection']
+            recipe_path = ordinary_path(folder.joinpath(*safe_relative(descriptor['path'])))
+            check(recipe_path.is_relative_to(folder), 'CAF recipe leaves its package')
+            recipe, _ = document(recipe_path, 65536)
+            with recipe_path.open('rb') as stream:
+                recipe_raw = stream.read(65537)
+            check(len(recipe_raw) <= 65536 and hashlib.sha256(recipe_raw).hexdigest() == descriptor['sha256'], 'CAF recipe hash differs')
+            check(type(recipe) is dict, 'CAF recipe must be an object')
+            atlases = recipe.get('atlases', {})
+            from fighter_caf_extras import ATLASES
+            check(type(atlases) is dict and set(atlases) <= set(ATLASES), 'Invalid declared CAF atlas slots')
+            for atlas in atlases.values():
+                check(type(atlas) is dict and set(atlas) == {'path', 'sha256'}, 'Invalid declared CAF atlas descriptor')
+                declared.append(atlas)
+        for spec in declared:
             name = '/'.join(safe_relative(spec['path']))
             check(name != MANIFEST, 'Resource cannot alias the fighter manifest')
             check(name not in hashes or hashes[name] == spec['sha256'], 'Resource has conflicting hashes: ' + name)
@@ -145,6 +162,9 @@ def runtime_environment(cache, report, screens, language=None):
     if report.get('caf_fighters'):
         environment['RECOMP_FIGHTER_CAF'] = str(cache / 'fighter-caf.bin')
         environment['RECOMP_FIGHTER_CAF_SHA256'] = report['caf_sha256']
+    if report.get('caf_extras_sha256'):
+        environment['RECOMP_FIGHTER_CAF_EXTRAS'] = str(cache / 'fighter-caf-extras.bin')
+        environment['RECOMP_FIGHTER_CAF_EXTRAS_SHA256'] = report['caf_extras_sha256']
     if report.get('appearance_files'):
         for field, relative in [('MODELS', 'assets/v2ip.viv'), ('ENTITIES', 'assets/entity.xml'), ('CINEMATICS', 'assets/nis.viv')]:
             environment['RECOMP_FIGHTER_RESEARCH_' + field] = str(cache / relative)

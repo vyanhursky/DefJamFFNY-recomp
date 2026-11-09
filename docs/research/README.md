@@ -14,9 +14,11 @@ confidence labels and disproved hypotheses remain distinct from measured facts.
 
 ## Fighter Mod Support
 
-- [Workshop standalone CAF export](workshop-caf-export-2026-11-08.md) — fighter-only recipe contract, native CAF lifecycle, portraits and qualified development evidence.
+- [Workshop CAF v2](workshop-caf-v2-2026-11-09.md) — native atlas ownership, saved retail finishers, sidecar contract and qualified evidence.
 
-- [v0.12.1 created-fighter thumbnails](v0121-created-fighter-thumbnail.md) — small guest capture surfaces and normal save/reload recovery for empty profile images.
+- [Workshop standalone CAF export](workshop-caf-export-2026-11-08.md) â€” fighter-only recipe contract, native CAF lifecycle, portraits and qualified development evidence.
+
+- [v0.12.1 created-fighter thumbnails](v0121-created-fighter-thumbnail.md) â€” small guest capture surfaces and normal save/reload recovery for empty profile images.
 - [Fighter Mod Support: active runtime implementation](fighter-mod-runtime-2026-11-02.md): local native menu/combat evidence, stable identities, save/capacity findings and outstanding gates for v0.15.0.
 - [Fighter Mod Support: M1/M2 checkpoint](fighter-mod-m1-m2-2026-11-04.md): current appearance compiler, native acceptance, motion decoding and remaining milestone gates; supersedes earlier tentative audit conclusions.
 - [Appearance loader audit](fighter-m1-loader-audit-2026-11-04.md) and [render audit](fighter-m1-render-audit-2026-11-04.md): supporting native relationships and unresolved ownership details.
@@ -32,15 +34,15 @@ confidence labels and disproved hypotheses remain distinct from measured facts.
 
 ## Current release qualifications
 
-- [v0.13.0 Windows HD memory investigation — 2026-10-31](rc-v0.13.0-hd-memory.md)
-- [v0.13.0 RC — macOS observations, 2026-10-31](rc-v0.13.0-macos.md)
+- [v0.13.0 Windows HD memory investigation â€” 2026-10-31](rc-v0.13.0-hd-memory.md)
+- [v0.13.0 RC â€” macOS observations, 2026-10-31](rc-v0.13.0-macos.md)
 
 ## Controller input: boundaries, corrections and source evidence
 
 - [Guest input read and fighter-cache boundaries](input-consumption-boundaries.md)
-- [Controller input investigation — 2026-10-30](input-latency-2026-10-30.md)
-- [Controller transition preservation — 2026-10-30](input-transition-fix-2026-10-30.md)
-- [Optional late controller report experiment — 2026-10-30](late-input-refresh-2026-10-30.md)
+- [Controller input investigation â€” 2026-10-30](input-latency-2026-10-30.md)
+- [Controller transition preservation â€” 2026-10-30](input-transition-fix-2026-10-30.md)
+- [Optional late controller report experiment â€” 2026-10-30](late-input-refresh-2026-10-30.md)
 - [Controller input source survey (shared runtime families distinguished)](recomp-controller-input-practices-2026-10-30.md)
 - [N64 static recomp input source audit](recomp-input-survey-n64.md)
 - [Recomp input survey: additional projects](recomp-input-survey-other.md)
@@ -50,11 +52,11 @@ confidence labels and disproved hypotheses remain distinct from measured facts.
 
 - [Story map Shops widescreen border and heading: shared map replays and foreground clipping (#162)](story-map-shops-widescreen.md)
 - [D3D8 push-buffer: space reservation and ring wrap](d3d-pushbuffer-wrap.md)
-- [M2 — render path: NV2A pushbuffer executor vs D3D8 intercept, and why the main thread parks](m2-render-path.md)
-- [M2 — vblank ISR hang: why the D3D ISR declines, and what's actually stuck](m2-vblank-isr.md)
+- [M2 â€” render path: NV2A pushbuffer executor vs D3D8 intercept, and why the main thread parks](m2-render-path.md)
+- [M2 â€” vblank ISR hang: why the D3D ISR declines, and what's actually stuck](m2-vblank-isr.md)
 - [Picture options: brightness and the venue vignette](picture-options.md)
 - [Fire-escape source geometry repair and earlier negative controls](menu-ui-v1.1-2026-10-26.md)
-- [Wide-background APT root placements — 2026-10-20](wide-background-root-placement-audit-2026-10-20.md)
+- [Wide-background APT root placements â€” 2026-10-20](wide-background-root-placement-audit-2026-10-20.md)
 - [v0.12.1: created-fighter snapshot thumbnails](v0121-created-fighter-thumbnail.md)
 - [v0.12.1: Sketch Artist eye-color preview refresh](v0121-eye-preview-cache.md)
 - [v0.12.1: widescreen menu song notification (#118)](v0121-menu-song-banner.md)
@@ -68,14 +70,14 @@ confidence labels and disproved hypotheses remain distinct from measured facts.
 
 ## Front end, movies and launcher/mod integration
 
-- [M3 — feloader's own script: when does it request the next screen?](m3-feloader-script.md)
-- [M3 — what has to happen for a loaded movie to become the one that is displayed](m3-movie-display.md)
-- [M4a — feloader's screen-transition system: easeInOut, the pan/swap/door functions, and what drives them per frame](m4a-fe-transitions.md)
+- [M3 â€” feloader's own script: when does it request the next screen?](m3-feloader-script.md)
+- [M3 â€” what has to happen for a loaded movie to become the one that is displayed](m3-movie-display.md)
+- [M4a â€” feloader's screen-transition system: easeInOut, the pan/swap/door functions, and what drives them per frame](m4a-fe-transitions.md)
 - [Movie audio clock: what drives the stream counters at 0x3A9984[h]+0x48/+0x4C](movie-audio-clock.md)
 - [Skipping the startup legal screen and movies](startup-skip-flow.md)
 - [Venue ID audit: Terror Dome route](startup-skip-venue-audit.md)
-- [Launcher implementation and playtest — 2026-10-19](launcher-ui-implementation-2026-10-19.md)
-- [Integrated hosted-menu launcher RC — 2026-10-23](integrated-menu-launcher-rc-2026-10-23.md)
+- [Launcher implementation and playtest â€” 2026-10-19](launcher-ui-implementation-2026-10-19.md)
+- [Integrated hosted-menu launcher RC â€” 2026-10-23](integrated-menu-launcher-rc-2026-10-23.md)
 - [Mod system: design proposal](mod-system-design.md)
 - [GameBanana, Thunderstore and Quiver alongside the curated catalogue](mod-storefront-integration-2026-10-21.md)
 - [Reviving the developer module (CRunModuleAki): progress](dev-module-revival.md)
@@ -93,7 +95,7 @@ confidence labels and disproved hypotheses remain distinct from measured facts.
 
 ## Disc, runtime, controller and sound maps
 
-- [Disc layout — Def Jam: Fight for NY (USA), Xbox](disc-layout.md)
+- [Disc layout â€” Def Jam: Fight for NY (USA), Xbox](disc-layout.md)
 - [Static XDK library symbols (D3D8/DSOUND/XGRAPHC/XAPILIB) via XbSymbolDatabase](d3d8-symbols.md)
 - [Code-segment corruption: where does the destination pointer come from?](codeseg-corruption.md)
 - [DirectSound voice-list crash at 0xFFFFFFBE (sub_002626B5)](dsound-voice-list-crash.md)
@@ -112,9 +114,9 @@ The [implemented design and catalog](../widescreen/README.md) reconcile the orig
 
 ## Toolkit, platform and early HD acceptance
 
-- [Toolkit Bring-Up Notes — Def Jam: Fight for NY (XDK 5849)](toolkit-bringup-notes.md)
+- [Toolkit Bring-Up Notes â€” Def Jam: Fight for NY (XDK 5849)](toolkit-bringup-notes.md)
 - [Toolkit rebase ledger](toolkit-rebase-ledger.md)
-- [Toolkit migration ledger: v0.13.0 → v0.16.0](toolkit-v016-ledger.md)
+- [Toolkit migration ledger: v0.13.0 â†’ v0.16.0](toolkit-v016-ledger.md)
 - [Toolkit rebase acceptance, 2026-10-03](toolkit-rebase-acceptance.md)
 - [macOS and Linux support in recompilation and decompilation ports: survey and implications](macos-linux-port-survey.md)
 - [Issue #72: Windows startup address-space collision](issue72-windows-startup-memory-layout.md)

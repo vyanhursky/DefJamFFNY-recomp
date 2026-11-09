@@ -15,7 +15,7 @@ ROW_BYTES = 232
 
 def source(value):
     require(type(value) is dict and set(value) == {'format', 'selection'}, 'CAF source needs format and selection')
-    require(value['format'] == FORMAT, 'Unsupported CAF recipe format')
+    require(value['format'] in (FORMAT, 'caf-fighter-2'), 'Unsupported CAF recipe format')
     descriptor = value['selection']
     require(type(descriptor) is dict and set(descriptor) == {'path', 'sha256'}, 'Invalid CAF recipe descriptor')
     safe_relative(descriptor['path'])
@@ -150,9 +150,17 @@ def load(root, spec, catalog, game):
     require(len(raw)<=65536 and hashlib.sha256(raw).hexdigest()==spec['selection']['sha256'],'CAF recipe hash/size differs')
     from fighter_build import unique,non_finite
     value=json.loads(raw,object_pairs_hook=unique,parse_constant=non_finite)
-    core=recipe(value,catalog.db)
-    validate_assets(value,game)
-    return {'recipe':value,'core':core,'sha256':fingerprint(value)}
+    require(type(value) is dict, 'CAF recipe must be an object')
+    if spec['format'] == 'caf-fighter-2':
+        from fighter_caf_extras import load as load_extras
+        extras = load_extras(root, value, catalog.db)
+        require({'stats','styles','caf_values','caf_colors'} <= set(value), 'CAF v2 requires all fighter fields')
+        base = {k: value[k] for k in ('stats','styles','caf_values','caf_colors')}
+    else:
+        extras, base = None, value
+    core=recipe(base,catalog.db)
+    validate_assets(base,game)
+    return {'recipe':base,'core':core,'sha256':fingerprint(value),'extras':extras}
 
 
 def encode(entries,report):

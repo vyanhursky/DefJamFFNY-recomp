@@ -9,20 +9,162 @@
 #include <string.h>
 #define CAF_ROW 232u
 #define CAF_MAX 16384u
+#define EXTRA_ROW 48u
+#define ATLAS_BYTES (256u*256u*4u)
+#define EXTRA_MAX (16u*1024u*1024u)
+static uint8_t *s_extras;
+static uint32_t s_extra_count;
 static uint8_t *s_rows;
 static uint32_t s_count;
 static uint32_t s_profile_workspace;
 static uint32_t s_contexts[4];
 static uint32_t s_service;
 static const uint8_t *s_recipes[4];
+static uint32_t s_finisher_before[4][4],s_finisher_applied[4][4];
+static uint8_t s_finisher_live[4];
 extern void sub_00063720(void), sub_00062850(void);
 extern void sub_00062A00(void), sub_00063770(void);
 extern void sub_00064170(void), sub_0001EE80(void), sub_000296B0(void), sub_0003E170_gen(void);
+extern void sub_00092BE0(void), sub_001DE887(void), sub_00098270(void);
 static uint32_t word(const uint8_t *p) { return (uint32_t)p[0]|(uint32_t)p[1]<<8|(uint32_t)p[2]<<16|(uint32_t)p[3]<<24; }
 static void stop(const char *why) { fprintf(stderr,"[FIGHTERS] CAF stopped: %s\n",why);fflush(stderr);exit(1); }
+static int extras_valid(const uint8_t *data,size_t size) {
+    uint32_t count=size>=16?word(data+8):0;
+    if(size<16 || size>EXTRA_MAX || memcmp(data,"FCX1",4) || word(data+4)!=1
+        || word(data+12)!=EXTRA_ROW || !count || count>CAF_MAX) return 0;
+    size_t base=16+(size_t)count*EXTRA_ROW;
+    if(base>size || (size-base)%ATLAS_BYTES) return 0;
+    size_t blocks=(size-base)/ATLAS_BYTES;
+    if(blocks>64) return 0;
+    uint8_t used[64]={0};
+    for(uint32_t i=0;i<count;++i) {
+        const uint8_t *row=data+16+i*EXTRA_ROW;
+        int found=0;
+        for(uint32_t j=0;j<s_count;++j) if(word(s_rows+16+j*CAF_ROW)==word(row)) found=1;
+        if(!found || word(row+4)>1) return 0;
+        for(uint32_t j=0;j<i;++j) if(word(data+16+j*EXTRA_ROW)==word(row)) return 0;
+        for(unsigned j=0;j<4;++j) if(word(row+8+j*4)>81 || (!word(row+4)&&word(row+8+j*4))) return 0;
+        for(unsigned j=0;j<6;++j) {
+            uint32_t offset=word(row+24+j*4);
+            if(!offset) continue;
+            if(offset<base || (offset-base)%ATLAS_BYTES || offset>size || ATLAS_BYTES>size-offset) return 0;
+            size_t block=(offset-base)/ATLAS_BYTES;
+            if(block>=blocks) return 0;
+            used[block]=1;
+        }
+    }
+    for(size_t i=0;i<blocks;++i) if(!used[i]) return 0;
+    return 1;
+}
+static int extras_start(void) {
+    const char *path=getenv("RECOMP_FIGHTER_CAF_EXTRAS"),*hash=getenv("RECOMP_FIGHTER_CAF_EXTRAS_SHA256");
+    if(!path || !*path) return !hash || !*hash;
+    if(!mod_file_matches(path,hash) || s_extras) return 0;
+    FILE *file;
+#if defined(_WIN32)
+    wchar_t wide[2048];if(!MultiByteToWideChar(CP_UTF8,MB_ERR_INVALID_CHARS,path,-1,wide,2048)) return 0;
+    file=_wfopen(wide,L"rb");
+#else
+    file=fopen(path,"rb");
+#endif
+    if(!file) return 0;
+    uint8_t *data=(uint8_t *)malloc(EXTRA_MAX+1);
+    if(!data) {fclose(file);return 0;}
+    size_t size=fread(data,1,EXTRA_MAX+1,file);int valid=!ferror(file);fclose(file);
+    if(!valid || !extras_valid(data,size)) {free(data);return 0;}
+    s_extras=data;s_extra_count=word(data+8);
+    fprintf(stderr,"[FIGHTERS] validated %u CAF extras (%zu bytes)\n",s_extra_count,size);return 1;
+}
+static const uint8_t *extra_row(uint32_t selection) {
+    for(uint32_t i=0;i<s_extra_count;++i) {
+        const uint8_t *row=s_extras+16+i*EXTRA_ROW;
+        if(word(row)==selection) return row;
+    }
+    return NULL;
+}
+static int guest_span(uint32_t pointer,uint32_t bytes) {
+    uint32_t offset=pointer>=0x80000000u?pointer-0x80000000u:pointer;
+    return offset>=0x10000u && offset<0x4000000u && bytes<=0x4000000u-offset;
+}
+static uint32_t swizzle8(uint32_t value) {
+    value=(value|(value<<4))&0x0F0Fu;
+    value=(value|(value<<2))&0x3333u;
+    return (value|(value<<1))&0x5555u;
+}
+static void apply_atlases(uint32_t visual,const uint8_t *extra) {
+    if(!extra) return;
+    uint32_t originals[6]={0},changed=0;
+    for(unsigned atlas=0;atlas<6;++atlas) {
+        uint32_t offset=word(extra+24+atlas*4);
+        if(!offset) continue;
+        uint32_t original=MEM32(visual+0xA234+atlas*4);
+        if(!guest_span(original,16) || MEM16(original+4)!=256 || MEM16(original+6)!=256)
+            stop("declared atlas has no original 256x256 native bitmap");
+        /* 92BE0 makes the same owned 32-bit bitmap used by the retail
+         * compositor. Borrowed base resources at A24C remain immutable. */
+        uint32_t args[]={original,0x7D},bitmap=guest_call(sub_00092BE0,0,2,args);
+        if(!guest_span(bitmap,16) || bitmap==original || MEM8(bitmap)!=0x7D
+            || MEM16(bitmap+4)!=256 || MEM16(bitmap+6)!=256) stop("native RGBA atlas conversion failed");
+        uint32_t pixels=bitmap+16;
+        if(MEM32(bitmap+12)&0x1000u) pixels=bitmap+MEM32(bitmap+16);
+        if(!guest_span(pixels,ATLAS_BYTES)) stop("native atlas pixels exceed guest memory");
+        uint8_t *target=(uint8_t *)XBOX_PTR(pixels);
+        const uint8_t *source=s_extras+offset;
+        for(uint32_t pixel=0;pixel<256u*256u;++pixel) {
+            /* Native conversion retains the FSH 0x2000 Morton layout flag.
+             * PNG rows are linear. Keep alpha at its original native address. */
+            uint32_t destination=(MEM32(bitmap+12)&0x2000u)
+                ? swizzle8(pixel&255u)|(swizzle8(pixel>>8)<<1) : pixel;
+            memcpy(target+destination*4,source+pixel*4,3);
+        }
+        originals[atlas]=original;MEM32(visual+0xA234+atlas*4)=bitmap;++changed;
+        fprintf(stderr,"[FIGHTERS] CAF RGB atlas logical=%u slot=%u bitmap=%08X original-alpha=held\n",word(extra),atlas,bitmap);
+    }
+    if(!changed) return;
+    /* Rebind cp_a..cp_d after replacing this visual's bitmap pointers, before
+     * any frame uses it. This is context-local, never a global hash override. */
+    guest_call(sub_00098270,visual,0,NULL);
+    for(unsigned atlas=0;atlas<6;++atlas) if(originals[atlas] && originals[atlas]!=MEM32(visual+0xA24C+atlas*4)) {
+        uint32_t args[]={originals[atlas]};guest_call(sub_001DE887,0,1,args);
+    }
+}
+/* Restore only our last write. A native profile initializer may already own
+ * this matrix again; never overwrite values it has installed since then. */
+static void restore_finishers(void) {
+    for(unsigned slot=0;slot<4;++slot) if(s_finisher_live[slot]) {
+        int owned=1;
+        for(unsigned i=0;i<4;++i) if(MEM32(0x3B9288u+slot*16+i*4)!=s_finisher_applied[slot][i]) owned=0;
+        if(owned) for(unsigned i=0;i<4;++i) MEM32(0x3B9288u+slot*16+i*4)=s_finisher_before[slot][i];
+        s_finisher_live[slot]=0;
+    }
+}
+void defjam_fighter_caf_finishers(void) {
+    for(unsigned slot=0;slot<4;++slot) {
+        if(!s_recipes[slot] || !s_contexts[slot]) continue;
+        const uint8_t *extra=extra_row(word(s_recipes[slot]));
+        if(!extra || !word(extra+4)) continue;
+        uint32_t context;
+        if(!s_service || !defjam_fighter_caf_context(s_service,slot,&context))
+            stop("finisher CAF context is no longer active");
+        uint32_t actor=0x3B92E0u+slot*0x12E8u;
+        if(MEM32(actor+0x28)==UINT32_MAX || MEM32(actor+0x2C)+1!=word(s_recipes[slot]+4))
+            stop("finisher actor differs from its CAF participant");
+        int owned=s_finisher_live[slot];
+        for(unsigned i=0;i<4;++i) if(MEM32(0x3B9288u+slot*16+i*4)!=s_finisher_applied[slot][i]) owned=0;
+        for(unsigned choice=0;choice<4;++choice) {
+            uint32_t address=0x3B9288u+slot*16+choice*4;
+            if(!owned) s_finisher_before[slot][choice]=MEM32(address);
+            s_finisher_applied[slot][choice]=word(extra+8+choice*4);
+            MEM32(address)=s_finisher_applied[slot][choice];
+        }
+        s_finisher_live[slot]=1;
+        fprintf(stderr,"[FIGHTERS] CAF finisher choices slot=%u: %u,%u,%u,%u\n",slot,
+            word(extra+8),word(extra+12),word(extra+16),word(extra+20));
+    }
+}
 int defjam_fighter_caf_start(void) {
     const char *path=getenv("RECOMP_FIGHTER_CAF"),*hash=getenv("RECOMP_FIGHTER_CAF_SHA256");
-    if (!path || !*path) return !hash || !*hash;
+    if (!path || !*path) return (!hash || !*hash) && !getenv("RECOMP_FIGHTER_CAF_EXTRAS") && !getenv("RECOMP_FIGHTER_CAF_EXTRAS_SHA256");
     if (!mod_file_matches(path,hash) || s_rows) return 0;
     FILE *file;
 #if defined(_WIN32)
@@ -50,10 +192,13 @@ int defjam_fighter_caf_start(void) {
         if(word(row+228)<1 || word(row+228)>86) valid=0;
     }
     if (!valid) {free(data);return 0;}
-    s_rows=data;s_count=count;fprintf(stderr,"[FIGHTERS] validated %u CAF recipes\n",count);return 1;
+    s_rows=data;s_count=count;
+    if(!extras_start()) {free(s_rows);s_rows=NULL;s_count=0;return 0;}
+    fprintf(stderr,"[FIGHTERS] validated %u CAF recipes\n",count);return 1;
 }
 /* Called before each match/after it finishes: no stale context may be reused. */
 void defjam_fighter_caf_clear(void) {
+    restore_finishers();
     s_service=0;
     for(unsigned i=0;i<4;++i) {s_contexts[i]=0;s_recipes[i]=NULL;}
 }
@@ -95,6 +240,7 @@ void defjam_fighter_caf_participant(uint32_t service,uint32_t participant,uint32
     uint32_t args[]={prepare_profile(row)};
     guest_call(sub_00064170,context,1,args);
     if(!MEM8(context+1)||!MEM32(context+8)) stop("native CAF construction did not complete");
+    apply_atlases(MEM32(context+8)+0x8B0,extra_row(selection));
     uint32_t old_manager=MEM32(service+4),old_mode=MEM32(service+0x344);
     MEM32(service+4)=s_profile_workspace;MEM32(service+0x344)=0;MEM32(s_profile_workspace+0x5ac7c)=0;
     uint32_t stats_args[]={participant};guest_call(sub_0001EE80,service,1,stats_args);
