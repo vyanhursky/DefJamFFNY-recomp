@@ -37,4 +37,5 @@ int defjam_fighter_ui_command(uint32_t command);
 void defjam_fighter_menu_event(const char *text);
 uint32_t defjam_fighter_filter_banks(uint32_t entries, uint32_t count);
 uint32_t defjam_fighter_result_identity(uint32_t participant, uint32_t native);
+uint32_t defjam_fighter_loading_identity(uint32_t native);
 #endif

@@ -915,6 +915,22 @@ uint32_t defjam_fighter_result_identity(uint32_t participant, uint32_t native) {
     return row.selection_key;
 }
 
+uint32_t defjam_fighter_loading_identity(uint32_t native) {
+    FighterWindowRow row;
+    /* FWR1 reserves100..103 for participant0..3. Derive ownership from that
+     * verified bank domain, not a caller's locally lifted EBP loop counter. */
+    uint32_t participant = native - 100u;
+    if (!s_window.bytes || participant >= FIGHTER_WINDOW_BANKS || !s_window.selected[participant]) return native;
+    /* GetMatchInfo is also queried before StartGame freezes the selection.
+     * Only its presentation response changes; native participants keep banks. */
+    if (native != s_window.banks[participant].selection_key
+        || !fighter_window_at(&s_window, s_window.selected[participant] - 1, &row))
+        fighter_stop("Loading identity does not match its participant binding.");
+    fprintf(stderr, "[FIGHTERS] loading participant=%u native=%u logical=%u stable=%08X\n",
+            participant, native, row.selection_key, row.stable_handle);
+    return row.selection_key;
+}
+
 static uint32_t read_word(const uint8_t *p) {
     return (uint32_t)p[0] | (uint32_t)p[1] << 8 | (uint32_t)p[2] << 16 | (uint32_t)p[3] << 24;
 }

@@ -323,3 +323,30 @@ closed. This is bounded local Windows development/short-path evidence; default
 placement, final RC/platform/input and broader M5 fidelity/performance gates are
 still open. The integration checkpoint preserves the failed repair and exact
 positive receipts instead of overwriting the failure.
+
+## Owner playtest follow-up
+
+The owner's subsequent DMX/Chucklez test exposes loading portraits for Arii/
+Briggs and voices reverting to retail donors on Rematch. Loading's native
+GetMatchInfo formatter reports private participant banks100..103 rather than
+the selected logical identities. A narrowly scoped formatter adapter now maps
+only those presentation fields through the verified participant window; venue,
+mode, retail/created sentinels and actual native participants remain unchanged.
+It derives the participant from FWR1's bank domain, not a locally lifted EBP
+counter. Result fields retain their existing frozen-selection checks.
+
+Native rematch audio setup reconstructs the audio-template rows while retaining
+the registered speech banks and bypassing the loader that previously applied
+owned voice IDs. The setup wrapper now reapplies just those owned IDs after
+both native/template-adapted setup paths. It does not reload live banks, change
+their ownership or alter pack formats. Compiled actual-wrapper regressions fail
+before both changes;59focused voice/presentation/window/teardown cases pass,
+including category absence, shared voices, unrelated fields and ABI preservation.
+Actual in-game revalidation is still required at this checkpoint.
+
+The owner also reports Proof/Funk Flex exiting with access violation0xC0000005
+inside native camera parsing1E6EC0 after a null resource lookup. The failed run
+selects Inferno mode7 and venue24. A copied-profile default-venue bout reaches a
+result, so it does not reproduce or close that venue/mode failure. Preserve the
+owner's raw log and test the exact combination before claiming it fixed. All
+private packs, captures, reports and saves remain local.
