@@ -51,7 +51,7 @@ int defjam_fighter_ui_model_batch(uint32_t context, uint32_t table, uint32_t cap
     if (!s_batch) return 0;
     if (context != s_batch->context || capacity != UI_BATCH || s_batch->count > capacity)
         ui_stop("unexpected native model-table contract");
-    memset(XBOX_PTR(table), 0, capacity * sizeof(uint32_t));
+    memset((void *)XBOX_PTR(table), 0, capacity * sizeof(uint32_t));
     for (uint32_t i = 0; i < s_batch->count; ++i)
         MEM32(table + i * 4) = s_batch->models[i];
     return 1;
