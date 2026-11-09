@@ -222,3 +222,113 @@ Focused window/probe/pool/finisher/teardown checks pass 113 tests in 5.48 second
 (`fighter-pause-quit-unit-1108.txt`). Re-lift/build and a new installed repeat test
 are required before the correction receives native acceptance. Keep the first
 installed failure report `fighter-real-install-native-1108.json` unchanged.
+
+## Corrected installed update, repeat and normal close
+
+Re-lift and Windows Release build pass for `0d7850d`; the rebuilt local v1.1.1
+app/payload passes inspection and all 71 Fighter imports. Source CI42545347940
+is green on this exact commit, including strict native fixtures and all three
+game-free platform builds. These are source/packaging checks, not POSIX gameplay.
+
+The actual installed engine updates the disposable first installation from
+d6f7bac/1.1.0 to 0d7850d/1.1.1 in 236.69 seconds (engine total233.3). It reuses
+verified extraction/analysis, re-lifts and builds normally, then activates the new
+version while preserving the previous installation. All 25 protected file hashes
+are identical: raw save backup, managed profile Store/generations and progression,
+adoption record, pack configuration/identity ledger and settings. Receipt:
+`fighter-real-install-update-1108.json`. This is an actual local-development CLI
+update; it does not establish app GUI handoff/repair or official RC acceptance.
+
+The updated installed executable then runs two native human bouts in one process
+(`run-20261108-182647.log.err`). Each match passes all six combat assertions.
+Both retain stable handles0700004B/0700004C, logical100/101 and cores142/143.
+Both pause-menu Quits return to Battle and each releases24owned allocations to
+the original33,553,888-byte free block; the pool registers once and is reused.
+Selection ownership finishes only after teardown. One native save batch is
+acknowledged and the full original save guard restores byte-identically.
+
+After visually observing the second menu return, Computer Use sends Alt+F4 to
+the exact owned game window. Native log confirms managed session completion and
+user window close; exit code0, ready projection complete, no game remains. This
+establishes normal Windows close/finalization for this installed snapshot.
+The unmodified generic harness report records `unexpected process exit0` because
+it expected to reach its own stop timer. Retain that raw report and the explicit
+UI-close adjudication separately: `fighter-real-install-native-fixed-1108.json`
+and `fighter-real-install-repeat-verdict-1108.json`. No assertion was weakened,
+and the original failed repeat remains preserved.
+
+Initial desktop inspection of the game-free app timed out on access approval;
+the idle owned app had no setup/helper child and was closed. The owner then
+authorized proceeding, and the retry succeeds. The actual v1.1.1 app shows
+Textures/Languages/Fighters, complete Vendetta46 and independent starter1 both
+enabled, and removal disabled while enabled. Importing the existing one-fighter
+ZIP through the actual Fighters field/button succeeds using its packaged Python
+and `install-local`; all31protected profile/adoption file hashes, enabled packs
+and the identity ledger remain unchanged. Receipt:
+`fighter-real-install-gui-import-1108.json`. This GUI import is the independent
+starter, not a claim that the full46archive has been imported through this UI.
+
+Actual app Play starts the installed0d7850d executable with `--no-launcher` as
+its child; the game discovers its adjacent installed Python supervisor normally.
+Title/attract-movie playback is observed with ordinary settings. Normal window
+close completes the supervisor, the app reports child exit0, both exit and the
+full save guard restores identically. Receipt: `fighter-real-app-play-guard-1108.json`;
+app/native logs `play-20261108-190232.log.err` and `run-20261108-191003.log.err`.
+No combat or physical-input acceptance follows from this boot/close check. The
+app detected a DualSense after assigning keyboard toP1; fresh game enumeration
+assigned DualSense toP1 and keyboard toP2. Record actual in-game assignment;
+launcher device text alone does not prove input acceptance.
+
+The new installed playtest shortcut targets the installation's compiled
+`DefJamLauncher.exe --launch`, avoiding a Windows PowerShell authorization error
+from the draft script target without changing execution policy. Its exact target
+opens the normal native launcher with both private packs checked; Quit exits0
+and the save guard restores identically (`fighter-real-shortcut-guard-1108.json`).
+It uses the installed receipt/adjacent Python and a separate disposable career;
+the older shortcut/career is preserved. All shortcuts, wrappers, binaries and
+private packs remain local. Modern app GUI/setup qualifications remain separate.
+
+The first current-installed mixed-four route selected Arii and the independent
+starter, then waited at retail Blaze's extra costume-confirmation step. It was
+closed normally with identical save restoration; no four-player combat pass is
+claimed. The corrected recipe adds that confirmation and a live pad channel;
+the serial retry is in progress. Preserve `fighter-real-install-mixed4-1108.json`
+and its run185412 rather than relabelling the calibration attempt as acceptance.
+
+The corrected installed mixed-four run (`run-20261108-191803.log.err`) passes
+all five combat assertions with Arii, independent Check, retail Blaze and Briggs.
+Native submissions100/146/56/101 and immutable materialization match. Actor IDs
+141/187/4/142 are the zero-based runtime domain; do not equate them with SOD
+CoreID fields142/188/143 for the three installed participants. Native pause Quit
+returns to Battle, releases24allocations to33,553,888bytes and finishes selection
+ownership. An intended observed-menu Alt+F4 then exits0 with supervisor completion
+and identical save restoration. Raw harness exit0 label and explicit adjudication
+remain separate in `fighter-real-install-mixed4-fixed-1108.json` and
+`fighter-real-install-mixed4-verdict-1108.json`. No natural result, owned paired
+evaluation or activation claim is added by this run.
+
+## Full GUI import and repair inventory regression
+
+The actual app imports the complete46fighter ZIP through Fighters. Its archive
+SHA256 remainsd493f0aa580748a29a6a45bf99c34f8274d87049e5df70abd04e931c2cfe0c01.
+All38protected profile/adoption file hashes, both enabled packs and the identity
+ledger are unchanged (`fighter-real-full-gui-import-1108.json`). Help correctly
+shows the managed profile Store as the Saves location. No game is active.
+
+Actual GUI Repair then stops before installation mutation with "Unexpected files
+in setup payload". Inspection finds64unlisted `source/setup/__pycache__/*.pyc`
+files written by the normal mod helper. The exact payload allowlist correctly
+rejects them; it must not be weakened to accept mutable/unverified files. The
+failed setup log and contaminated development payload remain preserved.
+
+The shared native mod bridge now invokes Python with `-B` for every helper
+operation, including installed Fighter supervision. This prevents Python
+bytecode writes to the verified app payload; it does not disable the compiled
+Fighter asset cache or change pack formats. A real compiled-bridge regression
+imports a dependency from a synthetic sealed payload, checks no-bytecode mode
+and reruns the actual setup verifier afterward. It fails before the fix with
+`no_bytecode:false`, then passes. Mod bridge/Fighter payload/handoff/update focused
+checks pass97tests/4platform skips in13.41s (`fighter-payload-no-bytecode-unit-1108.txt`).
+No generated guest code or ABI wrapper changed, so this fix needs a native/app
+rebuild but no new re-lift. A clean rebuilt payload and actual GUI Repair retry
+remain required. The old contaminated payload is evidence, not silently cleaned.

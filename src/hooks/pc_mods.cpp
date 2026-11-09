@@ -157,7 +157,9 @@ bool mod_start(const std::string &requested, const std::string &id) {
 #if defined(DEFJAM_APP)
     if (app::install().installed) runtime = app::install().version;
 #endif
-    std::vector<std::string> args = {interpreter, path_utf8(script), command, "--data-dir", folder_path(Folder::Data), "--runtime", runtime,
+    // App helpers import directly from the verified payload. Keep its exact
+    // inventory immutable so using Mods cannot make the next Repair reject it.
+    std::vector<std::string> args = {interpreter, "-B", path_utf8(script), command, "--data-dir", folder_path(Folder::Data), "--runtime", runtime,
                                    "--cancel-file", path_utf8(job_root / "cancel")};
 #if defined(DEFJAM_MOD_WIDE)
     args.insert(args.end(), {"--capability", "wide-v1"});

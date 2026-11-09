@@ -39,8 +39,9 @@ before a new native platform result can be claimed.
 
 Setup copies tracked permitted setup modules. The real isolated Setup Python
 now resolves all71fighter modules and has booted native managed matches from
-the separate installed-layout source copy. A fresh installer build/run remains
-outstanding. POSIX close/finalization is wired but not newly exercised here. Owner
+the separate installed-layout source copy. Actual first-install/update evidence
+is recorded below; final app GUI/repair and default-path gates remain open.
+POSIX close/finalization is wired but not newly exercised here. Owner
 physical-controller and playtest acceptance must be recorded separately. The
 routine stock-development regression waiver remains in effect; it does not
 satisfy these final release-candidate obligations.
@@ -56,6 +57,17 @@ acceptance remain open. Latest main482897f/v1.1.1 is integrated at7c6394d; app
 build/payload inspection and141focused setup tests/10skips pass. See the
 integration checkpoint for newer native results rather than inferring them from
 these installation checks.
+
+Corrected installed runtime0d7850d additionally passes a real1.1.0-to1.1.1 CLI
+update in236.69seconds with all25protected data hashes unchanged. Two human
+matches in one process each pass six combat checks; both native pause Quits
+release24allocations and restore the CPU pool's original free block, with one
+registration and stable identities across matches. Normal Windows window close
+exits0 after supervisor acknowledgement; save guard restores identically. The
+earlier installed repeat's frozen-selection failure remains recorded, alongside
+its teardown-boundary fix and113focused tests. This closes this bounded Windows
+installed helper/repeat/close gate, not GUI repair/handoff, other platforms,
+physical controls, broad content fidelity or final RC/owner acceptance.
 
 ## November8 continuation
 

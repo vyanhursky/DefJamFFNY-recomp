@@ -1,5 +1,7 @@
 """Native process/argv/OS lock checks without renderer or game data."""
 from pathlib import Path
+import hashlib
+import json
 import os
 import shutil
 import subprocess
@@ -91,6 +93,49 @@ def test_async_status_and_space_paths(bridge,tmp_path):
     assert result.returncode==0,result.stdout+result.stderr
     assert 'inventory refreshed' in result.stdout
     assert (data/'mod-manager/view.ini').exists()
+
+
+def test_helper_preserves_verified_payload_after_importing_modules(bridge, tmp_path):
+    # Real GUI helpers run from the inspected app payload. Importing a module
+    # must not add bytecode that makes the next Repair reject its inventory.
+    sys.path.insert(0, str(ROOT / 'setup'))
+    try:
+        import engine
+    finally:
+        sys.path.pop(0)
+    payload = tmp_path / 'sealed payload'
+    source = payload / 'source'
+    setup = source / 'setup'
+    setup.mkdir(parents=True)
+    (setup / 'readonly_dependency.py').write_text('VALUE = 7\n', encoding='utf-8')
+    (setup / 'mods.py').write_text('''
+import json, sys
+from pathlib import Path
+import readonly_dependency
+root = Path(sys.argv[sys.argv.index('--data-dir') + 1]) / 'mod-manager'
+(root / 'helper-proof.json').write_text(json.dumps({
+    'no_bytecode': sys.dont_write_bytecode,
+    'value': readonly_dependency.VALUE,
+    'command': sys.argv[1],
+}))
+''', encoding='utf-8')
+    files = {p.relative_to(payload).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
+             for p in setup.iterdir()}
+    manifest = dict(schema=1, platform=engine.HOST_PLATFORM, version='1.1.1',
+                    source_commit='0' * 40, toolkit_commit='1' * 40, files=files)
+    (payload / 'manifest.json').write_text(json.dumps(manifest), encoding='utf-8')
+    engine.verify_payload(payload)
+    env = {k: v for k, v in os.environ.items()
+           if k not in {'DEFJAM_INSTALL_DIR', 'PYTHONDONTWRITEBYTECODE', 'PYTHONPYCACHEPREFIX'}}
+    env['DEFJAM_MOD_PYTHON'] = sys.executable
+    data = tmp_path / 'external data'
+    result = subprocess.run([str(bridge), str(data), 'status'], cwd=source, env=env,
+                            capture_output=True, text=True, timeout=20)
+    assert result.returncode == 0, result.stdout + result.stderr
+    proof = json.loads((data / 'mod-manager/helper-proof.json').read_text(encoding='utf-8'))
+    assert proof == dict(no_bytecode=True, value=7, command='status')
+    engine.verify_payload(payload)
+    assert not list(payload.rglob('__pycache__'))
 
 
 @pytest.mark.parametrize('activation_ok', [True, False])
