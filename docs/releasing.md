@@ -68,17 +68,41 @@ The release agent (playbook: [docs/agent/release.md](agent/release.md)):
 
 ### 4. The candidate gate
 
-On the release PR's head, every item ticked in the release PR:
+For the release PR's runtime candidate, every item ticked in the release PR:
 
 | Gate | Where |
 |---|---|
 | CI green, including the three setup builds | GitHub |
-| Full `regress.py` | Windows, macOS and Steam Deck (or Linux), each once, in parallel on separate machines |
+| Full `regress.py` | One applicable full report per qualified platform; Windows, macOS and Steam Deck (or Linux) in parallel on separate machines |
 | Setup: one real install from the release PR's CI artifacts, and a Clean Update from the previous release | Windows; others as the release touches them |
 | Owner play-test of the candidate | the platforms the release changes |
 
 The play-test replaces per-PR play-tests: a draft waiting only on the owner's
 play-test can join a release and be tested there.
+
+**Reuse full-regression evidence.** Run the full native suite once for a runtime
+candidate on each qualified platform. Do not repeat an identical full run during
+the merge/tag/publication workflow. A new commit SHA is not a new runtime candidate
+when the differences preserve the tested behavior.
+
+| Later change | Required follow-up |
+|---|---|
+| Merge commit preserving the tested code; tag creation; release publication | Reuse the full report; verify the source/tree relationship. |
+| Documentation, release records, version/banner metadata | Reuse the full report; run applicable source/docs/version checks. |
+| Packaging or installer changes without a changed game runtime | Reuse the game report; validate packages, install/update behavior and provenance. |
+| Behavior-preserving compiler compatibility changes, such as explicit pointer casts | Build with the affected compiler and run focused fixtures/checks; reuse full evidence on already-qualified, behavior-equivalent platforms. |
+| A runtime, ABI, toolkit/lifter, rendering, input/audio, save or memory change that invalidates prior coverage | Run the affected checks first; repeat the full suite only where needed to qualify the changed runtime, with a concrete reason recorded. |
+
+Record the tested commit, toolkit pin, build preset, settings/fixture and report,
+then name the final commit and explain any differences plus their focused checks.
+Before starting a second full run, state in the release PR or PROGRESS exactly
+what changed or failed, why the previous full report no longer qualifies that
+platform, and why focused checks are insufficient. A file under `src/` changing,
+elapsed time, or reaching the tag step is not enough. Use judgment to carry valid
+evidence forward; do not request an owner waiver merely to avoid duplicate work.
+Evidence does not transfer between platforms or qualify untested modes. Required
+CI, game-free asset inspection, real install/update and protected-data checks
+remain separate gates.
 
 ### 5. When the candidate fails
 
@@ -87,9 +111,11 @@ play-test can join a release and be tested there.
    branch with one merge reverted at a time.
 3. Fix it on the release branch, or take the PR out (revert its merge; it waits
    for the next release).
-4. After a fix that touches the runtime, renderer, lifter or toolkit, the full run
-   repeats on the affected platforms. Otherwise rerun the failed checks and
-   `--quick`.
+4. Rerun the failed checks and the checks affected by the fix. Apply §4's reuse
+   rule: do not automatically repeat the full suite merely because the fix touches
+   runtime source. Repeat a full run only on platforms whose previous coverage
+   was invalidated, and record why targeted checks are insufficient. Preserve
+   the original failed aggregate alongside the focused retry and any new full run.
 
 Keep trains small, about five PRs or a week of work, so a failure is quick to
 trace. A hotfix is a release with one PR, cut from `main` (which always equals the
@@ -110,6 +136,8 @@ last release plus docs), with the same gate.
 4. Create an annotated version tag at the merge commit and push that tag.
    The Source release workflow validates the tag against CMake, release notes,
    main ancestry and source policy, then reuses the complete CI workflow.
+   Tagging does not require another local full native regression: carry forward
+   the qualified candidate report under §4. Hosted game-free CI is a separate gate.
 5. After all checks pass, the workflow creates a draft Release using those notes.
    Verify every asset's SHA-256 against GitHub's digest and its provenance, then
    publish the draft. Version tags are immutable; use a new version to correct a

@@ -110,7 +110,14 @@ snapshot and its runtime aliases remain here until an explicitly tested pin upda
 4. Rebuild, re-run, then `python scripts/regress.py --quick` (unit tests, the three golden frames, a fight) and the
    `--only` checks for the area you changed (`docs/agent/release.md`). The full `python scripts/regress.py` (about an
    hour) runs **once per platform on the release candidate** (release trains, `docs/releasing.md`), not on each PR;
-   the one exception is a toolkit migration, which gets one full run on one platform before it is queued. A log worth
+   the one exception is a toolkit migration, which gets one full run on one platform before it is queued. Reuse a
+   passing full run when the tested runtime behavior, toolkit pin, build mode and controlled test inputs remain
+   applicable. **Do not run a second identical full regression for a merge commit, version/banner metadata,
+   documentation, packaging, tag creation or release publication.** Behavior-preserving compiler fixes (for example,
+   explicit pointer casts) get the affected build and focused checks, not another full run on an already-qualified
+   platform. A different commit hash or a file under `src/` changing does not by itself invalidate the evidence.
+   Before repeating a full run, record the specific runtime change or failure that invalidates the previous gate
+   and why focused checks are insufficient; otherwise carry the report forward (`docs/releasing.md` §4–5). A log worth
    keeping is cited by name (in PROGRESS.md, or the PR description on a feature branch); `scripts/prune-logs.py`
    keeps cited logs and clears the rest. Run the full regression in the background and read its table, not its logs; a failing row prints a `triage.py` line for the log it used.
 5. Log the iteration with numbers: in `PROGRESS.md` §6 on `main` or a release branch (update §0 if a stage changed;

@@ -1,5 +1,7 @@
 # Fighter Mod Support agent handover prompt
 
+Latest beta continuation: [v1.2.0-beta.1 qualifications](../releases/v1.2.0-beta.1.md) and current `PROGRESS.md` D371–D382. The owner subsequently authorized this experimental runtime release; the historical local-only restrictions below do not revoke that later authorization. All original and converted Vendetta files remain local.
+
 Latest continuation: [November 8 checkpoint](fighter-mod-m5-2026-11-08.md).
 For the final local package, source commits and exact next steps, read the
 [November8 handover](fighter-mod-handoff-2026-11-08.md) after this file.
