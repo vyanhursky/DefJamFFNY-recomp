@@ -231,6 +231,7 @@ extern void sub_0003E170_gen(void);
 void sub_0003E170(void) {
     defjam_fighter_voice_select(MEM32(g_esp + 4));
     if (!defjam_fighter_motion_audio(MEM32(g_esp + 4))) sub_0003E170_gen();
+    defjam_fighter_voice_restore();
 }
 extern void sub_0003DB00_gen(void);
 void sub_0003DB00(void) {

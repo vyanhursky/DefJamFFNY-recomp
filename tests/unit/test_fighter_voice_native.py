@@ -10,6 +10,7 @@ import pytest
 from test_fighter_ui_native import TYPES
 from test_fighter_voice_compile import source, voice, explicit_source
 from fighter_voice_compile import VoiceCompiler, encode_voice_bindings, CATEGORIES
+from test_fighter_match_teardown_native import definition
 import hashlib
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -26,6 +27,18 @@ int g_fp_top, enabled=1;
 static uint32_t calls,bank601,bank602,bank22;
 static char previous[96];
 static int fail_load;
+static int audio_adapter;
+void sub_0003E170_gen(void) {
+ // Native rematch setup rewrites voice rows but retains the registered banks.
+ for(uint32_t slot=0;slot<4;slot++) MEM32(0x3403B4+slot*0x64)=slot==2?22:5;
+ g_eax=1;g_esp+=4;
+}
+int defjam_fighter_motion_audio(uint32_t input) {
+ assert(input==0x2000);
+ if(!audio_adapter)return 0;
+ sub_0003E170_gen();return 1;
+}
+@AUDIO_WRAPPER@
 int defjam_fighter_research_active(void) {return enabled;}
 static void entry(void) {
  g_esp=0xB00000;g_eax=101;g_ecx=102;g_edx=103;
@@ -82,6 +95,14 @@ int main(int argc,char **argv) {
  assert(MEM32(0x3403B4)==601&&MEM32(0x340418)==601&&MEM32(0x34047C)==22&&MEM32(0x3404E0)==602);
  for(uint32_t slot=0;slot<4;slot++) assert(MEM8(0x3403B9+slot*0x64)==1&&MEM32(0x3403A4+slot*0x64)==5);
  for(uint32_t i=0;i<200;i++) assert(MEM8(0x33EA78+i)==0xA5);
+ // The real wrapper must restore owned IDs even when native skips bank reload.
+ // Exercise both its direct-native and motion-template-adapter return paths.
+ for(audio_adapter=0;audio_adapter<2;audio_adapter++) {
+  entry();MEM32(g_esp+4)=0x2000;uint32_t registered=calls;
+  sub_0003E170();
+  assert(g_esp==0xB00004&&g_eax==1&&calls==registered);
+  assert(MEM32(0x3403B4)==601&&MEM32(0x340418)==601&&MEM32(0x34047C)==22&&MEM32(0x3404E0)==602);
+ }
  // Reload must rebuild its local set; no stale 'already loaded' state.
  previous[0]=0;MEM8(0x33EBC0)=1;entry();assert(defjam_fighter_voice_load(0));
  assert(calls==9+2*(alpha+beta)&&bank601==2*alpha&&bank602==2*beta&&bank22==6);
@@ -107,7 +128,8 @@ def tool(tmp_path_factory):
     (folder / 'recomp/gen').mkdir(parents=True)
     (folder / 'recomp/gen/recomp_types.h').write_text(TYPES, encoding='utf-8')
     driver = folder / 'driver.c'
-    driver.write_text(DRIVER, encoding='utf-8')
+    wrapper = definition((ROOT / 'src/recomp_manual.c').read_text(encoding='utf-8'), 'sub_0003E170')
+    driver.write_text(DRIVER.replace('@AUDIO_WRAPPER@', wrapper), encoding='utf-8')
     exe = folder / ('voice.exe' if os.name == 'nt' else 'voice')
     sources = [str(driver), str(ROOT / 'src/patches/fighter_voice.c')]
     if os.name == 'nt':
