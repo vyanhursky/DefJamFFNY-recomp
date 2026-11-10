@@ -14,6 +14,15 @@ confidence labels and disproved hypotheses remain distinct from measured facts.
 
 ## Fighter Mod Support
 
+- [Approved pending-PR integration](pending-pr-integration-2026-11-10.md) — owner-authorized source merges, combined validation and retained gameplay/art qualification limits.
+
+- [Retail overrides and extra outfits](retail-overrides-outfits.md) — appearance-only retail deployment, hidden clothing datasets and canonical progress identity; private Pockets qualification.
+
+- [Workshop performance authoring](workshop-performance.md) — CAF v6, independent voice/AI/cinematic identities, offline audition and bounded source animation playback; full native acceptance pending joint testing.
+
+- [Workshop retail CAF movesets](workshop-retail-movesets-2026-11-10.md) — stable original movement identities, CAF v5/FCA3 and direct-profile compatibility boundaries.
+
+- [Workshop face authoring](workshop-face-authoring-2026-11-09.md) — original presets, bounded template sculpts, CAF v4 and native coordinate/participant isolation checks.
 - [Workshop retail fighters and RGB atlases](workshop-retail-fighters-2026-11-09.md) — independent body/combat authoring, static preview and alpha-preserving HD body texture imports.
 
 - [Workshop fighter UI artwork](fighter-ui-art-2026-11-09.md) — complete PNG roles, original layout audit, HD texture staging and managed-launch contract.

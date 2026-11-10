@@ -171,14 +171,17 @@ def bind_cinematics(banks, receipt, nis, expected_nis_sha256, cores):
             'Cinematic bindings require their compiled bank receipt')
     require(isinstance(nis, bytes) and hashlib.sha256(nis).hexdigest() == expected_nis_sha256,
             'Cinematic bindings require a verified native list archive')
-    require(type(cores) is dict and 0 < len(cores) <= 16384 - 141
-            and all(type(core) is int and 141 <= core < 16384 for core in cores),
+    from fighter_behavior_identity import valid, CAF_BIT, population
+    require(population(cores)
+            and all(valid(core) for core in cores),
             'Cinematic bindings require bounded full core identities')
     archive, native = Archive(banks), Archive(nis)
     xml = unpack(native.read('assets/IntroExtro.xml'))
     compiler = Cinematics(xml, hashlib.sha256(xml).hexdigest())
     version=2 if any(type(value) is dict and value.get('full_graph') for value in receipt['bindings'].values()) else 1
+    if any(core & CAF_BIT for core in cores):version=3
     entries, rows, report = [], bytearray(), {}
+    caf_index=16384
     for core, pair in sorted(cores.items()):
         require(type(pair) is dict and set(pair) == {'intro', 'victory'},
                 'Cinematic core needs explicit intro and victory resources')
@@ -196,14 +199,16 @@ def bind_cinematics(banks, receipt, nis, expected_nis_sha256, cores):
                     'Cinematic resource bytes differ from their receipt')
             names.append(name)
             if resource.get('full_graph'):flags|=1<<(kind=='victory')
-        label = f'fmc{core:05d}'
+        index=core
+        if core & CAF_BIT:index=caf_index;caf_index+=1
+        label = f'fmc{index:05d}'
         entries.append(Cinematic(label, *names))
         rows.extend(struct.pack('<I8s8s', core, *(name.encode('ascii') for name in names)))
-        if version==2:rows.extend(struct.pack('<I',flags))
+        if version>=2:rows.extend(struct.pack('<I',flags))
         report[str(core)] = {'label': label, 'intro': names[0], 'victory': names[1]}
     result = native.compose(replacements={'assets/IntroExtro.xml': compiler.compose(entries, {
         entry.name[:-4] for entry in archive.entries if entry.name.endswith('.viv')})})
-    table = (struct.pack('<4s5I', b'FIC2' if version==2 else b'FIC1', version, len(cores), len(banks), len(result), 0)
+    table = (struct.pack('<4s5I', b'FIC3' if version==3 else b'FIC2' if version==2 else b'FIC1', version, len(cores), len(banks), len(result), 0)
              + hashlib.sha256(banks).digest() + hashlib.sha256(result).digest() + rows)
     return result, bytes(table), {'schema': 'fighter-cinematic-bindings-1', 'bindings': report,
                                  'banks_sha256': hashlib.sha256(banks).hexdigest(),

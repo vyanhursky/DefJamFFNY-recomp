@@ -111,9 +111,13 @@ def test_native_core_maps_partition_additions_without_weakening_coverage():
     for owned, caf in [({}, {'caf/one': 87}), ({'owned/two': 142}, {}),
                        ({'owned/two': 142, 'caf/one': 143}, {'caf/one': 87}),
                        ({'owned/two': 142}, {'extra/key': 87}),
-                       ({'owned/two': 142}, {'caf/one': 86})]:
+                       ({'owned/two': 142}, {'caf/one': 0})]:
         with pytest.raises(SodError):
             Database(original).extend_character_records(additions, character_cores=owned, caf_cores=caf)
+    # CAF v5 explicitly selects a retail core; indexed identity is still CAF.
+    _, retail = Database(original).extend_character_records(additions,
+        character_cores={'owned/two': 142}, caf_cores={'caf/one': 5})
+    assert retail['bindings']['caf/one']['inherited_core_id'] == 5
 
 
 @pytest.mark.parametrize('component', ['appearance', 'voice', 'ai', 'blazin'])

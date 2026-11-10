@@ -9,7 +9,8 @@ typedef struct FighterWindowBank {
     uint32_t native_handle, private_handle, symbol_hash, selection_key, record_offset, core_id;
 } FighterWindowBank;
 typedef struct FighterWindowRow {
-    uint32_t stable_handle, selection_key, symbol_hash, record_offset, core_id;
+    /* FWR2: zero means independent; retail selection+1 includes native ID zero. */
+    uint32_t stable_handle, selection_key, symbol_hash, record_offset, core_id, retail_selection_plus_one;
 } FighterWindowRow;
 typedef struct FighterWindow {
     const uint8_t *bytes;

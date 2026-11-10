@@ -3,6 +3,9 @@
 #include <stdint.h>
 int defjam_fighter_caf_start(void);
 void defjam_fighter_caf_participant(uint32_t service, uint32_t participant, uint32_t selection);
+void defjam_fighter_caf_story(uint32_t service, uint32_t fighters);
+void defjam_fighter_caf_begin_match(void);
+uint32_t defjam_fighter_caf_selection(uint32_t participant);
 void defjam_fighter_caf_clear(void);
 int defjam_fighter_caf_visual(uint32_t visual, uint32_t participant, int apply);
 int defjam_fighter_caf_context(uint32_t service, uint32_t participant, uint32_t *output);

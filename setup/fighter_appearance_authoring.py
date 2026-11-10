@@ -83,6 +83,9 @@ def preview(game,folder,catalog,pins):
     from fighter_registry import resolve
     folder=Path(folder);pack=inventory(folder);snapshot=resolve(catalog.baseline(),[pack])
     added=[v for k,v in snapshot['fighters'].items() if not k.startswith('retail/')]
+    if not added:
+        targets={row['target'] for row in pack['overrides']}
+        added=[snapshot['fighters'][key] for key in targets]
     require(len(added)==1,'Preview one fighter at a time')
     key=added[0]['components']['appearance'];resource=snapshot['resources'][key]
     if 'source' in resource:

@@ -4,12 +4,15 @@
 #endif
 #include "fighter_ai.h"
 #include "fighter_runtime.h"
+#include "fighter_behavior_identity.h"
 #include "hooks/mod_sha256.h"
 #include <stdlib.h>
 
 #define AI_CORE_LIMIT 16384u
-#define AI_TABLE_LIMIT (48u + 36u * (AI_CORE_LIMIT - 141u))
-static char s_profiles[AI_CORE_LIMIT][32];
+#define AI_TABLE_LIMIT (48u + 36u * (AI_CORE_LIMIT+CAF_BEHAVIOR_MAX))
+static char s_profiles[AI_CORE_LIMIT+CAF_BEHAVIOR_MAX][32];
+static CafBehaviorBinding s_caf_bindings[CAF_BEHAVIOR_MAX];
+static uint32_t s_caf_count;
 static uint32_t s_count;
 static char s_archive[2048];
 
@@ -40,11 +43,12 @@ int defjam_fighter_ai_start(void) {
     int valid = !ferror(file) && size >= 48 && size <= AI_TABLE_LIMIT;
     if (fclose(file)) valid = 0;
     uint32_t count = valid ? ai_word(table + 8) : 0;
+    int caf_version=valid && !memcmp(table,"FIA2",4) && ai_word(table+4)==2;
     char encoded[65];
     if (valid) {
         hex(table + 16, encoded);
-        valid = !memcmp(table, "FIA1", 4) && ai_word(table + 4) == 1 && count
-            && count <= AI_CORE_LIMIT - 141 && size == 48u + count * 36u
+        valid = ((!memcmp(table, "FIA1", 4) && ai_word(table + 4) == 1) || caf_version) && count
+            && count <= (caf_version?AI_CORE_LIMIT+CAF_BEHAVIOR_MAX:AI_CORE_LIMIT-141) && size == 48u + count * 36u
             && !strcmp(encoded, hash);
     }
     if (valid) {
@@ -59,11 +63,13 @@ int defjam_fighter_ai_start(void) {
         }
     }
     uint32_t previous = 140;
+    s_caf_count=0;
     memset(s_profiles, 0, sizeof(s_profiles));
     for (uint32_t i = 0; valid && i < count; ++i) {
         const uint8_t *row = table + 48 + i * 36;
         uint32_t core = ai_word(row);
-        if (core <= previous || core >= AI_CORE_LIMIT || !row[4]) { valid = 0; break; }
+        int caf=caf_version && caf_behavior_key(core);
+        if (core <= previous || (!caf && core >= AI_CORE_LIMIT) || (caf && s_caf_count>=CAF_BEHAVIOR_MAX) || !row[4]) { valid = 0; break; }
         int ended = 0;
         for (unsigned j = 4; j < 36; ++j) {
             uint8_t c = row[j];
@@ -72,7 +78,12 @@ int defjam_fighter_ai_start(void) {
                      || (c >= '0' && c <= '9') || c == '_' || c == '-')) { valid = 0; break; }
         }
         if (!ended) valid = 0;
-        if (valid) { memcpy(s_profiles[core], row + 4, 32); previous = core; }
+        if (valid) {
+            previous=core;
+            if(caf) {uint32_t index=AI_CORE_LIMIT+s_caf_count;
+                s_caf_bindings[s_caf_count].selection=core&~CAF_BEHAVIOR_BIT;s_caf_bindings[s_caf_count++].index=index;core=index;}
+            memcpy(s_profiles[core], row + 4, 32);
+        }
     }
     if (valid) {
         s_count = count; strcpy(s_archive, path);
@@ -81,23 +92,30 @@ int defjam_fighter_ai_start(void) {
     free(table); return valid;
 }
 const char *defjam_fighter_ai_path(void) { return s_archive; }
+static const char *ai_profile(uint32_t slot,uint32_t core) {
+    uint32_t binding=caf_behavior_index(s_caf_bindings,s_caf_count,slot);
+    if(binding==UINT32_MAX && core<AI_CORE_LIMIT)binding=core;
+    return binding<AI_CORE_LIMIT+CAF_BEHAVIOR_MAX && s_profiles[binding][0]?s_profiles[binding]:NULL;
+}
 /* C9110 consumes writable D6EE0 configuration. The four profile strings are
  * independent of its stage, controller flags and four native owned AI records. */
 void defjam_fighter_ai_bind(uint32_t config) {
     if (!s_count || !defjam_fighter_research_active()) return;
     for (unsigned slot = 0; slot < 4; ++slot) {
         uint32_t core = MEM32(0x3B90B8 + slot * 4);
-        if (core >= AI_CORE_LIMIT || !s_profiles[core][0] || !MEM8(config + 0x24 + slot * 32)) continue;
-        memcpy((void *)XBOX_PTR(config + 0x24 + slot * 32), s_profiles[core], 32);
-        fprintf(stderr, "[FIGHTERS] AI slot %u core %u profile %s\n", slot, core, s_profiles[core]);
+        const char *profile=ai_profile(slot,core);
+        if (!profile || !MEM8(config + 0x24 + slot * 32)) continue;
+        memcpy((void *)XBOX_PTR(config + 0x24 + slot * 32), profile, 32);
+        fprintf(stderr, "[FIGHTERS] AI slot %u core %u profile %s\n", slot, core, profile);
     }
 }
 void defjam_fighter_ai_loaded(uint32_t self, uint32_t config) {
     if (!s_count || !defjam_fighter_research_active()) return;
     for (unsigned slot = 0; slot < 4; ++slot) {
         uint32_t core = MEM32(0x3B90B8 + slot * 4);
-        if (core >= AI_CORE_LIMIT || !s_profiles[core][0] || !MEM8(config + 0x24 + slot * 32)) continue;
-        if (memcmp((const void *)XBOX_PTR(config + 0x24 + slot * 32), s_profiles[core], 32)) {
+        const char *profile=ai_profile(slot,core);
+        if (!profile || !MEM8(config + 0x24 + slot * 32)) continue;
+        if (memcmp((const void *)XBOX_PTR(config + 0x24 + slot * 32), profile, 32)) {
             fprintf(stderr, "[FIGHTERS] AI stopped: owned profile fell back in slot %u\n", slot);
             fflush(stderr); exit(1);
         }
