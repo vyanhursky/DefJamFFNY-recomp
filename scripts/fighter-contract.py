@@ -121,12 +121,13 @@ def validate(game, folders, language=None):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=('catalog','tag-catalog', 'voice-catalog', 'validate-voice', 'export-pair','export-cinematic', 'export-caf-portrait', 'validate'))
+    parser.add_argument('command', choices=('catalog','tag-catalog', 'voice-catalog', 'validate-voice', 'export-pair','export-cinematic', 'export-caf-portrait','export-ui-reference', 'validate'))
     parser.add_argument('--game', type=Path, required=True)
     parser.add_argument('--pack', type=Path, action='append', default=[])
     parser.add_argument('--language', type=Path)
     parser.add_argument('--portrait-png', type=Path)
     parser.add_argument('--portrait-out', type=Path)
+    parser.add_argument('--donor',default='retail/blaze')
     parser.add_argument('--voice-source', type=Path)
     parser.add_argument('--pair-request',type=Path)
     parser.add_argument('--cinematic-request',type=Path)
@@ -137,6 +138,11 @@ def main():
             result = {'protocol': PROTOCOL, 'ok': True,
                       'baseline': catalog.baseline(),
                       'native_models':{row['fields']['Model']['symbol']:key for key,row in catalog.rows.items()}}
+        elif args.command=='export-ui-reference':
+            if args.portrait_out is None:raise ValueError('Choose a new UI reference output folder')
+            from fighter_ui_art import export_reference
+            pin=json.loads((ROOT/'config/fighter-native-baseline.json').read_text())
+            result={'protocol':PROTOCOL,'ok':True,**export_reference(args.game,args.donor,args.portrait_out,retail_catalog(args.game/'assets/djv2.sod'),pin)}
         elif args.command=='export-caf-portrait':
             if args.portrait_png is None or args.portrait_out is None:raise ValueError('Choose a PNG and a new portrait output folder')
             from fighter_caf_portrait import export_png

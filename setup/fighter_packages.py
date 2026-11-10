@@ -154,7 +154,7 @@ def candidate(manager, state, identifier, stage, new):
         build(manager, state, ids=ids, replacements={identifier: stage})
 
 
-def runtime_environment(cache, report, screens, language=None):
+def runtime_environment(cache, report, screens, language=None, *, ui_pack=None):
     environment = {'RECOMP_FIGHTER_NAMES': str(cache / 'fighter-names.bin'),
                    'RECOMP_FIGHTER_BINDINGS': str(cache / 'fighter-bindings.bin'),
                    'RECOMP_FIGHTER_RESEARCH_SOD': str(cache / 'assets/djv2.sod'),
@@ -178,4 +178,6 @@ def runtime_environment(cache, report, screens, language=None):
     if language:
         environment['RECOMP_FIGHTER_RESEARCH_LANGUAGE_BASE'] = language[1]['base_sha256']
         environment['RECOMP_FIGHTER_RESEARCH_SCREENS_SHA256'] = hashlib.sha256(screens.read_bytes()).hexdigest()
+    if ui_pack is not None:
+        environment['RECOMP_FIGHTER_UI_TEXTURE_PACK']=ui_pack.name
     return environment

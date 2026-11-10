@@ -34,9 +34,13 @@ std::string data;
 namespace pcui { std::string folder_path(Folder which) { return data; } }
 int main(int argc,char **argv) {
  data=argv[1];
- if(std::string(argv[2])=="fighter") {
+ if(std::string(argv[2])=="fighter" || std::string(argv[2])=="fighter-ui") {
    if(!pc_fighters_prepare("")) {std::cerr<<pc_fighters_error()<<std::endl;return 5;}
    std::cout<<pc_fighters_healthy()<<std::endl;
+   if(std::string(argv[2])=="fighter-ui") {
+     std::cout<<(getenv("RECOMP_TEXTURE_ROOT")?getenv("RECOMP_TEXTURE_ROOT"):"")<<std::endl;
+     std::cout<<(getenv("RECOMP_TEXTURE_PACKS")?getenv("RECOMP_TEXTURE_PACKS"):"")<<std::endl;
+   }
    std::string input;std::getline(std::cin,input);
    std::cout<<pc_fighters_healthy()<<std::endl;
    pc_fighters_finish();return 0;
@@ -331,3 +335,34 @@ def test_managed_native_bridge_accepts_owned_timeline_and_cinematic_proofs(bridg
     assert result.returncode==0,result.stderr
     assert result.stdout.splitlines()==['1','1']
     assert 'managed profile session completed' in result.stderr
+
+
+@pytest.mark.parametrize('damage', [None, 'traversal', 'missing', 'redirect', 'root', 'budget'])
+def test_managed_ui_layer_is_verified_transient_and_last(bridge, tmp_path, damage):
+    name='fighter-ui-'+'c'*24
+    projected='../'+name if damage=='traversal' else name
+    source,env=fighter_helper(tmp_path,'[environment]\\nRECOMP_FIGHTER_UI_TEXTURE_PACK='+projected+'\\n')
+    env.pop('RECOMP_TEXTURE_ROOT',None);env.pop('RECOMP_TEXTURE_PACKS',None)
+    folder=tmp_path/name
+    if damage!='missing':
+        folder.mkdir();(folder/'manifest.ini').write_text('[pack]\nschema=1\n')
+    if damage=='redirect':
+        outside=tmp_path/'elsewhere';outside.mkdir()
+        (folder/'manifest.ini').unlink();folder.rmdir()
+        try:folder.symlink_to(outside,target_is_directory=True)
+        except OSError:pytest.skip('Creating directory symlinks requires permission')
+    if damage=='root':
+        other=tmp_path/'other';other.mkdir();env['RECOMP_TEXTURE_ROOT']=str(other)
+    env['RECOMP_TEXTURE_PACKS']='x'*1000 if damage=='budget' else 'existing-hd'
+    result=subprocess.run([str(bridge),str(tmp_path),'fighter-ui'],cwd=source,env=env,
+                          input='\n',capture_output=True,text=True,timeout=15)
+    if damage is None:
+        assert result.returncode==0,result.stderr
+        lines=result.stdout.splitlines()
+        assert Path(lines[1]).resolve()==tmp_path.resolve()
+        assert lines[2]=='existing-hd;'+name
+        assert 'HD UI texture layer active' in result.stderr
+    else:
+        assert result.returncode==5,result.stderr
+        assert 'HD UI texture layer active' not in result.stderr
+    # All settings functions abort in this driver: this must remain a per-launch layer.

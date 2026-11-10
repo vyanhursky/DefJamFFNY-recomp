@@ -15,6 +15,10 @@ PORTRAIT_ALL_PARTS=PORTRAIT_EXTENDED_PARTS+PORTRAIT_GRID_PARTS
 
 
 def portrait_parts(source):
+    if type(source) is dict and source.get('format')=='eagl-portrait-png-1':
+        from fighter_ui_art import validate
+        validate(source)
+        return tuple(source['images'])
     require(type(source) is dict and source.get('format') in ('eagl-portrait-1','eagl-portrait-2','eagl-portrait-3'),
             'Unsupported portrait source format')
     return PORTRAIT_ALL_PARTS if source['format']=='eagl-portrait-3' else PORTRAIT_EXTENDED_PARTS if source['format']=='eagl-portrait-2' else PORTRAIT_PARTS
@@ -83,6 +87,9 @@ def resource_name(identifier):
 
 
 def portrait_source(source):
+    if type(source) is dict and source.get('format')=='eagl-portrait-png-1':
+        from fighter_ui_art import validate
+        return validate(source)
     parts=portrait_parts(source)
     require(isinstance(source, dict) and set(source) == {'format', 'donor', *parts},
             'Portrait source needs format, donor and every declared role variant')
@@ -106,8 +113,12 @@ def read_portrait(root, source, budget=16 * 1024**2):
     root = ordinary_path(root)
     require(root.is_dir(), 'Portrait package directory is missing')
     output = {}
+    reused = {}
     for part in portrait_parts(source):
-        descriptor = source[part]
+        descriptor = source['images'][part] if source['format']=='eagl-portrait-png-1' else source[part]
+        identity=(descriptor['path'],descriptor['sha256'])
+        if source['format']=='eagl-portrait-png-1' and identity in reused:
+            output[part]=reused[identity];continue
         path = ordinary_path(root.joinpath(*safe_relative(descriptor['path'])))
         require(path.is_relative_to(root), 'Portrait file escapes its package')
         with path.open('rb') as stream:
@@ -115,5 +126,6 @@ def read_portrait(root, source, budget=16 * 1024**2):
         require(0 < len(data) <= min(MAX_ASSET, budget), 'Portrait file exceeds its byte budget')
         require(hashlib.sha256(data).hexdigest() == descriptor['sha256'], 'Portrait file hash mismatch: ' + part)
         output[part] = data
+        reused[identity]=data
         budget -= len(data)
     return output

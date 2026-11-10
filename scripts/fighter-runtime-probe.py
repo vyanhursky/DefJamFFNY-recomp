@@ -350,6 +350,10 @@ def main():
         screens = args.sod.resolve().parents[1] / 'screens/screens.viv'
         language = prepare_language_screens(screens, args.language_pack) if args.language_pack else None
         portraits = prepare_portraits(screens, report, language=language, resource_cache=cache)
+        from fighter_ui_hd import stage as stage_ui_hd
+        ui_pack=stage_ui_hd(cache,report,args.texture_pack[0].parent if args.texture_pack else ROOT/'logs/fighter-ui-textures')
+        if ui_pack is not None:
+            layers=texture_environment([*args.texture_pack,ui_pack],args.language_pack)
         data_root = ordinary_path(ROOT / 'logs/fighter-runtime-probe')
         if store is not None:
             profile_session = prepare_profile_session(store, report['binding_ledger'], ROOT / 'logs/fighter-window-runs',

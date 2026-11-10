@@ -139,9 +139,10 @@ def compile_inputs(sod, paths, packs, ledger=None, *, catalog=None, pin_path=Non
             source = resource['source']
             if source['donor'] not in catalog.rows:
                 raise ValueError('Portrait layout donor is missing: ' + source['donor'])
-            files = read_portrait(roots[resource['owner']], source, min(remaining, 16 * 1024**2))
+            limit=64*1024**2 if source['format']=='eagl-portrait-png-1' else 16*1024**2
+            files = read_portrait(roots[resource['owner']], source, min(remaining, limit))
             selection = catalog.rows[source['donor']]['native_binding']['selection_key']
-            portrait = Portrait(name, source, files, baseline, selection, min(remaining, 16 * 1024**2))
+            portrait = Portrait(name, source, files, baseline, selection, min(remaining, limit))
             remaining -= portrait.byte_count
             if resources.keys() & portrait.files.keys():
                 raise ValueError('Compiled portrait resource names collide')
@@ -183,6 +184,10 @@ def compile_inputs(sod, paths, packs, ledger=None, *, catalog=None, pin_path=Non
         report['appearance_files'] = appearance_files
     if portrait_files:
         report['portrait_files'] = portrait_files
+    from fighter_ui_hd import compile_hd
+    hd_files,hd_hashes=compile_hd(portraits)
+    if hd_files:
+        resources.update(hd_files);report['portrait_hd_files']=hd_hashes
     if resources:
         report.pop('cache_key', None)
         report['cache_key'] = fingerprint(report)
@@ -209,7 +214,9 @@ def write_preview(data, report, resources=None, *, cache_root=None, max_report=M
     if bool(report.get('appearance_resources')) != bool(report.get('appearance_files')):
         raise ValueError('Appearance resources require their complete composed files')
     caf_targets = ({'fighter-caf.bin'} if report.get('caf_fighters') else set()) | ({'fighter-caf-extras.bin'} if report.get('caf_extras_sha256') else set())
-    if type(resources) is not dict or set(resources) != appearance_targets | portrait_targets | behavior_targets | caf_targets:
+    from fighter_ui_hd import validate_hd_files
+    hd_targets=validate_hd_files(report,resources)
+    if type(resources) is not dict or set(resources) != appearance_targets | portrait_targets | behavior_targets | caf_targets | hd_targets:
         raise ValueError('Invalid composed appearance targets')
     if any(not isinstance(payload, bytes) or not 0 < len(payload) <= MAX_ARCHIVE for payload in resources.values()):
         raise ValueError('Composed appearance file exceeds budget')

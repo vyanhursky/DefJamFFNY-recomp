@@ -14,6 +14,8 @@ confidence labels and disproved hypotheses remain distinct from measured facts.
 
 ## Fighter Mod Support
 
+- [Workshop fighter UI artwork](fighter-ui-art-2026-11-09.md) — complete PNG roles, original layout audit, HD texture staging and managed-launch contract.
+
 - [Workshop CAF outfits](workshop-caf-outfits-2026-11-09.md) — one fighter, three appearance datasets, per-participant selection and visual-only portrait aliases.
 
 - [Workshop CAF v2](workshop-caf-v2-2026-11-09.md) — native atlas ownership, saved retail finishers, sidecar contract and qualified evidence.

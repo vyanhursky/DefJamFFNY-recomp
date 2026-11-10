@@ -91,7 +91,7 @@ def layout(rows):
     return width,height,crops
 
 
-def compile_png(original, model, image):
+def compile_png(original, model, image, *, exact=False):
     from PIL import Image, ImageOps
     texture=UITextures(original)
     rows=tiles(model,texture);width,height,crops=layout(rows)
@@ -111,6 +111,8 @@ def compile_png(original, model, image):
     _,left,top,right,bottom=max(candidates)
     canvas=ImageOps.contain(image,(right-left,bottom-top),Image.Resampling.LANCZOS)
     full=Image.new('RGBA',(width,height));full.paste(canvas,(left+(right-left-canvas.width)//2,top+(bottom-top-canvas.height)//2))
+    if exact:
+        full=image.resize((width,height),Image.Resampling.LANCZOS)
     output=bytearray(original)
     for key,row in rows.items():
         target=row['image'];require(target['kind'] in (0x60,0x61,0x62) and not target['swizzled'],'Unsupported PNG portrait raster format')
