@@ -77,6 +77,10 @@ axes and block boundaries is not yet established; that decoder remains gated.
 ## Focused evidence and limits
 
 - Project/history/old-format tests and typed compiler tests pass.
+- Initial source CI reached 2435 passes with one legacy AI error-message
+  assertion failure: the earlier population guard changed the diagnostic for
+  an invalid owned core. The corrected diagnostic preserves that contract;
+  the focused AI tests pass. This failure was not a gameplay result.
 - Native C fixtures compile with warnings as errors and verify old formats plus
   two CAFs sharing a retail core with distinct voice, AI and cinematic bindings.
 - An actual three-outfit CAF with its existing atlases, UI images, finishers and

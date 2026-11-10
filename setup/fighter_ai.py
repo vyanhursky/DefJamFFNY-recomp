@@ -140,7 +140,7 @@ def encode_ai_bindings(data, report, cores):
             and isinstance(data, bytes) and report.get('bytes') == len(data)
             and report.get('sha256') == hashlib.sha256(data).hexdigest(),
             'AI archive differs from its composition receipt')
-    require(population(cores), 'Invalid core-to-AI population')
+    require(population(cores), 'AI binding requires an owned core or CAF identity within the supported population')
     archive, rows = Archive(data), []
     for core, identifier in sorted(cores.items()):
         require(valid(core) and identifier in report['bindings'],
