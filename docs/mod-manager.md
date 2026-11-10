@@ -50,6 +50,21 @@ beneath every texture mod. Other game data/code/recipe mods are outside this
 installer. General schema-2 overrides are future work. Full storefront/Quiver adapters are also future work; see the
 [storefront assessment](research/mod-storefront-integration-2026-10-21.md).
 
+### Thunderstore packages
+
+A [Thunderstore](https://thunderstore.io/c/def-jam-fight-for-ny-recompiled/) upload is the
+same pack folder plus `manifest.json`, `README.md`, `icon.png` (256x256) and optionally
+`CHANGELOG.md` at the ZIP root. A catalogue version that points at such a ZIP lists the
+capability `thunderstore-zip-v1`. The helper provides that capability itself, so helpers
+without this support never offer the version and the catalogue schema stays unchanged.
+Only those four exact root files are accepted beside the pack folder; any other root file
+still fails. They are checked (well-formed `manifest.json` whose `version_number` equals the
+catalogue version's release number, UTF-8 text, PNG size) and never installed. The archive's
+`size` and `sha256` describe the whole ZIP; `file_count`, `unpacked_size` and `root` describe
+the pack folder only. The catalogue remains the authority for identity, dependencies,
+conflicts and order; Thunderstore `dependencies` are not resolved. Offline Fighter ZIP
+imports accept the same layout.
+
 State lives at `<data>/mod-manager/`, outside runtime pack discovery:
 
 - `catalogue.json`: signed exact bytes, signature, highest accepted revision/hash.

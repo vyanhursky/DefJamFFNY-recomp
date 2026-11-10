@@ -112,3 +112,20 @@ def test_missing_enabled_pack_refuses_composition_but_can_be_disabled(manager, t
         fighters.build(manager, manager.state())
     manager.activate_fighter('alpha', False)
     assert manager.state()['fighters'] == []
+
+
+def test_thunderstore_fighter_zip_imports_without_storefront_files(manager, tmp_path):
+    from test_mod_thunderstore import icon
+    definition = pack(count=1)
+    path = archive(tmp_path, definition)
+    with zipfile.ZipFile(path, 'a') as bundle:
+        bundle.writestr('manifest.json', json.dumps(dict(name='Alpha', version_number='1.0.0', website_url='',
+                                                         description='Synthetic', dependencies=[])))
+        bundle.writestr('README.md', '# Alpha\n')
+        bundle.writestr('icon.png', icon())
+    manager.install_local(path)
+    assert sorted(p.name for p in (manager.mods / 'alpha').iterdir()) == ['fighters.json']
+    with zipfile.ZipFile(path, 'a') as bundle:
+        bundle.writestr('stray.txt', 'not storefront metadata')
+    with pytest.raises(ValueError, match='one pack-id root'):
+        manager.install_local(path)
