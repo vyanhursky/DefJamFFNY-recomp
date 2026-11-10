@@ -41,16 +41,23 @@ def normalized_import(name):
 class Appearance:
     def __init__(self, identifier, source, files, baseline, donor_model, budget=MAX_APPEARANCE_BYTES):
         key(identifier); appearance_source(source)
-        require(set(files) == {'model', 'textures', 'face'}, 'Appearance needs all three data resources')
+        painted=source['format']=='eagl-appearance-png-1'
+        require(set(files) == {'model', 'textures', 'face'}|({'images'} if painted else set()), 'Appearance needs all three data resources')
         for part, data in files.items():
+            if part=='images':continue
             require(hashlib.sha256(data).hexdigest() == source[part]['sha256'], 'Appearance source hash changed')
         require(type(budget) is int and 0 < budget <= MAX_APPEARANCE_BYTES, 'Appearance data budget is exhausted')
         decoded, remaining = {}, budget
         for part, data in files.items():
+            if part=='images':continue
             decoded[part] = unpack(data, maximum=min(MAX_ASSET, remaining))
             remaining -= len(decoded[part])
+        self.hd_images={};png_receipt=None
+        if painted:
+            from fighter_appearance_png import paint
+            decoded['textures'],self.hd_images,png_receipt=paint(decoded['textures'],source['images'],files['images'])
         model, face = Model(decoded['model']), Model(decoded['face'])
-        if source['format']=='eagl-appearance-2':
+        if source['format']=='eagl-appearance-2' or painted and 'shape_names' in source:
             from fighter_texture_names import renamed
             model,decoded['textures']=renamed(model,Textures(decoded['textures']),source['shape_names'])
             decoded['model']=model.data
@@ -85,7 +92,7 @@ class Appearance:
         self.baseline_sha256 = baseline.sha256
         self.files = {self.name + suffix: store(decoded[part])
                       for part, suffix in [('model', '.o'), ('textures', '.xsh'), ('face', '_F.o')]}
-        self.byte_count = sum(map(len, self.files.values()))
+        self.byte_count = sum(map(len, self.files.values())) + sum(map(len,self.hd_images.values()))
         require(self.byte_count <= budget, 'Composed appearance data exceeds its aggregate budget')
         self.summary = {'resource': identifier, 'native_name': self.name, 'donor': self.donor,
                         'source_sha256': self.source_sha256, 'baseline_sha256': baseline.sha256,
@@ -96,6 +103,7 @@ class Appearance:
                         'render_control_policy': 'verified-retail-template', 'render_template': template_name,
                         'texture_control_policy': 'verified-retail-template',
                         'texture_shape_names':source.get('shape_names',{}),
+                        'png_import':png_receipt,
                         'runtime_ready': False, 'render_parameters_validated': False}
 
 

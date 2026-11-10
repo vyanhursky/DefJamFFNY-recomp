@@ -43,6 +43,9 @@ static const uint8_t *recipe_row(uint32_t selection,uint32_t outfit) {
     }
     return NULL;
 }
+uint32_t defjam_fighter_caf_selection(uint32_t participant) {
+    return participant<4 && s_service && s_recipes[participant]?word(s_recipes[participant]):0;
+}
 void defjam_fighter_caf_menu_clear(uint32_t participant) {
     for(unsigned i=0;i<4;++i) if(participant==UINT32_MAX || participant==i) {s_menu_selection[i]=0;s_menu_outfit[i]=0;}
 }

@@ -75,6 +75,7 @@ void sub_000A3E80(void) {
  g_eax=ready;g_esp+=4;
 }
 void sub_000A3130(void) {g_eax=0xBAD;g_esp+=8;}
+uint32_t defjam_fighter_caf_selection(uint32_t slot) {(void)slot;return 0;}
 int defjam_fighter_research_active(void) {return enabled;}
 void xbox_NoteAnchorEvent(const char *text) {
  if(!strncmp(text,"fighter-blazin-playback:",23)){

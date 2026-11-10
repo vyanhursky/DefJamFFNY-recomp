@@ -19,6 +19,7 @@ DRIVER = r'''
 #include "patches/fighter_ai.h"
 unsigned char memory[0x400000];
 static int enabled=1;
+uint32_t defjam_fighter_caf_selection(uint32_t slot) {(void)slot;return 0;}
 int defjam_fighter_research_active(void) {return enabled;}
 static void environment(const char *key,const char *value) {
 #ifdef _WIN32

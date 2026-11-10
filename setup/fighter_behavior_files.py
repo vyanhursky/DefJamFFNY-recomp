@@ -63,6 +63,9 @@ def validate_source(kind, source):
     version3 = kind == 'voice' and type(source) is dict and source.get('format') in ('fighter-voice-3', 'fighter-voice-4')
     version4 = version3 and source['format'] == 'fighter-voice-4'
     cinematic2=kind=='cinematic' and type(source) is dict and source.get('format')=='fighter-cinematic-2'
+    cinematic_retail=kind=='cinematic' and type(source) is dict and source.get('format')=='fighter-cinematic-retail-1'
+    ai2=kind=='ai' and type(source) is dict and source.get('format')=='fighter-ai-2'
+    voice_retail=kind=='voice' and type(source) is dict and source.get('format')=='fighter-voice-retail-1'
     blazin5=kind=='blazin' and type(source) is dict and source.get('format')=='fighter-blazin-5'
     blazin4 = blazin5 or kind == 'blazin' and type(source) is dict and source.get('format') == 'fighter-blazin-4'
     blazin3 = blazin4 or kind == 'blazin' and type(source) is dict and source.get('format') == 'fighter-blazin-3'
@@ -70,6 +73,8 @@ def validate_source(kind, source):
     if version3:
         expected['voice'] = {'format', 'banks', 'intro', 'extro'}
     if cinematic2:expected['cinematic']={'format','template','graph','tags'}
+    if cinematic_retail:expected['cinematic']={'format','template'}
+    if voice_retail:expected['voice']={'format','donor'}
     if blazin2:
         expected['blazin'] = {'format', 'shots', 'slots'}
     if blazin5 and 'retail_slots' in source:
@@ -77,7 +82,7 @@ def validate_source(kind, source):
     require(kind in KINDS and type(source) is dict
             and (set(source) == expected[kind] or kind == 'blazin' and not blazin2 and set(source) == expected[kind] | {'pairs'})
             and (source['format'] == 'fighter-' + kind + '-1'
-                 or kind == 'voice' and source['format'] in ('fighter-voice-2', 'fighter-voice-3', 'fighter-voice-4') or blazin2 or cinematic2),
+                 or kind == 'voice' and source['format'] in ('fighter-voice-2', 'fighter-voice-3', 'fighter-voice-4') or blazin2 or cinematic2 or cinematic_retail or ai2 or voice_retail),
             'Unsupported behavior source fields or format')
     if kind=='tag-override':
         require(all(type(source[name]) is str and re.fullmatch('[A-Za-z0-9_]{1,8}',source[name]) for name in ('target','template')),
@@ -101,6 +106,9 @@ def validate_source(kind, source):
             file_spec(spec)
         require(source['tracks'] or source['selections'], 'Moveset needs authored tracks or selections')
     elif kind == 'voice':
+        if voice_retail:
+            require(type(source['donor']) is str and re.fullmatch(r'retail/[a-z0-9]+(?:-[a-z0-9]+)*',source['donor']),'Choose a retail voice donor')
+            return source
         if version3:
             require(type(source['banks']) is dict and set(source['banks']) == set(CATEGORIES),
                     'Explicit voice needs all three category banks')
@@ -128,7 +136,7 @@ def validate_source(kind, source):
             require(type(rows) is dict and set(rows) == {'0', '1', '2', '3'},
                     'AI needs all four native tendency slots')
             for edits in rows.values():
-                require(type(edits) is dict and edits and set(edits) <= EDITABLE
+                require(type(edits) is dict and (edits or ai2) and set(edits) <= EDITABLE
                         and all(type(v) is int and 1 <= v <= 5 for v in edits.values()),
                         'AI supports only named tendency values from 1 to 5')
     elif kind == 'blazin':
@@ -183,6 +191,7 @@ def validate_source(kind, source):
     else:
         require(type(source['template']) is str and re.fullmatch(r'C[IE]_[A-Za-z0-9]{4}', source['template']),
                 'Cinematic requires a supported simple intro/victory template')
+        if cinematic_retail:return source
         if cinematic2:
             file_spec(source['graph'])
             if source['tags']!={'state':'absent'}:file_spec(source['tags'])
@@ -281,6 +290,7 @@ class Reader:
             return {'donor': source['donor'], 'selections': {int(a): b for a, b in source['selections'].items()},
                     'tracks': {token: quaternion_file(self.file(root, spec)) for token, spec in source['tracks'].items()}}
         if kind == 'voice':
+            if source['format']=='fighter-voice-retail-1':return {'retail_donor':source['donor']}
             def read_audio(spec):
                 data = self.file(root, {k: spec[k] for k in ('path', 'sha256')})
                 if source['format'] == 'fighter-voice-1' or spec['format'] == 'wav-pcm16':
@@ -299,7 +309,7 @@ class Reader:
                     'intro': read_audio(source['intro']), 'extro': read_audio(source['extro'])}
         if kind == 'ai':
             return {'template_profile': source['template_profile'],
-                    'tendencies': {difficulty: {int(i): dict(edits) for i, edits in rows.items()}
+                    'tendencies': {difficulty: {int(i): dict(edits) for i, edits in rows.items() if edits}
                                    for difficulty, rows in source['tendencies'].items()}}
         if kind == 'blazin':
             full=source['format']=='fighter-blazin-5'
@@ -348,4 +358,4 @@ class Reader:
                             'camera':{'template':pair['camera']['template'],
                                       'timeline':timeline_file(pair['camera']['timeline'],CAMERA_FORMAT)}}
             return result
-        return {'template': source['template'], 'tracks': quaternion_file(self.file(root, source['track']))}
+        return {'template': source['template'], 'tracks': None if source['format']=='fighter-cinematic-retail-1' else quaternion_file(self.file(root, source['track']))}

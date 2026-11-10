@@ -33,6 +33,7 @@ static void defjam_caf_faces_clear(void) {} /* No sculpt state in this audio fix
 static uint32_t word(const uint8_t *p) { return (uint32_t)p[0]|(uint32_t)p[1]<<8|(uint32_t)p[2]<<16|(uint32_t)p[3]<<24; }
 static void put(uint8_t *p,uint32_t n) { for(unsigned j=0;j<4;++j) p[j]=(uint8_t)(n>>(8*j)); }
 static void stop(const char *message) { fprintf(stderr,"CAF stopped: %s\n",message);exit(1); }
+@CAF_SELECTION@
 int defjam_fighter_research_active(void) { return 1; }
 void sub_001A3AD0(void) { abort(); }
 void sub_001A3630(void) { abort(); }
@@ -90,10 +91,12 @@ int main(int argc,char **argv) {
  "RECOMP_FIGHTER_VOICES","RECOMP_FIGHTER_VOICE_BINDINGS","RECOMP_FIGHTER_VOICES_SHA256"};
  for(unsigned i=0;i<6;++i) environment(keys[i],argv[i+1]);
  assert(defjam_fighter_motion_start()&&defjam_fighter_voice_start());
+ put(recipes[0],1001);put(recipes[1],1002);
  put(recipes[0]+4,87);put(recipes[0]+228,63);
  put(recipes[1]+4,87);put(recipes[1]+228,5);
  for(unsigned rotate=0;rotate<4;++rotate) {
   uint32_t cores[4];defjam_fighter_caf_clear();
+  for(unsigned i=0;i<5;++i) assert(!defjam_fighter_caf_selection(i));
   for(unsigned i=0;i<4;++i) {
    unsigned role=(i+rotate)%4;
    cores[i]=(uint32_t[]){87,142,3,87}[role];expected[i]=(uint32_t[]){63,5,3,5}[role];
@@ -139,6 +142,7 @@ def tool(tmp_path_factory):
     caf = (ROOT / 'src/patches/fighter_caf.c').read_text(encoding='utf-8')
     manual = (ROOT / 'src/recomp_manual.c').read_text(encoding='utf-8')
     text = DRIVER.replace('@CAF_AUDIO@', definition(caf, 'defjam_fighter_caf_audio'))
+    text = text.replace('@CAF_SELECTION@', definition(caf, 'defjam_fighter_caf_selection'))
     text = text.replace('@CAF_CLEAR@', definition(caf, 'defjam_fighter_caf_clear'))
     text = text.replace('@AUDIO_WRAPPER@', definition(manual, 'sub_0003E170'))
     driver = folder / 'driver.c'; driver.write_text(text)

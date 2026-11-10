@@ -37,6 +37,12 @@ MAX_FILE = 512 * 1024**2
 MAX_ARCHIVE = 8 * 1024**3
 MAX_FILES = 65536
 ALLOWED = {'.ini', '.png', '.dds', '.json', '.txt', '.md', '.djd'}  # .djd: language deltas
+# Thunderstore packages put storefront files next to the one pack folder. A
+# catalogue version opts in by requiring this capability, so helpers older than
+# this support never select it. The helper itself provides it on every runtime.
+STOREFRONT = 'thunderstore-zip-v1'
+STOREFRONT_FILES = {'manifest.json': 64 * 1024, 'README.md': 1024**2, 'CHANGELOG.md': 1024**2, 'icon.png': 1024**2}
+STOREFRONT_REQUIRED = ('manifest.json', 'README.md', 'icon.png')
 
 
 class ModError(ValueError):
@@ -349,14 +355,52 @@ def validate_textures(folder):
             'texture_ids': list(dimensions), 'wide_ids': list(parser['wide']) if parser.has_section('wide') else []}
 
 
-def unpack_archive(archive, descriptor, destination, cancelled=lambda: None):
+def check_storefront(bundle, rows, version=None):
+    """Validate a Thunderstore package's root files. None of them is installed.
+
+    The catalogue stays the authority for identity, dependencies and order;
+    manifest.json only has to be well formed and, for a catalogue install,
+    carry the same release number as the catalogue version.
+    """
+    for name in STOREFRONT_REQUIRED:
+        check(name in rows, 'Thunderstore package is missing ' + name)
+    for name, row in rows.items():
+        check(row.file_size <= STOREFRONT_FILES[name], 'Oversized Thunderstore file: ' + name)
+    try:
+        manifest = json.loads(bundle.read(rows['manifest.json']).decode('utf-8-sig'),
+                              object_pairs_hook=contract.unique_object)
+        for name in ('README.md', 'CHANGELOG.md'):
+            if name in rows:
+                bundle.read(rows[name]).decode('utf-8-sig')
+    except (UnicodeDecodeError, ValueError) as error:
+        raise ModError('Invalid Thunderstore metadata: ' + str(error)) from error
+    check(isinstance(manifest, dict), 'Invalid Thunderstore manifest.json')
+    keys = ('name', 'version_number', 'website_url', 'description', 'dependencies')
+    check(all(key in manifest for key in keys), 'Thunderstore manifest.json needs ' + ', '.join(keys))
+    check(isinstance(manifest['name'], str) and re.fullmatch(r'[A-Za-z0-9_]{1,128}', manifest['name']),
+          'Invalid Thunderstore package name')
+    number = manifest['version_number']
+    check(isinstance(number, str) and re.fullmatch(r'(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)', number),
+          'Invalid Thunderstore version_number')
+    check(version is None or number == version.split('-')[0].split('+')[0],
+          'Thunderstore version_number differs from the catalogue version')
+    check(isinstance(manifest['description'], str) and len(manifest['description']) <= 250
+          and isinstance(manifest['website_url'], str), 'Invalid Thunderstore description or website_url')
+    check(isinstance(manifest['dependencies'], list) and all(isinstance(d, str) for d in manifest['dependencies']),
+          'Invalid Thunderstore dependencies')
+    head = bundle.read(rows['icon.png'])[:24]
+    check(head[:8] == b'\x89PNG\r\n\x1a\n' and head[12:16] == b'IHDR'
+          and struct.unpack('>II', head[16:24]) == (256, 256), 'Thunderstore icon.png must be a 256x256 PNG')
+
+
+def unpack_archive(archive, descriptor, destination, cancelled=lambda: None, storefront=False, version=None):
     check(Path(archive).stat().st_size == descriptor['size'] and sha(archive) == descriptor['sha256'],
           'Package size or SHA-256 mismatch')
     check(descriptor['size'] <= MAX_ARCHIVE and descriptor['unpacked_size'] <= 16 * 1024**3
           and descriptor['file_count'] <= MAX_FILES, 'Package exceeds installer limits')
     root = descriptor['root']
     contract.slug(root)
-    files, seen, size = [], set(), 0
+    files, seen, size, wrapper = [], set(), 0, {}
     with zipfile.ZipFile(archive) as bundle:
         fighter = root + '/fighters.json' in bundle.namelist()
         allowed = ALLOWED | {'.bin', '.xsh', '.wav', '.elf', '.o'} if fighter else ALLOWED
@@ -365,18 +409,23 @@ def unpack_archive(archive, descriptor, destination, cancelled=lambda: None):
             cancelled()
             name = row.filename[:-1] if row.is_dir() else row.filename
             parts = safe_relative(name)
-            check(parts[0] == root, 'Unexpected archive root')
             folded = name.casefold()
             check(folded not in seen, 'Duplicate/case-colliding archive path')
             seen.add(folded)
             mode = row.external_attr >> 16
             check(not row.flag_bits & 1 and stat.S_IFMT(mode) in (0, stat.S_IFREG, stat.S_IFDIR), 'Links/encrypted/special entries forbidden')
+            if storefront and name in STOREFRONT_FILES and not row.is_dir():
+                wrapper[name] = row  # exact names only; checked below, never installed
+                continue
+            check(parts[0] == root, 'Unexpected archive root')
             if row.is_dir():
                 continue
             check(len(parts) > 1 and PurePosixPath(name).suffix.lower() in allowed
                   and row.file_size <= MAX_FILE, 'Unsupported/oversized archive file')
             size += row.file_size
             files.append((row, parts[1:]))
+        if storefront:
+            check_storefront(bundle, wrapper, version)
         check(len(files) == descriptor['file_count'] and size == descriptor['unpacked_size'], 'Unpacked size/file-count mismatch')
         check(shutil.disk_usage(destination.parent).free >= size + 32 * 1024**2, 'Not enough free space to install')
         destination.mkdir()
@@ -468,7 +517,7 @@ class Manager:
         self.cache = safe_dir(self.root / 'downloads')
         self.staging = safe_dir(self.root / 'staging')
         self.backups = safe_dir(self.root / 'rollback')
-        self.runtime, self.capabilities = runtime, set(capabilities)
+        self.runtime, self.capabilities = runtime, set(capabilities) | {STOREFRONT}
         key_config = read_json(KEYS, {}) if keys is None else {'keys': keys}
         self.keys = key_config.get('keys', [])
         self.cancel_file = Path(cancel) if cancel else None
@@ -665,7 +714,8 @@ class Manager:
         stage = self.staging / uuid.uuid4().hex
         try:
             self.progress('Verifying and staging package')
-            receipt = unpack_archive(package, version['archive'], stage, self.cancelled)
+            receipt = unpack_archive(package, version['archive'], stage, self.cancelled,
+                                     storefront=STOREFRONT in version['capabilities'], version=version['version'])
             check(set(receipt['capabilities']) <= self.capabilities, 'Pack requires unsupported runtime features')
             check(set(receipt['capabilities']) <= set(version['capabilities']), 'Catalogue omits a required pack capability')
             receipt.update(id=mod_id, folder=mod_id, version=version['version'], name=mod['name'],
@@ -691,17 +741,20 @@ class Manager:
         with zipfile.ZipFile(archive) as bundle:
             entries = bundle.infolist()
             check(0 < len(entries) <= MAX_FILES * 2, 'Fighter ZIP entry budget exceeded')
-            roots = {safe_relative(row.filename.rstrip('/'))[0] for row in entries}
+            # A Thunderstore download has storefront files beside the pack folder.
+            storefront = any(row.filename in STOREFRONT_FILES for row in entries)
+            payload = [row for row in entries if not (storefront and row.filename in STOREFRONT_FILES)]
+            roots = {safe_relative(row.filename.rstrip('/'))[0] for row in payload}
             check(len(roots) == 1, 'Fighter ZIP needs one pack-id root folder')
             root = roots.pop(); contract.slug(root)
             check(root + '/fighters.json' in bundle.namelist(), 'Fighter ZIP is missing fighters.json')
-            files = [row for row in entries if not row.is_dir()]
+            files = [row for row in payload if not row.is_dir()]
             descriptor = dict(root=root, size=archive.stat().st_size, sha256=sha(archive),
                               file_count=len(files), unpacked_size=sum(row.file_size for row in files))
         stage = self.staging / uuid.uuid4().hex
         try:
             self.progress('Validating Fighter package')
-            receipt = unpack_archive(archive, descriptor, stage, self.cancelled)
+            receipt = unpack_archive(archive, descriptor, stage, self.cancelled, storefront=storefront)
             check(receipt.get('category') == 'fighters', 'Expected a Fighter package')
             receipt.update(id=root, folder=root, version=receipt['fighter_version'], name=root,
                            archive_sha256=descriptor['sha256'], conflicts=[], origin='local')

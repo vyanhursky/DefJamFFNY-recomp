@@ -86,17 +86,24 @@ def compile_inputs(sod, paths, packs, ledger=None, *, catalog=None, pin_path=Non
             continue
         if key.startswith('retail/'):
             raise ValueError('CAF recipes add independent fighters; retail CAF overrides are not supported')
+        extended=snapshot['resources'][components['caf']]['source']['format']=='caf-fighter-6'
         # This restriction belongs to this CAF, not to unrelated enabled packs.
         # CAF construction owns its body and styles; other fighters keep their
         # independently validated appearance, behavior and voice adapters.
-        if any(group not in ('appearance', 'moveset', 'voice') or value not in catalog.bindings
+        if any((group not in ('appearance', 'moveset', 'voice') or value not in catalog.bindings)
+               and not (extended and group in ('voice','ai','intro','victory')
+                        and value in snapshot['resources'] and 'source' in snapshot['resources'][value])
                for group, value in components.items() if group not in ('caf', 'portrait', 'stats', 'tier')):
             raise ValueError('CAF recipes currently support retail behavior and optional portraits only: ' + key)
     caf_recipes = {name: load_caf(roots[value['owner']], value['source'], catalog, sod.parents[1])
                    for name, value in caf_sources.items()}
-    caf = {key:dict(caf_recipes[row['components']['caf']],
-                    audio_core=catalog.rows[catalog.bindings[row['components']['voice']]['donor']]['native_binding']['core_id'])
-           for key,row in snapshot['fighters'].items() if 'caf' in row['components']}
+    caf={}
+    for key,row in snapshot['fighters'].items():
+        if 'caf' not in row['components']:continue
+        item=dict(caf_recipes[row['components']['caf']]);voice=row['components']['voice']
+        donor=catalog.bindings[voice]['donor'] if voice in catalog.bindings else item.get('voice_donor')
+        if donor is None:raise ValueError('Authored CAF voice needs an explicit retail voice_donor')
+        item['audio_core']=catalog.rows[donor]['native_binding']['core_id'];caf[key]=item
     if any(not 1 <= item['audio_core'] <= 86 for item in caf.values()):
         raise ValueError('CAF voice requires a retail presentation donor')
     appearance_sources = {key: value for key, value in sourced.items() if value['kind'] == 'appearance'}
@@ -152,7 +159,9 @@ def compile_inputs(sod, paths, packs, ledger=None, *, catalog=None, pin_path=Non
     behavior = None
     if any(value['kind'] not in ('appearance', 'portrait', 'caf') for value in sourced.values()):
         from fighter_behavior import BehaviorPlan
-        behavior = BehaviorPlan(catalog, snapshot, roots, sod.parents[1], pin, appearances, resources)
+        from fighter_bindings import seed,allocate
+        ledger=allocate(seed(catalog.db,catalog.source_sha256,catalog.rows),snapshot['fighters'],ledger)
+        behavior = BehaviorPlan(catalog, snapshot, roots, sod.parents[1], pin, appearances, resources,caf=caf,ledger=ledger)
         resources.update(behavior.files)
         appearance_files = {path: hashlib.sha256(resources[path]).hexdigest() for path in appearance_files}
     data, report = catalog.compile(packs, ledger, appearances=appearances, portraits=portraits,
@@ -190,7 +199,7 @@ def compile_inputs(sod, paths, packs, ledger=None, *, catalog=None, pin_path=Non
     if portrait_files:
         report['portrait_files'] = portrait_files
     from fighter_ui_hd import compile_hd
-    hd_files,hd_hashes=compile_hd(portraits)
+    hd_files,hd_hashes=compile_hd({**appearances,**portraits})
     if hd_files:
         resources.update(hd_files);report['portrait_hd_files']=hd_hashes
     if resources:
