@@ -199,7 +199,7 @@ def compile_inputs(sod, paths, packs, ledger=None, *, catalog=None, pin_path=Non
     if portrait_files:
         report['portrait_files'] = portrait_files
     from fighter_ui_hd import compile_hd
-    hd_files,hd_hashes=compile_hd(portraits)
+    hd_files,hd_hashes=compile_hd({**appearances,**portraits})
     if hd_files:
         resources.update(hd_files);report['portrait_hd_files']=hd_hashes
     if resources:

@@ -35,10 +35,18 @@ def require(condition, message):
 
 
 def appearance_source(source):
-    version2=type(source) is dict and source.get('format')=='eagl-appearance-2'
-    require(isinstance(source, dict) and set(source) == {'format', 'donor', *PARTS}|({'shape_names'} if version2 else set()),
+    painted=type(source) is dict and source.get('format')=='eagl-appearance-png-1'
+    version2=type(source) is dict and (source.get('format')=='eagl-appearance-2' or painted and 'shape_names' in source)
+    require(isinstance(source, dict) and set(source) == {'format', 'donor', *PARTS}|({'shape_names'} if version2 else set())|({'images'} if painted else set()),
             'Appearance source needs format, donor, model, textures and face')
-    require(source['format'] == APPEARANCE_FORMAT or version2, 'Unsupported appearance source format')
+    require(source['format'] == APPEARANCE_FORMAT or version2 or painted, 'Unsupported appearance source format')
+    if painted:
+        images=source['images']
+        require(type(images) is dict and 0<len(images)<=64,'Invalid appearance PNG image set')
+        for shape,spec in images.items():
+            require(type(shape) is str and re.fullmatch('[A-Za-z0-9_]{4}',shape),'Invalid appearance texture shape')
+            require(type(spec) is dict and set(spec)=={'path','sha256'} and type(spec['sha256']) is str and re.fullmatch('[0-9a-f]{64}',spec['sha256']),'Invalid appearance PNG descriptor')
+            safe_relative(spec['path'])
     if version2:
         mapping=source['shape_names']
         require(type(mapping) is dict and 0<len(mapping)<=4096
@@ -75,6 +83,14 @@ def read_appearance(root, source, budget=3 * MAX_ASSET):
         require(hashlib.sha256(data).hexdigest() == descriptor['sha256'], 'Appearance file hash mismatch: ' + part)
         output[part] = data
         budget -= len(data)
+    if source['format']=='eagl-appearance-png-1':
+        output['images']={}
+        for shape,spec in source['images'].items():
+            path=ordinary_path(root.joinpath(*safe_relative(spec['path'])))
+            require(path.is_relative_to(root),'Appearance PNG escapes its package')
+            with path.open('rb') as stream:data=stream.read(min(16*1024**2,budget)+1)
+            require(0<len(data)<=min(16*1024**2,budget) and hashlib.sha256(data).hexdigest()==spec['sha256'],'Appearance PNG hash/size differs')
+            output['images'][shape]=data;budget-=len(data)
     return output
 
 

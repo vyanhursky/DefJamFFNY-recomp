@@ -2,8 +2,9 @@
 
 Logical fighters retain historical identities. Only four indexed native rows
 are resident; typed, unindexed records supply their values at match setup.
-FWR1 contains offsets into the separately hash-verified generated SODB, not
+FWR1/2 contain offsets into the separately hash-verified generated SODB, not
 guest pointers, instructions, or author-selected native IDs.
+FWR2 uses the last row word for retail selection+1; zero remains independent.
 """
 import struct
 
@@ -49,7 +50,10 @@ def encode_window(window):
     banks, fighters = window['banks'], window['fighters']
     if len(banks) != BANKS or not 0 < len(fighters) <= MAX_FIGHTERS:
         raise ValueError('Invalid fighter window population')
-    output = bytearray(b'FWR1' + struct.pack('<5I', 1, len(fighters), BANKS, window['table'], window['sod_size']))
+    version=2 if any(row['reserved'] for row in fighters) else 1
+    if any(type(row['reserved']) is not int or not 0<=row['reserved']<=99 for row in fighters):
+        raise ValueError('Invalid retail outfit canonical selection')
+    output = bytearray((b'FWR2' if version==2 else b'FWR1') + struct.pack('<5I', version, len(fighters), BANKS, window['table'], window['sod_size']))
     for rows, fields in ((banks, ('native_handle', 'private_handle', 'symbol_hash', 'selection_key', 'record_offset', 'core_id')),
                          (fighters, ('stable_handle', 'selection_key', 'symbol_hash', 'record_offset', 'core_id', 'reserved'))):
         for row in rows:

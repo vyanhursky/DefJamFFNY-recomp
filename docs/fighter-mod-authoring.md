@@ -31,6 +31,13 @@ before this development feature can ship.
 
 ## Package shape and identity
 
+The development Workshop retail studio can import original/owned appearance
+resources independently of the combat donor. It uses this ordinary package
+contract and the complete native compiler. The typed `eagl-appearance-png-1`
+extension adds hash-bound native/2×/4× RGB atlas PNGs with exact original material
+alpha, scoped texture names and a verified HD layer. See the
+[retail authoring contract](research/workshop-retail-fighters-2026-11-09.md).
+
 A package is one ZIP root folder named after its pack ID. It contains
 `fighters.json`, its declared resource files and optional root README/LICENSE
 `.md` or `.txt` files. No save, executable, opaque shared database or undeclared
@@ -323,6 +330,38 @@ Diagnostic `scripts/fighter-registry.py` commands remain available:
 An inspection or semantic preview is not full package acceptance.
 
 ## Conflicts, installation and testing
+
+### Existing retail appearance and additional outfits
+
+An appearance-only retail replacement uses an ordinary `overrides` entry with
+the existing `retail/NAME` target. It edits that record and preserves the retail
+combat core and roster identity. Owned texture shape namespaces prevent the
+imported atlas from replacing another fighter's shared texture accidentally.
+The current retail UI-art replacement ownership guard remains in force.
+
+A selectable extra outfit uses a normal fighter definition plus `outfit_of`:
+
+```json
+{
+  "id": "red-pants",
+  "name": "Red pants",
+  "inherits": "retail/pockets",
+  "outfit_of": "retail/pockets",
+  "components": {"appearance": "example-pack/red-pants"}
+}
+```
+
+Declare the referenced appearance resource in the pack as usual. The target
+must be an original retail fighter. All components except appearance/portrait
+must resolve identically to the parent. The compiler adds a hidden native
+appearance binding and extends the original clothing selector, retaining one
+public retail cell. Original and added outfits together must not exceed three.
+Use the matching runtime with FWR2 support. Progress, loading and results keep
+the retail identity; the selected battle appearance uses the owned resource.
+The selector portrait is separate artwork and does not change merely because
+the body atlas changes. See [native evidence and limits](research/retail-overrides-outfits.md).
+
+### Conflicting component claims
 
 An override has `target`, `components`, `supersedes`. Incompatible claims to
 the same fighter/component fail; stats form one conflict group. A compatibility
