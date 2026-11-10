@@ -57,8 +57,11 @@ def validate(value, recipe):
 def load_recipe(root, value, catalog, game):
     from fighter_caf_outfits import load as load_outfits
     clean=copy.deepcopy(value)
+    outfits=clean.get('outfits',[])
+    require(type(outfits) is list and len(outfits)<=2 and all(type(row) is dict for row in outfits),
+            'CAF v4 needs a bounded outfit collection')
     descriptors=[clean.pop('face',None)]
-    for row in clean.get('outfits',[]):descriptors.append(row.pop('face',None))
+    for row in outfits:descriptors.append(row.pop('face',None))
     result=load_outfits(root,clean,catalog,game)
     for row,descriptor in zip(result['outfits'],descriptors):
         if descriptor is not None:row['face']=load(root,descriptor,row['recipe'])

@@ -7,7 +7,7 @@ import sys
 
 import pytest
 sys.path.insert(0,str(Path(__file__).resolve().parents[2]/'setup'))
-from fighter_caf_face import validate,load,encode,MESHES,ROW
+from fighter_caf_face import validate,load,encode,load_recipe,MESHES,ROW
 from fighter_packages import runtime_environment
 
 
@@ -50,3 +50,9 @@ def test_face_setting_is_projected_for_managed_launch(tmp_path):
     env=runtime_environment(tmp_path,{'caf_faces_sha256':'b'*64},tmp_path/'screens.viv')
     assert env['RECOMP_FIGHTER_CAF_FACES']==str(tmp_path/'fighter-caf-faces.bin')
     assert env['RECOMP_FIGHTER_CAF_FACES_SHA256']=='b'*64
+
+
+@pytest.mark.parametrize('outfits',[None,3,'bad',{},[None],[{}]*3])
+def test_v4_rejects_invalid_outfit_shapes_before_descriptor_traversal(outfits):
+    with pytest.raises(ValueError,match='bounded outfit collection'):
+        load_recipe(None,{'outfits':outfits},None,None)
