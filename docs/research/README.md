@@ -14,6 +14,8 @@ confidence labels and disproved hypotheses remain distinct from measured facts.
 
 ## Fighter Mod Support
 
+- [Approved pending-PR integration](pending-pr-integration-2026-11-10.md) — owner-authorized source merges, combined validation and retained gameplay/art qualification limits.
+
 - [Retail overrides and extra outfits](retail-overrides-outfits.md) — appearance-only retail deployment, hidden clothing datasets and canonical progress identity; private Pockets qualification.
 
 - [Workshop performance authoring](workshop-performance.md) — CAF v6, independent voice/AI/cinematic identities, offline audition and bounded source animation playback; full native acceptance pending joint testing.
