@@ -88,8 +88,8 @@ def read_appearance(root, source, budget=3 * MAX_ASSET):
         for shape,spec in source['images'].items():
             path=ordinary_path(root.joinpath(*safe_relative(spec['path'])))
             require(path.is_relative_to(root),'Appearance PNG escapes its package')
-            with path.open('rb') as stream:data=stream.read(min(4*1024**2,budget)+1)
-            require(0<len(data)<=min(4*1024**2,budget) and hashlib.sha256(data).hexdigest()==spec['sha256'],'Appearance PNG hash/size differs')
+            with path.open('rb') as stream:data=stream.read(min(16*1024**2,budget)+1)
+            require(0<len(data)<=min(16*1024**2,budget) and hashlib.sha256(data).hexdigest()==spec['sha256'],'Appearance PNG hash/size differs')
             output['images'][shape]=data;budget-=len(data)
     return output
 

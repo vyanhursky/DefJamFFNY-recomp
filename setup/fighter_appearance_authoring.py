@@ -122,7 +122,11 @@ def preview(game,folder,catalog,pins):
     require(points,'No supported textured surfaces for preview')
     images={}
     for tile in textures.images:
-        stream=io.BytesIO();picture=raster(textures,tile);picture.putalpha(255);picture.save(stream,format='PNG')
+        stream=io.BytesIO();picture=raster(textures,tile)
+        if 'source' in resource and resource['source']['format']=='eagl-appearance-png-1' and tile['name'] in files['images']:
+            from fighter_appearance_png import png
+            picture=png(files['images'][tile['name']]).convert('RGBA')
+        picture.putalpha(255);picture.save(stream,format='PNG')
         images[tile['name']]='data:image/png;base64,'+base64.b64encode(stream.getvalue()).decode('ascii')
     return {'meshes':meshes,'textures':images,'bounds':[[min(p[i] for p in points) for i in range(3)],[max(p[i] for p in points) for i in range(3)]],
             'shapes':[{'name':t['name'],'width':t['width'],'height':t['height']} for t in textures.images],

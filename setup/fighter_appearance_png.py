@@ -15,7 +15,7 @@ from fighter_appearance_authoring import raster,morton
 
 def png(raw):
     from PIL import Image
-    require(type(raw) is bytes and 0<len(raw)<=4*1024**2,'Appearance PNG exceeds 4 MiB')
+    require(type(raw) is bytes and 0<len(raw)<=16*1024**2,'Appearance PNG exceeds 16 MiB')
     with Image.open(io.BytesIO(raw)) as image:
         require(image.format=='PNG' and 32<=image.width<=2048 and 32<=image.height<=2048,'Atlas must be a 32–2048px PNG')
         image.load();return image.convert('RGB')

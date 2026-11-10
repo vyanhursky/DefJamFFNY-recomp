@@ -27,7 +27,7 @@ or animation playback acceptance.
 `eagl-appearance-png-1` extends appearance data with `images`, a mapping from
 original four-character texture names to PNG hash descriptors. It retains
 `donor`, `model`, `textures`, `face` and optional explicit `shape_names`.
-All files are bounded and hash checked. PNGs are 32–2048px, at most 4 MiB each,
+All files are bounded and hash checked. PNGs are 32–2048px, at most 16 MiB each,
 at native/2×/4× dimensions; aggregate decoding is bounded at 64 megapixels.
 
 The original SHPX remains the control/layout authority. RGB is downsampled for
@@ -59,6 +59,10 @@ compile with Teck inheritance. The source rigs have 94 bones with matching
 topology/permutation but different bind transforms. The compiler preserves the
 actual DMX transforms and graph identities. This is compilation evidence;
 native result/finisher and current source qualification are recorded in the PR.
-The original body texture remains a placeholder after two output-stage imagegen
-refusals; generated UI candidates do not establish HD body restoration or owner
-art approval. No art, native files, saves, captures or executable is published.
+After two hosted output-stage imagegen refusals, the owner selected the existing
+local workflow. A4x Real-ESRGAN upscale plus SDXL img2img at strength0.12/30steps
+produced a2048-square body candidate with restored original alpha. Its5.54MiB
+PNG is admitted under the separate16MiB body limit; the complete HD project/ZIP
+compiles and installs with the shared HD layer. Native final-art acceptance is
+recorded separately in the PR. Generated local/hosted candidates do not establish
+owner art approval. No art, native files, saves, captures or executable is published.
