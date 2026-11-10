@@ -444,7 +444,8 @@ int defjam_fighter_native_record(uint32_t database, uint32_t output, uint32_t st
 }
 
 void defjam_fighter_match_setup(uint32_t self, uint32_t fighters) {
-    defjam_fighter_caf_clear();
+    defjam_fighter_caf_begin_match();
+    defjam_fighter_caf_story(self,fighters);
     if (!s_window.bytes) return;
     validate_immutable_banks();
     fprintf(stderr, "[FIGHTERS] resource observation phase=match_setup heap=%u contiguous=%u\n",

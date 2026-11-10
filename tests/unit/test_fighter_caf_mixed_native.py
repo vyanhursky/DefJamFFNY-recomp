@@ -24,6 +24,8 @@ unsigned char memory[0xC00000];
 uint32_t g_eax,g_ecx,g_edx,g_esp,g_ebx,g_esi,g_edi,g_ebp;
 int g_fp_top;
 static uint32_t s_service,s_contexts[4],expected[4],calls,owned_voice;
+static uint32_t s_story_profiles[4];
+static int story_audio;
 static const uint8_t *s_recipes[4];
 static uint8_t recipes[2][232];
 static void restore_finishers(void) {} /* No finisher journal in this audio fixture. */
@@ -46,6 +48,7 @@ void sub_0003E170_gen(void) {
   uint32_t core=MEM32(input+0x20+i*0x18);assert(core==expected[i]);
   MEM32(0x3403A4+i*0x64)=core;
   MEM32(0x3403B4+i*0x64)=core;
+  if(story_audio && !i) {MEM32(0x3403A4)=100;MEM32(0x3403B4)=777;}
  }
  ++calls;g_eax=0xA5000001;g_esp+=4;g_ebx=g_esi=g_edi=g_ebp=0xBAD;
 }
@@ -76,7 +79,8 @@ static void run(const uint32_t *cores,int adapted) {
   assert(!memcmp(before,XBOX_PTR(0x2000),sizeof before));
   for(unsigned i=0;i<4;++i) {
    assert(MEM32(0x3B90B8+i*4)==cores[i]);
-   assert(MEM32(0x3403B4+i*0x64)==(cores[i]==142?owned_voice:expected[i]));
+   assert(MEM32(0x3403B4+i*0x64)==(story_audio&&!i?777:cores[i]==142?owned_voice:expected[i]));
+   if(story_audio&&!i)assert(MEM32(0x3403A4)==100); /* Preserve native CAF voice identity. */
   }
  }
 }
@@ -114,6 +118,11 @@ int main(int argc,char **argv) {
  uint32_t owned[]={142,3,3,3};run(owned,1);
  for(unsigned i=0;i<4;++i) expected[i]=3;
  uint32_t retail[]={3,3,3,3};run(retail,0);
+ if(!strcmp(argv[7],"story")) {
+  defjam_fighter_caf_clear();story_audio=1;s_story_profiles[0]=0x1234;
+  put(recipes[0]+4,51);put(recipes[0]+228,109);s_recipes[0]=recipes[0];
+  expected[0]=109;uint32_t profile[]={51,3,3,3};run(profile,1);
+ }
  puts("mixed CAF/owned/retail audio, four slots, Rematch, clear and ABI passed");return 0;
 }
 '''
@@ -153,7 +162,7 @@ def voice_files(tmp_path):
     return path, bindings, receipt['sha256'], receipt['bindings']['owned/voice']['voice_id']
 
 
-@pytest.mark.parametrize('mode,message', [('mixed', None), ('mismatch', 'CAF audio core differs'), ('unknown', 'unknown audio template core')])
+@pytest.mark.parametrize('mode,message', [('mixed', None), ('story', None), ('mismatch', 'CAF audio core differs'), ('unknown', 'unknown audio template core')])
 def test_mixed_audio_composes_once_and_preserves_owned_voices(tool, motion_files, voice_files, mode, message):
     result = subprocess.run([tool, *motion_files, *voice_files[:3], mode, str(voice_files[3])], capture_output=True, text=True)
     assert result.returncode == (1 if message else 0), result.stdout + result.stderr

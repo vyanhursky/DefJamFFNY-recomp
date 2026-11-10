@@ -14,6 +14,8 @@ confidence labels and disproved hypotheses remain distinct from measured facts.
 
 ## Fighter Mod Support
 
+- [Workshop retail CAF movesets](workshop-retail-movesets-2026-11-10.md) — stable original movement identities, CAF v5/FCA3 and direct-profile compatibility boundaries.
+
 - [Workshop face authoring](workshop-face-authoring-2026-11-09.md) — original presets, bounded template sculpts, CAF v4 and native coordinate/participant isolation checks.
 
 - [Workshop fighter UI artwork](fighter-ui-art-2026-11-09.md) — complete PNG roles, original layout audit, HD texture staging and managed-launch contract.

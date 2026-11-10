@@ -35,6 +35,7 @@ static uint32_t s_finisher_before[4][4],s_finisher_applied[4][4];
 static uint8_t s_finisher_live[4];
 static unsigned converted,rebound,freed;
 static int test_linear;
+static uint32_t s_story_profiles[4];
 static void defjam_caf_faces_clear(void) {} /* Sculpt lifetime is tested separately. */
 static uint32_t test_visual=0x10000;
 static void stop(const char *why) {fprintf(stderr,"CAF stopped: %s\n",why);exit(1);}
@@ -79,25 +80,43 @@ int main(int argc,char **argv) {
     assert(MEM8(p+at*4)==x && MEM8(p+at*4+1)==y && MEM8(p+at*4+2)==(x^y) && MEM8(p+at*4+3)==(uint8_t)at);
    }
   }
- } else if(!strcmp(mode,"finishers") || !strcmp(mode,"mismatch") || !strcmp(mode,"no-caf") || !strcmp(mode,"new-owner")) {
+ } else if(!strcmp(mode,"finishers") || !strcmp(mode,"retail") || !strcmp(mode,"story") || !strcmp(mode,"story-new-owner") || !strcmp(mode,"mismatch") || !strcmp(mode,"no-caf") || !strcmp(mode,"new-owner")) {
   s_service=0x50000;MEM32(s_service+0x1A9C)=0x60000;
   s_contexts[0]=0x60000;MEM8(0x60000)=MEM8(0x60001)=1;MEM32(0x60008)=0x70000;
   if(strcmp(mode,"no-caf")) s_recipes[0]=s_rows+16;
   MEM32(0x3B92E0+0x28)=100;MEM32(0x3B92E0+0x2C)=!strcmp(mode,"mismatch")?4:100;
+  if(!strcmp(mode,"retail") || !strncmp(mode,"story",5)) {
+   uint32_t core=5;memcpy(s_rows+20,&core,4);MEM32(0x3B92E0+0x2C)=core-1;
+  }
   for(unsigned i=0;i<16;++i) MEM32(0x3B9288+i*4)=0xA5A5A5A5;
+  if(!strncmp(mode,"story",5)) {
+   s_story_profiles[0]=0x80000;
+   uint32_t career=109;memcpy(s_rows+16+228,&career,4);
+   MEM32(s_service+0x168)=5;
+   for(unsigned i=0;i<4;++i)MEM32(0x3B9288+i*4)=word(extra+8+i*4);
+  }
   defjam_fighter_caf_finishers();
   defjam_fighter_caf_finishers(); /* Repeated setup must not replace the journal. */
+  if(!strncmp(mode,"story",5)) {
+   assert(MEM32(s_service+0x168)==109 && MEM32(0x3B92E0+0x2c)==4);
+  }
   for(unsigned i=0;i<16;++i) {
    uint32_t expected=i<4 && strcmp(mode,"no-caf")?word(extra+8+i*4):0xA5A5A5A5;
    assert(MEM32(0x3B9288+i*4)==expected);
+   if(i<4 && strcmp(mode,"no-caf"))assert(MEM32(0x3B92E0+0xBB8+i*4)==expected);
   }
   if(!strcmp(mode,"new-owner")) {
    /* A native profile may initialize its choices before our next clear. */
    for(unsigned i=0;i<4;++i) MEM32(0x3B9288+i*4)=77+i;
   }
-  defjam_fighter_caf_clear();
+  uint32_t owner=s_service;
+  if(!strcmp(mode,"story-new-owner"))defjam_fighter_caf_begin_match();
+  else defjam_fighter_caf_clear();
+  if(!strcmp(mode,"story"))assert(MEM32(owner+0x168)==5);
+  if(!strcmp(mode,"story-new-owner"))assert(MEM32(owner+0x168)==109);
   for(unsigned i=0;i<16;++i) {
-   uint32_t expected=i<4 && !strcmp(mode,"new-owner")?77+i:0xA5A5A5A5;
+   uint32_t expected=i<4 && !strcmp(mode,"new-owner")?77+i:
+     i<4 && !strncmp(mode,"story",5)?word(extra+8+i*4):0xA5A5A5A5;
    assert(MEM32(0x3B9288+i*4)==expected);
   }
   assert(!s_service && !s_contexts[0] && !s_recipes[0]);
@@ -122,7 +141,7 @@ def tool(tmp_path_factory):
     while depth:
         depth += (text[end] == '{') - (text[end] == '}'); end += 1
     pointer = text[match.start():end]
-    names = ('word', 'row_outfit', 'extras_valid', 'guest_span', 'swizzle8', 'defjam_fighter_caf_context', 'apply_atlases', 'restore_finishers', 'defjam_fighter_caf_finishers', 'defjam_fighter_caf_clear')
+    names = ('word', 'row_outfit', 'extras_valid', 'guest_span', 'swizzle8', 'defjam_fighter_caf_context', 'apply_atlases', 'restore_finishers', 'defjam_fighter_caf_finishers', 'defjam_fighter_caf_clear', 'defjam_fighter_caf_begin_match')
     definitions = '\n'.join([pointer, *(definition(text, name) for name in names)])
     # extra_row uses word, so the real word definition precedes it.
     match = re.search(r'static const uint8_t \*recipe_row\([^)]*\)\s*\{', text)
@@ -148,7 +167,7 @@ def sidecar():
                   {'bindings': {'p/f': {'selection_key': 100}}})
 
 
-@pytest.mark.parametrize('mode', ['art', 'art-linear', 'finishers', 'no-caf', 'mismatch', 'new-owner'])
+@pytest.mark.parametrize('mode', ['art', 'art-linear', 'finishers', 'retail', 'story', 'story-new-owner', 'no-caf', 'mismatch', 'new-owner'])
 def test_native_rgb_alpha_ownership_and_finisher_routing(tool, tmp_path, mode):
     path = tmp_path / 'extras.bin'; path.write_bytes(sidecar())
     result = subprocess.run([tool, path, mode], capture_output=True, text=True)

@@ -143,6 +143,8 @@ class RetailCatalog:
                           'native-resource', 'Resource needs a native asset adapter',
                           {'fighter': identifier, 'component': group, 'resource': resource})
             donor_key = behavior.donors[identifier] if behavior and identifier in behavior.donors else self.bindings[components['moveset']]['donor']
+            if identifier in caf and caf[identifier].get('retail_moveset'):
+                donor_key=caf[identifier]['retail_moveset']
             donor_keys[identifier] = donor_key
             donor = self.rows[donor_key]
             native_fields = {native: components['stats'][key] for key, native in STATS.items()
@@ -193,6 +195,8 @@ class RetailCatalog:
                     if identifier in caf:
                         from fighter_caf import menu_record
                         menu_roster[identifier] = menu_record(caf[identifier]['recipe'], ledger['fighters'][identifier]['selection'])
+                        if caf[identifier].get('retail_moveset'):
+                            menu_roster[identifier]['styles']=caf[identifier]['retail_styles']
                     else:
                         menu_roster[identifier] = self.menu_record(donor, components, ledger['fighters'][identifier]['selection'])
         # Removing the last pack is a valid lifecycle transition. Keep its
