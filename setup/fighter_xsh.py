@@ -144,6 +144,7 @@ class Textures:
             else:
                 require(palette is None, 'Nonindexed SHPX texture carries an unexpected palette')
             image.update(attachments=attachments, palette_entries=palette[1] if palette else 0)
+            if palette is not None:image['palette_offset']=palette[0]
             signature = hashlib.sha256(b''.join(struct.pack('<I', len(c)) + c for c in controls)).hexdigest()
             self.controls[name] = signature
             content = (struct.pack('<III', image['kind'], image['width'], image['height'])
