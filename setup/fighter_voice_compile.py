@@ -125,20 +125,22 @@ class VoiceCompiler:
 
 
 def encode_voice_bindings(data, report, cores):
-    """FVA1 is legacy all-present; FVA2 adds an explicit three-category mask."""
+    """Legacy owned cores plus FVA3 logical CAF bindings and category masks."""
+    from fighter_behavior_identity import valid, CAF_BIT, population
     require(type(report) is dict and report.get('schema') in ('fighter-voice-archive-1', 'fighter-voice-archive-2')
             and isinstance(data, bytes) and report.get('bytes') == len(data)
             and report.get('sha256') == hashlib.sha256(data).hexdigest(),
             'Voice archive differs from composition receipt')
-    require(type(cores) is dict and 0 < len(cores) <= 16384 - 141,
+    require(population(cores),
             'Invalid core-to-voice binding population')
     archive = Archive(data, native_separators=True)
     bindings = report.get('bindings')
     require(type(bindings) is dict, 'Missing voice resource bindings')
     rows, masks = [], {}
     version2 = report['schema'] == 'fighter-voice-archive-2'
+    version3 = any(type(key) is int and key & CAF_BIT for key in cores)
     for core, identifier in sorted(cores.items()):
-        require(type(core) is int and 141 <= core < 16384 and identifier in bindings,
+        require(valid(core) and identifier in bindings,
                 'Voice binding needs an owned core and known resource')
         native_id = bindings[identifier]['voice_id']
         require(type(native_id) is int and 600 <= native_id < 65535, 'Invalid allocated voice ID')
@@ -169,5 +171,5 @@ def encode_voice_bindings(data, report, cores):
         require(native_id not in masks or masks[native_id] == mask,
                 'Shared voice ID has conflicting category presence masks')
         masks[native_id] = mask
-        rows.append(struct.pack('<3I', core, native_id, mask) if version2 else struct.pack('<2I', core, native_id))
-    return (b'FVA2' if version2 else b'FVA1') + struct.pack('<3I', 2 if version2 else 1, len(rows), len(data)) + bytes.fromhex(report['sha256']) + b''.join(rows)
+        rows.append(struct.pack('<3I', core, native_id, mask) if version2 or version3 else struct.pack('<2I', core, native_id))
+    return (b'FVA3' if version3 else b'FVA2' if version2 else b'FVA1') + struct.pack('<3I', 3 if version3 else 2 if version2 else 1, len(rows), len(data)) + bytes.fromhex(report['sha256']) + b''.join(rows)

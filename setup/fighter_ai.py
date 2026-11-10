@@ -135,14 +135,15 @@ class AIProfiles:
 
 
 def encode_ai_bindings(data, report, cores):
+    from fighter_behavior_identity import valid, CAF_BIT, population
     require(type(report) is dict and report.get('schema') == 'fighter-ai-archive-1'
             and isinstance(data, bytes) and report.get('bytes') == len(data)
             and report.get('sha256') == hashlib.sha256(data).hexdigest(),
             'AI archive differs from its composition receipt')
-    require(type(cores) is dict and 0 < len(cores) <= 16384 - 141, 'Invalid core-to-AI population')
+    require(population(cores), 'Invalid core-to-AI population')
     archive, rows = Archive(data), []
     for core, identifier in sorted(cores.items()):
-        require(type(core) is int and 141 <= core < 16384 and identifier in report['bindings'],
+        require(valid(core) and identifier in report['bindings'],
                 'AI binding requires an owned core and known profile')
         binding = report['bindings'][identifier]
         name = basename(binding['profile'])
@@ -151,4 +152,5 @@ def encode_ai_bindings(data, report, cores):
             value = archive.read('assets/ai/' + basename(target) + '.xml')
             require(hashlib.sha256(value).hexdigest() == expected, 'AI resource differs from its receipt')
         rows.append(struct.pack('<I32s', core, name.encode('ascii')))
-    return b'FIA1' + struct.pack('<3I', 1, len(rows), len(data)) + bytes.fromhex(report['sha256']) + b''.join(rows)
+    version2=any(key & CAF_BIT for key in cores)
+    return (b'FIA2' if version2 else b'FIA1') + struct.pack('<3I', 2 if version2 else 1, len(rows), len(data)) + bytes.fromhex(report['sha256']) + b''.join(rows)

@@ -157,6 +157,9 @@ class RetailCatalog:
                 if group == 'voice' and behavior and components[group] in behavior.voice_ids:
                     native_fields['SpeechId'] = behavior.voice_ids[components[group]]
                     continue
+                if group=='voice' and behavior and components[group] in behavior.retail_voices:
+                    native_fields['SpeechId']=self.rows[behavior.retail_voices[components[group]]]['fields']['SpeechId']['word']
+                    continue
                 appearance = appearances.get(components[group]) if group == 'appearance' else None
                 authored = appearance or (portraits.get(components[group]) if group == 'portrait' else None)
                 resource_row = self.rows[authored.donor if authored else self.bindings[components[group]]['donor']]

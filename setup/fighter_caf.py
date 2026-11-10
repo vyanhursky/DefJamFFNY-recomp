@@ -15,7 +15,7 @@ ROW_BYTES = 232
 
 def source(value):
     require(type(value) is dict and set(value) == {'format', 'selection'}, 'CAF source needs format and selection')
-    require(value['format'] in (FORMAT, 'caf-fighter-2', 'caf-fighter-3', 'caf-fighter-4', 'caf-fighter-5'), 'Unsupported CAF recipe format')
+    require(value['format'] in (FORMAT, 'caf-fighter-2', 'caf-fighter-3', 'caf-fighter-4', 'caf-fighter-5', 'caf-fighter-6'), 'Unsupported CAF recipe format')
     descriptor = value['selection']
     require(type(descriptor) is dict and set(descriptor) == {'path', 'sha256'}, 'Invalid CAF recipe descriptor')
     safe_relative(descriptor['path'])
@@ -151,6 +151,18 @@ def load(root, spec, catalog, game):
     from fighter_build import unique,non_finite
     value=json.loads(raw,object_pairs_hook=unique,parse_constant=non_finite)
     require(type(value) is dict, 'CAF recipe must be an object')
+    if spec['format']=='caf-fighter-6':
+        import copy
+        clean=copy.deepcopy(value);voice=clean.pop('voice_donor',None)
+        require(voice is None or type(voice) is str and voice in catalog.rows
+                and 1<=catalog.rows[voice]['native_binding']['core_id']<=86,'CAF voice donor must be an original retail fighter')
+        if 'retail_moveset' in clean:
+            from fighter_caf_moveset import load_recipe
+        else:
+            from fighter_caf_face import load_recipe
+        result=load_recipe(root,clean,catalog,game)
+        result.update(performance_capable=True,voice_donor=voice,sha256=fingerprint(value))
+        return result
     if spec['format'] == 'caf-fighter-5':
         from fighter_caf_moveset import load_recipe
         return load_recipe(root,value,catalog,game)

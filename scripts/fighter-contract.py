@@ -121,7 +121,7 @@ def validate(game, folders, language=None):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=('catalog','tag-catalog', 'voice-catalog', 'validate-voice', 'export-pair','export-cinematic', 'export-caf-portrait','export-ui-reference', 'validate'))
+    parser.add_argument('command', choices=('catalog','tag-catalog', 'voice-catalog', 'validate-voice', 'export-pair','export-cinematic', 'export-caf-portrait','export-ui-reference', 'validate', 'workshop-catalog','workshop-check','workshop-audio','workshop-animation','workshop-export'))
     parser.add_argument('--game', type=Path, required=True)
     parser.add_argument('--pack', type=Path, action='append', default=[])
     parser.add_argument('--language', type=Path)
@@ -131,9 +131,30 @@ def main():
     parser.add_argument('--voice-source', type=Path)
     parser.add_argument('--pair-request',type=Path)
     parser.add_argument('--cinematic-request',type=Path)
+    parser.add_argument('--workshop-request',type=Path)
+    parser.add_argument('--workshop-out',type=Path)
     args = parser.parse_args()
     try:
-        if args.command == 'catalog':
+        if args.command.startswith('workshop-'):
+            import fighter_workshop as workshop
+            request=None
+            if args.command!='workshop-catalog':
+                if args.workshop_request is None:raise ValueError('Choose an authoring request')
+                path=ordinary_path(args.workshop_request)
+                with path.open('rb') as stream:raw=stream.read(96*1024**2+1)
+                if len(raw)>96*1024**2:raise ValueError('Authoring request exceeds budget')
+                request=json.loads(raw,object_pairs_hook=unique,parse_constant=non_finite)
+            if args.command=='workshop-catalog':payload=workshop.catalog(args.game)
+            elif args.command=='workshop-check':payload=workshop.check(request,workshop.catalog(args.game))
+            elif args.command=='workshop-audio':payload=workshop.audio(args.game,request)
+            elif args.command=='workshop-export':
+                if args.workshop_out is None:raise ValueError('Choose a new performance output folder')
+                payload=workshop.export_performance(args.game,request,args.workshop_out)
+            else:
+                from fighter_workshop_animation import animation
+                payload=animation(args.game,request)
+            result={'protocol':PROTOCOL,'ok':True,**payload}
+        elif args.command == 'catalog':
             catalog=retail_catalog(args.game/'assets/djv2.sod')
             result = {'protocol': PROTOCOL, 'ok': True,
                       'baseline': catalog.baseline(),

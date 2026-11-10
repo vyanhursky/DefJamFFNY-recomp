@@ -14,6 +14,8 @@ confidence labels and disproved hypotheses remain distinct from measured facts.
 
 ## Fighter Mod Support
 
+- [Workshop performance authoring](workshop-performance.md) — CAF v6, independent voice/AI/cinematic identities, offline audition and bounded source animation playback; full native acceptance pending joint testing.
+
 - [Workshop retail CAF movesets](workshop-retail-movesets-2026-11-10.md) — stable original movement identities, CAF v5/FCA3 and direct-profile compatibility boundaries.
 
 - [Workshop face authoring](workshop-face-authoring-2026-11-09.md) — original presets, bounded template sculpts, CAF v4 and native coordinate/participant isolation checks.

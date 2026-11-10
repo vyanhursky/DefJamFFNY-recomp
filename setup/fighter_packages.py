@@ -36,7 +36,7 @@ def inventory(folder):
     for resource in manifest['resources']:
         source = resource.get('source', {})
         declared = list(descriptors(source))
-        if resource['kind'] == 'caf' and source.get('format') in ('caf-fighter-2', 'caf-fighter-3', 'caf-fighter-4', 'caf-fighter-5'):
+        if resource['kind'] == 'caf' and source.get('format') in ('caf-fighter-2', 'caf-fighter-3', 'caf-fighter-4', 'caf-fighter-5', 'caf-fighter-6'):
             descriptor = source['selection']
             recipe_path = ordinary_path(folder.joinpath(*safe_relative(descriptor['path'])))
             check(recipe_path.is_relative_to(folder), 'CAF recipe leaves its package')
