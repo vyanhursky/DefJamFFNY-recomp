@@ -36,7 +36,7 @@ def inventory(folder):
     for resource in manifest['resources']:
         source = resource.get('source', {})
         declared = list(descriptors(source))
-        if resource['kind'] == 'caf' and source.get('format') in ('caf-fighter-2', 'caf-fighter-3'):
+        if resource['kind'] == 'caf' and source.get('format') in ('caf-fighter-2', 'caf-fighter-3', 'caf-fighter-4'):
             descriptor = source['selection']
             recipe_path = ordinary_path(folder.joinpath(*safe_relative(descriptor['path'])))
             check(recipe_path.is_relative_to(folder), 'CAF recipe leaves its package')
@@ -49,6 +49,9 @@ def inventory(folder):
             outfits = recipe.get('outfits', [])
             check(type(outfits) is list and len(outfits) <= 2 and all(type(o) is dict for o in outfits), 'Invalid CAF outfit inventory')
             for outfit in [recipe, *outfits]:
+                if 'face' in outfit:
+                    check(type(outfit['face']) is dict and set(outfit['face'])=={'path','sha256'},'Invalid CAF face descriptor')
+                    declared.append(outfit['face'])
                 atlases = outfit.get('atlases', {})
                 check(type(atlases) is dict and set(atlases) <= set(ATLASES), 'Invalid declared CAF atlas slots')
                 for atlas in atlases.values():
@@ -168,6 +171,9 @@ def runtime_environment(cache, report, screens, language=None, *, ui_pack=None):
     if report.get('caf_extras_sha256'):
         environment['RECOMP_FIGHTER_CAF_EXTRAS'] = str(cache / 'fighter-caf-extras.bin')
         environment['RECOMP_FIGHTER_CAF_EXTRAS_SHA256'] = report['caf_extras_sha256']
+    if report.get('caf_faces_sha256'):
+        environment['RECOMP_FIGHTER_CAF_FACES'] = str(cache / 'fighter-caf-faces.bin')
+        environment['RECOMP_FIGHTER_CAF_FACES_SHA256'] = report['caf_faces_sha256']
     if report.get('appearance_files'):
         for field, relative in [('MODELS', 'assets/v2ip.viv'), ('ENTITIES', 'assets/entity.xml'), ('CINEMATICS', 'assets/nis.viv')]:
             environment['RECOMP_FIGHTER_RESEARCH_' + field] = str(cache / relative)

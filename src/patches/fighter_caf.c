@@ -2,6 +2,7 @@
  * No profile import: compiler-owned records contain selections/training only. */
 #include "fighter_caf.h"
 #include "fighter_motion.h"
+#include "fighter_caf_face.h"
 #include "hooks/guest_call.h"
 #include "hooks/mod_sha256.h"
 #include <stdio.h>
@@ -222,7 +223,7 @@ static int recipes_valid(const uint8_t *data,size_t size) {
 }
 int defjam_fighter_caf_start(void) {
     const char *path=getenv("RECOMP_FIGHTER_CAF"),*hash=getenv("RECOMP_FIGHTER_CAF_SHA256");
-    if (!path || !*path) return (!hash || !*hash) && !getenv("RECOMP_FIGHTER_CAF_EXTRAS") && !getenv("RECOMP_FIGHTER_CAF_EXTRAS_SHA256");
+    if (!path || !*path) return (!hash || !*hash) && !getenv("RECOMP_FIGHTER_CAF_EXTRAS") && !getenv("RECOMP_FIGHTER_CAF_EXTRAS_SHA256") && !getenv("RECOMP_FIGHTER_CAF_FACES") && !getenv("RECOMP_FIGHTER_CAF_FACES_SHA256");
     if (!mod_file_matches(path,hash) || s_rows) return 0;
     FILE *file;
 #if defined(_WIN32)
@@ -241,10 +242,12 @@ int defjam_fighter_caf_start(void) {
     if (!valid) {free(data);return 0;}
     s_rows=data;s_count=count;s_row_stride=stride;
     if(!extras_start()) {free(s_rows);s_rows=NULL;s_count=0;return 0;}
+    if(!defjam_caf_faces_start(recipe_row)) return 0;
     fprintf(stderr,"[FIGHTERS] validated %u CAF recipes\n",count);return 1;
 }
 /* Called before each match/after it finishes: no stale context may be reused. */
 void defjam_fighter_caf_clear(void) {
+    defjam_caf_faces_clear();
     restore_finishers();
     s_service=0;
     for(unsigned i=0;i<4;++i) {s_contexts[i]=0;s_recipes[i]=NULL;}
@@ -265,6 +268,26 @@ static uint32_t prepare_profile(const uint8_t *row) {
     static const uint8_t bonuses[5][6]={{2,0,0,1,0,0},{0,2,1,0,0,0},{0,1,0,0,2,0},{1,0,0,2,0,0},{0,0,2,0,1,0}};
     for(unsigned j=0;j<word(row+28);++j) for(unsigned k=0;k<6;++k) MEM32(profile+0x114+k*4)+=bonuses[row[222+j]][k];
     return profile;
+}
+/* Read-only diagnostics for the original per-CAF deform buffers. Never edits
+ * archive geometry; used to qualify the custom-face ownership boundary. */
+static void face_trace(uint32_t visual,uint32_t participant) {
+    if(!getenv("RECOMP_FIGHTER_FACE_TRACE")) return;
+    uint32_t part=visual+0x140+2u*0x420,model=MEM32(part+0x12c);
+    if(model<0x10000 || model>0xfffe0000u) {fprintf(stderr,"[CAF-FACE] missing head model\n");return;}
+    uint32_t group=MEM32(model+0xb8)+4;
+    fprintf(stderr,"[CAF-FACE] participant=%u part=%08X model=%08X groups=%08X frame=%u morph=%08X\n",participant,part,model,group,MEM32(model+0xc0),MEM32(model+0xd4));
+    for(unsigned channel=0;channel<16 && group>=0x10000 && group<0xfffe0000u;++channel) {
+        uint32_t name=MEM32(group),count=MEM32(group+4);
+        if(!name) break;
+        if(name<0x10000 || name>0xfffe0000u || count>64) break;
+        fprintf(stderr,"[CAF-FACE] channel=%u name=%.32s rows=%u\n",channel,(const char *)XBOX_PTR(name),count);
+        for(uint32_t i=0;i<count;++i) {
+            uint32_t at=group+8+16*i;
+            fprintf(stderr,"[CAF-FACE] buffer=%u rm=%u vertices=%u encoding=%u stride=%u data=%08X\n",i,MEM32(at),MEM16(at+4),MEM16(at+6),MEM32(at+8),MEM32(at+12));
+        }
+        group+=8+16*count;
+    }
 }
 void defjam_fighter_caf_participant(uint32_t service,uint32_t participant,uint32_t selection) {
     uint32_t outfit=participant<4 && s_menu_selection[participant]==selection?s_menu_outfit[participant]:0;
@@ -288,6 +311,8 @@ void defjam_fighter_caf_participant(uint32_t service,uint32_t participant,uint32
     uint32_t args[]={prepare_profile(row)};
     guest_call(sub_00064170,context,1,args);
     if(!MEM8(context+1)||!MEM32(context+8)) stop("native CAF construction did not complete");
+    defjam_caf_faces_apply(MEM32(context+8)+0x8B0,participant,selection,outfit,row);
+    face_trace(MEM32(context+8)+0x8B0,participant);
     apply_atlases(MEM32(context+8)+0x8B0,extra_row(selection,outfit));
     uint32_t old_manager=MEM32(service+4),old_mode=MEM32(service+0x344);
     MEM32(service+4)=s_profile_workspace;MEM32(service+0x344)=0;MEM32(s_profile_workspace+0x5ac7c)=0;
@@ -322,6 +347,7 @@ int defjam_fighter_caf_visual(uint32_t visual, uint32_t participant, int apply) 
         if(apply) {
             if(participant!=i) stop("CAF participant/context differs");
             if(!MEM8(context+1)) stop("CAF visual was not assembled before match loading");
+            face_trace(visual,participant);
             fprintf(stderr,"[FIGHTERS] CAF assembled participant=%u logical=%u core=%u visual=%08X build=%u face=%u\n",
                 i,word(s_recipes[i]),word(s_recipes[i]+4),visual,word(s_recipes[i]+32),word(s_recipes[i]+52));
         }

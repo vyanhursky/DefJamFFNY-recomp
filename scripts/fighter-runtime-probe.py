@@ -268,6 +268,7 @@ def main():
     parser.add_argument('--expect-match', action='append', default=[],
                         help='Repeated-match assertion: comma-separated stable keys, once per match in order')
     parser.add_argument('--trace-caf-motion', action='store_true', help='Bounded native CAF motion decoder diagnostics')
+    parser.add_argument('--trace-face', action='store_true', help='Read-only CAF face buffer ownership diagnostics')
     parser.add_argument('--trace-assets', action='store_true')
     parser.add_argument('--trace-cinematics', action='store_true', help='Observe cinematic names, parser entry and file loads')
     parser.add_argument('--ready-blazin', action='store_true', help='Test only: fill authored fighters momentum once; activation still uses controller input')
@@ -389,6 +390,9 @@ def main():
         if report.get('caf_extras_sha256'):
             command += ['--env','RECOMP_FIGHTER_CAF_EXTRAS='+str(cache/'fighter-caf-extras.bin'),
                         '--env','RECOMP_FIGHTER_CAF_EXTRAS_SHA256='+report['caf_extras_sha256']]
+        if report.get('caf_faces_sha256'):
+            command += ['--env','RECOMP_FIGHTER_CAF_FACES='+str(cache/'fighter-caf-faces.bin'),
+                        '--env','RECOMP_FIGHTER_CAF_FACES_SHA256='+report['caf_faces_sha256']]
         if report.get('appearance_files'):
             for field, relative in [('MODELS', 'assets/v2ip.viv'), ('ENTITIES', 'assets/entity.xml'), ('CINEMATICS', 'assets/nis.viv')]:
                 command += ['--env', 'RECOMP_FIGHTER_RESEARCH_' + field + '=' + str(cache / relative)]
@@ -415,6 +419,8 @@ def main():
             command += ['--supervisor', str(journal / 'supervisor.json')]
         if args.trace_caf_motion:
             command += ['--env','RECOMP_FIGHTER_CAF_TRACE=1']
+        if args.trace_face:
+            command += ['--env','RECOMP_FIGHTER_FACE_TRACE=1']
         if args.trace_assets:
             command += ['--env', 'RECOMP_WATCH_EXEC=0x001E3FB0,0x00109F80',
                         '--env', 'RECOMP_WATCH_EXEC_ALL=1', '--env', 'RECOMP_WATCH_EXEC_STR=1',

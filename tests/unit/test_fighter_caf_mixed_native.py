@@ -27,6 +27,7 @@ static uint32_t s_service,s_contexts[4],expected[4],calls,owned_voice;
 static const uint8_t *s_recipes[4];
 static uint8_t recipes[2][232];
 static void restore_finishers(void) {} /* No finisher journal in this audio fixture. */
+static void defjam_caf_faces_clear(void) {} /* No sculpt state in this audio fixture. */
 static uint32_t word(const uint8_t *p) { return (uint32_t)p[0]|(uint32_t)p[1]<<8|(uint32_t)p[2]<<16|(uint32_t)p[3]<<24; }
 static void put(uint8_t *p,uint32_t n) { for(unsigned j=0;j<4;++j) p[j]=(uint8_t)(n>>(8*j)); }
 static void stop(const char *message) { fprintf(stderr,"CAF stopped: %s\n",message);exit(1); }

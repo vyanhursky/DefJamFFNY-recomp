@@ -28,6 +28,7 @@ static uint32_t s_menu_selection[4],s_menu_outfit[4],s_service,s_contexts[4];
 static uint8_t *s_rows,*s_extras;
 static const uint8_t *s_recipes[4];
 static void restore_finishers(void) {}
+static void defjam_caf_faces_clear(void) {} /* Sculpt lifetime is tested separately. */
 @FUNCTIONS@
 static uint8_t *readfile(const char *path,size_t *size) {
  FILE *file=fopen(path,"rb");assert(file);uint8_t *bytes=(uint8_t *)malloc(EXTRA_MAX);assert(bytes);

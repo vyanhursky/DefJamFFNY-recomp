@@ -15,7 +15,7 @@ ROW_BYTES = 232
 
 def source(value):
     require(type(value) is dict and set(value) == {'format', 'selection'}, 'CAF source needs format and selection')
-    require(value['format'] in (FORMAT, 'caf-fighter-2', 'caf-fighter-3'), 'Unsupported CAF recipe format')
+    require(value['format'] in (FORMAT, 'caf-fighter-2', 'caf-fighter-3', 'caf-fighter-4'), 'Unsupported CAF recipe format')
     descriptor = value['selection']
     require(type(descriptor) is dict and set(descriptor) == {'path', 'sha256'}, 'Invalid CAF recipe descriptor')
     safe_relative(descriptor['path'])
@@ -151,6 +151,9 @@ def load(root, spec, catalog, game):
     from fighter_build import unique,non_finite
     value=json.loads(raw,object_pairs_hook=unique,parse_constant=non_finite)
     require(type(value) is dict, 'CAF recipe must be an object')
+    if spec['format'] == 'caf-fighter-4':
+        from fighter_caf_face import load_recipe
+        return load_recipe(root,value,catalog,game)
     if spec['format'] == 'caf-fighter-3':
         from fighter_caf_outfits import load as load_outfits
         return load_outfits(root, value, catalog, game)
