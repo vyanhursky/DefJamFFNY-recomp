@@ -173,7 +173,9 @@ def test_selected_grid_closure_rebases_all_relocations_and_two_independent_state
     assert frames[449][1][1]['matrix']==(1.,0.,0.,1.,0.,0.)
     images=UITextures(rasters)
     assert len(images.images)==3
-    assert [images.data[x['pixels_offset']] for x in images.images[-2:]]==[ui()[image['pixels_offset']],55]
+    # Frame301 is reached by selectChar(token+1), frame450 by redraw and
+    # deselectChar(token+150). Independently authored colors must follow them.
+    assert [images.data[x['pixels_offset']] for x in images.images[-2:]]==[55,ui()[image['pixels_offset']]]
     UIModel(geometry,hashlib.sha256(geometry).hexdigest())
 
 

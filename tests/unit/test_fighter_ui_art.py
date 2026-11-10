@@ -100,6 +100,45 @@ def test_grid_fits_original_used_region_and_keeps_power_of_two_padding(baseline,
     assert UITextures(native['grid_normal_2p']).controls==UITextures(bytes(data)).controls
 
 
+def test_grid_reference_resolves_native_state_pixels_and_used_extent(monkeypatch):
+    import fighter_apt as apt
+    from fighter_ui_art import retail_grid_image
+    # Invented thumbAll: selected frame1 -> Image7, normal frame150 -> Image9.
+    raw=bytearray(3000);raw[:8]=b'Apt Data'
+    struct.pack_into('<3I',raw,8,1,64,5);raw[64:73]=b'thumbAll\0'
+    struct.pack_into('<II',raw,44,6,80)
+    struct.pack_into('<6I',raw,80,24,112,124,152,164,192)
+    for at,identifier in ((112,7),(152,9)):
+        struct.pack_into('<III',raw,at,7,0x09876543,identifier)
+    for at,identifier in ((124,2),(164,4)):
+        struct.pack_into('<II4fI',raw,at,1,0x09876543,-18.5,-18.5,18.5,18.5,identifier)
+    struct.pack_into('<4I',raw,192,5,0x09876543,300,240)
+    for frame,items,placement,character in ((0,2640,2680,2),(149,2644,2760,4)):
+        struct.pack_into('<II',raw,240+frame*8,1,items)
+        struct.pack_into('<I',raw,items,placement)
+        struct.pack_into('<IIII6f6I',raw,placement,3,7,1,character,1.,0.,0.,1.,0.,0.,0xffffffff,0,0,0,0xffffffff,0)
+    def colored_texture(identifier,color):
+        data=bytearray(texture(identifier)+bytes(16));data[208:224]=data[192:208]
+        struct.pack_into('<I',data,4,len(data));struct.pack_into('<4I',data,192,0x107c,1,6,5)
+        stream=io.BytesIO();Image.new('RGBA',(8,8),color).save(stream,format='DDS',pixel_format='DXT5')
+        data[128:192]=stream.getvalue()[128:];return UITextures(bytes(data))
+    tex=colored_texture(7,(255,0,0,255));rasters=tex.appended({9:colored_texture(1,(0,255,0,255))})
+    entries={}
+    for count in (2,3,4):
+        stem=f'chooseF{count}'
+        entries[f'screens/battle/{stem}.big']=store(fixture({stem+'.apt':bytes(raw),stem+'.const':b'fixture',stem+'.xsh':rasters}))
+    screens=fixture(entries);baseline=PortraitBaseline(screens,hashlib.sha256(screens).hexdigest())
+    monkeypatch.setattr(apt,'parse_const',lambda _: (24,[]))
+    for count in (2,3,4):
+        for state,color in (('selected',(255,0,0,255)),('normal',(0,255,0,255))):
+            picture=retail_grid_image(baseline,0,f'grid_{state}_{count}p')
+            assert picture.size==(6,5) and picture.getpixel((3,2))==color
+    with pytest.raises(ValueError,match='unique image placement'):
+        retail_grid_image(baseline,1,'grid_selected_2p')
+    with pytest.raises(ValueError,match='Invalid retail grid'):
+        retail_grid_image(baseline,149,'grid_normal_2p')
+
+
 @pytest.mark.parametrize('damage',[
     lambda s:s.update(commands=['execute']),lambda s:s.update(hd_scale=True),lambda s:s.update(hd_scale=8),
     lambda s:s['images'].update(unknown={'path':'x.png','sha256':'a'*64}),
