@@ -121,7 +121,7 @@ def validate(game, folders, language=None):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=('catalog','tag-catalog', 'voice-catalog', 'validate-voice', 'export-pair','export-cinematic', 'export-caf-portrait','export-ui-reference', 'validate', 'workshop-catalog','workshop-check','workshop-audio','workshop-animation','workshop-export'))
+    parser.add_argument('command', choices=('catalog','tag-catalog', 'voice-catalog', 'validate-voice', 'export-pair','export-cinematic', 'export-caf-portrait','export-ui-reference', 'export-retail-appearance','preview-fighter','validate', 'workshop-catalog','workshop-check','workshop-audio','workshop-animation','workshop-export'))
     parser.add_argument('--game', type=Path, required=True)
     parser.add_argument('--pack', type=Path, action='append', default=[])
     parser.add_argument('--language', type=Path)
@@ -159,6 +159,16 @@ def main():
             result = {'protocol': PROTOCOL, 'ok': True,
                       'baseline': catalog.baseline(),
                       'native_models':{row['fields']['Model']['symbol']:key for key,row in catalog.rows.items()}}
+        elif args.command in ('export-retail-appearance','preview-fighter'):
+            from fighter_appearance_authoring import export_retail, preview
+            pin=json.loads((ROOT/'config/fighter-native-baseline.json').read_text())
+            catalog=retail_catalog(args.game/'assets/djv2.sod')
+            if args.command=='export-retail-appearance':
+                if args.portrait_out is None:raise ValueError('Choose a new appearance output folder')
+                result={'protocol':PROTOCOL,'ok':True,**export_retail(args.game,args.donor,args.portrait_out,catalog,pin)}
+            else:
+                if len(args.pack)!=1:raise ValueError('Preview exactly one fighter pack')
+                result={'protocol':PROTOCOL,'ok':True,'preview':preview(args.game,args.pack[0],catalog,pin)}
         elif args.command=='export-ui-reference':
             if args.portrait_out is None:raise ValueError('Choose a new UI reference output folder')
             from fighter_ui_art import export_reference

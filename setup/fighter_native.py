@@ -202,9 +202,20 @@ class RetailCatalog:
                             menu_roster[identifier]['styles']=caf[identifier]['retail_styles']
                     else:
                         menu_roster[identifier] = self.menu_record(donor, components, ledger['fighters'][identifier]['selection'])
+                    if fighter.get('outfit_of'):
+                        parent=self.rows.get(fighter['outfit_of'])
+                        check(parent is not None and 1<=parent['native_binding']['core_id']<=86,
+                              'outfit-parent','Outfits need an original retail parent')
+                        menu_roster[identifier]['outfit_parent']=parent['native_binding']['selection_key']
+                        native_fields['DisplayName']=parent['fields']['DisplayName']['symbol']
         # Removing the last pack is a valid lifecycle transition. Keep its
         # historical ledger dormant, but do not invent native banks without
         # an active fighter/template or emit an empty window for the runtime.
+        for parent in {value.get('outfit_of') for value in snapshot['fighters'].values()}-{None}:
+            core=self.rows[parent]['native_binding']['core_id']
+            original_count=sum(row['native_binding']['core_id']==core for row in self.rows.values())
+            extra_count=sum(value.get('outfit_of')==parent for value in snapshot['fighters'].values())
+            check(original_count+extra_count<=3,'outfit-capacity','A retail fighter supports at most three outfits including original costumes')
         retail_only = binding_window and not additions
         if retail_only:
             binding_window = False
@@ -281,6 +292,10 @@ class RetailCatalog:
         if binding_window:
             report.update(binding_mode='participant-window', native_character_count=len(self.rows) + BANKS,
                           menu_roster=menu_roster, window=build_window(output, native, additions, ledger))
+            for row in report['window']['fighters']:
+                entry=next((k for k,v in ledger['fighters'].items() if v['selection']==row['selection_key']),None)
+                parent=snapshot['fighters'].get(entry,{}).get('outfit_of')
+                if parent:row['reserved']=self.rows[parent]['native_binding']['selection_key']+1
             report['window_sha256'] = hashlib.sha256(encode_window(report['window'])).hexdigest()
             report['blockers'].extend(['window-lifetime-acceptance', 'window-save-extension'])
         if any(len(label.encode('utf-8')) > 19 for label in localization.values()):
