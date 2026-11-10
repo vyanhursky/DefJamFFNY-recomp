@@ -40,7 +40,7 @@ TARGETS = {
 
 
 def targets(receipts):
-    require(type(receipts) is dict and 'motion' in receipts
+    require(type(receipts) is dict and (not {'animation','finishers'} & set(receipts) or 'motion' in receipts)
             and set(receipts) <= TARGETS.keys() | {'cinematic_bindings'}
             and ('blazin' not in receipts or 'cinematic' in receipts)
             and ('cinematic' in receipts) == ('cinematic_bindings' in receipts),
@@ -94,10 +94,12 @@ def digest(data):
 
 class BehaviorPlan:
     """Internal validated result consumed by the native database compiler."""
-    def __init__(self, catalog, snapshot, roots, game, pins, appearances, composed):
+    def __init__(self, catalog, snapshot, roots, game, pins, appearances, composed,*,caf=None,ledger=None):
+        caf={} if caf is None else caf
         self.snapshot_sha256 = snapshot['sha256']
         self.source_sha256 = catalog.source_sha256
         self.donors, self.character_cores, self.voice_ids = {}, {}, {}
+        self.retail_voices={}
         self.files, self.receipts, self.sources = {}, {}, {}
         reader, typed, originals = Reader(), {}, {}
 
@@ -122,7 +124,7 @@ class BehaviorPlan:
                     'Conflicting animation tag override '+name+' between '+global_tag_owners.get(name,'')+' and '+key)
             global_tag_overrides[name]=replacement;global_tag_owners[name]=key
         added = {key: row['components'] for key, row in snapshot['fighters'].items()
-                 if key not in catalog.rows and 'caf' not in row['components']}
+                 if key not in catalog.rows}
         require(added, 'Behavior composition requires an added fighter')
         for key, row in snapshot['fighters'].items():
             require(key not in catalog.rows or not any(value in typed for group, value in row['components'].items()
@@ -186,6 +188,37 @@ class BehaviorPlan:
         pair_keys, pair_resources = {}, {}
         slot_bindings = any('slots' in source for source in typed.values())
         for fighter, components in sorted(added.items()):
+            if fighter in caf:
+                if not any(components.get(group) in typed for group in ('voice','ai','intro','victory')):
+                    continue
+                require(caf[fighter].get('performance_capable'),'CAF behavior requires recipe version6')
+                voice=components['voice']
+                if voice in typed:
+                    if 'retail_donor' in typed[voice]:
+                        donor=typed[voice]['retail_donor']
+                        require(donor in catalog.rows and 1<=catalog.rows[donor]['native_binding']['core_id']<=86,'CAF voice preset is unavailable')
+                        require(caf[fighter].get('voice_donor')==donor,'CAF voice preset differs from voice_donor')
+                        self.retail_voices[voice]=donor
+                    else:voice_keys[fighter]=voice
+                if 'ai' in components:
+                    require(components['ai'] in typed,'CAF AI needs a validated source')
+                    ai_keys[fighter]=components['ai']
+                if 'intro' in components or 'victory' in components:
+                    rig=rig_for(components)
+                    model=catalog.rows[catalog.bindings[components['appearance']]['donor']]['fields']['Model']['symbol']
+                    nis=Archive(original('assets/nis.viv','nis_sha256'))
+                    inherited=Cinematics(unpack(nis.read('assets/IntroExtro.xml')),pins['intro_extro_sha256']).inherit(model,model)
+                    pair={}
+                    for role in ('intro','victory'):
+                        ref=components.get(role);source=typed.get(ref)
+                        require(ref is None or source is not None and source.get('tracks') is None,'CAF presentation currently selects original sequences')
+                        token=source['template'] if source else getattr(inherited,role)
+                        require(token.startswith('CI_' if role=='intro' else 'CE_'),'CAF cinematic category differs')
+                        internal='@caf-retail/'+fingerprint([token,rig.pose_sha256])
+                        cinematic_resources[internal]=dict(template=token,tracks=None,rig_sha256=rig.pose_sha256,bone_count=len(rig.rows))
+                        pair[role]=internal
+                    cinematic_keys[fighter]=pair
+                continue
             moveset = components['moveset']
             authored = typed.get(moveset)
             require(authored is not None or moveset in catalog.bindings, 'Moveset needs a validated source')
@@ -225,10 +258,16 @@ class BehaviorPlan:
                 # Version3 names each category's verified template and exact
                 # family. The declared event namespace still joins the moveset;
                 # bank identity is no longer inferred from one donor SpeechId.
-                require(family == expected_family and ('banks' in typed[voice] or
+                if 'retail_donor' in typed[voice]:
+                    chosen=typed[voice]['retail_donor']
+                    require(family==expected_family and chosen in catalog.rows and 1<=catalog.rows[chosen]['native_binding']['core_id']<=86,
+                            'Retail voice preset differs from its declared event namespace')
+                    self.retail_voices[voice]=chosen
+                else:
+                    require(family == expected_family and ('banks' in typed[voice] or
                         typed[voice]['template_voice'] == catalog.rows[donor_key]['fields']['SpeechId']['word']),
                         'Voice template differs from the inherited event family')
-                voice_keys[fighter] = voice
+                    voice_keys[fighter] = voice
             if 'ai' in components:
                 require(components['ai'] in typed, 'AI needs a validated source')
                 ai_keys[fighter] = components['ai']
@@ -304,13 +343,15 @@ class BehaviorPlan:
                 pair[category] = internal
             cinematic_keys[fighter] = pair
 
-        motion, receipt, table = compose_selected_cores(templates, motion_resources)
-        self.files.update({'motion/main_all.dat': motion, 'fighter-motion.bin': table})
-        self.receipts['motion'] = receipt
-        self.character_cores = {key: row['character_core'] for key, row in receipt['bindings'].items()}
+        if motion_resources:
+            motion, receipt, table = compose_selected_cores(templates, motion_resources)
+            self.files.update({'motion/main_all.dat': motion, 'fighter-motion.bin': table})
+            self.receipts['motion'] = receipt
+            self.character_cores = {key: row['character_core'] for key, row in receipt['bindings'].items()}
 
         def cores(mapping):
-            return {self.character_cores[key] - 1: value for key, value in mapping.items()}
+            from fighter_behavior_identity import caf_key
+            return {(caf_key(ledger['fighters'][key]['selection']) if key in caf else self.character_cores[key] - 1): value for key, value in mapping.items()}
 
         if animation_resources:
             data, receipt = AnimationArchive(animation_source, pins['animation_sha256']).compose(animation_resources)
@@ -417,7 +458,7 @@ class BehaviorPlan:
 
     def binding_fingerprint(self):
         return fingerprint({'donors': self.donors, 'character_cores': self.character_cores,
-                            'voice_ids': self.voice_ids, 'receipts': self.receipts,
+                            'voice_ids': self.voice_ids, 'retail_voices':self.retail_voices, 'receipts': self.receipts,
                             'files': self.file_hashes, 'sources': self.sources})
 
     def validate(self, catalog, snapshot):

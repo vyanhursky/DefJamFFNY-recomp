@@ -220,8 +220,8 @@ class Database:
         check(isinstance(additions, list) and len(additions) <= 16384, 'Invalid additions budget')
         caf_cores = {} if caf_cores is None else caf_cores
         check(type(caf_cores) is dict and set(caf_cores) <= {a.get('key') for a in additions}
-              and all(type(core) is int and 87 <= core <= 141 for core in caf_cores.values()),
-              'CAF cores must be verified retail style combinations on added fighters only')
+              and all(type(core) is int and 1 <= core <= 141 for core in caf_cores.values()),
+              'CAF cores must be original retail movesets or CAF style combinations on added fighters only')
         if character_cores is not None:
             check(type(character_cores) is dict
                   and set(character_cores) == {a.get('key') for a in additions if isinstance(a, dict)} - set(caf_cores)

@@ -18,6 +18,8 @@ DRIVER=r'''
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+static uint8_t memory[0x400000];
+#define MEM32(address) (*(uint32_t *)(memory+(uint32_t)(address)))
 #define CAF_ROW 232u
 #define CAF_MAX 16384u
 #define EXTRA_ROW 48u
@@ -25,6 +27,7 @@ DRIVER=r'''
 #define ATLAS_BYTES (256u*256u*4u)
 static uint32_t s_row_stride=240,s_extra_stride=52,s_count=3,s_extra_count=3;
 static uint32_t s_menu_selection[4],s_menu_outfit[4],s_service,s_contexts[4];
+static uint32_t s_story_profiles[4];
 static uint8_t *s_rows,*s_extras;
 static const uint8_t *s_recipes[4];
 static void restore_finishers(void) {}
@@ -88,4 +91,17 @@ def test_pair_readers_and_independent_participant_lifetime(native,tmp_path,damag
     recipe=tmp_path/'recipes.bin';recipe.write_bytes(rows);extra=tmp_path/'extras.bin';extra.write_bytes(extras)
     mode='bad-extra' if damage and damage.startswith('extra-') else 'bad-recipe' if damage else 'good'
     result=subprocess.run([native,recipe,extra,mode],capture_output=True,text=True)
+    assert result.returncode==0,result.stdout+result.stderr
+
+
+@pytest.mark.parametrize('damage',[None,'old-header','missing-mode','wrong-core','reserved'])
+def test_native_v3_retail_moveset_rows_require_explicit_mode_and_original_core(native,tmp_path,damage):
+    item,report=fixture();item.update(core=5,retail_moveset='retail/blaze')
+    rows=bytearray(encode({'example/fighter':item},report));extras=encode_extras({'example/fighter':item},report)
+    if damage=='old-header':rows[:8]=b'FCA2'+struct.pack('<I',2)
+    if damage=='missing-mode':rows[16+225]=0
+    if damage=='wrong-core':struct.pack_into('<I',rows,20,87)
+    if damage=='reserved':rows[16+226]=1
+    recipe=tmp_path/'retail.bin';recipe.write_bytes(rows);extra=tmp_path/'extras.bin';extra.write_bytes(extras)
+    result=subprocess.run([native,recipe,extra,'bad-recipe' if damage else 'good'],capture_output=True,text=True)
     assert result.returncode==0,result.stdout+result.stderr

@@ -72,6 +72,7 @@ class Skin:
             return model.data[at:at + size]
 
         resources = []
+        self.vertex_selectors = {}
         for symbol in sorted(model.exports):
             if not symbol.startswith('__RM:::'):
                 continue
@@ -109,6 +110,7 @@ class Skin:
                         and model.local_pointer(vb + 16, size) == inline,
                         'Skin selector binding differs from its native VB header')
                 slots = [palette_slot(value) for value, in struct.iter_unpack('<h', scalar(inline, vertex_count * 2))]
+                self.vertex_selectors[symbol] = slots
                 require(all(slot < count for slot in slots), 'Skin selector exceeds the supplied palette')
                 selectors.append({'stream': command.arguments[1], 'vertices': vertex_count,
                                   'used_palette_rows': sorted(set(slots))})
