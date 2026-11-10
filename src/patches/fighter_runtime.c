@@ -858,6 +858,7 @@ uint32_t defjam_fighter_controller_submission(uint32_t arguments) {
         uint32_t participant = values[0] < 0 ? UINT32_MAX : (uint32_t)values[0];
         if (!fighter_window_clear(&s_window, participant))
             fighter_stop("Cannot clear participant ownership before verified match teardown.");
+        defjam_fighter_caf_menu_clear(participant);
         prune_participant_unlocks();
         fprintf(stderr, "[FIGHTERS] cleared pre-match participant ownership: %d\n", values[0]);
     }
@@ -869,6 +870,7 @@ uint32_t defjam_fighter_controller_submission(uint32_t arguments) {
         || !fighter_window_bind(&s_window, (uint32_t)values[0], (uint32_t)values[2], &row))
         fighter_stop("Logical fighter cannot bind to this participant or the match is still active.");
     if (s_window.frozen) return s_window.banks[values[0]].selection_key;
+    defjam_fighter_caf_menu_clear((uint32_t)values[0]);
     {
         FighterWindowBank *bank = &s_window.banks[values[0]];
         uint32_t count, kept = 0, keys[FIGHTER_UNLOCK_CAPACITY];
@@ -912,8 +914,8 @@ uint32_t defjam_fighter_controller_submission(uint32_t arguments) {
 }
 
 int defjam_fighter_ui_command(uint32_t command) {
-    static const char prefix[] = "Fighters.KeepReady";
-    char text[40]; uint32_t i;
+    static const char prefix[] = "Fighters.";
+    char text[64]; uint32_t i;
     if (!s_window.bytes || !command) return 0;
     for (i = 0; i < sizeof prefix - 1; ++i)
         if (MEM8(command + i) != (uint8_t)prefix[i]) return 0;
@@ -921,8 +923,25 @@ int defjam_fighter_ui_command(uint32_t command) {
         text[i] = (char)MEM8(command + i);
         if (!text[i]) break;
     }
-    if (i == sizeof text || fighter_window_command(&s_window, text) != 1)
+    if (i == sizeof text) fighter_stop("Native fighter UI command exceeds its budget.");
+    if (!strncmp(text,"Fighters.Outfit",14)) {
+        unsigned participant,selection,outfit;int end=0;char canonical[64];FighterWindowRow row;
+        if(sscanf(text,"Fighters.Outfit(%u,%u,%u)%n",&participant,&selection,&outfit,&end)!=3 || !end || text[end]
+            || participant>=4 || selection<100 || selection>0x7FFFFFFEu || outfit>2 || s_window.frozen)
+            fighter_stop("Invalid native outfit confirmation.");
+        snprintf(canonical,sizeof canonical,"Fighters.Outfit(%u,%u,%u)",participant,selection,outfit);
+        if(strcmp(canonical,text)) fighter_stop("Noncanonical native outfit confirmation.");
+        /* Browsing grids may also be snapshotted by the owned movie. Only a
+         * confirmed, matching participant can change its appearance state. */
+        if(!s_window.selected[participant] || !fighter_window_at(&s_window,s_window.selected[participant]-1,&row)
+            || row.selection_key!=selection) return 1;
+        if(!defjam_fighter_caf_outfit(participant,selection,outfit)) fighter_stop("Undeclared CAF outfit confirmation.");
+        return 1;
+    }
+    if (strncmp(text,"Fighters.KeepReady",17)) return 0;
+    if (fighter_window_command(&s_window, text) != 1)
         fighter_stop("Native ready ownership differs from the participant bindings, or the match is still active.");
+    for(i=0;i<4;++i) if(!s_window.selected[i]) defjam_fighter_caf_menu_clear(i);
     prune_participant_unlocks();
     fprintf(stderr, "[FIGHTERS] synchronized pre-match ready ownership: %s\n", text);
     return 1;
@@ -944,7 +963,7 @@ uint32_t defjam_fighter_result_identity(uint32_t participant, uint32_t native) {
         fighter_stop("Result identity does not match its frozen participant binding.");
     fprintf(stderr, "[FIGHTERS] result participant=%u native=%u logical=%u stable=%08X\n",
             participant, native, row.selection_key, row.stable_handle);
-    return row.selection_key;
+    return defjam_fighter_caf_presentation(participant,row.selection_key);
 }
 
 uint32_t defjam_fighter_loading_identity(uint32_t native) {
@@ -960,7 +979,7 @@ uint32_t defjam_fighter_loading_identity(uint32_t native) {
         fighter_stop("Loading identity does not match its participant binding.");
     fprintf(stderr, "[FIGHTERS] loading participant=%u native=%u logical=%u stable=%08X\n",
             participant, native, row.selection_key, row.stable_handle);
-    return row.selection_key;
+    return defjam_fighter_caf_presentation(participant,row.selection_key);
 }
 
 static uint32_t read_word(const uint8_t *p) {

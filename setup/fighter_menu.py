@@ -156,7 +156,8 @@ def functions(movie, constants):
 
 def character_parameters(record):
     """Typed native CCharacter data. No display text or executable input here."""
-    if not isinstance(record, dict) or set(record) != {'selection_key', 'stats', 'styles'}:
+    if not isinstance(record, dict) or not {'selection_key', 'stats', 'styles'} <= set(record) \
+            or not set(record) <= {'selection_key', 'stats', 'styles', 'outfit_count', 'outfit_portraits'}:
         raise AssetError('Invalid logical menu fighter fields')
     identity, stats, styles = record['selection_key'], record['stats'], record['styles']
     if type(identity) is not int or not 100 <= identity <= 0x7fffffff:
@@ -167,16 +168,27 @@ def character_parameters(record):
     if not isinstance(styles, list) or not 1 <= len(styles) <= 5 \
             or any(type(value) is not int or not 0 <= value < 5 for value in styles) or len(set(styles)) != len(styles):
         raise AssetError('Invalid logical menu styles')
-    return (f'CLOTH=1&FE_ID={identity}&LOCK=1' + ''.join(f'&{key}={stats[key]}' for key in 'ULSTHC')
-            + ''.join(f'&K={value}' for value in styles))
+    count = record.get('outfit_count', 1)
+    portraits = record.get('outfit_portraits', [identity])
+    if type(count) is not int or not 1 <= count <= 3 or type(portraits) is not list or len(portraits) != count \
+            or portraits[0] != identity or any(type(i) is not int or not 100 <= i <= 0x7ffffffe for i in portraits):
+        raise AssetError('Invalid logical fighter outfits')
+    dataset = (f'&FE_ID={identity}&LOCK=1' + ''.join(f'&{key}={stats[key]}' for key in 'ULSTHC')
+               + ''.join(f'&K={value}' for value in styles))
+    # CCharacter consumes extra CLOTH rows by calling Game.GetNextFighter.
+    # Owned characters are appended after that stream ends: initialize one
+    # normal dataset, then populate their additional datasets locally below.
+    return 'CLOTH=1' + dataset
 
 
 def append_logical_roster(action, definitions, records):
     if len([d for d in definitions if d['name'] == 'getCharData' and not d['params']]) != 1:
         raise AssetError('Native character-list constructor differs from the reviewed template')
     action.string('_recompFighterData'); action.integer(0); action.string('Array'); action.op('NewObject'); action.op('SetVariable')
+    action.string('_recompFighterOutfitCounts'); action.integer(0); action.string('Array'); action.op('NewObject'); action.op('SetVariable')
     for index, record in enumerate(records):
         action.variable('_recompFighterData'); action.integer(index); action.string(character_parameters(record)); action.op('SetMember')
+        action.variable('_recompFighterOutfitCounts'); action.integer(index); action.integer(record.get('outfit_count', 1)); action.op('SetMember')
     def append():
         done, loop, grids, next_grid, grid_loop = [action.unique() for _ in range(5)]
         action.local('_chars', lambda: action.variable('aCharacters'))
@@ -186,8 +198,15 @@ def append_logical_roster(action, definitions, records):
         action.local('_i', lambda: action.integer(0))
         action.label(loop)
         action.variable('_i'); action.variable('_recompFighterData'); action.member('length'); action.op('LessThan2'); action.op('Not'); action.branch('BranchIfTrue', grids)
-        action.variable('_recompFighterData'); action.variable('_i'); action.op('GetMember')
-        action.integer(1); action.string('CCharacter'); action.op('NewObject')
+        action.local('_fighter', lambda: (action.variable('_recompFighterData'), action.variable('_i'), action.op('GetMember'),
+                                         action.integer(1), action.string('CCharacter'), action.op('NewObject')))
+        action.local('_set', lambda: action.integer(1))
+        outfit_loop, outfit_done = action.unique(), action.unique()
+        action.label(outfit_loop)
+        action.variable('_set'); action.variable('_recompFighterOutfitCounts'); action.variable('_i'); action.op('GetMember'); action.op('LessThan2'); action.op('Not'); action.branch('BranchIfTrue', outfit_done)
+        action.variable('_fighter'); action.member('aDataSets'); action.variable('_set'); action.variable('_recompFighterData'); action.variable('_i'); action.op('GetMember'); action.op('SetMember')
+        action.string('_set'); action.variable('_set'); action.op('Increment'); action.op('SetVariable'); action.branch('BranchAlways', outfit_loop)
+        action.label(outfit_done); action.variable('_fighter')
         action.integer(1); action.variable('_chars'); action.string('push'); action.op('CallMethod'); action.op('Pop')
         action.string('_i'); action.variable('_i'); action.op('Increment'); action.op('SetVariable'); action.branch('BranchAlways', loop)
         action.label(grids)
@@ -440,6 +459,8 @@ def presentation_action(base, movie, constants, pairs, names, records=None, *, l
                     action.code += movie[ins.offset:following]
             action.label(labels[end])
         action.method('CThumbGrid', definition['method'], definition['params'], cloned)
+    from fighter_menu_outfits import install as install_outfits
+    install_outfits(action, movie, entries, definitions, records)
     action.string('_recompFighterUpdateChar'); action.variable('updateChar'); action.op('SetVariable')
     def update_name():
         action.variable('nPlayer'); action.integer(1); action.string('_recompFighterUpdateChar'); action.op('CallFunction'); action.op('Pop')

@@ -29,6 +29,7 @@ int g_fp_top;
 #define EXTRA_MAX (16u*1024u*1024u)
 static uint8_t *s_rows,*s_extras;
 static uint32_t s_count,s_extra_count,s_service,s_contexts[4];
+static uint32_t s_row_stride=CAF_ROW,s_extra_stride=EXTRA_ROW;
 static const uint8_t *s_recipes[4];
 static uint32_t s_finisher_before[4][4],s_finisher_applied[4][4];
 static uint8_t s_finisher_live[4];
@@ -57,7 +58,7 @@ int main(int argc,char **argv) {
  size_t size=fread(s_extras,1,EXTRA_MAX+1,file);fclose(file);
  if(!strcmp(mode,"invalid")) {assert(!extras_valid(s_extras,size));return 0;}
  assert(extras_valid(s_extras,size));s_extra_count=word(s_extras+8);
- const uint8_t *extra=extra_row(100);assert(extra);
+ const uint8_t *extra=extra_row(100,0);assert(extra);
  g_esp=0xB00000;g_ecx=123;g_eax=456;g_ebx=789;
  if(!strcmp(mode,"art") || !strcmp(mode,"art-linear")) {
   test_linear=!strcmp(mode,"art-linear");
@@ -120,10 +121,15 @@ def tool(tmp_path_factory):
     while depth:
         depth += (text[end] == '{') - (text[end] == '}'); end += 1
     pointer = text[match.start():end]
-    names = ('word', 'extras_valid', 'guest_span', 'swizzle8', 'defjam_fighter_caf_context', 'apply_atlases', 'restore_finishers', 'defjam_fighter_caf_finishers', 'defjam_fighter_caf_clear')
+    names = ('word', 'row_outfit', 'extras_valid', 'guest_span', 'swizzle8', 'defjam_fighter_caf_context', 'apply_atlases', 'restore_finishers', 'defjam_fighter_caf_finishers', 'defjam_fighter_caf_clear')
     definitions = '\n'.join([pointer, *(definition(text, name) for name in names)])
     # extra_row uses word, so the real word definition precedes it.
-    definitions = definition(text, 'word') + '\n' + definitions.replace(definition(text, 'word'), '')
+    match = re.search(r'static const uint8_t \*recipe_row\([^)]*\)\s*\{', text)
+    end, depth = match.end(), 1
+    while depth:
+        depth += (text[end] == '{') - (text[end] == '}'); end += 1
+    helpers = definition(text, 'word') + '\n' + definition(text, 'row_outfit') + '\n' + text[match.start():end]
+    definitions = helpers + '\n' + definitions.replace(definition(text, 'word'), '').replace(definition(text, 'row_outfit'), '')
     driver = folder / 'driver.c'; driver.write_text(DRIVER.replace('@DEFINITIONS@', definitions))
     exe = folder / ('extras.exe' if os.name == 'nt' else 'extras')
     if os.name == 'nt':

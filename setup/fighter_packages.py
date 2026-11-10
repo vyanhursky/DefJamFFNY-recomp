@@ -36,7 +36,7 @@ def inventory(folder):
     for resource in manifest['resources']:
         source = resource.get('source', {})
         declared = list(descriptors(source))
-        if resource['kind'] == 'caf' and source.get('format') == 'caf-fighter-2':
+        if resource['kind'] == 'caf' and source.get('format') in ('caf-fighter-2', 'caf-fighter-3'):
             descriptor = source['selection']
             recipe_path = ordinary_path(folder.joinpath(*safe_relative(descriptor['path'])))
             check(recipe_path.is_relative_to(folder), 'CAF recipe leaves its package')
@@ -45,12 +45,15 @@ def inventory(folder):
                 recipe_raw = stream.read(65537)
             check(len(recipe_raw) <= 65536 and hashlib.sha256(recipe_raw).hexdigest() == descriptor['sha256'], 'CAF recipe hash differs')
             check(type(recipe) is dict, 'CAF recipe must be an object')
-            atlases = recipe.get('atlases', {})
             from fighter_caf_extras import ATLASES
-            check(type(atlases) is dict and set(atlases) <= set(ATLASES), 'Invalid declared CAF atlas slots')
-            for atlas in atlases.values():
-                check(type(atlas) is dict and set(atlas) == {'path', 'sha256'}, 'Invalid declared CAF atlas descriptor')
-                declared.append(atlas)
+            outfits = recipe.get('outfits', [])
+            check(type(outfits) is list and len(outfits) <= 2 and all(type(o) is dict for o in outfits), 'Invalid CAF outfit inventory')
+            for outfit in [recipe, *outfits]:
+                atlases = outfit.get('atlases', {})
+                check(type(atlases) is dict and set(atlases) <= set(ATLASES), 'Invalid declared CAF atlas slots')
+                for atlas in atlases.values():
+                    check(type(atlas) is dict and set(atlas) == {'path', 'sha256'}, 'Invalid declared CAF atlas descriptor')
+                    declared.append(atlas)
         for spec in declared:
             name = '/'.join(safe_relative(spec['path']))
             check(name != MANIFEST, 'Resource cannot alias the fighter manifest')

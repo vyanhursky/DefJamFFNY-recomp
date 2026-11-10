@@ -14,6 +14,8 @@ confidence labels and disproved hypotheses remain distinct from measured facts.
 
 ## Fighter Mod Support
 
+- [Workshop CAF outfits](workshop-caf-outfits-2026-11-09.md) — one fighter, three appearance datasets, per-participant selection and visual-only portrait aliases.
+
 - [Workshop CAF v2](workshop-caf-v2-2026-11-09.md) — native atlas ownership, saved retail finishers, sidecar contract and qualified evidence.
 
 - [Workshop standalone CAF export](workshop-caf-export-2026-11-08.md) â€” fighter-only recipe contract, native CAF lifecycle, portraits and qualified development evidence.

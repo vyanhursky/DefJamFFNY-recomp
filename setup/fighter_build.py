@@ -157,6 +157,20 @@ def compile_inputs(sod, paths, packs, ledger=None, *, catalog=None, pin_path=Non
     data, report = catalog.compile(packs, ledger, appearances=appearances, portraits=portraits,
                                    behavior=behavior, caf=caf, **options)
     if caf:
+        for key, item in caf.items():
+            if item.get('outfits'):
+                refs = item.get('portrait_refs', {})
+                owner = snapshot['resources'][snapshot['fighters'][key]['components']['caf']]['owner']
+                item['outfit_portrait_keys'] = {}
+                default = snapshot['fighters'][key]['components']['portrait']
+                for index, outfit in enumerate(item['outfits']):
+                    ref = refs.get(outfit['id'], default if default in portraits else None)
+                    if ref is not None:
+                        if ref not in portraits or snapshot['resources'][ref]['owner'] != owner:
+                            raise ValueError('CAF outfit portraits must reference a validated portrait in the same pack')
+                        item['outfit_portrait_keys'][index] = ref
+        from fighter_caf_outfits import assign_presentation
+        assign_presentation(caf, report)
         resources['fighter-caf.bin'] = encode_caf(caf, report)
         report['caf_sha256'] = hashlib.sha256(resources['fighter-caf.bin']).hexdigest()
         report['caf_fighters'] = {key: {'core':item['core'],'audio_core':item['audio_core'],'recipe_sha256':item['sha256']} for key,item in caf.items()}

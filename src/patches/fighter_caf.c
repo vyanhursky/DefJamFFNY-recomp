@@ -12,6 +12,8 @@
 #define EXTRA_ROW 48u
 #define ATLAS_BYTES (256u*256u*4u)
 #define EXTRA_MAX (16u*1024u*1024u)
+static uint32_t s_row_stride=CAF_ROW,s_extra_stride=EXTRA_ROW;
+static uint32_t s_menu_selection[4],s_menu_outfit[4];
 static uint8_t *s_extras;
 static uint32_t s_extra_count;
 static uint8_t *s_rows;
@@ -28,21 +30,48 @@ extern void sub_00064170(void), sub_0001EE80(void), sub_000296B0(void), sub_0003
 extern void sub_00092BE0(void), sub_001DE887(void), sub_00098270(void);
 static uint32_t word(const uint8_t *p) { return (uint32_t)p[0]|(uint32_t)p[1]<<8|(uint32_t)p[2]<<16|(uint32_t)p[3]<<24; }
 static void stop(const char *why) { fprintf(stderr,"[FIGHTERS] CAF stopped: %s\n",why);fflush(stderr);exit(1); }
+static uint32_t row_outfit(const uint8_t *row) { return s_row_stride==240u?word(row+232):0; }
+static const uint8_t *recipe_row(uint32_t selection,uint32_t outfit) {
+    for(uint32_t i=0;i<s_count;++i) {
+        const uint8_t *row=s_rows+16+i*s_row_stride;
+        if(word(row)==selection && row_outfit(row)==outfit) return row;
+    }
+    return NULL;
+}
+void defjam_fighter_caf_menu_clear(uint32_t participant) {
+    for(unsigned i=0;i<4;++i) if(participant==UINT32_MAX || participant==i) {s_menu_selection[i]=0;s_menu_outfit[i]=0;}
+}
+int defjam_fighter_caf_outfit(uint32_t participant,uint32_t selection,uint32_t outfit) {
+    if(participant>=4 || !recipe_row(selection,outfit)) return 0;
+    s_menu_selection[participant]=selection;s_menu_outfit[participant]=outfit;
+    fprintf(stderr,"[FIGHTERS] outfit participant=%u logical=%u index=%u\n",participant,selection,outfit);
+    return 1;
+}
+uint32_t defjam_fighter_caf_presentation(uint32_t participant,uint32_t selection) {
+    uint32_t index=participant<4 && s_menu_selection[participant]==selection?s_menu_outfit[participant]:0;
+    const uint8_t *row=recipe_row(selection,index);
+    return row && s_row_stride==240u?word(row+236):selection;
+}
 static int extras_valid(const uint8_t *data,size_t size) {
     uint32_t count=size>=16?word(data+8):0;
-    if(size<16 || size>EXTRA_MAX || memcmp(data,"FCX1",4) || word(data+4)!=1
-        || word(data+12)!=EXTRA_ROW || !count || count>CAF_MAX) return 0;
-    size_t base=16+(size_t)count*EXTRA_ROW;
+    uint32_t stride=size>=16?word(data+12):0;
+    int extended=size>=16 && !memcmp(data,"FCX2",4) && word(data+4)==2 && stride==52;
+    if(size<16 || size>EXTRA_MAX || (!extended && (memcmp(data,"FCX1",4) || word(data+4)!=1 || stride!=EXTRA_ROW))
+        || !count || count>(extended?CAF_MAX*3:CAF_MAX)) return 0;
+    size_t base=16+(size_t)count*stride;
     if(base>size || (size-base)%ATLAS_BYTES) return 0;
     size_t blocks=(size-base)/ATLAS_BYTES;
     if(blocks>64) return 0;
     uint8_t used[64]={0};
     for(uint32_t i=0;i<count;++i) {
-        const uint8_t *row=data+16+i*EXTRA_ROW;
-        int found=0;
-        for(uint32_t j=0;j<s_count;++j) if(word(s_rows+16+j*CAF_ROW)==word(row)) found=1;
-        if(!found || word(row+4)>1) return 0;
-        for(uint32_t j=0;j<i;++j) if(word(data+16+j*EXTRA_ROW)==word(row)) return 0;
+        const uint8_t *row=data+16+i*stride;
+        uint32_t index=extended?word(row+48):0;
+        if(!recipe_row(word(row),index) || word(row+4)>1) return 0;
+        for(uint32_t j=0;j<i;++j) {
+            const uint8_t *before=data+16+j*stride;
+            if(word(before)==word(row) && (!extended || word(before+48)==index)) return 0;
+            if(word(before)==word(row) && memcmp(before+4,row+4,20)) return 0;
+        }
         for(unsigned j=0;j<4;++j) if(word(row+8+j*4)>81 || (!word(row+4)&&word(row+8+j*4))) return 0;
         for(unsigned j=0;j<6;++j) {
             uint32_t offset=word(row+24+j*4);
@@ -72,13 +101,13 @@ static int extras_start(void) {
     if(!data) {fclose(file);return 0;}
     size_t size=fread(data,1,EXTRA_MAX+1,file);int valid=!ferror(file);fclose(file);
     if(!valid || !extras_valid(data,size)) {free(data);return 0;}
-    s_extras=data;s_extra_count=word(data+8);
+    s_extras=data;s_extra_count=word(data+8);s_extra_stride=word(data+12);
     fprintf(stderr,"[FIGHTERS] validated %u CAF extras (%zu bytes)\n",s_extra_count,size);return 1;
 }
-static const uint8_t *extra_row(uint32_t selection) {
+static const uint8_t *extra_row(uint32_t selection,uint32_t outfit) {
     for(uint32_t i=0;i<s_extra_count;++i) {
-        const uint8_t *row=s_extras+16+i*EXTRA_ROW;
-        if(word(row)==selection) return row;
+        const uint8_t *row=s_extras+16+i*s_extra_stride;
+        if(word(row)==selection && (s_extra_stride==52?word(row+48):0)==outfit) return row;
     }
     return NULL;
 }
@@ -141,7 +170,7 @@ static void restore_finishers(void) {
 void defjam_fighter_caf_finishers(void) {
     for(unsigned slot=0;slot<4;++slot) {
         if(!s_recipes[slot] || !s_contexts[slot]) continue;
-        const uint8_t *extra=extra_row(word(s_recipes[slot]));
+        const uint8_t *extra=extra_row(word(s_recipes[slot]),row_outfit(s_recipes[slot]));
         if(!extra || !word(extra+4)) continue;
         uint32_t context;
         if(!s_service || !defjam_fighter_caf_context(s_service,slot,&context))
@@ -162,6 +191,35 @@ void defjam_fighter_caf_finishers(void) {
             word(extra+8),word(extra+12),word(extra+16),word(extra+20));
     }
 }
+static int recipes_valid(const uint8_t *data,size_t size) {
+    uint32_t count=size>=16?word(data+8):0;
+    uint32_t stride=size>=16?word(data+12):0;
+    int extended=size>=16 && !memcmp(data,"FCA2",4) && word(data+4)==2 && stride==240;
+    int valid=size>=16 && (extended || (!memcmp(data,"FCA1",4) && word(data+4)==1 && stride==CAF_ROW))
+        && count && count<=(extended?CAF_MAX*3:CAF_MAX) && size==16+(size_t)count*stride;
+    for (uint32_t i=0;valid && i<count;++i) {
+        const uint8_t *row=data+16+i*stride;
+        valid=word(row)>=100 && word(row+4)>=87 && word(row+4)<=141 && word(row+28)>=1 && word(row+28)<=3
+            && word(row+32)<6 && word(row+36)<=36 && word(row+52)>=1 && word(row+52)<=8;
+        for (unsigned j=0;j<5;++j) if (word(row+8+j*4)>50) valid=0;
+        for (unsigned j=0;j<3;++j) if (row[222+j]!=(j<word(row+28)?row[222+j]:255) || (j<word(row+28)&&row[222+j]>4)) valid=0;
+        uint32_t index=extended?word(row+232):0,previous=UINT32_MAX;
+        if(index>2 || (extended && (word(row+236)<100 || word(row+236)>0x7FFFFFFEu || (!index && word(row+236)!=word(row))))) valid=0;
+        for (uint32_t j=0;j<i;++j) {
+            const uint8_t *before=data+16+j*stride;
+            if(extended && word(before+236)==word(row+236)) valid=0;
+            if(word(before)==word(row)) {
+                uint32_t old_index=extended?word(before+232):0;
+                if(!extended || old_index>=index || memcmp(before+4,row+4,28) || memcmp(before+222,row+222,10)) valid=0;
+                previous=old_index;
+            }
+        }
+        if(index && previous!=index-1) valid=0;
+        for (unsigned j=225;j<228;++j) if(row[j]) valid=0;
+        if(word(row+228)<1 || word(row+228)>86) valid=0;
+    }
+    return valid;
+}
 int defjam_fighter_caf_start(void) {
     const char *path=getenv("RECOMP_FIGHTER_CAF"),*hash=getenv("RECOMP_FIGHTER_CAF_SHA256");
     if (!path || !*path) return (!hash || !*hash) && !getenv("RECOMP_FIGHTER_CAF_EXTRAS") && !getenv("RECOMP_FIGHTER_CAF_EXTRAS_SHA256");
@@ -174,25 +232,14 @@ int defjam_fighter_caf_start(void) {
     file=fopen(path,"rb");
 #endif
     if (!file) return 0;
-    size_t maximum=16+CAF_MAX*CAF_ROW;
+    size_t maximum=16+CAF_MAX*3u*240u;
     uint8_t *data=(uint8_t *)malloc(maximum+1);
     if (!data) {fclose(file);return 0;}
     size_t size=fread(data,1,maximum+1,file);int valid=!ferror(file);fclose(file);
-    uint32_t count=size>=16?word(data+8):0;
-    valid=valid && size>=16 && !memcmp(data,"FCA1",4) && word(data+4)==1 && word(data+12)==CAF_ROW
-        && count && count<=CAF_MAX && size==16+(size_t)count*CAF_ROW;
-    for (uint32_t i=0;valid && i<count;++i) {
-        const uint8_t *row=data+16+i*CAF_ROW;
-        valid=word(row)>=100 && word(row+4)>=87 && word(row+4)<=141 && word(row+28)>=1 && word(row+28)<=3
-            && word(row+32)<6 && word(row+36)<=36 && word(row+52)>=1 && word(row+52)<=8;
-        for (unsigned j=0;j<5;++j) if (word(row+8+j*4)>50) valid=0;
-        for (unsigned j=0;j<3;++j) if (row[222+j]!=(j<word(row+28)?row[222+j]:255) || (j<word(row+28)&&row[222+j]>4)) valid=0;
-        for (uint32_t j=0;j<i;++j) if (word(data+16+j*CAF_ROW)==word(row)) valid=0;
-        for (unsigned j=225;j<228;++j) if(row[j]) valid=0;
-        if(word(row+228)<1 || word(row+228)>86) valid=0;
-    }
+    valid=valid && recipes_valid(data,size);
+    uint32_t count=valid?word(data+8):0,stride=valid?word(data+12):0;
     if (!valid) {free(data);return 0;}
-    s_rows=data;s_count=count;
+    s_rows=data;s_count=count;s_row_stride=stride;
     if(!extras_start()) {free(s_rows);s_rows=NULL;s_count=0;return 0;}
     fprintf(stderr,"[FIGHTERS] validated %u CAF recipes\n",count);return 1;
 }
@@ -220,9 +267,10 @@ static uint32_t prepare_profile(const uint8_t *row) {
     return profile;
 }
 void defjam_fighter_caf_participant(uint32_t service,uint32_t participant,uint32_t selection) {
-    const uint8_t *row=NULL;
-    for(uint32_t i=0;i<s_count;++i) if(word(s_rows+16+i*CAF_ROW)==selection) row=s_rows+16+i*CAF_ROW;
+    uint32_t outfit=participant<4 && s_menu_selection[participant]==selection?s_menu_outfit[participant]:0;
+    const uint8_t *row=recipe_row(selection,outfit);
     if(!row) return;
+    if(recipe_row(selection,1) && (participant>=4 || s_menu_selection[participant]!=selection)) stop("multi-outfit CAF was not confirmed by its participant");
     if(participant>=4 || !MEM32(service+0x1A9C)) stop("native CAF contexts are unavailable");
     /* Original service owns four 0x1c contexts and destroys each through63770.
      * Use that same lifetime; never borrow another player's profile object. */
@@ -240,7 +288,7 @@ void defjam_fighter_caf_participant(uint32_t service,uint32_t participant,uint32
     uint32_t args[]={prepare_profile(row)};
     guest_call(sub_00064170,context,1,args);
     if(!MEM8(context+1)||!MEM32(context+8)) stop("native CAF construction did not complete");
-    apply_atlases(MEM32(context+8)+0x8B0,extra_row(selection));
+    apply_atlases(MEM32(context+8)+0x8B0,extra_row(selection,outfit));
     uint32_t old_manager=MEM32(service+4),old_mode=MEM32(service+0x344);
     MEM32(service+4)=s_profile_workspace;MEM32(service+0x344)=0;MEM32(s_profile_workspace+0x5ac7c)=0;
     uint32_t stats_args[]={participant};guest_call(sub_0001EE80,service,1,stats_args);
@@ -249,6 +297,7 @@ void defjam_fighter_caf_participant(uint32_t service,uint32_t participant,uint32
     MEM32(service+0x168+participant*4)=word(row+4);
     fprintf(stderr,"[FIGHTERS] CAF prepared participant=%u logical=%u core=%u context=%08X visual=%08X build=%u face=%u\n",
         participant,selection,word(row+4),context,MEM32(context+8),word(row+32),word(row+52));
+    fprintf(stderr,"[FIGHTERS] CAF appearance participant=%u logical=%u outfit=%u portrait=%u\n",participant,selection,outfit,defjam_fighter_caf_presentation(participant,selection));
 }
 
 /* Original Battle lookup1E410 translates a participant through its signed-in

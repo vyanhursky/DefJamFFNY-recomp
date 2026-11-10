@@ -15,7 +15,7 @@ ROW_BYTES = 232
 
 def source(value):
     require(type(value) is dict and set(value) == {'format', 'selection'}, 'CAF source needs format and selection')
-    require(value['format'] in (FORMAT, 'caf-fighter-2'), 'Unsupported CAF recipe format')
+    require(value['format'] in (FORMAT, 'caf-fighter-2', 'caf-fighter-3'), 'Unsupported CAF recipe format')
     descriptor = value['selection']
     require(type(descriptor) is dict and set(descriptor) == {'path', 'sha256'}, 'Invalid CAF recipe descriptor')
     safe_relative(descriptor['path'])
@@ -151,6 +151,9 @@ def load(root, spec, catalog, game):
     from fighter_build import unique,non_finite
     value=json.loads(raw,object_pairs_hook=unique,parse_constant=non_finite)
     require(type(value) is dict, 'CAF recipe must be an object')
+    if spec['format'] == 'caf-fighter-3':
+        from fighter_caf_outfits import load as load_outfits
+        return load_outfits(root, value, catalog, game)
     if spec['format'] == 'caf-fighter-2':
         from fighter_caf_extras import load as load_extras
         extras = load_extras(root, value, catalog.db)
@@ -164,13 +167,20 @@ def load(root, spec, catalog, game):
 
 
 def encode(entries,report):
+    from fighter_caf_outfits import variants
+    extended = any(item.get('outfits') for item in entries.values())
     rows=[]
     for key,item in sorted(entries.items()):
-        binding=report['bindings'][key];r=item['recipe'];s=r['stats']
-        payload=struct.pack('<8I38I38B',binding['selection_key'],item['core'],*(s[k] for k in ('upper','lower','speed','toughness','health')),len(r['styles']),*r['caf_values'],*r['caf_colors'])
-        payload+=bytes(r['styles']+[255]*(3-len(r['styles'])))
-        rows.append(payload.ljust(228,b'\0')+struct.pack('<I',item['audio_core']))
-    return struct.pack('<4sIII',b'FCA1',1,len(rows),ROW_BYTES)+b''.join(rows)
+        binding=report['bindings'][key]
+        for index, outfit in enumerate(variants(item)):
+            r=outfit['recipe'];s=r['stats']
+            payload=struct.pack('<8I38I38B',binding['selection_key'],item['core'],*(s[k] for k in ('upper','lower','speed','toughness','health')),len(r['styles']),*r['caf_values'],*r['caf_colors'])
+            payload+=bytes(r['styles']+[255]*(3-len(r['styles'])))
+            payload=payload.ljust(228,b'\0')+struct.pack('<I',item['audio_core'])
+            if extended:
+                payload+=struct.pack('<II',index,item.get('outfit_aliases',[binding['selection_key']])[index])
+            rows.append(payload)
+    return struct.pack('<4sIII',b'FCA2' if extended else b'FCA1',2 if extended else 1,len(rows),240 if extended else ROW_BYTES)+b''.join(rows)
 
 
 def menu_record(recipe, selection):

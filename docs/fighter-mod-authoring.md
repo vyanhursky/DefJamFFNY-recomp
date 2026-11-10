@@ -14,6 +14,9 @@ for current-main source/build and outstanding acceptance.
 The Workshop companion adds a development `caf` resource (`caf-fighter-1`):
 a hash-bound fighter-only recipe, original retail style combinations and optional
 PNG-derived native portraits. It uses this same ZIP and installation workflow;
+CAF v2 adds hash-bound native atlases and retail finisher overrides. CAF v3 adds
+up to three appearances under one fighter identity, with per-outfit portraits
+and the original clothing selector. See the [outfit contract](research/workshop-caf-outfits-2026-11-09.md).
 it does not import a Story container. See the [CAF contract and native
 acceptance](research/workshop-caf-export-2026-11-08.md) for validated fields,
 current composition limits and platform qualifications.

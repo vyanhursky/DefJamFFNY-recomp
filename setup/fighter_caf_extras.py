@@ -58,13 +58,17 @@ def load(root, value, database):
 
 
 def encode(entries, report):
-    selected = [(key, item['extras']) for key, item in sorted(entries.items())
-                if item.get('extras') and (item['extras']['finishers'] is not None or item['extras']['atlases'])]
+    from fighter_caf_outfits import variants
+    extended = any(item.get('outfits') for item in entries.values())
+    selected = [(key, index, outfit['extras']) for key, item in sorted(entries.items())
+                for index, outfit in enumerate(variants(item))
+                if outfit.get('extras') and (outfit['extras']['finishers'] is not None or outfit['extras']['atlases'])]
     if not selected:
         return None
-    base = 16 + len(selected) * ROW
+    stride = ROW + (4 if extended else 0)
+    base = 16 + len(selected) * stride
     blocks, offsets, rows = [], {}, []
-    for key, extras in selected:
+    for key, index, extras in selected:
         atlas_offsets = []
         for name in ATLASES:
             pixels = extras['atlases'].get(name)
@@ -80,6 +84,8 @@ def encode(entries, report):
         choices = extras['finishers']
         rows.append(struct.pack('<12I', report['bindings'][key]['selection_key'], int(choices is not None),
                                 *(choices if choices is not None else [0] * 4), *atlas_offsets))
-    raw = struct.pack('<4sIII', b'FCX1', 1, len(rows), ROW) + b''.join(rows) + b''.join(blocks)
+        if extended:
+            rows[-1] += struct.pack('<I', index)
+    raw = struct.pack('<4sIII', b'FCX2' if extended else b'FCX1', 2 if extended else 1, len(rows), stride) + b''.join(rows) + b''.join(blocks)
     require(len(raw) <= MAX_BYTES, 'Compiled CAF extras exceed the 16 MiB budget')
     return raw
