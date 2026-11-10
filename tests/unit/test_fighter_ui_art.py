@@ -85,6 +85,21 @@ def test_specific_variant_overrides_master_and_native_only_omits_hd(baseline):
     source['hd_scale']=1;assert render(source,files,baseline,1)[1]=={}
 
 
+def test_grid_fits_original_used_region_and_keeps_power_of_two_padding(baseline,monkeypatch):
+    original=texture();data=bytearray(original+bytes(16))
+    struct.pack_into('<I',data,4,len(data))
+    data[208:224]=original[192:208]
+    struct.pack_into('<4I',data,192,0x107c,1,6,5)
+    monkeypatch.setattr(baseline,'grid_template',lambda part:bytes(data))
+    source=spec(('grid_normal','grid_selected'))
+    native,hd,receipt=render(source,{role:png() for role in source['images']},baseline,1)
+    tile=UITextures(native['grid_normal_2p']).images[0]
+    picture=Image.open(io.BytesIO(hd[receipt['grid_normal_2p']['tiles'][0]['native_id']]))
+    assert picture.size==(32,32) and picture.getbbox()==(0,0,24,20)
+    assert picture.getpixel((12,10))==(220,80,20,255)
+    assert UITextures(native['grid_normal_2p']).controls==UITextures(bytes(data)).controls
+
+
 @pytest.mark.parametrize('damage',[
     lambda s:s.update(commands=['execute']),lambda s:s.update(hd_scale=True),lambda s:s.update(hd_scale=8),
     lambda s:s['images'].update(unknown={'path':'x.png','sha256':'a'*64}),
