@@ -121,22 +121,59 @@ def validate(game, folders, language=None):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=('catalog','tag-catalog', 'voice-catalog', 'validate-voice', 'export-pair','export-cinematic', 'export-caf-portrait', 'validate'))
+    parser.add_argument('command', choices=('catalog','tag-catalog', 'voice-catalog', 'validate-voice', 'export-pair','export-cinematic', 'export-caf-portrait','export-ui-reference', 'export-retail-appearance','preview-fighter','validate', 'workshop-catalog','workshop-check','workshop-audio','workshop-animation','workshop-export'))
     parser.add_argument('--game', type=Path, required=True)
     parser.add_argument('--pack', type=Path, action='append', default=[])
     parser.add_argument('--language', type=Path)
     parser.add_argument('--portrait-png', type=Path)
     parser.add_argument('--portrait-out', type=Path)
+    parser.add_argument('--donor',default='retail/blaze')
     parser.add_argument('--voice-source', type=Path)
     parser.add_argument('--pair-request',type=Path)
     parser.add_argument('--cinematic-request',type=Path)
+    parser.add_argument('--workshop-request',type=Path)
+    parser.add_argument('--workshop-out',type=Path)
     args = parser.parse_args()
     try:
-        if args.command == 'catalog':
+        if args.command.startswith('workshop-'):
+            import fighter_workshop as workshop
+            request=None
+            if args.command!='workshop-catalog':
+                if args.workshop_request is None:raise ValueError('Choose an authoring request')
+                path=ordinary_path(args.workshop_request)
+                with path.open('rb') as stream:raw=stream.read(96*1024**2+1)
+                if len(raw)>96*1024**2:raise ValueError('Authoring request exceeds budget')
+                request=json.loads(raw,object_pairs_hook=unique,parse_constant=non_finite)
+            if args.command=='workshop-catalog':payload=workshop.catalog(args.game)
+            elif args.command=='workshop-check':payload=workshop.check(request,workshop.catalog(args.game))
+            elif args.command=='workshop-audio':payload=workshop.audio(args.game,request)
+            elif args.command=='workshop-export':
+                if args.workshop_out is None:raise ValueError('Choose a new performance output folder')
+                payload=workshop.export_performance(args.game,request,args.workshop_out)
+            else:
+                from fighter_workshop_animation import animation
+                payload=animation(args.game,request)
+            result={'protocol':PROTOCOL,'ok':True,**payload}
+        elif args.command == 'catalog':
             catalog=retail_catalog(args.game/'assets/djv2.sod')
             result = {'protocol': PROTOCOL, 'ok': True,
                       'baseline': catalog.baseline(),
                       'native_models':{row['fields']['Model']['symbol']:key for key,row in catalog.rows.items()}}
+        elif args.command in ('export-retail-appearance','preview-fighter'):
+            from fighter_appearance_authoring import export_retail, preview
+            pin=json.loads((ROOT/'config/fighter-native-baseline.json').read_text())
+            catalog=retail_catalog(args.game/'assets/djv2.sod')
+            if args.command=='export-retail-appearance':
+                if args.portrait_out is None:raise ValueError('Choose a new appearance output folder')
+                result={'protocol':PROTOCOL,'ok':True,**export_retail(args.game,args.donor,args.portrait_out,catalog,pin)}
+            else:
+                if len(args.pack)!=1:raise ValueError('Preview exactly one fighter pack')
+                result={'protocol':PROTOCOL,'ok':True,'preview':preview(args.game,args.pack[0],catalog,pin)}
+        elif args.command=='export-ui-reference':
+            if args.portrait_out is None:raise ValueError('Choose a new UI reference output folder')
+            from fighter_ui_art import export_reference
+            pin=json.loads((ROOT/'config/fighter-native-baseline.json').read_text())
+            result={'protocol':PROTOCOL,'ok':True,**export_reference(args.game,args.donor,args.portrait_out,retail_catalog(args.game/'assets/djv2.sod'),pin)}
         elif args.command=='export-caf-portrait':
             if args.portrait_png is None or args.portrait_out is None:raise ValueError('Choose a PNG and a new portrait output folder')
             from fighter_caf_portrait import export_png

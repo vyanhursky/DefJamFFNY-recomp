@@ -156,9 +156,12 @@ def functions(movie, constants):
 
 def character_parameters(record):
     """Typed native CCharacter data. No display text or executable input here."""
-    if not isinstance(record, dict) or set(record) != {'selection_key', 'stats', 'styles'}:
+    if not isinstance(record, dict) or not {'selection_key', 'stats', 'styles'} <= set(record) \
+            or not set(record) <= {'selection_key', 'stats', 'styles', 'outfit_count', 'outfit_portraits','outfit_parent'}:
         raise AssetError('Invalid logical menu fighter fields')
     identity, stats, styles = record['selection_key'], record['stats'], record['styles']
+    if 'outfit_parent' in record and (type(record['outfit_parent']) is not int or not 0<=record['outfit_parent']<99):
+        raise AssetError('Invalid retail outfit parent identity')
     if type(identity) is not int or not 100 <= identity <= 0x7fffffff:
         raise AssetError('Invalid logical menu identity')
     if not isinstance(stats, dict) or set(stats) != set('ULSTHC') \
@@ -167,16 +170,32 @@ def character_parameters(record):
     if not isinstance(styles, list) or not 1 <= len(styles) <= 5 \
             or any(type(value) is not int or not 0 <= value < 5 for value in styles) or len(set(styles)) != len(styles):
         raise AssetError('Invalid logical menu styles')
-    return (f'CLOTH=1&FE_ID={identity}&LOCK=1' + ''.join(f'&{key}={stats[key]}' for key in 'ULSTHC')
-            + ''.join(f'&K={value}' for value in styles))
+    count = record.get('outfit_count', 1)
+    portraits = record.get('outfit_portraits', [identity])
+    if type(count) is not int or not 1 <= count <= 3 or type(portraits) is not list or len(portraits) != count \
+            or portraits[0] != identity or any(type(i) is not int or not 100 <= i <= 0x7ffffffe for i in portraits):
+        raise AssetError('Invalid logical fighter outfits')
+    dataset = (f'&FE_ID={identity}&LOCK=1' + ''.join(f'&{key}={stats[key]}' for key in 'ULSTHC')
+               + ''.join(f'&K={value}' for value in styles))
+    # CCharacter consumes extra CLOTH rows by calling Game.GetNextFighter.
+    # Owned characters are appended after that stream ends: initialize one
+    # normal dataset, then populate their additional datasets locally below.
+    return 'CLOTH=1' + dataset
 
 
 def append_logical_roster(action, definitions, records):
+    outfits=[r for r in records if 'outfit_parent' in r]
+    records=[r for r in records if 'outfit_parent' not in r]
     if len([d for d in definitions if d['name'] == 'getCharData' and not d['params']]) != 1:
         raise AssetError('Native character-list constructor differs from the reviewed template')
     action.string('_recompFighterData'); action.integer(0); action.string('Array'); action.op('NewObject'); action.op('SetVariable')
+    action.string('_recompFighterOutfitCounts'); action.integer(0); action.string('Array'); action.op('NewObject'); action.op('SetVariable')
+    action.string('_recompRetailOutfitParents'); action.integer(0); action.string('Array'); action.op('NewObject'); action.op('SetVariable')
+    for outfit in outfits:
+        action.variable('_recompRetailOutfitParents'); action.integer(outfit['outfit_parent']); action.op('EA_PushTrue'); action.op('SetMember')
     for index, record in enumerate(records):
         action.variable('_recompFighterData'); action.integer(index); action.string(character_parameters(record)); action.op('SetMember')
+        action.variable('_recompFighterOutfitCounts'); action.integer(index); action.integer(record.get('outfit_count', 1)); action.op('SetMember')
     def append():
         done, loop, grids, next_grid, grid_loop = [action.unique() for _ in range(5)]
         action.local('_chars', lambda: action.variable('aCharacters'))
@@ -186,11 +205,32 @@ def append_logical_roster(action, definitions, records):
         action.local('_i', lambda: action.integer(0))
         action.label(loop)
         action.variable('_i'); action.variable('_recompFighterData'); action.member('length'); action.op('LessThan2'); action.op('Not'); action.branch('BranchIfTrue', grids)
-        action.variable('_recompFighterData'); action.variable('_i'); action.op('GetMember')
-        action.integer(1); action.string('CCharacter'); action.op('NewObject')
+        action.local('_fighter', lambda: (action.variable('_recompFighterData'), action.variable('_i'), action.op('GetMember'),
+                                         action.integer(1), action.string('CCharacter'), action.op('NewObject')))
+        action.local('_set', lambda: action.integer(1))
+        outfit_loop, outfit_done = action.unique(), action.unique()
+        action.label(outfit_loop)
+        action.variable('_set'); action.variable('_recompFighterOutfitCounts'); action.variable('_i'); action.op('GetMember'); action.op('LessThan2'); action.op('Not'); action.branch('BranchIfTrue', outfit_done)
+        action.variable('_fighter'); action.member('aDataSets'); action.variable('_set'); action.variable('_recompFighterData'); action.variable('_i'); action.op('GetMember'); action.op('SetMember')
+        action.string('_set'); action.variable('_set'); action.op('Increment'); action.op('SetVariable'); action.branch('BranchAlways', outfit_loop)
+        action.label(outfit_done); action.variable('_fighter')
         action.integer(1); action.variable('_chars'); action.string('push'); action.op('CallMethod'); action.op('Pop')
         action.string('_i'); action.variable('_i'); action.op('Increment'); action.op('SetVariable'); action.branch('BranchAlways', loop)
         action.label(grids)
+        # Original CCharacter datasets select distinct native records for stock
+        # clothes too. Extend the existing roster object, never append a cell.
+        for outfit in outfits:
+            action.local('_j',lambda:action.integer(0))
+            search,found,next_char=[action.unique() for _ in range(3)]
+            action.label(search)
+            action.variable('_j');action.variable('_chars');action.member('length');action.op('LessThan2');action.op('Not');action.branch('BranchIfTrue',found)
+            action.local('_original',lambda:(action.variable('_chars'),action.variable('_j'),action.op('GetMember')))
+            action.integer(0);action.integer(1);action.variable('_original');action.string('getID');action.op('CallMethod')
+            action.integer(outfit['outfit_parent']);action.op('Equals2');action.op('Not');action.branch('BranchIfTrue',next_char)
+            action.string(character_parameters(outfit));action.integer(1);action.variable('_original');action.member('aDataSets');action.string('push');action.op('CallMethod');action.op('Pop')
+            action.branch('BranchAlways',found)
+            action.label(next_char);action.string('_j');action.variable('_j');action.op('Increment');action.op('SetVariable');action.branch('BranchAlways',search)
+            action.label(found)
         action.variable('aThumbGrids'); action.op('EA_PushUndefined'); action.op('Equals2'); action.branch('BranchIfTrue', done)
         action.string('_i'); action.integer(0); action.op('SetVariable')
         action.label(grid_loop)
@@ -240,8 +280,12 @@ def retain_ready_ownership(action, definitions):
         action.label(loop)
         action.variable('_i'); action.variable('_chars'); action.member('length'); action.op('LessThan2'); action.op('Not'); action.branch('BranchIfTrue', owners)
         action.local('_char', lambda: (action.variable('_chars'), action.variable('_i'), action.op('GetMember')))
-        action.variable('_recompFighterLabels'); action.integer(0); action.variable('_char'); action.string('getID'); action.op('CallMethod'); action.op('GetMember')
-        action.op('EA_PushUndefined'); action.op('Equals2'); action.branch('BranchIfTrue', next_char)
+        action.local('_baseID', lambda: (action.integer(0), action.variable('_char'), action.string('getID'), action.op('CallMethod')))
+        owned = action.unique()
+        action.variable('_recompFighterLabels'); action.variable('_baseID'); action.op('GetMember')
+        action.op('EA_PushUndefined'); action.op('Equals2'); action.op('Not'); action.branch('BranchIfTrue', owned)
+        action.variable('_recompRetailOutfitParents'); action.variable('_baseID'); action.op('GetMember'); action.op('Not'); action.branch('BranchIfTrue', next_char)
+        action.label(owned)
         action.local('_owner', lambda: (action.variable('_char'), action.member('iTakenBy')))
         action.variable('_owner'); action.integer(0); action.op('LessThan2'); action.branch('BranchIfTrue', next_char)
         action.variable('_owner'); action.integer(4); action.op('LessThan2'); action.op('Not'); action.branch('BranchIfTrue', next_char)
@@ -440,6 +484,8 @@ def presentation_action(base, movie, constants, pairs, names, records=None, *, l
                     action.code += movie[ins.offset:following]
             action.label(labels[end])
         action.method('CThumbGrid', definition['method'], definition['params'], cloned)
+    from fighter_menu_outfits import install as install_outfits
+    install_outfits(action, movie, entries, definitions, records)
     action.string('_recompFighterUpdateChar'); action.variable('updateChar'); action.op('SetVariable')
     def update_name():
         action.variable('nPlayer'); action.integer(1); action.string('_recompFighterUpdateChar'); action.op('CallFunction'); action.op('Pop')

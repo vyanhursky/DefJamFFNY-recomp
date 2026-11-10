@@ -91,7 +91,9 @@ def supervise(manager, pid, *, language=None):
                               source=None if fresh else source, fresh=fresh)
             if adoption is None:
                 atomic_json(adoption_path, {'schema': 1, 'baseline': catalog.source_sha256, 'initial_empty': fresh})
-            environment = runtime_environment(cache, report, screens, composed)
+            from fighter_ui_hd import stage as stage_ui_hd
+            ui_pack=stage_ui_hd(cache,report,manager.mods)
+            environment = runtime_environment(cache, report, screens, composed,**({'ui_pack':ui_pack} if ui_pack else {}))
             environment.update({key: value for key, value in session.environment.items() if key != 'DEFJAM_DATA'})
             session.monitor.start(); started = True
             projection(ready, 'ready', environment, session.data_root)

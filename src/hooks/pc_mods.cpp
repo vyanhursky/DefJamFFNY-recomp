@@ -10,6 +10,7 @@
 #include <cstdlib>
 #include <cerrno>
 #include <cstdio>
+#include <cstring>
 #include <sstream>
 #include <chrono>
 #include <thread>
@@ -329,6 +330,41 @@ extern "C" int pc_fighters_healthy(void) {
         && projection(fighter_ready)["session"]["state"] == "ready";
 }
 
+static bool fighter_ui_texture_pack(const std::string &name, const char *language) {
+    using namespace pcui;
+    if (name.empty()) return true;
+    if (name.size()!=35 || name.rfind("fighter-ui-",0)!=0 || name.substr(11).find_first_not_of("0123456789abcdef")!=std::string::npos) {
+        status="Fighter supervisor returned an invalid UI texture pack."; return false;
+    }
+    std::error_code error;
+    auto mods=fs::weakly_canonical(fs::u8path(folder_path(Folder::Mods)),error);
+    auto folder=mods/fs::u8path(name);
+    if (error || fs::is_symlink(folder,error) || !fs::is_directory(folder,error)
+        || fs::weakly_canonical(folder,error)!=folder || error || fs::is_symlink(folder/"manifest.ini",error)
+        || !fs::is_regular_file(folder/"manifest.ini",error)) {
+        status="The verified Fighter UI texture cache is missing or redirected."; return false;
+    }
+    const char *existing_root=getenv("RECOMP_TEXTURE_ROOT");
+    if (existing_root && *existing_root && (!fs::equivalent(fs::u8path(existing_root),mods,error) || error)) {
+        status="Fighter UI textures require the managed mods directory; clear the external texture-root override."; return false;
+    }
+    const char *selected=getenv("RECOMP_TEXTURE_PACKS");std::string packs=selected?selected:"";
+    bool present=false;std::istringstream stream(packs);std::string part;
+    while (std::getline(stream,part,';')) if (part==name) present=true;
+    if (!present) {if (!packs.empty()) packs+=';';packs+=name;}
+    if (packs.size()+(language&&*language?strlen(language)+1:0)>=1024) {
+        status="Fighter UI textures exceed the native texture-pack list budget."; return false;
+    }
+    auto root_text=path_utf8(mods);
+#if defined(_WIN32)
+    if (_putenv_s("RECOMP_TEXTURE_ROOT",root_text.c_str()) || _putenv_s("RECOMP_TEXTURE_PACKS",packs.c_str())) return false;
+#else
+    if (setenv("RECOMP_TEXTURE_ROOT",root_text.c_str(),1) || setenv("RECOMP_TEXTURE_PACKS",packs.c_str(),1)) return false;
+#endif
+    fprintf(stderr,"[FIGHTERS] HD UI texture layer active: %s\n",name.c_str());
+    return true;
+}
+
 extern "C" int pc_fighters_prepare(const char *language) {
     using namespace pcui;
     // Explicit isolated diagnostics retain their own supervisor and environment.
@@ -393,7 +429,8 @@ extern "C" int pc_fighters_prepare(const char *language) {
                 "VOICES", "VOICES_SHA256", "VOICE_BINDINGS", "AI", "AI_SHA256", "AI_BINDINGS",
                 "FINISHERS", "FINISHERS_SHA256", "FINISHER_BINDINGS", "CINEMATIC_BANKS", "CINEMATIC_BANKS_SHA256",
                 "CINEMATIC_BINDINGS", "BLAZIN_BINDINGS", "SAVE_JOURNAL", "UNLOCKS",
-                "TAGS", "TAGS_SHA256", "CAMERAS", "CAMERAS_SHA256", "TIMELINE_BINDINGS", "FILM_PROOFS", "CAF", "CAF_SHA256"
+                "TAGS", "TAGS_SHA256", "CAMERAS", "CAMERAS_SHA256", "TIMELINE_BINDINGS", "FILM_PROOFS", "CAF", "CAF_SHA256",
+                "CAF_EXTRAS", "CAF_EXTRAS_SHA256", "CAF_FACES", "CAF_FACES_SHA256", "UI_TEXTURE_PACK"
             };
             for (auto &entry : ready["environment"]) {
                 if (entry.first.rfind("RECOMP_FIGHTER_",0) != 0 || !allowed.count(entry.first.substr(15))) {
@@ -405,6 +442,7 @@ extern "C" int pc_fighters_prepare(const char *language) {
                 if (setenv(entry.first.c_str(),entry.second.c_str(),1)) return 0;
 #endif
             }
+            if (!fighter_ui_texture_pack(ready["environment"]["RECOMP_FIGHTER_UI_TEXTURE_PACK"],language)) return 0;
             fighter_active = true; pending.admitted = true; atexit(pc_fighters_finish);
             fprintf(stderr,"[FIGHTERS] managed profile session ready: %s\n",fighter_data.c_str());
             return 1;

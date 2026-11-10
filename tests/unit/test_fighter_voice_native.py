@@ -44,6 +44,7 @@ int defjam_fighter_caf_audio(uint32_t input) {
  sub_0003E170_gen();return 1;
 }
 @AUDIO_WRAPPER@
+uint32_t defjam_fighter_caf_selection(uint32_t slot) {(void)slot;return 0;}
 int defjam_fighter_research_active(void) {return enabled;}
 static void entry(void) {
  g_esp=0xB00000;g_eax=101;g_ecx=102;g_edx=103;

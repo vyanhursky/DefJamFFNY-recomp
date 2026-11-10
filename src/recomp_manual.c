@@ -294,7 +294,9 @@ void sub_001B2C60(void) {
     if (!defjam_fighter_motion_scale()) sub_001B2C60_gen();
 }
 extern void sub_001A8180_gen(void);
+extern void defjam_fighter_caf_finishers(void);
 void sub_001A8180(void) {
+    defjam_fighter_caf_finishers();
     if (!defjam_fighter_motion_blazin_mask()) sub_001A8180_gen();
 }
 

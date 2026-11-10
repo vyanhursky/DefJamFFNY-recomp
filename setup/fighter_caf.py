@@ -15,7 +15,7 @@ ROW_BYTES = 232
 
 def source(value):
     require(type(value) is dict and set(value) == {'format', 'selection'}, 'CAF source needs format and selection')
-    require(value['format'] == FORMAT, 'Unsupported CAF recipe format')
+    require(value['format'] in (FORMAT, 'caf-fighter-2', 'caf-fighter-3', 'caf-fighter-4', 'caf-fighter-5', 'caf-fighter-6'), 'Unsupported CAF recipe format')
     descriptor = value['selection']
     require(type(descriptor) is dict and set(descriptor) == {'path', 'sha256'}, 'Invalid CAF recipe descriptor')
     safe_relative(descriptor['path'])
@@ -150,19 +150,58 @@ def load(root, spec, catalog, game):
     require(len(raw)<=65536 and hashlib.sha256(raw).hexdigest()==spec['selection']['sha256'],'CAF recipe hash/size differs')
     from fighter_build import unique,non_finite
     value=json.loads(raw,object_pairs_hook=unique,parse_constant=non_finite)
-    core=recipe(value,catalog.db)
-    validate_assets(value,game)
-    return {'recipe':value,'core':core,'sha256':fingerprint(value)}
+    require(type(value) is dict, 'CAF recipe must be an object')
+    if spec['format']=='caf-fighter-6':
+        import copy
+        clean=copy.deepcopy(value);voice=clean.pop('voice_donor',None)
+        require(voice is None or type(voice) is str and voice in catalog.rows
+                and 1<=catalog.rows[voice]['native_binding']['core_id']<=86,'CAF voice donor must be an original retail fighter')
+        if 'retail_moveset' in clean:
+            from fighter_caf_moveset import load_recipe
+        else:
+            from fighter_caf_face import load_recipe
+        result=load_recipe(root,clean,catalog,game)
+        result.update(performance_capable=True,voice_donor=voice,sha256=fingerprint(value))
+        return result
+    if spec['format'] == 'caf-fighter-5':
+        from fighter_caf_moveset import load_recipe
+        return load_recipe(root,value,catalog,game)
+    if spec['format'] == 'caf-fighter-4':
+        from fighter_caf_face import load_recipe
+        return load_recipe(root,value,catalog,game)
+    if spec['format'] == 'caf-fighter-3':
+        from fighter_caf_outfits import load as load_outfits
+        return load_outfits(root, value, catalog, game)
+    if spec['format'] == 'caf-fighter-2':
+        from fighter_caf_extras import load as load_extras
+        extras = load_extras(root, value, catalog.db)
+        require({'stats','styles','caf_values','caf_colors'} <= set(value), 'CAF v2 requires all fighter fields')
+        base = {k: value[k] for k in ('stats','styles','caf_values','caf_colors')}
+    else:
+        extras, base = None, value
+    core=recipe(base,catalog.db)
+    validate_assets(base,game)
+    return {'recipe':base,'core':core,'sha256':fingerprint(value),'extras':extras}
 
 
 def encode(entries,report):
+    from fighter_caf_outfits import variants
+    retail = any(item.get('retail_moveset') for item in entries.values())
+    extended = retail or any(item.get('outfits') for item in entries.values())
     rows=[]
     for key,item in sorted(entries.items()):
-        binding=report['bindings'][key];r=item['recipe'];s=r['stats']
-        payload=struct.pack('<8I38I38B',binding['selection_key'],item['core'],*(s[k] for k in ('upper','lower','speed','toughness','health')),len(r['styles']),*r['caf_values'],*r['caf_colors'])
-        payload+=bytes(r['styles']+[255]*(3-len(r['styles'])))
-        rows.append(payload.ljust(228,b'\0')+struct.pack('<I',item['audio_core']))
-    return struct.pack('<4sIII',b'FCA1',1,len(rows),ROW_BYTES)+b''.join(rows)
+        binding=report['bindings'][key]
+        for index, outfit in enumerate(variants(item)):
+            r=outfit['recipe'];s=r['stats']
+            payload=struct.pack('<8I38I38B',binding['selection_key'],item['core'],*(s[k] for k in ('upper','lower','speed','toughness','health')),len(r['styles']),*r['caf_values'],*r['caf_colors'])
+            payload+=bytes(r['styles']+[255]*(3-len(r['styles'])))
+            payload=bytearray(payload.ljust(228,b'\0'))
+            payload[225]=int(bool(item.get('retail_moveset')))
+            payload=bytes(payload)+struct.pack('<I',item['audio_core'])
+            if extended:
+                payload+=struct.pack('<II',index,item.get('outfit_aliases',[binding['selection_key']])[index])
+            rows.append(payload)
+    return struct.pack('<4sIII',b'FCA3' if retail else b'FCA2' if extended else b'FCA1',3 if retail else 2 if extended else 1,len(rows),240 if extended else ROW_BYTES)+b''.join(rows)
 
 
 def menu_record(recipe, selection):

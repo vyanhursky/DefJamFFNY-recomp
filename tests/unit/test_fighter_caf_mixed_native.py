@@ -24,11 +24,16 @@ unsigned char memory[0xC00000];
 uint32_t g_eax,g_ecx,g_edx,g_esp,g_ebx,g_esi,g_edi,g_ebp;
 int g_fp_top;
 static uint32_t s_service,s_contexts[4],expected[4],calls,owned_voice;
+static uint32_t s_story_profiles[4];
+static int story_audio;
 static const uint8_t *s_recipes[4];
 static uint8_t recipes[2][232];
+static void restore_finishers(void) {} /* No finisher journal in this audio fixture. */
+static void defjam_caf_faces_clear(void) {} /* No sculpt state in this audio fixture. */
 static uint32_t word(const uint8_t *p) { return (uint32_t)p[0]|(uint32_t)p[1]<<8|(uint32_t)p[2]<<16|(uint32_t)p[3]<<24; }
 static void put(uint8_t *p,uint32_t n) { for(unsigned j=0;j<4;++j) p[j]=(uint8_t)(n>>(8*j)); }
 static void stop(const char *message) { fprintf(stderr,"CAF stopped: %s\n",message);exit(1); }
+@CAF_SELECTION@
 int defjam_fighter_research_active(void) { return 1; }
 void sub_001A3AD0(void) { abort(); }
 void sub_001A3630(void) { abort(); }
@@ -44,6 +49,7 @@ void sub_0003E170_gen(void) {
   uint32_t core=MEM32(input+0x20+i*0x18);assert(core==expected[i]);
   MEM32(0x3403A4+i*0x64)=core;
   MEM32(0x3403B4+i*0x64)=core;
+  if(story_audio && !i) {MEM32(0x3403A4)=100;MEM32(0x3403B4)=777;}
  }
  ++calls;g_eax=0xA5000001;g_esp+=4;g_ebx=g_esi=g_edi=g_ebp=0xBAD;
 }
@@ -74,7 +80,8 @@ static void run(const uint32_t *cores,int adapted) {
   assert(!memcmp(before,XBOX_PTR(0x2000),sizeof before));
   for(unsigned i=0;i<4;++i) {
    assert(MEM32(0x3B90B8+i*4)==cores[i]);
-   assert(MEM32(0x3403B4+i*0x64)==(cores[i]==142?owned_voice:expected[i]));
+   assert(MEM32(0x3403B4+i*0x64)==(story_audio&&!i?777:cores[i]==142?owned_voice:expected[i]));
+   if(story_audio&&!i)assert(MEM32(0x3403A4)==100); /* Preserve native CAF voice identity. */
   }
  }
 }
@@ -84,10 +91,12 @@ int main(int argc,char **argv) {
  "RECOMP_FIGHTER_VOICES","RECOMP_FIGHTER_VOICE_BINDINGS","RECOMP_FIGHTER_VOICES_SHA256"};
  for(unsigned i=0;i<6;++i) environment(keys[i],argv[i+1]);
  assert(defjam_fighter_motion_start()&&defjam_fighter_voice_start());
+ put(recipes[0],1001);put(recipes[1],1002);
  put(recipes[0]+4,87);put(recipes[0]+228,63);
  put(recipes[1]+4,87);put(recipes[1]+228,5);
  for(unsigned rotate=0;rotate<4;++rotate) {
   uint32_t cores[4];defjam_fighter_caf_clear();
+  for(unsigned i=0;i<5;++i) assert(!defjam_fighter_caf_selection(i));
   for(unsigned i=0;i<4;++i) {
    unsigned role=(i+rotate)%4;
    cores[i]=(uint32_t[]){87,142,3,87}[role];expected[i]=(uint32_t[]){63,5,3,5}[role];
@@ -112,6 +121,11 @@ int main(int argc,char **argv) {
  uint32_t owned[]={142,3,3,3};run(owned,1);
  for(unsigned i=0;i<4;++i) expected[i]=3;
  uint32_t retail[]={3,3,3,3};run(retail,0);
+ if(!strcmp(argv[7],"story")) {
+  defjam_fighter_caf_clear();story_audio=1;s_story_profiles[0]=0x1234;
+  put(recipes[0]+4,51);put(recipes[0]+228,109);s_recipes[0]=recipes[0];
+  expected[0]=109;uint32_t profile[]={51,3,3,3};run(profile,1);
+ }
  puts("mixed CAF/owned/retail audio, four slots, Rematch, clear and ABI passed");return 0;
 }
 '''
@@ -128,6 +142,7 @@ def tool(tmp_path_factory):
     caf = (ROOT / 'src/patches/fighter_caf.c').read_text(encoding='utf-8')
     manual = (ROOT / 'src/recomp_manual.c').read_text(encoding='utf-8')
     text = DRIVER.replace('@CAF_AUDIO@', definition(caf, 'defjam_fighter_caf_audio'))
+    text = text.replace('@CAF_SELECTION@', definition(caf, 'defjam_fighter_caf_selection'))
     text = text.replace('@CAF_CLEAR@', definition(caf, 'defjam_fighter_caf_clear'))
     text = text.replace('@AUDIO_WRAPPER@', definition(manual, 'sub_0003E170'))
     driver = folder / 'driver.c'; driver.write_text(text)
@@ -151,7 +166,7 @@ def voice_files(tmp_path):
     return path, bindings, receipt['sha256'], receipt['bindings']['owned/voice']['voice_id']
 
 
-@pytest.mark.parametrize('mode,message', [('mixed', None), ('mismatch', 'CAF audio core differs'), ('unknown', 'unknown audio template core')])
+@pytest.mark.parametrize('mode,message', [('mixed', None), ('story', None), ('mismatch', 'CAF audio core differs'), ('unknown', 'unknown audio template core')])
 def test_mixed_audio_composes_once_and_preserves_owned_voices(tool, motion_files, voice_files, mode, message):
     result = subprocess.run([tool, *motion_files, *voice_files[:3], mode, str(voice_files[3])], capture_output=True, text=True)
     assert result.returncode == (1 if message else 0), result.stdout + result.stderr

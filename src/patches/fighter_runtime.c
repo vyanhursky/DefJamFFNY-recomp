@@ -444,7 +444,8 @@ int defjam_fighter_native_record(uint32_t database, uint32_t output, uint32_t st
 }
 
 void defjam_fighter_match_setup(uint32_t self, uint32_t fighters) {
-    defjam_fighter_caf_clear();
+    defjam_fighter_caf_begin_match();
+    defjam_fighter_caf_story(self,fighters);
     if (!s_window.bytes) return;
     validate_immutable_banks();
     fprintf(stderr, "[FIGHTERS] resource observation phase=match_setup heap=%u contiguous=%u\n",
@@ -795,13 +796,27 @@ void defjam_fighter_save_batch(void) {
     test_save_stop(1);
 }
 
+static uint32_t outfit_progress_handle(uint32_t handle) {
+    for(uint32_t i=0;i<s_window.count;++i) {
+        FighterWindowRow row;FighterBinding parent;
+        if(!fighter_window_at(&s_window,i,&row))break;
+        if(row.stable_handle==handle && row.retail_selection_plus_one) {
+            if(!fighter_bindings_find(&s_bindings,FIGHTER_BINDING_SELECTION,row.retail_selection_plus_one-1,&parent) || (parent.flags&1u))
+                fighter_stop("Retail outfit has no canonical progress owner.");
+            return parent.stable_handle;
+        }
+    }
+    return handle;
+}
 void defjam_fighter_unlock_inserting(uint32_t self) {
     if (!s_bindings.bytes || !s_settings || self != s_settings + 0x1C) return;
     /* A larger live array also requires the save extension. Until it is wired,
      * reject the next insertion before the original unchecked write occurs. */
     if (MEM32(self + 4) >= MEM32(self) || MEM32(self) != FIGHTER_UNLOCK_CAPACITY)
         fighter_stop("Native Character unlock storage is full; expanded persistence is required.");
-    if (s_journal[0]) remember_custom(MEM32(MEM32(g_esp + 4)));
+    uint32_t argument=MEM32(g_esp+4),mark=MEM32(argument);
+    MEM32(argument)=outfit_progress_handle(mark&~FIGHTER_UNLOCK_METADATA)|(mark&FIGHTER_UNLOCK_METADATA);
+    if (s_journal[0]) remember_custom(MEM32(argument));
 }
 
 void defjam_fighter_selection_gate(uint32_t selection) {
@@ -858,6 +873,7 @@ uint32_t defjam_fighter_controller_submission(uint32_t arguments) {
         uint32_t participant = values[0] < 0 ? UINT32_MAX : (uint32_t)values[0];
         if (!fighter_window_clear(&s_window, participant))
             fighter_stop("Cannot clear participant ownership before verified match teardown.");
+        defjam_fighter_caf_menu_clear(participant);
         prune_participant_unlocks();
         fprintf(stderr, "[FIGHTERS] cleared pre-match participant ownership: %d\n", values[0]);
     }
@@ -869,6 +885,7 @@ uint32_t defjam_fighter_controller_submission(uint32_t arguments) {
         || !fighter_window_bind(&s_window, (uint32_t)values[0], (uint32_t)values[2], &row))
         fighter_stop("Logical fighter cannot bind to this participant or the match is still active.");
     if (s_window.frozen) return s_window.banks[values[0]].selection_key;
+    defjam_fighter_caf_menu_clear((uint32_t)values[0]);
     {
         FighterWindowBank *bank = &s_window.banks[values[0]];
         uint32_t count, kept = 0, keys[FIGHTER_UNLOCK_CAPACITY];
@@ -892,10 +909,16 @@ uint32_t defjam_fighter_controller_submission(uint32_t arguments) {
         }
         if (kept >= FIGHTER_UNLOCK_CAPACITY) fighter_stop("Participant unlock projection exceeds native capacity.");
         {
-            uint32_t mark = row.stable_handle;
-            for (uint32_t i = 0; i < s_custom_count; ++i)
-                if (s_custom_keys[i] == row.stable_handle) mark |= s_custom_metadata[i];
-            keys[kept++] = mark;
+            uint32_t mark = outfit_progress_handle(row.stable_handle);
+            /* A costume shares the retail parent's progress. Historical
+             * standalone marks for its logical key stay in the extension,
+             * never become a duplicate or change the parent on selection. */
+            if (!row.retail_selection_plus_one)
+                for (uint32_t i = 0; i < s_custom_count; ++i)
+                    if (s_custom_keys[i] == row.stable_handle) mark |= s_custom_metadata[i];
+            int present=0;
+            if(row.retail_selection_plus_one)for(uint32_t i=0;i<kept;++i)if((keys[i]&~FIGHTER_UNLOCK_METADATA)==mark)present=1;
+            if(!present)keys[kept++] = mark;
             if (remember_custom(mark)) custom_progress_changed();
         }
         for (uint32_t i = 1; i < kept; ++i) {
@@ -912,8 +935,8 @@ uint32_t defjam_fighter_controller_submission(uint32_t arguments) {
 }
 
 int defjam_fighter_ui_command(uint32_t command) {
-    static const char prefix[] = "Fighters.KeepReady";
-    char text[40]; uint32_t i;
+    static const char prefix[] = "Fighters.";
+    char text[64]; uint32_t i;
     if (!s_window.bytes || !command) return 0;
     for (i = 0; i < sizeof prefix - 1; ++i)
         if (MEM8(command + i) != (uint8_t)prefix[i]) return 0;
@@ -921,8 +944,25 @@ int defjam_fighter_ui_command(uint32_t command) {
         text[i] = (char)MEM8(command + i);
         if (!text[i]) break;
     }
-    if (i == sizeof text || fighter_window_command(&s_window, text) != 1)
+    if (i == sizeof text) fighter_stop("Native fighter UI command exceeds its budget.");
+    if (!strncmp(text,"Fighters.Outfit",14)) {
+        unsigned participant,selection,outfit;int end=0;char canonical[64];FighterWindowRow row;
+        if(sscanf(text,"Fighters.Outfit(%u,%u,%u)%n",&participant,&selection,&outfit,&end)!=3 || !end || text[end]
+            || participant>=4 || selection<100 || selection>0x7FFFFFFEu || outfit>2 || s_window.frozen)
+            fighter_stop("Invalid native outfit confirmation.");
+        snprintf(canonical,sizeof canonical,"Fighters.Outfit(%u,%u,%u)",participant,selection,outfit);
+        if(strcmp(canonical,text)) fighter_stop("Noncanonical native outfit confirmation.");
+        /* Browsing grids may also be snapshotted by the owned movie. Only a
+         * confirmed, matching participant can change its appearance state. */
+        if(!s_window.selected[participant] || !fighter_window_at(&s_window,s_window.selected[participant]-1,&row)
+            || row.selection_key!=selection) return 1;
+        if(!defjam_fighter_caf_outfit(participant,selection,outfit)) fighter_stop("Undeclared CAF outfit confirmation.");
+        return 1;
+    }
+    if (strncmp(text,"Fighters.KeepReady",17)) return 0;
+    if (fighter_window_command(&s_window, text) != 1)
         fighter_stop("Native ready ownership differs from the participant bindings, or the match is still active.");
+    for(i=0;i<4;++i) if(!s_window.selected[i]) defjam_fighter_caf_menu_clear(i);
     prune_participant_unlocks();
     fprintf(stderr, "[FIGHTERS] synchronized pre-match ready ownership: %s\n", text);
     return 1;
@@ -944,7 +984,7 @@ uint32_t defjam_fighter_result_identity(uint32_t participant, uint32_t native) {
         fighter_stop("Result identity does not match its frozen participant binding.");
     fprintf(stderr, "[FIGHTERS] result participant=%u native=%u logical=%u stable=%08X\n",
             participant, native, row.selection_key, row.stable_handle);
-    return row.selection_key;
+    return row.retail_selection_plus_one?row.retail_selection_plus_one-1:defjam_fighter_caf_presentation(participant,row.selection_key);
 }
 
 uint32_t defjam_fighter_loading_identity(uint32_t native) {
@@ -960,7 +1000,7 @@ uint32_t defjam_fighter_loading_identity(uint32_t native) {
         fighter_stop("Loading identity does not match its participant binding.");
     fprintf(stderr, "[FIGHTERS] loading participant=%u native=%u logical=%u stable=%08X\n",
             participant, native, row.selection_key, row.stable_handle);
-    return row.selection_key;
+    return row.retail_selection_plus_one?row.retail_selection_plus_one-1:defjam_fighter_caf_presentation(participant,row.selection_key);
 }
 
 static uint32_t read_word(const uint8_t *p) {
