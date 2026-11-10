@@ -74,6 +74,14 @@ Local receipts: `logs/pockets/final-outfit-result.txt`,
 Focused checks: 50 passed; final real Qt/WebChannel preview/control check passes.
 No broad regression or decisive result/rematch qualification is claimed.
 
+CI initially found that the existing extracted-function unlock-projection
+fixture omitted the new canonical-progress helper. Its fixture now compiles the
+actual helper and insertion function. An additional native case verifies that
+stale standalone progress metadata for an outfit key cannot duplicate or alter
+its retail parent's mark on selection, while actual insertion keeps metadata
+and adjacent guest words intact. The expanded focused suite passes56 tests.
+The correction leaves the fresh-progress native cases above unchanged.
+
 ## Retained negative evidence and limits
 
 The first native attempt stalled at startup with a D3D fence wait and no

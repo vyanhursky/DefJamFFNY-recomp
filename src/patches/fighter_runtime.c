@@ -910,8 +910,12 @@ uint32_t defjam_fighter_controller_submission(uint32_t arguments) {
         if (kept >= FIGHTER_UNLOCK_CAPACITY) fighter_stop("Participant unlock projection exceeds native capacity.");
         {
             uint32_t mark = outfit_progress_handle(row.stable_handle);
-            for (uint32_t i = 0; i < s_custom_count; ++i)
-                if (s_custom_keys[i] == row.stable_handle) mark |= s_custom_metadata[i];
+            /* A costume shares the retail parent's progress. Historical
+             * standalone marks for its logical key stay in the extension,
+             * never become a duplicate or change the parent on selection. */
+            if (!row.retail_selection_plus_one)
+                for (uint32_t i = 0; i < s_custom_count; ++i)
+                    if (s_custom_keys[i] == row.stable_handle) mark |= s_custom_metadata[i];
             int present=0;
             if(row.retail_selection_plus_one)for(uint32_t i=0;i<kept;++i)if((keys[i]&~FIGHTER_UNLOCK_METADATA)==mark)present=1;
             if(!present)keys[kept++] = mark;
