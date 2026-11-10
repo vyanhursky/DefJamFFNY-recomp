@@ -77,3 +77,21 @@ lifetime. Windows Workshop exercises real UI switching/copy/remove/Undo/Reset,
 three portrait captures and complete-project persistence. Native game evidence,
 source hashes and remaining platform qualifications are recorded in the PR;
 private source art, captures, saves and packages are not tracked.
+
+Windows evidence on toolkit 4801dc1 / win-x64-release: 2,460 unit tests pass
+(56 platform/resource skips), with 23 focused menu/outfit cases repeated after
+the final dataset-construction correction. Native `run-20261109-175723.log.err`
+shows three selector choices, outfit-specific portraits and black-tank index 2
+assembled under canonical 100/core 101/body A/face 4; its guarded save restores
+identically with zero crash/watchdog/unresolved calls. `run-20261109-180038.log.err`
+completes red-jersey index 1 versus retail 17: seven combat/result assertions,
+the matching result portrait, two acknowledged Options generations and identical
+save restoration. The PR records subsequent independent-participant, stock
+regression and CI results; these are Windows game proofs, not macOS/Linux play.
+
+Initial calibration failures are retained privately: an unrelated retail grid
+must not emit the owned outfit command, and CLOTH=3 on an appended CCharacter
+consumes the exhausted original roster stream. Explicit declared-ID filtering
+and local dataset population correct both. A later two-CAF navigation attempt
+selected the neighboring retail cell and was normally closed; its guard still
+restored identically. Navigation failures are not gameplay passes.
