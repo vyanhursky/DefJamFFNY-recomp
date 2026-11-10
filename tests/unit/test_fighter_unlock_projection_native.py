@@ -29,6 +29,9 @@ static FighterBindings s_bindings;
 static FighterWindowRow rows[5];
 static uint32_t s_settings=0x1000,s_validated_database=1,s_custom_count=5;
 static uint32_t s_custom_keys[5],s_custom_metadata[5];
+static char s_journal[1];
+void defjam_fighter_caf_menu_clear(uint32_t slot){assert(slot<4 || slot==UINT32_MAX);}
+int defjam_fighter_caf_outfit(uint32_t slot,uint32_t selection,uint32_t index){(void)slot;(void)selection;(void)index;abort();}
 #ifdef _MSC_VER
 __declspec(noreturn)
 #else
@@ -36,8 +39,10 @@ _Noreturn
 #endif
 static void fighter_stop(const char *message){fprintf(stderr,"%s\n",message);exit(23);}
 int fighter_bindings_find(const FighterBindings *bindings,FighterBindingKey domain,uint32_t key,FighterBinding *out){
- assert(bindings==&s_bindings&&domain==FIGHTER_BINDING_STABLE);
+ assert(bindings==&s_bindings);
  memset(out,0,sizeof *out);out->stable_handle=key;
+ if(domain==FIGHTER_BINDING_SELECTION){assert(key<75);out->stable_handle=0x1000+key;return 1;}
+ assert(domain==FIGHTER_BINDING_STABLE);
  if(key>=0x1000&&key<0x1000+75)return 1;
  for(unsigned i=0;i<5;i++)if(rows[i].stable_handle==key){out->flags=1;return 1;}
  for(unsigned i=0;i<4;i++)if(s_window.banks[i].private_handle==key){out->flags=1;return 1;}
@@ -78,6 +83,17 @@ int main(int argc,char **argv){
  }else{
   submit(0,1);
   if(!strcmp(argv[2],"bind")){submit(0,rows[4].selection_key);expected=79;}
+  if(!strcmp(argv[2],"outfit")){
+   submit(0,rows[4].selection_key);expected=78;
+   assert(outfit_progress_handle(rows[4].stable_handle)==0x1003);
+   MEM32(s_settings+0x1C)=FIGHTER_UNLOCK_CAPACITY;
+   g_esp=0x7000;MEM32(g_esp+4)=0x7100;
+   MEM32(0x70FC)=0x12345678;MEM32(0x7104)=0x87654321;
+   MEM32(0x7100)=rows[4].stable_handle|FIGHTER_UNLOCK_METADATA;
+   defjam_fighter_unlock_inserting(s_settings+0x1C);
+   assert(MEM32(0x7100)==(0x1003|FIGHTER_UNLOCK_METADATA));
+   assert(MEM32(0x70FC)==0x12345678&&MEM32(0x7104)==0x87654321);
+  }
  }
  assert(MEM32(s_settings+0x20)==expected&&MEM32(s_settings+0x1264)==expected);
  for(unsigned retail=0;retail<75;retail++){
@@ -106,7 +122,8 @@ def projection(tmp_path_factory):
     (folder / 'recomp/gen').mkdir(parents=True)
     (folder / 'recomp/gen/recomp_types.h').write_text(TYPES, encoding='utf-8')
     runtime = (ROOT / 'src/patches/fighter_runtime.c').read_text(encoding='utf-8')
-    names = ['submission_integer', 'defjam_fighter_controller_submission', 'defjam_fighter_ui_command']
+    names = ['outfit_progress_handle', 'defjam_fighter_unlock_inserting', 'submission_integer',
+             'defjam_fighter_controller_submission', 'defjam_fighter_ui_command']
     helper = 'prune_participant_unlocks'
     if 'static void ' + helper + '(' in runtime:
         names.insert(0, helper)
@@ -124,11 +141,14 @@ def projection(tmp_path_factory):
     _, report = catalog(menu=True)[0].compile([pack(count=5)], binding_window=True)
     window = folder / 'window.bin'
     window.write_bytes(encode_window(report['window']))
-    return exe, window
+    report['window']['fighters'][4]['reserved']=4  # native retail selection3+1
+    outfit=folder/'outfit.bin';outfit.write_bytes(encode_window(report['window']))
+    return exe, window, outfit
 
 
-@pytest.mark.parametrize('mode', ['retail', 'all', 'ready', 'bind', 'bad-count'])
+@pytest.mark.parametrize('mode', ['retail', 'all', 'ready', 'bind', 'bad-count', 'outfit'])
 def test_actual_selection_clear_prunes_only_unbound_live_marks(projection, mode):
-    exe, window = projection
+    exe, window, outfit = projection
+    if mode=='outfit':window=outfit
     result = subprocess.run([str(exe), str(window), mode], capture_output=True, text=True, timeout=10)
     assert result.returncode == (23 if mode == 'bad-count' else 0), result.stdout + result.stderr

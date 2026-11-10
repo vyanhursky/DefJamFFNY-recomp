@@ -96,6 +96,7 @@ STATE = r'''
 #include <string.h>
 #include "fighter_window.h"
 static FighterWindow s_window;
+uint32_t defjam_fighter_caf_presentation(uint32_t participant,uint32_t selection) {assert(participant==0);return selection;}
 #ifdef _MSC_VER
 __declspec(noreturn)
 #else

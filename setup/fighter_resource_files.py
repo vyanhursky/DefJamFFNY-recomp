@@ -15,6 +15,10 @@ PORTRAIT_ALL_PARTS=PORTRAIT_EXTENDED_PARTS+PORTRAIT_GRID_PARTS
 
 
 def portrait_parts(source):
+    if type(source) is dict and source.get('format')=='eagl-portrait-png-1':
+        from fighter_ui_art import validate
+        validate(source)
+        return tuple(source['images'])
     require(type(source) is dict and source.get('format') in ('eagl-portrait-1','eagl-portrait-2','eagl-portrait-3'),
             'Unsupported portrait source format')
     return PORTRAIT_ALL_PARTS if source['format']=='eagl-portrait-3' else PORTRAIT_EXTENDED_PARTS if source['format']=='eagl-portrait-2' else PORTRAIT_PARTS
@@ -31,10 +35,18 @@ def require(condition, message):
 
 
 def appearance_source(source):
-    version2=type(source) is dict and source.get('format')=='eagl-appearance-2'
-    require(isinstance(source, dict) and set(source) == {'format', 'donor', *PARTS}|({'shape_names'} if version2 else set()),
+    painted=type(source) is dict and source.get('format')=='eagl-appearance-png-1'
+    version2=type(source) is dict and (source.get('format')=='eagl-appearance-2' or painted and 'shape_names' in source)
+    require(isinstance(source, dict) and set(source) == {'format', 'donor', *PARTS}|({'shape_names'} if version2 else set())|({'images'} if painted else set()),
             'Appearance source needs format, donor, model, textures and face')
-    require(source['format'] == APPEARANCE_FORMAT or version2, 'Unsupported appearance source format')
+    require(source['format'] == APPEARANCE_FORMAT or version2 or painted, 'Unsupported appearance source format')
+    if painted:
+        images=source['images']
+        require(type(images) is dict and 0<len(images)<=64,'Invalid appearance PNG image set')
+        for shape,spec in images.items():
+            require(type(shape) is str and re.fullmatch('[A-Za-z0-9_]{4}',shape),'Invalid appearance texture shape')
+            require(type(spec) is dict and set(spec)=={'path','sha256'} and type(spec['sha256']) is str and re.fullmatch('[0-9a-f]{64}',spec['sha256']),'Invalid appearance PNG descriptor')
+            safe_relative(spec['path'])
     if version2:
         mapping=source['shape_names']
         require(type(mapping) is dict and 0<len(mapping)<=4096
@@ -71,6 +83,14 @@ def read_appearance(root, source, budget=3 * MAX_ASSET):
         require(hashlib.sha256(data).hexdigest() == descriptor['sha256'], 'Appearance file hash mismatch: ' + part)
         output[part] = data
         budget -= len(data)
+    if source['format']=='eagl-appearance-png-1':
+        output['images']={}
+        for shape,spec in source['images'].items():
+            path=ordinary_path(root.joinpath(*safe_relative(spec['path'])))
+            require(path.is_relative_to(root),'Appearance PNG escapes its package')
+            with path.open('rb') as stream:data=stream.read(min(16*1024**2,budget)+1)
+            require(0<len(data)<=min(16*1024**2,budget) and hashlib.sha256(data).hexdigest()==spec['sha256'],'Appearance PNG hash/size differs')
+            output['images'][shape]=data;budget-=len(data)
     return output
 
 
@@ -83,6 +103,9 @@ def resource_name(identifier):
 
 
 def portrait_source(source):
+    if type(source) is dict and source.get('format')=='eagl-portrait-png-1':
+        from fighter_ui_art import validate
+        return validate(source)
     parts=portrait_parts(source)
     require(isinstance(source, dict) and set(source) == {'format', 'donor', *parts},
             'Portrait source needs format, donor and every declared role variant')
@@ -106,8 +129,12 @@ def read_portrait(root, source, budget=16 * 1024**2):
     root = ordinary_path(root)
     require(root.is_dir(), 'Portrait package directory is missing')
     output = {}
+    reused = {}
     for part in portrait_parts(source):
-        descriptor = source[part]
+        descriptor = source['images'][part] if source['format']=='eagl-portrait-png-1' else source[part]
+        identity=(descriptor['path'],descriptor['sha256'])
+        if source['format']=='eagl-portrait-png-1' and identity in reused:
+            output[part]=reused[identity];continue
         path = ordinary_path(root.joinpath(*safe_relative(descriptor['path'])))
         require(path.is_relative_to(root), 'Portrait file escapes its package')
         with path.open('rb') as stream:
@@ -115,5 +142,6 @@ def read_portrait(root, source, budget=16 * 1024**2):
         require(0 < len(data) <= min(MAX_ASSET, budget), 'Portrait file exceeds its byte budget')
         require(hashlib.sha256(data).hexdigest() == descriptor['sha256'], 'Portrait file hash mismatch: ' + part)
         output[part] = data
+        reused[identity]=data
         budget -= len(data)
     return output

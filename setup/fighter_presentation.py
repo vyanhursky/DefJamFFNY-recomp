@@ -100,6 +100,17 @@ def prepare_portraits(screens, report, *, language=None, resource_cache=None, ca
              for key, donor in report['portrait_donors'].items()}
     extended={report['bindings'][key]['selection_key'] for key,identifier in report.get('portrait_bindings',{}).items()
               if 'result_logo_2p' in report['portrait_resources'][identifier]['variants']}
+    menu_pairs = dict(pairs)
+    outfit_bindings = {}
+    for key, outfits in report.get('caf_outfits', {}).items():
+        canonical = report['bindings'][key]['selection_key']
+        for outfit in outfits:
+            alias, identifier = outfit['portrait_alias'], outfit['portrait_resource']
+            pairs[alias] = pairs[canonical]
+            if identifier:
+                outfit_bindings[alias] = (identifier, report['portrait_files'])
+                if 'result_logo_2p' in report['portrait_resources'][identifier]['variants']:
+                    extended.add(alias)
     result = portrait_aliases(source, pairs, results=True,extended=extended)
     artwork = {}
     if report.get('portrait_resources'):
@@ -117,6 +128,7 @@ def prepare_portraits(screens, report, *, language=None, resource_cache=None, ca
             resources[relative] = data
         bindings = {report['bindings'][key]['selection_key']: (identifier, report['portrait_files'])
                     for key, identifier in report['portrait_bindings'].items()}
+        bindings.update(outfit_bindings)
         if not set(bindings) <= set(pairs):
             raise ValueError('Authored portrait binding is not an owned custom alias')
         result = apply_portraits(result, bindings, resources)
@@ -128,17 +140,21 @@ def prepare_portraits(screens, report, *, language=None, resource_cache=None, ca
     archive, replacements = Archive(result), {}
     names = {report['bindings'][key]['selection_key']: report['localization_entries'][report['bindings'][key]['native_name']]
              for key in report['portrait_donors']}
+    result_names = dict(names)
+    for key, outfits in report.get('caf_outfits', {}).items():
+        for outfit in outfits:
+            result_names[outfit['portrait_alias']] = names[report['bindings'][key]['selection_key']]
     for count in (() if report.get('binding_mode') == 'retail-only' else (2, 3, 4)):
         stem = f'chooseF{count}'
         path = 'screens/battle/' + stem + '.big'
         inner = Archive(unpack(archive.read(path)))
         records = list(report['menu_roster'].values()) if report.get('binding_mode') in ('logical-menu-only', 'participant-window') else None
-        movie, constants, _ = compile_menu(inner.read(stem + '.apt'), inner.read(stem + '.const'), pairs, names, records, participants=count, artwork=artwork,logos=extended)
+        movie, constants, _ = compile_menu(inner.read(stem + '.apt'), inner.read(stem + '.const'), menu_pairs, names, records, participants=count, artwork=artwork,logos=extended & set(names))
         replacements[path] = store(inner.compose(replacements={stem + '.apt': movie, stem + '.const': constants}))
         stem = f'matchSm{count}'
         path = 'screens/battle/' + stem + '.big'
         inner = Archive(unpack(archive.read(path)))
-        movie, constants, _ = compile_results(inner.read(stem + '.apt'), inner.read(stem + '.const'), names, participants=count,logos=extended)
+        movie, constants, _ = compile_results(inner.read(stem + '.apt'), inner.read(stem + '.const'), result_names, participants=count,logos=extended)
         replacements[path] = store(inner.compose(replacements={stem + '.apt': movie, stem + '.const': constants}))
     result = archive.compose(replacements=replacements)
     digest = hashlib.sha256(result).hexdigest()

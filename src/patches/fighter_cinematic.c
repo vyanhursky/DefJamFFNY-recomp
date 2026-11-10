@@ -4,15 +4,19 @@
 #endif
 #include "fighter_cinematic.h"
 #include "fighter_runtime.h"
+#include "fighter_behavior_identity.h"
 #include "fighter_film_proof.h"
 #include "hooks/mod_sha256.h"
 #include "hooks/guest_call.h"
 #include <stdlib.h>
 
 #define CIN_CORE_LIMIT 16384u
-#define CIN_TABLE_LIMIT (88u + 24u * (CIN_CORE_LIMIT - 141u))
-static char s_clips[CIN_CORE_LIMIT][2][8];
-static uint8_t s_full_clips[CIN_CORE_LIMIT],s_full_blazin[CIN_CORE_LIMIT];
+#define CIN_BINDING_LIMIT (CIN_CORE_LIMIT+CAF_BEHAVIOR_MAX)
+#define CIN_TABLE_LIMIT (88u + 24u * CIN_BINDING_LIMIT)
+static char s_clips[CIN_BINDING_LIMIT][2][8];
+static uint8_t s_full_clips[CIN_BINDING_LIMIT],s_full_blazin[CIN_CORE_LIMIT];
+static CafBehaviorBinding s_caf_bindings[CAF_BEHAVIOR_MAX];
+static uint32_t s_caf_count;
 static uint8_t s_absolute_blazin[CIN_CORE_LIMIT];
 static uint32_t s_count;
 static char s_blazin[CIN_CORE_LIMIT][4][8];
@@ -130,30 +134,37 @@ int defjam_fighter_cinematic_start(void) {
     int valid = !ferror(file) && size >= 88 && size <= CIN_TABLE_LIMIT;
     if (fclose(file)) valid = 0;
     uint32_t count = valid ? cin_word(table + 8) : 0;
-    uint32_t version=valid?cin_word(table+4):0,stride=version==2?24u:20u;
+    uint32_t version=valid?cin_word(table+4):0,stride=version>=2?24u:20u;
     char banks_digest[65], nis_digest[65];
     if (valid) {
         hex(table + 24, banks_digest); hex(table + 56, nis_digest);
-        valid = ((version==1 && !memcmp(table,"FIC1",4)) || (version==2 && !memcmp(table,"FIC2",4))) && count
-            && count <= CIN_CORE_LIMIT - 141 && size == 88u + count * stride
+        valid = ((version==1 && !memcmp(table,"FIC1",4)) || (version==2 && !memcmp(table,"FIC2",4)) || (version==3 && !memcmp(table,"FIC3",4))) && count
+            && count <= (version==3?CIN_BINDING_LIMIT:CIN_CORE_LIMIT-141) && size == 88u + count * stride
             && cin_word(table + 20) == 0 && !strcmp(banks_digest, hash) && !strcmp(nis_digest, nis_hash)
             && cin_size(path, cin_word(table + 12)) && cin_size(nis, cin_word(table + 16));
     }
     uint32_t previous = 140;
+    s_caf_count=0;
     memset(s_clips, 0, sizeof s_clips);
     memset(s_full_clips,0,sizeof s_full_clips);
     for (uint32_t i = 0; valid && i < count; ++i) {
         const uint8_t *row = table + 88 + i * stride;
         uint32_t core = cin_word(row);
-        if (core <= previous || core >= CIN_CORE_LIMIT) { valid = 0; break; }
+        int caf=version==3 && caf_behavior_key(core);
+        if (core <= previous || (!caf && core >= CIN_CORE_LIMIT) || (caf && s_caf_count>=CAF_BEHAVIOR_MAX)) { valid = 0; break; }
         for (unsigned category = 0; category < 2; ++category) {
             const uint8_t *name = row + 4 + category * 8;
             if (name[0] != 'F' || name[1] != (category ? 'V' : 'I') || name[7]) valid = 0;
             for (unsigned j = 2; j < 7; ++j) if (name[j] < '0' || name[j] > '9') valid = 0;
         }
-        uint32_t flags=version==2?cin_word(row+20):0;
-        if (flags&~3u) valid=0;
-        if (valid) { memcpy(s_clips[core], row + 4, 16);s_full_clips[core]=(uint8_t)flags; previous = core; }
+        uint32_t flags=version>=2?cin_word(row+20):0;
+        if ((flags&~3u) || (caf && flags)) valid=0;
+        if (valid) {
+            previous=core;
+            if(caf) {uint32_t index=CIN_CORE_LIMIT+s_caf_count;
+                s_caf_bindings[s_caf_count].selection=core&~CAF_BEHAVIOR_BIT;s_caf_bindings[s_caf_count++].index=index;core=index;}
+            memcpy(s_clips[core], row + 4, 16);s_full_clips[core]=(uint8_t)flags;
+        }
     }
     if (valid) valid = cin_blazin_start(path, hash);
     if (valid) {
@@ -164,10 +175,10 @@ int defjam_fighter_cinematic_start(void) {
 }
 const char *defjam_fighter_cinematic_path(void) { return s_archive; }
 int defjam_fighter_cinematic_proofs(void) {
-    for (unsigned core=141;core<CIN_CORE_LIMIT;++core) {
+    for (unsigned core=141;core<CIN_BINDING_LIMIT;++core) {
         for (unsigned role=0;role<2;++role)
             if ((s_full_clips[core]&(1u<<role)) && !defjam_fighter_film_complete(s_clips[core][role],role==0)) return 0;
-        for (unsigned phase=0;phase<4;++phase)
+        for (unsigned phase=0;core<CIN_CORE_LIMIT && phase<4;++phase)
             if ((s_full_blazin[core]&(1u<<phase)) && !defjam_fighter_film_complete(s_blazin[core][phase],0)) return 0;
     }
     return 1;
@@ -373,10 +384,12 @@ uint64_t defjam_fighter_cinematic_enter(uint32_t manager, uint32_t descriptor, u
     uint32_t slot = MEM32(request + 4);
     if (slot >= 4) return previous;
     uint32_t core = MEM32(0x3B90B8 + slot * 4);
-    if (core >= CIN_CORE_LIMIT || !s_clips[core][0][0]) return previous;
-    if (blazin && (!s_blazin_count || !s_blazin[core][0][0])) return previous;
+    uint32_t actual_core=core;
+    if(!blazin) {uint32_t binding=caf_behavior_index(s_caf_bindings,s_caf_count,slot);if(binding!=UINT32_MAX)core=binding;}
+    if (core >= CIN_BINDING_LIMIT || !s_clips[core][0][0]) return previous;
+    if (blazin && (core >= CIN_CORE_LIMIT || !s_blazin_count || !s_blazin[core][0][0])) return previous;
     uint32_t config = MEM32(manager + 0x2FF5C);
-    if (!config || MEM32(config + 0xA8 + slot * 4) != core + 1)
+    if (!config || MEM32(config + 0xA8 + slot * 4) != actual_core + 1)
         cin_stop("participant core differs from native cinematic configuration");
     if (!blazin && (MEM32(manager + 0x2B9EC) & 0x02000000u))
         cin_stop("owned simple sequence cannot use the two-actor cinematic path");
@@ -408,9 +421,10 @@ void defjam_fighter_cinematic_selected(uint32_t descriptor, uint32_t name) {
         if (label[i] < '0' || label[i] > '9') return;
         core = core * 10 + label[i] - '0';
     }
-    if (core >= CIN_CORE_LIMIT || !s_clips[core][0][0]) return;
+    if (core >= CIN_BINDING_LIMIT || !s_clips[core][0][0]) return;
     uint32_t category = MEM32(descriptor + 0xA4);
     if (label[2] == 'b') {
+        if(core>=CIN_CORE_LIMIT)cin_stop("CAF cinematic binding cannot supply Blazin choreography");
         uint32_t phase = MEM32(descriptor + 0xD4);
         if (!s_blazin_count || !s_blazin[core][0][0] || MEM32(descriptor + 0x19C) != 4
             || category != 2 || phase >= 4 || MEM32(descriptor + 0xD0) != 4 || name != descriptor + 0x61)

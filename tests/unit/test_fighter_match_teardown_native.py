@@ -30,6 +30,7 @@ DRIVER = r'''
 static FighterWindow s_window;
 static int s_immutable_reuse, stage, validates, expected_frozen, fail_pool;
 static uint8_t live;
+static unsigned caf_clears;
 uint32_t g_ecx = 0x349760;
 static void still_owned(void) {
     assert(s_window.frozen == expected_frozen);
@@ -50,6 +51,7 @@ void defjam_fighter_cpu_released(void) {
     assert(stage == 5); still_owned(); stage = 6;
     if (fail_pool) exit(23);
 }
+void defjam_fighter_caf_clear(void) { assert(stage == 6); still_owned(); ++caf_clears; }
 static void validate_immutable_banks(void) { assert(stage == 6); still_owned(); ++validates; }
 static void fighter_stop(const char *message) { (void)message; abort(); }
 static unsigned xbox_HeapLiveBytes(void) { return 10; }
@@ -67,7 +69,7 @@ int main(int argc, char **argv) {
         s_window.selected[1] = cycle + 3;
         stage = validates = 0;
         sub_00089310();
-        assert(stage == 6);
+        assert(stage == 6 && caf_clears == cycle + 1);
         assert(s_window.selected[0] == cycle + 1 && s_window.selected[1] == cycle + 3);
         if (s_window.bytes && s_immutable_reuse && expected_frozen) {
             assert(validates == 1 && !s_window.frozen);

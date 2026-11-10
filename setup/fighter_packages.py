@@ -34,7 +34,30 @@ def inventory(folder):
     expected = {MANIFEST}
     hashes = {}
     for resource in manifest['resources']:
-        for spec in descriptors(resource.get('source', {})):
+        source = resource.get('source', {})
+        declared = list(descriptors(source))
+        if resource['kind'] == 'caf' and source.get('format') in ('caf-fighter-2', 'caf-fighter-3', 'caf-fighter-4', 'caf-fighter-5', 'caf-fighter-6'):
+            descriptor = source['selection']
+            recipe_path = ordinary_path(folder.joinpath(*safe_relative(descriptor['path'])))
+            check(recipe_path.is_relative_to(folder), 'CAF recipe leaves its package')
+            recipe, _ = document(recipe_path, 65536)
+            with recipe_path.open('rb') as stream:
+                recipe_raw = stream.read(65537)
+            check(len(recipe_raw) <= 65536 and hashlib.sha256(recipe_raw).hexdigest() == descriptor['sha256'], 'CAF recipe hash differs')
+            check(type(recipe) is dict, 'CAF recipe must be an object')
+            from fighter_caf_extras import ATLASES
+            outfits = recipe.get('outfits', [])
+            check(type(outfits) is list and len(outfits) <= 2 and all(type(o) is dict for o in outfits), 'Invalid CAF outfit inventory')
+            for outfit in [recipe, *outfits]:
+                if 'face' in outfit:
+                    check(type(outfit['face']) is dict and set(outfit['face'])=={'path','sha256'},'Invalid CAF face descriptor')
+                    declared.append(outfit['face'])
+                atlases = outfit.get('atlases', {})
+                check(type(atlases) is dict and set(atlases) <= set(ATLASES), 'Invalid declared CAF atlas slots')
+                for atlas in atlases.values():
+                    check(type(atlas) is dict and set(atlas) == {'path', 'sha256'}, 'Invalid declared CAF atlas descriptor')
+                    declared.append(atlas)
+        for spec in declared:
             name = '/'.join(safe_relative(spec['path']))
             check(name != MANIFEST, 'Resource cannot alias the fighter manifest')
             check(name not in hashes or hashes[name] == spec['sha256'], 'Resource has conflicting hashes: ' + name)
@@ -134,7 +157,7 @@ def candidate(manager, state, identifier, stage, new):
         build(manager, state, ids=ids, replacements={identifier: stage})
 
 
-def runtime_environment(cache, report, screens, language=None):
+def runtime_environment(cache, report, screens, language=None, *, ui_pack=None):
     environment = {'RECOMP_FIGHTER_NAMES': str(cache / 'fighter-names.bin'),
                    'RECOMP_FIGHTER_BINDINGS': str(cache / 'fighter-bindings.bin'),
                    'RECOMP_FIGHTER_RESEARCH_SOD': str(cache / 'assets/djv2.sod'),
@@ -142,6 +165,15 @@ def runtime_environment(cache, report, screens, language=None):
                    'RECOMP_FIGHTER_NAMES_PROBE': '1', 'RECOMP_FIGHTER_IMMUTABLE_REUSE': '1'}
     if report.get('binding_mode') == 'participant-window':
         environment['RECOMP_FIGHTER_WINDOW'] = str(cache / 'fighter-window.bin')
+    if report.get('caf_fighters'):
+        environment['RECOMP_FIGHTER_CAF'] = str(cache / 'fighter-caf.bin')
+        environment['RECOMP_FIGHTER_CAF_SHA256'] = report['caf_sha256']
+    if report.get('caf_extras_sha256'):
+        environment['RECOMP_FIGHTER_CAF_EXTRAS'] = str(cache / 'fighter-caf-extras.bin')
+        environment['RECOMP_FIGHTER_CAF_EXTRAS_SHA256'] = report['caf_extras_sha256']
+    if report.get('caf_faces_sha256'):
+        environment['RECOMP_FIGHTER_CAF_FACES'] = str(cache / 'fighter-caf-faces.bin')
+        environment['RECOMP_FIGHTER_CAF_FACES_SHA256'] = report['caf_faces_sha256']
     if report.get('appearance_files'):
         for field, relative in [('MODELS', 'assets/v2ip.viv'), ('ENTITIES', 'assets/entity.xml'), ('CINEMATICS', 'assets/nis.viv')]:
             environment['RECOMP_FIGHTER_RESEARCH_' + field] = str(cache / relative)
@@ -152,4 +184,6 @@ def runtime_environment(cache, report, screens, language=None):
     if language:
         environment['RECOMP_FIGHTER_RESEARCH_LANGUAGE_BASE'] = language[1]['base_sha256']
         environment['RECOMP_FIGHTER_RESEARCH_SCREENS_SHA256'] = hashlib.sha256(screens.read_bytes()).hexdigest()
+    if ui_pack is not None:
+        environment['RECOMP_FIGHTER_UI_TEXTURE_PACK']=ui_pack.name
     return environment

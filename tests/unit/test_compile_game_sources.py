@@ -34,3 +34,23 @@ def test_refuses_where_lifted_code_is_present(tmp_path, monkeypatch):
         assert 'lifted code is present' in str(e)
     else:
         raise AssertionError('should refuse')
+
+
+def test_host_options_are_forwarded_and_standins_are_removed(tmp_path, monkeypatch):
+    gen = tmp_path / 'gen'
+    template = tmp_path / 'template.h'
+    template.write_text('/* invented host header */')
+    monkeypatch.setattr(cgs, 'GEN', gen)
+    monkeypatch.setattr(cgs, 'TEMPLATE', template)
+    monkeypatch.setattr(cgs, 'game_objects', lambda _: ['host.o'])
+    commands = []
+    def run(command, **kwargs):
+        commands.append(command)
+        assert (gen / 'recomp_types.h').exists()
+        assert (gen / 'recomp_dispatch.c').exists()
+        return subprocess.CompletedProcess(command, 0)
+    monkeypatch.setattr(cgs.subprocess, 'run', run)
+    assert cgs.main(['--build', str(tmp_path / 'build'), '--cmake-arg=-DDEFJAM_SDL3=OFF']) == 0
+    assert '-DDEFJAM_SDL3=OFF' in commands[0]
+    assert '-DDEFJAM_BUILD_GAME=ON' in commands[0]
+    assert not list(gen.iterdir())

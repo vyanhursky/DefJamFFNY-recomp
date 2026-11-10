@@ -16,10 +16,10 @@ SLUG = re.compile(r'[a-z0-9]+(?:-[a-z0-9]+)*\Z')
 VERSION = re.compile(r'(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\Z')
 GROUPS = {'appearance': 'appearance', 'moveset': 'moveset', 'voice': 'voice',
           'ai': 'ai', 'portrait': 'portrait', 'intro': 'cinematic',
-          'victory': 'cinematic', 'blazin': 'blazin'}
+          'victory': 'cinematic', 'blazin': 'blazin', 'caf': 'caf'}
 COMPATIBILITY = {'appearance': {'skeleton'}, 'moveset': {'skeleton', 'events'},
                  'voice': {'events'}, 'ai': set(), 'portrait': set(),
-                 'cinematic': {'skeleton', 'events'}, 'blazin': {'skeleton', 'events'},'tag-override':set()}
+                 'cinematic': {'skeleton', 'events'}, 'blazin': {'skeleton', 'events'},'tag-override':set(), 'caf':set()}
 STATS = {'health', 'speed', 'toughness', 'charisma'}
 MAX_DEFINITIONS = 16384
 MAX_PACKS = 1024
@@ -115,7 +115,10 @@ def validate_pack(pack, builtin=False):
             check(not builtin, 'resource-source', 'Retail resource sources are immutable')
             from fighter_resource_files import appearance_source, portrait_source
             try:
-                if kind in ('appearance', 'portrait'):
+                if kind == 'caf':
+                    from fighter_caf import source
+                    source(resource['source'])
+                elif kind in ('appearance', 'portrait'):
                     (appearance_source if kind == 'appearance' else portrait_source)(resource['source'])
                 else:
                     from fighter_behavior_files import validate_source
@@ -124,7 +127,10 @@ def validate_pack(pack, builtin=False):
                 raise RegistryError('resource-source', str(error)) from error
     seen = set()
     for fighter in pack['fighters']:
-        fields(fighter, {'id', 'name', 'components'}, {'inherits'})
+        fields(fighter, {'id', 'name', 'components'}, {'inherits','outfit_of'})
+        if 'outfit_of' in fighter:
+            key(fighter['outfit_of'])
+            check(fighter['outfit_of'].startswith('retail/'), 'outfit-parent', 'Outfits currently extend an original retail fighter')
         identifier = slug(fighter['id'])
         check(identifier not in seen, 'duplicate-fighter', 'Duplicate fighter identity')
         seen.add(identifier)
@@ -226,6 +232,8 @@ def resolve(baseline, packs):
                 reference(source['owner'], value)
         ancestry.remove(identifier)
         resolved[identifier] = {'name': source['name'], 'components': values}
+        if 'outfit_of' in source:
+            resolved[identifier]['outfit_of']=source['outfit_of']
         return resolved[identifier]
 
     for identifier in sorted(definitions):
@@ -259,6 +267,13 @@ def resolve(baseline, packs):
         winners[target + ':' + group] = sorted(row[0] for row in live)
     check(not conflicts, 'component-conflict', 'Fighter components have incompatible edits', {'conflicts': conflicts})
     for identifier, value in sorted(resolved.items()):
+        if 'outfit_of' in value:
+            parent=value['outfit_of']
+            check(parent in resolved and parent!=identifier,'outfit-parent','Unknown retail outfit parent')
+            baseline_components=resolved[parent]['components']
+            check({k:v for k,v in value['components'].items() if k not in ('appearance','portrait')} ==
+                  {k:v for k,v in baseline_components.items() if k not in ('appearance','portrait')},
+                  'outfit-combat','Retail outfits must share their parent combat, stats and voice')
         refs = {}
         for group, resource_key in value['components'].items():
             if group in ('stats', 'tier'):

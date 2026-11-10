@@ -201,6 +201,17 @@ class PortraitBaseline:
 class Portrait:
     def __init__(self, identifier, source, files, baseline, donor_selection, budget=16 * 1024**2):
         key(identifier); portrait_source(source)
+        if source['format']=='eagl-portrait-png-1':
+            from fighter_ui_art import render
+            native,hd,receipt=render(source,files,baseline,donor_selection)
+            internal={'format':'eagl-portrait-3','donor':source['donor'],**{
+                part:{'path':part+'.xsh','sha256':hashlib.sha256(raw).hexdigest()} for part,raw in native.items()}}
+            self.__init__(identifier,internal,native,baseline,donor_selection,budget)
+            self.source_sha256=fingerprint(source);self.summary['source_sha256']=self.source_sha256
+            self.summary['png_import']=receipt;self.hd_images=hd
+            self.byte_count+=sum(map(len,hd.values()))
+            require(self.byte_count<=budget,'Compiled PNG portraits exceed their resource budget')
+            return
         parts=portrait_parts(source)
         require(type(baseline) is PortraitBaseline and set(files) == set(parts),
                 'Portrait needs an original baseline and all six texture variants')

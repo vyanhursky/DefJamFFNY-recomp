@@ -38,7 +38,13 @@ int defjam_fighter_motion_audio(uint32_t input) {
  if(!audio_adapter)return 0;
  sub_0003E170_gen();return 1;
 }
+int defjam_fighter_caf_audio(uint32_t input) {
+ assert(input==0x2000);
+ if(audio_adapter!=2)return 0;
+ sub_0003E170_gen();return 1;
+}
 @AUDIO_WRAPPER@
+uint32_t defjam_fighter_caf_selection(uint32_t slot) {(void)slot;return 0;}
 int defjam_fighter_research_active(void) {return enabled;}
 static void entry(void) {
  g_esp=0xB00000;g_eax=101;g_ecx=102;g_edx=103;
@@ -96,8 +102,8 @@ int main(int argc,char **argv) {
  for(uint32_t slot=0;slot<4;slot++) assert(MEM8(0x3403B9+slot*0x64)==1&&MEM32(0x3403A4+slot*0x64)==5);
  for(uint32_t i=0;i<200;i++) assert(MEM8(0x33EA78+i)==0xA5);
  // The real wrapper must restore owned IDs even when native skips bank reload.
- // Exercise both its direct-native and motion-template-adapter return paths.
- for(audio_adapter=0;audio_adapter<2;audio_adapter++) {
+ // Exercise native, motion-template and CAF-template adapter return paths.
+ for(audio_adapter=0;audio_adapter<3;audio_adapter++) {
   entry();MEM32(g_esp+4)=0x2000;uint32_t registered=calls;
   sub_0003E170();
   assert(g_esp==0xB00004&&g_eax==1&&calls==registered);
