@@ -139,6 +139,48 @@ def render(source, files, baseline, selection):
     return native,hd,receipt
 
 
+def _retail_tile(texture,tile):
+    """Decode a verified original UI raster without changing its alpha."""
+    from PIL import Image
+    require(tile['kind'] in (0x60,0x61,0x62) and not tile['swizzled'],'Unsupported original UI PNG reference raster')
+    pixels=texture.data[tile['pixels_offset']:tile['pixels_offset']+tile['pixels_bytes']]
+    header=[0]*31;header[0:7]=[124,0x81007,tile['height'],tile['width'],len(pixels),0,1]
+    header[18:21]=[32,4,int.from_bytes({0x60:b'DXT1',0x61:b'DXT3',0x62:b'DXT5'}[tile['kind']],'little')];header[26]=0x1000
+    return Image.open(io.BytesIO(b'DDS '+struct.pack('<31I',*header)+pixels)).convert('RGBA')
+
+
+def retail_grid_image(baseline,selection,part):
+    """Resolve the donor's actual thumbAll state, not a fitted Results icon."""
+    import fighter_apt as apt
+    from fighter_portrait import UITextures
+    require(part in PORTRAIT_GRID_PARTS and type(selection) is int and 0<=selection<149,'Invalid retail grid reference')
+    stem='chooseF'+part.rsplit('_',1)[1][0]
+    movie=Archive(unpack(baseline.archive.read('screens/battle/'+stem+'.big')))
+    raw=unpack(movie.read(stem+'.apt'));root,_=apt.parse_const(unpack(movie.read(stem+'.const')))
+    count,chars=struct.unpack_from('<II',raw,root+20)
+    exports=struct.unpack_from('<I',raw,8)[0]
+    require(exports<=4096 and 12+exports*8<=len(raw) and count<=9999 and chars+count*4<=len(raw),'Invalid original grid directory')
+    thumbs=[identity for at,identity in struct.iter_unpack('<II',raw[12:12+exports*8]) if apt.read_cstr(raw,at)=='thumbAll']
+    require(len(thumbs)==1 and thumbs[0]<count,'Missing original thumbAll reference')
+    pointers=struct.unpack_from('<'+str(count)+'I',raw,chars)
+    frames=apt.parse_character(raw,pointers[thumbs[0]])['frames']
+    require(len(frames)==300,'Unsupported original grid frame bank')
+    frame=selection+(149 if part.startswith('grid_normal_') else 0)
+    placed=[item for kind,item in frames[frame] if kind=='PlaceObject']
+    require(len(placed)==1,'Original grid frame has no unique image placement')
+    shape=placed[0]['character']
+    require(0<shape<count and struct.unpack_from('<II',raw,pointers[shape])==(1,0x09876543),'Unsupported original grid shape')
+    # Verified retail thumbAll pairs each Shape with its immediately preceding
+    # Image record. These IDs are movie-local, unrelated to result-movie IDs.
+    kind,signature,identifier=struct.unpack_from('<III',raw,pointers[shape-1])
+    require((kind,signature)==(7,0x09876543),'Unsupported original grid image pair')
+    texture=UITextures(unpack(movie.read(stem+'.xsh')))
+    tile=next((image for image in texture.images if int(image['name'])==identifier),None)
+    require(tile is not None,'Original grid image is absent')
+    width,height=used_size(texture,tile)
+    return _retail_tile(texture,tile).crop((0,0,width,height))
+
+
 def retail_image(baseline,selection,part):
     from PIL import Image
     from fighter_portrait import UITextures,variant_path
@@ -148,12 +190,7 @@ def retail_image(baseline,selection,part):
     raw=unpack(movie.read(stem+'.o'));model=UIModel(raw,hashlib.sha256(raw).hexdigest());texture=UITextures(unpack(movie.read(stem+'.xsh')))
     rows=tiles(model,texture);width,height,crops=layout(rows);canvas=Image.new('RGBA',(width,height))
     for key,row in rows.items():
-        tile=row['image'];require(tile['kind'] in (0x60,0x61,0x62) and not tile['swizzled'],'Unsupported original UI PNG reference raster')
-        pixels=texture.data[tile['pixels_offset']:tile['pixels_offset']+tile['pixels_bytes']]
-        # Same bounded DDS wrapper as the local HD asset census.
-        header=[0]*31;header[0:7]=[124,0x81007,tile['height'],tile['width'],len(pixels),0,1]
-        header[18:21]=[32,4,int.from_bytes({0x60:b'DXT1',0x61:b'DXT3',0x62:b'DXT5'}[tile['kind']],'little')];header[26]=0x1000
-        image=Image.open(io.BytesIO(b'DDS '+struct.pack('<31I',*header)+pixels)).convert('RGBA')
+        image=_retail_tile(texture,row['image'])
         box=crops[key];canvas.paste(image.crop((0,0,box[2]-box[0],box[3]-box[1])),box[:2])
     return canvas
 
@@ -167,10 +204,7 @@ def export_reference(game,donor,output,catalog,pin):
     selection=catalog.rows[donor]['native_binding']['selection_key'];output.mkdir(parents=True)
     descriptors={};layouts={}
     for part in PORTRAIT_ALL_PARTS:
-        picture=retail_image(baseline,selection,('result_'+part.rsplit('_',1)[1]) if part in PORTRAIT_GRID_PARTS else part)
-        if part in PORTRAIT_GRID_PARTS:
-            from PIL import ImageOps
-            picture=ImageOps.fit(picture,(64,64),centering=(.5,0))
+        picture=(retail_grid_image if part in PORTRAIT_GRID_PARTS else retail_image)(baseline,selection,part)
         path=output/(part+'.png');picture.save(path)
         descriptors[part]={'path':path.name,'sha256':hashlib.sha256(path.read_bytes()).hexdigest()}
         layouts[part]=list(picture.size)

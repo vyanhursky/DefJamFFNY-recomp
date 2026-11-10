@@ -32,7 +32,9 @@ class GridStates:
                 and struct.unpack_from('<4f',self.shape,8)==(-18.5,-18.5,18.5,18.5)
                 and struct.unpack_from('<I',self.shape,24)[0]==identity,
                 'Original selected-grid shape differs from its verified contract')
-        self.textures=(normal,selected)
+        # selectChar uses token+1; redraw/deselectChar use token+150.
+        # append_grid addresses their zero-based frames as token/token+149.
+        self.textures=(selected,normal)
 
 
 def append_grid(movie, constants, model, textures, templates):
