@@ -31,6 +31,13 @@ before this development feature can ship.
 
 ## Package shape and identity
 
+The development Workshop retail studio can import original/owned appearance
+resources independently of the combat donor. It uses this ordinary package
+contract and the complete native compiler. The typed `eagl-appearance-png-1`
+extension adds hash-bound native/2×/4× RGB atlas PNGs with exact original material
+alpha, scoped texture names and a verified HD layer. See the
+[retail authoring contract](research/workshop-retail-fighters-2026-11-09.md).
+
 A package is one ZIP root folder named after its pack ID. It contains
 `fighters.json`, its declared resource files and optional root README/LICENSE
 `.md` or `.txt` files. No save, executable, opaque shared database or undeclared

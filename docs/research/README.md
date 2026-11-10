@@ -14,6 +14,8 @@ confidence labels and disproved hypotheses remain distinct from measured facts.
 
 ## Fighter Mod Support
 
+- [Workshop retail fighters and RGB atlases](workshop-retail-fighters-2026-11-09.md) — independent body/combat authoring, static preview and alpha-preserving HD body texture imports.
+
 - [Workshop fighter UI artwork](fighter-ui-art-2026-11-09.md) — complete PNG roles, original layout audit, HD texture staging and managed-launch contract.
 
 - [Workshop CAF outfits](workshop-caf-outfits-2026-11-09.md) — one fighter, three appearance datasets, per-participant selection and visual-only portrait aliases.
