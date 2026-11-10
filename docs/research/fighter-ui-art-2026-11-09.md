@@ -25,7 +25,9 @@ titlecard, normal grid icon and selected grid icon. Original canvases vary:
 | Loading titlecard | 202×99 | 167×85 | 180×69 |
 
 Grid templates use a single original 64×64 DXT5 raster and retain existing normal
-and selected native geometry. Retail reference export derives their placeholders
+and selected native geometry. Their visible material extent is 38×37: fit there
+and retain transparent padding, rather than filling the power-of-two raster.
+Retail reference export derives their placeholders
 from the donor result portrait; authors can import separate grid states.
 
 ## Typed source contract

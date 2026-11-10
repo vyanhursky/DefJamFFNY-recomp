@@ -56,6 +56,22 @@ def native_hash(texture, tile):
     return hashlib.sha256(b'XRTEX01\0'+struct.pack('<5I',formats[tile['kind']],tile['width'],tile['height'],0,tile['width'])+pixels).hexdigest()
 
 
+def used_size(texture,tile):
+    """Original material extents can cover only part of its power-of-two raster."""
+    at=struct.unpack_from('<I',texture.data,texture.name_sites[tile['name']][0]+4)[0]
+    size=tile['width'],tile['height']
+    for _ in range(64):
+        word=struct.unpack_from('<I',texture.data,at)[0]
+        if word&255==0x7c:
+            flag,width,height=struct.unpack_from('<III',texture.data,at+4)
+            require(flag==1 and 0<width<=tile['width'] and 0<height<=tile['height'],'Invalid original grid used extents')
+            size=width,height
+        delta=word>>8
+        if not delta:return size
+        at+=delta
+    raise ValueError('Original grid attachment budget exceeded')
+
+
 def render(source, files, baseline, selection):
     """Return native24 textures, exact full-resolution PNG tiles and a receipt."""
     from PIL import Image,ImageOps
@@ -81,13 +97,18 @@ def render(source, files, baseline, selection):
             if picture is None:
                 picture=retail_image(baseline,selection,'result_'+part.rsplit('_',1)[1]);used='donor result icon'
             width,height=target['width'],target['height']
-            canvas=ImageOps.fit(picture,(width,height),centering=(.5,0))
+            used_width,used_height=used_size(texture,target)
+            def padded(output_scale):
+                output=Image.new('RGBA',(width*output_scale,height*output_scale))
+                output.paste(ImageOps.fit(picture,(used_width*output_scale,used_height*output_scale),centering=(.5,0)),(0,0))
+                return output
+            canvas=padded(1)
             # Single fixed original grid image, retaining all material controls.
             stream=io.BytesIO();canvas.save(stream,format='DDS',pixel_format={0x60:'DXT1',0x61:'DXT3',0x62:'DXT5'}[target['kind']])
             pixels=stream.getvalue()[128:];require(len(pixels)==target['pixels_bytes'],'Grid encoder layout differs')
             output=bytearray(original);at=target['pixels_offset'];output[at:at+len(pixels)]=pixels
             native[part]=PortraitTextureTemplate(original,hashlib.sha256(original).hexdigest()).compile(bytes(output))
-            hd_canvases={target['name']:ImageOps.fit(picture,(width*scale,height*scale),centering=(.5,0))}
+            hd_canvases={target['name']:padded(scale)}
         else:
             path,stem=variant_path(part,selection);movie=Archive(unpack(baseline.archive.read(path)))
             original=unpack(movie.read(stem+'.xsh'));texture=UITextures(original)
