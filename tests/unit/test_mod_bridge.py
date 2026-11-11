@@ -327,7 +327,7 @@ def test_managed_native_bridge_rejects_test_switch_in_ready_projection(bridge, t
 
 
 def test_managed_native_bridge_accepts_owned_timeline_and_cinematic_proofs(bridge, tmp_path):
-    names=('TAGS','TAGS_SHA256','CAMERAS','CAMERAS_SHA256','TIMELINE_BINDINGS','FILM_PROOFS')
+    names=('TAGS','TAGS_SHA256','CAMERAS','CAMERAS_SHA256','TIMELINE_BINDINGS','FILM_PROOFS','CAF_HD','CAF_HD_SHA256')
     projection='[environment]\\n'+''.join('RECOMP_FIGHTER_'+name+'=sealed-fixture\\n' for name in names)
     source,env=fighter_helper(tmp_path,projection)
     result=subprocess.run([str(bridge),str(tmp_path),'fighter'],cwd=source,env=env,

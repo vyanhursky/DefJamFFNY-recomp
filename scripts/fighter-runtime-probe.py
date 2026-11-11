@@ -387,6 +387,9 @@ def main():
         if report.get('caf_fighters'):
             command += ['--env','RECOMP_FIGHTER_CAF='+str(cache/'fighter-caf.bin'),
                         '--env','RECOMP_FIGHTER_CAF_SHA256='+report['caf_sha256']]
+        if report.get('caf_hd_sha256'):
+            command += ['--env','RECOMP_FIGHTER_CAF_HD='+str(cache/'fighter-caf-hd.bin'),
+                        '--env','RECOMP_FIGHTER_CAF_HD_SHA256='+report['caf_hd_sha256']]
         if report.get('caf_extras_sha256'):
             command += ['--env','RECOMP_FIGHTER_CAF_EXTRAS='+str(cache/'fighter-caf-extras.bin'),
                         '--env','RECOMP_FIGHTER_CAF_EXTRAS_SHA256='+report['caf_extras_sha256']]
