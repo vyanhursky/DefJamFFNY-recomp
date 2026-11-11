@@ -39,11 +39,15 @@ def test_typed_audio_inventory_checks_hash_and_accounts_for_file(tmp_path):
 @pytest.fixture
 def manager(tmp_path, monkeypatch):
     source, _, _ = catalog(menu=True)
-    real = fighters.compile_inputs
-    monkeypatch.setattr(fighters, 'compile_inputs', lambda sod, paths, packs, ledger, **kw:
-                        real(sod, paths, packs, ledger, catalog=source, **kw))
-    monkeypatch.setattr(fighters, 'prepare_portraits', lambda *args, **kwargs: tmp_path / 'screens.viv')
-    return Manager(tmp_path / 'data', capabilities=['textures-v1', 'fighters-v1'])
+    monkeypatch.setattr(fighters, 'retail_catalog', lambda *args, **kwargs: source)
+    def portraits(screens, report, **kwargs):
+        import hashlib
+        data = json.dumps(report, sort_keys=True).encode()
+        path = kwargs['cache_root'] / hashlib.sha256(data).hexdigest() / 'screens/screens.viv'
+        path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(data)
+        return path
+    monkeypatch.setattr(fighters, 'prepare_portraits', portraits)
+    return Manager(tmp_path / 'data', capabilities=['textures-v1', 'fighters-v1'], game=tmp_path / 'game')
 
 
 def test_whole_pack_install_enable_update_rollback_disable_remove(manager, tmp_path):

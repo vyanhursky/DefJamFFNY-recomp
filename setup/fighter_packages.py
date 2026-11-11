@@ -2,7 +2,7 @@
 import hashlib
 from pathlib import Path
 
-from mods import check, ordinary_path, safe_relative, ALLOWED, MAX_FILES
+from mods import check, ordinary_path, safe_relative, file_lock, ALLOWED, MAX_FILES
 from fighter_build import document, compile_inputs, retail_catalog, write_preview
 from fighter_registry import validate_pack
 from fighter_presentation import prepare_portraits, prepare_language_screens
@@ -108,7 +108,7 @@ def build(manager, state, *, ids=None, replacements=None, language=None):
     """Validate all inputs before writing a cache; never change settings/saves."""
     ids = enabled(state) if ids is None else ids
     replacements = replacements or {}
-    paths, packs = [], []
+    paths, packs, sources = [], [], {}
     for identifier in sorted(ids):
         folder = replacements.get(identifier, manager.mods / identifier)
         saved = state['installed'].get(identifier)
@@ -119,14 +119,35 @@ def build(manager, state, *, ids=None, replacements=None, language=None):
         pack = inventory(folder)
         check(pack['id'] == identifier, 'Fighter manifest identity differs from its installed folder')
         paths.append(folder / MANIFEST); packs.append(pack)
+        # Installed hashes were freshly checked above, never trusted by mtime.
+        # Replacements have no installed receipt yet and are hashed directly.
+        from fighter_cache import inventory as cache_inventory
+        sources[identifier] = saved['files'] if identifier not in replacements else cache_inventory(folder)
     sod = manager.game / 'assets/djv2.sod'
-    data, report, resources = compile_inputs(sod, paths, packs, state.get('fighter_ledger'), binding_window=True)
-    cache = Path(write_preview(data, report, resources, cache_root=manager.root / 'fighter-cache'))
+    catalog = retail_catalog(sod)
+    from fighter_registry import resolve
+    from fighter_bindings import seed, allocate
+    snapshot = resolve(catalog.baseline(), packs)
+    ledger = allocate(seed(catalog.db, catalog.source_sha256, catalog.rows), snapshot['fighters'], state.get('fighter_ledger'))
     screens = manager.game / 'screens/screens.viv'
     composed = prepare_language_screens(screens, language) if language else None
-    presentation = prepare_portraits(screens, report, language=composed, resource_cache=cache,
-                                     cache_root=manager.root / 'fighter-ui-cache')
-    return cache, report, presentation, composed
+    from fighter_cache import VerifiedCache, request
+    with file_lock(manager.root / 'fighter-cache.lock'):
+        verified = VerifiedCache(manager.root)
+        key = request(manager.game, sources, packs, ledger, language, composed)
+        cached = verified.read(key, snapshot['sha256'], ledger)
+        if cached is not None:
+            manager.progress('Reusing verified Fighter cache')
+            return (*cached, composed)
+        manager.progress('Compiling Fighter resources (cache miss)')
+        data, report, resources = compile_inputs(sod, paths, packs, ledger, catalog=catalog, binding_window=True)
+        cache = Path(write_preview(data, report, resources, cache_root=manager.root / 'fighter-cache'))
+        presentation = prepare_portraits(screens, report, language=composed, resource_cache=cache,
+                                         cache_root=manager.root / 'fighter-ui-cache')
+        check(key == request(manager.game, sources, packs, ledger, language, composed),
+              'Fighter composition inputs changed while compiling')
+        verified.write(key, cache, report, presentation)
+        return cache, report, presentation, composed
 
 
 def candidate(manager, state, identifier, stage, new):

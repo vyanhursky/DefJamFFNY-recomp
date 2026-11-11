@@ -31,6 +31,16 @@ before this development feature can ship.
 
 ## Package shape and identity
 
+The development helper (after Beta 1) reuses a locally verified composition when the enabled pack
+bytes, original game inputs, compiler policy, language and identity ledger are
+unchanged. This includes the composed menu artwork. The first preparation after
+an input or compiler change still runs the complete compiler. Every preparation
+checks the installed files and cached output bytes; file timestamps do not grant
+reuse. Pack authors do not ship caches or authentication keys. A damaged cache
+refuses launch rather than silently accepting its files. Removing its complete
+generated cache directory allows the normal compiler to reconstruct it; retain
+the installed pack and profile Store.
+
 The development Workshop retail studio can import original/owned appearance
 resources independently of the combat donor. It uses this ordinary package
 contract and the complete native compiler. The typed `eagl-appearance-png-1`

@@ -15,6 +15,53 @@ review does not authorize a PR merge, pack publication or release.
 
 ## What the runtime changes
 
+### Reusing a verified composition at startup
+
+Previously, Play ran the full typed fighter compiler and menu-artwork composition
+before checking their content-addressed outputs. Two launches of the owner's
+unchanged 46-fighter Vendetta roster spent approximately 157 and 159 seconds
+preparing the supervised session despite an existing output cache.
+
+The Python helper now records a locally authenticated receipt only after that
+complete composition and all existing validation succeed. Before reuse it checks
+the installed pack inventory and hashes, resolves the roster and binding ledger,
+hashes the original input archives, compiler/policy files and language inputs,
+then authenticates the receipt and rehashes the exact native and UI output trees.
+The existing native-cache validator still verifies resource receipts, names,
+bindings, participant window, ledger and report. Native startup and profile-session
+validation also remain in place. The optimization avoids rebuilding unchanged
+resources; it does not grant pack code execution or skip first-use semantic checks.
+
+Receipts live in `mod-manager/fighter-verified-cache`; their separate random key
+is `mod-manager/fighter-cache-auth.key`. Neither is part of a fighter ZIP. The
+trust boundary is the existing local user/compiler, not an attacker able to
+replace that compiler or its private state. The request covers Python/library
+versions as well as compiler policy, so a helper update or changed original,
+pack, language or ledger requires complete composition again. Old caches without
+authenticated receipts receive that complete check before reuse is recorded.
+Changed or partly missing output, unexpected files, redirected paths and invalid
+authentication fail closed. A wholly removed generated cache is rebuilt normally.
+The optimization applies to ordinary fighter packs generally, including mixed
+rosters; it has no special Vendetta pack-ID switch and changes no native pool,
+gameplay or save format.
+
+Windows startup probes used the published Beta 1 native executable (`e950a7f`,
+toolkit `4801dc1`) with the development helper and an isolated copy of the
+46-fighter roster and profile Store. From native process creation, the cold
+session was ready in **159.097 s**, warm in **12.096 s**. First two-second frame
+reports arrived at 163.191 s and 16.204 s respectively. Both runs produced eleven
+frame reports, exited normally with completed profile supervision, restored the
+guarded save tree byte-identically and left the owner's original data unchanged.
+The warm run rewrote no native output, UI output or authenticated receipt.
+Native admission still checked 46 motion cores, 44 voice bindings, 46 Blazin and
+46 cinematic bindings, 474 timelines, 1,472 film proofs and 94 paired bindings.
+These are startup/presentation probes, not new full-match or CAF gameplay claims.
+Triage retained nine unclassified kernel/optional-file message families in each
+run; neither run had a crash, watchdog or unresolved indirect call. The focused
+cache tests and complete Windows unit gate passed (2,591 passed, 58 platform
+skips, one standard slow test excluded). No native source, toolkit pin or released
+installation changed, and this does not publish a new build.
+
 ### A bounded CPU animation pool
 
 The original title uses a small GPU-capable asset arena for resources that also
