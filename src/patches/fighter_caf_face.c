@@ -12,6 +12,7 @@
 #define FACE_MAX (8u*1024u*1024u)
 static uint8_t *s_data;
 static uint32_t s_count,s_arena,s_live[4][10],s_sizes[4][10];
+static uint8_t s_unknown[4]; /* A CAF participant without a sculpt whose head layout is not the supported one. */
 static const uint32_t s_rms[9]={0,1,2,3,4,5,6,7,9};
 static const uint32_t s_counts[9]={54,218,70,92,73,51,51,81,20};
 extern void sub_000296B0(void),sub_00026140(void);
@@ -54,31 +55,53 @@ int defjam_caf_faces_start(const uint8_t *(*recipe)(uint32_t,uint32_t)) {
     if(!valid){free(raw);return 0;}
     s_data=raw;s_count=count;fprintf(stderr,"[FIGHTERS] validated %u CAF face sculpts\n",count);return 1;
 }
-void defjam_caf_faces_clear(void) {memset(s_live,0,sizeof(s_live));memset(s_sizes,0,sizeof(s_sizes));}
+void defjam_caf_faces_clear(void) {memset(s_live,0,sizeof(s_live));memset(s_sizes,0,sizeof(s_sizes));memset(s_unknown,0,sizeof(s_unknown));}
 static uint32_t hash_bytes(uint32_t p,uint32_t size) {
     uint32_t hash=2166136261u;const uint8_t *bytes=(const uint8_t *)XBOX_PTR(p);
     for(uint32_t i=0;i<size;++i)hash=(hash^bytes[i])*16777619u;
     return hash;
 }
-void defjam_caf_faces_apply(uint32_t visual,uint32_t participant,uint32_t selection,uint32_t outfit,const uint8_t *recipe) {
-    if(!s_count)return;
-    if(participant>=4)stop("participant outside supported range");
-    uint32_t part=visual+0x140+2u*0x420,model=MEM32(part+0x12c);
-    if(!span(model,0xd8))stop("head model unavailable");
+/* Walks the original head model's channel table. Returns NULL and the address of its ten Coordinates
+ * buffers when the layout is exactly the one the sculpt adapter was built for, else the reason it is not. */
+static const char *head_layout(uint32_t model,uint32_t *rows_out) {
+    if(!span(model,0xd8))return "head model unavailable";
     uint32_t group=MEM32(model+0xb8)+4,rows=0,count=0;
     for(unsigned i=0;i<16;++i) {
-        if(!span(group,8))stop("channel bounds");
+        if(!span(group,8))return "channel bounds";
         uint32_t name=MEM32(group),n=MEM32(group+4);
         if(!name)break;
-        if(n>16||!span(name,16)||!span(group+8,n*16))stop("channel layout");
+        if(n>16||!span(name,16)||!span(group+8,n*16))return "channel layout";
         if(!memcmp((const void *)XBOX_PTR(name),"Coordinates\0",12)){rows=group+8;count=n;break;}
         group+=8+n*16;
     }
-    if(!rows||count!=10||MEM32(model+0xc0)!=0)stop("unsupported original Coordinates layout");
+    if(!rows||count!=10||MEM32(model+0xc0)!=0)return "unsupported original Coordinates layout";
+    for(unsigned i=0;i<10;++i) {
+        uint32_t row=rows+i*16,n=MEM16(row+4),p=MEM32(row+12);
+        if(MEM32(row)!=i||MEM16(row+6)!=24||!n||n>1024||!span(p,n*12))return "unsupported original float3 buffer";
+    }
+    *rows_out=rows;return NULL;
+}
+void defjam_caf_faces_apply(uint32_t visual,uint32_t participant,uint32_t selection,uint32_t outfit,const uint8_t *recipe) {
+    if(!s_count)return;
+    if(participant>=4)stop("participant outside supported range");
+    /* Only a fighter that has a sculpt is held to the sculpt layout. Every other CAF participant keeps its
+     * original head untouched, so an unfamiliar head layout must not stop the game; its buffers are only
+     * remembered so that a sculpted peer can prove it never writes into them. */
+    const uint8_t *source=find(selection,outfit);
+    uint32_t part=visual+0x140+2u*0x420,model=MEM32(part+0x12c),rows=0;
+    const char *why=head_layout(model,&rows);
+    s_unknown[participant]=0;
+    if(!source) {
+        memset(s_live[participant],0,sizeof s_live[participant]);memset(s_sizes[participant],0,sizeof s_sizes[participant]);
+        if(why)s_unknown[participant]=1;
+        else for(unsigned i=0;i<10;++i){uint32_t row=rows+i*16;s_live[participant][i]=MEM32(row+12);s_sizes[participant][i]=MEM16(row+4)*12u;}
+        return;
+    }
+    if(why)stop(why);
+    for(unsigned peer=0;peer<4;++peer)if(peer!=participant&&s_unknown[peer])stop("another participant's head layout cannot be isolated from the sculpt");
     uint32_t peers[4][10]={{0}};
     for(unsigned i=0;i<10;++i) {
         uint32_t row=rows+i*16,n=MEM16(row+4),p=MEM32(row+12);
-        if(MEM32(row)!=i||MEM16(row+6)!=24||!n||n>1024||!span(p,n*12))stop("unsupported original float3 buffer");
         for(unsigned peer=0;peer<4;++peer)if(peer!=participant)for(unsigned j=0;j<10;++j)if(s_live[peer][j]) {
             uint32_t a=p&0x7fffffffu,b=s_live[peer][j]&0x7fffffffu;
             if(a<b+s_sizes[peer][j]&&b<a+n*12)stop("head coordinates alias another participant");
@@ -86,7 +109,6 @@ void defjam_caf_faces_apply(uint32_t visual,uint32_t participant,uint32_t select
         }
         s_live[participant][i]=p;s_sizes[participant][i]=n*12;
     }
-    const uint8_t *source=find(selection,outfit);if(!source)return;
     static const unsigned slots[6]={0,5,6,9,10,11};
     for(unsigned i=0;i<6;++i)if(word(source+8+i*4)!=word(recipe+32+slots[i]*4))stop("sculpt preset basis differs");
     /* Preflight every reference before invoking the native evaluator. This is

@@ -66,7 +66,13 @@ int main(int argc,char **argv) {
  assert(defjam_caf_faces_start(lookup));assert(s_count==1);
  make_head(0x10000,0x100000,s_data+16);make_head(0x30000,0x200000,s_data+16);
  g_esp=0xB00000;g_eax=123;g_ecx=456;
+ if(!strncmp(mode,"odd-",4))MEM32(0x100000+0x100+8)=9; /* participant 0's head has an unsupported channel layout */
  defjam_caf_faces_apply(0x10000,0,101,0,recipe);assert(!calls);
+ if(!strcmp(mode,"odd-head")) {
+  /* No sculpt for participant 0: its unfamiliar head must not stop the game, and must not be touched. */
+  assert(s_unknown[0]&&!s_live[0][1]&&!calls);
+  defjam_caf_faces_clear();assert(!s_unknown[0]);return 0;
+ }
  uint32_t control=s_live[0][1],before=hash_bytes(control,s_sizes[0][1]);
  if(!strcmp(mode,"reference"))MEMF(0x200000+0x1000)=.01f;
  if(!strcmp(mode,"alias"))MEM32(0x200100+12+12)=s_live[0][0];
@@ -111,6 +117,20 @@ def test_real_native_adapter_bounds_reference_output_isolation_and_lifetime(tool
     assert result.returncode==(1 if error else 0),result.stdout+result.stderr
     if error:assert error in result.stderr
     else:assert 'peer-buffers=unchanged' in result.stderr
+
+
+def test_fighter_without_a_sculpt_is_not_held_to_the_sculpt_head_layout(tool,tmp_path):
+    payload=raw();path=tmp_path/'faces.bin';path.write_bytes(payload)
+    result=subprocess.run([str(tool),str(path),hashlib.sha256(payload).hexdigest(),'odd-head'],capture_output=True,text=True)
+    assert result.returncode==0,result.stdout+result.stderr
+    assert 'stopped' not in result.stderr
+
+
+def test_a_sculpt_still_refuses_to_run_beside_a_head_it_cannot_prove_isolated(tool,tmp_path):
+    payload=raw();path=tmp_path/'faces.bin';path.write_bytes(payload)
+    result=subprocess.run([str(tool),str(path),hashlib.sha256(payload).hexdigest(),'odd-peer'],capture_output=True,text=True)
+    assert result.returncode==1,result.stdout+result.stderr
+    assert 'cannot be isolated' in result.stderr
 
 
 @pytest.mark.parametrize('offset,value',[(0,0),(4,2),(8,50000),(12,8),(16,999),(20,3),(24,5),(48,0x7fc00000),(60,0x3f800000)])
