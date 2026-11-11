@@ -4,13 +4,13 @@ from fighter_resource_files import require
 from fighter_registry import fingerprint
 
 
-def load_recipe(root,value,catalog,game):
+def load_recipe(root, value, catalog, game, hd=False):
     clean=copy.deepcopy(value);key=clean.pop('retail_moveset',None)
     require(type(key) is str and key in catalog.rows,'CAF v5 requires an available original fighter moveset')
     donor=catalog.rows[key];core=donor['native_binding']['core_id']
     require(type(core) is int and 1<=core<=86,'CAF moveset must use an original retail motion core')
     from fighter_caf_face import load_recipe as load_face
-    result=load_face(root,clean,catalog,game)
+    result=load_face(root,clean,catalog,game,hd=hd)
     result.update(core=core,retail_moveset=key,sha256=fingerprint(value))
     mask=donor['fields']['FightingStyle']['word'];primary=catalog.db.word(donor['record_offset']+72)
     require(type(mask) is int and 0<mask<=31,'Unsupported retail fighting-style mask')

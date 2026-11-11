@@ -36,7 +36,7 @@ def inventory(folder):
     for resource in manifest['resources']:
         source = resource.get('source', {})
         declared = list(descriptors(source))
-        if resource['kind'] == 'caf' and source.get('format') in ('caf-fighter-2', 'caf-fighter-3', 'caf-fighter-4', 'caf-fighter-5', 'caf-fighter-6'):
+        if resource['kind'] == 'caf' and source.get('format') in ('caf-fighter-2', 'caf-fighter-3', 'caf-fighter-4', 'caf-fighter-5', 'caf-fighter-6', 'caf-fighter-7'):
             descriptor = source['selection']
             recipe_path = ordinary_path(folder.joinpath(*safe_relative(descriptor['path'])))
             check(recipe_path.is_relative_to(folder), 'CAF recipe leaves its package')
@@ -168,6 +168,9 @@ def runtime_environment(cache, report, screens, language=None, *, ui_pack=None):
     if report.get('caf_fighters'):
         environment['RECOMP_FIGHTER_CAF'] = str(cache / 'fighter-caf.bin')
         environment['RECOMP_FIGHTER_CAF_SHA256'] = report['caf_sha256']
+    if report.get('caf_hd_sha256'):
+        environment['RECOMP_FIGHTER_CAF_HD'] = str(cache / 'fighter-caf-hd.bin')
+        environment['RECOMP_FIGHTER_CAF_HD_SHA256'] = report['caf_hd_sha256']
     if report.get('caf_extras_sha256'):
         environment['RECOMP_FIGHTER_CAF_EXTRAS'] = str(cache / 'fighter-caf-extras.bin')
         environment['RECOMP_FIGHTER_CAF_EXTRAS_SHA256'] = report['caf_extras_sha256']

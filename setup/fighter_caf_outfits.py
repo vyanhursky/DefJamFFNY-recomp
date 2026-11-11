@@ -13,7 +13,7 @@ def variants(item):
     return item.get('outfits') or [{'id': 'default', 'name': 'Outfit 1', 'recipe': item.get('recipe'), 'extras': item.get('extras')}]
 
 
-def load(root, value, catalog, game):
+def load(root, value, catalog, game, hd=False):
     from fighter_caf import recipe, validate_assets
     from fighter_caf_extras import load as extras
     allowed = {'stats', 'styles', 'caf_values', 'caf_colors', 'finishers', 'atlases', 'outfit_name', 'outfits', 'portraits'}
@@ -40,7 +40,7 @@ def load(root, value, catalog, game):
         for field, source in (('finishers', value), ('atlases', outfit)):
             if field in source:
                 extra[field] = source[field]
-        resolved.append(dict(id=identity, name=outfit['name'], recipe=base, extras=extras(root, extra, catalog.db)))
+        resolved.append(dict(id=identity, name=outfit['name'], recipe=base, extras=extras(root, extra, catalog.db, hd=hd)))
     portraits = value.get('portraits', {})
     require(type(portraits) is dict and set(portraits) <= seen, 'CAF outfit portraits need declared outfit IDs')
     for source in portraits.values():

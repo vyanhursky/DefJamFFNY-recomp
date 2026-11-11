@@ -86,7 +86,7 @@ def compile_inputs(sod, paths, packs, ledger=None, *, catalog=None, pin_path=Non
             continue
         if key.startswith('retail/'):
             raise ValueError('CAF recipes add independent fighters; retail CAF overrides are not supported')
-        extended=snapshot['resources'][components['caf']]['source']['format']=='caf-fighter-6'
+        extended=snapshot['resources'][components['caf']]['source']['format'] in ('caf-fighter-6','caf-fighter-7')
         # This restriction belongs to this CAF, not to unrelated enabled packs.
         # CAF construction owns its body and styles; other fighters keep their
         # independently validated appearance, behavior and voice adapters.
@@ -189,6 +189,11 @@ def compile_inputs(sod, paths, packs, ledger=None, *, catalog=None, pin_path=Non
         if extras is not None:
             resources['fighter-caf-extras.bin'] = extras
             report['caf_extras_sha256'] = hashlib.sha256(extras).hexdigest()
+        from fighter_caf_hd import encode as encode_hd
+        hd = encode_hd(caf,report)
+        if hd is not None:
+            resources['fighter-caf-hd.bin']=hd
+            report['caf_hd_sha256']=hashlib.sha256(hd).hexdigest()
         from fighter_caf_face import encode as encode_faces
         faces = encode_faces(caf,report)
         if faces is not None:
@@ -227,7 +232,7 @@ def write_preview(data, report, resources=None, *, cache_root=None, max_report=M
             raise ValueError('Behavior resources require their exact composed files')
     if bool(report.get('appearance_resources')) != bool(report.get('appearance_files')):
         raise ValueError('Appearance resources require their complete composed files')
-    caf_targets = ({'fighter-caf.bin'} if report.get('caf_fighters') else set()) | ({'fighter-caf-extras.bin'} if report.get('caf_extras_sha256') else set())
+    caf_targets = ({'fighter-caf-hd.bin'} if report.get('caf_hd_sha256') else set()) | ({'fighter-caf.bin'} if report.get('caf_fighters') else set()) | ({'fighter-caf-extras.bin'} if report.get('caf_extras_sha256') else set())
     if report.get('caf_faces_sha256'):caf_targets.add('fighter-caf-faces.bin')
     from fighter_ui_hd import validate_hd_files
     hd_targets=validate_hd_files(report,resources)
@@ -243,6 +248,8 @@ def write_preview(data, report, resources=None, *, cache_root=None, max_report=M
         raise ValueError('Composed behavior receipt differs from its bytes')
     if report.get('caf_fighters') and hashlib.sha256(resources['fighter-caf.bin']).hexdigest() != report.get('caf_sha256'):
         raise ValueError('Compiled CAF recipe checksum differs')
+    if report.get('caf_hd_sha256') and hashlib.sha256(resources['fighter-caf-hd.bin']).hexdigest() != report['caf_hd_sha256']:
+        raise ValueError('Compiled HD CAF hash differs')
     if report.get('caf_extras_sha256') and hashlib.sha256(resources['fighter-caf-extras.bin']).hexdigest() != report['caf_extras_sha256']:
         raise ValueError('Compiled CAF extras checksum differs')
     if report.get('caf_faces_sha256') and hashlib.sha256(resources['fighter-caf-faces.bin']).hexdigest()!=report['caf_faces_sha256']:

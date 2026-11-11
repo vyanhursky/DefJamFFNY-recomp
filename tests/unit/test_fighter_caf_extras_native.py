@@ -36,6 +36,7 @@ static uint8_t s_finisher_live[4];
 static unsigned converted,rebound,freed;
 static int test_linear;
 static uint32_t s_story_profiles[4];
+static void defjam_caf_hd_clear(void) {}
 static void defjam_caf_faces_clear(void) {} /* Sculpt lifetime is tested separately. */
 static uint32_t test_visual=0x10000;
 static void stop(const char *why) {fprintf(stderr,"CAF stopped: %s\n",why);exit(1);}

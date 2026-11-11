@@ -31,6 +31,7 @@ static uint32_t s_story_profiles[4];
 static uint8_t *s_rows,*s_extras;
 static const uint8_t *s_recipes[4];
 static void restore_finishers(void) {}
+static void defjam_caf_hd_clear(void) {}
 static void defjam_caf_faces_clear(void) {} /* Sculpt lifetime is tested separately. */
 @FUNCTIONS@
 static uint8_t *readfile(const char *path,size_t *size) {

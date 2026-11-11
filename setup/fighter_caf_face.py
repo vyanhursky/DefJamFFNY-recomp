@@ -54,7 +54,7 @@ def validate(value, recipe):
     return copy.deepcopy(value)
 
 
-def load_recipe(root, value, catalog, game):
+def load_recipe(root, value, catalog, game, hd=False):
     from fighter_caf_outfits import load as load_outfits
     clean=copy.deepcopy(value)
     outfits=clean.get('outfits',[])
@@ -62,7 +62,7 @@ def load_recipe(root, value, catalog, game):
             'CAF v4 needs a bounded outfit collection')
     descriptors=[clean.pop('face',None)]
     for row in outfits:descriptors.append(row.pop('face',None))
-    result=load_outfits(root,clean,catalog,game)
+    result=load_outfits(root,clean,catalog,game,hd=hd)
     for row,descriptor in zip(result['outfits'],descriptors):
         if descriptor is not None:row['face']=load(root,descriptor,row['recipe'])
     result['sha256']=hashlib.sha256(json.dumps(value,sort_keys=True).encode()).hexdigest()

@@ -3,6 +3,7 @@
 #include "fighter_caf.h"
 #include "fighter_motion.h"
 #include "fighter_caf_face.h"
+#include "fighter_caf_hd.h"
 #include "hooks/guest_call.h"
 #include "hooks/mod_sha256.h"
 #include <stdio.h>
@@ -251,7 +252,7 @@ static int recipes_valid(const uint8_t *data,size_t size) {
 }
 int defjam_fighter_caf_start(void) {
     const char *path=getenv("RECOMP_FIGHTER_CAF"),*hash=getenv("RECOMP_FIGHTER_CAF_SHA256");
-    if (!path || !*path) return (!hash || !*hash) && !getenv("RECOMP_FIGHTER_CAF_EXTRAS") && !getenv("RECOMP_FIGHTER_CAF_EXTRAS_SHA256") && !getenv("RECOMP_FIGHTER_CAF_FACES") && !getenv("RECOMP_FIGHTER_CAF_FACES_SHA256");
+    if (!path || !*path) return (!hash || !*hash) && !getenv("RECOMP_FIGHTER_CAF_EXTRAS") && !getenv("RECOMP_FIGHTER_CAF_EXTRAS_SHA256") && !getenv("RECOMP_FIGHTER_CAF_FACES") && !getenv("RECOMP_FIGHTER_CAF_FACES_SHA256") && !getenv("RECOMP_FIGHTER_CAF_HD") && !getenv("RECOMP_FIGHTER_CAF_HD_SHA256");
     if (!mod_file_matches(path,hash) || s_rows) return 0;
     FILE *file;
 #if defined(_WIN32)
@@ -270,12 +271,13 @@ int defjam_fighter_caf_start(void) {
     if (!valid) {free(data);return 0;}
     s_rows=data;s_count=count;s_row_stride=stride;
     if(!extras_start()) {free(s_rows);s_rows=NULL;s_count=0;return 0;}
-    if(!defjam_caf_faces_start(recipe_row)) return 0;
+    if(!defjam_caf_faces_start(recipe_row) || !defjam_caf_hd_start(recipe_row)) return 0;
     fprintf(stderr,"[FIGHTERS] validated %u CAF recipes\n",count);return 1;
 }
 /* Called before each match/after it finishes: no stale context may be reused. */
 void defjam_fighter_caf_clear(void) {
     defjam_caf_faces_clear();
+    defjam_caf_hd_clear();
     restore_finishers();
     for(unsigned i=0;i<4;++i) if(s_story_profiles[i] && s_service && s_recipes[i]
         && MEM32(s_service+0x168+i*4)==word(s_recipes[i]+228))
@@ -392,6 +394,7 @@ void defjam_fighter_caf_participant(uint32_t service,uint32_t participant,uint32
     defjam_caf_faces_apply(MEM32(context+8)+0x8B0,participant,selection,outfit,row);
     face_trace(MEM32(context+8)+0x8B0,participant);
     apply_atlases(MEM32(context+8)+0x8B0,extra_row(selection,outfit));
+    defjam_caf_hd_apply(MEM32(context+8)+0x8B0,selection,outfit);
     uint32_t old_manager=MEM32(service+4),old_mode=MEM32(service+0x344);
     MEM32(service+4)=s_profile_workspace;MEM32(service+0x344)=0;MEM32(s_profile_workspace+0x5ac7c)=0;
     uint32_t stats_args[]={participant};guest_call(sub_0001EE80,service,1,stats_args);

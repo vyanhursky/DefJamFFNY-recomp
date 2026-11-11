@@ -35,7 +35,7 @@ def finishers(values, database):
     return result
 
 
-def load(root, value, database):
+def load(root, value, database, hd=False):
     require(set(value) <= {'stats', 'styles', 'caf_values', 'caf_colors', 'finishers', 'atlases'}, 'Unknown CAF v2 field')
     result = {'finishers': finishers(value['finishers'], database) if 'finishers' in value else None, 'atlases': {}}
     atlases = value.get('atlases', {})
@@ -48,12 +48,18 @@ def load(root, value, database):
         path = ordinary_path(root.joinpath(*safe_relative(descriptor['path'])))
         require(path.is_relative_to(root), 'CAF atlas leaves its package')
         with path.open('rb') as stream:
-            raw = stream.read(1024 * 1024 + 1)
-        require(len(raw) <= 1024 * 1024 and hashlib.sha256(raw).hexdigest() == descriptor['sha256'], 'CAF atlas hash/size differs')
+            raw = stream.read((16 if hd else 1) * 1024**2 + 1)
+        require(len(raw) <= (16 if hd else 1) * 1024**2 and hashlib.sha256(raw).hexdigest() == descriptor['sha256'], 'CAF atlas hash/size differs')
         with Image.open(io.BytesIO(raw)) as image:
-            require(image.format == 'PNG' and image.size == (256, 256), 'CAF v2 atlases must be native 256x256 PNGs')
+            require(image.format == 'PNG' and image.width == image.height and image.width in ((256,512,1024,2048) if hd else (256,)),
+                    'CAF atlas must be a 256/512/1024/2048 square PNG (HD requires caf-fighter-7)')
             image.load()
-            result['atlases'][name] = image.convert('RGBA').tobytes('raw', 'BGRA')
+            # RGB resize must ignore imported alpha: it is native material data.
+            rgb = image.convert('RGB')
+            if image.width > 256:
+                result.setdefault('hd_atlases', {})[name] = struct.pack('<I',image.width) + rgb.convert('RGBA').tobytes('raw','BGRA')
+                rgb = rgb.resize((256,256), Image.Resampling.LANCZOS)
+            result['atlases'][name] = rgb.convert('RGBA').tobytes('raw','BGRA') if image.width>256 else image.convert('RGBA').tobytes('raw','BGRA')
     return result
 
 
