@@ -5,6 +5,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 #include "fighter_finishers.h"
+#include "fighter_fatal.h"
 #include "fighter_runtime.h"
 #include "fighter_cpu_pool.h"
 #include "fighter_graph_proof.h"
@@ -41,7 +42,7 @@ static uint32_t fin_word(const uint8_t *p) {
     return (uint32_t)p[0] | (uint32_t)p[1]<<8 | (uint32_t)p[2]<<16 | (uint32_t)p[3]<<24;
 }
 static void fin_stop(const char *message) {
-    fprintf(stderr, "[FIGHTERS] finisher stopped: %s\n", message); fflush(stderr); exit(1);
+    defjam_fighter_fatal("finisher", message);
 }
 static FILE *fin_open(const char *path) {
 #if defined(_WIN32)

@@ -147,7 +147,7 @@ def tool(tmp_path_factory):
     text = text.replace('@AUDIO_WRAPPER@', definition(manual, 'sub_0003E170'))
     driver = folder / 'driver.c'; driver.write_text(text)
     exe = folder / ('mixed.exe' if os.name == 'nt' else 'mixed')
-    sources = [str(driver), str(ROOT / 'src/patches/fighter_motion.c'), str(ROOT / 'src/patches/fighter_voice.c')]
+    sources = [str(driver), str(ROOT / 'src/patches/fighter_motion.c'), str(ROOT / 'src/patches/fighter_voice.c'), str(ROOT / 'src/patches/fighter_fatal.c'), str(ROOT / 'tests/unit/native_stubs/host_fatal.c')]
     if os.name == 'nt':
         command = [cc, '/nologo', '/W4', '/WX', '/D_CRT_SECURE_NO_WARNINGS', '/I' + str(folder), '/I' + str(ROOT / 'src'), *sources, '/Fe:' + str(exe)]
     else:

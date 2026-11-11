@@ -6,6 +6,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 #include "fighter_voice.h"
+#include "fighter_fatal.h"
 #include "fighter_runtime.h"
 #include "fighter_behavior_identity.h"
 #include "hooks/guest_call.h"
@@ -25,10 +26,7 @@ static uint32_t s_selected[4], s_count, s_observed;
 static char s_archive[2048];
 extern void sub_0001C960(void);
 
-static void voice_stop(const char *message) {
-    fprintf(stderr, "[FIGHTERS] voice stopped: %s\n", message);
-    fflush(stderr); exit(1);
-}
+static void voice_stop(const char *message) { defjam_fighter_fatal("voice", message); }
 static uint32_t voice_word(const uint8_t *p) {
     return (uint32_t)p[0] | (uint32_t)p[1]<<8 | (uint32_t)p[2]<<16 | (uint32_t)p[3]<<24;
 }

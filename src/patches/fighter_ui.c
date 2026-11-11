@@ -4,6 +4,7 @@
  * names and all APT identities remain unchanged. No pack supplies code.
  */
 #include "fighter_ui.h"
+#include "fighter_fatal.h"
 #include "fighter_runtime.h"
 #include "hooks/guest_call.h"
 #include "host.h"
@@ -23,11 +24,7 @@ typedef struct FighterUIBatch {
 } FighterUIBatch;
 static RECOMP_TLS FighterUIBatch *s_batch;
 
-static void ui_stop(const char *message) {
-    fprintf(stderr, "[FIGHTERS] UI initialization stopped: %s\n", message);
-    fflush(stderr);
-    exit(1);
-}
+static void ui_stop(const char *message) { defjam_fighter_fatal("UI initialization", message); }
 
 static uint32_t model_id(uint32_t model) {
     uint32_t name = MEM32(model + 0xB4), value = 0, digits = 0;

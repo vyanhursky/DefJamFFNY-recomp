@@ -1,6 +1,7 @@
 /* Closed position-only CAF sculpt adapter. Original rig, UVs, materials and
  * animation streams remain owned by the original per-participant head model. */
 #include "fighter_caf_face.h"
+#include "fighter_fatal.h"
 #include "hooks/guest_call.h"
 #include "hooks/mod_sha256.h"
 #include <stdio.h>
@@ -16,7 +17,7 @@ static const uint32_t s_counts[9]={54,218,70,92,73,51,51,81,20};
 extern void sub_000296B0(void),sub_00026140(void);
 static uint32_t word(const uint8_t *p) {uint32_t v;memcpy(&v,p,4);return v;}
 static float scalar(const uint8_t *p) {float v;memcpy(&v,p,4);return v;}
-static void stop(const char *why) {fprintf(stderr,"[FIGHTERS] face sculpt stopped: %s\n",why);fflush(stderr);exit(1);}
+static void stop(const char *why) {defjam_fighter_fatal("face sculpt",why);}
 static int span(uint32_t p,uint32_t n) {uint32_t a=p&0x7fffffffu;return a>=0x10000u&&a<0x4000000u&&n<=0x4000000u-a;}
 static const uint8_t *find(uint32_t selection,uint32_t outfit) {
     for(uint32_t i=0;i<s_count;++i) {const uint8_t *r=s_data+16+i*FACE_ROW;if(word(r)==selection&&word(r+4)==outfit)return r;}

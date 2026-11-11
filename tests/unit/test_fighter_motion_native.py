@@ -277,7 +277,7 @@ def tool(tmp_path_factory):
     (folder / 'recomp/gen/recomp_types.h').write_text(TYPES)
     driver = folder / 'driver.c'; driver.write_text(DRIVER)
     exe = folder / ('motion.exe' if os.name == 'nt' else 'motion')
-    sources = [str(driver), str(ROOT / 'src/patches/fighter_motion.c')]
+    sources = [str(driver), str(ROOT / 'src/patches/fighter_motion.c'), str(ROOT / 'src/patches/fighter_fatal.c'), str(ROOT / 'tests/unit/native_stubs/host_fatal.c')]
     if os.name == 'nt':
         command = [cc, '/nologo', '/W4', '/WX', '/D_CRT_SECURE_NO_WARNINGS',
                    '/I' + str(folder), '/I' + str(ROOT / 'src'), *sources, '/Fe:' + str(exe)]

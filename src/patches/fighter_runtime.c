@@ -1,5 +1,6 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include "fighter_runtime.h"
+#include "fighter_fatal.h"
 #include "fighter_caf.h"
 #include "fighter_motion.h"
 #include "fighter_voice.h"
@@ -94,11 +95,9 @@ static FILE *open_utf8(const char *path) {
 }
 
 static void fighter_stop(const char *message) {
-    fprintf(stderr, "[FIGHTERS] stopped: %s\n", message);
-    fflush(stderr);
-    /* A disposable harness run has no interactive approval/error dialog. */
-    if (!s_research_sod[0]) host_fatal(message);
-    exit(1);
+    /* A disposable harness run has no interactive approval/error dialog; the research
+     * entry point turns the dialog off in defjam_fighter_runtime_start. */
+    defjam_fighter_fatal(NULL, message);
 }
 
 static int file_name(const char *name, const char *expected) {
@@ -275,6 +274,7 @@ static int research_start(void) {
         }
     }
     strcpy(s_research_sod, sod);
+    defjam_fighter_fatal_dialog(0);
     if (!defjam_fighter_motion_start() || !defjam_fighter_voice_start() || !defjam_fighter_animation_start() || !defjam_fighter_ai_start()
         || !defjam_fighter_cinematic_start() || !defjam_fighter_events_start() || !defjam_fighter_film_start() || !defjam_fighter_finishers_start()) {
         fprintf(stderr, "[FIGHTERS] invalid motion research receipt; launch refused\n");

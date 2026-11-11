@@ -100,7 +100,7 @@ def tool(tmp_path_factory):
     driver = folder / 'driver.c'
     driver.write_text(DRIVER)
     exe = folder / ('ui.exe' if os.name == 'nt' else 'ui')
-    sources = [str(driver), str(ROOT / 'src/patches/fighter_ui.c')]
+    sources = [str(driver), str(ROOT / 'src/patches/fighter_ui.c'), str(ROOT / 'src/patches/fighter_fatal.c'), str(ROOT / 'tests/unit/native_stubs/host_fatal.c')]
     if os.name == 'nt':
         command = [cc, '/nologo', '/W4', '/WX', '/D_CRT_SECURE_NO_WARNINGS',
                    '/I' + str(folder), '/I' + str(ROOT / 'src'), *sources, '/Fe:' + str(exe)]

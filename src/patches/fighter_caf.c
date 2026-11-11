@@ -1,6 +1,7 @@
 /* Retail CAF recipe adapter. Own-dump resources, original assembly and cleanup.
  * No profile import: compiler-owned records contain selections/training only. */
 #include "fighter_caf.h"
+#include "fighter_fatal.h"
 #include "fighter_motion.h"
 #include "fighter_caf_face.h"
 #include "hooks/guest_call.h"
@@ -34,7 +35,7 @@ extern void sub_00092BE0(void), sub_001DE887(void), sub_00098270(void);
 extern void sub_0001E8F0(void);
 extern void sub_0001E410_gen(void);
 static uint32_t word(const uint8_t *p) { return (uint32_t)p[0]|(uint32_t)p[1]<<8|(uint32_t)p[2]<<16|(uint32_t)p[3]<<24; }
-static void stop(const char *why) { fprintf(stderr,"[FIGHTERS] CAF stopped: %s\n",why);fflush(stderr);exit(1); }
+static void stop(const char *why) { defjam_fighter_fatal("CAF",why); }
 static uint32_t row_outfit(const uint8_t *row) { return s_row_stride==240u?word(row+232):0; }
 static const uint8_t *recipe_row(uint32_t selection,uint32_t outfit) {
     for(uint32_t i=0;i<s_count;++i) {
