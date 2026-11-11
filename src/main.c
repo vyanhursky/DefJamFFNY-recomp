@@ -926,32 +926,6 @@ static BOOL load_xbe(const char *path, void **out_data, size_t *out_size)
 }
 
 /* Console entry point (for debugging -- lets you see printf output) */
-#if defined(__GLIBC__)
-#include <malloc.h>
-
-/* glibc only (issue #166). The texture-pack loader decodes PNGs on three worker
- * threads, and the render thread frees the buffers after uploading them. A free
- * from another thread goes back to the arena that made the block, and the render
- * thread never allocates from the workers' arenas, so after a scene's textures
- * load those arenas hold up to ~125 MiB that nothing uses, rising and falling
- * with scene changes. Above 1 MiB (one 512x512 RGBA image) blocks are mapped
- * on their own and unmapped when freed, and the heap top is trimmed past 1 MiB.
- * On the Deck this cut RSS by ~150 MiB and held settled memory flat over five
- * matches; uploads cost ~30% more per MiB (fresh pages). RECOMP_HEAP_MMAP_KB
- * sets the size (0 leaves glibc's defaults). */
-static void glibc_heap_policy(void)
-{
-    const char *v = getenv("RECOMP_HEAP_MMAP_KB");
-    long kb = v && *v ? strtol(v, NULL, 10) : 1024;
-    if (kb <= 0)
-        return;
-    if (kb > 32768) /* glibc's ceiling for the mmap threshold on 64-bit */
-        kb = 32768;
-    mallopt(M_MMAP_THRESHOLD, (int)(kb * 1024));
-    mallopt(M_TRIM_THRESHOLD, (int)(kb * 1024));
-}
-#endif
-
 int main(int argc, char **argv)
 {
 #if defined(_WIN32)
@@ -959,9 +933,6 @@ int main(int argc, char **argv)
     (void)argv;
     return WinMain(GetModuleHandle(NULL), NULL, GetCommandLineA(), SW_SHOW);
 #else
-#if defined(__GLIBC__)
-    glibc_heap_policy();
-#endif
     pc_settings_set_args(argc, argv);
     {
         /* The window, if there is one, needs this thread; see host_posix.c. */
