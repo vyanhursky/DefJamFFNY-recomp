@@ -43,6 +43,7 @@ int defjam_caf_faces_start(const uint8_t *(*recipe)(uint32_t,uint32_t),const uin
     if(!valid)return 0;
     s_data=rows;s_count=count;fprintf(stderr,"[FIGHTERS] validated %u CAF face sculpts\n",count);return 1;
 }
+void defjam_caf_faces_release(void) {s_data=NULL;s_count=0;}
 void defjam_caf_faces_clear(void) {memset(s_live,0,sizeof(s_live));memset(s_sizes,0,sizeof(s_sizes));memset(s_unknown,0,sizeof(s_unknown));}
 static uint32_t hash_bytes(uint32_t p,uint32_t size) {
     uint32_t hash=2166136261u;const uint8_t *bytes=(const uint8_t *)XBOX_PTR(p);

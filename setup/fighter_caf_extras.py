@@ -9,6 +9,8 @@ from fighter_resource_files import require
 from mods import ordinary_path, safe_relative
 
 ATLASES = ('a', 'b', 'c', 'd', 'd1', 'd2')
+MAX_PNG = 16 * 1024 ** 2
+from fighter_caf_layout import HD_EDGES  # noqa: E402
 PIXELS = 256 * 256 * 4
 MAX_BYTES = 16 * 1024 * 1024
 FINISHER_TABLE = 0x47D305FD
@@ -48,12 +50,20 @@ def load(root, value, database):
         path = ordinary_path(root.joinpath(*safe_relative(descriptor['path'])))
         require(path.is_relative_to(root), 'CAF atlas leaves its package')
         with path.open('rb') as stream:
-            raw = stream.read(1024 * 1024 + 1)
-        require(len(raw) <= 1024 * 1024 and hashlib.sha256(raw).hexdigest() == descriptor['sha256'], 'CAF atlas hash/size differs')
+            raw = stream.read(MAX_PNG + 1)
+        require(len(raw) <= MAX_PNG and hashlib.sha256(raw).hexdigest() == descriptor['sha256'], 'CAF atlas hash/size differs')
         with Image.open(io.BytesIO(raw)) as image:
-            require(image.format == 'PNG' and image.size == (256, 256), 'CAF atlases must be native 256x256 PNGs')
+            require(image.format == 'PNG' and image.width == image.height and image.width in (256, *HD_EDGES),
+                    'CAF atlas must be a square 256, 512, 1024 or 2048 PNG')
             image.load()
-            result['atlases'][name] = image.convert('RGBA').tobytes('raw', 'BGRA')
+            if image.width == 256:
+                result['atlases'][name] = image.convert('RGBA').tobytes('raw', 'BGRA')
+                continue
+            # Imported alpha is never used: native material alpha belongs to the original compositor. The 256px
+            # fallback is the Lanczos-filtered RGB, and the full-resolution RGB goes to the hd section.
+            rgb = image.convert('RGB')
+            result.setdefault('hd_atlases', {})[name] = struct.pack('<I', image.width) + rgb.convert('RGBA').tobytes('raw', 'BGRA')
+            result['atlases'][name] = rgb.resize((256, 256), Image.Resampling.LANCZOS).convert('RGBA').tobytes('raw', 'BGRA')
     return result
 
 

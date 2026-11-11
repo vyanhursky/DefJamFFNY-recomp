@@ -208,11 +208,13 @@ def encode(entries,report):
     """The whole fighter-caf.bin container: header, recipes, then the optional extras and face sculpts."""
     import fighter_caf_layout as layout
     from fighter_caf_extras import encode_section as encode_extras
+    from fighter_caf_hd import encode_section as encode_hd
     from fighter_caf_face import encode_rows as encode_faces
     recipe_count,recipes=encode_rows(entries,report)
     extras_count,extras=encode_extras(entries,report)
+    hd_count,hd=encode_hd(entries,report)
     faces_count,faces=encode_faces(entries,report)
-    raw=layout.pack_header(recipe_count,extras_count,len(extras),faces_count)+recipes+extras+faces
+    raw=layout.pack_header(recipe_count,extras_count,len(extras),hd_count,len(hd),faces_count)+recipes+extras+hd+faces
     require(len(raw)<=layout.MAX_FILE,'Compiled CAF fighters exceed the container budget')
     return raw
 

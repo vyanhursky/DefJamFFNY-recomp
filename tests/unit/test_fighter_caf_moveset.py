@@ -16,7 +16,7 @@ def test_retail_moveset_resolves_verified_core_and_preserves_recipe_data(monkeyp
     catalog=SimpleNamespace(rows={'retail/blaze':dict(native_binding=dict(core_id=5),fields={'FightingStyle':dict(word=8)},record_offset=0)},db=SimpleNamespace(word=lambda _:8))
     original={'core':109,'recipe':{'styles':[2]},'outfits':[{'recipe':{'styles':[2]}}]}
     import fighter_caf_face
-    monkeypatch.setattr(fighter_caf_face,'load_recipe',lambda *args:copy.deepcopy(original))
+    monkeypatch.setattr(fighter_caf_face,'load_recipe',lambda *args,**kwargs:copy.deepcopy(original))
     result=load_recipe(None,value,catalog,None)
     assert result['core']==5 and result['retail_styles']==[3] and result['recipe']==original['recipe']
     assert value['retail_moveset']=='retail/blaze'

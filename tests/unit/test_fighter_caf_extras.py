@@ -30,7 +30,7 @@ def test_v2_source_and_atlas_hash_dimensions_channels(tmp_path):
     with pytest.raises(ValueError, match='hash'):
         load(tmp_path, {'atlases': {'a': descriptor}}, None)
     descriptor = atlas(tmp_path, (128, 128))
-    with pytest.raises(ValueError, match='256x256'):
+    with pytest.raises(ValueError, match='256'):
         load(tmp_path, {'atlases': {'a': descriptor}}, None)
 
 

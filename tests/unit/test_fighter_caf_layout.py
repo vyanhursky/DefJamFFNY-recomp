@@ -31,6 +31,7 @@ def test_the_committed_c_header_matches_the_python_layout():
     (layout.RECIPE, layout.RECIPE_STRIDE, {'training': 4 * layout.TRAINING, 'values': 4 * layout.VALUES, 'colors': layout.COLORS, 'styles': layout.STYLES,
                                            'selection': 4, 'core': 4, 'style_count': 4, 'retail': 1, 'voice': 4, 'outfit': 4, 'alias': 4}),
     (layout.EXTRA, layout.EXTRA_STRIDE, {'selection': 4, 'has_finishers': 4, 'finishers': 4 * layout.FINISHERS, 'atlases': 4 * layout.ATLASES, 'outfit': 4}),
+    (layout.HD, layout.HD_STRIDE, {'selection': 4, 'outfit': 4, 'atlases': 4 * layout.ATLASES}),
     (layout.FACE, layout.FACE_STRIDE, {'selection': 4, 'outfit': 4, 'basis': 4 * layout.BASIS, 'vertices': layout.FACE_VERTICES * layout.FACE_VERTEX_BYTES}),
 ])
 def test_named_fields_fit_their_row_without_overlapping(fields, stride, counts):
@@ -45,11 +46,12 @@ def test_named_fields_fit_their_row_without_overlapping(fields, stride, counts):
 
 def test_header_words_are_contiguous_after_the_magic_and_version():
     assert struct.calcsize(layout.HEADER_FORMAT) == layout.HEADER_BYTES
-    header = layout.pack_header(3, 2, 5000, 1)
+    header = layout.pack_header(3, 2, 5000, 1, 7000, 1)
+    after_recipes = layout.HEADER_BYTES + 3 * layout.RECIPE_STRIDE
     assert layout.unpack_header(header) == dict(
-        recipe_offset=layout.HEADER_BYTES, recipe_count=3, extras_offset=layout.HEADER_BYTES + 3 * layout.RECIPE_STRIDE, extras_count=2,
-        extras_bytes=5000, faces_offset=layout.HEADER_BYTES + 3 * layout.RECIPE_STRIDE + 5000, faces_count=1,
-        total_bytes=layout.HEADER_BYTES + 3 * layout.RECIPE_STRIDE + 5000 + layout.FACE_STRIDE)
+        recipe_offset=layout.HEADER_BYTES, recipe_count=3, extras_offset=after_recipes, extras_count=2, extras_bytes=5000,
+        hd_offset=after_recipes + 5000, hd_count=1, hd_bytes=7000,
+        faces_offset=after_recipes + 12000, faces_count=1, total_bytes=after_recipes + 12000 + layout.FACE_STRIDE)
 
 
 def test_a_compiled_container_splits_back_into_its_three_sections():
@@ -60,8 +62,9 @@ def test_a_compiled_container_splits_back_into_its_three_sections():
                               extras=dict(finishers=[1, 2, 3, 4], atlases={}))])
     report = dict(bindings={'a/b': {'selection_key': 100}})
     raw = encode({'a/b': item}, report)
-    header, recipes, extras, faces = layout.split(raw)
-    assert (header['recipe_count'], header['extras_count'], header['faces_count']) == (1, 1, 1)
+    header, recipes, extras, hd, faces = layout.split(raw)
+    assert (header['recipe_count'], header['extras_count'], header['hd_count'], header['faces_count']) == (1, 1, 0, 1)
+    assert hd == b''
     assert len(recipes) == layout.RECIPE_STRIDE and len(extras) == layout.EXTRA_STRIDE and len(faces) == layout.FACE_STRIDE
     assert struct.unpack_from('<I', faces, layout.FACE['selection']) == (100,)
     assert layout.split(raw[:-1]) is None and layout.split(b'FCA3' + raw[4:]) is None
@@ -71,6 +74,6 @@ def test_a_container_with_no_extras_or_faces_still_tiles():
     item, report = outfit_fixture()
     for outfit in item['outfits']:
         outfit['extras'] = None
-    header, recipes, extras, faces = layout.split(encode({'example/fighter': item}, report))
-    assert (header['recipe_count'], header['extras_count'], header['faces_count']) == (3, 0, 0)
-    assert extras == b'' and faces == b'' and len(recipes) == 3 * layout.RECIPE_STRIDE
+    header, recipes, extras, hd, faces = layout.split(encode({'example/fighter': item}, report))
+    assert (header['recipe_count'], header['extras_count'], header['hd_count'], header['faces_count']) == (3, 0, 0, 0)
+    assert extras == b'' and hd == b'' and faces == b'' and len(recipes) == 3 * layout.RECIPE_STRIDE

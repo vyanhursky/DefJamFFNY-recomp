@@ -54,6 +54,14 @@ def render():
         '#define CAF_EXTRA_FINISHER_AT(i) (CAF_EXTRA_FINISHERS + 4u * (i))',
         '#define CAF_EXTRA_ATLAS_AT(i) (CAF_EXTRA_ATLASES + 4u * (i))',
         '',
+        '#define CAF_HD_STRIDE %du' % layout.HD_STRIDE,
+        '#define CAF_HD_MAX_BLOCKS %du' % layout.HD_MAX_BLOCKS,
+        '#define CAF_HD_MAX_BYTES %du' % layout.HD_MAX_BYTES,
+    ]
+    lines += ['#define CAF_HD_%s %du' % (name.upper(), offset) for name, offset in layout.HD.items()]
+    lines += [
+        '#define CAF_HD_ATLAS_AT(i) (CAF_HD_ATLASES + 4u * (i))',
+        '',
         '#define CAF_FACE_VERTEX_COUNT %du' % layout.FACE_VERTICES,
         '#define CAF_FACE_VERTEX_BYTES %du' % layout.FACE_VERTEX_BYTES,
         '#define CAF_FACE_VERTEX_DELTA %du' % layout.FACE_VERTEX_DELTA,

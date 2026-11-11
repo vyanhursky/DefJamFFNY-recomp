@@ -1,9 +1,10 @@
 """The one definition of the compiled CAF container shared by the Python compiler and the C runtime.
 
-`fighter-caf.bin` is a 64-byte header followed by three sections laid end to end, in this order:
+`fighter-caf.bin` is a 64-byte header followed by four sections laid end to end, in this order:
 
     recipes   count * RECIPE_STRIDE bytes   one row per fighter outfit
-    extras    count * EXTRA_STRIDE bytes    finisher choices and atlas pointers, then the atlas pixel blocks
+    extras    count * EXTRA_STRIDE bytes    finisher choices and atlas pointers, then the 256px atlas pixel blocks
+    hd        count * HD_STRIDE bytes       host-side 512..2048px RGB per outfit, then the pixel blocks
     faces     count * FACE_STRIDE bytes     one sculpt per fighter outfit
 
 Every number is a little-endian u32 unless the field says otherwise. The section offsets are recorded in the header
@@ -15,12 +16,13 @@ import struct
 MAGIC = b'FCAF'
 VERSION = 1
 HEADER_BYTES = 64
-MAX_FILE = 64 * 1024 ** 2
+HD_MAX_BYTES = 128 * 1024 ** 2
+MAX_FILE = 64 * 1024 ** 2 + HD_MAX_BYTES
 
 # Header words, in order after the magic and version.
 HEADER = ('recipe_offset', 'recipe_count', 'extras_offset', 'extras_count', 'extras_bytes',
-          'faces_offset', 'faces_count', 'total_bytes')
-HEADER_FORMAT = '<4sI8I24x'
+          'hd_offset', 'hd_count', 'hd_bytes', 'faces_offset', 'faces_count', 'total_bytes')
+HEADER_FORMAT = '<4sI11I12x'
 
 RECIPE_STRIDE = 240
 VALUES = 38        # CAF appearance values, u32 each
@@ -53,6 +55,15 @@ EXTRA = {
 }
 ATLAS_BYTES = 256 * 256 * 4
 
+HD_STRIDE = 32
+HD_EDGES = (512, 1024, 2048)   # each block is an edge u32 then edge * edge BGRA pixels
+HD_MAX_BLOCKS = 128
+HD = {
+    'selection': 0,
+    'outfit': 4,
+    'atlases': 8,     # ATLASES u32 block offsets from the hd section start, 0 when the slot has no HD art
+}
+
 FACE_VERTICES = 710
 FACE_VERTEX_BYTES = 24   # x y z floats, then the delta of x y z
 FACE_VERTEX_DELTA = 12
@@ -66,26 +77,28 @@ FACE = {
 }
 
 
-def pack_header(recipe_count, extras_count, extras_bytes, faces_count):
+def pack_header(recipe_count, extras_count, extras_bytes, hd_count, hd_bytes, faces_count):
     """The header for sections that follow it back to back. Offsets are derived, never supplied."""
     recipe_offset = HEADER_BYTES
     extras_offset = recipe_offset + recipe_count * RECIPE_STRIDE
-    faces_offset = extras_offset + extras_bytes
+    hd_offset = extras_offset + extras_bytes
+    faces_offset = hd_offset + hd_bytes
     total = faces_offset + faces_count * FACE_STRIDE
     return struct.pack(HEADER_FORMAT, MAGIC, VERSION, recipe_offset, recipe_count, extras_offset, extras_count,
-                       extras_bytes, faces_offset, faces_count, total)
+                       extras_bytes, hd_offset, hd_count, hd_bytes, faces_offset, faces_count, total)
 
 
 def split(raw):
-    """(header, recipes, extras, faces): the container's sections as byte strings, or None if it is malformed."""
+    """(header, recipes, extras, hd, faces): the container's sections as byte strings, or None if it is malformed."""
     header = unpack_header(raw)
     if header is None or header['total_bytes'] != len(raw):
         return None
-    expected = pack_header(header['recipe_count'], header['extras_count'], header['extras_bytes'], header['faces_count'])
+    expected = pack_header(header['recipe_count'], header['extras_count'], header['extras_bytes'],
+                           header['hd_count'], header['hd_bytes'], header['faces_count'])
     if raw[:HEADER_BYTES] != expected:
         return None
-    extras, faces = header['extras_offset'], header['faces_offset']
-    return header, raw[HEADER_BYTES:extras], raw[extras:faces], raw[faces:]
+    extras, hd, faces = header['extras_offset'], header['hd_offset'], header['faces_offset']
+    return header, raw[HEADER_BYTES:extras], raw[extras:hd], raw[hd:faces], raw[faces:]
 
 
 def unpack_header(raw):

@@ -23,6 +23,7 @@ DRIVER=r'''
 #include <stdlib.h>
 #include <string.h>
 #include "patches/fighter_caf_layout.h"
+#include "patches/fighter_caf.h"
 static uint8_t memory[0x400000];
 #define MEM32(address) (*(uint32_t *)(memory+(uint32_t)(address)))
 #define CAF_MAX_ROWS (16384u*3u)
@@ -33,6 +34,7 @@ static uint32_t s_story_profiles[4];
 static uint8_t *s_rows,*s_extras;
 static const uint8_t *s_recipes[4];
 static void restore_finishers(void) {}
+static void defjam_caf_hd_clear(void) {}
 static void defjam_caf_faces_clear(void) {} /* Sculpt lifetime is tested separately. */
 @FUNCTIONS@
 static uint8_t *readfile(const char *path,size_t *size) {
@@ -41,9 +43,10 @@ static uint8_t *readfile(const char *path,size_t *size) {
 }
 int main(int argc,char **argv) {
  assert(argc==3);size_t size;const char *mode=argv[2];
- uint8_t *data=readfile(argv[1],&size);uint32_t rc,ec,eb,fc;
- if(!strcmp(mode,"bad-header")){assert(!defjam_fighter_caf_container(data,size,&rc,&ec,&eb,&fc));return 0;}
- assert(defjam_fighter_caf_container(data,size,&rc,&ec,&eb,&fc));
+ uint8_t *data=readfile(argv[1],&size);CafContainer c;
+ if(!strcmp(mode,"bad-header")){assert(!defjam_fighter_caf_container(data,size,&c));return 0;}
+ assert(defjam_fighter_caf_container(data,size,&c));
+ uint32_t rc=c.recipe_count,ec=c.extras_count,eb=c.extras_bytes,fc=c.faces_count;
  s_rows=data+CAF_CONTAINER_HEADER_BYTES;s_count=rc;
  if(!strcmp(mode,"bad-recipe")){assert(!recipes_valid(s_rows,rc));return 0;}
  assert(recipes_valid(s_rows,rc));
@@ -167,7 +170,7 @@ def test_the_runtime_reads_back_every_named_field_the_compiler_wrote(native,tmp_
     assert recipe['caf_values'][5]==4
 
 
-@pytest.mark.parametrize('damage',['magic','version','total','recipe-offset','extras-offset','faces-offset','extras-bytes','truncated','trailing','recipe-count'])
+@pytest.mark.parametrize('damage',['magic','version','total','recipe-offset','extras-offset','hd-offset','hd-bytes-without-rows','faces-offset','extras-bytes','truncated','trailing','recipe-count'])
 def test_container_header_must_tile_the_file_exactly(native,tmp_path,damage):
     raw,_,_=container()
     h=layout.HEADER
@@ -177,6 +180,8 @@ def test_container_header_must_tile_the_file_exactly(native,tmp_path,damage):
     if damage=='total':struct.pack_into('<I',raw,word('total_bytes'),len(raw)+4)
     if damage=='recipe-offset':struct.pack_into('<I',raw,word('recipe_offset'),layout.HEADER_BYTES+4)
     if damage=='extras-offset':struct.pack_into('<I',raw,word('extras_offset'),layout.unpack_header(raw)['extras_offset']-4)
+    if damage=='hd-offset':struct.pack_into('<I',raw,word('hd_offset'),layout.unpack_header(raw)['hd_offset']+4)
+    if damage=='hd-bytes-without-rows':struct.pack_into('<I',raw,word('hd_bytes'),4)
     if damage=='faces-offset':struct.pack_into('<I',raw,word('faces_offset'),layout.unpack_header(raw)['faces_offset']+4)
     if damage=='extras-bytes':struct.pack_into('<I',raw,word('extras_bytes'),layout.unpack_header(raw)['extras_bytes']-4)
     if damage=='truncated':raw=raw[:-4]

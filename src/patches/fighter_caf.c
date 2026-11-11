@@ -4,6 +4,7 @@
 #include "fighter_fatal.h"
 #include "fighter_motion.h"
 #include "fighter_caf_face.h"
+#include "fighter_caf_hd.h"
 #include "fighter_caf_layout.h"
 #include "hooks/guest_call.h"
 #include "hooks/mod_sha256.h"
@@ -253,22 +254,29 @@ static uint8_t *read_container(const char *path,size_t *size) {
     file=fopen(path,"rb");
 #endif
     if (!file) return NULL;
-    uint8_t *data=(uint8_t *)malloc(CAF_CONTAINER_MAX_BYTES+1u);
+    /* Size the buffer from the file: the container may carry up to 128 MiB of HD pixels, but most are a few MB. */
+    if (fseek(file,0,SEEK_END)) {fclose(file);return NULL;}
+    long length=ftell(file);
+    if (length<(long)CAF_CONTAINER_HEADER_BYTES || (unsigned long)length>CAF_CONTAINER_MAX_BYTES || fseek(file,0,SEEK_SET)) {fclose(file);return NULL;}
+    uint8_t *data=(uint8_t *)malloc((size_t)length);
     if (!data) {fclose(file);return NULL;}
-    *size=fread(data,1,CAF_CONTAINER_MAX_BYTES+1u,file);
-    int bad=ferror(file);fclose(file);
+    *size=fread(data,1,(size_t)length,file);
+    int bad=ferror(file) || *size!=(size_t)length;fclose(file);
     if (bad) {free(data);return NULL;}
     return data;
 }
-/* The header must describe sections that tile the file exactly: header, recipes, extras, faces. */
-int defjam_fighter_caf_container(const uint8_t *data,size_t size,uint32_t *recipe_count,uint32_t *extras_count,uint32_t *extras_bytes,uint32_t *faces_count) {
+/* The header must describe sections that tile the file exactly: header, recipes, extras, hd, faces. */
+int defjam_fighter_caf_container(const uint8_t *data,size_t size,CafContainer *out) {
     if(size<CAF_CONTAINER_HEADER_BYTES || size>CAF_CONTAINER_MAX_BYTES || memcmp(data,CAF_CONTAINER_MAGIC,4) || word(data+4)!=CAF_CONTAINER_VERSION) return 0;
-    uint32_t rc=word(data+CAF_HEADER_RECIPE_COUNT),ec=word(data+CAF_HEADER_EXTRAS_COUNT),eb=word(data+CAF_HEADER_EXTRAS_BYTES),fc=word(data+CAF_HEADER_FACES_COUNT);
-    if(!rc || rc>CAF_MAX_ROWS || ec>CAF_MAX_ROWS || eb>EXTRA_MAX || (!ec && eb) || (ec && !eb) || fc>CAF_MAX_ROWS) return 0;
-    size_t recipes=CAF_CONTAINER_HEADER_BYTES,extras=recipes+(size_t)rc*CAF_ROW_STRIDE,faces=extras+eb,total=faces+(size_t)fc*CAF_FACE_STRIDE;
-    if(word(data+CAF_HEADER_RECIPE_OFFSET)!=recipes || word(data+CAF_HEADER_EXTRAS_OFFSET)!=extras || word(data+CAF_HEADER_FACES_OFFSET)!=faces
-        || word(data+CAF_HEADER_TOTAL_BYTES)!=total || total!=size) return 0;
-    *recipe_count=rc;*extras_count=ec;*extras_bytes=eb;*faces_count=fc;return 1;
+    CafContainer c={word(data+CAF_HEADER_RECIPE_COUNT),word(data+CAF_HEADER_EXTRAS_COUNT),word(data+CAF_HEADER_EXTRAS_BYTES),
+        word(data+CAF_HEADER_HD_COUNT),word(data+CAF_HEADER_HD_BYTES),word(data+CAF_HEADER_FACES_COUNT)};
+    if(!c.recipe_count || c.recipe_count>CAF_MAX_ROWS || c.extras_count>CAF_MAX_ROWS || c.extras_bytes>EXTRA_MAX || (!c.extras_count && c.extras_bytes) || (c.extras_count && !c.extras_bytes)
+        || c.hd_count>CAF_MAX_ROWS || c.hd_bytes>CAF_HD_MAX_BYTES || (!c.hd_count && c.hd_bytes) || (c.hd_count && !c.hd_bytes) || c.faces_count>CAF_MAX_ROWS) return 0;
+    size_t recipes=CAF_CONTAINER_HEADER_BYTES,extras=recipes+(size_t)c.recipe_count*CAF_ROW_STRIDE,hd=extras+c.extras_bytes,faces=hd+c.hd_bytes;
+    size_t total=faces+(size_t)c.faces_count*CAF_FACE_STRIDE;
+    if(word(data+CAF_HEADER_RECIPE_OFFSET)!=recipes || word(data+CAF_HEADER_EXTRAS_OFFSET)!=extras || word(data+CAF_HEADER_HD_OFFSET)!=hd
+        || word(data+CAF_HEADER_FACES_OFFSET)!=faces || word(data+CAF_HEADER_TOTAL_BYTES)!=total || total!=size) return 0;
+    *out=c;return 1;
 }
 int defjam_fighter_caf_start(void) {
     const char *path=getenv("RECOMP_FIGHTER_CAF"),*hash=getenv("RECOMP_FIGHTER_CAF_SHA256");
@@ -276,19 +284,24 @@ int defjam_fighter_caf_start(void) {
     if (!mod_file_matches(path,hash) || s_rows) return 0;
     size_t size=0;uint8_t *data=read_container(path,&size);
     if (!data) return 0;
-    uint32_t rc,ec,eb,fc;
-    if (!defjam_fighter_caf_container(data,size,&rc,&ec,&eb,&fc)) {free(data);return 0;}
-    const uint8_t *extras=data+CAF_CONTAINER_HEADER_BYTES+(size_t)rc*CAF_ROW_STRIDE,*faces=extras+eb;
-    s_rows=data+CAF_CONTAINER_HEADER_BYTES;s_count=rc;
-    if (!recipes_valid(s_rows,rc) || (ec && !extras_valid(extras,eb,ec)) || (fc && !defjam_caf_faces_start(recipe_row,faces,fc))) {
+    CafContainer c;
+    if (!defjam_fighter_caf_container(data,size,&c)) {free(data);return 0;}
+    const uint8_t *extras=data+CAF_CONTAINER_HEADER_BYTES+(size_t)c.recipe_count*CAF_ROW_STRIDE,*hd=extras+c.extras_bytes,*faces=hd+c.hd_bytes;
+    s_rows=data+CAF_CONTAINER_HEADER_BYTES;s_count=c.recipe_count;
+    if (!recipes_valid(s_rows,c.recipe_count) || (c.extras_count && !extras_valid(extras,c.extras_bytes,c.extras_count))
+        || (c.faces_count && !defjam_caf_faces_start(recipe_row,faces,c.faces_count))
+        || (c.hd_count && !defjam_caf_hd_start(recipe_row,hd,c.hd_bytes,c.hd_count))) {
+        /* Sections keep pointers into the container, so release them all before freeing it. */
+        defjam_caf_faces_release();defjam_caf_hd_release();
         free(data);s_rows=NULL;s_count=0;return 0;
     }
-    if (ec) {s_extras=(uint8_t *)extras;s_extra_count=ec;fprintf(stderr,"[FIGHTERS] validated %u CAF extras (%u bytes)\n",ec,eb);}
-    fprintf(stderr,"[FIGHTERS] validated %u CAF recipes\n",rc);return 1;
+    if (c.extras_count) {s_extras=(uint8_t *)extras;s_extra_count=c.extras_count;fprintf(stderr,"[FIGHTERS] validated %u CAF extras (%u bytes)\n",c.extras_count,c.extras_bytes);}
+    fprintf(stderr,"[FIGHTERS] validated %u CAF recipes\n",c.recipe_count);return 1;
 }
 /* Called before each match/after it finishes: no stale context may be reused. */
 void defjam_fighter_caf_clear(void) {
     defjam_caf_faces_clear();
+    defjam_caf_hd_clear();
     restore_finishers();
     for(unsigned i=0;i<4;++i) if(s_story_profiles[i] && s_service && s_recipes[i]
         && MEM32(s_service+0x168+i*4)==word(s_recipes[i]+CAF_ROW_VOICE))
@@ -415,6 +428,7 @@ void defjam_fighter_caf_participant(uint32_t service,uint32_t participant,uint32
     defjam_caf_faces_apply(MEM32(context+8)+0x8B0,participant,selection,outfit,row);
     face_trace(MEM32(context+8)+0x8B0,participant);
     apply_atlases(MEM32(context+8)+0x8B0,extra_row(selection,outfit));
+    defjam_caf_hd_apply(MEM32(context+8)+0x8B0,selection,outfit);
     uint32_t old_manager=MEM32(service+4),old_mode=MEM32(service+0x344);
     MEM32(service+4)=s_profile_workspace;MEM32(service+0x344)=0;MEM32(s_profile_workspace+0x5ac7c)=0;
     uint32_t stats_args[]={participant};guest_call(sub_0001EE80,service,1,stats_args);
