@@ -120,6 +120,18 @@ int main(int argc,char **argv) {
    assert(MEM32(0x3B9288+i*4)==expected);
   }
   assert(!s_service && !s_contexts[0] && !s_recipes[0]);
+ } else if(!strcmp(mode,"story-pool")) {
+  /* A profile's own Blazin' matrix may hold a value outside the original 82-move pool. That choice is left to the
+   * original loader; the other three are still bound, and the game does not stop. */
+  s_service=0x50000;MEM32(s_service+0x1A9C)=0x60000;
+  s_contexts[0]=0x60000;MEM8(0x60000)=MEM8(0x60001)=1;MEM32(0x60008)=0x70000;
+  s_recipes[0]=s_rows+16;MEM32(0x3B92E0+0x28)=100;
+  uint32_t core=5;memcpy(s_rows+20,&core,4);MEM32(0x3B92E0+0x2C)=core-1;
+  s_story_profiles[0]=0x80000;uint32_t career=109;memcpy(s_rows+16+228,&career,4);MEM32(s_service+0x168)=5;
+  for(unsigned i=0;i<4;++i){MEM32(0x3B9288+i*4)=i==2?0xFFFFFFFFu:10u+i;MEM32(0x3B92E0+0xBB8+i*4)=0x5A5A5A5Au;}
+  defjam_fighter_caf_finishers();
+  for(unsigned i=0;i<4;++i)assert(MEM32(0x3B92E0+0xBB8+i*4)==(i==2?0x5A5A5A5Au:10u+i));
+  assert(MEM32(s_service+0x168)==109);
  } else return 2;
  assert(g_esp==0xB00000 && g_ecx==123 && g_eax==456 && g_ebx==789);
  puts("CAF extras native boundaries passed");return 0;
@@ -167,7 +179,7 @@ def sidecar():
                   {'bindings': {'p/f': {'selection_key': 100}}})
 
 
-@pytest.mark.parametrize('mode', ['art', 'art-linear', 'finishers', 'retail', 'story', 'story-new-owner', 'no-caf', 'mismatch', 'new-owner'])
+@pytest.mark.parametrize('mode', ['art', 'art-linear', 'finishers', 'retail', 'story', 'story-new-owner', 'story-pool', 'no-caf', 'mismatch', 'new-owner'])
 def test_native_rgb_alpha_ownership_and_finisher_routing(tool, tmp_path, mode):
     path = tmp_path / 'extras.bin'; path.write_bytes(sidecar())
     result = subprocess.run([tool, path, mode], capture_output=True, text=True)

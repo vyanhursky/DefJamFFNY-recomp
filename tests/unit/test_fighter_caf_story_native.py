@@ -49,13 +49,18 @@ int main(int argc,char **argv) {
  if(!strcmp(mode,"retail")){MEM8(test_service+0x1aaa)=5;expected=0;}
  if(!strcmp(mode,"caf")){MEM32(test_service+0x168)=87;expected=0;}
  if(!strcmp(mode,"guest"))profile_index=-1;
+ int degraded=0;
  if(!strcmp(mode,"career"))MEM8(profile+0x4d93)=5;
- if(!strcmp(mode,"mismatch"))MEM8(profile+0x143)=6;
- if(!strcmp(mode,"styles"))MEM8(profile+0x140)=5;
+ if(!strcmp(mode,"mismatch")){MEM8(profile+0x143)=6;degraded=1;}
+ if(!strcmp(mode,"styles")){MEM8(profile+0x140)=5;degraded=1;}
+ if(!strcmp(mode,"no-styles")){MEM8(profile+0x140)=255;degraded=1;}
+ if(degraded)expected=0;
  uint8_t before[0x5950];memcpy(before,XBOX_PTR(profile),sizeof before);
  g_esp=0xB00000;g_eax=123;g_ecx=456;
  defjam_fighter_caf_story(test_service,participants);
  assert(constructed==(uint32_t)expected && !memcmp(before,XBOX_PTR(profile),sizeof before));
+ /* The adapter could not take the slot: the participant gets its career core and nothing else changes. */
+ if(degraded)assert(MEM32(test_service+0x168)==109 && !s_story_profiles[0] && !s_recipes[0]);
  assert(g_esp==0xB00000 && g_eax==123 && g_ecx==456);
  assert(!expected || s_story_profiles[0]==profile);
  if(expected) {
@@ -80,7 +85,7 @@ def tool(tmp_path_factory):
     (folder / 'recomp/gen/recomp_types.h').write_text(TYPES)
     source = (ROOT / 'src/patches/fighter_caf.c').read_text()
     driver = folder / 'driver.c'
-    driver.write_text(DRIVER.replace('@STORY@', definition(source, 'defjam_fighter_caf_story')))
+    driver.write_text(DRIVER.replace('@STORY@', definition(source, 'story_fallback') + '\n' + definition(source, 'defjam_fighter_caf_story')))
     exe = folder / ('story.exe' if os.name == 'nt' else 'story')
     command = ([cc, '/nologo', '/W4', '/WX', '/D_CRT_SECURE_NO_WARNINGS', '/I'+str(folder), '/I'+str(ROOT/'src'), str(driver), '/Fe:'+str(exe)]
         if os.name == 'nt' else [cc, '-std=c11', '-Wall', '-Wextra', '-Werror', '-I', str(folder), '-I', str(ROOT/'src'), str(driver), '-o', str(exe)])
@@ -89,7 +94,9 @@ def tool(tmp_path_factory):
     return exe
 
 
-@pytest.mark.parametrize('mode', ['battle','story','retail','caf','guest','career','mismatch','styles'])
+@pytest.mark.parametrize('mode', ['battle','story','retail','caf','guest','career','mismatch','styles','no-styles'])
 def test_story_profile_context_bounds_and_preservation(tool,mode):
     result = subprocess.run([tool,mode],capture_output=True,text=True)
-    assert result.returncode == (1 if mode in ('guest','career','mismatch','styles') else 0),result.stdout+result.stderr
+    assert result.returncode == (1 if mode in ('guest','career') else 0),result.stdout+result.stderr
+    if mode in ('mismatch','styles','no-styles'):
+        assert 'playing its career moveset 109' in result.stderr

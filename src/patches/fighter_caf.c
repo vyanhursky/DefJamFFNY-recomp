@@ -202,8 +202,14 @@ void defjam_fighter_caf_finishers(void) {
         for(unsigned choice=0;choice<4;++choice) {
             uint32_t address=0x3B9288u+slot*16+choice*4;
             uint32_t value=story?MEM32(address):word(extra+8+choice*4);
-            if(value>=82)stop("CAF finisher choice exceeds the original move pool");
             choices[choice]=value;
+            if(value>=82) {
+                /* A standalone sidecar is validated against the pool when it loads, so only a profile's own
+                 * matrix can get here. Leave that choice to the original loader instead of stopping. */
+                if(!story)stop("CAF finisher choice exceeds the original move pool");
+                fprintf(stderr,"[FIGHTERS] Story CAF finisher choice %u of participant=%u is outside the original move pool; left to the original loader\n",choice,slot);
+                continue;
+            }
             if(!story) {
                 if(!owned) s_finisher_before[slot][choice]=MEM32(address);
                 s_finisher_applied[slot][choice]=value;
@@ -354,6 +360,13 @@ static uint32_t construct_caf(uint32_t service,uint32_t participant,const uint8_
     if(!MEM8(context+1)||!MEM32(context+8)) stop("native CAF construction did not complete");
     return context;
 }
+/* The adapter cannot take over this slot. The profile still says what its career moveset is, so hand the
+ * participant that core: native CAF handling then plays it exactly as an unedited save would, instead of
+ * the game stopping. Only a profile with no readable career has nothing to fall back on. */
+static void story_fallback(uint32_t service,uint32_t slot,uint32_t career,const char *why) {
+    MEM32(service+0x168+slot*4)=career;
+    fprintf(stderr,"[FIGHTERS] Story CAF retail moveset not applied participant=%u (%s); playing its career moveset %u\n",slot,why,career);
+}
 void defjam_fighter_caf_story(uint32_t service,uint32_t fighters) {
     /* A profile-owned fighter retains the original loader and its event timing.
      * Only track its context/voice/finishers for retail motion compatibility;
@@ -370,16 +383,18 @@ void defjam_fighter_caf_story(uint32_t service,uint32_t fighters) {
         else if(mode==1)index=(int8_t)guest_call(sub_0001E8F0,service,1,&slot);
         if(index<0 || index>=16)stop("Story CAF retail moveset has no signed-in profile");
         uint32_t profile=manager+0x177c+(uint32_t)index*0x5950;
-        if(!guest_span(profile,0x5950) || MEM8(profile+0x143)!=core || MEM8(profile+0x4d93)<87 || MEM8(profile+0x4d93)>141)
-            stop("Story CAF retail moveset profile differs from its preserved career");
+        if(!guest_span(profile,0x5950) || MEM8(profile+0x4d93)<87 || MEM8(profile+0x4d93)>141)
+            stop("Story CAF retail moveset has no preserved career moveset to fall back on");
+        uint32_t career=MEM8(profile+0x4d93);
+        if(MEM8(profile+0x143)!=core){story_fallback(service,slot,career,"saved moveset differs from the live one");continue;}
         uint8_t *row=s_story_rows[slot];memset(row,0,240);
         uint32_t value=99;memcpy(row,&value,4);memcpy(row+4,&core,4);
         memcpy(row+8,(const void *)XBOX_PTR(profile+0xfc),20);
         memcpy(row+32,(const void *)XBOX_PTR(profile+0x5564),152);
         memcpy(row+184,(const void *)XBOX_PTR(profile+0x55fc),38);
-        uint32_t count=0;
-        for(unsigned i=0;i<3;++i) {uint8_t style=MEM8(profile+0x140+i);row[222+i]=style;if(style!=255){if(style>4)stop("Story CAF style slots are unsupported");++count;}}
-        if(!count)stop("Story CAF has no preserved style combination");
+        uint32_t count=0;int styles_ok=1;
+        for(unsigned i=0;i<3;++i) {uint8_t style=MEM8(profile+0x140+i);row[222+i]=style;if(style!=255){if(style>4)styles_ok=0;else ++count;}}
+        if(!styles_ok||!count){story_fallback(service,slot,career,styles_ok?"no preserved style combination":"style slots are unsupported");continue;}
         memcpy(row+28,&count,4);
         value=MEM8(profile+0x4d93);memcpy(row+228,&value,4); /* Original profile voice route. */
         s_story_profiles[slot]=profile;
