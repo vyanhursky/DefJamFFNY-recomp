@@ -15,10 +15,11 @@ DRIVER = r'''
 #include <stdlib.h>
 #include <string.h>
 #include "hooks/guest_call.h"
+#include "patches/fighter_caf_layout.h"
 unsigned char memory[0xC00000];
 uint32_t g_eax,g_ecx,g_edx,g_esp,g_ebx,g_esi,g_edi,g_ebp;
 int g_fp_top;
-static uint8_t s_story_rows[4][240];
+static uint8_t s_story_rows[4][CAF_ROW_STRIDE];
 static uint32_t s_story_profiles[4],constructed;
 static uint32_t s_service,s_contexts[4];
 static const uint8_t *s_recipes[4];
@@ -65,10 +66,10 @@ int main(int argc,char **argv) {
  assert(!expected || s_story_profiles[0]==profile);
  if(expected) {
   assert(s_service==test_service && s_contexts[0]==0xB0000 && s_recipes[0]==s_story_rows[0]);
-  uint32_t value;memcpy(&value,s_recipes[0]+4,4);assert(value==5);
-  memcpy(&value,s_recipes[0]+228,4);assert(value==109);
-  assert(!memcmp(s_recipes[0]+32,XBOX_PTR(profile+0x5564),152));
-  assert(!memcmp(s_recipes[0]+184,XBOX_PTR(profile+0x55fc),38));
+  uint32_t value;memcpy(&value,s_recipes[0]+CAF_ROW_CORE,4);assert(value==5);
+  memcpy(&value,s_recipes[0]+CAF_ROW_VOICE,4);assert(value==109);
+  assert(!memcmp(s_recipes[0]+CAF_ROW_VALUES,XBOX_PTR(profile+0x5564),152));
+  assert(!memcmp(s_recipes[0]+CAF_ROW_COLORS,XBOX_PTR(profile+0x55fc),38));
  }
  return 0;
 }

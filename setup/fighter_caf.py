@@ -13,7 +13,6 @@ from mods import ordinary_path, safe_relative
 FORMAT = 'caf-fighter-1'
 CAPABILITY = FORMAT
 OUTFIT_SECTIONS = {'outfit_name', 'outfits', 'portraits', 'face'}
-ROW_BYTES = 232
 
 
 def source(value):
@@ -181,24 +180,41 @@ def load_flat(root, value, catalog, game):
     return {'recipe':base,'core':core,'extras':extras}
 
 
-def encode(entries,report):
+def encode_rows(entries,report):
+    """Recipe rows for the container: one per fighter outfit, in selection order. Returns (count, bytes)."""
     from fighter_caf_outfits import variants
-    retail = any(item.get('retail_moveset') for item in entries.values())
-    extended = retail or any(item.get('outfits') for item in entries.values())
+    from fighter_caf_layout import RECIPE as R, RECIPE_STRIDE, VALUES, COLORS, TRAINING, STYLES
     rows=[]
     for key,item in sorted(entries.items()):
         binding=report['bindings'][key]
+        aliases=item.get('outfit_aliases',[binding['selection_key']])
         for index, outfit in enumerate(variants(item)):
-            r=outfit['recipe'];s=r['stats']
-            payload=struct.pack('<8I38I38B',binding['selection_key'],item['core'],*(s[k] for k in ('upper','lower','speed','toughness','health')),len(r['styles']),*r['caf_values'],*r['caf_colors'])
-            payload+=bytes(r['styles']+[255]*(3-len(r['styles'])))
-            payload=bytearray(payload.ljust(228,b'\0'))
-            payload[225]=int(bool(item.get('retail_moveset')))
-            payload=bytes(payload)+struct.pack('<I',item['audio_core'])
-            if extended:
-                payload+=struct.pack('<II',index,item.get('outfit_aliases',[binding['selection_key']])[index])
-            rows.append(payload)
-    return struct.pack('<4sIII',b'FCA3' if retail else b'FCA2' if extended else b'FCA1',3 if retail else 2 if extended else 1,len(rows),240 if extended else ROW_BYTES)+b''.join(rows)
+            r=outfit['recipe'];s=r['stats'];row=bytearray(RECIPE_STRIDE)
+            struct.pack_into('<I',row,R['selection'],binding['selection_key'])
+            struct.pack_into('<I',row,R['core'],item['core'])
+            struct.pack_into('<%dI'%TRAINING,row,R['training'],*(s[k] for k in ('upper','lower','speed','toughness','health')))
+            struct.pack_into('<I',row,R['style_count'],len(r['styles']))
+            struct.pack_into('<%dI'%VALUES,row,R['values'],*r['caf_values'])
+            row[R['colors']:R['colors']+COLORS]=bytes(r['caf_colors'])
+            row[R['styles']:R['styles']+STYLES]=bytes(r['styles']+[255]*(STYLES-len(r['styles'])))
+            row[R['retail']]=int(bool(item.get('retail_moveset')))
+            struct.pack_into('<I',row,R['voice'],item['audio_core'])
+            struct.pack_into('<II',row,R['outfit'],index,aliases[index])
+            rows.append(bytes(row))
+    return len(rows),b''.join(rows)
+
+
+def encode(entries,report):
+    """The whole fighter-caf.bin container: header, recipes, then the optional extras and face sculpts."""
+    import fighter_caf_layout as layout
+    from fighter_caf_extras import encode_section as encode_extras
+    from fighter_caf_face import encode_rows as encode_faces
+    recipe_count,recipes=encode_rows(entries,report)
+    extras_count,extras=encode_extras(entries,report)
+    faces_count,faces=encode_faces(entries,report)
+    raw=layout.pack_header(recipe_count,extras_count,len(extras),faces_count)+recipes+extras+faces
+    require(len(raw)<=layout.MAX_FILE,'Compiled CAF fighters exceed the container budget')
+    return raw
 
 
 def menu_record(recipe, selection):

@@ -93,7 +93,7 @@ def test_caf_and_owned_voice_ai_motion_have_disjoint_cores_and_sealed_cache(tmp_
     assert all(report['bindings'][key]['core_id'] >= 142 for key in
                ('alpha/fighter-0', 'alpha/fighter-1', 'beta/fighter-0'))
     assert owner + '/fighter-0' not in report['behavior_receipts']['motion']['bindings']
-    assert resources['fighter-caf.bin'][:4] == b'FCA1'
+    assert resources['fighter-caf.bin'][:4] == b'FCAF'
     if mode != 'logical':
         write_preview(data, report, resources, cache_root=tmp_path / 'cache')
     assert compile_inputs(sod, paths[::-1], packs[::-1], catalog=compiler, pin_path=pin, **options) == (data, report, resources)

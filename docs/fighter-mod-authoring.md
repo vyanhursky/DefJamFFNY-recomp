@@ -11,23 +11,36 @@ on November 8; converted packs and assets remain local. See the
 known limits, and the [integration checkpoint](research/fighter-mod-main-integration-2026-11-08.md)
 for current-main source/build and outstanding acceptance.
 
-The Workshop companion adds a development `caf` resource (`caf-fighter-1`):
+The Workshop companion adds a development `caf` resource, format `caf-fighter-1`:
 a hash-bound fighter-only recipe, original retail style combinations and optional
 PNG-derived native portraits. It uses this same ZIP and installation workflow
 without importing a Story container.
-CAF v2 adds hash-bound native atlases and retail finisher overrides. CAF v3 adds
-up to three appearances under one fighter identity, with per-outfit portraits
-and the original clothing selector. See the [outfit contract](research/workshop-caf-outfits-2026-11-09.md).
-See the [CAF contract and native
-acceptance](research/workshop-caf-export-2026-11-08.md) for validated fields,
-current composition limits and platform qualifications.
-CAF v1 is in PR213; v2/v3 extend it in PR217. These are **not in v1.2.0-beta.1**. On those branches,
-CAF fighters can compile alongside independent packs with owned appearance,
-voice, AI, motion and cinematic resources. Each CAF still uses retail behavior
-and voice donors, its recipe-built appearance and optional sourced portraits;
-giving the CAF itself owned behavior or an authored body is refused. Mixed
-pack gameplay, Rematch and cleanup need qualification with actual CAF packs
-before this development feature can ship.
+
+There is one recipe schema. The stats, styles, appearance values and colours are
+required; everything else is an optional section: retail finisher overrides and
+hash-bound native atlases, up to three outfits under one fighter identity (each
+with its own portrait, atlases and face sculpt, shown through the original
+clothing selector), a retail moveset, and a voice donor. A recipe that omits a
+section behaves as it did before the section existed. See the
+[outfit contract](research/workshop-caf-outfits-2026-11-09.md) and the [CAF
+contract and native acceptance](research/workshop-caf-export-2026-11-08.md) for
+validated fields, current composition limits and platform qualifications.
+
+The compiler writes all CAF data to one file, `fighter-caf.bin`, and the launcher
+hands the game that file and its SHA-256 (`RECOMP_FIGHTER_CAF`,
+`RECOMP_FIGHTER_CAF_SHA256`). It is a 64-byte header followed by three sections
+that must tile the file exactly: recipe rows, finisher and atlas extras, and face
+sculpts. Every offset and width is defined once in `setup/fighter_caf_layout.py`;
+`scripts/gen-fighter-caf-layout.py` writes the C header the game reads, and a unit
+test fails if the two differ.
+
+CAF is **not in v1.2.0-beta.1**. On the development branches, CAF fighters can
+compile alongside independent packs with owned appearance, voice, AI, motion and
+cinematic resources. Each CAF uses retail behavior and voice donors, its
+recipe-built appearance and optional sourced portraits; giving the CAF itself an
+owned appearance or Blazin' resource is refused. Mixed pack gameplay, Rematch
+and cleanup need qualification with actual CAF packs before this development
+feature can ship.
 
 ## Package shape and identity
 

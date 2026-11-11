@@ -10,7 +10,6 @@ from mods import ordinary_path, safe_relative
 
 ATLASES = ('a', 'b', 'c', 'd', 'd1', 'd2')
 PIXELS = 256 * 256 * 4
-ROW = 48
 MAX_BYTES = 16 * 1024 * 1024
 FINISHER_TABLE = 0x47D305FD
 FINISHER_CHOICE = 0x6FC83815
@@ -58,16 +57,17 @@ def load(root, value, database):
     return result
 
 
-def encode(entries, report):
+def encode_section(entries, report):
+    """The extras section: rows, then the atlas blocks. Atlas offsets count from the section start.
+    Returns (row count, bytes); (0, b'') when no fighter has finishers or atlases."""
     from fighter_caf_outfits import variants
-    extended = any(item.get('outfits') for item in entries.values())
+    from fighter_caf_layout import EXTRA as E, EXTRA_STRIDE, FINISHERS, ATLASES as ATLAS_SLOTS, ATLAS_BYTES
     selected = [(key, index, outfit['extras']) for key, item in sorted(entries.items())
                 for index, outfit in enumerate(variants(item))
                 if outfit.get('extras') and (outfit['extras']['finishers'] is not None or outfit['extras']['atlases'])]
     if not selected:
-        return None
-    stride = ROW + (4 if extended else 0)
-    base = 16 + len(selected) * stride
+        return 0, b''
+    base = len(selected) * EXTRA_STRIDE
     blocks, offsets, rows = [], {}, []
     for key, index, extras in selected:
         atlas_offsets = []
@@ -83,10 +83,13 @@ def encode(entries, report):
                 blocks.append(pixels)
             atlas_offsets.append(offsets[digest])
         choices = extras['finishers']
-        rows.append(struct.pack('<12I', report['bindings'][key]['selection_key'], int(choices is not None),
-                                *(choices if choices is not None else [0] * 4), *atlas_offsets))
-        if extended:
-            rows[-1] += struct.pack('<I', index)
-    raw = struct.pack('<4sIII', b'FCX2' if extended else b'FCX1', 2 if extended else 1, len(rows), stride) + b''.join(rows) + b''.join(blocks)
+        row = bytearray(EXTRA_STRIDE)
+        struct.pack_into('<I', row, E['selection'], report['bindings'][key]['selection_key'])
+        struct.pack_into('<I', row, E['has_finishers'], int(choices is not None))
+        struct.pack_into('<%dI' % FINISHERS, row, E['finishers'], *(choices if choices is not None else [0] * FINISHERS))
+        struct.pack_into('<%dI' % ATLAS_SLOTS, row, E['atlases'], *atlas_offsets)
+        struct.pack_into('<I', row, E['outfit'], index)
+        rows.append(bytes(row))
+    raw = b''.join(rows) + b''.join(blocks)
     require(len(raw) <= MAX_BYTES, 'Compiled CAF extras exceed the 16 MiB budget')
-    return raw
+    return len(rows), raw

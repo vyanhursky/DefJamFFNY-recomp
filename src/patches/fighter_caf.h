@@ -1,7 +1,10 @@
 #ifndef DEFJAM_FIGHTER_CAF_H
 #define DEFJAM_FIGHTER_CAF_H
+#include <stddef.h>
 #include <stdint.h>
 int defjam_fighter_caf_start(void);
+/* Decodes and bounds-checks a fighter-caf.bin header: sections must tile the file exactly. */
+int defjam_fighter_caf_container(const uint8_t *data, size_t size, uint32_t *recipe_count, uint32_t *extras_count, uint32_t *extras_bytes, uint32_t *faces_count);
 void defjam_fighter_caf_participant(uint32_t service, uint32_t participant, uint32_t selection);
 void defjam_fighter_caf_story(uint32_t service, uint32_t fighters);
 void defjam_fighter_caf_begin_match(void);

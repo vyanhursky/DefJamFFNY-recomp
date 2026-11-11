@@ -7,7 +7,8 @@ import sys
 
 import pytest
 sys.path.insert(0,str(Path(__file__).resolve().parents[2]/'setup'))
-from fighter_caf_face import validate,load,encode,load_recipe,MESHES,ROW
+from fighter_caf_face import validate,load,encode_rows,load_recipe,MESHES,ROW
+from fighter_caf_layout import FACE as F
 from fighter_packages import runtime_environment
 
 
@@ -25,10 +26,9 @@ def test_face_descriptor_and_compiled_rows_are_bounded_hash_bound_and_outfit_spe
     assert load(tmp_path,spec,recipe)==value
     entries={'example/fighter':dict(outfits=[dict(recipe=recipe,face=value),dict(recipe=recipe)])}
     report={'bindings':{'example/fighter':{'selection_key':100}}}
-    result=encode(entries,report)
-    assert len(result)==16+ROW
-    assert struct.unpack_from('<4sIII',result)==(b'FCS1',1,1,ROW)
-    assert struct.unpack_from('<8I',result,16)==(100,0,0,1,1,1,1,1)
+    count,result=encode_rows(entries,report)
+    assert count==1 and len(result)==ROW
+    assert struct.unpack_from('<8I',result,F['selection'])==(100,0,0,1,1,1,1,1)
     spec['sha256']='0'*64
     with pytest.raises(ValueError,match='hash'):load(tmp_path,spec,recipe)
 
@@ -46,10 +46,11 @@ def test_invalid_sculpts_refuse_before_native_admission(mutate):
     with pytest.raises(ValueError):validate(value,recipe)
 
 
-def test_face_setting_is_projected_for_managed_launch(tmp_path):
-    env=runtime_environment(tmp_path,{'caf_faces_sha256':'b'*64},tmp_path/'screens.viv')
-    assert env['RECOMP_FIGHTER_CAF_FACES']==str(tmp_path/'fighter-caf-faces.bin')
-    assert env['RECOMP_FIGHTER_CAF_FACES_SHA256']=='b'*64
+def test_fighters_are_projected_for_managed_launch_as_one_container(tmp_path):
+    env=runtime_environment(tmp_path,{'caf_fighters':{'a/b':{}},'caf_sha256':'b'*64},tmp_path/'screens.viv')
+    assert env['RECOMP_FIGHTER_CAF']==str(tmp_path/'fighter-caf.bin')
+    assert env['RECOMP_FIGHTER_CAF_SHA256']=='b'*64
+    assert not [name for name in env if name.startswith('RECOMP_FIGHTER_CAF') and name not in ('RECOMP_FIGHTER_CAF','RECOMP_FIGHTER_CAF_SHA256')]
 
 
 @pytest.mark.parametrize('outfits',[None,3,'bad',{},[None],[{}]*3])

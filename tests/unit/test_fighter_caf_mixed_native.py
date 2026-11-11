@@ -20,6 +20,7 @@ DRIVER = r'''
 #include "hooks/guest_call.h"
 #include "patches/fighter_motion.h"
 #include "patches/fighter_voice.h"
+#include "patches/fighter_caf_layout.h"
 unsigned char memory[0xC00000];
 uint32_t g_eax,g_ecx,g_edx,g_esp,g_ebx,g_esi,g_edi,g_ebp;
 int g_fp_top;
@@ -27,7 +28,7 @@ static uint32_t s_service,s_contexts[4],expected[4],calls,owned_voice;
 static uint32_t s_story_profiles[4];
 static int story_audio;
 static const uint8_t *s_recipes[4];
-static uint8_t recipes[2][232];
+static uint8_t recipes[2][CAF_ROW_STRIDE];
 static void restore_finishers(void) {} /* No finisher journal in this audio fixture. */
 static void defjam_caf_faces_clear(void) {} /* No sculpt state in this audio fixture. */
 static uint32_t word(const uint8_t *p) { return (uint32_t)p[0]|(uint32_t)p[1]<<8|(uint32_t)p[2]<<16|(uint32_t)p[3]<<24; }
@@ -92,8 +93,8 @@ int main(int argc,char **argv) {
  for(unsigned i=0;i<6;++i) environment(keys[i],argv[i+1]);
  assert(defjam_fighter_motion_start()&&defjam_fighter_voice_start());
  put(recipes[0],1001);put(recipes[1],1002);
- put(recipes[0]+4,87);put(recipes[0]+228,63);
- put(recipes[1]+4,87);put(recipes[1]+228,5);
+ put(recipes[0]+CAF_ROW_CORE,87);put(recipes[0]+CAF_ROW_VOICE,63);
+ put(recipes[1]+CAF_ROW_CORE,87);put(recipes[1]+CAF_ROW_VOICE,5);
  for(unsigned rotate=0;rotate<4;++rotate) {
   uint32_t cores[4];defjam_fighter_caf_clear();
   for(unsigned i=0;i<5;++i) assert(!defjam_fighter_caf_selection(i));
@@ -123,7 +124,7 @@ int main(int argc,char **argv) {
  uint32_t retail[]={3,3,3,3};run(retail,0);
  if(!strcmp(argv[7],"story")) {
   defjam_fighter_caf_clear();story_audio=1;s_story_profiles[0]=0x1234;
-  put(recipes[0]+4,51);put(recipes[0]+228,109);s_recipes[0]=recipes[0];
+  put(recipes[0]+CAF_ROW_CORE,51);put(recipes[0]+CAF_ROW_VOICE,109);s_recipes[0]=recipes[0];
   expected[0]=109;uint32_t profile[]={51,3,3,3};run(profile,1);
  }
  puts("mixed CAF/owned/retail audio, four slots, Rematch, clear and ABI passed");return 0;

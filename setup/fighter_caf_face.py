@@ -12,12 +12,13 @@ import re
 import struct
 from pathlib import Path
 
+from fighter_caf_layout import FACE_STRIDE
 from fighter_resource_files import require
 from mods import ordinary_path, safe_relative
 
 MESHES = ((0,54),(1,218),(2,70),(3,92),(4,73),(5,51),(6,51),(7,81),(9,20))
 BASIS = (0,5,6,9,10,11)
-ROW = 32 + 710*24
+ROW = FACE_STRIDE
 MAX_BYTES = 8*1024*1024
 
 
@@ -69,17 +70,17 @@ def load_recipe(root, value, catalog, game):
     return result
 
 
-def encode(entries, report):
+def encode_rows(entries, report):
+    """Sculpt rows for the container, one per fighter outfit that has a face. Returns (count, bytes)."""
     from fighter_caf_outfits import variants
     rows=[]
     for key,item in sorted(entries.items()):
         for index,outfit in enumerate(variants(item)):
             if 'face' not in outfit:continue
             value=validate(outfit['face'],outfit['recipe'])
-            raw=struct.pack('<8I',report['bindings'][key]['selection_key'],index,*value['basis'])
+            raw=struct.pack('<II6I',report['bindings'][key]['selection_key'],index,*value['basis'])
             raw+=b''.join(struct.pack('<6f',*p,*d) for m in value['meshes'] for p,d in zip(m['positions'],m['deltas']))
             require(len(raw)==ROW,'Invalid compiled CAF face stride');rows.append(raw)
-    if not rows:return None
-    raw=struct.pack('<4sIII',b'FCS1',1,len(rows),ROW)+b''.join(rows)
+    raw=b''.join(rows)
     require(len(raw)<=MAX_BYTES,'CAF face sculpt budget exceeded')
-    return raw
+    return len(rows),raw

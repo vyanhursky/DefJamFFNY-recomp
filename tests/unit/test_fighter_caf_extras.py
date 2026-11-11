@@ -10,7 +10,8 @@ from PIL import Image
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'setup'))
-from fighter_caf_extras import encode, load, PIXELS, ROW, finishers
+from fighter_caf_extras import encode_section, load, PIXELS, finishers
+from fighter_caf_layout import EXTRA as E, EXTRA_STRIDE as ROW
 from fighter_caf import source
 
 
@@ -46,13 +47,14 @@ def test_sidecar_deduplicates_art_but_retains_independent_fighter_choices():
     entries = {'pack/first': {'extras': {'finishers': [3, 5, 7, 11], 'atlases': {'a': pixels}}},
                'pack/second': {'extras': {'finishers': None, 'atlases': {'d1': pixels}}}}
     report = {'bindings': {'pack/first': {'selection_key': 100}, 'pack/second': {'selection_key': 101}}}
-    raw = encode(entries, report)
-    assert struct.unpack_from('<4sIII', raw) == (b'FCX1', 1, 2, ROW)
-    assert len(raw) == 16 + 2 * ROW + PIXELS
-    first, second = (struct.unpack_from('<12I', raw, 16 + i * ROW) for i in range(2))
+    count, raw = encode_section(entries, report)
+    assert count == 2 and len(raw) == 2 * ROW + PIXELS
+    first, second = (struct.unpack_from('<12I', raw, i * ROW) for i in range(2))
     assert first[:6] == (100, 1, 3, 5, 7, 11) and second[:6] == (101, 0, 0, 0, 0, 0)
-    assert first[6] == second[10] == 16 + 2 * ROW
-    assert encode({'old': {'recipe': {}}}, {}) is None
+    # Atlas offsets count from the start of the extras section, and one block serves both fighters.
+    assert first[6] == second[10] == 2 * ROW
+    assert struct.unpack_from('<I', raw, E['outfit'])[0] == 0
+    assert encode_section({'old': {'recipe': {}}}, {}) == (0, b'')
 
 
 def test_finisher_identity_join_refuses_unknown_rows_and_schema():

@@ -183,16 +183,6 @@ def compile_inputs(sod, paths, packs, ledger=None, *, catalog=None, pin_path=Non
         resources['fighter-caf.bin'] = encode_caf(caf, report)
         report['caf_sha256'] = hashlib.sha256(resources['fighter-caf.bin']).hexdigest()
         report['caf_fighters'] = {key: {'core':item['core'],'audio_core':item['audio_core'],'recipe_sha256':item['sha256']} for key,item in caf.items()}
-        from fighter_caf_extras import encode as encode_extras
-        extras = encode_extras(caf, report)
-        if extras is not None:
-            resources['fighter-caf-extras.bin'] = extras
-            report['caf_extras_sha256'] = hashlib.sha256(extras).hexdigest()
-        from fighter_caf_face import encode as encode_faces
-        faces = encode_faces(caf,report)
-        if faces is not None:
-            resources['fighter-caf-faces.bin']=faces
-            report['caf_faces_sha256']=hashlib.sha256(faces).hexdigest()
     if appearance_files:
         report['appearance_files'] = appearance_files
     if portrait_files:
@@ -226,8 +216,7 @@ def write_preview(data, report, resources=None, *, cache_root=None, max_report=M
             raise ValueError('Behavior resources require their exact composed files')
     if bool(report.get('appearance_resources')) != bool(report.get('appearance_files')):
         raise ValueError('Appearance resources require their complete composed files')
-    caf_targets = ({'fighter-caf.bin'} if report.get('caf_fighters') else set()) | ({'fighter-caf-extras.bin'} if report.get('caf_extras_sha256') else set())
-    if report.get('caf_faces_sha256'):caf_targets.add('fighter-caf-faces.bin')
+    caf_targets = {'fighter-caf.bin'} if report.get('caf_fighters') else set()
     from fighter_ui_hd import validate_hd_files
     hd_targets=validate_hd_files(report,resources)
     if type(resources) is not dict or set(resources) != appearance_targets | portrait_targets | behavior_targets | caf_targets | hd_targets:
@@ -242,10 +231,6 @@ def write_preview(data, report, resources=None, *, cache_root=None, max_report=M
         raise ValueError('Composed behavior receipt differs from its bytes')
     if report.get('caf_fighters') and hashlib.sha256(resources['fighter-caf.bin']).hexdigest() != report.get('caf_sha256'):
         raise ValueError('Compiled CAF recipe checksum differs')
-    if report.get('caf_extras_sha256') and hashlib.sha256(resources['fighter-caf-extras.bin']).hexdigest() != report['caf_extras_sha256']:
-        raise ValueError('Compiled CAF extras checksum differs')
-    if report.get('caf_faces_sha256') and hashlib.sha256(resources['fighter-caf-faces.bin']).hexdigest()!=report['caf_faces_sha256']:
-        raise ValueError('Compiled CAF faces checksum differs')
     serialized = (json.dumps(report, indent=2, sort_keys=True, allow_nan=False) + '\n').encode('utf-8')
     if len(serialized) > max_report:
         raise ValueError('Generated preview report exceeds budget')
