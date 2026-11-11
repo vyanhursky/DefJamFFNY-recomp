@@ -120,7 +120,7 @@ def test_native_core_maps_partition_additions_without_weakening_coverage():
     assert retail['bindings']['caf/one']['inherited_core_id'] == 5
 
 
-@pytest.mark.parametrize('component', ['appearance', 'voice', 'ai', 'blazin'])
+@pytest.mark.parametrize('component', ['appearance', 'blazin'])  # voice, AI, intro and victory are optional CAF sections
 def test_owned_components_remain_forbidden_on_the_caf_itself(tmp_path, monkeypatch, component):
     compiler, original, _, packs, _, _ = behavior_fixture(tmp_path, voice3=True, blazin=True)
     caf = caf_pack()

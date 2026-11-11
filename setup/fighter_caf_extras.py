@@ -1,4 +1,4 @@
-"""CAF v2: explicit retail finisher identities and native-size RGB atlases."""
+"""CAF extras: explicit retail finisher identities and native-size RGB atlases."""
 import hashlib
 import io
 from pathlib import Path
@@ -36,12 +36,13 @@ def finishers(values, database):
 
 
 def load(root, value, database):
-    require(set(value) <= {'stats', 'styles', 'caf_values', 'caf_colors', 'finishers', 'atlases'}, 'Unknown CAF v2 field')
+    require(set(value) <= {'stats', 'styles', 'caf_values', 'caf_colors', 'finishers', 'atlases'}, 'Unknown CAF field')
     result = {'finishers': finishers(value['finishers'], database) if 'finishers' in value else None, 'atlases': {}}
     atlases = value.get('atlases', {})
     require(type(atlases) is dict and set(atlases) <= set(ATLASES), 'Unsupported CAF atlas slot')
-    from PIL import Image
     root = ordinary_path(Path(root))
+    if atlases:
+        from PIL import Image
     for name, descriptor in atlases.items():
         require(type(descriptor) is dict and set(descriptor) == {'path', 'sha256'}, 'Invalid CAF atlas descriptor')
         require(type(descriptor['sha256']) is str and re.fullmatch('[0-9a-f]{64}', descriptor['sha256']), 'CAF atlas needs SHA-256')
@@ -51,7 +52,7 @@ def load(root, value, database):
             raw = stream.read(1024 * 1024 + 1)
         require(len(raw) <= 1024 * 1024 and hashlib.sha256(raw).hexdigest() == descriptor['sha256'], 'CAF atlas hash/size differs')
         with Image.open(io.BytesIO(raw)) as image:
-            require(image.format == 'PNG' and image.size == (256, 256), 'CAF v2 atlases must be native 256x256 PNGs')
+            require(image.format == 'PNG' and image.size == (256, 256), 'CAF atlases must be native 256x256 PNGs')
             image.load()
             result['atlases'][name] = image.convert('RGBA').tobytes('raw', 'BGRA')
     return result

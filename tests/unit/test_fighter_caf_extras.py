@@ -21,7 +21,7 @@ def atlas(root, size=(256, 256)):
 
 
 def test_v2_source_and_atlas_hash_dimensions_channels(tmp_path):
-    source({'format': 'caf-fighter-2', 'selection': {'path': 'fighter.json', 'sha256': 'a' * 64}})
+    source({'format': 'caf-fighter-1', 'selection': {'path': 'fighter.json', 'sha256': 'a' * 64}})
     descriptor = atlas(tmp_path)
     result = load(tmp_path, {'atlases': {'a': descriptor}}, None)
     assert result['finishers'] is None and result['atlases']['a'][:4] == bytes((33, 22, 11, 44))
@@ -87,7 +87,7 @@ def test_package_inventory_follows_only_hash_bound_declared_atlases(tmp_path, da
     (tmp_path / 'fighter.json').write_bytes(raw)
     manifest = {'schema': 'fighter-registry-draft-1', 'id': 'example', 'version': '1.0.0', 'requires': {},
                 'resources': [{'id': 'caf', 'kind': 'caf', 'compatibility': {},
-                  'source': {'format': 'caf-fighter-2', 'selection': {'path': 'fighter.json', 'sha256': hashlib.sha256(raw).hexdigest()}}}],
+                  'source': {'format': 'caf-fighter-1', 'selection': {'path': 'fighter.json', 'sha256': hashlib.sha256(raw).hexdigest()}}}],
                 'fighters': [{'id': 'fighter', 'name': 'Example', 'inherits': 'retail/blaze', 'components': {'caf': 'example/caf'}}], 'overrides': []}
     (tmp_path / 'fighters.json').write_text(json.dumps(manifest))
     if damage == 'png':

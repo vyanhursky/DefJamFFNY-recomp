@@ -8,14 +8,17 @@ from fighter_registry import fingerprint
 from fighter_resource_files import require
 from mods import ordinary_path, safe_relative
 
+# One recipe schema. Everything past the four base fields is an optional section: finishers and atlases,
+# an outfit collection (outfit_name, outfits, portraits, face), retail_moveset and voice_donor.
 FORMAT = 'caf-fighter-1'
-CAPABILITY = 'caf-fighter-1'
+CAPABILITY = FORMAT
+OUTFIT_SECTIONS = {'outfit_name', 'outfits', 'portraits', 'face'}
 ROW_BYTES = 232
 
 
 def source(value):
     require(type(value) is dict and set(value) == {'format', 'selection'}, 'CAF source needs format and selection')
-    require(value['format'] in (FORMAT, 'caf-fighter-2', 'caf-fighter-3', 'caf-fighter-4', 'caf-fighter-5', 'caf-fighter-6'), 'Unsupported CAF recipe format')
+    require(value['format'] == FORMAT, 'Unsupported CAF recipe format; export the fighter again with a current Workshop')
     descriptor = value['selection']
     require(type(descriptor) is dict and set(descriptor) == {'path', 'sha256'}, 'Invalid CAF recipe descriptor')
     safe_relative(descriptor['path'])
@@ -151,37 +154,31 @@ def load(root, spec, catalog, game):
     from fighter_build import unique,non_finite
     value=json.loads(raw,object_pairs_hook=unique,parse_constant=non_finite)
     require(type(value) is dict, 'CAF recipe must be an object')
-    if spec['format']=='caf-fighter-6':
-        import copy
-        clean=copy.deepcopy(value);voice=clean.pop('voice_donor',None)
-        require(voice is None or type(voice) is str and voice in catalog.rows
-                and 1<=catalog.rows[voice]['native_binding']['core_id']<=86,'CAF voice donor must be an original retail fighter')
-        if 'retail_moveset' in clean:
-            from fighter_caf_moveset import load_recipe
-        else:
-            from fighter_caf_face import load_recipe
-        result=load_recipe(root,clean,catalog,game)
-        result.update(performance_capable=True,voice_donor=voice,sha256=fingerprint(value))
-        return result
-    if spec['format'] == 'caf-fighter-5':
+    import copy
+    clean=copy.deepcopy(value);voice=clean.pop('voice_donor',None)
+    require(voice is None or type(voice) is str and voice in catalog.rows
+            and 1<=catalog.rows[voice]['native_binding']['core_id']<=86,'CAF voice donor must be an original retail fighter')
+    # Each optional section wraps the loader below it: moveset -> outfits and faces -> the flat fighter.
+    if 'retail_moveset' in clean:
         from fighter_caf_moveset import load_recipe
-        return load_recipe(root,value,catalog,game)
-    if spec['format'] == 'caf-fighter-4':
+    elif OUTFIT_SECTIONS & set(clean):
         from fighter_caf_face import load_recipe
-        return load_recipe(root,value,catalog,game)
-    if spec['format'] == 'caf-fighter-3':
-        from fighter_caf_outfits import load as load_outfits
-        return load_outfits(root, value, catalog, game)
-    if spec['format'] == 'caf-fighter-2':
-        from fighter_caf_extras import load as load_extras
-        extras = load_extras(root, value, catalog.db)
-        require({'stats','styles','caf_values','caf_colors'} <= set(value), 'CAF v2 requires all fighter fields')
-        base = {k: value[k] for k in ('stats','styles','caf_values','caf_colors')}
     else:
-        extras, base = None, value
+        load_recipe=load_flat
+    result=load_recipe(root,clean,catalog,game)
+    result.update(voice_donor=voice,sha256=fingerprint(value))
+    return result
+
+
+def load_flat(root, value, catalog, game):
+    """One implicit outfit: the four base fields plus optional finishers and atlases."""
+    from fighter_caf_extras import load as load_extras
+    require({'stats','styles','caf_values','caf_colors'} <= set(value), 'CAF requires all fighter fields')
+    extras = load_extras(root, value, catalog.db)
+    base = {k: value[k] for k in ('stats','styles','caf_values','caf_colors')}
     core=recipe(base,catalog.db)
     validate_assets(base,game)
-    return {'recipe':base,'core':core,'sha256':fingerprint(value),'extras':extras}
+    return {'recipe':base,'core':core,'extras':extras}
 
 
 def encode(entries,report):
