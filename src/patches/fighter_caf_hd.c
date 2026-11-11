@@ -4,6 +4,7 @@
 #include "hooks/guest_call.h"
 #include "hooks/mod_sha256.h"
 #include "texture_pack.h"
+#include "kernel/xbox_memory_layout.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -95,7 +96,10 @@ void defjam_caf_hd_apply(uint32_t visual,uint32_t selection,uint32_t outfit) {
             uint32_t native=(flags&0x2000u)?hd_swizzle(nx)|(hd_swizzle(ny)<<1):ny*256+nx;
             bgra[((size_t)y*edge+x)*4+3]=MEM8(pixels+native*4+3);
         }
-        uint32_t address=pixels>=0x80000000u?pixels-0x80000000u:pixels;
+        /* The device sees MmGetPhysicalAddress's RAM-mirror name, not the
+         * CPU heap VA. Use the kernel's existing mapping, including its
+         * configurable alias; never guess by stripping/adding address bits. */
+        uint32_t address=xbox_PhysRamName(pixels);
         int ok=texture_pack_memory_register(visual,address,(flags&0x2000u)?0x06:0x12,256,256,bgra,edge,edge);
         free(bgra);if(!ok)hd_stop("HD material exceeds renderer budget or source ownership");
         fprintf(stderr,"[FIGHTERS] CAF HD logical=%u outfit=%u slot=%u %ux%u source=%08X original-alpha=held\n",selection,outfit,slot,edge,edge,address);

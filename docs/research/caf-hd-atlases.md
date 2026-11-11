@@ -13,7 +13,9 @@ construction, the adapter copies the live native material alpha to the HD raster
 with nearest sampling. This covers normal and injury face variants.
 
 The renderer extension registers the HD raster by its exact live guest pixel
-address, format and dimensions, owned by the CAF visual. The native texture
+address, format and dimensions, owned by the CAF visual. The adapter uses
+the existing kernel RAM-mirror naming function to match the GPU DMA address;
+a CPU heap address is not the same identifier. The native texture
 registration references that buffer directly. Ordinary content-hash packs keep
 their existing behavior. Replacements use the existing texture-pack mip builder,
 GPU uploader, LRU and configured cache budget; material channels receive

@@ -26,9 +26,10 @@ static uint8_t recipe[240];
 static unsigned calls,cleared;
 static int linear;
 static const uint8_t *lookup(uint32_t selection,uint32_t outfit) {return selection==100 && outfit<2?recipe:NULL;}
+uint32_t xbox_PhysRamName(uint32_t address) {return address+0x4000000u;}
 void texture_pack_memory_clear(uint32_t owner) {assert(owner==0x10000);++cleared;}
 int texture_pack_memory_register(uint32_t owner,uint32_t address,uint32_t format,uint32_t nw,uint32_t nh,const uint8_t *bgra,uint32_t w,uint32_t h) {
- assert(owner==0x10000 && address==0x100010 && format==(linear?0x12u:6u));
+ assert(owner==0x10000 && address==0x4100010 && format==(linear?0x12u:6u));
  assert(nw==256 && nh==256 && w==h && (w==512 || w==1024 || w==2048));
  for(unsigned y=0;y<h;y++)for(unsigned x=0;x<w;x++) {
   unsigned at=(y*w+x)*4,native=(y/(h/256))*256+x/(w/256);
@@ -67,6 +68,8 @@ def tool(tmp_path_factory):
     if not cc:pytest.skip('native compiler unavailable')
     folder=tmp_path_factory.mktemp('caf-hd-native');(folder/'recomp/gen').mkdir(parents=True)
     (folder/'recomp/gen/recomp_types.h').write_text(TYPES)
+    (folder/'kernel').mkdir()
+    (folder/'kernel/xbox_memory_layout.h').write_text('#include <stdint.h>\nuint32_t xbox_PhysRamName(uint32_t);\n')
     (folder/'texture_pack.h').write_text('#include <stdint.h>\nvoid texture_pack_memory_clear(uint32_t);\nint texture_pack_memory_register(uint32_t,uint32_t,uint32_t,uint32_t,uint32_t,const uint8_t *,uint32_t,uint32_t);\n')
     driver=folder/'driver.c';driver.write_text(DRIVER.replace('@SOURCE@',(ROOT/'src/patches/fighter_caf_hd.c').as_posix()))
     exe=folder/('hd.exe' if os.name=='nt' else 'hd')
