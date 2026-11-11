@@ -56,8 +56,14 @@ int defjam_fighter_caf_outfit(uint32_t participant,uint32_t selection,uint32_t o
     fprintf(stderr,"[FIGHTERS] outfit participant=%u logical=%u index=%u\n",participant,selection,outfit);
     return 1;
 }
+/* The outfit the participant confirmed for this fighter. A fighter reaches match setup without a
+ * confirmation on routes that never run the clothing selector (random and CPU picks, a re-bind after
+ * backing out); those play the default outfit, index 0. */
+static uint32_t confirmed_outfit(uint32_t participant,uint32_t selection) {
+    return participant<4 && s_menu_selection[participant]==selection?s_menu_outfit[participant]:0;
+}
 uint32_t defjam_fighter_caf_presentation(uint32_t participant,uint32_t selection) {
-    uint32_t index=participant<4 && s_menu_selection[participant]==selection?s_menu_outfit[participant]:0;
+    uint32_t index=confirmed_outfit(participant,selection);
     const uint8_t *row=recipe_row(selection,index);
     return row && s_row_stride==240u?word(row+236):selection;
 }
@@ -385,10 +391,11 @@ void defjam_fighter_caf_story(uint32_t service,uint32_t fighters) {
     }
 }
 void defjam_fighter_caf_participant(uint32_t service,uint32_t participant,uint32_t selection) {
-    uint32_t outfit=participant<4 && s_menu_selection[participant]==selection?s_menu_outfit[participant]:0;
+    uint32_t outfit=confirmed_outfit(participant,selection);
     const uint8_t *row=recipe_row(selection,outfit);
     if(!row) return;
-    if(recipe_row(selection,1) && (participant>=4 || s_menu_selection[participant]!=selection)) stop("multi-outfit CAF was not confirmed by its participant");
+    if(recipe_row(selection,1) && (participant>=4 || s_menu_selection[participant]!=selection))
+        fprintf(stderr,"[FIGHTERS] CAF outfit not confirmed participant=%u logical=%u; using the default outfit\n",participant,selection);
     uint32_t context=construct_caf(service,participant,row,prepare_profile(row));
     defjam_caf_faces_apply(MEM32(context+8)+0x8B0,participant,selection,outfit,row);
     face_trace(MEM32(context+8)+0x8B0,participant);

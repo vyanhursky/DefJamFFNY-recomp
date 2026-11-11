@@ -51,6 +51,9 @@ int main(int argc,char **argv) {
  assert(defjam_fighter_caf_presentation(1,100)==0x60000000);
  assert(defjam_fighter_caf_presentation(2,100)==100);
  assert(defjam_fighter_caf_presentation(0,56)==56);
+ /* Unconfirmed routes (random/CPU picks, a re-bind) play the default outfit; a confirmation only applies to its own fighter. */
+ assert(confirmed_outfit(0,100)==2 && confirmed_outfit(1,100)==1);
+ assert(confirmed_outfit(2,100)==0 && confirmed_outfit(0,101)==0 && confirmed_outfit(4,100)==0);
  assert(word(extra_row(100,2)+48)==2);
  defjam_fighter_caf_clear(); /* Native match teardown/rematch retains choices. */
  assert(s_menu_outfit[0]==2 && s_menu_outfit[1]==1);
@@ -67,7 +70,7 @@ def native(tmp_path_factory):
     if not cc:pytest.skip('Native compiler unavailable')
     folder=tmp_path_factory.mktemp('caf-outfits')
     text=(ROOT/'src/patches/fighter_caf.c').read_text()
-    names=['word','row_outfit','recipes_valid','defjam_fighter_caf_menu_clear','defjam_fighter_caf_outfit','defjam_fighter_caf_presentation','extras_valid','defjam_fighter_caf_clear']
+    names=['word','row_outfit','recipes_valid','defjam_fighter_caf_menu_clear','defjam_fighter_caf_outfit','confirmed_outfit','defjam_fighter_caf_presentation','extras_valid','defjam_fighter_caf_clear']
     functions=definition(text,'word')+'\n'+definition(text,'row_outfit')
     for name in ('recipe_row','extra_row'):
         match=re.search(r'static const uint8_t \*'+name+r'\([^)]*\)\s*\{',text);end,depth=match.end(),1
