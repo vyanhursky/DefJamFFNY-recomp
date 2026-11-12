@@ -7,9 +7,11 @@
 
 #define _CRT_SECURE_NO_WARNINGS
 #include <windows.h>
+#include <shellapi.h>
 #include <d3d11.h>
 #include <dxgi.h>
 #include <stdio.h>
+#include <string>
 
 #include "imgui.h"
 #include "imgui_impl_win32.h"
@@ -109,6 +111,19 @@ LRESULT CALLBACK launcher_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
         SetWindowPos(h, nullptr, r->left, r->top, r->right - r->left, r->bottom - r->top, SWP_NOZORDER | SWP_NOACTIVATE);
         return 0;
     }
+    case WM_DROPFILES: {                                // a file dragged from Explorer onto the launcher
+        HDROP drop = (HDROP)wp;
+        wchar_t path[32768];
+        UINT length = DragQueryFileW(drop, 0, path, 32768);
+        DragFinish(drop);
+        if (length) {
+            int bytes = WideCharToMultiByte(CP_UTF8, 0, path, -1, nullptr, 0, nullptr, nullptr);
+            std::string utf8(bytes > 0 ? bytes - 1 : 0, '\0');
+            if (bytes > 1) WideCharToMultiByte(CP_UTF8, 0, path, -1, utf8.data(), bytes, nullptr, nullptr);
+            pcui::archive_drop(utf8);
+        }
+        return 0;
+    }
     case WM_CLOSE:
         g_done = true;
         g_result = 0;
@@ -169,6 +184,7 @@ extern "C" int pc_launcher_run(void)
     ImGui_ImplWin32_Init(window);
     ImGui_ImplDX11_Init(g_dev, g_ctx);
     ui_unlock();
+    DragAcceptFiles(window, TRUE);
     ShowWindow(window, SW_SHOW);
     SetForegroundWindow(window);
     fprintf(stderr, "[UI] launcher shown\n");

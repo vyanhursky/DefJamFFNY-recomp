@@ -46,6 +46,18 @@ def manager(tmp_path, monkeypatch):
     return Manager(tmp_path / 'data', capabilities=['textures-v1', 'fighters-v1'])
 
 
+def test_local_install_reports_bytes_for_the_launcher_progress_bar(manager, tmp_path, monkeypatch):
+    """The launcher draws a real bar from done/total while files are unpacked, then goes indeterminate."""
+    calls = []
+    real = manager.progress
+    monkeypatch.setattr(manager, 'progress', lambda text, done=0, total=0: (calls.append((text, done, total)), real(text, done, total))[1])
+    manager.install_local(archive(tmp_path, pack()))
+    unpacking = [(done, total) for text, done, total in calls if text == 'Unpacking the Fighter ZIP']
+    assert unpacking and unpacking[-1][0] == unpacking[-1][1] > 0
+    assert [done for done, _ in unpacking] == sorted(done for done, _ in unpacking)
+    assert calls[-1][0].startswith('Fighter package installed')
+
+
 def test_whole_pack_install_enable_update_rollback_disable_remove(manager, tmp_path):
     definition = pack(count=2)
     manager.install_local(archive(tmp_path, definition))
