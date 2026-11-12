@@ -228,7 +228,7 @@ bool mod_poll() {
         if (total != "0" && !total.empty()) {
             double have = strtod(done.c_str(), nullptr), all = strtod(total.c_str(), nullptr);
             if (all > 0) {
-                job_fraction = (float)std::min(1.0, have / all);
+                job_fraction = (float)(have < all ? have / all : 1.0);
                 char sizes[64]; snprintf(sizes, sizeof sizes, " (%.1f of %.1f MB)", have / 1048576.0, all / 1048576.0);
                 status += sizes;
             }
