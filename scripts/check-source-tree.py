@@ -53,6 +53,8 @@ APPROVED_README_MEDIA = {
     'docs/media/app-home.png': '018ca077d45b2cdaee111c4c2a576eafb4bd5f6e9d658845ce6a34bdf83e2cbe',
     'docs/media/app-first-run.png': '72a941c2f8f36650da1ae192754f1c6d425fae87ddffbcf799b6b93fc1f9fb44',
     'docs/media/app-mods-browse.png': '62ce3debd8fa090920cb5b55a6906b7b6268dff4acc71483190513f3ca796ab0',
+    # 2026-11-12: owner supplied this main-menu capture (song banner showing a custom song) for the site.
+    'docs/media/custom-songs-banner.jpg': 'fbbe6998f6b43c8c309ab2642831a32583b8cef6820f2a458bc0a8b18d72da45',
 }
 # D98 (2026-10-10): the owner approved committing the application icons and the Steam artwork
 # rendered from the game's own textures (the shield, the title wordmark, the title-screen scene).

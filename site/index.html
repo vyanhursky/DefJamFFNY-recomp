@@ -31,6 +31,7 @@
       <nav class="nav__links" aria-label="Sections">
         <a href="#features">Features</a>
         <a href="#screens">Screens</a>
+        <a href="#songs">Music</a>
         <a href="#install">Install</a>
         <a href="#mods">Mods</a>
         <a href="#news">News</a>
@@ -126,8 +127,8 @@
         <li class="card">
           <span class="card__num">05</span>
           <h3>Mod support</h3>
-          <p>Texture and language mods have a curated catalogue in the app. Your own music plays
-             in the Beatbox, menus and fights, with the cut song "Holler If Ya Hear Me" restored too.</p>
+          <p>Texture and language mods have a curated catalogue in the app, and
+             <a href="#songs">in-engine custom songs</a> let your own music play like the game's soundtrack.</p>
         </li>
         <li class="card">
           <span class="card__num">06</span>
@@ -219,6 +220,41 @@
             <input class="compare__range" type="range" min="0" max="100" value="50"
                    aria-label="Venue map: reveal the original or the recompiled picture">
           </div>
+        </figure>
+      </div>
+    </section>
+
+    <section class="section" id="songs" aria-labelledby="songs-title">
+      <div class="split split--flip">
+        <div>
+          <p class="kicker">New in v1.1.0</p>
+          <h2 id="songs-title">In-engine custom songs.</h2>
+          <p>
+            Drop in your own MP3, FLAC, Ogg or WAV files and they play <em>inside</em> the game, as if
+            they shipped on the disc: in the Beatbox, behind the menus with the song banner, and through
+            every fight, start to end. When the game jumps around its music (the opening bell, Blazin',
+            knock-downs), your song carries on where it was.
+          </p>
+          <ul class="ticks">
+            <li><b>Up to 27 of your songs</b> next to the game's own, with 35 on in the Beatbox at once.</li>
+            <li><b>Straight or Interactive</b>: play a song as it is, or (experimental) let the game switch it between muffled, bass-heavy and bright versions as the fight goes.</li>
+            <li><b>Songs page in the app</b>: add folders, choose what is in the game and how each song plays, and order each profile's Beatbox.</li>
+            <li><b>Next song, or restart it</b>: R3 + D-pad right or left, or F8 and F7, in menus and fights.</li>
+            <li><b>"Holler If Ya Hear Me" is back</b>: 2Pac's song, cut from the original release, is restored from the disc.</li>
+            <li><b>Your volumes stick</b>: music, effects and announcer levels now survive a restart.</li>
+          </ul>
+          <p class="fine">
+            The port ships no music. Songs are converted once on your computer, and the files never leave it.
+            Titles and artists come from each file's tags.
+          </p>
+          <p class="links">
+            <a href="https://github.com/vyanhursky/DefJamFFNY-recomp/blob/main/docs/custom-songs.md">Custom songs guide</a>
+            <a href="https://github.com/vyanhursky/DefJamFFNY-recomp/releases/tag/v1.1.0">v1.1.0 release notes</a>
+          </p>
+        </div>
+        <figure class="split__media">
+          <img src="media/custom-songs-banner.jpg" alt="The main menu with the song banner in the corner showing a custom song: Where the Hood At by DMX" width="1660" height="932" loading="lazy">
+          <figcaption class="fine">The song banner shows each song's title and artist, including your own.</figcaption>
         </figure>
       </div>
     </section>
@@ -414,6 +450,13 @@
           <p>The app isn't code-signed yet, so Windows SmartScreen or macOS Gatekeeper may ask you to
              confirm. Each release publishes a SHA-256 checksum and provenance file so you can check
              the download.</p>
+        </details>
+        <details>
+          <summary>Can I play my own music in the game?</summary>
+          <p>Yes, from v1.1.0. Put MP3, FLAC, Ogg or WAV files in the <code>songs</code> folder of your
+             data folder, or add folders on the app's <strong>Songs</strong> page. They are converted once,
+             then play in the Beatbox, the menus and fights, up to 27 songs beside the game's own.
+             See the <a href="https://github.com/vyanhursky/DefJamFFNY-recomp/blob/main/docs/custom-songs.md">custom songs guide</a>.</p>
         </details>
         <details>
           <summary>Can I play online?</summary>

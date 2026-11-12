@@ -41,6 +41,7 @@ MEDIA = {
     'compare-map-before.png': 'docs/media/compare-map-before.png',
     'compare-map-after.jpg': 'docs/media/compare-map-after.jpg',
     'app-mods-browse.png': 'docs/media/app-mods-browse.png',
+    'custom-songs-banner.jpg': 'docs/media/custom-songs-banner.jpg',
 }
 
 
