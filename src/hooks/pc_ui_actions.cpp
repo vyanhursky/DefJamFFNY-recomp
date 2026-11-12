@@ -300,6 +300,49 @@ bool setup_poll()
     picked.clear();
     return true;
 }
+// A Fighter ZIP chosen with the system file dialog or dropped on the launcher window. Either way it only
+// fills in the "ZIP to install" line; the player still presses Install (page_fighters in pc_ui.cpp).
+static std::string archive_pending;
+static bool archive_has = false;
+#if !defined(_WIN32)
+static void archive_dialog_done(void *, const char *const *files, int)
+{
+    if (files && files[0]) archive_drop(files[0]);
+}
+#endif
+void archive_drop(const std::string &path)
+{
+    std::lock_guard<std::mutex> lock(picker_mutex);
+    archive_pending = path;
+    archive_has = !path.empty();
+}
+void archive_choose()
+{
+#if defined(_WIN32)
+    wchar_t file[32768] = {};
+    OPENFILENAMEW chooser = {};
+    chooser.lStructSize = sizeof(chooser);
+    chooser.hwndOwner = GetActiveWindow();
+    chooser.lpstrFile = file;
+    chooser.nMaxFile = 32768;
+    chooser.lpstrFilter = L"Fighter packs (*.zip)\0*.zip\0All files\0*.*\0\0";
+    chooser.lpstrTitle = L"Choose a Fighter ZIP";
+    chooser.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR;
+    if (GetOpenFileNameW(&chooser))
+        archive_drop(narrow(file));
+#else
+    static const SDL_DialogFileFilter filters[] = {{"Fighter packs (*.zip)", "zip"}, {"All files", "*"}};
+    SDL_ShowOpenFileDialog(archive_dialog_done, nullptr, nullptr, filters, 2, nullptr, false);
+#endif
+}
+bool archive_take(std::string &path)
+{
+    std::lock_guard<std::mutex> lock(picker_mutex);
+    if (!archive_has) return false;
+    path = archive_pending;
+    archive_has = false;
+    return true;
+}
 bool setup_launch()
 {
     auto path = setup_path();

@@ -393,7 +393,7 @@ def check_storefront(bundle, rows, version=None):
           and struct.unpack('>II', head[16:24]) == (256, 256), 'Thunderstore icon.png must be a 256x256 PNG')
 
 
-def unpack_archive(archive, descriptor, destination, cancelled=lambda: None, storefront=False, version=None):
+def unpack_archive(archive, descriptor, destination, cancelled=lambda: None, storefront=False, version=None, progress=None):
     check(Path(archive).stat().st_size == descriptor['size'] and sha(archive) == descriptor['sha256'],
           'Package size or SHA-256 mismatch')
     check(descriptor['size'] <= MAX_ARCHIVE and descriptor['unpacked_size'] <= 16 * 1024**3
@@ -430,6 +430,7 @@ def unpack_archive(archive, descriptor, destination, cancelled=lambda: None, sto
         check(shutil.disk_usage(destination.parent).free >= size + 32 * 1024**2, 'Not enough free space to install')
         destination.mkdir()
         hashes = {}
+        written = 0
         for row, parts in files:
             cancelled()
             target = destination.joinpath(*parts)
@@ -439,8 +440,11 @@ def unpack_archive(archive, descriptor, destination, cancelled=lambda: None, sto
                 while chunk := source.read(1024 * 1024):
                     cancelled()
                     copied += len(chunk)
+                    written += len(chunk)
                     check(copied <= row.file_size, 'Archive expansion exceeds declared size')
                     output.write(chunk)
+                    if progress:
+                        progress(written, size)
                 output.flush()
                 os.fsync(output.fileno())
             check(copied == row.file_size, 'Truncated archive entry')
@@ -753,8 +757,17 @@ class Manager:
                               file_count=len(files), unpacked_size=sum(row.file_size for row in files))
         stage = self.staging / uuid.uuid4().hex
         try:
-            self.progress('Validating Fighter package')
-            receipt = unpack_archive(archive, descriptor, stage, self.cancelled, storefront=storefront)
+            self.progress('Checking the Fighter ZIP')
+            last = [0.0]
+
+            def copying(done, total):
+                # The launcher draws a progress bar from this; one update every tenth of a second is plenty.
+                now = time.monotonic()
+                if done >= total or now - last[0] >= 0.1:
+                    last[0] = now
+                    self.progress('Unpacking the Fighter ZIP', done, total)
+            receipt = unpack_archive(archive, descriptor, stage, self.cancelled, storefront=storefront, progress=copying)
+            self.progress('Checking the pack and saving it')
             check(receipt.get('category') == 'fighters', 'Expected a Fighter package')
             receipt.update(id=root, folder=root, version=receipt['fighter_version'], name=root,
                            archive_sha256=descriptor['sha256'], conflicts=[], origin='local')
