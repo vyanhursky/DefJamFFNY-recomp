@@ -8,7 +8,7 @@
 
 ## 0. Status at a glance
 
-- 2026-11-12 Beta-2 candidate: release branch `release/v1.2.0-beta.2` (release PR #239, draft, pending the owner's Mac/Linux test) = Beta 1 + fighter review fixes A1-A5, one CAF format and container, HD CAF atlases, outfit titlecards, verified composition cache and the launcher Fighter ZIP picker (D384-D396). Windows full regression 17/17 on 97cd1ad; not published. Nothing is tagged.
+- 2026-11-12 Beta-2 candidate: release branch `release/v1.2.0-beta.2` (release PR #239, merged at b211c53) = Beta 1 + fighter review fixes A1-A5, one CAF format and container, HD CAF atlases, outfit titlecards, verified composition cache and the launcher Fighter ZIP picker (D384-D396). Windows full regression 17/17 on 97cd1ad; Steam Deck full regression 19/21 on 94aed9d (replay 79/80 is #98; three Zig-toolchain unit failures). Published 2026-11-12T21:10:06Z as a prerelease, not Latest (v1.1.1 remains Latest): annotated `v1.2.0-beta.2` at b211c53, Source release 43305637942, nine game-free app/checksum/provenance assets whose sidecar SHA-256 match GitHub's digests, provenance source b211c53 and toolkit 8e61aec, no development flag.
 
 - 2026-11-12 HD Fighters site: dedicated `site/hd-fighters/` presentation page with eight source-cropped, externally hosted before/after sliders and the owner's current Thunderstore copy. Home Mods links to it. Six site-build checks, source policy and desktop/mobile pointer/keyboard QA pass. Deploy through the existing Pages workflow after this documentation-only change merges; game releases, native qualifications and mod/catalogue payloads are unchanged.
 
@@ -590,7 +590,7 @@ defjam-recomp/
 
 ## 5. Open questions for Vlad
 
-- Beta 2 awaits the owner's macOS and Linux test and his go-ahead to merge, tag `v1.2.0-beta.2` and publish (D396). The Workshop must ship the matching one-format exporter at the same time (Workshop PR #10 and its integration branch); recipes from earlier Workshop builds are refused.
+- No owner-only question blocks Beta 2: it is published under D396 on the owner's instruction after the Windows and Steam Deck results. macOS native play is untested. The Workshop ships the matching one-format exporter as 0.1 Beta 2; recipes from earlier Workshop builds are refused.
 
 - No owner-only beta decision is pending: D371 authorizes Windows qualification and experimental v1.2.0-beta.1 publication when checks pass. Native macOS/Deck, physical controls and broad M5/M6 acceptance remain explicitly unqualified.
 
@@ -610,8 +610,6 @@ Upstream PR submissions still need the owner's separate approval.
 
 > Recent entries only; older entries remain unchanged in the local `docs/worklog/` archive.
 
-- 2026-11-09 06:50 — D371: owner authorizes experimental v1.2.0-beta.1 after full Windows regression; integrate #209/source0cfc354 on main482897f, toolkit4801dc1 unchanged. CMake1.2.0; source-only prerelease and private Vendetta constraints retained. Candidate checks underway, no publication yet.
-- 2026-11-09 07:22 — Record Fighter PR209 decisions as D372-D380 without closing M5/M6. Candidate CI42639487447 passes35/35; final-feature retry and Tools guide CI42642611404 pass. Windows CI app is game-free/nondevelopment,4668files/71Fighter imports, identical candidate tree; full stock regression still running, real install/update and publication remain pending. Private beta-120b1-candidate-verification-retry receipts.
 - 2026-11-09 08:28 — Candidate dca56f2 full Windows stock regression passes17/17 with four inapplicable skips in2912.25s;2391unit passes/60skips/one standard slow exclusion. Replay80records and both rapid-input traces pass;25stock plus87fighter-career/song/profile hashes unchanged. Real stable1.1.1 app GUI self-placement and handoff pass in synthetic default user layout; first install is building before candidate update. Supplementary #213/b8abe48 reviewed separately: clean merge/CI35green/41focused tests, reproduced CAF-versus-independent-owned-pack refusal; not integrated or added to this beta.
 - 2026-11-09 08:35 — Stable GA1.1.1 actual GUI self-placement/handoff/default synthetic-user-layout first install passes373.3s, Ready to Play, exact afaa9b1 receipt and toolkit4801dc1. Normal Quit succeeds. Extract six PR213 Clang casts and add Mac all-game-side-object CI; fresh build/full Windows rerun required before beta. No CAF extension integration.
 - 2026-11-09 09:39 — Final beta runtime0542550 qualifies Windows17/17 plus four platform skips in2942.15s; CI42656586564 35/35 incl Mac game-side object compile. Actual GUI stable GA install373.3s and clean beta update204.6s pass in isolated default layout;29protected hashes and old build retained, sealed4668file payload exact. Final evidence-only records prepared; no tag/publication yet. logs/regress-20261109-102639.txt, beta-120b1-r2-full-regression-verdict.json, beta-120b1-update-verdict.json.
@@ -619,12 +617,13 @@ Upstream PR submissions still need the owner's separate approval.
 - 2026-11-10 19:49 UTC — Owner authorized all pending source merges and Workshop GPLv3-only. Merge Workshop3–8 and runtime202/213/217–224 with qualified-tree checks; retain third-party notices, game-art/native experimental limits and #166. Workshop191/5 skips, real wheel/notices and runtime53 combined focused tests pass; exact cross-platform CI and merge commits are recorded in the integration PR. No new release or duplicate full native regression.
 - 2026-11-12 10:30 - Beta-2 candidate prepared on `release/v1.2.0-beta.2`: PRs #226/#228/#229/#231-#237 plus #238 (launcher Fighter ZIP drop, Browse and progress bar); Windows full regression 17/17 on 97cd1ad in 46 min (unit 1917 passed, 778 skipped), launcher commit 98070bb checked with unit 1918 passed, m4a and real-launcher install/Browse/Cancel/error runs; D384-D396. Not merged, tagged or published; macOS/Linux owner test pending.
 - 2026-11-12 10:37 — Added HD Fighters GitHub Pages subpage:8 before/after sliders from approved Cloudflare JPEG crops, native range/keyboard/buttons/pointer controls, same published Thunderstore information.6 site-build tests and source policy pass; desktop1440/mobile390 widths show0overflow/0failed images,8/8Home/End/arrows pass, pointer75% and full original/HD presets verified. Source only; existing Pages workflow deploys after merge, no game/mod/catalogue rebuild. Browser evidence remains private.
+- 2026-11-12 14:10 UTC - Published experimental v1.2.0-beta.2/b211c53: release PR #239 merged with CI 35/35, Source release 43305637942, nine game-free assets verified (sidecars = GitHub digests, provenance source b211c53, toolkit 8e61aec); Steam Deck full regression 19/21 on 94aed9d (replay #98, three Zig unit failures) with a three-outfit fighter pack played through two matches; Windows 17/17 on 97cd1ad. Stable 1.1.1 remains Latest. Notes updated at publication with the Deck results.
 
 ## 7. Hand-off
 
 ### Beta-2 candidate - 2026-11-12
 
-- State: runtime branch `release/v1.2.0-beta.2` (from `integration/beta2-candidate` plus PR #238). Contains PRs #226, #228 (ported onto the unified format), #229 and #231-#237, all as ancestors. Toolkit pin unchanged from the candidate's. Nothing is merged to main, tagged or published.
+- State: `v1.2.0-beta.2` is published (prerelease) at main merge b211c53 (release PR #239), containing PRs #226, #228 (ported onto the unified format), #229 and #231-#238. Toolkit pin 8e61aec is on fork branch `defjam/release-1.2.0-beta.2`; `.gitmodules` still names `defjam/upstream-v0.16`.
 - Windows: one full regression on 97cd1ad passed 17/17 (46 min); the launcher commit 98070bb was checked with the unit suite (1918 passed), `--only m4a` and real launcher runs (D396). Do not repeat the full run for it.
-- Next, in order: owner tests the CI app artifacts on macOS and Linux; Workshop beta-2 candidate PR merged alongside; then merge the release PR with a merge commit, tag `v1.2.0-beta.2` at the merge commit, push the tag, verify the draft's nine assets, publish as a prerelease (`docs/releasing.md` section 6).
+- Next: collect beta feedback; the macOS native play, launcher Fighters page on Linux/Mac, 3-4 player routes and the other unverified items below are open. A later beta or the final v1.2.0 is cut from main.
 - Not verified: A1 in game (random/CPU outfit pick), Rematch, 2/3/4-player layouts, edited saves on v1.1.1 and v1.2.0-beta.1, Linux/macOS/Deck native play, texture packs off with fighter UI art. #166 and #98 stay open.
