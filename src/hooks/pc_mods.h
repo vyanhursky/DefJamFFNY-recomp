@@ -26,6 +26,10 @@ void mod_set_prerelease(bool enabled);
 void mod_cancel();
 const ModView &mod_view();
 const std::string &mod_status();
+float mod_fraction();      // 0..1 while a job reports bytes, -1 when it only reports steps
+bool mod_failed();         // the job that just ended did not succeed
+int mod_elapsed();         // whole seconds since the running job started
+const std::string &mod_command(); // the command of the running or last job, e.g. "install-local"
 bool mod_recovery_needed();
 }
 extern "C" {

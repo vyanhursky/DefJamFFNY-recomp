@@ -1,6 +1,7 @@
 /* Full generation-tagged request ownership survives native async row recycling.
  * Route only the reviewed final-copy allocation, never its static debug label. */
 #include "fighter_film_async.h"
+#include "fighter_fatal.h"
 #include "fighter_film_proof.h"
 #include "fighter_cpu_pool.h"
 #include "recomp/gen/recomp_types.h"
@@ -9,7 +10,7 @@
 static struct {uint32_t handle;unsigned owner;} s_requests[64];
 static RECOMP_TLS unsigned s_request_owner;
 static RECOMP_TLS FighterFilmAsyncScope s_callback;
-static void stop(void) {fprintf(stderr,"[FIGHTERS] cinematic async ownership stopped\n");fflush(stderr);exit(1);}
+static void stop(void) {defjam_fighter_fatal("cinematic async","request ownership differs from the reviewed film request");}
 unsigned defjam_fighter_film_request_begin(uint32_t name) {
     unsigned previous=s_request_owner;s_request_owner=0;
     if (!name) return previous;

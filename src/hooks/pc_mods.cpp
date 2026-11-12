@@ -7,6 +7,7 @@
 #endif
 #include "pc_ui_model.h"
 #include "pc_ui_actions.h"
+#include <algorithm>
 #include <cstdlib>
 #include <cerrno>
 #include <cstdio>
@@ -37,6 +38,10 @@ namespace pcui {
 static ModView view;
 static std::string status;
 static bool running = false;
+static float job_fraction = -1.0f; // 0..1 while the helper reports bytes, -1 when it only reports steps
+static bool job_failed = false;     // the last job ended badly (shown in red beside the button that started it)
+static std::string job_command;
+static std::chrono::steady_clock::time_point job_started;
 static std::string enable_after_install;
 static bool testing_versions = false;
 static fs::path job_root;
@@ -105,6 +110,10 @@ bool mod_prerelease() { return testing_versions; }
 void mod_set_prerelease(bool enabled) { if (!running) testing_versions = enabled; }
 const ModView &mod_view() { static bool loaded = false; if (!loaded) { read_view(); loaded = true; } return view; }
 const std::string &mod_status() { return status; }
+float mod_fraction() { return running ? job_fraction : -1.0f; }
+int mod_elapsed() { return running ? (int)std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - job_started).count() : 0; }
+bool mod_failed() { return !running && job_failed; }
+const std::string &mod_command() { return job_command; }
 bool mod_recovery_needed() { std::error_code error; return fs::exists(root() / "journal.json", error); }
 void mod_cancel() {
     if (!running) return;
@@ -206,7 +215,8 @@ bool mod_start(const std::string &requested, const std::string &id) {
     if (result) { status = "Could not start mod helper: " + std::to_string(result); return false; }
 #endif
     enable_after_install = requested == "install-enable" ? id : "";
-    running = true; status = "Working on mods..."; return true;
+    job_command = command; job_fraction = -1.0f; job_failed = false; job_started = std::chrono::steady_clock::now();
+    running = true; status = command == "install-local" ? "Starting the install..." : "Working on mods..."; return true;
 }
 bool mod_poll() {
     if (!running) return false;
@@ -214,7 +224,15 @@ bool mod_poll() {
     if (!progress["progress"]["message"].empty()) {
         status = progress["progress"]["message"];
         auto done = progress["progress"]["done"], total = progress["progress"]["total"];
-        if (total != "0" && !total.empty()) status += " (" + done + " / " + total + " bytes)";
+        job_fraction = -1.0f;
+        if (total != "0" && !total.empty()) {
+            double have = strtod(done.c_str(), nullptr), all = strtod(total.c_str(), nullptr);
+            if (all > 0) {
+                job_fraction = (float)(have < all ? have / all : 1.0);
+                char sizes[64]; snprintf(sizes, sizeof sizes, " (%.1f of %.1f MB)", have / 1048576.0, all / 1048576.0);
+                status += sizes;
+            }
+        }
     }
     bool complete = false, ok = false;
 #if defined(_WIN32)
@@ -225,7 +243,7 @@ bool mod_poll() {
     if (result == process || (result < 0 && errno != EINTR)) { complete = true; ok = result == process && WIFEXITED(code) && WEXITSTATUS(code) == 0; process = -1; }
 #endif
     if (!complete) return false;
-    running = false; read_view();
+    running = false; job_fraction = -1.0f; job_failed = !ok; read_view();
     if (ok) status = view.message.empty() ? "Mod inventory refreshed." : view.message;
     else if (progress["progress"]["message"].empty()) status = "Mod helper failed. Local packs are unchanged; see the launcher log.";
     if (ok && !enable_after_install.empty()) {
@@ -430,7 +448,7 @@ extern "C" int pc_fighters_prepare(const char *language) {
                 "FINISHERS", "FINISHERS_SHA256", "FINISHER_BINDINGS", "CINEMATIC_BANKS", "CINEMATIC_BANKS_SHA256",
                 "CINEMATIC_BINDINGS", "BLAZIN_BINDINGS", "SAVE_JOURNAL", "UNLOCKS",
                 "TAGS", "TAGS_SHA256", "CAMERAS", "CAMERAS_SHA256", "TIMELINE_BINDINGS", "FILM_PROOFS", "CAF", "CAF_SHA256",
-                "CAF_EXTRAS", "CAF_EXTRAS_SHA256", "CAF_FACES", "CAF_FACES_SHA256", "UI_TEXTURE_PACK"
+                "UI_TEXTURE_PACK"
             };
             for (auto &entry : ready["environment"]) {
                 if (entry.first.rfind("RECOMP_FIGHTER_",0) != 0 || !allowed.count(entry.first.substr(15))) {

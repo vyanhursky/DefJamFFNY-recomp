@@ -3,6 +3,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 #include "fighter_ai.h"
+#include "fighter_fatal.h"
 #include "fighter_runtime.h"
 #include "fighter_behavior_identity.h"
 #include "hooks/mod_sha256.h"
@@ -116,8 +117,9 @@ void defjam_fighter_ai_loaded(uint32_t self, uint32_t config) {
         const char *profile=ai_profile(slot,core);
         if (!profile || !MEM8(config + 0x24 + slot * 32)) continue;
         if (memcmp((const void *)XBOX_PTR(config + 0x24 + slot * 32), profile, 32)) {
-            fprintf(stderr, "[FIGHTERS] AI stopped: owned profile fell back in slot %u\n", slot);
-            fflush(stderr); exit(1);
+            char why[96];
+            snprintf(why, sizeof why, "owned profile fell back in slot %u", slot);
+            defjam_fighter_fatal("AI", why);
         }
         for (unsigned row = 0; row < 4; ++row) {
             uint32_t record = self + 4 + slot * 0x890 + row * 0x60;

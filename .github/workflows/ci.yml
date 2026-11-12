@@ -208,7 +208,7 @@ jobs:
         with: { python-version: "3.12" }
       - run: python -m pip install pyxbe capstone pytest cryptography==50.0.2 cffi==2.0.0 pycparser==2.23 Pillow==12.3.0
       - name: CAF recipes, portraits and lifecycle fixtures (MSVC, synthetic data)
-        run: python -m pytest -q tests/unit/test_fighter_caf.py tests/unit/test_fighter_caf_extras.py tests/unit/test_fighter_caf_extras_native.py tests/unit/test_fighter_caf_portrait.py tests/unit/test_fighter_caf_composition.py tests/unit/test_fighter_caf_mixed_native.py tests/unit/test_fighter_match_teardown_native.py tests/unit/test_fighter_voice_native.py tests/unit/test_fighter_unlock_projection_native.py
+        run: python -m pytest -q tests/unit/test_fighter_caf.py tests/unit/test_fighter_caf_extras.py tests/unit/test_fighter_caf_extras_native.py tests/unit/test_fighter_caf_portrait.py tests/unit/test_fighter_caf_composition.py tests/unit/test_fighter_caf_mixed_native.py tests/unit/test_fighter_match_teardown_native.py tests/unit/test_fighter_voice_native.py tests/unit/test_fighter_unlock_projection_native.py tests/unit/test_fighter_caf_layout.py tests/unit/test_fighter_fatal_native.py tests/unit/test_fighter_caf_outfits_native.py tests/unit/test_fighter_caf_face_native.py tests/unit/test_fighter_caf_story_native.py
       - name: Native legacy-save compatibility (MSVC, synthetic data)
         run: python -m pytest -q tests/unit/test_save_compat.py
       - name: Input, startup and launcher fixtures (MSVC)
@@ -253,7 +253,7 @@ jobs:
         with: { python-version: "3.12" }
       - run: python -m pip install pytest Pillow==12.3.0
       - name: CAF recipes, portraits and lifecycle fixtures (synthetic data)
-        run: python -m pytest -q tests/unit/test_fighter_caf.py tests/unit/test_fighter_caf_extras.py tests/unit/test_fighter_caf_extras_native.py tests/unit/test_fighter_caf_portrait.py tests/unit/test_fighter_caf_composition.py tests/unit/test_fighter_caf_mixed_native.py tests/unit/test_fighter_match_teardown_native.py tests/unit/test_fighter_voice_native.py tests/unit/test_fighter_unlock_projection_native.py
+        run: python -m pytest -q tests/unit/test_fighter_caf.py tests/unit/test_fighter_caf_extras.py tests/unit/test_fighter_caf_extras_native.py tests/unit/test_fighter_caf_portrait.py tests/unit/test_fighter_caf_composition.py tests/unit/test_fighter_caf_mixed_native.py tests/unit/test_fighter_match_teardown_native.py tests/unit/test_fighter_voice_native.py tests/unit/test_fighter_unlock_projection_native.py tests/unit/test_fighter_caf_layout.py tests/unit/test_fighter_fatal_native.py tests/unit/test_fighter_caf_outfits_native.py tests/unit/test_fighter_caf_face_native.py tests/unit/test_fighter_caf_story_native.py
       - name: Startup skip settings and guest-call ABI
         run: python -m pytest -q tests/unit/test_skip_intro.py
       - name: Dependencies (Linux)

@@ -39,11 +39,27 @@ def test_typed_audio_inventory_checks_hash_and_accounts_for_file(tmp_path):
 @pytest.fixture
 def manager(tmp_path, monkeypatch):
     source, _, _ = catalog(menu=True)
-    real = fighters.compile_inputs
-    monkeypatch.setattr(fighters, 'compile_inputs', lambda sod, paths, packs, ledger, **kw:
-                        real(sod, paths, packs, ledger, catalog=source, **kw))
-    monkeypatch.setattr(fighters, 'prepare_portraits', lambda *args, **kwargs: tmp_path / 'screens.viv')
-    return Manager(tmp_path / 'data', capabilities=['textures-v1', 'fighters-v1'])
+    monkeypatch.setattr(fighters, 'retail_catalog', lambda *args, **kwargs: source)
+    def portraits(screens, report, **kwargs):
+        import hashlib
+        data = json.dumps(report, sort_keys=True).encode()
+        path = kwargs['cache_root'] / hashlib.sha256(data).hexdigest() / 'screens/screens.viv'
+        path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(data)
+        return path
+    monkeypatch.setattr(fighters, 'prepare_portraits', portraits)
+    return Manager(tmp_path / 'data', capabilities=['textures-v1', 'fighters-v1'], game=tmp_path / 'game')
+
+
+def test_local_install_reports_bytes_for_the_launcher_progress_bar(manager, tmp_path, monkeypatch):
+    """The launcher draws a real bar from done/total while files are unpacked, then goes indeterminate."""
+    calls = []
+    real = manager.progress
+    monkeypatch.setattr(manager, 'progress', lambda text, done=0, total=0: (calls.append((text, done, total)), real(text, done, total))[1])
+    manager.install_local(archive(tmp_path, pack()))
+    unpacking = [(done, total) for text, done, total in calls if text == 'Unpacking the Fighter ZIP']
+    assert unpacking and unpacking[-1][0] == unpacking[-1][1] > 0
+    assert [done for done, _ in unpacking] == sorted(done for done, _ in unpacking)
+    assert calls[-1][0].startswith('Fighter package installed')
 
 
 def test_whole_pack_install_enable_update_rollback_disable_remove(manager, tmp_path):

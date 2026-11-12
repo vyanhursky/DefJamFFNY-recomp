@@ -8,6 +8,8 @@
 
 ## 0. Status at a glance
 
+- 2026-11-12 Beta-2 candidate: release branch `release/v1.2.0-beta.2` (release PR #239, draft, pending the owner's Mac/Linux test) = Beta 1 + fighter review fixes A1-A5, one CAF format and container, HD CAF atlases, outfit titlecards, verified composition cache and the launcher Fighter ZIP picker (D384-D396). Windows full regression 17/17 on 97cd1ad; not published. Nothing is tagged.
+
 - 2026-11-12 HD Fighters site: dedicated `site/hd-fighters/` presentation page with eight source-cropped, externally hosted before/after sliders and the owner's current Thunderstore copy. Home Mods links to it. Six site-build checks, source policy and desktop/mobile pointer/keyboard QA pass. Deploy through the existing Pages workflow after this documentation-only change merges; game releases, native qualifications and mod/catalogue payloads are unchanged.
 
 - 2026-11-10 source integration: owner approved all pending Workshop/runtime PR merges. Workshop #3–#8 land on develop/0.1 with GPL-3.0-only, Vlad Yanhursky attribution and unchanged third-party/game-art exceptions. Runtime #202/#213/#217–#224 integrate on main with the existing toolkit 4801dc1. This is source integration, not another release; the beta/stable tags and asset qualifications below remain unchanged. See docs/research/pending-pr-integration-2026-11-10.md for the retained experimental/native/art limits.
@@ -514,6 +516,32 @@ Run-log citations from retired status/planning prose remain protected by
 
 | D383 | 2026-11-10 | Owner approved GPLv3-only for the separate Fighter Workshop and merging all sixteen pending Workshop/runtime PRs. | Preserve Vlad Yanhursky attribution, third-party MIT/dependency notices, earlier MIT releases and game-art exclusions. Runtime software licensing is unchanged. Use merge commits and qualify the combined source tree; retain native/experimental/art limitations and the owner's deferred broad-regression decision. No new release, art publication or #166 closure follows from these source merges. |
 
+| D384 | 2026-11-11 | Pass the current participant's clothing index only at the reviewed native titlecard loader call (PR #226). | The loader's zero-argument identity lookup otherwise always picks outfit zero, unlike the portrait loaders. |
+
+| D385 | 2026-11-11 | Authenticate completed local fighter compositions, keyed by freshly checked inputs and policy, and keep the existing output validation on every cache hit (PR #229). | Unchanged launches must skip the expensive compile and menu stages without letting a self-declared report or a file timestamp authorize output. Measured 159.1 s cold to 12.1 s warm on the 46-fighter test roster. |
+
+| D386 | 2026-11-11 | Normalize the identity ledger before the composition-cache lookup (PR #229). | Install, activation and first Play can reuse one proven composition without assigning different identities or changing historical allocations. |
+
+| D387 | 2026-11-11 | Focused startup probes for the cache change reused the qualified Beta 1 executable (PR #229). | The change is Python-only, so no game rebuild was needed to measure managed launch. Beta 2 is qualified separately by D396. |
+
+| D388 | 2026-11-11 | HD CAF atlases are an optional `hd` section of the single CAF recipe and `fighter-caf.bin` container, not a separate CAF v7 (PR #228, ported on the unified format). | PR #228 as written versioned HD imports as v7 so older runtimes would refuse them; the unified format (D391, D392) has no versions to bump, and no released runtime reads CAF recipes. Its v7 decision is superseded; the native HD behavior is unchanged. |
+
+| D389 | 2026-11-11 | Own dynamic HD replacements by renderer-visible source address and CAF visual, using the existing kernel RAM-mirror naming and the existing loader and cache (PR #228). | CAF bitmaps are composed at runtime; CPU heap addresses differ from GPU bus names, and global content-hash aliases could affect unrelated fighters or outfits. |
+
+| D390 | 2026-11-11 | Keep native 256 px allocations and derive HD material alpha from the live compositor (PR #228). | Preserves the game's UV, rig and material contracts without expanding guest memory. |
+
+| D391 | 2026-11-11 | Collapse the unreleased CAF recipe versions into one format, `caf-fighter-1`, with optional sections (PR #236, review B1). | v1.1.1 and v1.2.0-beta.1 contain no CAF recipe, so six wrapped loaders had no compatibility to protect. Recipes exported as `caf-fighter-2` to `-6` are refused; the Workshop must land the same change. |
+
+| D392 | 2026-11-11 | Store CAF data in one `fighter-caf.bin` container whose offsets come from one generated layout header (PR #237, review B2). | The C readers and the Python compiler agreed on row layout by literal offsets across three files and six environment variables. The shipped FVA1/2, FIA1, FIC1/2 and FWR1 tables stay readable. |
+
+| D393 | 2026-11-11 | Fighter review fixes A1-A5 (PRs #231-#235): prefix checks take their length from the literal; every fighter module stops through one shared dialog; an unconfirmed outfit plays outfit 0; the face-sculpt lookup comes before the head-layout check; a Story retail moveset that cannot be honored degrades to the career core. | Each was a stop or a silent window exit on a path real players reach. The Story fallback assumes `profile+0x4d93` is the right core; that assumption, A1 in game, Rematch and 2/3/4-player layouts are not verified. |
+
+| D394 | 2026-11-12 | In the launcher, choosing or dropping a Fighter ZIP only selects it; installing still takes a press of Install (PR #238). | A stray drop must not start a long install, and the file name is visible first. |
+
+| D395 | 2026-11-12 | The mod helper reports bytes while unpacking, and the launcher draws an indeterminate bar with elapsed time for the compile step (PR #238). | The compile step has no total to measure; elapsed time and a moving bar show it has not stalled. |
+
+| D396 | 2026-11-12 | Qualify the Beta-2 candidate on Windows with one full regression on runtime 97cd1ad and carry it forward to the launcher-only commit 98070bb. | Windows 17/17 applicable checks (four SDL-launcher checks skipped as inapplicable), 46 minutes, unit stage 1917 passed. 98070bb changes only the Fighters page, the mod helper's progress reports and window drop handling, so under D382 it needs focused checks (unit suite 1918 passed, `--only m4a`, real launcher install, Browse, Cancel and error runs), not a second full run. macOS and Linux/Steam Deck native gameplay is not claimed; the owner tests those before release. |
+
 ## 2. Historical environment inventory (2026-09-17)
 
 - Current Windows RC test host (2026-10-23): Windows11Pro10.0.26200, RTX4070TiSUPER/driver32.0.16.1088; VS2019/MSVC14.29, CMake3.20/Ninja1.10.2. D3D11 `win-x64-release`; isolated app/data and copied harness saves in an isolated local work root. No original user saves/settings changed. Normal Windows process/compiler access required outside the restricted execution sandbox; no OS security settings changed.
@@ -562,6 +590,8 @@ defjam-recomp/
 
 ## 5. Open questions for Vlad
 
+- Beta 2 awaits the owner's macOS and Linux test and his go-ahead to merge, tag `v1.2.0-beta.2` and publish (D396). The Workshop must ship the matching one-format exporter at the same time (Workshop PR #10 and its integration branch); recipes from earlier Workshop builds are refused.
+
 - No owner-only beta decision is pending: D371 authorizes Windows qualification and experimental v1.2.0-beta.1 publication when checks pass. Native macOS/Deck, physical controls and broad M5/M6 acceptance remain explicitly unqualified.
 
 - v1.1.1 is published under D369-D370; no release approval remains pending. Full regression was waived. Preserve the incomplete earlier GUI integration qualification and prior v1.1.0 known issues; #166 stays open in v1.1.2.
@@ -587,15 +617,14 @@ Upstream PR submissions still need the owner's separate approval.
 - 2026-11-09 09:39 — Final beta runtime0542550 qualifies Windows17/17 plus four platform skips in2942.15s; CI42656586564 35/35 incl Mac game-side object compile. Actual GUI stable GA install373.3s and clean beta update204.6s pass in isolated default layout;29protected hashes and old build retained, sealed4668file payload exact. Final evidence-only records prepared; no tag/publication yet. logs/regress-20261109-102639.txt, beta-120b1-r2-full-regression-verdict.json, beta-120b1-update-verdict.json.
 - 2026-11-09 18:10 UTC — Published experimental v1.2.0-beta.1/e950a7f: Source42667831975 37/37,9game-free app assets and all GitHub digests/source/toolkit/inventories verified; no private Vendetta bytes. Stable1.1.1 remains Latest;3public selectors exclude beta. Existing local fighter playtest update222.14s preserves48protected hashes/old executable; shortcut target unchanged. D382 carries final Windows17/17 full evidence; no third full run. beta-120b1-tag-verification/verification.json, beta-120b1-existing-playtest-update-verdict.json.
 - 2026-11-10 19:49 UTC — Owner authorized all pending source merges and Workshop GPLv3-only. Merge Workshop3–8 and runtime202/213/217–224 with qualified-tree checks; retain third-party notices, game-art/native experimental limits and #166. Workshop191/5 skips, real wheel/notices and runtime53 combined focused tests pass; exact cross-platform CI and merge commits are recorded in the integration PR. No new release or duplicate full native regression.
+- 2026-11-12 10:30 - Beta-2 candidate prepared on `release/v1.2.0-beta.2`: PRs #226/#228/#229/#231-#237 plus #238 (launcher Fighter ZIP drop, Browse and progress bar); Windows full regression 17/17 on 97cd1ad in 46 min (unit 1917 passed, 778 skipped), launcher commit 98070bb checked with unit 1918 passed, m4a and real-launcher install/Browse/Cancel/error runs; D384-D396. Not merged, tagged or published; macOS/Linux owner test pending.
 - 2026-11-12 10:37 — Added HD Fighters GitHub Pages subpage:8 before/after sliders from approved Cloudflare JPEG crops, native range/keyboard/buttons/pointer controls, same published Thunderstore information.6 site-build tests and source policy pass; desktop1440/mobile390 widths show0overflow/0failed images,8/8Home/End/arrows pass, pointer75% and full original/HD presets verified. Source only; existing Pages workflow deploys after merge, no game/mod/catalogue rebuild. Browser evidence remains private.
 
 ## 7. Hand-off
 
-### Workshop and pending runtime source integration — 2026-11-10
+### Beta-2 candidate - 2026-11-12
 
-- Owner authorization: GPL-3.0-only for the Workshop and all pending source PRs merged; no new release or asset publication. Workshop #3–#8 use merge commits into develop/0.1. Runtime #202, #213 and #217–#224 use merge commits into main. Workshop develop/0.1 is 8fff8c9; runtime main is d6e9495 before this documentation-only record. The exact merge commits and CI results are recorded in the integration PR description. The pinned xboxrecomp4801dc1 is unchanged; no toolkit migration or generated-code publication.
-- Combined qualified source: Workshop df5290c (tree 507c203cd0624f535bd60735eabdba0b74dfde79); runtime 9c73a1b (tree b5a4b8acce508b9dd3d72b878bb28620188e7dd2). Intermediate stack merge trees are checked against those qualified trees. This main-only progress record changes documentation only. The source-native scope checks and applicable earlier native evidence are reused; no identical full regression is repeated.
-- Workshop licensing: official GPLv3-only text plus COPYRIGHT and SPDX wheel metadata; Vlad Yanhursky attribution retained. Vendor decoder/Three.js MIT notices and dependency terms remain; earlier MIT versions and game-art exclusions are unchanged. Local Workshop tests: 191 passed/5 platform skips pass; real wheel and desktop notice collection verify licenses/attribution. Final GPL source passes all four package jobs; no new release is published.
-- Runtime combined installer/package/Grid/UI/outfit/progress tests: 53 pass, plus all-source hosted CI. Preserve prior Pockets exact-menu/battle/save checks, the canonical-progress C fixture and feature-specific evidence. CAF v6 mixed gameplay, advanced face/cinematic/accessory/rematch combinations, the separate private pilot art/logo problems and untested native platforms remain unqualified. The owner deferred broad regressions for joint testing.
-- #166 remains open. PR #202 has a native Deck five-match memory comparison; the owner's Game Mode hitch/pop-in review remains. Thunderstore PR #222 preserves capability fallback and signed catalogue authority; a source merge does not publish a new catalogue or storefront package. PR #223 fixes independent Grid state routing/reference export; full interactive all-layout acceptance remains pending.
-- Published releases remain unchanged: experimental v1.2.0-beta.1/e950a7f is prerelease/non-Latest with exactly nine verified game-free app/checksum/provenance assets; stable 1.1.1 remains Latest. Source integration does not retrofit these Workshop additions into those immutable release assets or establish broader M5/M6/platform/fidelity qualification. Prior release details remain in the historical work log and versioned release notes.
+- State: runtime branch `release/v1.2.0-beta.2` (from `integration/beta2-candidate` plus PR #238). Contains PRs #226, #228 (ported onto the unified format), #229 and #231-#237, all as ancestors. Toolkit pin unchanged from the candidate's. Nothing is merged to main, tagged or published.
+- Windows: one full regression on 97cd1ad passed 17/17 (46 min); the launcher commit 98070bb was checked with the unit suite (1918 passed), `--only m4a` and real launcher runs (D396). Do not repeat the full run for it.
+- Next, in order: owner tests the CI app artifacts on macOS and Linux; Workshop beta-2 candidate PR merged alongside; then merge the release PR with a merge commit, tag `v1.2.0-beta.2` at the merge commit, push the tag, verify the draft's nine assets, publish as a prerelease (`docs/releasing.md` section 6).
+- Not verified: A1 in game (random/CPU outfit pick), Rematch, 2/3/4-player layouts, edited saves on v1.1.1 and v1.2.0-beta.1, Linux/macOS/Deck native play, texture packs off with fighter UI art. #166 and #98 stay open.

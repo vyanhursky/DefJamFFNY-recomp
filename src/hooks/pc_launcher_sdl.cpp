@@ -212,6 +212,8 @@ extern "C" int pc_launcher_window(int *open_setup_out)
                 *result = 0;
             } else if (e.type == SDL_EVENT_WINDOW_DISPLAY_CHANGED || e.type == SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED) {
                 fit_launcher(window, false);
+            } else if (e.type == SDL_EVENT_DROP_FILE) {     // a file dragged from the file manager onto the launcher
+                if (e.drop.data) pcui::archive_drop(e.drop.data);
             } else if (e.type == SDL_EVENT_WINDOW_FOCUS_GAINED) {
                 pc_input_set_focus(1);
             } else if (e.type == SDL_EVENT_WINDOW_FOCUS_LOST) {

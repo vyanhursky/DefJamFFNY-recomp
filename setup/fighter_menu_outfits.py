@@ -3,6 +3,29 @@ import fighter_apt as apt
 from fighter_assets import AssetError
 
 
+def titlecard_outfit_argument(instructions):
+    """Find the original zero-argument ID getter used by the l_CF logo loader.
+
+    Portrait getters already receive aClothIndex[nPlayer]. The logo getter does
+    not, so simply renaming it to getPortraitID always resolves outfit zero.
+    Leave trace/hero ID queries and their original argument stacks alone.
+    """
+    sites = []
+    for index, ins in enumerate(instructions):
+        if index < 2 or index + 1 >= len(instructions):
+            continue
+        if not any("='getID'" in value for value in ins.operands):
+            continue
+        if instructions[index - 2].name != 'EA_PushZero' or instructions[index + 1].name != 'CallMethod':
+            continue
+        if any("='l_CF_'" in value for previous in instructions[max(0, index - 6):index]
+               for value in previous.operands):
+            sites.append(instructions[index - 2].offset)
+    if len(sites) != 1:
+        raise AssetError('Native outfit titlecard loader differs')
+    return sites[0]
+
+
 def install(action, movie, entries, definitions, records):
     rows = [r for r in records or [] if r.get('outfit_count', 1) > 1]
     if not rows:
@@ -36,13 +59,18 @@ def install(action, movie, entries, definitions, records):
     redirected = {i.offset for i in instructions if any(f'const[{getter}]=' in v for v in i.operands)}
     if not redirected or any(i.function_size is not None or i.name in apt.ALIGNED - {'BranchAlways', 'BranchIfTrue'} for i in instructions):
         raise AssetError('Native portrait update needs unreviewed relocation')
+    logo_arguments = titlecard_outfit_argument(instructions)
     action.constant_pool(definition['pool'])
     def clone():
         end = definition['start'] + definition['size']
         labels = {offset: action.unique() for offset in [i.offset for i in instructions] + [end]}
         for index, ins in enumerate(instructions):
             action.label(labels[ins.offset])
-            if ins.offset in redirected:
+            if ins.offset == logo_arguments:
+                # Supply the same participant-local outfit argument as the
+                # original portrait loaders, then change the call count0->1.
+                action.variable('aClothIndex'); action.variable('nPlayer'); action.op('GetMember'); action.integer(1)
+            elif ins.offset in redirected:
                 if ins.name not in ('EA_PushConstantByte', 'EA_PushConstantWord'):
                     raise AssetError('Unexpected native portrait getter')
                 action.string('getPortraitID')

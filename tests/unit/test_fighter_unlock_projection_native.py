@@ -52,6 +52,7 @@ static void validate_immutable_banks(void){}
 static int remember_custom(uint32_t mark){(void)mark;return 0;}
 static void custom_progress_changed(void){assert(!"existing historical progress must not change");}
 static void defjam_fighter_selection_gate(uint32_t selection){(void)selection;assert(!"missing window");}
+#define STARTS_WITH(text, literal) (!strncmp((text), (literal), sizeof(literal) - 1))
 @FUNCTIONS@
 static void submit(int participant,uint32_t selection){
  char text[4][32];int values[4]={participant,participant<0?-1:0,(int)selection,0};
@@ -76,6 +77,16 @@ int main(int argc,char **argv){
  MEM32(s_settings+0x12E0+79*4)=0xDEAD;
  unsigned expected=78;
  if(!strcmp(argv[2],"bad-count"))MEM32(s_settings+0x20)=81;
+ if(!strcmp(argv[2],"prefix")){
+  /* Near misses and unrelated long commands in the namespace pass through untouched. */
+  const char *through[]={"Fighters.Outfi(0,100,1)","Fighters.KeepRead(2)","Fighters.Other(1)","Fighters.",
+   "Fighters.Unrelated(0123456789012345678901234567890123456789012345678901234567890123456789)"};
+  for(unsigned i=0;i<sizeof through/sizeof *through;i++){strcpy((char*)memory+0xA000,through[i]);assert(defjam_fighter_ui_command(0xA000)==0);}
+  strcpy((char*)memory+0xA000,"Fighters.KeepReady(2)");assert(defjam_fighter_ui_command(0xA000)==1);
+  /* Only our own two commands are fatal when over budget. */
+  strcpy((char*)memory+0xA000,"Fighters.KeepReady(2)0123456789012345678901234567890123456789012345678901234567890123");
+  (void)defjam_fighter_ui_command(0xA000);return 1;
+ }
  if(!strcmp(argv[2],"all")){submit(-1,0);expected=75;}
  else if(!strcmp(argv[2],"ready")){
   strcpy((char*)memory+0xA000,"Fighters.KeepReady(2)");
@@ -146,9 +157,11 @@ def projection(tmp_path_factory):
     return exe, window, outfit
 
 
-@pytest.mark.parametrize('mode', ['retail', 'all', 'ready', 'bind', 'bad-count', 'outfit'])
+@pytest.mark.parametrize('mode', ['retail', 'all', 'ready', 'bind', 'bad-count', 'outfit', 'prefix'])
 def test_actual_selection_clear_prunes_only_unbound_live_marks(projection, mode):
     exe, window, outfit = projection
     if mode=='outfit':window=outfit
     result = subprocess.run([str(exe), str(window), mode], capture_output=True, text=True, timeout=10)
-    assert result.returncode == (23 if mode == 'bad-count' else 0), result.stdout + result.stderr
+    assert result.returncode == (23 if mode in ('bad-count', 'prefix') else 0), result.stdout + result.stderr
+    if mode == 'prefix':
+        assert 'exceeds its budget' in result.stderr

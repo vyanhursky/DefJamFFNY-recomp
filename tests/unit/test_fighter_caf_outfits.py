@@ -6,8 +6,9 @@ from pathlib import Path
 import pytest
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[2]/'setup'))
-from fighter_caf import encode, menu_record
-from fighter_caf_extras import encode as encode_extras, PIXELS
+from fighter_caf import encode_rows, menu_record
+from fighter_caf_extras import encode_section as encode_extras, PIXELS
+from fighter_caf_layout import RECIPE as R, RECIPE_STRIDE, EXTRA as E, EXTRA_STRIDE
 from fighter_caf_outfits import assign_presentation, load
 from fighter_menu import character_parameters
 
@@ -30,16 +31,15 @@ def fixture():
 
 def test_three_recipes_keep_one_selection_and_shared_combat_with_distinct_art():
     item,report=fixture()
-    recipes=encode({'example/fighter':item},report)
-    extras=encode_extras({'example/fighter':item},report)
-    assert struct.unpack_from('<4sIII',recipes)==(b'FCA2',2,3,240)
-    assert struct.unpack_from('<4sIII',extras)==(b'FCX2',2,3,52)
+    recipe_count,recipes=encode_rows({'example/fighter':item},report)
+    extra_count,extras=encode_extras({'example/fighter':item},report)
+    assert (recipe_count,extra_count)==(3,3)
     for index in range(3):
-        at=16+index*240
+        at=index*RECIPE_STRIDE
         assert struct.unpack_from('<8I',recipes,at)==(100,101,20,20,20,20,20,3)
-        assert struct.unpack_from('<II',recipes,at+232)==(index,item['outfit_aliases'][index])
-        assert struct.unpack_from('<4I',extras,16+index*52+8)==(52,38,30,39)
-        assert struct.unpack_from('<I',extras,16+index*52+48)==(index,)
+        assert struct.unpack_from('<II',recipes,at+R['outfit'])==(index,item['outfit_aliases'][index])
+        assert struct.unpack_from('<4I',extras,index*EXTRA_STRIDE+E['finishers'])==(52,38,30,39)
+        assert struct.unpack_from('<I',extras,index*EXTRA_STRIDE+E['outfit'])==(index,)
     parameters=character_parameters(report['menu_roster']['example/fighter'])
     assert parameters.startswith('CLOTH=1&') and parameters.count('&FE_ID=100&')==1
     assert '1610612736' not in parameters  # No UI alias in ControllerSetup datasets.

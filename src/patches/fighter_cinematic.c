@@ -3,6 +3,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 #include "fighter_cinematic.h"
+#include "fighter_fatal.h"
 #include "fighter_runtime.h"
 #include "fighter_behavior_identity.h"
 #include "fighter_film_proof.h"
@@ -56,10 +57,7 @@ static FILE *cin_open(const char *path) {
     return fopen(path, "rb");
 #endif
 }
-static void cin_stop(const char *message) {
-    fprintf(stderr, "[FIGHTERS] cinematic stopped: %s\n", message);
-    fflush(stderr); exit(1);
-}
+static void cin_stop(const char *message) { defjam_fighter_fatal("cinematic", message); }
 static int cin_size(const char *path, uint32_t expected) {
     FILE *file = cin_open(path);
     if (!file) return 0;

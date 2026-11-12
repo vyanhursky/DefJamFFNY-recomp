@@ -3,6 +3,7 @@
  * title's scarce GPU-capable arena. The bounded backing is retained for reuse;
  * every bank must be freed by the native provider destructor between matches. */
 #include "fighter_cpu_pool.h"
+#include "fighter_fatal.h"
 #include "fighter_finishers.h"
 #include "fighter_film_proof.h"
 #include "hooks/guest_call.h"
@@ -21,10 +22,7 @@ static RECOMP_TLS unsigned s_pending_film;
 extern uint32_t xbox_HeapAlloc(uint32_t size, uint32_t alignment);
 extern void sub_001E9640(void);
 
-static void cpu_stop(const char *message) {
-    fprintf(stderr, "[FIGHTERS] CPU animation storage stopped: %s\n", message);
-    fflush(stderr); exit(1);
-}
+static void cpu_stop(const char *message) { defjam_fighter_fatal("CPU animation storage", message); }
 int defjam_fighter_cpu_contains(uint32_t address) {
     return s_backing && address >= s_backing + CPU_PREFIX
         && address - s_backing < CPU_BYTES;

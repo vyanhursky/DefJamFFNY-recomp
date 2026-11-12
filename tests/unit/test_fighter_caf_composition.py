@@ -93,7 +93,7 @@ def test_caf_and_owned_voice_ai_motion_have_disjoint_cores_and_sealed_cache(tmp_
     assert all(report['bindings'][key]['core_id'] >= 142 for key in
                ('alpha/fighter-0', 'alpha/fighter-1', 'beta/fighter-0'))
     assert owner + '/fighter-0' not in report['behavior_receipts']['motion']['bindings']
-    assert resources['fighter-caf.bin'][:4] == b'FCA1'
+    assert resources['fighter-caf.bin'][:4] == b'FCAF'
     if mode != 'logical':
         write_preview(data, report, resources, cache_root=tmp_path / 'cache')
     assert compile_inputs(sod, paths[::-1], packs[::-1], catalog=compiler, pin_path=pin, **options) == (data, report, resources)
@@ -120,7 +120,7 @@ def test_native_core_maps_partition_additions_without_weakening_coverage():
     assert retail['bindings']['caf/one']['inherited_core_id'] == 5
 
 
-@pytest.mark.parametrize('component', ['appearance', 'voice', 'ai', 'blazin'])
+@pytest.mark.parametrize('component', ['appearance', 'blazin'])  # voice, AI, intro and victory are optional CAF sections
 def test_owned_components_remain_forbidden_on_the_caf_itself(tmp_path, monkeypatch, component):
     compiler, original, _, packs, _, _ = behavior_fixture(tmp_path, voice3=True, blazin=True)
     caf = caf_pack()

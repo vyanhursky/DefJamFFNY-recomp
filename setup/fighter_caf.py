@@ -8,14 +8,16 @@ from fighter_registry import fingerprint
 from fighter_resource_files import require
 from mods import ordinary_path, safe_relative
 
+# One recipe schema. Everything past the four base fields is an optional section: finishers and atlases,
+# an outfit collection (outfit_name, outfits, portraits, face), retail_moveset and voice_donor.
 FORMAT = 'caf-fighter-1'
-CAPABILITY = 'caf-fighter-1'
-ROW_BYTES = 232
+CAPABILITY = FORMAT
+OUTFIT_SECTIONS = {'outfit_name', 'outfits', 'portraits', 'face'}
 
 
 def source(value):
     require(type(value) is dict and set(value) == {'format', 'selection'}, 'CAF source needs format and selection')
-    require(value['format'] in (FORMAT, 'caf-fighter-2', 'caf-fighter-3', 'caf-fighter-4', 'caf-fighter-5', 'caf-fighter-6'), 'Unsupported CAF recipe format')
+    require(value['format'] == FORMAT, 'Unsupported CAF recipe format; export the fighter again with a current Workshop')
     descriptor = value['selection']
     require(type(descriptor) is dict and set(descriptor) == {'path', 'sha256'}, 'Invalid CAF recipe descriptor')
     safe_relative(descriptor['path'])
@@ -151,57 +153,70 @@ def load(root, spec, catalog, game):
     from fighter_build import unique,non_finite
     value=json.loads(raw,object_pairs_hook=unique,parse_constant=non_finite)
     require(type(value) is dict, 'CAF recipe must be an object')
-    if spec['format']=='caf-fighter-6':
-        import copy
-        clean=copy.deepcopy(value);voice=clean.pop('voice_donor',None)
-        require(voice is None or type(voice) is str and voice in catalog.rows
-                and 1<=catalog.rows[voice]['native_binding']['core_id']<=86,'CAF voice donor must be an original retail fighter')
-        if 'retail_moveset' in clean:
-            from fighter_caf_moveset import load_recipe
-        else:
-            from fighter_caf_face import load_recipe
-        result=load_recipe(root,clean,catalog,game)
-        result.update(performance_capable=True,voice_donor=voice,sha256=fingerprint(value))
-        return result
-    if spec['format'] == 'caf-fighter-5':
+    import copy
+    clean=copy.deepcopy(value);voice=clean.pop('voice_donor',None)
+    require(voice is None or type(voice) is str and voice in catalog.rows
+            and 1<=catalog.rows[voice]['native_binding']['core_id']<=86,'CAF voice donor must be an original retail fighter')
+    # Each optional section wraps the loader below it: moveset -> outfits and faces -> the flat fighter.
+    if 'retail_moveset' in clean:
         from fighter_caf_moveset import load_recipe
-        return load_recipe(root,value,catalog,game)
-    if spec['format'] == 'caf-fighter-4':
+    elif OUTFIT_SECTIONS & set(clean):
         from fighter_caf_face import load_recipe
-        return load_recipe(root,value,catalog,game)
-    if spec['format'] == 'caf-fighter-3':
-        from fighter_caf_outfits import load as load_outfits
-        return load_outfits(root, value, catalog, game)
-    if spec['format'] == 'caf-fighter-2':
-        from fighter_caf_extras import load as load_extras
-        extras = load_extras(root, value, catalog.db)
-        require({'stats','styles','caf_values','caf_colors'} <= set(value), 'CAF v2 requires all fighter fields')
-        base = {k: value[k] for k in ('stats','styles','caf_values','caf_colors')}
     else:
-        extras, base = None, value
+        load_recipe=load_flat
+    result=load_recipe(root,clean,catalog,game)
+    result.update(voice_donor=voice,sha256=fingerprint(value))
+    return result
+
+
+def load_flat(root, value, catalog, game):
+    """One implicit outfit: the four base fields plus optional finishers and atlases."""
+    from fighter_caf_extras import load as load_extras
+    require({'stats','styles','caf_values','caf_colors'} <= set(value), 'CAF requires all fighter fields')
+    extras = load_extras(root, value, catalog.db)
+    base = {k: value[k] for k in ('stats','styles','caf_values','caf_colors')}
     core=recipe(base,catalog.db)
     validate_assets(base,game)
-    return {'recipe':base,'core':core,'sha256':fingerprint(value),'extras':extras}
+    return {'recipe':base,'core':core,'extras':extras}
 
 
-def encode(entries,report):
+def encode_rows(entries,report):
+    """Recipe rows for the container: one per fighter outfit, in selection order. Returns (count, bytes)."""
     from fighter_caf_outfits import variants
-    retail = any(item.get('retail_moveset') for item in entries.values())
-    extended = retail or any(item.get('outfits') for item in entries.values())
+    from fighter_caf_layout import RECIPE as R, RECIPE_STRIDE, VALUES, COLORS, TRAINING, STYLES
     rows=[]
     for key,item in sorted(entries.items()):
         binding=report['bindings'][key]
+        aliases=item.get('outfit_aliases',[binding['selection_key']])
         for index, outfit in enumerate(variants(item)):
-            r=outfit['recipe'];s=r['stats']
-            payload=struct.pack('<8I38I38B',binding['selection_key'],item['core'],*(s[k] for k in ('upper','lower','speed','toughness','health')),len(r['styles']),*r['caf_values'],*r['caf_colors'])
-            payload+=bytes(r['styles']+[255]*(3-len(r['styles'])))
-            payload=bytearray(payload.ljust(228,b'\0'))
-            payload[225]=int(bool(item.get('retail_moveset')))
-            payload=bytes(payload)+struct.pack('<I',item['audio_core'])
-            if extended:
-                payload+=struct.pack('<II',index,item.get('outfit_aliases',[binding['selection_key']])[index])
-            rows.append(payload)
-    return struct.pack('<4sIII',b'FCA3' if retail else b'FCA2' if extended else b'FCA1',3 if retail else 2 if extended else 1,len(rows),240 if extended else ROW_BYTES)+b''.join(rows)
+            r=outfit['recipe'];s=r['stats'];row=bytearray(RECIPE_STRIDE)
+            struct.pack_into('<I',row,R['selection'],binding['selection_key'])
+            struct.pack_into('<I',row,R['core'],item['core'])
+            struct.pack_into('<%dI'%TRAINING,row,R['training'],*(s[k] for k in ('upper','lower','speed','toughness','health')))
+            struct.pack_into('<I',row,R['style_count'],len(r['styles']))
+            struct.pack_into('<%dI'%VALUES,row,R['values'],*r['caf_values'])
+            row[R['colors']:R['colors']+COLORS]=bytes(r['caf_colors'])
+            row[R['styles']:R['styles']+STYLES]=bytes(r['styles']+[255]*(STYLES-len(r['styles'])))
+            row[R['retail']]=int(bool(item.get('retail_moveset')))
+            struct.pack_into('<I',row,R['voice'],item['audio_core'])
+            struct.pack_into('<II',row,R['outfit'],index,aliases[index])
+            rows.append(bytes(row))
+    return len(rows),b''.join(rows)
+
+
+def encode(entries,report):
+    """The whole fighter-caf.bin container: header, recipes, then the optional extras and face sculpts."""
+    import fighter_caf_layout as layout
+    from fighter_caf_extras import encode_section as encode_extras
+    from fighter_caf_hd import encode_section as encode_hd
+    from fighter_caf_face import encode_rows as encode_faces
+    recipe_count,recipes=encode_rows(entries,report)
+    extras_count,extras=encode_extras(entries,report)
+    hd_count,hd=encode_hd(entries,report)
+    faces_count,faces=encode_faces(entries,report)
+    raw=layout.pack_header(recipe_count,extras_count,len(extras),hd_count,len(hd),faces_count)+recipes+extras+hd+faces
+    require(len(raw)<=layout.MAX_FILE,'Compiled CAF fighters exceed the container budget')
+    return raw
 
 
 def menu_record(recipe, selection):

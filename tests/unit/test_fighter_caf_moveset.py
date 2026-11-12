@@ -5,7 +5,8 @@ import sys
 from pathlib import Path
 import pytest
 sys.path.insert(0,str(Path(__file__).resolve().parents[2]/'setup'))
-from fighter_caf import encode
+from fighter_caf import encode_rows
+from fighter_caf_layout import RECIPE as R, RECIPE_STRIDE
 from fighter_caf_moveset import load_recipe
 from test_fighter_caf_outfits import fixture
 
@@ -15,7 +16,7 @@ def test_retail_moveset_resolves_verified_core_and_preserves_recipe_data(monkeyp
     catalog=SimpleNamespace(rows={'retail/blaze':dict(native_binding=dict(core_id=5),fields={'FightingStyle':dict(word=8)},record_offset=0)},db=SimpleNamespace(word=lambda _:8))
     original={'core':109,'recipe':{'styles':[2]},'outfits':[{'recipe':{'styles':[2]}}]}
     import fighter_caf_face
-    monkeypatch.setattr(fighter_caf_face,'load_recipe',lambda *args:copy.deepcopy(original))
+    monkeypatch.setattr(fighter_caf_face,'load_recipe',lambda *args,**kwargs:copy.deepcopy(original))
     result=load_recipe(None,value,catalog,None)
     assert result['core']==5 and result['retail_styles']==[3] and result['recipe']==original['recipe']
     assert value['retail_moveset']=='retail/blaze'
@@ -25,9 +26,9 @@ def test_retail_moveset_resolves_verified_core_and_preserves_recipe_data(monkeyp
     with pytest.raises(ValueError):load_recipe(None,value,catalog,None)
 
 
-def test_fca3_explicitly_marks_retail_core_and_keeps_old_rows_compatible():
+def test_recipe_rows_explicitly_mark_a_retail_core():
     item,report=fixture();item.update(core=51,retail_moveset='retail/d-mob')
-    data=encode({'example/fighter':item},report)
-    assert struct.unpack_from('<4sIII',data)==(b'FCA3',3,3,240)
-    assert struct.unpack_from('<I',data,20)==(51,)
-    assert all(data[16+i*240+225]==1 for i in range(3))
+    count,data=encode_rows({'example/fighter':item},report)
+    assert count==3
+    assert struct.unpack_from('<I',data,R['core'])==(51,)
+    assert all(data[i*RECIPE_STRIDE+R['retail']]==1 for i in range(3))

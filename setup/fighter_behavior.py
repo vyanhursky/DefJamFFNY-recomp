@@ -191,7 +191,6 @@ class BehaviorPlan:
             if fighter in caf:
                 if not any(components.get(group) in typed for group in ('voice','ai','intro','victory')):
                     continue
-                require(caf[fighter].get('performance_capable'),'CAF behavior requires recipe version6')
                 voice=components['voice']
                 if voice in typed:
                     if 'retail_donor' in typed[voice]:

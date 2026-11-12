@@ -1,5 +1,6 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include "fighter_runtime.h"
+#include "fighter_fatal.h"
 #include "fighter_caf.h"
 #include "fighter_motion.h"
 #include "fighter_voice.h"
@@ -94,11 +95,9 @@ static FILE *open_utf8(const char *path) {
 }
 
 static void fighter_stop(const char *message) {
-    fprintf(stderr, "[FIGHTERS] stopped: %s\n", message);
-    fflush(stderr);
-    /* A disposable harness run has no interactive approval/error dialog. */
-    if (!s_research_sod[0]) host_fatal(message);
-    exit(1);
+    /* A disposable harness run has no interactive approval/error dialog; the research
+     * entry point turns the dialog off in defjam_fighter_runtime_start. */
+    defjam_fighter_fatal(NULL, message);
 }
 
 static int file_name(const char *name, const char *expected) {
@@ -275,6 +274,7 @@ static int research_start(void) {
         }
     }
     strcpy(s_research_sod, sod);
+    defjam_fighter_fatal_dialog(0);
     if (!defjam_fighter_motion_start() || !defjam_fighter_voice_start() || !defjam_fighter_animation_start() || !defjam_fighter_ai_start()
         || !defjam_fighter_cinematic_start() || !defjam_fighter_events_start() || !defjam_fighter_film_start() || !defjam_fighter_finishers_start()) {
         fprintf(stderr, "[FIGHTERS] invalid motion research receipt; launch refused\n");
@@ -934,6 +934,9 @@ uint32_t defjam_fighter_controller_submission(uint32_t arguments) {
     }
 }
 
+/* The prefix length is the literal's own, so it can never drift from its text. */
+#define STARTS_WITH(text, literal) (!strncmp((text), (literal), sizeof(literal) - 1))
+
 int defjam_fighter_ui_command(uint32_t command) {
     static const char prefix[] = "Fighters.";
     char text[64]; uint32_t i;
@@ -944,8 +947,14 @@ int defjam_fighter_ui_command(uint32_t command) {
         text[i] = (char)MEM8(command + i);
         if (!text[i]) break;
     }
-    if (i == sizeof text) fighter_stop("Native fighter UI command exceeds its budget.");
-    if (!strncmp(text,"Fighters.Outfit",14)) {
+    /* Unknown commands in this namespace keep passing through to the game, however long they are.
+     * Only the two commands owned here may exceed the budget fatally. */
+    if (i == sizeof text) {
+        if (STARTS_WITH(text, "Fighters.Outfit") || STARTS_WITH(text, "Fighters.KeepReady"))
+            fighter_stop("Native fighter UI command exceeds its budget.");
+        return 0;
+    }
+    if (STARTS_WITH(text, "Fighters.Outfit")) {
         unsigned participant,selection,outfit;int end=0;char canonical[64];FighterWindowRow row;
         if(sscanf(text,"Fighters.Outfit(%u,%u,%u)%n",&participant,&selection,&outfit,&end)!=3 || !end || text[end]
             || participant>=4 || selection<100 || selection>0x7FFFFFFEu || outfit>2 || s_window.frozen)
@@ -959,7 +968,7 @@ int defjam_fighter_ui_command(uint32_t command) {
         if(!defjam_fighter_caf_outfit(participant,selection,outfit)) fighter_stop("Undeclared CAF outfit confirmation.");
         return 1;
     }
-    if (strncmp(text,"Fighters.KeepReady",17)) return 0;
+    if (!STARTS_WITH(text, "Fighters.KeepReady")) return 0;
     if (fighter_window_command(&s_window, text) != 1)
         fighter_stop("Native ready ownership differs from the participant bindings, or the match is still active.");
     for(i=0;i<4;++i) if(!s_window.selected[i]) defjam_fighter_caf_menu_clear(i);

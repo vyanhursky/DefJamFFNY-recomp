@@ -909,12 +909,12 @@ static void mod_catalogue(int category)
     if (ImGui::Button("Refresh catalogue")) pcui::mod_start("refresh");
     ui_target("mods.catalogue-refresh");
     ImGui::EndDisabled();
-    if (pcui::mod_busy()) {
+    if (pcui::mod_busy() && category != 2) {   // the Fighters page has its own progress bar and Cancel
         ImGui::SameLine();
         if (ImGui::Button("Cancel")) pcui::mod_cancel();
         ui_target("mods.cancel");
     }
-    if (!pcui::mod_status().empty()) ImGui::TextWrapped("%s",pcui::mod_status().c_str());
+    if (category != 2 && !pcui::mod_status().empty()) ImGui::TextWrapped("%s", pcui::mod_status().c_str());   // the Fighters page shows its own, by the Install button
     if (!pcui::mod_view().catalogue.empty()) ImGui::TextWrapped("%s",pcui::mod_view().catalogue.c_str());
     bool category_available = false;
     for (const auto &mod : pcui::mod_view().catalogue_mods) {
@@ -1153,17 +1153,79 @@ static void page_fighters()
     ImGui::SeparatorText("Fighter Mod Support");
     ImGui::TextWrapped("Enable one or more fighter packs. Every fighter in a pack is enabled together. Changes apply on Play; disabling a pack keeps its saved progress.");
     if (!launcher) ImGui::TextWrapped("Return to the launcher to change fighter packs. The current roster stays fixed while playing.");
-    ImGui::BeginDisabled(!launcher || pcui::mod_busy());
     static char archive[2048] = "";
-    ImGui::InputText("Fighter ZIP file", archive, sizeof archive);
-    ui_target("mods.fighters.archive");
+    static bool was_busy = false;
+    {   // A file dropped on the window, or chosen with Browse, only fills in the ZIP line; Install starts it.
+        std::string arrived;
+        if (pcui::archive_take(arrived) && arrived.size() < sizeof archive) memcpy(archive, arrived.c_str(), arrived.size() + 1);
+    }
+    const bool busy = pcui::mod_busy();
+    ImGui::BeginDisabled(!launcher || busy);
+    {
+        const float height = ImGui::GetFontSize() * 4.0f;
+        const ImVec2 corner = ImGui::GetCursorScreenPos();
+        const ImVec2 size(std::max(ImGui::GetContentRegionAvail().x, 50.0f), height);
+        const bool clicked = ImGui::InvisibleButton("fighter zip zone", size);
+        const bool hot = ImGui::IsItemHovered() && !busy;
+        ImDrawList *draw = ImGui::GetWindowDrawList();
+        const ImVec2 far_corner(corner.x + size.x, corner.y + size.y);
+        draw->AddRectFilled(corner, far_corner, hot ? IM_COL32(70, 62, 45, 255) : IM_COL32(40, 36, 30, 255), 6.0f);
+        draw->AddRect(corner, far_corner, hot ? IM_COL32(235, 190, 90, 255) : IM_COL32(150, 130, 90, 255), 6.0f, 0, 2.0f);
+        std::string name = archive;
+        const size_t slash = name.find_last_of("/\\");
+        if (slash != std::string::npos) name = name.substr(slash + 1);
+        const char *top = archive[0] ? name.c_str() : "Drop a Fighter ZIP here";
+        const char *bottom = archive[0] ? "Ready. Press Install or update from ZIP, or click here to pick another file."
+                                         : "or click here to browse for it";
+        const ImVec2 a = ImGui::CalcTextSize(top), b = ImGui::CalcTextSize(bottom);
+        const ImU32 text = ImGui::GetColorU32(ImGuiCol_Text);
+        draw->AddText(ImVec2(corner.x + (size.x - a.x) * .5f, corner.y + height * .5f - a.y - 2), text, top);
+        draw->AddText(ImVec2(corner.x + (size.x - b.x) * .5f, corner.y + height * .5f + 4), ImGui::GetColorU32(ImGuiCol_TextDisabled), bottom);
+        ui_target("mods.fighters.zone");
+        if (clicked) pcui::archive_choose();
+    }
+    if (ImGui::Button("Browse for ZIP...")) pcui::archive_choose();
+    ui_target("mods.fighters.browse");
+    ImGui::SameLine();
     ImGui::BeginDisabled(!archive[0]);
     if (ImGui::Button("Install or update from ZIP")) pcui::mod_start("install-local", archive);
     ui_target("mods.fighters.import");
     ImGui::EndDisabled();
+    ImGui::SameLine();
     if (ImGui::Button("Refresh Fighter packs")) pcui::mod_start("status");
     ui_target("mods.fighters.refresh");
     ImGui::EndDisabled();
+    if (busy) {
+        ImGui::SameLine();
+        if (ImGui::Button("Cancel")) pcui::mod_cancel();
+        ui_target("mods.cancel");
+    }
+    // What the helper is doing, right under the buttons that started it.
+    if (busy) {
+        const float fraction = pcui::mod_fraction();
+        const int seconds = pcui::mod_elapsed();
+        char overlay[48];
+        if (fraction >= 0) snprintf(overlay, sizeof overlay, "%d%%   %d:%02d", (int)(fraction * 100.0f), seconds / 60, seconds % 60);
+        else snprintf(overlay, sizeof overlay, "%d:%02d", seconds / 60, seconds % 60);
+        ImGui::ProgressBar(fraction >= 0 ? fraction : -1.0f * (float)ImGui::GetTime(), ImVec2(-1, ImGui::GetFontSize() * 1.6f), overlay);
+        ui_target("mods.fighters.progress");
+        ImGui::TextWrapped("%s", pcui::mod_status().c_str());
+        if (fraction < 0 && pcui::mod_command() == "install-local")
+            ImGui::TextDisabled("A large pack can take a few minutes to prepare. The bar keeps moving while it works; Cancel keeps what was installed before.");
+    } else if (!pcui::mod_status().empty()) {
+        const bool failed = pcui::mod_failed();
+        ImGui::PushStyleColor(ImGuiCol_Text, failed ? ImVec4(1.0f, 0.5f, 0.45f, 1.0f) : ImVec4(0.55f, 0.88f, 0.55f, 1.0f));
+        ImGui::TextWrapped("%s", pcui::mod_status().c_str());
+        ImGui::PopStyleColor();
+    }
+    if (was_busy && !busy && !pcui::mod_failed() && pcui::mod_command() == "install-local") archive[0] = 0;
+    was_busy = busy;
+    if (launcher && ImGui::CollapsingHeader("Type or paste a file path instead")) {
+        ImGui::BeginDisabled(busy);
+        ImGui::InputText("Fighter ZIP file", archive, sizeof archive);
+        ui_target("mods.fighters.archive");
+        ImGui::EndDisabled();
+    }
     bool any = false;
     for (const auto &entry : pcui::mod_view().installed) {
         const auto &pack = entry.second;

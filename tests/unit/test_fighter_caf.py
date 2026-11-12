@@ -5,7 +5,8 @@ import sys
 from pathlib import Path
 import pytest
 sys.path.insert(0,str(Path(__file__).resolve().parents[2]/'setup'))
-from fighter_caf import source,combination,encode,ROW_BYTES
+from fighter_caf import source,combination,encode_rows
+from fighter_caf_layout import RECIPE as R,RECIPE_STRIDE
 from fighter_registry import validate_pack
 
 
@@ -36,13 +37,14 @@ def test_all_55_retail_style_combinations_and_duplicate_refusal():
 def test_compiled_caf_row_has_only_selection_training_appearance_and_style():
     recipe={'stats':dict(zip(('upper','lower','speed','toughness','health'),range(5))),
             'styles':[1,4],'caf_values':[0]*38,'caf_colors':[0]*38}
-    raw=encode({'example/fighter':{'core':101,'audio_core':5,'recipe':recipe}},{'bindings':{'example/fighter':{'selection_key':100}}})
-    assert struct.unpack_from('<4sIII',raw)==(b'FCA1',1,1,ROW_BYTES)
-    assert len(raw)==16+ROW_BYTES
-    assert struct.unpack_from('<8I',raw,16)==(100,101,0,1,2,3,4,2)
-    assert raw[16+222:16+225]==bytes([1,4,255])
-    assert raw[16+225:16+228]==bytes(3)
-    assert struct.unpack_from('<I',raw,16+228)==(5,)
+    count,raw=encode_rows({'example/fighter':{'core':101,'audio_core':5,'recipe':recipe}},{'bindings':{'example/fighter':{'selection_key':100}}})
+    assert count==1 and len(raw)==RECIPE_STRIDE
+    assert struct.unpack_from('<2I5II',raw,R['selection'])==(100,101,0,1,2,3,4,2)
+    assert raw[R['styles']:R['styles']+3]==bytes([1,4,255])
+    assert raw[R['retail']:R['retail']+3]==bytes(3)
+    assert struct.unpack_from('<I',raw,R['voice'])==(5,)
+    # A fighter with no outfit collection still gets its one default outfit, shown under its own selection.
+    assert struct.unpack_from('<II',raw,R['outfit'])==(0,100)
 
 
 def test_caf_menu_uses_original_training_conversion_and_style_numbering():

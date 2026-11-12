@@ -6,6 +6,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 #include "fighter_motion.h"
+#include "fighter_fatal.h"
 #include "fighter_runtime.h"
 #include "hooks/guest_call.h"
 #include "hooks/mod_sha256.h"
@@ -28,10 +29,7 @@ extern void sub_000444E0(void);
 extern void sub_00011520(void);
 extern void sub_0003E170_gen(void);
 
-static void motion_stop(const char *message) {
-    fprintf(stderr, "[FIGHTERS] motion stopped: %s\n", message);
-    fflush(stderr); exit(1);
-}
+static void motion_stop(const char *message) { defjam_fighter_fatal("motion", message); }
 static uint32_t word(const uint8_t *p) {
     return (uint32_t)p[0] | (uint32_t)p[1]<<8 | (uint32_t)p[2]<<16 | (uint32_t)p[3]<<24;
 }
