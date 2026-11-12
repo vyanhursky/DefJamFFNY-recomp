@@ -4,7 +4,6 @@
 #include "fighter_caf_layout.h"
 #include "fighter_fatal.h"
 #include "hooks/guest_call.h"
-#include "hooks/mod_sha256.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
