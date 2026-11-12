@@ -33,6 +33,7 @@
         <a href="#screens">Screens</a>
         <a href="#install">Install</a>
         <a href="#mods">Mods</a>
+        <a href="#songs">Music</a>
         <a href="#news">News</a>
         <a href="#docs">Docs</a>
         <a href="#faq">FAQ</a>
@@ -126,29 +127,35 @@
         <li class="card">
           <span class="card__num">05</span>
           <h3>Mod support</h3>
-          <p>Texture and language mods have a curated catalogue in the app. Your own music plays
-             in the Beatbox, menus and fights, with the cut song "Holler If Ya Hear Me" restored too.</p>
+          <p>Texture and language mods have a curated catalogue in the app, with your own
+             packs supported too.</p>
         </li>
         <li class="card">
           <span class="card__num">06</span>
+          <h3>Custom songs</h3>
+          <p>Your own MP3, FLAC, Ogg and WAV files play in the Beatbox, menus and fights, just
+             like the game's soundtrack.</p>
+        </li>
+        <li class="card">
+          <span class="card__num">07</span>
           <h3>Controllers &amp; keyboard</h3>
           <p>Xbox, DualSense, Switch Pro and more, with remapping, hot-plug and rumble.
              Keyboard and mouse can carry gameplay bindings too.</p>
         </li>
         <li class="card">
-          <span class="card__num">07</span>
+          <span class="card__num">08</span>
           <h3>One app for everything</h3>
           <p>Def Jam Recompiled sets up the game, then handles Play, settings, controls, mods,
              updates, repair and uninstall. There's nothing else to keep track of.</p>
         </li>
         <li class="card">
-          <span class="card__num">08</span>
+          <span class="card__num">09</span>
           <h3>Cheat menu</h3>
           <p>Infinite health, max Blazin', giant and tiny fighters, fighter swaps, Story cash
              and development points.</p>
         </li>
         <li class="card">
-          <span class="card__num">09</span>
+          <span class="card__num">10</span>
           <h3>Add to Steam</h3>
           <p>On Windows, Linux and Steam Deck, one button beside Play puts the game in your
              Steam library, artwork included.</p>
@@ -303,22 +310,54 @@
             <li><b>HD Widescreen Menus</b>: every menu and background, redrawn for widescreen.</li>
             <li><b><a href="hd-fighters/">HD Fighters</a></b>: higher-resolution fighter textures. <a href="hd-fighters/#comparisons">Compare before and after ↗</a></li>
             <li><b>ZARF's Spanish Translation</b>: text, subtitles, fonts and recreated HD images.</li>
-            <li><b>Your own music</b>: MP3, FLAC, Ogg or WAV files, managed on the Songs page.</li>
             <li><b>Your own packs</b>: the getting-started guide takes you through your first one.</li>
           </ul>
           <p class="fine">
-            Mods today change textures and language; your own songs play through the Songs page. Custom fighters, stages and game modes
+            Mods today change textures and language. Custom fighters, stages and game modes
             are coming up on the roadmap.
           </p>
           <p class="links">
             <a href="https://github.com/vyanhursky/DefJamFFNY-recomp/blob/main/docs/texture-modding-getting-started.md">Make a texture pack</a>
             <a href="https://github.com/vyanhursky/DefJamFFNY-recomp/blob/main/docs/language-packs.md">Language packs</a>
-            <a href="https://github.com/vyanhursky/DefJamFFNY-recomp/blob/main/docs/custom-songs.md">Custom songs</a>
             <a href="https://github.com/vyanhursky/DefJamFFNY-recomp/blob/main/docs/mod-manager.md">Mod manager</a>
           </p>
         </div>
         <figure class="split__media">
           <img src="media/app-mods-browse.png" alt="The Mods page, Browse tab, listing the catalogue" width="2200" height="1800" loading="lazy">
+        </figure>
+      </div>
+    </section>
+
+    <section class="section" id="songs" aria-labelledby="songs-title">
+      <div class="split split--flip">
+        <div>
+          <p class="kicker">New in v1.1.0</p>
+          <h2 id="songs-title">In-engine custom songs.</h2>
+          <p>
+            Drop in your own MP3, FLAC, Ogg or WAV files and they play <em>inside</em> the game, as if
+            they shipped on the disc: in the Beatbox, behind the menus with the song banner, and through
+            every fight, start to end. When the game jumps around its music (the opening bell, Blazin',
+            knock-downs), your song carries on where it was.
+          </p>
+          <ul class="ticks">
+            <li><b>Up to 27 of your songs</b> next to the game's own, with 35 on in the Beatbox at once.</li>
+            <li><b>Straight or Interactive</b>: play a song as it is, or (experimental) let the game switch it between muffled, bass-heavy and bright versions as the fight goes.</li>
+            <li><b>Songs page in the app</b>: add folders, choose what is in the game and how each song plays, and order each profile's Beatbox.</li>
+            <li><b>Next song, or restart it</b>: R3 + D-pad right or left, or F8 and F7, in menus and fights.</li>
+            <li><b>"Holler If Ya Hear Me" is back</b>: 2Pac's song, cut from the original release, is restored from the disc.</li>
+          </ul>
+          <p class="fine">
+            The port ships no music. Songs are converted once on your computer, and the files never leave it.
+            Titles and artists come from each file's tags.
+          </p>
+          <p class="links">
+            <a href="https://github.com/vyanhursky/DefJamFFNY-recomp/blob/main/docs/custom-songs.md">Custom songs guide</a>
+            <a href="https://github.com/vyanhursky/DefJamFFNY-recomp/releases/tag/v1.1.0">v1.1.0 release notes</a>
+          </p>
+        </div>
+        <figure class="split__media">
+          <img src="media/custom-songs-banner.jpg" alt="The main menu with the song banner in the corner showing a custom song: Where the Hood At by DMX" width="1660" height="932" loading="lazy">
+          <figcaption class="fine">The song banner shows each song's title and artist, including your own.</figcaption>
         </figure>
       </div>
     </section>
@@ -414,6 +453,13 @@
           <p>The app isn't code-signed yet, so Windows SmartScreen or macOS Gatekeeper may ask you to
              confirm. Each release publishes a SHA-256 checksum and provenance file so you can check
              the download.</p>
+        </details>
+        <details>
+          <summary>Can I play my own music in the game?</summary>
+          <p>Yes, from v1.1.0. Put MP3, FLAC, Ogg or WAV files in the <code>songs</code> folder of your
+             data folder, or add folders on the app's <strong>Songs</strong> page. They are converted once,
+             then play in the Beatbox, the menus and fights, up to 27 songs beside the game's own.
+             See the <a href="https://github.com/vyanhursky/DefJamFFNY-recomp/blob/main/docs/custom-songs.md">custom songs guide</a>.</p>
         </details>
         <details>
           <summary>Can I play online?</summary>
