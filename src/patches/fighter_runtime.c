@@ -75,6 +75,7 @@ static int s_projecting_settings;
 static uint32_t s_custom_count;
 static int s_custom_dirty;
 static int s_test_save_stop;
+static unsigned s_test_save_stop_at = 1, s_test_save_count; /* stop at the Nth Options save */
 static uint8_t *s_identity_bytes;
 static uint32_t s_identity_count;
 static uint32_t s_identity_handles[FIGHTER_BINDINGS_MAX_COUNT];
@@ -415,7 +416,7 @@ static int write_sidecar(void) {
 }
 
 static void test_save_stop(int point) {
-    if (s_test_save_stop != point) return;
+    if (s_test_save_stop != point || ++s_test_save_count < s_test_save_stop_at) return;
     fprintf(stderr, "[FIGHTERS-TEST] interrupted native save: point=%s exit=86\n", point == 1 ? "sidecar" : "options");
     fflush(stderr);
     _Exit(86); /* Test control only (RECOMP_TEST_FIGHTER_SAVE_STOP): bypass all cleanup, like a crash. */
@@ -519,9 +520,13 @@ static int research_start(void) {
             strcpy(s_state_dir, path);
             path = getenv("RECOMP_TEST_FIGHTER_SAVE_STOP"); /* a test control, like every RECOMP_TEST_*; never in a manifest */
             if (path && *path) {
-                if (!strcmp(path, "sidecar")) s_test_save_stop = 1;
-                else if (!strcmp(path, "options")) s_test_save_stop = 2;
+                /* "sidecar" or "options", optionally ":N" for the Nth Options save (default the first). */
+                const char *colon = strchr(path, ':');
+                size_t length = colon ? (size_t)(colon - path) : strlen(path);
+                if (length == 7 && !strncmp(path, "sidecar", 7)) s_test_save_stop = 1;
+                else if (length == 7 && !strncmp(path, "options", 7)) s_test_save_stop = 2;
                 else return 0;
+                if (colon && (s_test_save_stop_at = (unsigned)strtoul(colon + 1, NULL, 10)) == 0) return 0;
             }
             if (!load_identities(defjam_fighter_env("RECOMP_FIGHTER_IDENTITIES")) || !load_sidecar()) return 0;
         }
