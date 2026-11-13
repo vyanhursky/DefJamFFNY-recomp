@@ -15,7 +15,6 @@
 #else
 #include <sched.h>
 #include <time.h>
-#include <unistd.h>
 #endif
 
 #define SAVE_ACTIVITY_MAX 32
@@ -94,7 +93,10 @@ int save_activity_wait_idle(unsigned timeout_ms) {
 #if defined(_WIN32)
         Sleep(10);
 #else
-        usleep(10000);
+        {
+            struct timespec pause = {0, 10000000L};
+            nanosleep(&pause, NULL);
+        }
 #endif
     }
     if (waited) fprintf(stderr, "[SAVES] waited %llu ms for a save to finish before exiting\n", now_ms() - start);

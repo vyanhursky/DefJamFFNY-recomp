@@ -17,8 +17,11 @@ DRIVER = r'''
 static DWORD WINAPI closer(LPVOID unused) { (void)unused; Sleep(150); save_activity_close(7); return 0; }
 #else
 #include <pthread.h>
-#include <unistd.h>
-static void *closer(void *unused) { (void)unused; usleep(150000); save_activity_close(7); return NULL; }
+#include <time.h>
+static void *closer(void *unused) {
+    struct timespec pause = {0, 150000000L};
+    (void)unused; nanosleep(&pause, NULL); save_activity_close(7); return NULL;
+}
 #endif
 void host_request_close(void) {}
 int main(int argc, char **argv) {
