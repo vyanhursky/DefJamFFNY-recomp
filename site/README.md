@@ -107,7 +107,7 @@ Approved hosted image fingerprints (SHA-256):
 
 `hd-menus-ui/` publishes through the same build and Pages workflow. The home Mods section links to it. Copy is a deliberate snapshot of the owner-published Thunderstore README on November 13, 2026, with the measured 1.7.2 wrapper download size added. The signed catalogue compatibility hold remains explicit; this page does not publish catalogue changes.
 
-Nine owner-approved before/after boards are hosted externally under `https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/menu-ui-hd-wide/screenshots/1.7.2/`. Both SVG viewports are 850×680: original `69 255 850 680`, HD `1001 255 850 680`, within each 1920×1080 JPEG. These rectangles are the evidence panels; no art is regenerated or stretched while moving the clip. The separate supplied PNG collage retains its native aspect and is never treated as an aligned before/after pair. No new image bytes enter Git or the Pages artifact.
+Nine owner-approved before/after boards are hosted externally under `https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/menu-ui-hd-wide/screenshots/1.7.2/`. Each SVG pair has matching dimensions derived from the selected source crop and its display scale inside the 850×680 evidence panel. Redundant preview margins are removed symmetrically; portrait tiles retain horizontal context. The exact viewports within each 1920×1080 JPEG are listed below. These rectangles stay inside the evidence panels; no art is regenerated or stretched while moving the clip. The separate supplied PNG collage retains its native aspect and is never treated as an aligned before/after pair. No new image bytes enter Git or the Pages artifact.
 
 Original, 50/50 and HD presets, pointer dragging and native range keyboard controls mirror the HD Fighters page. Hosted fingerprints:
 
@@ -124,3 +124,17 @@ Original, 50/50 and HD presets, pointer dragging and native range keyboard contr
 | `09-d-mob-loading.jpg` | `349857f0ff267643ca1ff7094fbb146f17241637716bbe32de76b41b0f5cb0bf` |
 | `10-busta-rhymes-as-magic-loading.jpg` | `d820a2ef160e7d54a7f1cf72d19dae78fbdfd194e5ba86fbc6d7d74143840b36` |
 | `nine-comparisons.jpg` | `4b78645564dd0c2a263fb5fa60121c3f1005919f2443f7f2290f3eb9bf36079c` |
+
+Comparison viewports (`x y width height`):
+
+| Image | Original | HD |
+|---|---|---|
+| `02-fighter-select-brick-wall.jpg` | `154 255 680 680` | `1086 255 680 680` |
+| `03-main-menu-poster-wall.jpg` | `69 255 850 680` | `1001 255 850 680` |
+| `04-wrestling.jpg` | `69 445 850 300` | `1001 445 850 300` |
+| `05-winner.jpg` | `69 345 850 500` | `1001 345 850 500` |
+| `06-venue-label-club-dtp.jpg` | `69 445 850 300` | `1001 445 850 300` |
+| `07-venue-emblem-70.jpg` | `69 255 850 680` | `1001 255 850 680` |
+| `08-method-man-as-blaze-loading.jpg` | `69 382 850 425` | `1001 382 850 425` |
+| `09-d-mob-loading.jpg` | `69 437 850 315` | `1001 437 850 315` |
+| `10-busta-rhymes-as-magic-loading.jpg` | `69 394 850 402` | `1001 394 850 402` |

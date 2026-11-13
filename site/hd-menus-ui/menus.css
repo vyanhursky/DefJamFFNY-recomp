@@ -93,3 +93,8 @@
 .wide-showcase img { display: block; width: 100%; max-width: 1049px; height: auto; margin: 25px auto; }
 .wide-showcase figcaption { color: var(--muted); font-size: 14px; }
 .mod-size { color: var(--sodium); font: 600 18px var(--label); }
+
+@media (max-width: 570px) {
+  .comparison__tag { font-size: 12px; padding: 4px 6px; }
+  .comparison__tag small { display: none; }
+}
