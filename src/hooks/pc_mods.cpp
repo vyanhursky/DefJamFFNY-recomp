@@ -21,7 +21,18 @@
 #include <iterator>
 #if defined(_WIN32)
 #include <windows.h>
+#include <io.h>
+#if defined(_MSC_VER)
+#pragma comment(lib, "user32") /* MessageBoxW (pc_fighters_notice) */
+#endif
 #else
+#if __has_include(<SDL3/SDL_messagebox.h>)
+#include <SDL3/SDL_messagebox.h> /* the game and the app; the unit-test driver has no SDL */
+#define DEFJAM_MODS_HAVE_SDL 1
+#endif
+#if defined(__APPLE__)
+#include <mach-o/dyld.h>
+#endif
 #include <spawn.h>
 #include <sys/wait.h>
 #include <sys/file.h>
@@ -446,6 +457,11 @@ extern "C" int pc_fighters_prepare(const char *language) {
         unsetenv(key.c_str());
 #endif
     }
+    // A start that failed once runs again without fighter packs (pc_fighters_restart_without_packs).
+    if (const char *off = getenv("DEFJAM_FIGHTERS_OFF"); off && *off && strcmp(off, "0")) {
+        fprintf(stderr, "[FIGHTERS] starting without fighter packs: %s\n", off);
+        return 1;
+    }
     std::error_code error;
     auto data = fs::u8path(folder_path(Folder::Data));
     bool move_saves = fs::exists(data / "mod-manager/fighter-profiles/head.json", error)
@@ -478,6 +494,90 @@ extern "C" int pc_fighters_prepare(const char *language) {
     defjam_fighter_config_install(fighter_lookup);
     fprintf(stderr, "[FIGHTERS] fighter manifest loaded: %zu settings, saves stay in save/\n", fighter_config.size());
     return 1;
+}
+
+// A beta.1/beta.2 store still waits to move back into save/: playing now, without packs,
+// would play on the stale save that the move later replaces. Only then does a failed
+// preparation refuse Play.
+extern "C" int pc_fighters_saves_pending(void) {
+    namespace fs = std::filesystem;
+    std::error_code error;
+    auto data = fs::u8path(pcui::folder_path(pcui::Folder::Data));
+    return fs::exists(data / "mod-manager/fighter-profiles/head.json", error)
+        && !fs::exists(data / "fighter-state/migrated.json", error);
+}
+
+// A non-fatal message the player sees (no dialog in harness runs, which set RECOMP_SETTINGS=none).
+extern "C" void pc_fighters_notice(const char *message) {
+    fprintf(stderr, "[FIGHTERS] %s\n", message);
+    fflush(stderr);
+    const char *settings = getenv("RECOMP_SETTINGS"), *headless = getenv("RECOMP_HEADLESS");
+    if ((settings && !strcmp(settings, "none")) || (headless && *headless && strcmp(headless, "0"))) return;
+#if defined(_WIN32)
+    MessageBoxW(nullptr, pcui::wide(message).c_str(), L"Def Jam: Fight for NY", MB_ICONWARNING);
+#elif defined(DEFJAM_MODS_HAVE_SDL)
+    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, "Def Jam: Fight for NY", message, nullptr);
+#endif
+}
+
+// Turn fighter packs off for the rest of this process (nothing was loaded yet).
+extern "C" void pc_fighters_disable(const char *reason) {
+#if defined(_WIN32)
+    _putenv_s("DEFJAM_FIGHTERS_OFF", reason && *reason ? reason : "1");
+#else
+    setenv("DEFJAM_FIGHTERS_OFF", reason && *reason ? reason : "1", 1);
+#endif
+    pcui::fighter_config.clear();
+    defjam_fighter_config_install(nullptr);
+}
+
+// The native fighter modules failed their start-up checks after some of them had
+// loaded state. Rather than run half-started, start this game again with fighter
+// packs off. Returns only if the new process could not be started.
+extern "C" void pc_fighters_restart_without_packs(const char *const *argv) {
+    pc_fighters_disable("the fighter packs failed their start-up checks");
+    fflush(stdout); fflush(stderr);
+#if defined(_WIN32)
+    (void)argv;
+    wchar_t exe[32768];
+    DWORD length = GetModuleFileNameW(nullptr, exe, 32768);
+    if (!length || length >= 32768) return;
+    std::wstring command = GetCommandLineW();
+    STARTUPINFOW startup = {}; startup.cb = sizeof startup;
+    startup.dwFlags = STARTF_USESTDHANDLES;
+    // The CRT's own handles: when this process was started without a console its log was
+    // reopened into logs/run-<time>.log, and the new process must continue that same file
+    // (a fresh "w" open with the same second's name would truncate the lines that say why).
+    auto crt = [](FILE *stream, DWORD fallback) {
+        intptr_t handle = _get_osfhandle(_fileno(stream));
+        return handle == -1 || handle == -2 ? GetStdHandle(fallback) : (HANDLE)handle;
+    };
+    startup.hStdInput = GetStdHandle(STD_INPUT_HANDLE);
+    startup.hStdOutput = crt(stdout, STD_OUTPUT_HANDLE);
+    startup.hStdError = crt(stderr, STD_ERROR_HANDLE);
+    for (HANDLE handle : {startup.hStdOutput, startup.hStdError})
+        if (handle && handle != INVALID_HANDLE_VALUE) SetHandleInformation(handle, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT);
+    PROCESS_INFORMATION child = {};
+    if (!CreateProcessW(exe, command.data(), nullptr, nullptr, TRUE, 0, nullptr, nullptr, &startup, &child)) return;
+    CloseHandle(child.hThread);
+    // This process keeps no window and no game; it only waits so a launcher or
+    // Steam still sees the game running, then passes on its exit code.
+    WaitForSingleObject(child.hProcess, INFINITE);
+    DWORD code = 1;
+    GetExitCodeProcess(child.hProcess, &code);
+    ExitProcess(code);
+#else
+    char exe[4096];
+#if defined(__APPLE__)
+    uint32_t size = sizeof exe;
+    if (_NSGetExecutablePath(exe, &size)) return;
+#else
+    ssize_t length = readlink("/proc/self/exe", exe, sizeof exe - 1);
+    if (length <= 0) return;
+    exe[length] = 0;
+#endif
+    if (argv) execv(exe, (char *const *)argv);
+#endif
 }
 
 extern "C" int pc_mods_needs_recovery(void) { return pcui::mod_recovery_needed() ? 1 : 0; }

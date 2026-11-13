@@ -63,6 +63,8 @@ static int s_probe, s_probed;
 static char s_research_sod[2048];
 static char s_research_screens[2048];
 int defjam_fighter_research_active(void) { return s_probe && s_research_sod[0]; }
+/* Fighter packs (or a research roster) are loaded. With none, every fighter hook is inert. */
+int defjam_fighter_runtime_active(void) { return s_research_sod[0] != 0; }
 static char s_research_assets[3][2048];
 static const char *s_asset_targets[3] = { "assets/v2ip.viv", "assets/entity.xml", "assets/nis.viv" };
 static const char *s_asset_env[3] = { "RECOMP_FIGHTER_RESEARCH_MODELS", "RECOMP_FIGHTER_RESEARCH_ENTITIES", "RECOMP_FIGHTER_RESEARCH_CINEMATICS" };
@@ -761,20 +763,34 @@ void defjam_fighter_settings_bound(uint32_t self) {
     fprintf(stderr, "[FIGHTERS] native Options container bound: capacity=%u\n", FIGHTER_UNLOCK_CAPACITY);
 }
 
+/* The Options unlock set as the game holds it. Returns 0 when it is not in the
+ * shape the projection needs; callers then leave it to the game, never stop. */
+static int unlock_payload_ok(uint32_t self, uint32_t payload, uint32_t *out_count) {
+    if (!s_settings || self != s_settings) {
+        fprintf(stderr, "[FIGHTERS] Options unlock set belongs to an unregistered owner; left to the game\n");
+        return 0;
+    }
+    if (!fighter_unlocks_decode((const uint8_t *)XBOX_PTR(payload), FIGHTER_SETTINGS_SIZE, out_count)) {
+        fprintf(stderr, "[FIGHTERS] Options unlock set is malformed or over its capacity; left to the game\n");
+        return 0;
+    }
+    return 1;
+}
+
 void defjam_fighter_settings_validate(uint32_t self, uint32_t payload) {
     uint32_t count;
     FighterBinding binding;
     const uint8_t *bytes;
     if (!s_bindings.bytes) return;
-    if (!s_settings || self != s_settings) fighter_stop("Unregistered native fighter settings owner.");
+    if (!unlock_payload_ok(self, payload, &count)) return;
     bytes = (const uint8_t *)XBOX_PTR(payload);
-    if (!fighter_unlocks_decode(bytes, FIGHTER_SETTINGS_SIZE, &count))
-        fighter_stop("Native fighter unlock settings are malformed or exceed their fixed capacity.");
     for (uint32_t i = 0; i < count; ++i)
         if (!fighter_bindings_find(&s_bindings, FIGHTER_BINDING_STABLE,
                 fighter_unlocks_at(bytes, i) & ~FIGHTER_UNLOCK_METADATA, &binding)
             && fighter_window_native(&s_window, fighter_unlocks_at(bytes, i) & ~FIGHTER_UNLOCK_METADATA) == UINT32_MAX)
-            fighter_stop("Saved fighter unlock has no historical identity binding.");
+            /* Not fatal: the projection before each save keeps only marks with a retail
+             * binding, so this unknown one simply drops out of the next Options file. */
+            fprintf(stderr, "[FIGHTERS] saved unlock %08X has no fighter binding; it is ignored\n", fighter_unlocks_at(bytes, i));
     fprintf(stderr, "[FIGHTERS] native Options unlock payload verified: %u marks\n", count);
 }
 
@@ -787,7 +803,10 @@ static int remember_custom(uint32_t mark) {
         int changed = s_custom_metadata[i] != metadata;
         s_custom_metadata[i] = metadata; if (changed) s_custom_dirty = 1; return changed;
     }
-    if (s_custom_count >= FIGHTER_BINDINGS_MAX_COUNT) fighter_stop("Historical custom unlock journal is full.");
+    if (s_custom_count >= FIGHTER_BINDINGS_MAX_COUNT) {
+        fprintf(stderr, "[FIGHTERS] custom unlock table is full (%u); unlock %08X not recorded\n", s_custom_count, identity);
+        return 0;
+    }
     s_custom_keys[s_custom_count] = identity; s_custom_metadata[s_custom_count++] = mark & FIGHTER_UNLOCK_METADATA;
     s_custom_dirty = 1;
     return 1;
@@ -805,13 +824,25 @@ static void custom_progress_changed(void) {
 }
 
 void defjam_fighter_settings_saving(void) {
+    uint32_t checked;
     if (!s_bindings.bytes) return;
-    if (!s_settings || MEM32(s_settings + 0x20) != MEM32(s_settings + 0x1264))
-        fighter_stop("Native fighter unlock counts disagree before save staging.");
+    /* The player has just finished a match: no check here may end the process.
+     * If the live unlock set is not in the shape the projection needs, this one
+     * save is written as the game holds it (what it would do without packs),
+     * and the next consistent save projects again. */
+    if (!s_settings || MEM32(s_settings + 0x20) != MEM32(s_settings + 0x1264)
+        || !unlock_payload_ok(s_settings, s_settings + 0x4C, &checked)) {
+        fprintf(stderr, "[FIGHTERS] Options unlock counts are inconsistent; this save is written without the fighter projection\n");
+        return;
+    }
     defjam_fighter_settings_validate(s_settings, s_settings + 0x4C);
     if (s_state_dir[0]) {
         uint32_t count = MEM32(s_settings + 0x20), kept = 0;
-        if (s_projecting_settings) fighter_stop("Reentrant native Options projection.");
+        if (s_projecting_settings) {
+            /* An Options save inside another: the outer one already projected the live set. */
+            fprintf(stderr, "[FIGHTERS] nested Options save; already projected\n");
+            return;
+        }
         memcpy(s_live_settings, (const void *)XBOX_PTR(s_settings + 0x4C), FIGHTER_SETTINGS_SIZE);
         for (uint32_t i = 0; i < count; ++i) {
             uint32_t mark = MEM32(s_settings + 0x12E0 + i * 4);

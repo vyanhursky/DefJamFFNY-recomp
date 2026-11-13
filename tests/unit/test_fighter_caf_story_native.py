@@ -25,7 +25,8 @@ static uint32_t s_service,s_contexts[4];
 static const uint8_t *s_recipes[4];
 static const uint32_t test_service=0x10000,test_manager=0x20000,test_game=0x90000,participants=0xA0000;
 static int profile_index;
-static void stop(const char *why) {fprintf(stderr,"%s\n",why);exit(1);}
+static int runtime_active=1;
+int defjam_fighter_runtime_active(void) {return runtime_active;}
 static int guest_span(uint32_t p,uint32_t n) {return p && p<sizeof memory && n<=sizeof memory-p;}
 void sub_0001E8F0(void) {
  assert(g_ecx==test_service && MEM32(g_esp+4)==0);
@@ -49,9 +50,10 @@ int main(int argc,char **argv) {
  if(!strcmp(mode,"story")){MEM32(test_service+0x344)=0;MEM32(test_game+0x14)=0;MEM8(test_game+0x18)=1;}
  if(!strcmp(mode,"retail")){MEM8(test_service+0x1aaa)=5;expected=0;}
  if(!strcmp(mode,"caf")){MEM32(test_service+0x168)=87;expected=0;}
- if(!strcmp(mode,"guest"))profile_index=-1;
+ if(!strcmp(mode,"guest")){profile_index=-1;expected=0;}
+ if(!strcmp(mode,"inactive")){runtime_active=0;expected=0;}
  int degraded=0;
- if(!strcmp(mode,"career"))MEM8(profile+0x4d93)=5;
+ if(!strcmp(mode,"career")){MEM8(profile+0x4d93)=5;expected=0;}
  if(!strcmp(mode,"mismatch")){MEM8(profile+0x143)=6;degraded=1;}
  if(!strcmp(mode,"styles")){MEM8(profile+0x140)=5;degraded=1;}
  if(!strcmp(mode,"no-styles")){MEM8(profile+0x140)=255;degraded=1;}
@@ -62,6 +64,9 @@ int main(int argc,char **argv) {
  assert(constructed==(uint32_t)expected && !memcmp(before,XBOX_PTR(profile),sizeof before));
  /* The adapter could not take the slot: the participant gets its career core and nothing else changes. */
  if(degraded)assert(MEM32(test_service+0x168)==109 && !s_story_profiles[0] && !s_recipes[0]);
+ /* Save contents alone (no profile, no career) and no pack at all leave the slot to the game. */
+ if(!strcmp(mode,"guest")||!strcmp(mode,"career")||!strcmp(mode,"inactive"))
+  assert(MEM32(test_service+0x168)==5 && !s_story_profiles[0] && !s_recipes[0] && !s_service);
  assert(g_esp==0xB00000 && g_eax==123 && g_ecx==456);
  assert(!expected || s_story_profiles[0]==profile);
  if(expected) {
@@ -95,9 +100,12 @@ def tool(tmp_path_factory):
     return exe
 
 
-@pytest.mark.parametrize('mode', ['battle','story','retail','caf','guest','career','mismatch','styles','no-styles'])
+@pytest.mark.parametrize('mode', ['battle','story','retail','caf','guest','career','mismatch','styles','no-styles','inactive'])
 def test_story_profile_context_bounds_and_preservation(tool,mode):
     result = subprocess.run([tool,mode],capture_output=True,text=True)
-    assert result.returncode == (1 if mode in ('guest','career') else 0),result.stdout+result.stderr
+    # Review E3: nothing a save holds may close the game here, and with no pack it does nothing.
+    assert result.returncode == 0,result.stdout+result.stderr
+    if mode in ('guest','career'):
+        assert 'left to the game' in result.stderr
     if mode in ('mismatch','styles','no-styles'):
         assert 'playing its career moveset 109' in result.stderr
