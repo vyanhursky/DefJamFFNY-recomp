@@ -16,7 +16,10 @@ import re
 ROOT = Path(__file__).resolve().parents[2]
 STOP = re.compile(r'\b(fighter_stop|stop|motion_stop|cin_stop|fin_stop|voice_stop|ui_stop|cpu_stop|hd_stop|defjam_fighter_fatal)\(')
 
-# 2026-11-12: 224 lines before the save redesign (#243) and this change; 191 after.
+# 224 lines on main before #243. #243 removed 28 with the journal and supervisor (code that no
+# longer exists, not E3 progress): 196. E3 turned 5 into fallbacks (the Story adapter's 4 lines,
+# the unknown saved mark): 191. Review feedback F4 turned the 5 on the Options save and load path
+# into fallbacks: 186.
 CEILING = {
     'src/patches/fighter_ai.c': 1,
     'src/patches/fighter_caf.c': 17,
@@ -28,7 +31,7 @@ CEILING = {
     'src/patches/fighter_film_async.c': 3,
     'src/patches/fighter_finishers.c': 25,
     'src/patches/fighter_motion.c': 19,
-    'src/patches/fighter_runtime.c': 49,
+    'src/patches/fighter_runtime.c': 44,
     'src/patches/fighter_ui.c': 10,
     'src/patches/fighter_voice.c': 10,
 }

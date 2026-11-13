@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #if defined(_WIN32)
 #include <io.h>
 #include <direct.h>
@@ -201,6 +202,17 @@ static int load_identities(const char *path) {
         s_identity_handles[s_identity_count] = (uint32_t)handle;
         s_identity_names[s_identity_count++] = end + 1;
     }
+    for (uint32_t i = 0; i < s_bindings.count; ++i) {
+        FighterBinding binding;
+        int named = 0;
+        fighter_bindings_at(&s_bindings, i, &binding);
+        if (!(binding.flags & 1)) continue;
+        for (uint32_t j = 0; j < s_identity_count && !named; ++j) named = s_identity_handles[j] == binding.stable_handle;
+        if (!named) {
+            fprintf(stderr, "[FIGHTERS] custom fighter %08X has no name in the identity file; launch refused\n", binding.stable_handle);
+            return 0;
+        }
+    }
     return 1;
 }
 
@@ -219,14 +231,63 @@ static void sidecar_path(char *out, size_t size, const char *leaf) {
     snprintf(out, size, "%s/%s", s_state_dir, leaf);
 }
 
+static FILE *open_write_utf8(const char *path);
+static int write_sidecar(void);
+
+/* Keep a damaged unlock file beside the new one and tell the player once, through
+ * the launcher's notice (src/hooks/pc_mods.cpp). The file is renamed, not copied,
+ * so the next write starts a clean one and nothing is ever lost. */
+static int set_aside(const char *path, unsigned skipped, int newer) {
+    char aside[2200], notice[2112], when[32];
+    time_t now = time(NULL);
+    struct tm local;
+    FILE *file;
+    int moved;
+#if defined(_WIN32)
+    localtime_s(&local, &now);
+#else
+    localtime_r(&now, &local);
+#endif
+    strftime(when, sizeof when, "%Y%m%d-%H%M%S", &local);
+    snprintf(aside, sizeof aside, "%s.bad-%s", path, when);
+#if defined(_WIN32)
+    {
+        wchar_t from[2112], to[2200];
+        moved = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, path, -1, from, 2112)
+            && MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, aside, -1, to, 2200)
+            && MoveFileExW(from, to, MOVEFILE_WRITE_THROUGH);
+    }
+#else
+    moved = !rename(path, aside);
+#endif
+    if (!moved) return 0;
+    fprintf(stderr, "[FIGHTERS] custom unlock file kept as %s (%s)\n", aside,
+            newer ? "written by a newer version" : "damaged lines skipped");
+    sidecar_path(notice, sizeof notice, "notice.txt");
+    file = open_write_utf8(notice);
+    if (file) {
+        if (newer)
+            fprintf(file, "The custom fighter unlock file was written by a newer version of the game, so this version "
+                          "starts with no custom unlocks. The file was kept as %s.\n", aside);
+        else
+            fprintf(file, "%u line(s) of the custom fighter unlock file could not be read and were left out. "
+                          "The original file was kept as %s.\n", skipped, aside);
+        fclose(file);
+    }
+    return 1;
+}
+
 /* Read <state>/unlocks.ini. A missing file means no custom unlock yet. Names
- * of packs that are not installed are kept, untouched, for the next write. */
+ * of packs that are not installed are kept, untouched, for the next write.
+ * A damaged file never turns fighter packs off: its readable lines are used,
+ * the rest are skipped, and the original is kept beside it (set_aside). */
 static int load_sidecar(void) {
     char path[2112];
     size_t size = 0;
     uint8_t *bytes;
     char *line, *next;
-    int section = 0;
+    int section = 0, newer = 0;
+    unsigned skipped = 0;
     sidecar_path(path, sizeof path, "unlocks.ini");
     {
         FILE *probe = open_utf8(path);
@@ -235,10 +296,15 @@ static int load_sidecar(void) {
     }
     bytes = read_small_file(path, FIGHTER_SIDECAR_MAX, &size);
     s_unknown_lines = (char *)malloc(FIGHTER_SIDECAR_MAX + 1);
-    if (!bytes || !s_unknown_lines) {
-        free(bytes);
-        fprintf(stderr, "[FIGHTERS] cannot read the custom unlock file; launch refused, file kept\n");
-        return 0;
+    if (!s_unknown_lines) { free(bytes); return 0; }
+    if (!bytes) {
+        /* Unreadable or over 1 MiB. Without its contents a later write would replace
+         * unlocks we never saw, so move it aside first, or else leave packs off. */
+        if (!set_aside(path, 0, 0)) {
+            fprintf(stderr, "[FIGHTERS] cannot read or move the custom unlock file %s; fighter packs left off, file kept\n", path);
+            return 0;
+        }
+        return 1;
     }
     for (line = (char *)bytes; line && *line; line = next) {
         char *equals, *value;
@@ -249,27 +315,35 @@ static int load_sidecar(void) {
         if (!*line || *line == '#' || *line == ';') continue;
         if (!strcmp(line, "[fighter-unlocks]")) { section = 1; continue; }
         equals = strchr(line, '=');
-        if (!section || !equals) goto malformed;
+        if (!section || !equals) { ++skipped; continue; }
         *equals = 0; value = equals + 1;
-        if (!strcmp(line, "schema")) { if (strcmp(value, "1")) goto malformed; continue; }
-        if (!sidecar_name(line) || (strcmp(value, "0") && strcmp(value, "1"))) goto malformed;
+        if (!strcmp(line, "schema")) { if (strcmp(value, "1")) { newer = 1; break; } continue; }
+        if (!sidecar_name(line) || (strcmp(value, "0") && strcmp(value, "1"))) { ++skipped; continue; }
         if (identity_handle(line, &handle)) {
             remember_custom(handle | (*value == '1' ? FIGHTER_UNLOCK_METADATA : 0));
         } else {
             int written = snprintf(s_unknown_lines + s_unknown_size, FIGHTER_SIDECAR_MAX + 1 - s_unknown_size, "%s=%s\n", line, value);
-            if (written < 0 || (size_t)written > FIGHTER_SIDECAR_MAX - s_unknown_size) goto malformed;
+            if (written < 0 || (size_t)written > FIGHTER_SIDECAR_MAX - s_unknown_size) { ++skipped; continue; }
             s_unknown_size += (size_t)written;
         }
     }
     free(bytes);
-    s_custom_dirty = 0;
-    fprintf(stderr, "[FIGHTERS] restored %u custom unlocks from %s (%zu bytes kept for packs not installed)\n",
-            s_custom_count, path, s_unknown_size);
+    if (newer) { s_custom_count = 0; s_unknown_size = 0; }
+    if (newer || skipped) {
+        if (!set_aside(path, skipped, newer)) {
+            fprintf(stderr, "[FIGHTERS] custom unlock file %s is damaged and could not be moved aside; fighter packs left off, file kept\n", path);
+            return 0;
+        }
+        /* Write the clean file now: the good lines must survive even if this
+         * session ends before the game saves. A failure stays pending. */
+        s_custom_dirty = 1;
+        write_sidecar();
+    } else {
+        s_custom_dirty = 0;
+    }
+    fprintf(stderr, "[FIGHTERS] restored %u custom unlocks from %s (%zu bytes kept for packs not installed, %u lines skipped)\n",
+            s_custom_count, path, s_unknown_size, skipped);
     return 1;
-malformed:
-    free(bytes);
-    fprintf(stderr, "[FIGHTERS] custom unlock file %s is malformed; launch refused, file kept\n", path);
-    return 0;
 }
 
 static FILE *open_write_utf8(const char *path) {
@@ -298,7 +372,7 @@ static int write_sidecar(void) {
     size_t capacity = 256 + (size_t)s_custom_count * 176 + s_unknown_size, size = 0;
     char *text = (char *)malloc(capacity);
     FILE *file;
-    int ok;
+    int ok, unnamed = 0;
     if (!text) return 0;
     size += (size_t)snprintf(text, capacity, "%s",
         "# Custom fighter unlocks. Written by the game; keys are pack/fighter names.\n"
@@ -307,7 +381,8 @@ static int write_sidecar(void) {
     for (uint32_t i = 0; i < s_custom_count; ++i) {
         const char *name = identity_name(s_custom_keys[i]);
         if (!name) {
-            fprintf(stderr, "[FIGHTERS] custom unlock %08X has no name; not written\n", s_custom_keys[i]);
+            fprintf(stderr, "[FIGHTERS] custom unlock %08X has no name; kept for the next save\n", s_custom_keys[i]);
+            unnamed = 1;
             continue;
         }
         size += (size_t)snprintf(text + size, capacity - size, "%s=%d\n", name, s_custom_metadata[i] ? 1 : 0);
@@ -336,7 +411,7 @@ static int write_sidecar(void) {
     }
     free(text);
     if (!ok) { fprintf(stderr, "[FIGHTERS] could not write custom unlocks to %s; will retry at the next save\n", path); return 0; }
-    s_custom_dirty = 0;
+    s_custom_dirty = unnamed; /* an unlock that could not be named stays pending, never dropped */
     fprintf(stderr, "[FIGHTERS] custom unlocks written: %u (%s)\n", s_custom_count, path);
     return 1;
 }
@@ -683,15 +758,27 @@ void defjam_fighter_settings_bound(uint32_t self) {
     fprintf(stderr, "[FIGHTERS] native Options container bound: capacity=%u\n", FIGHTER_UNLOCK_CAPACITY);
 }
 
+/* The Options unlock set as the game holds it. Returns 0 when it is not in the
+ * shape the projection needs; callers then leave it to the game, never stop. */
+static int unlock_payload_ok(uint32_t self, uint32_t payload, uint32_t *out_count) {
+    if (!s_settings || self != s_settings) {
+        fprintf(stderr, "[FIGHTERS] Options unlock set belongs to an unregistered owner; left to the game\n");
+        return 0;
+    }
+    if (!fighter_unlocks_decode((const uint8_t *)XBOX_PTR(payload), FIGHTER_SETTINGS_SIZE, out_count)) {
+        fprintf(stderr, "[FIGHTERS] Options unlock set is malformed or over its capacity; left to the game\n");
+        return 0;
+    }
+    return 1;
+}
+
 void defjam_fighter_settings_validate(uint32_t self, uint32_t payload) {
     uint32_t count;
     FighterBinding binding;
     const uint8_t *bytes;
     if (!s_bindings.bytes) return;
-    if (!s_settings || self != s_settings) fighter_stop("Unregistered native fighter settings owner.");
+    if (!unlock_payload_ok(self, payload, &count)) return;
     bytes = (const uint8_t *)XBOX_PTR(payload);
-    if (!fighter_unlocks_decode(bytes, FIGHTER_SETTINGS_SIZE, &count))
-        fighter_stop("Native fighter unlock settings are malformed or exceed their fixed capacity.");
     for (uint32_t i = 0; i < count; ++i)
         if (!fighter_bindings_find(&s_bindings, FIGHTER_BINDING_STABLE,
                 fighter_unlocks_at(bytes, i) & ~FIGHTER_UNLOCK_METADATA, &binding)
@@ -711,7 +798,10 @@ static int remember_custom(uint32_t mark) {
         int changed = s_custom_metadata[i] != metadata;
         s_custom_metadata[i] = metadata; if (changed) s_custom_dirty = 1; return changed;
     }
-    if (s_custom_count >= FIGHTER_BINDINGS_MAX_COUNT) fighter_stop("Historical custom unlock journal is full.");
+    if (s_custom_count >= FIGHTER_BINDINGS_MAX_COUNT) {
+        fprintf(stderr, "[FIGHTERS] custom unlock table is full (%u); unlock %08X not recorded\n", s_custom_count, identity);
+        return 0;
+    }
     s_custom_keys[s_custom_count] = identity; s_custom_metadata[s_custom_count++] = mark & FIGHTER_UNLOCK_METADATA;
     s_custom_dirty = 1;
     return 1;
@@ -729,13 +819,25 @@ static void custom_progress_changed(void) {
 }
 
 void defjam_fighter_settings_saving(void) {
+    uint32_t checked;
     if (!s_bindings.bytes) return;
-    if (!s_settings || MEM32(s_settings + 0x20) != MEM32(s_settings + 0x1264))
-        fighter_stop("Native fighter unlock counts disagree before save staging.");
+    /* The player has just finished a match: no check here may end the process.
+     * If the live unlock set is not in the shape the projection needs, this one
+     * save is written as the game holds it (what it would do without packs),
+     * and the next consistent save projects again. */
+    if (!s_settings || MEM32(s_settings + 0x20) != MEM32(s_settings + 0x1264)
+        || !unlock_payload_ok(s_settings, s_settings + 0x4C, &checked)) {
+        fprintf(stderr, "[FIGHTERS] Options unlock counts are inconsistent; this save is written without the fighter projection\n");
+        return;
+    }
     defjam_fighter_settings_validate(s_settings, s_settings + 0x4C);
     if (s_state_dir[0]) {
         uint32_t count = MEM32(s_settings + 0x20), kept = 0;
-        if (s_projecting_settings) fighter_stop("Reentrant native Options projection.");
+        if (s_projecting_settings) {
+            /* An Options save inside another: the outer one already projected the live set. */
+            fprintf(stderr, "[FIGHTERS] nested Options save; already projected\n");
+            return;
+        }
         memcpy(s_live_settings, (const void *)XBOX_PTR(s_settings + 0x4C), FIGHTER_SETTINGS_SIZE);
         for (uint32_t i = 0; i < count; ++i) {
             uint32_t mark = MEM32(s_settings + 0x12E0 + i * 4);

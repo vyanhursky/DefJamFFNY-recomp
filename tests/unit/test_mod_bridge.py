@@ -35,8 +35,8 @@ std::string data;
 namespace pcui { std::string folder_path(Folder which) { return data; } }
 int main(int argc,char **argv) {
  data=argv[1];
- if(std::string(argv[2])=="fighter" || std::string(argv[2])=="fighter-ui") {
-   if(!pc_fighters_prepare("")) {std::cerr<<pc_fighters_error()<<std::endl;return 5;}
+ if(std::string(argv[2])=="fighter" || std::string(argv[2])=="fighter-ui" || std::string(argv[2])=="fighter-lang") {
+   if(!pc_fighters_prepare(std::string(argv[2])=="fighter-lang"?"frenchpack":"")) {std::cerr<<pc_fighters_error()<<std::endl;return 5;}
    std::cout<<defjam_fighter_managed()<<std::endl;
    if(std::string(argv[2])=="fighter-ui") {
      std::cout<<(getenv("RECOMP_TEXTURE_ROOT")?getenv("RECOMP_TEXTURE_ROOT"):"")<<std::endl;
@@ -422,3 +422,18 @@ def test_managed_ui_layer_is_verified_transient_and_last(bridge, tmp_path, damag
         assert result.returncode==5,result.stderr
         assert 'HD UI texture layer active' not in result.stderr
     # All settings functions abort in this driver: this must remain a per-launch layer.
+
+
+def test_language_manifest_matches_however_the_path_separators_are_spelled(bridge, tmp_path):
+    """Python writes the language path through pathlib; the launcher builds its own string."""
+    root = fighter_data(tmp_path)
+    cache = tmp_path / 'names.bin'
+    cache.write_bytes(b'names')
+    language = (str(tmp_path) + '/frenchpack').replace('\\', '/')
+    manifest(root, {'RECOMP_FIGHTER_NAMES': str(cache)}, [cache], language=language)
+    source, env = prepare_helper(tmp_path, 'raise SystemExit(9)')
+    result = subprocess.run([str(bridge), str(tmp_path), 'fighter-lang', 'RECOMP_FIGHTER_NAMES'], cwd=source, env=env,
+                            capture_output=True, text=True, timeout=20)
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.splitlines() == ['1', 'RECOMP_FIGHTER_NAMES=' + str(cache)]
+    assert commands(root) == []
