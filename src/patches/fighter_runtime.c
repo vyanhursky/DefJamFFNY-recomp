@@ -418,7 +418,7 @@ static void test_save_stop(int point) {
     if (s_test_save_stop != point) return;
     fprintf(stderr, "[FIGHTERS-TEST] interrupted native save: point=%s exit=86\n", point == 1 ? "sidecar" : "options");
     fflush(stderr);
-    _Exit(86); /* Test control only (RECOMP_FIGHTER_TEST_SAVE_STOP): bypass all cleanup, like a crash. */
+    _Exit(86); /* Test control only (RECOMP_TEST_FIGHTER_SAVE_STOP): bypass all cleanup, like a crash. */
 }
 
 static int research_start(void) {
@@ -517,7 +517,7 @@ static int research_start(void) {
                 fprintf(stderr, "[FIGHTERS] no custom unlock folder; launch refused\n"); return 0;
             }
             strcpy(s_state_dir, path);
-            path = defjam_fighter_env("RECOMP_FIGHTER_TEST_SAVE_STOP");
+            path = getenv("RECOMP_TEST_FIGHTER_SAVE_STOP"); /* a test control, like every RECOMP_TEST_*; never in a manifest */
             if (path && *path) {
                 if (!strcmp(path, "sidecar")) s_test_save_stop = 1;
                 else if (!strcmp(path, "options")) s_test_save_stop = 2;
