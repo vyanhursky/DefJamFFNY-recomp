@@ -106,6 +106,7 @@ def beta_store(tmp_path, monkeypatch, *, marks=None):
     stale = mgr.data / 'save/UserData/45410049/OLDPROFILE00'
     stale.mkdir(parents=True)
     (stale / 'Stale').write_bytes(b'adoption-day profile')
+    (stale / 'SaveMeta.xbx').write_bytes('Name=Stale\r\n'.encode('utf-16'))
     return mgr, files, generation
 
 
@@ -126,7 +127,10 @@ def test_store_head_moves_back_into_save_with_a_backup_and_named_sidecar(tmp_pat
     assert sidecar[2:4] == ['[fighter-unlocks]', 'schema=1']
     entries = dict(line.split('=') for line in sidecar[4:])
     assert entries[custom[0]] == '1' and set(entries) == set(custom)
-    assert 'save-backup-20261112-213000' in (mgr.data / 'fighter-state/notice.txt').read_text()
+    notice = (mgr.data / 'fighter-state/notice.txt').read_text()
+    assert 'save-backup-20261112-213000' in notice
+    # Review feedback S2: a profile made outside the store is named, and is in the backup.
+    assert 'not carried over' in notice and notice.rstrip().endswith('Stale.')
     assert not fighter_migrate.pending(mgr.data)
     # The store is left as it was, read-only, for one release.
     assert Store(mgr.root / 'fighter-profiles', None).generations.is_dir()
@@ -165,3 +169,26 @@ def test_sidecar_text_matches_the_game_format():
     assert text.splitlines()[2:] == ['[fighter-unlocks]', 'schema=1', 'alpha/one=1', 'beta/two=0']
     with pytest.raises(ValueError):
         fighter_migrate.sidecar_text({'no-slash': 0})
+
+
+def test_a_data_folder_reached_through_a_link_still_migrates(tmp_path, monkeypatch):
+    """Review feedback S5: a junction or symlink above the data folder must not block the move.
+
+    mods.Manager resolves the data root once, so the link is followed before any path check."""
+    import os
+    import mods
+    mgr, files, _ = beta_store(tmp_path, monkeypatch)
+    link = tmp_path.parent / (tmp_path.name + '-link')
+    if os.name == 'nt':
+        import _winapi
+        _winapi.CreateJunction(str(tmp_path), str(link))
+    else:
+        os.symlink(tmp_path, link, target_is_directory=True)
+    try:
+        manager = mods.Manager(link / 'data', game=link / 'game')
+        manager.progress = lambda *args, **kwargs: None
+        assert manager.data == mgr.data.resolve()
+        assert fighter_migrate.migrate(manager) is not None
+        assert (mgr.data / 'save' / OPTIONS).read_bytes() == files[OPTIONS]
+    finally:
+        os.rmdir(link) if os.name == 'nt' else link.unlink()

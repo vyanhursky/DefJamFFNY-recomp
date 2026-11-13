@@ -23,6 +23,10 @@ bool mod_poll(); // true after a job completed; caller refreshes local inventory
 bool mod_busy();
 bool mod_prerelease();
 void mod_set_prerelease(bool enabled);
+// The language pack folder the launcher has chosen (empty for none). Fighter builds started from
+// the Mods screen are composed for it, so Play finds a matching manifest. The caller reads the
+// setting; this module never does (its unit-test driver has no settings).
+void mod_set_language(const std::string &pack);
 void mod_cancel();
 const ModView &mod_view();
 const std::string &mod_status();

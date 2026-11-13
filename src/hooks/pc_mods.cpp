@@ -111,6 +111,10 @@ static void read_view() {
 bool mod_busy() { return running; }
 bool mod_prerelease() { return testing_versions; }
 void mod_set_prerelease(bool enabled) { if (!running) testing_versions = enabled; }
+void mod_set_language(const std::string &pack) {
+    if (running) return;
+    fighter_language = !pack.empty() && pack_name(pack) ? path_utf8(fs::u8path(folder_path(Folder::Mods)) / fs::u8path(pack)) : "";
+}
 static void show_fighter_notice() {
     std::error_code error;
     auto folder = fs::u8path(folder_path(Folder::Data)) / "fighter-state";
@@ -195,10 +199,10 @@ bool mod_start(const std::string &requested, const std::string &id) {
     args.insert(args.end(), {"--capability", "fighters-v1", "--game-dir", path_utf8(fs::current_path() / "game")});
     if (testing_versions) args.push_back("--prerelease");
     if (!id.empty()) args.insert(args.end(), {command == "install-local" ? "--archive" : "--id",id});
-    // Play composes fighter packs for the chosen language (set by pc_fighters_prepare).
-    // Enabling from the Mods screen builds without one and never reads settings;
-    // with a language pack chosen, the first Play after it rebuilds once.
-    if (command == "fighter-prepare" && !fighter_language.empty())
+    // Fighter builds are composed for the chosen language: set by the launcher before a Mods
+    // command (mod_set_language) and by pc_fighters_prepare before Play. A status or refresh
+    // never builds, so it needs none.
+    if (command != "status" && command != "refresh" && !fighter_language.empty())
         args.insert(args.end(), {"--language-pack", fighter_language});
 #if defined(_WIN32)
     std::wstring cmd;
@@ -351,7 +355,11 @@ static bool fighter_manifest(std::map<std::string, std::string> &config, std::st
     auto manifest = projection(root() / "fighter-manifest.ini");
     if (manifest["manifest"]["schema"] != "1") { why = "no compiled fighter manifest"; return false; }
     if (manifest["manifest"]["runtime"] != runtime_version()) { why = "the game was updated"; return false; }
-    if (manifest["manifest"]["language"] != fighter_language) { why = "the language pack changed"; return false; }
+    // Python writes the path through pathlib, which may spell separators differently.
+    auto same_path = [](const std::string &a, const std::string &b) {
+        return a.empty() || b.empty() ? a == b : fs::u8path(a).lexically_normal() == fs::u8path(b).lexically_normal();
+    };
+    if (!same_path(manifest["manifest"]["language"], fighter_language)) { why = "the language pack changed"; return false; }
     for (auto &entry : manifest["inputs"]) {
         auto &value = entry.second;
         auto first = value.find('|'), second = first == std::string::npos ? first : value.find('|', first + 1);
