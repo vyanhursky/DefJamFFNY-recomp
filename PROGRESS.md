@@ -619,6 +619,8 @@ Upstream PR submissions still need the owner's separate approval.
 - 2026-11-12 10:37 — Added HD Fighters GitHub Pages subpage:8 before/after sliders from approved Cloudflare JPEG crops, native range/keyboard/buttons/pointer controls, same published Thunderstore information.6 site-build tests and source policy pass; desktop1440/mobile390 widths show0overflow/0failed images,8/8Home/End/arrows pass, pointer75% and full original/HD presets verified. Source only; existing Pages workflow deploys after merge, no game/mod/catalogue rebuild. Browser evidence remains private.
 - 2026-11-12 14:10 UTC - Published experimental v1.2.0-beta.2/b211c53: release PR #239 merged with CI 35/35, Source release 43305637942, nine game-free assets verified (sidecars = GitHub digests, provenance source b211c53, toolkit 8e61aec); Steam Deck full regression 19/21 on 94aed9d (replay #98, three Zig unit failures) with a three-outfit fighter pack played through two matches; Windows 17/17 on 97cd1ad. Stable 1.1.1 remains Latest. Notes updated at publication with the Deck results.
 
+- 2026-11-13 — Prepared Menu/UI website publication: nine aligned before/after sliders and a separate ultrawide showcase; 11 approved Cloudflare image downloads verify exact SHA-256/MIME. Owner-published Thunderstore 1.7.2 wording retained; 1,787 PNGs / 1,565 native mappings / 80 wide registrations. Source-only site change; no runtime, game release or signed catalogue change. Site/source/browser checks and Pages deployment recorded in the PR.
+
 ## 7. Hand-off
 
 ### Beta-2 candidate - 2026-11-12
