@@ -84,7 +84,7 @@ static inline int recomp_settings_set(const char *, const char *, int) { abort()
     else:
         command=[compiler,'-std=c++17','-pthread','-I'+str(folder),'-I'+str(ROOT/'src/hooks'),'-I'+str(ROOT/'src/patches'),
                  '-I'+str(ROOT/'src'),'-DDEFJAM_MOD_SOURCE_DIR="'+str(ROOT)+'"',str(source),str(ROOT/'src/hooks/pc_mods.cpp'),
-                 '-x','c',str(ROOT/'src/patches/fighter_config.c'),'-x','none','-o',str(exe)]
+                 str(ROOT/'src/patches/fighter_config.c'),'-o',str(exe)]  # C++ here; the header has extern "C"
     result=subprocess.run(command,cwd=folder,capture_output=True,text=True)
     assert result.returncode == 0, result.stdout + result.stderr
     return exe
