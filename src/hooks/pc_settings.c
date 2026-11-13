@@ -460,6 +460,12 @@ int pc_settings_init(void)
             return 0;
         }
     }
+    {
+        /* A rolling copy of save/UserData (and the fighter unlock sidecar) for every
+         * player, before anything this launch could write: src/hooks/save_backup.cpp. */
+        extern void pc_save_backup(void);
+        pc_save_backup();
+    }
 
     /* Settings read once at start-up by code that looks at the environment (after the launcher,
      * which may have changed them). */
@@ -504,7 +510,7 @@ int pc_settings_init(void)
         if (!pc_fighters_prepare(language)) {
             extern const char *pc_fighters_error(void);
             char message[2048];
-            snprintf(message, sizeof message, "Fighter Mod Support could not prepare this launch.\n\n%s\n\nThe last committed profiles and mod selection were preserved. Open Mods > Fighters to resolve the problem.", pc_fighters_error());
+            snprintf(message, sizeof message, "Fighter Mod Support could not prepare this launch.\n\n%s\n\nYour saves and mod selection were not changed. Open Mods > Fighters to resolve the problem.", pc_fighters_error());
             host_fatal(message);
             return 0;
         }

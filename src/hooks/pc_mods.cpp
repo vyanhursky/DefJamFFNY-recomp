@@ -7,6 +7,7 @@
 #endif
 #include "pc_ui_model.h"
 #include "pc_ui_actions.h"
+#include "../patches/fighter_config.h"
 #include <algorithm>
 #include <cstdlib>
 #include <cerrno>
@@ -16,12 +17,15 @@
 #include <chrono>
 #include <thread>
 #include <set>
+#include <fstream>
+#include <iterator>
 #if defined(_WIN32)
 #include <windows.h>
 #else
 #include <spawn.h>
 #include <sys/wait.h>
 #include <sys/file.h>
+#include <sys/stat.h>
 #include <signal.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -45,9 +49,8 @@ static std::chrono::steady_clock::time_point job_started;
 static std::string enable_after_install;
 static bool testing_versions = false;
 static fs::path job_root;
-static std::string fighter_data, fighter_language;
-static fs::path fighter_ready, fighter_stop;
-static bool fighter_active = false;
+static std::string fighter_language;
+static std::map<std::string, std::string> fighter_config; // [environment] of the loaded manifest
 #if defined(_WIN32)
 static HANDLE process = nullptr;
 static std::wstring wide(const std::string &s) {
@@ -108,7 +111,20 @@ static void read_view() {
 bool mod_busy() { return running; }
 bool mod_prerelease() { return testing_versions; }
 void mod_set_prerelease(bool enabled) { if (!running) testing_versions = enabled; }
-const ModView &mod_view() { static bool loaded = false; if (!loaded) { read_view(); loaded = true; } return view; }
+static void show_fighter_notice() {
+    std::error_code error;
+    auto folder = fs::u8path(folder_path(Folder::Data)) / "fighter-state";
+    auto notice = folder / "notice.txt";
+    if (fs::is_symlink(notice, error) || !fs::is_regular_file(notice, error) || fs::file_size(notice, error) > 4096) return;
+    std::ifstream input(notice);
+    std::string text((std::istreambuf_iterator<char>(input)), std::istreambuf_iterator<char>());
+    input.close();
+    while (!text.empty() && (text.back() == '\n' || text.back() == '\r')) text.pop_back();
+    if (text.empty()) return;
+    status = text;
+    fs::rename(notice, folder / "notice-shown.txt", error);
+}
+const ModView &mod_view() { static bool loaded = false; if (!loaded) { read_view(); show_fighter_notice(); loaded = true; } return view; }
 const std::string &mod_status() { return status; }
 float mod_fraction() { return running ? job_fraction : -1.0f; }
 int mod_elapsed() { return running ? (int)std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - job_started).count() : 0; }
@@ -124,10 +140,10 @@ bool mod_start(const std::string &requested, const std::string &id) {
     std::string command = requested == "install-enable" ? "install" : requested;
     if (running) return false;
     if (command != "status" && command != "refresh" && command != "install" && command != "remove" && command != "rollback" && command != "recover"
-        && command != "install-local" && command != "fighter-enable" && command != "fighter-disable" && command != "fighter-session") return false;
+        && command != "install-local" && command != "fighter-enable" && command != "fighter-disable" && command != "fighter-prepare") return false;
     if (!id.empty() && command != "install-local" && !pack_name(id)) return false;
     const char *override_root = getenv("RECOMP_TEXTURE_ROOT");
-    if (override_root && *override_root && command != "status" && command != "refresh" && command != "fighter-session") {
+    if (override_root && *override_root && command != "status" && command != "refresh" && command != "fighter-prepare") {
         status = "Managed installs use the data folder's mods directory; unset RECOMP_TEXTURE_ROOT first."; return false;
     }
     std::error_code error;
@@ -179,15 +195,11 @@ bool mod_start(const std::string &requested, const std::string &id) {
     args.insert(args.end(), {"--capability", "fighters-v1", "--game-dir", path_utf8(fs::current_path() / "game")});
     if (testing_versions) args.push_back("--prerelease");
     if (!id.empty()) args.insert(args.end(), {command == "install-local" ? "--archive" : "--id",id});
-    if (command == "fighter-session") {
-#if defined(_WIN32)
-        auto pid = GetCurrentProcessId();
-#else
-        auto pid = getpid();
-#endif
-        args.insert(args.end(), {"--parent-pid", std::to_string(pid)});
-        if (!fighter_language.empty()) args.insert(args.end(), {"--language-pack", fighter_language});
-    }
+    // Play composes fighter packs for the chosen language (set by pc_fighters_prepare).
+    // Enabling from the Mods screen builds without one and never reads settings;
+    // with a language pack chosen, the first Play after it rebuilds once.
+    if (command == "fighter-prepare" && !fighter_language.empty())
+        args.insert(args.end(), {"--language-pack", fighter_language});
 #if defined(_WIN32)
     std::wstring cmd;
     for (auto &arg : args) { if (!cmd.empty()) cmd += L' '; cmd += quote(wide(arg)); }
@@ -291,68 +303,85 @@ bool mod_poll() {
     return true;
 }
 
-// A refused ready projection never becomes a live session. Stop and reap its
-// owned helper now, including on POSIX where its inherited output pipes would
-// otherwise outlive the failed launch. Preserve the original refusal detail.
-struct PendingFighterSession {
-    bool admitted = false;
-    ~PendingFighterSession() {
-        if (admitted || !running) return;
-        auto detail = status;
-        { std::ofstream stop(fighter_stop); stop << "complete\n"; }
-        for (int i=0; i<100 && running; ++i) {
-            mod_poll(); std::this_thread::sleep_for(std::chrono::milliseconds(10));
-        }
-        if (running) {
-#if defined(_WIN32)
-            TerminateProcess(process, 1);
-            WaitForSingleObject(process, 1000);
-            CloseHandle(process); process = nullptr;
-#else
-            kill(process, SIGKILL);
-            while (waitpid(process, nullptr, 0) < 0 && errno == EINTR) {}
-            process = -1;
-#endif
-            running = false;
-        }
-        status = detail;
-    }
-};
 } // namespace pcui
 
-extern "C" void pc_fighters_finish(void) {
-    using namespace pcui;
-    if (!fighter_active) return;
-    { std::ofstream stop(fighter_stop); stop << "complete\n"; }
-    for (int i=0; i<1000 && running; ++i) {
-        mod_poll(); std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    }
-    auto result = projection(fighter_ready)["session"];
-    if (running || result["state"] != "complete")
-        fprintf(stderr, "[FIGHTERS] Profile supervisor did not acknowledge a clean exit: %s. Last committed generation retained.\n", result["detail"].c_str());
-    else fprintf(stderr, "[FIGHTERS] managed profile session completed\n");
-    fighter_active = false;
-}
-
-extern "C" const char *pc_fighters_data_root(void) {
-    return pcui::fighter_active ? pcui::fighter_data.c_str() : nullptr;
+// The manifest's [environment] is the only fighter configuration normal Play
+// reads; the inherited environment is ignored (src/patches/fighter_config.h).
+static const char *fighter_lookup(const char *name) {
+    auto found = pcui::fighter_config.find(name);
+    return found == pcui::fighter_config.end() || found->second.empty() ? nullptr : found->second.c_str();
 }
 extern "C" const char *pc_fighters_error(void) { return pcui::status.c_str(); }
 
-extern "C" int pc_fighters_healthy(void) {
-    using namespace pcui;
-    if (!fighter_active) return 1;
-    std::error_code error;
-    auto heartbeat = fs::last_write_time(fs::u8path(fighter_data).parent_path() / "journal/supervisor.json", error);
-    return !error && fs::file_time_type::clock::now() - heartbeat < std::chrono::seconds(10)
-        && projection(fighter_ready)["session"]["state"] == "ready";
+namespace pcui {
+// Size and modification time (nanoseconds since 1970), as Python's os.stat reports them.
+static bool file_stamp(const std::string &path, unsigned long long &size, long long &mtime) {
+#if defined(_WIN32)
+    WIN32_FILE_ATTRIBUTE_DATA data;
+    if (!GetFileAttributesExW(wide(path).c_str(), GetFileExInfoStandard, &data)
+        || (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) return false;
+    size = (unsigned long long)data.nFileSizeHigh << 32 | data.nFileSizeLow;
+    long long ticks = (long long)((unsigned long long)data.ftLastWriteTime.dwHighDateTime << 32 | data.ftLastWriteTime.dwLowDateTime);
+    mtime = (ticks - 116444736000000000LL) * 100;
+#else
+    struct stat info;
+    if (stat(path.c_str(), &info) || !S_ISREG(info.st_mode)) return false;
+    size = (unsigned long long)info.st_size;
+#if defined(__APPLE__)
+    mtime = (long long)info.st_mtimespec.tv_sec * 1000000000LL + info.st_mtimespec.tv_nsec;
+#else
+    mtime = (long long)info.st_mtim.tv_sec * 1000000000LL + info.st_mtim.tv_nsec;
+#endif
+#endif
+    return true;
 }
+
+static std::string runtime_version() {
+    std::string runtime = DEFJAM_VERSION;
+#if defined(DEFJAM_APP)
+    if (app::install().installed) runtime = app::install().version;
+#endif
+    return runtime;
+}
+
+// Read mod-manager/fighter-manifest.ini and check it still describes the files
+// on disk. The bytes behind it were verified when the cache was written; a
+// changed size or time on any input means rebuild, not hash.
+static bool fighter_manifest(std::map<std::string, std::string> &config, std::string &why) {
+    auto manifest = projection(root() / "fighter-manifest.ini");
+    if (manifest["manifest"]["schema"] != "1") { why = "no compiled fighter manifest"; return false; }
+    if (manifest["manifest"]["runtime"] != runtime_version()) { why = "the game was updated"; return false; }
+    if (manifest["manifest"]["language"] != fighter_language) { why = "the language pack changed"; return false; }
+    for (auto &entry : manifest["inputs"]) {
+        auto &value = entry.second;
+        auto first = value.find('|'), second = first == std::string::npos ? first : value.find('|', first + 1);
+        unsigned long long size = 0; long long mtime = 0;
+        if (second == std::string::npos) { why = "the fighter manifest is malformed"; return false; }
+        auto path = value.substr(second + 1);
+        if (!file_stamp(path, size, mtime) || std::to_string(size) != value.substr(0, first)
+            || std::to_string(mtime) != value.substr(first + 1, second - first - 1)) {
+            why = "a fighter pack or cache file changed: " + path; return false;
+        }
+    }
+    if (manifest["inputs"].empty() || manifest["environment"].empty()) { why = "the fighter manifest is empty"; return false; }
+    config = manifest["environment"];
+    for (auto &entry : config)
+        if (entry.first.rfind("RECOMP_FIGHTER_", 0) != 0) { why = "the fighter manifest has an unknown setting"; return false; }
+    return true;
+}
+
+static bool fighters_enabled() {
+    read_view();
+    for (auto &entry : view.installed) if (entry.second.category == "fighters" && entry.second.enabled) return true;
+    return false;
+}
+} // namespace pcui
 
 static bool fighter_ui_texture_pack(const std::string &name, const char *language) {
     using namespace pcui;
     if (name.empty()) return true;
     if (name.size()!=35 || name.rfind("fighter-ui-",0)!=0 || name.substr(11).find_first_not_of("0123456789abcdef")!=std::string::npos) {
-        status="Fighter supervisor returned an invalid UI texture pack."; return false;
+        status="The fighter manifest names an invalid UI texture pack."; return false;
     }
     std::error_code error;
     auto mods=fs::weakly_canonical(fs::u8path(folder_path(Folder::Mods)),error);
@@ -383,12 +412,15 @@ static bool fighter_ui_texture_pack(const std::string &name, const char *languag
     return true;
 }
 
+// Before the XBE loads. With no fighter pack enabled this does nothing and the
+// game behaves as v1.1.1. Python runs only when the manifest is missing or
+// stale (or the beta.1/beta.2 store still has to move back into save/); a
+// fresh manifest starts the game with no helper process at all.
 extern "C" int pc_fighters_prepare(const char *language) {
     using namespace pcui;
-    // Explicit isolated diagnostics retain their own supervisor and environment.
+    // Explicit isolated diagnostics keep their own environment.
     if (getenv("RECOMP_FIGHTER_RESEARCH_SOD")) return 1;
-    // Managed Play gets its entire runtime contract from the verified helper.
-    // Inherited diagnostic switches must not affect normal profile saves.
+    // Inherited diagnostic switches must not affect normal play.
 #if defined(_WIN32)
     char **environment = _environ;
 #else
@@ -407,78 +439,37 @@ extern "C" int pc_fighters_prepare(const char *language) {
 #endif
     }
     std::error_code error;
-    if (!fs::exists(root() / "state.json", error) && !fs::exists(root() / "fighter-adoption.json", error)) return 1;
-#if defined(_WIN32)
-    auto pid = GetCurrentProcessId();
-#else
-    auto pid = getpid();
-#endif
-    fighter_ready = root() / ("fighter-session-" + std::to_string(pid) + ".ini");
-    fighter_stop = root() / ("fighter-session-" + std::to_string(pid) + ".stop");
-    if (fs::is_symlink(fighter_ready,error) || fs::is_symlink(fighter_stop,error)) return 0;
-    fs::remove(fighter_ready,error); fs::remove(fighter_stop,error);
+    auto data = fs::u8path(folder_path(Folder::Data));
+    bool move_saves = fs::exists(data / "mod-manager/fighter-profiles/head.json", error)
+        && !fs::exists(data / "fighter-state/migrated.json", error);
+    bool wanted = fighters_enabled();
+    if (!wanted && !move_saves) return 1;
     if (language && *language && !pack_name(language)) { status = "Invalid language pack folder. Choose an installed language before Play."; return 0; }
     fighter_language = language && *language ? path_utf8(fs::u8path(folder_path(Folder::Mods)) / fs::u8path(language)) : "";
-    if (!mod_start("fighter-session")) return 0;
-    PendingFighterSession pending;
-    for (int i=0; i<30000; ++i) {
-        auto ready = projection(fighter_ready);
-        auto state = ready["session"]["state"];
-        if (state == "unused") {
-            while (running) { mod_poll(); std::this_thread::sleep_for(std::chrono::milliseconds(10)); }
-            return 1;
+    std::map<std::string, std::string> config;
+    std::string why;
+    if (move_saves || (wanted && !fighter_manifest(config, why))) {
+        fprintf(stderr, "[FIGHTERS] preparing fighter packs before Play: %s\n",
+                move_saves ? "fighter-era saves move back into save/" : why.c_str());
+        if (!mod_start("fighter-prepare")) return 0;
+        for (int i = 0; running; ++i) {
+            if (i > 60000) { status = "Fighter preparation timed out. Your saves were not changed."; return 0; }
+            mod_poll();
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
-        if (state == "ready") {
-            auto path = fs::u8path(ready["session"]["data_root"]);
-            auto expected = fs::weakly_canonical(root() / "fighter-sessions", error);
-            auto identity = path_utf8(path.parent_path().filename());
-            if (error || path.filename() != "fighter-runtime-probe" || !fs::is_directory(path,error)
-                || ready["session"]["parent_pid"] != std::to_string(pid) || identity.size() != 32
-                || identity.find_first_not_of("0123456789abcdef") != std::string::npos
-                || fs::weakly_canonical(path,error) != expected / identity / "fighter-runtime-probe" || error) {
-                status = "Fighter supervisor returned an invalid private save workspace."; return 0;
-            }
-            fighter_data = path_utf8(path);
-            static const std::set<std::string> allowed = {
-                "NAMES", "BINDINGS", "RESEARCH_SOD", "RESEARCH_SCREENS", "NAMES_PROBE", "IMMUTABLE_REUSE", "WINDOW",
-                "RESEARCH_MODELS", "RESEARCH_MODELS_SHA256", "RESEARCH_ENTITIES", "RESEARCH_ENTITIES_SHA256",
-                "RESEARCH_CINEMATICS", "RESEARCH_CINEMATICS_SHA256", "RESEARCH_LANGUAGE_BASE", "RESEARCH_SCREENS_SHA256",
-                "MOTION", "MOTION_SHA256", "MOTION_BINDINGS", "ANIMATIONS", "ANIMATIONS_SHA256", "ANIMATION_BINDINGS",
-                "VOICES", "VOICES_SHA256", "VOICE_BINDINGS", "AI", "AI_SHA256", "AI_BINDINGS",
-                "FINISHERS", "FINISHERS_SHA256", "FINISHER_BINDINGS", "CINEMATIC_BANKS", "CINEMATIC_BANKS_SHA256",
-                "CINEMATIC_BINDINGS", "BLAZIN_BINDINGS", "SAVE_JOURNAL", "UNLOCKS",
-                "TAGS", "TAGS_SHA256", "CAMERAS", "CAMERAS_SHA256", "TIMELINE_BINDINGS", "FILM_PROOFS", "CAF", "CAF_SHA256",
-                "UI_TEXTURE_PACK"
-            };
-            for (auto &entry : ready["environment"]) {
-                if (entry.first.rfind("RECOMP_FIGHTER_",0) != 0 || !allowed.count(entry.first.substr(15))) {
-                    status = "Fighter supervisor returned an unsupported runtime setting."; return 0;
-                }
-#if defined(_WIN32)
-                if (_putenv_s(entry.first.c_str(),entry.second.c_str())) return 0;
-#else
-                if (setenv(entry.first.c_str(),entry.second.c_str(),1)) return 0;
-#endif
-            }
-            if (!fighter_ui_texture_pack(ready["environment"]["RECOMP_FIGHTER_UI_TEXTURE_PACK"],language)) return 0;
-            fighter_active = true; pending.admitted = true; atexit(pc_fighters_finish);
-            fprintf(stderr,"[FIGHTERS] managed profile session ready: %s\n",fighter_data.c_str());
-            return 1;
+        if (mod_failed()) { fprintf(stderr, "[FIGHTERS] preparation failed: %s\n", status.c_str()); return 0; }
+        wanted = fighters_enabled();
+        if (wanted && !fighter_manifest(config, why)) {
+            status = "Fighter packs were prepared but their manifest does not match: " + why;
+            fprintf(stderr, "[FIGHTERS] %s\n", status.c_str()); return 0;
         }
-        if (state == "failed") { status = ready["session"]["detail"]; fprintf(stderr,"[FIGHTERS] launch refused: %s\n",status.c_str()); return 0; }
-        mod_poll();
-        if (!running) {
-            // Publication may have completed between the first read and waitpid.
-            if (projection(fighter_ready)["session"]["state"] == "unused") return 1;
-            auto detail = projection(fighter_ready)["session"]["detail"];
-            if (!detail.empty()) status = detail;
-            fprintf(stderr,"[FIGHTERS] supervisor exited before launch: %s\n",status.c_str()); return 0;
-        }
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
-    status = "Fighter preparation timed out; original profiles preserved.";
-    fprintf(stderr,"[FIGHTERS] %s\n",status.c_str());
-    return 0;
+    if (!wanted) return 1;
+    if (!fighter_ui_texture_pack(config["RECOMP_FIGHTER_UI_TEXTURE_PACK"], language)) return 0;
+    fighter_config = std::move(config);
+    defjam_fighter_config_install(fighter_lookup);
+    fprintf(stderr, "[FIGHTERS] fighter manifest loaded: %zu settings, saves stay in save/\n", fighter_config.size());
+    return 1;
 }
 
 extern "C" int pc_mods_needs_recovery(void) { return pcui::mod_recovery_needed() ? 1 : 0; }

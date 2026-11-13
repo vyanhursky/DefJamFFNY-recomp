@@ -25,6 +25,7 @@ def test_helper_status_with_isolated_python(tmp_path):
 DRIVER=r'''
 #include "pc_mods.h"
 #include "pc_ui_actions.h"
+#include "fighter_config.h"
 #include <iostream>
 #include <thread>
 #include <chrono>
@@ -36,14 +37,13 @@ int main(int argc,char **argv) {
  data=argv[1];
  if(std::string(argv[2])=="fighter" || std::string(argv[2])=="fighter-ui") {
    if(!pc_fighters_prepare("")) {std::cerr<<pc_fighters_error()<<std::endl;return 5;}
-   std::cout<<pc_fighters_healthy()<<std::endl;
+   std::cout<<defjam_fighter_managed()<<std::endl;
    if(std::string(argv[2])=="fighter-ui") {
      std::cout<<(getenv("RECOMP_TEXTURE_ROOT")?getenv("RECOMP_TEXTURE_ROOT"):"")<<std::endl;
      std::cout<<(getenv("RECOMP_TEXTURE_PACKS")?getenv("RECOMP_TEXTURE_PACKS"):"")<<std::endl;
    }
-   std::string input;std::getline(std::cin,input);
-   std::cout<<pc_fighters_healthy()<<std::endl;
-   pc_fighters_finish();return 0;
+   for(int i=3;i<argc;i++) {const char *value=defjam_fighter_env(argv[i]);std::cout<<argv[i]<<"="<<(value?value:"")<<std::endl;}
+   return 0;
  }
  if(std::string(argv[2])=="hold") {
    if(!pc_mods_game_lock())return 2;
@@ -78,11 +78,13 @@ static inline int recomp_settings_set(const char *, const char *, int) { abort()
     if not compiler:pytest.skip('C++ compiler required')
     exe=folder/('bridge.exe' if os.name=='nt' else 'bridge')
     if Path(compiler).stem.lower()=='cl':
-        command=[compiler,'/nologo','/std:c++17','/EHsc','/I'+str(folder),'/I'+str(ROOT/'src/hooks'),
-                 '/DDEFJAM_MOD_SOURCE_DIR="'+str(ROOT)+'"',str(source),str(ROOT/'src/hooks/pc_mods.cpp'),'/Fe:'+str(exe)]
+        command=[compiler,'/nologo','/std:c++17','/EHsc','/I'+str(folder),'/I'+str(ROOT/'src/hooks'),'/I'+str(ROOT/'src/patches'),
+                 '/I'+str(ROOT/'src'),'/DDEFJAM_MOD_SOURCE_DIR="'+str(ROOT)+'"',str(source),str(ROOT/'src/hooks/pc_mods.cpp'),
+                 str(ROOT/'src/patches/fighter_config.c'),'/Fe:'+str(exe)]
     else:
-        command=[compiler,'-std=c++17','-pthread','-I'+str(folder),'-I'+str(ROOT/'src/hooks'),
-                 '-DDEFJAM_MOD_SOURCE_DIR="'+str(ROOT)+'"',str(source),str(ROOT/'src/hooks/pc_mods.cpp'),'-o',str(exe)]
+        command=[compiler,'-std=c++17','-pthread','-I'+str(folder),'-I'+str(ROOT/'src/hooks'),'-I'+str(ROOT/'src/patches'),
+                 '-I'+str(ROOT/'src'),'-DDEFJAM_MOD_SOURCE_DIR="'+str(ROOT)+'"',str(source),str(ROOT/'src/hooks/pc_mods.cpp'),
+                 '-x','c',str(ROOT/'src/patches/fighter_config.c'),'-x','none','-o',str(exe)]
     result=subprocess.run(command,cwd=folder,capture_output=True,text=True)
     assert result.returncode == 0, result.stdout + result.stderr
     return exe
@@ -174,7 +176,7 @@ else:
     # avoid the texture/language settings and preserve the helper's decision.
 
 
-def test_native_game_and_python_supervisor_share_runtime_lock(bridge, tmp_path):
+def test_native_game_and_fighter_prepare_share_runtime_lock(bridge, tmp_path):
     sys.path.insert(0, str(ROOT / 'setup'))
     from mods import file_lock
     data = tmp_path / 'shared launch'
@@ -259,89 +261,143 @@ def test_incomplete_transaction_blocks_game_even_without_launcher(bridge,tmp_pat
     assert result.returncode==2
 
 
-def fighter_helper(tmp_path, environment='', *, ignore_stop=False):
+def fighter_data(tmp_path, *, enabled=True, head=False):
+    """A data folder whose view lists one fighter pack, as mods.py writes it."""
+    root = tmp_path / 'mod-manager'
+    root.mkdir()
+    (root / 'view.ini').write_text('[installed.synthetic-fighters]\nfolder=synthetic-fighters\ncategory=fighters\n'
+                                   f'name=Synthetic\nenabled={int(enabled)}\n')
+    if head:
+        (root / 'fighter-profiles').mkdir()
+        (root / 'fighter-profiles/head.json').write_text('{}')
+    return root
+
+
+def manifest(root, environment, inputs, language=''):
+    lines = ['[manifest]', 'schema=1', 'runtime=0.0.0', 'language=' + language, '[environment]']
+    lines += [key + '=' + value for key, value in environment.items()]
+    lines.append('[inputs]')
+    for index, path in enumerate(inputs):
+        info = Path(path).stat()
+        lines.append(f'{index}={info.st_size}|{info.st_mtime_ns}|{path}')
+    (root / 'fighter-manifest.ini').write_text('\n'.join(lines) + '\n', encoding='utf-8')
+
+
+def prepare_helper(tmp_path, body):
+    """A stand-in mods.py: records each command, then runs body for fighter-prepare."""
     source = tmp_path / 'helper source'
     (source / 'setup').mkdir(parents=True)
-    (tmp_path / 'mod-manager').mkdir()
-    (tmp_path / 'mod-manager/state.json').write_text('{}')
-    (source / 'setup/mods.py').write_text(f'''
-import sys, time
+    (source / 'setup/mods.py').write_text(f"""
+import sys
 from pathlib import Path
-root=Path(sys.argv[sys.argv.index('--data-dir')+1])/'mod-manager'
-pid=sys.argv[sys.argv.index('--parent-pid')+1]
-session=root/'fighter-sessions'/('a'*32)
-data=session/'fighter-runtime-probe';data.mkdir(parents=True)
-journal=session/'journal';journal.mkdir()
-(journal/'supervisor.json').write_text('{{}}')
-ready=root/('fighter-session-'+pid+'.ini')
-ready.write_text('[session]\\nstate=ready\\nparent_pid='+pid+'\\ndata_root='+str(data)+'\\n{environment}')
-deadline=time.monotonic()+15
-while ({ignore_stop!r} or not (root/('fighter-session-'+pid+'.stop')).exists()) and time.monotonic()<deadline:
-    time.sleep(.02)
-ready.write_text('[session]\\nstate=complete\\n')
-''')
-    env = {k:v for k,v in os.environ.items() if not k.startswith('RECOMP_FIGHTER_')}
+sys.path.insert(0, {str(ROOT / 'tests/unit')!r})
+root = Path(sys.argv[sys.argv.index('--data-dir') + 1]) / 'mod-manager'
+with (root / 'commands.txt').open('a') as record:
+    record.write(sys.argv[1] + '\\n')
+assert sys.argv[1] == 'fighter-prepare', sys.argv
+{body}
+""", encoding='utf-8')
+    env = {k: v for k, v in os.environ.items() if not k.startswith('RECOMP_FIGHTER_')}
     env.pop('DEFJAM_INSTALL_DIR', None)
     env['DEFJAM_MOD_PYTHON'] = sys.executable
     return source, env
 
 
-def test_managed_native_bridge_refuses_stale_supervisor_and_acknowledges_exit(bridge, tmp_path):
-    import time
-    source, env = fighter_helper(tmp_path)
-    parent = subprocess.Popen([str(bridge), str(tmp_path), 'fighter'], cwd=source, env=env,
-                              stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    try:
-        assert parent.stdout.readline().strip() == '1'
-        heartbeat = next((tmp_path / 'mod-manager/fighter-sessions').glob('*/journal/supervisor.json'))
-        os.utime(heartbeat, (time.time()-30, time.time()-30))
-        output, error = parent.communicate('\n', timeout=15)
-        assert output.strip() == '0'
-        assert parent.returncode == 0
-        assert 'managed profile session completed' in error
-    finally:
-        if parent.poll() is None:
-            parent.kill(); parent.wait()
+def commands(root):
+    path = root / 'commands.txt'
+    return path.read_text().splitlines() if path.exists() else []
 
 
-@pytest.mark.parametrize('ignore_stop', [False, True])
-def test_managed_native_bridge_rejects_test_switch_in_ready_projection(bridge, tmp_path, ignore_stop):
-    source, env = fighter_helper(tmp_path, '[environment]\\nRECOMP_FIGHTER_TEST_SAVE_STOP=intent\\n',
-                                 ignore_stop=ignore_stop)
-    parent = subprocess.Popen([str(bridge), str(tmp_path), 'fighter'], cwd=source, env=env,
-                              stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    try:
-        _, error = parent.communicate('\n', timeout=10)
-        assert parent.returncode == 5
-        assert 'unsupported runtime setting' in error
-        assert (tmp_path / f'mod-manager/fighter-session-{parent.pid}.stop').read_text() == 'complete\n'
-        if not ignore_stop:
-            ready=(tmp_path / f'mod-manager/fighter-session-{parent.pid}.ini').read_text()
-            assert 'state=complete' in ready
-    finally:
-        # The fake helper has no parent watcher; let it exit without waiting for
-        # its timeout even when startup was refused.
-        (tmp_path / f'mod-manager/fighter-session-{parent.pid}.stop').write_text('complete')
-        if parent.poll() is None:
-            parent.kill(); parent.wait()
+def test_no_enabled_fighter_pack_leaves_the_game_inert(bridge, tmp_path):
+    root = fighter_data(tmp_path, enabled=False)
+    source, env = prepare_helper(tmp_path, 'raise SystemExit(9)')
+    result = subprocess.run([str(bridge), str(tmp_path), 'fighter', 'RECOMP_FIGHTER_NAMES'], cwd=source, env=env,
+                            capture_output=True, text=True, timeout=20)
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.splitlines() == ['0', 'RECOMP_FIGHTER_NAMES=']
+    assert commands(root) == []
 
 
-def test_managed_native_bridge_accepts_owned_timeline_and_cinematic_proofs(bridge, tmp_path):
-    names=('TAGS','TAGS_SHA256','CAMERAS','CAMERAS_SHA256','TIMELINE_BINDINGS','FILM_PROOFS')
-    projection='[environment]\\n'+''.join('RECOMP_FIGHTER_'+name+'=sealed-fixture\\n' for name in names)
-    source,env=fighter_helper(tmp_path,projection)
-    result=subprocess.run([str(bridge),str(tmp_path),'fighter'],cwd=source,env=env,
-                          input='\n',capture_output=True,text=True,timeout=15)
-    assert result.returncode==0,result.stderr
-    assert result.stdout.splitlines()==['1','1']
-    assert 'managed profile session completed' in result.stderr
+def test_fresh_manifest_plays_without_python_and_ignores_inherited_switches(bridge, tmp_path):
+    root = fighter_data(tmp_path)
+    cache = tmp_path / 'names.bin'
+    cache.write_bytes(b'names')
+    manifest(root, {'RECOMP_FIGHTER_NAMES': str(cache)}, [cache])
+    source, env = prepare_helper(tmp_path, 'raise SystemExit(9)')
+    env['RECOMP_FIGHTER_TEST_SAVE_STOP'] = 'sidecar'  # a stale shell or Steam launch option
+    result = subprocess.run([str(bridge), str(tmp_path), 'fighter', 'RECOMP_FIGHTER_NAMES', 'RECOMP_FIGHTER_TEST_SAVE_STOP'],
+                            cwd=source, env=env, capture_output=True, text=True, timeout=20)
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.splitlines() == ['1', 'RECOMP_FIGHTER_NAMES=' + str(cache), 'RECOMP_FIGHTER_TEST_SAVE_STOP=']
+    assert commands(root) == []
+    assert 'saves stay in save/' in result.stderr
+
+
+@pytest.mark.parametrize('change', ['size', 'missing', 'runtime', 'none'])
+def test_stale_manifest_is_rebuilt_once_before_play(bridge, tmp_path, change):
+    root = fighter_data(tmp_path)
+    cache = tmp_path / 'names.bin'
+    cache.write_bytes(b'names')
+    manifest(root, {'RECOMP_FIGHTER_NAMES': 'old'}, [cache])
+    if change == 'size':
+        cache.write_bytes(b'longer names')
+    elif change == 'missing':
+        cache.unlink()
+    elif change == 'runtime':
+        text = (root / 'fighter-manifest.ini').read_text().replace('runtime=0.0.0', 'runtime=1.2.0-beta.2')
+        (root / 'fighter-manifest.ini').write_text(text)
+    elif change == 'none':
+        (root / 'fighter-manifest.ini').unlink()
+    fresh = tmp_path / 'fresh.bin'
+    fresh.write_bytes(b'fresh')
+    source, env = prepare_helper(tmp_path, f"""
+from test_mod_bridge import manifest
+manifest(root, {{'RECOMP_FIGHTER_NAMES': 'new'}}, [Path({str(fresh)!r})])
+""")
+    result = subprocess.run([str(bridge), str(tmp_path), 'fighter', 'RECOMP_FIGHTER_NAMES'], cwd=source, env=env,
+                            capture_output=True, text=True, timeout=30)
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.splitlines() == ['1', 'RECOMP_FIGHTER_NAMES=new']
+    assert commands(root) == ['fighter-prepare']
+
+
+def test_beta_store_moves_back_into_save_even_with_no_pack_enabled(bridge, tmp_path):
+    root = fighter_data(tmp_path, enabled=False, head=True)
+    source, env = prepare_helper(tmp_path, """
+(root.parent / 'fighter-state').mkdir()
+(root.parent / 'fighter-state/migrated.json').write_text('{}')
+""")
+    result = subprocess.run([str(bridge), str(tmp_path), 'fighter'], cwd=source, env=env,
+                            capture_output=True, text=True, timeout=30)
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.splitlines() == ['0']
+    assert commands(root) == ['fighter-prepare']
+    # The move is done: the next launch does not start Python again.
+    again = subprocess.run([str(bridge), str(tmp_path), 'fighter'], cwd=source, env=env,
+                           capture_output=True, text=True, timeout=30)
+    assert again.returncode == 0 and commands(root) == ['fighter-prepare']
+
+
+def test_failed_preparation_refuses_play_with_the_helper_message(bridge, tmp_path):
+    root = fighter_data(tmp_path)
+    source, env = prepare_helper(tmp_path, """
+(root / 'progress.ini').write_text('[progress]\\nmessage=Fighter pack changed or is missing\\n')
+raise SystemExit(1)
+""")
+    result = subprocess.run([str(bridge), str(tmp_path), 'fighter'], cwd=source, env=env,
+                            capture_output=True, text=True, timeout=30)
+    assert result.returncode == 5
+    assert 'Fighter pack changed or is missing' in result.stderr
 
 
 @pytest.mark.parametrize('damage', [None, 'traversal', 'missing', 'redirect', 'root', 'budget'])
 def test_managed_ui_layer_is_verified_transient_and_last(bridge, tmp_path, damage):
     name='fighter-ui-'+'c'*24
     projected='../'+name if damage=='traversal' else name
-    source,env=fighter_helper(tmp_path,'[environment]\\nRECOMP_FIGHTER_UI_TEXTURE_PACK='+projected+'\\n')
+    root=fighter_data(tmp_path)
+    cache=tmp_path/'names.bin';cache.write_bytes(b'names')
+    manifest(root,{'RECOMP_FIGHTER_UI_TEXTURE_PACK':projected},[cache])
+    source,env=prepare_helper(tmp_path,'raise SystemExit(9)')
     env.pop('RECOMP_TEXTURE_ROOT',None);env.pop('RECOMP_TEXTURE_PACKS',None)
     folder=tmp_path/name
     if damage!='missing':
@@ -355,7 +411,7 @@ def test_managed_ui_layer_is_verified_transient_and_last(bridge, tmp_path, damag
         other=tmp_path/'other';other.mkdir();env['RECOMP_TEXTURE_ROOT']=str(other)
     env['RECOMP_TEXTURE_PACKS']='x'*1000 if damage=='budget' else 'existing-hd'
     result=subprocess.run([str(bridge),str(tmp_path),'fighter-ui'],cwd=source,env=env,
-                          input='\n',capture_output=True,text=True,timeout=15)
+                          capture_output=True,text=True,timeout=15)
     if damage is None:
         assert result.returncode==0,result.stderr
         lines=result.stdout.splitlines()

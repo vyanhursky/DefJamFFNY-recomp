@@ -255,8 +255,6 @@ static LRESULT CALLBACK translator_wndproc(HWND h, UINT msg, WPARAM wp, LPARAM l
      * the window and leave the title running with nothing to draw into; the
      * log line keeps a deliberate close from reading like a crash. */
     if (msg == WM_CLOSE) {
-        extern void pc_fighters_finish(void);
-        pc_fighters_finish();   /* TerminateProcess bypasses atexit. */
         pc_input_stop();        /* a pad must not be left vibrating */
         fprintf(stderr, "[TRANS] window closed by the user; exiting\n");
         fflush(stderr);

@@ -137,7 +137,7 @@ def tool(tmp_path_factory):
     wrapper = definition((ROOT / 'src/recomp_manual.c').read_text(encoding='utf-8'), 'sub_0003E170')
     driver.write_text(DRIVER.replace('@AUDIO_WRAPPER@', wrapper), encoding='utf-8')
     exe = folder / ('voice.exe' if os.name == 'nt' else 'voice')
-    sources = [str(driver), str(ROOT / 'src/patches/fighter_voice.c'), str(ROOT / 'src/patches/fighter_fatal.c'), str(ROOT / 'tests/unit/native_stubs/host_fatal.c')]
+    sources = [str(driver), str(ROOT / 'src/patches/fighter_voice.c'), str(ROOT / 'src/patches/fighter_fatal.c'), str(ROOT / 'src/patches/fighter_config.c'), str(ROOT / 'tests/unit/native_stubs/host_fatal.c')]
     if os.name == 'nt':
         command = [cc, '/nologo', '/W4', '/WX', '/D_CRT_SECURE_NO_WARNINGS',
                    '/I' + str(folder), '/I' + str(ROOT / 'src'), *sources, '/Fe:' + str(exe)]

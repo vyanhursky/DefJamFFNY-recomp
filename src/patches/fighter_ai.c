@@ -2,6 +2,7 @@
 #ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
 #endif
+#include "fighter_config.h"
 #include "fighter_ai.h"
 #include "fighter_fatal.h"
 #include "fighter_runtime.h"
@@ -30,12 +31,12 @@ static FILE *ai_open(const char *path) {
 #endif
 }
 int defjam_fighter_ai_start(void) {
-    const char *path = getenv("RECOMP_FIGHTER_AI");
-    const char *bindings = getenv("RECOMP_FIGHTER_AI_BINDINGS");
-    const char *hash = getenv("RECOMP_FIGHTER_AI_SHA256");
+    const char *path = defjam_fighter_env("RECOMP_FIGHTER_AI");
+    const char *bindings = defjam_fighter_env("RECOMP_FIGHTER_AI_BINDINGS");
+    const char *hash = defjam_fighter_env("RECOMP_FIGHTER_AI_SHA256");
     if (!path || !*path) return (!bindings || !*bindings) && (!hash || !*hash);
     if (!defjam_fighter_research_active() || s_count || !bindings || !*bindings
-        || strlen(bindings) >= 2048 || !mod_file_matches(path, hash)) return 0;
+        || strlen(bindings) >= 2048 || !defjam_fighter_file_matches(path, hash)) return 0;
     FILE *file = ai_open(bindings);
     if (!file) return 0;
     uint8_t *table = (uint8_t *)malloc(AI_TABLE_LIMIT + 1);

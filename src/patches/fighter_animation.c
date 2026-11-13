@@ -3,6 +3,7 @@
 #ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
 #endif
+#include "fighter_config.h"
 #include "fighter_animation.h"
 #include "fighter_runtime.h"
 #include "hooks/mod_sha256.h"
@@ -26,12 +27,12 @@ static FILE *animation_open(const char *path) {
 #endif
 }
 int defjam_fighter_animation_start(void) {
-    const char *path = getenv("RECOMP_FIGHTER_ANIMATIONS");
-    const char *bindings = getenv("RECOMP_FIGHTER_ANIMATION_BINDINGS");
-    const char *hash = getenv("RECOMP_FIGHTER_ANIMATIONS_SHA256");
+    const char *path = defjam_fighter_env("RECOMP_FIGHTER_ANIMATIONS");
+    const char *bindings = defjam_fighter_env("RECOMP_FIGHTER_ANIMATION_BINDINGS");
+    const char *hash = defjam_fighter_env("RECOMP_FIGHTER_ANIMATIONS_SHA256");
     if (!path || !*path) return (!bindings || !*bindings) && (!hash || !*hash);
     if (!defjam_fighter_research_active() || s_count || !bindings || !*bindings
-        || strlen(bindings) >= 2048 || !mod_file_matches(path, hash)) return 0;
+        || strlen(bindings) >= 2048 || !defjam_fighter_file_matches(path, hash)) return 0;
     FILE *file = animation_open(bindings);
     if (!file) return 0;
     uint8_t *table = (uint8_t *)malloc(ANIMATION_TABLE_LIMIT + 1);

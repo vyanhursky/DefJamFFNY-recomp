@@ -2,6 +2,7 @@
 #ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
 #endif
+#include "fighter_config.h"
 #include "fighter_film_proof.h"
 #include "recomp/gen/recomp_types.h"
 #include "fighter_cpu_pool.h"
@@ -37,9 +38,9 @@ static FILE *open_file(const char *path) {
 #endif
 }
 int defjam_fighter_film_start(void) {
-    const char *path=getenv("RECOMP_FIGHTER_FILM_PROOFS");if (!path || !*path) return defjam_fighter_cinematic_proofs();
-    const char *archive=getenv("RECOMP_FIGHTER_CINEMATIC_BANKS"),*hash=getenv("RECOMP_FIGHTER_CINEMATIC_BANKS_SHA256");
-    if (s_count || strlen(path)>=2048 || !archive || !hash || !mod_file_matches(archive,hash)) return 0;
+    const char *path=defjam_fighter_env("RECOMP_FIGHTER_FILM_PROOFS");if (!path || !*path) return defjam_fighter_cinematic_proofs();
+    const char *archive=defjam_fighter_env("RECOMP_FIGHTER_CINEMATIC_BANKS"),*hash=defjam_fighter_env("RECOMP_FIGHTER_CINEMATIC_BANKS_SHA256");
+    if (s_count || strlen(path)>=2048 || !archive || !hash || !defjam_fighter_file_matches(archive,hash)) return 0;
     FILE *file=open_file(path);if (!file) return 0;
     uint8_t *data=(uint8_t *)malloc((64u<<20)+1);if (!data) {fclose(file);return 0;}
     size_t bytes=fread(data,1,(64u<<20)+1,file);int valid=!ferror(file) && bytes>=52 && bytes<=(64u<<20);

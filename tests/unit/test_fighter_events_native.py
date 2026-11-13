@@ -52,7 +52,7 @@ def tool(tmp_path_factory):
     (folder/'recomp/gen/recomp_types.h').write_text(TYPES,encoding='utf-8')
     driver=folder/'driver.c';driver.write_text(DRIVER,encoding='utf-8')
     exe=folder/('events.exe' if os.name=='nt' else 'events')
-    sources=[str(driver),str(ROOT/'src/patches/fighter_events.c')]
+    sources=[str(driver),str(ROOT/'src/patches/fighter_events.c'),str(ROOT/'src/patches/fighter_config.c')]
     command=([cc,'/nologo','/W4','/WX','/D_CRT_SECURE_NO_WARNINGS','/I'+str(folder),'/I'+str(ROOT/'src'),*sources,'/Fe:'+str(exe)]
              if os.name=='nt' else [cc,'-std=c11','-D_POSIX_C_SOURCE=200809L','-Wall','-Wextra','-Werror',
                                     '-I',str(folder),'-I',str(ROOT/'src'),*sources,'-o',str(exe)])

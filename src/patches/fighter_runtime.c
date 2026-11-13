@@ -1,4 +1,5 @@
 #define _CRT_SECURE_NO_WARNINGS
+#include "fighter_config.h"
 #include "fighter_runtime.h"
 #include "fighter_fatal.h"
 #include "fighter_caf.h"
@@ -15,7 +16,6 @@
 #include "hooks/fighter_bindings.h"
 #include "hooks/fighter_unlocks.h"
 #include "hooks/fighter_window.h"
-#include "hooks/fighter_save_io.h"
 #include "hooks/guest_call.h"
 #include "hooks/pc_language.h"
 #include "host.h"
@@ -25,8 +25,10 @@
 #include <string.h>
 #if defined(_WIN32)
 #include <io.h>
+#include <direct.h>
 #else
 #include <unistd.h>
+#include <sys/stat.h>
 #endif
 #if !defined(_WIN32)
 #include <sched.h>
@@ -63,17 +65,21 @@ int defjam_fighter_research_active(void) { return s_probe && s_research_sod[0]; 
 static char s_research_assets[3][2048];
 static const char *s_asset_targets[3] = { "assets/v2ip.viv", "assets/entity.xml", "assets/nis.viv" };
 static const char *s_asset_env[3] = { "RECOMP_FIGHTER_RESEARCH_MODELS", "RECOMP_FIGHTER_RESEARCH_ENTITIES", "RECOMP_FIGHTER_RESEARCH_CINEMATICS" };
-static char s_journal[2048];
+/* Custom unlocks live in <state>/unlocks.ini, a sidecar the game writes itself
+ * before each Options save. Saves stay in save/; the Options file there is
+ * always a retail one. */
+static char s_state_dir[2048];
 static uint8_t s_live_settings[FIGHTER_SETTINGS_SIZE];
 static int s_projecting_settings;
-typedef struct FighterPendingSave { char name[32]; uint32_t name_size, size; uint8_t identity[64], payload[0x5904]; } FighterPendingSave;
-static FighterPendingSave s_pending[16];
-typedef struct FighterExpectedSave { FighterPendingSave save; uint32_t batch, index; int active; } FighterExpectedSave;
-static FighterExpectedSave s_expected[16];
-static FighterSaveIO s_save_io;
-static uint32_t s_pending_count, s_batch_number, s_custom_count;
+static uint32_t s_custom_count;
+static int s_custom_dirty;
 static int s_test_save_stop;
-static void await_save_commit(void);
+static uint8_t *s_identity_bytes;
+static uint32_t s_identity_count;
+static uint32_t s_identity_handles[FIGHTER_BINDINGS_MAX_COUNT];
+static const char *s_identity_names[FIGHTER_BINDINGS_MAX_COUNT];
+static char *s_unknown_lines;
+static size_t s_unknown_size;
 static uint32_t s_custom_keys[FIGHTER_BINDINGS_MAX_COUNT], s_custom_metadata[FIGHTER_BINDINGS_MAX_COUNT];
 static uint32_t read_word(const uint8_t *p);
 static int remember_custom(uint32_t mark);
@@ -141,26 +147,223 @@ static BOOL research_redirect(const char *relative, fighter_host_char *host_path
     return s_previous_redirect ? s_previous_redirect(relative, host_path, size) : FALSE;
 }
 
+#define FIGHTER_SIDECAR_MAX (1u << 20)
+
+static uint8_t *read_small_file(const char *path, size_t limit, size_t *size) {
+    FILE *file = open_utf8(path);
+    uint8_t *bytes;
+    if (!file) return NULL;
+    bytes = (uint8_t *)malloc(limit + 1);
+    if (!bytes) { fclose(file); return NULL; }
+    *size = fread(bytes, 1, limit + 1, file);
+    if (ferror(file) || *size > limit) { fclose(file); free(bytes); return NULL; }
+    fclose(file);
+    bytes[*size] = 0;
+    return bytes;
+}
+
+/* A pack/fighter name from the binding ledger: printable, one slash, no '=' or spaces. */
+static int sidecar_name(const char *name) {
+    unsigned slashes = 0, length = 0;
+    for (; name[length]; ++length) {
+        unsigned char c = (unsigned char)name[length];
+        if (c <= 32 || c > 126 || c == '=' || c == '[' || c == '#' || c == ';') return 0;
+        slashes += c == '/';
+    }
+    return length && length <= 161 && slashes == 1;
+}
+
+/* RECOMP_FIGHTER_IDENTITIES: "HHHHHHHH pack/fighter" per custom ledger entry. */
+static int load_identities(const char *path) {
+    size_t size = 0;
+    char *line, *next;
+    s_identity_bytes = path && *path ? read_small_file(path, FIGHTER_SIDECAR_MAX, &size) : NULL;
+    if (!s_identity_bytes) {
+        fprintf(stderr, "[FIGHTERS] fighter identity names are missing; launch refused\n");
+        return 0;
+    }
+    for (line = (char *)s_identity_bytes; line && *line; line = next) {
+        char *end;
+        unsigned long handle;
+        FighterBinding binding;
+        next = strchr(line, '\n');
+        if (next) *next++ = 0;
+        if (*line && line[strlen(line) - 1] == '\r') line[strlen(line) - 1] = 0;
+        if (!*line || *line == '#') continue;
+        handle = strtoul(line, &end, 16);
+        if (end != line + 8 || *end != ' ' || !sidecar_name(end + 1) || s_identity_count >= FIGHTER_BINDINGS_MAX_COUNT
+            || !fighter_bindings_find(&s_bindings, FIGHTER_BINDING_STABLE, (uint32_t)handle, &binding) || !(binding.flags & 1)) {
+            fprintf(stderr, "[FIGHTERS] fighter identity names do not match the bindings; launch refused\n");
+            return 0;
+        }
+        s_identity_handles[s_identity_count] = (uint32_t)handle;
+        s_identity_names[s_identity_count++] = end + 1;
+    }
+    return 1;
+}
+
+static const char *identity_name(uint32_t handle) {
+    for (uint32_t i = 0; i < s_identity_count; ++i) if (s_identity_handles[i] == handle) return s_identity_names[i];
+    return NULL;
+}
+
+static int identity_handle(const char *name, uint32_t *handle) {
+    for (uint32_t i = 0; i < s_identity_count; ++i)
+        if (!strcmp(s_identity_names[i], name)) { *handle = s_identity_handles[i]; return 1; }
+    return 0;
+}
+
+static void sidecar_path(char *out, size_t size, const char *leaf) {
+    snprintf(out, size, "%s/%s", s_state_dir, leaf);
+}
+
+/* Read <state>/unlocks.ini. A missing file means no custom unlock yet. Names
+ * of packs that are not installed are kept, untouched, for the next write. */
+static int load_sidecar(void) {
+    char path[2112];
+    size_t size = 0;
+    uint8_t *bytes;
+    char *line, *next;
+    int section = 0;
+    sidecar_path(path, sizeof path, "unlocks.ini");
+    {
+        FILE *probe = open_utf8(path);
+        if (!probe) { fprintf(stderr, "[FIGHTERS] no custom unlocks saved yet\n"); return 1; }
+        fclose(probe);
+    }
+    bytes = read_small_file(path, FIGHTER_SIDECAR_MAX, &size);
+    s_unknown_lines = (char *)malloc(FIGHTER_SIDECAR_MAX + 1);
+    if (!bytes || !s_unknown_lines) {
+        free(bytes);
+        fprintf(stderr, "[FIGHTERS] cannot read the custom unlock file; launch refused, file kept\n");
+        return 0;
+    }
+    for (line = (char *)bytes; line && *line; line = next) {
+        char *equals, *value;
+        uint32_t handle;
+        next = strchr(line, '\n');
+        if (next) *next++ = 0;
+        if (*line && line[strlen(line) - 1] == '\r') line[strlen(line) - 1] = 0;
+        if (!*line || *line == '#' || *line == ';') continue;
+        if (!strcmp(line, "[fighter-unlocks]")) { section = 1; continue; }
+        equals = strchr(line, '=');
+        if (!section || !equals) goto malformed;
+        *equals = 0; value = equals + 1;
+        if (!strcmp(line, "schema")) { if (strcmp(value, "1")) goto malformed; continue; }
+        if (!sidecar_name(line) || (strcmp(value, "0") && strcmp(value, "1"))) goto malformed;
+        if (identity_handle(line, &handle)) {
+            remember_custom(handle | (*value == '1' ? FIGHTER_UNLOCK_METADATA : 0));
+        } else {
+            int written = snprintf(s_unknown_lines + s_unknown_size, FIGHTER_SIDECAR_MAX + 1 - s_unknown_size, "%s=%s\n", line, value);
+            if (written < 0 || (size_t)written > FIGHTER_SIDECAR_MAX - s_unknown_size) goto malformed;
+            s_unknown_size += (size_t)written;
+        }
+    }
+    free(bytes);
+    s_custom_dirty = 0;
+    fprintf(stderr, "[FIGHTERS] restored %u custom unlocks from %s (%zu bytes kept for packs not installed)\n",
+            s_custom_count, path, s_unknown_size);
+    return 1;
+malformed:
+    free(bytes);
+    fprintf(stderr, "[FIGHTERS] custom unlock file %s is malformed; launch refused, file kept\n", path);
+    return 0;
+}
+
+static FILE *open_write_utf8(const char *path) {
+#if defined(_WIN32)
+    wchar_t wide[2112];
+    return MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, path, -1, wide, 2112) ? _wfopen(wide, L"wb") : NULL;
+#else
+    return fopen(path, "wb");
+#endif
+}
+
+static void make_state_dir(void) {
+#if defined(_WIN32)
+    wchar_t wide[2112];
+    if (MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, s_state_dir, -1, wide, 2112)) _wmkdir(wide);
+#else
+    mkdir(s_state_dir, 0777);
+#endif
+}
+
+/* Temporary file, flush to disk, then a replacing rename: a crash leaves
+ * either the previous sidecar or the new one, never a torn file. A failure is
+ * logged and retried at the next save; it never stops the game. */
+static int write_sidecar(void) {
+    char path[2112], temporary[2112];
+    size_t capacity = 256 + (size_t)s_custom_count * 176 + s_unknown_size, size = 0;
+    char *text = (char *)malloc(capacity);
+    FILE *file;
+    int ok;
+    if (!text) return 0;
+    size += (size_t)snprintf(text, capacity, "%s",
+        "# Custom fighter unlocks. Written by the game; keys are pack/fighter names.\n"
+        "# 1 = the unlock carries the game's extra flag bit. Unknown names are kept.\n"
+        "[fighter-unlocks]\nschema=1\n");
+    for (uint32_t i = 0; i < s_custom_count; ++i) {
+        const char *name = identity_name(s_custom_keys[i]);
+        if (!name) {
+            fprintf(stderr, "[FIGHTERS] custom unlock %08X has no name; not written\n", s_custom_keys[i]);
+            continue;
+        }
+        size += (size_t)snprintf(text + size, capacity - size, "%s=%d\n", name, s_custom_metadata[i] ? 1 : 0);
+    }
+    if (s_unknown_size) { memcpy(text + size, s_unknown_lines, s_unknown_size); size += s_unknown_size; }
+    make_state_dir();
+    sidecar_path(path, sizeof path, "unlocks.ini");
+    sidecar_path(temporary, sizeof temporary, "unlocks.ini.tmp");
+    file = open_write_utf8(temporary);
+    ok = file && fwrite(text, 1, size, file) == size && !fflush(file);
+#if defined(_WIN32)
+    ok = ok && !_commit(_fileno(file));
+#else
+    ok = ok && !fsync(fileno(file));
+#endif
+    if (file && fclose(file)) ok = 0;
+    if (ok) {
+#if defined(_WIN32)
+        wchar_t from[2112], to[2112];
+        ok = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, temporary, -1, from, 2112)
+            && MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, path, -1, to, 2112)
+            && MoveFileExW(from, to, MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH);
+#else
+        ok = !rename(temporary, path);
+#endif
+    }
+    free(text);
+    if (!ok) { fprintf(stderr, "[FIGHTERS] could not write custom unlocks to %s; will retry at the next save\n", path); return 0; }
+    s_custom_dirty = 0;
+    fprintf(stderr, "[FIGHTERS] custom unlocks written: %u (%s)\n", s_custom_count, path);
+    return 1;
+}
+
+static void test_save_stop(int point) {
+    if (s_test_save_stop != point) return;
+    fprintf(stderr, "[FIGHTERS-TEST] interrupted native save: point=%s exit=86\n", point == 1 ? "sidecar" : "options");
+    fflush(stderr);
+    _Exit(86); /* Test control only (RECOMP_FIGHTER_TEST_SAVE_STOP): bypass all cleanup, like a crash. */
+}
+
 static int research_start(void) {
     if (!defjam_fighter_caf_start()) return 0;
-    const char *sod = getenv("RECOMP_FIGHTER_RESEARCH_SOD");
-    const char *screens = getenv("RECOMP_FIGHTER_RESEARCH_SCREENS");
-    const char *language_base = getenv("RECOMP_FIGHTER_RESEARCH_LANGUAGE_BASE");
-    const char *screens_hash = getenv("RECOMP_FIGHTER_RESEARCH_SCREENS_SHA256");
-    const char *bindings = getenv("RECOMP_FIGHTER_BINDINGS");
+    const char *sod = defjam_fighter_env("RECOMP_FIGHTER_RESEARCH_SOD");
+    const char *screens = defjam_fighter_env("RECOMP_FIGHTER_RESEARCH_SCREENS");
+    const char *language_base = defjam_fighter_env("RECOMP_FIGHTER_RESEARCH_LANGUAGE_BASE");
+    const char *screens_hash = defjam_fighter_env("RECOMP_FIGHTER_RESEARCH_SCREENS_SHA256");
+    const char *bindings = defjam_fighter_env("RECOMP_FIGHTER_BINDINGS");
     const char *data = getenv("DEFJAM_DATA"), *settings = getenv("RECOMP_SETTINGS"), *leaf;
-    extern const char *pc_fighters_data_root(void);
-    const char *managed = pc_fighters_data_root();
-    if (managed) data = managed;
+    const int managed = defjam_fighter_managed();
     unsigned assets = 0;
     for (unsigned i = 0; i < 3; ++i) {
-        const char *path = getenv(s_asset_env[i]);
+        const char *path = defjam_fighter_env(s_asset_env[i]);
         char hash_env[96];
         const char *hash;
         snprintf(hash_env, sizeof hash_env, "%s_SHA256", s_asset_env[i]);
-        hash = getenv(hash_env);
+        hash = defjam_fighter_env(hash_env);
         if (path && *path) {
-            if (!sod || !*sod || !mod_file_matches(path, hash)) {
+            if (!sod || !*sod || !defjam_fighter_file_matches(path, hash)) {
                 fprintf(stderr, "[FIGHTERS] appearance cache failed its receipt; launch refused\n");
                 return 0;
             }
@@ -176,13 +379,12 @@ static int research_start(void) {
         && (!screens_hash || !*screens_hash) && defjam_fighter_motion_start()
         && defjam_fighter_voice_start() && defjam_fighter_animation_start() && defjam_fighter_ai_start()
         && defjam_fighter_cinematic_start() && defjam_fighter_events_start() && defjam_fighter_film_start() && defjam_fighter_finishers_start();
-    /* This development entry point cannot use the normal profile namespace or
-     * player settings. The probe driver owns this disposable data root and the
-     * harness guards its complete save directory. No runtime capability is
-     * advertised until persistence, menus and authored assets are accepted. */
+    /* Normal Play reads the launcher's manifest and saves into the player's own
+     * save/. Without a manifest this is the research entry point, which still
+     * needs the probe driver's disposable data root and no player settings. */
     leaf = data ? data + strlen(data) : NULL;
     while (leaf && leaf > data && leaf[-1] != '/' && leaf[-1] != '\\') --leaf;
-    if (!leaf || strcmp(leaf, "fighter-runtime-probe") || (!managed && (!settings || strcmp(settings, "none")))
+    if ((!managed && (!leaf || strcmp(leaf, "fighter-runtime-probe") || !settings || strcmp(settings, "none")))
         || !s_names.bytes || strlen(sod) >= sizeof s_research_sod
         || (screens && strlen(screens) >= sizeof s_research_screens)) {
         fprintf(stderr, "[FIGHTERS] research roster requires the isolated probe driver; launch refused\n");
@@ -202,7 +404,7 @@ static int research_start(void) {
         fclose(file);
     }
     {
-        const char *path = getenv("RECOMP_FIGHTER_WINDOW");
+        const char *path = defjam_fighter_env("RECOMP_FIGHTER_WINDOW");
         if (path && *path) {
             FILE *file = open_utf8(path);
             size_t count;
@@ -228,49 +430,25 @@ static int research_start(void) {
                     || fighter_bindings_find(&s_bindings, FIGHTER_BINDING_NATIVE, s_window.banks[i].native_handle, &binding)) return 0;
             }
             fprintf(stderr, "[FIGHTERS] participant window: %u logical fighters, %u native banks\n", s_window.count, FIGHTER_WINDOW_BANKS);
-            path = getenv("RECOMP_FIGHTER_IMMUTABLE_REUSE");
+            path = defjam_fighter_env("RECOMP_FIGHTER_IMMUTABLE_REUSE");
             if (path && strcmp(path, "0") && strcmp(path, "1")) return 0;
             s_immutable_reuse = path && !strcmp(path, "1");
         }
-        /* Profile transactions outlive the active roster. Removing the final
-         * pack must still save retail progress and retain dormant identities. */
-        path = getenv("RECOMP_FIGHTER_SAVE_JOURNAL");
-        if (s_window.bytes || (path && *path)) {
-            if (!path || !*path || strlen(path) >= sizeof s_journal - 64) return 0;
-            strcpy(s_journal, path);
-            path = getenv("RECOMP_FIGHTER_TEST_SAVE_STOP");
+        /* Custom unlocks outlive the active roster: a disabled pack's marks stay
+         * in the sidecar under its name and come back when it is enabled again. */
+        if (s_window.bytes) {
+            path = defjam_fighter_env("RECOMP_FIGHTER_STATE");
+            if (!path || !*path || strlen(path) >= sizeof s_state_dir - 64) {
+                fprintf(stderr, "[FIGHTERS] no custom unlock folder; launch refused\n"); return 0;
+            }
+            strcpy(s_state_dir, path);
+            path = defjam_fighter_env("RECOMP_FIGHTER_TEST_SAVE_STOP");
             if (path && *path) {
-                if (!strcmp(path, "intent")) s_test_save_stop = 1;
-                else if (!strcmp(path, "options-header")) s_test_save_stop = 2;
-                else if (!strcmp(path, "profile-header")) s_test_save_stop = 3;
+                if (!strcmp(path, "sidecar")) s_test_save_stop = 1;
+                else if (!strcmp(path, "options")) s_test_save_stop = 2;
                 else return 0;
             }
-            path = getenv("RECOMP_FIGHTER_UNLOCKS");
-            if (!path || !*path) return 0;
-            {
-                uint8_t *bytes = (uint8_t *)malloc(17 + FIGHTER_BINDINGS_MAX_COUNT * 8);
-                FILE *file = open_utf8(path);
-                size_t size;
-                uint32_t total, previous = 0;
-                if (!bytes || !file) { free(bytes); if (file) fclose(file); return 0; }
-                size = fread(bytes, 1, 17 + FIGHTER_BINDINGS_MAX_COUNT * 8, file);
-                if (ferror(file) || size < 16 || memcmp(bytes, "FUM1", 4) || read_word(bytes + 4) != 1 || read_word(bytes + 12)) {
-                    fclose(file); free(bytes); return 0;
-                }
-                fclose(file); total = read_word(bytes + 8);
-                if (total > FIGHTER_BINDINGS_MAX_COUNT || size != 16u + total * 8u) { free(bytes); return 0; }
-                for (uint32_t i = 0; i < total; ++i) {
-                    uint32_t handle = read_word(bytes + 16 + i * 8), metadata = read_word(bytes + 20 + i * 8);
-                    FighterBinding binding;
-                    if ((i && handle <= previous) || (metadata != 0 && metadata != FIGHTER_UNLOCK_METADATA)
-                        || !fighter_bindings_find(&s_bindings, FIGHTER_BINDING_STABLE, handle, &binding) || !(binding.flags & 1)) {
-                        free(bytes); return 0;
-                    }
-                    remember_custom(handle | metadata); previous = handle;
-                }
-                free(bytes);
-                fprintf(stderr, "[FIGHTERS] restored %u historical custom unlock marks\n", s_custom_count);
-            }
+            if (!load_identities(defjam_fighter_env("RECOMP_FIGHTER_IDENTITIES")) || !load_sidecar()) return 0;
         }
     }
     strcpy(s_research_sod, sod);
@@ -295,14 +473,15 @@ static int research_start(void) {
     }
     s_previous_redirect = g_xbox_game_file_redirect;
     g_xbox_game_file_redirect = research_redirect;
-    fprintf(stderr, "[FIGHTERS] experimental roster enabled in disposable probe namespace only\n");
+    fprintf(stderr, managed ? "[FIGHTERS] fighter packs enabled; saves stay in save/\n"
+                            : "[FIGHTERS] research roster enabled in the disposable probe namespace\n");
     return 1;
 }
 
 int defjam_fighter_runtime_start(void) {
-    const char *path = getenv("RECOMP_FIGHTER_NAMES");
+    const char *path = defjam_fighter_env("RECOMP_FIGHTER_NAMES");
     const char *trace = getenv("RECOMP_TRACE_FIGHTER_NAMES");
-    const char *probe = getenv("RECOMP_FIGHTER_NAMES_PROBE");
+    const char *probe = defjam_fighter_env("RECOMP_FIGHTER_NAMES_PROBE");
     FILE *file = NULL;
     size_t count;
     s_trace = trace && *trace && strcmp(trace, "0");
@@ -526,10 +705,11 @@ static int remember_custom(uint32_t mark) {
     for (uint32_t i = 0; i < s_custom_count; ++i) if (s_custom_keys[i] == identity) {
         uint32_t metadata = mark & FIGHTER_UNLOCK_METADATA;
         int changed = s_custom_metadata[i] != metadata;
-        s_custom_metadata[i] = metadata; return changed;
+        s_custom_metadata[i] = metadata; if (changed) s_custom_dirty = 1; return changed;
     }
     if (s_custom_count >= FIGHTER_BINDINGS_MAX_COUNT) fighter_stop("Historical custom unlock journal is full.");
     s_custom_keys[s_custom_count] = identity; s_custom_metadata[s_custom_count++] = mark & FIGHTER_UNLOCK_METADATA;
+    s_custom_dirty = 1;
     return 1;
 }
 
@@ -544,32 +724,13 @@ static void custom_progress_changed(void) {
     fprintf(stderr, "[FIGHTERS] custom progress changed; native Options save requested\n");
 }
 
-static FighterPendingSave *pending_save(void) {
-    if (s_pending_count >= 16) fighter_stop("Native fighter save batch exceeds its reviewed record budget.");
-    return &s_pending[s_pending_count++];
-}
-
-static void expect_save(const FighterPendingSave *save) {
-    lock_names();
-    for (uint32_t i = 0; i < 16; ++i) if (!s_expected[i].active) {
-        s_expected[i].save = *save;
-        s_expected[i].batch = s_batch_number + 1;
-        s_expected[i].index = s_pending_count - 1;
-        s_expected[i].active = 1;
-        unlock_names(); return;
-    }
-    unlock_names(); fighter_stop("Too many native fighter saves await file-close acknowledgement.");
-}
-
 void defjam_fighter_settings_saving(void) {
     if (!s_bindings.bytes) return;
-    if (s_journal[0]) await_save_commit();
     if (!s_settings || MEM32(s_settings + 0x20) != MEM32(s_settings + 0x1264))
         fighter_stop("Native fighter unlock counts disagree before save staging.");
     defjam_fighter_settings_validate(s_settings, s_settings + 0x4C);
-    if (s_journal[0]) {
+    if (s_state_dir[0]) {
         uint32_t count = MEM32(s_settings + 0x20), kept = 0;
-        FighterPendingSave *save = pending_save();
         if (s_projecting_settings) fighter_stop("Reentrant native Options projection.");
         memcpy(s_live_settings, (const void *)XBOX_PTR(s_settings + 0x4C), FIGHTER_SETTINGS_SIZE);
         for (uint32_t i = 0; i < count; ++i) {
@@ -579,14 +740,16 @@ void defjam_fighter_settings_saving(void) {
             if (fighter_bindings_find(&s_bindings, FIGHTER_BINDING_STABLE, mark & ~FIGHTER_UNLOCK_METADATA, &binding) && !(binding.flags & 1))
                 MEM32(s_settings + 0x12E0 + kept++ * 4) = mark;
         }
+        /* The Options file the game is about to write holds retail marks only,
+         * so any build (or v1.1.1) reads it. Custom marks go to the sidecar
+         * first: a crash between the two writes keeps an unlock rather than
+         * losing one. */
         MEM32(s_settings + 0x1264) = kept;
         for (uint32_t i = kept; i < FIGHTER_UNLOCK_CAPACITY; ++i) MEM32(s_settings + 0x12E0 + i * 4) = UINT32_MAX;
-        memset(save, 0, sizeof *save); memcpy(save->name, "Options", 7); save->name_size = 7; save->size = FIGHTER_SETTINGS_SIZE;
-        memcpy(save->identity, (const void *)XBOX_PTR(s_settings + 0x1738), 64);
-        memcpy(save->payload, (const void *)XBOX_PTR(s_settings + 0x4C), FIGHTER_SETTINGS_SIZE);
-        expect_save(save);
+        if (s_custom_dirty) write_sidecar();
+        test_save_stop(1);
         s_projecting_settings = 1;
-        fprintf(stderr, "[FIGHTERS] staged retail-only Options: %u marks, %u historical custom marks\n", kept, s_custom_count);
+        fprintf(stderr, "[FIGHTERS] saving retail-only Options: %u marks, %u custom unlocks in the sidecar\n", kept, s_custom_count);
     }
 }
 
@@ -594,206 +757,7 @@ void defjam_fighter_settings_saved(void) {
     if (!s_projecting_settings) return;
     memcpy((void *)XBOX_PTR(s_settings + 0x4C), s_live_settings, FIGHTER_SETTINGS_SIZE);
     s_projecting_settings = 0;
-}
-
-void defjam_fighter_profile_staging(uint32_t name, uint32_t payload) {
-    FighterPendingSave *save;
-    if (!s_journal[0]) return;
-    await_save_commit();
-    save = pending_save(); memset(save, 0, sizeof *save);
-    while (save->name_size < 32 && MEM8(name + save->name_size)) {
-        uint8_t c = MEM8(name + save->name_size);
-        if (c < 32 || c > 126 || strchr("\\/:*?\"<>|", c)) fighter_stop("Unsafe native profile staging name.");
-        save->name[save->name_size++] = (char)c;
-    }
-    if (!save->name_size || MEM8(name + save->name_size)) fighter_stop("Native profile staging name exceeds its budget.");
-    save->size = 0x5904;
-    memcpy(save->identity, (const void *)XBOX_PTR(s_settings + 0x16F8), 64);
-    memcpy(save->payload, (const void *)XBOX_PTR(payload), save->size);
-    expect_save(save);
-}
-
-static void journal_word(FILE *file, uint32_t value) {
-    uint8_t bytes[4] = {(uint8_t)value, (uint8_t)(value >> 8), (uint8_t)(value >> 16), (uint8_t)(value >> 24)};
-    if (fwrite(bytes, 1, 4, file) != 4) fighter_stop("Could not stage fighter save journal.");
-}
-
-static FILE *open_journal(const char *path) {
-#if defined(_WIN32)
-    wchar_t wide[2112];
-    if (!MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, path, -1, wide, 2112)) fighter_stop("Invalid fighter journal path.");
-    return _wfopen(wide, L"wbx");
-#else
-    return fopen(path, "wbx");
-#endif
-}
-
-static void finish_journal(FILE *file, const char *temporary, const char *destination) {
-    if (ferror(file) || fflush(file)) fighter_stop("Could not flush fighter save journal.");
-#if defined(_WIN32)
-    if (_commit(_fileno(file))) fighter_stop("Could not sync fighter save journal.");
-    if (fclose(file)) fighter_stop("Could not close fighter save journal.");
-    {
-        wchar_t from[2112], to[2112];
-        if (!MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, temporary, -1, from, 2112)
-            || !MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, destination, -1, to, 2112)
-            || !MoveFileExW(from, to, MOVEFILE_WRITE_THROUGH)) fighter_stop("Could not publish fighter save journal.");
-    }
-#else
-    if (fsync(fileno(file))) fighter_stop("Could not sync fighter save journal.");
-    if (fclose(file)) fighter_stop("Could not close fighter save journal.");
-    if (rename(temporary, destination)) fighter_stop("Could not publish fighter save journal.");
-#endif
-}
-
-/* Do not let a subsequent operation overwrite files still being verified.
- * Waiting here (before staging/deleting), not on the first CloseHandle, lets
- * the previous native worker finish every file and its companion metadata. */
-static void await_save_commit(void) {
-    extern int pc_fighters_healthy(void);
-    if (!pc_fighters_healthy()) fighter_stop("The Fighter profile supervisor stopped. Restart from the last committed save; do not continue this session.");
-    char path[2048];
-    if (!s_batch_number) return;
-    snprintf(path, sizeof path, "%s/%06u.committed", s_journal, s_batch_number);
-    for (unsigned attempt = 0; attempt < 1000; ++attempt) {
-        FILE *file = open_utf8(path);
-        if (file) {
-            uint8_t bytes[9];
-            size_t size = fread(bytes, 1, sizeof bytes, file);
-            int failed = ferror(file);
-            fclose(file);
-            if (failed || size != 8 || memcmp(bytes, "FSC1", 4) || read_word(bytes + 4) != s_batch_number)
-                fighter_stop("Invalid fighter save publication acknowledgement.");
-            return;
-        }
-#if defined(_WIN32)
-        Sleep(10);
-#else
-        usleep(10000);
-#endif
-    }
-    fighter_stop("Previous fighter save was not committed; reload the last verified profile.");
-}
-
-static void test_save_stop(int point) {
-    if (s_test_save_stop != point) return;
-    fprintf(stderr, "[FIGHTERS-TEST] interrupted native save: point=%d batch=%u exit=86\n", point, s_batch_number);
-    fflush(stderr);
-    _Exit(86); /* Internal isolated research only; bypass all native cleanup. */
-}
-
-int defjam_fighter_profile_delete_begin(uint32_t root, uint32_t name, char snapshot[33]) {
-    unsigned length = 0;
-    if (!s_journal[0]) return 0;
-    if (!root || !name || (MEM8(root) != 'U' && MEM8(root) != 'u')
-        || MEM8(root + 1) != ':' || MEM8(root + 2) != '\\' || MEM8(root + 3))
-        fighter_stop("Unreviewed native profile deletion namespace.");
-    await_save_commit();
-    if (s_pending_count) fighter_stop("Native deletion crossed an unsealed save operation.");
-    memset(snapshot, 0, 33);
-    while (length < 32 && MEM16(name + length * 2)) {
-        uint16_t c = MEM16(name + length * 2);
-        if (c < 32 || c > 126 || strchr("\\/:*?\"<>|", (char)c))
-            fighter_stop("Unsafe native profile deletion name.");
-        snapshot[length++] = (char)c;
-    }
-    if (!length || MEM16(name + length * 2) || !strcmp(snapshot, "Options"))
-        fighter_stop("Unreviewed native profile deletion identity.");
-    return 1;
-}
-
-void defjam_fighter_profile_delete_end(const char *name, int success) {
-    FILE *file;
-    char temporary[2112], destination[2112];
-    if (!success) {
-        fprintf(stderr, "[FIGHTERS] native profile deletion failed: %s; committed profile retained\n", name);
-        return;
-    }
-    if (++s_batch_number > 10000) fighter_stop("Too many native profile operations.");
-    snprintf(temporary, sizeof temporary, "%s/%06u.pending", s_journal, s_batch_number);
-    snprintf(destination, sizeof destination, "%s/%06u.batch", s_journal, s_batch_number);
-    file = open_journal(temporary);
-    if (!file) fighter_stop("Could not create native profile deletion receipt.");
-    fwrite("FSD1", 1, 4, file); journal_word(file, 1); journal_word(file, s_batch_number);
-    journal_word(file, (uint32_t)strlen(name)); journal_word(file, 0); fwrite(name, 1, 32, file);
-    finish_journal(file, temporary, destination);
-    fprintf(stderr, "[FIGHTERS] native profile deletion completed: batch=%u name=%s; awaiting verified absence\n", s_batch_number, name);
-    await_save_commit();
-    fprintf(stderr, "[FIGHTERS] native profile deletion committed: batch=%u name=%s\n", s_batch_number, name);
-}
-
-void defjam_fighter_save_write(uint32_t handle, uint32_t buffer, uint32_t size, uint32_t written, int success, int asynchronous) {
-    int result;
-    if (!s_journal[0]) return;
-    lock_names();
-    result = fighter_save_io_write(&s_save_io, handle, (const uint8_t *)XBOX_PTR(buffer), size, written ? MEM32(written) : 0, success && !asynchronous);
-    unlock_names();
-    if (result < 0) fighter_stop("A native fighter save write was incomplete or used an unreviewed IO path.");
-    if (result) fprintf(stderr, "[FIGHTERS] completed native save write: handle=%08X bytes=%u\n", handle, size);
-    if (result && size == 0x4C && !memcmp((const void *)XBOX_PTR(buffer), "20CM", 4))
-        test_save_stop(MEM32(buffer + 12) == 0x1490 ? 2 : 3);
-}
-
-void defjam_fighter_save_seek(uint32_t handle) {
-    if (!s_journal[0]) return;
-    lock_names(); fighter_save_io_seek(&s_save_io, handle); unlock_names();
-}
-
-void defjam_fighter_save_close(uint32_t handle, int success) {
-    const uint8_t *bytes = NULL;
-    uint32_t size = 0, matches = 0, match = 0;
-    int result;
-    if (!s_journal[0]) return;
-    lock_names();
-    result = fighter_save_io_close(&s_save_io, handle, success, &bytes, &size);
-    if (!result) { unlock_names(); return; }
-    if (result < 0) { unlock_names(); fighter_stop("Native fighter save did not finish and close successfully."); return; }
-    for (uint32_t i = 0; i < 16; ++i) {
-        FighterExpectedSave *expected = &s_expected[i];
-        if (expected->active && size == expected->save.size + 0x8C
-            && !memcmp(bytes + 0x4C, expected->save.identity, 64)
-            && !memcmp(bytes + 0x8C, expected->save.payload, expected->save.size)) { ++matches; match = i; }
-    }
-    if (matches != 1) { unlock_names(); fighter_stop("Native closed save has no unique staged fighter record."); return; }
-    {
-        FighterExpectedSave *expected = &s_expected[match];
-        char temporary[2112], destination[2112];
-        FILE *file;
-        snprintf(temporary, sizeof temporary, "%s/%06u-%02u.pending", s_journal, expected->batch, expected->index);
-        snprintf(destination, sizeof destination, "%s/%06u-%02u.closed", s_journal, expected->batch, expected->index);
-        file = open_journal(temporary);
-        if (!file) { unlock_names(); fighter_stop("Could not create native fighter save receipt."); return; }
-        fwrite("FSA1", 1, 4, file); journal_word(file, 1); journal_word(file, expected->batch);
-        journal_word(file, expected->index); journal_word(file, size); fwrite(bytes, 1, size, file);
-        finish_journal(file, temporary, destination);
-        fprintf(stderr, "[FIGHTERS] native save closed: batch=%u record=%u name=%.*s bytes=%u\n",
-                expected->batch, expected->index, expected->save.name_size, expected->save.name, size);
-        expected->active = 0;
-    }
-    unlock_names();
-}
-
-void defjam_fighter_save_batch(void) {
-    FILE *file;
-    char temporary[2112], destination[2112];
-    if (!s_journal[0] || !s_pending_count) return;
-    if (s_projecting_settings || ++s_batch_number > 10000) fighter_stop("Invalid fighter save batch lifecycle.");
-    snprintf(temporary, sizeof temporary, "%s/%06u.pending", s_journal, s_batch_number);
-    snprintf(destination, sizeof destination, "%s/%06u.batch", s_journal, s_batch_number);
-    file = open_journal(temporary);
-    if (!file) fighter_stop("Could not create fighter save journal.");
-    fwrite("FSB1", 1, 4, file); journal_word(file, 1); journal_word(file, s_batch_number);
-    journal_word(file, s_pending_count); journal_word(file, s_custom_count); journal_word(file, 0);
-    for (uint32_t i = 0; i < s_pending_count; ++i) {
-        FighterPendingSave *save = &s_pending[i];
-        journal_word(file, save->name_size); journal_word(file, save->size);
-        fwrite(save->identity, 1, 64, file); fwrite(save->name, 1, 32, file); fwrite(save->payload, 1, save->size, file);
-    }
-    for (uint32_t i = 0; i < s_custom_count; ++i) { journal_word(file, s_custom_keys[i]); journal_word(file, s_custom_metadata[i]); }
-    finish_journal(file, temporary, destination);
-    fprintf(stderr, "[FIGHTERS] save batch %u sealed: %u records; awaiting independently verified native files\n", s_batch_number, s_pending_count);
-    s_pending_count = 0;
-    test_save_stop(1);
+    test_save_stop(2);
 }
 
 static uint32_t outfit_progress_handle(uint32_t handle) {
@@ -816,7 +780,7 @@ void defjam_fighter_unlock_inserting(uint32_t self) {
         fighter_stop("Native Character unlock storage is full; expanded persistence is required.");
     uint32_t argument=MEM32(g_esp+4),mark=MEM32(argument);
     MEM32(argument)=outfit_progress_handle(mark&~FIGHTER_UNLOCK_METADATA)|(mark&FIGHTER_UNLOCK_METADATA);
-    if (s_journal[0]) remember_custom(MEM32(argument));
+    if (s_state_dir[0]) remember_custom(MEM32(argument));
 }
 
 void defjam_fighter_selection_gate(uint32_t selection) {

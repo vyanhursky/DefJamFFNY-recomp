@@ -38,10 +38,8 @@ extern "C" {
  * incomplete transaction or an active installer, including --no-launcher. */
 int pc_mods_game_lock(void);
 int pc_mods_needs_recovery(void);
+/* Load the fighter manifest before Play (rebuilding it first when stale). */
 int pc_fighters_prepare(const char *language);
-const char *pc_fighters_data_root(void);
-int pc_fighters_healthy(void);
-void pc_fighters_finish(void);
 const char *pc_fighters_error(void);
 #ifdef __cplusplus
 }
