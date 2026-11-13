@@ -539,6 +539,9 @@ int pc_settings_init(void)
                 extern void pc_fighters_restart_without_packs(const char *const *argv);
                 pc_fighters_notice("The enabled fighter packs failed their start-up checks, so the game starts without them.\n\n"
                                    "Your saves and custom unlocks are kept. Open Mods > Fighters to check the packs; the log names the check.");
+                /* Release the pads before the new process opens them; this one only waits. No
+                 * guest memory and no game window exist yet; the mod lock is shared. */
+                pc_input_stop();
                 #if defined(_WIN32)
                 pc_fighters_restart_without_packs(NULL);   /* Windows rebuilds the command line itself */
 #else
