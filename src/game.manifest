@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- The game (defjam_recomp.exe). UTF-8 as the process code page, as the app has (src/app/app.manifest):
+     getenv, GetModuleFileNameA and plain fopen then see the same UTF-8 paths that the fighter code and the
+     launcher decode with CP_UTF8, so a data folder under a user name with accents or Cyrillic works in both
+     halves. Long paths, as the app. DPI awareness stays with the code that sets it at run time. -->
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+  <application xmlns="urn:schemas-microsoft-com:asm.v3"><windowsSettings>
+    <activeCodePage xmlns="http://schemas.microsoft.com/SMI/2019/WindowsSettings">UTF-8</activeCodePage>
+    <longPathAware xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">true</longPathAware>
+  </windowsSettings></application>
+</assembly>

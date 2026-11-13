@@ -53,6 +53,10 @@
 #include <stdbool.h>
 #include <string.h>
 #include <math.h>
+#include <time.h>
+#if !defined(_WIN32)
+#include <SDL3/SDL_messagebox.h>
+#endif
 
 /* xboxrecomp runtime headers */
 #include <xbox/xboxrecomp.h>
@@ -377,13 +381,38 @@ static void recomp_selftest(void)
     fflush(stderr);
 }
 
+/* Every refusal and stop must be seen. Besides the dialog, the message goes to
+ * <data>/last-error.txt, which the launcher (and the app) shows on the next start:
+ * on a Steam Deck in Game Mode a dialog can sit behind the game's own window. */
+static void host_remember_fatal(const char *message)
+{
+    const char *data = getenv("DEFJAM_DATA");
+    char path[2048];
+    FILE *file;
+    time_t now = time(NULL);
+    char when[32] = "";
+    if (!data || !*data || snprintf(path, sizeof path, "%s%slast-error.txt", data,
+            data[strlen(data) - 1] == HOST_SEP_CHAR ? "" : HOST_SEP) >= (int)sizeof path) return;
+    strftime(when, sizeof when, "%Y-%m-%d %H:%M", localtime(&now));
+    file = fopen(path, "wb");
+    if (!file) return;
+    fprintf(file, "%s\n%s\n", when, message);
+    fclose(file);
+}
+
 void host_fatal(const char *message)
 {
+    fprintf(stderr, "[FATAL] %s\n", message);
+    fflush(stderr);
+    host_remember_fatal(message);
 #if defined(_WIN32)
     MessageBoxA(NULL, message, "Def Jam: Fight for NY", MB_ICONERROR);
 #else
-    fprintf(stderr, "Def Jam: Fight for NY: %s\n", message);
-    fflush(stderr);
+    {
+        const char *headless = getenv("RECOMP_HEADLESS");
+        if (!(headless && *headless && strcmp(headless, "0")))
+            SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Def Jam: Fight for NY", message, NULL);
+    }
 #endif
 }
 
