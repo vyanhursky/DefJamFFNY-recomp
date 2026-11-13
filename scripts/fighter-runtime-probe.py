@@ -30,11 +30,8 @@ from fighter_composition import language_base, MAX_DELTA_BYTES
 from fighter_registry import fingerprint
 from fighter_menu import compile_menu
 from fighter_results import compile_results
-from fighter_bindings import seed
-from fighter_profile_store import Store
-from fighter_save_journal import bounded, closed_record, decode
-from fighter_profile_session import prepare as prepare_profile_session
-from mods import atomic_json, language_manifest, ordinary_path, validate_textures
+from fighter_manifest import identities as identity_text
+from mods import atomic_bytes, atomic_json, language_manifest, ordinary_path, validate_textures
 
 
 def live_pad_path(path):
@@ -234,21 +231,22 @@ def prepare_portraits(screens, report, *, language=None, resource_cache=None):
         cache_root=ROOT / 'logs/fighter-ui-preview', original_loader=original_screens)
 
 
-def verify_saved_kind(journal, committed, kind):
-    """Count only this run's committed batches with valid native close receipts."""
-    size = {'options': 0x1490, 'profile': 0x5904}[kind]
-    names = []
-    for number, _ in committed:
-        batch = decode(bounded(Path(journal) / f'{number:06}.batch'))
-        if batch['number'] != number:
-            raise ValueError('Crossed native save acceptance batch')
-        for index, record in enumerate(batch['records']):
-            if len(record['payload']) == size:
-                if closed_record(journal, number, index, record) is None:
-                    raise ValueError('Native save acceptance lost its close receipt')
-                names.append(record['name'])
+def save_stamps(save):
+    """Size and time of every native save record under one data root's save/."""
+    title = Path(save) / 'UserData/45410049'
+    if not title.is_dir():
+        return {}
+    return {path.relative_to(title).as_posix(): (path.stat().st_size, path.stat().st_mtime_ns)
+            for path in title.glob('*/*') if path.is_file() and path.name not in ('SaveMeta.xbx', 'saveimage.xbx')}
+
+
+def verify_saved_kind(save, before, kind):
+    """The game wrote (not just staged) a save of this kind into the run's own save/."""
+    size = {'options': 0x1490, 'profile': 0x5904}[kind] + 0x8c
+    after = save_stamps(save)
+    names = [name for name, stamp in after.items() if stamp != before.get(name) and stamp[0] == size]
     if not names:
-        raise ValueError('Native run did not commit an acknowledged ' + kind + ' save')
+        raise ValueError('Native run did not write a ' + kind + ' save')
     return names
 
 
@@ -284,9 +282,8 @@ def main():
     parser.add_argument('--logical-menu', action='store_true', help='Browsing-only logical roster prototype; native confirmation blocked')
     parser.add_argument('--binding-window', action='store_true', help='Internal four-participant native binding prototype')
     parser.add_argument('--immutable-reuse', action='store_true', help='Research repeated selections using immutable records after native Game.Quit')
-    parser.add_argument('--profile-store', type=Path, default=ROOT / 'logs/fighter-profile-store', help='Internal isolated generation store under logs')
-    parser.add_argument('--fresh-profiles', action='store_true', help='Create a new isolated namespace from native defaults instead of importing a fixture')
-    parser.add_argument('--import-profiles', type=Path, help='Read-only verified save fixture for the first isolated generation; never replaces an existing store')
+    parser.add_argument('--fresh-profiles', action='store_true', help='Start this run from native defaults (an empty save folder)')
+    parser.add_argument('--import-profiles', type=Path, help='Read-only save fixture (a save folder holding UserData) copied into this run')
     parser.add_argument('--no-unlock', action='store_true', help='Disable the harness unlock-everything control for native progress/save acceptance')
     parser.add_argument('--expect-save', choices=('options', 'profile'), help='Require a committed native write/close receipt of this kind in this run')
     parser.add_argument('--ledger', type=Path, help='Internal historical ledger from a previous research cache')
@@ -330,21 +327,6 @@ def main():
                          'fighter-window-runs', 'fighter-probe-captures'):
             ordinary_path(ROOT / 'logs' / relative)
         layers = texture_environment(args.texture_pack, args.language_pack)
-        store, monitor = None, None
-        if args.binding_window:
-            destination = ordinary_path(args.profile_store)
-            if not destination.is_relative_to((ROOT / 'logs').resolve()):
-                raise ValueError('Research profile generations must stay under logs')
-            source = registry.retail_catalog(args.sod)
-            store = Store(destination, seed(source.db, source.source_sha256, source.rows))
-            previous = store.load()
-            if args.import_profiles and previous is not None:
-                raise ValueError('Profile import requires an empty isolated store')
-            if args.fresh_profiles and previous is not None:
-                raise ValueError('Fresh profile research requires an empty store; choose a new research path')
-            if previous is not None and args.ledger is None:
-                args.ledger = ordinary_path(destination / 'next-ledger.json')
-                atomic_json(args.ledger, previous['ledger'])
         cache, report = prepare(args.sod, args.packs, args.ledger, args.logical_menu, args.binding_window)
         for keys in matches:
             expected_fighters(report, keys)  # reject missing/duplicate keys before launching
@@ -356,12 +338,21 @@ def main():
         if ui_pack is not None:
             layers=texture_environment([*args.texture_pack,ui_pack],args.language_pack)
         data_root = ordinary_path(ROOT / 'logs/fighter-runtime-probe')
-        if store is not None:
-            profile_session = prepare_profile_session(store, report['binding_ledger'], ROOT / 'logs/fighter-window-runs',
-                source=None if args.fresh_profiles else args.import_profiles or data_root / 'save', fresh=args.fresh_profiles)
-            session, data_root = profile_session.root, profile_session.data_root
-            journal, unlock_state = profile_session.journal, profile_session.unlock_state
-            monitor = profile_session.monitor
+        session = None
+        if args.binding_window:
+            # Each binding-window run plays in its own copy of the saves, as a
+            # player's save/ would be, with the game's own unlock sidecar beside it.
+            source = None if args.fresh_profiles else ordinary_path(args.import_profiles or data_root / 'save')
+            session = ordinary_path(ROOT / 'logs/fighter-window-runs' / uuid.uuid4().hex)
+            data_root = session / 'fighter-runtime-probe'
+            (data_root / 'save').mkdir(parents=True)
+            if source is not None:
+                if not (source / 'UserData').is_dir():
+                    raise ValueError('Profile import needs a save folder holding UserData')
+                shutil.copytree(source / 'UserData', data_root / 'save/UserData')
+            identities = data_root / 'fighter-identities.txt'
+            atomic_bytes(identities, identity_text(report['binding_ledger']))
+            atomic_json(session / 'next-ledger.json', report['binding_ledger'])
         data_root.mkdir(parents=True, exist_ok=True)
         if language is not None:
             atomic_json(ordinary_path(data_root / 'fighter-composition.json'), {'language': language[1],
@@ -409,8 +400,8 @@ def main():
                 command += ['--env', 'RECOMP_FIGHTER_WINDOW=' + str(cache / 'fighter-window.bin')]
             if args.immutable_reuse:
                 command += ['--env', 'RECOMP_FIGHTER_IMMUTABLE_REUSE=1']
-            command += ['--env', 'RECOMP_FIGHTER_SAVE_JOURNAL=' + str(journal), '--env', 'RECOMP_FIGHTER_UNLOCKS=' + str(unlock_state)]
-            command += ['--supervisor', str(journal / 'supervisor.json')]
+            command += ['--env', 'RECOMP_FIGHTER_STATE=' + str(data_root / 'fighter-state'),
+                        '--env', 'RECOMP_FIGHTER_IDENTITIES=' + str(identities)]
         if args.trace_caf_motion:
             command += ['--env','RECOMP_FIGHTER_CAF_TRACE=1']
         if args.trace_face:
@@ -439,8 +430,7 @@ def main():
         print(json.dumps({'probe': 'donor-roster', 'cache_key': report['cache_key'],
                           'data_root': str(data_root), 'custom_bindings': custom_bindings(report),
                           'shipping_gates': report['blockers']}, indent=2), flush=True)
-        if monitor is not None:
-            monitor.start()
+        before = save_stamps(data_root / 'save')
         try:
             result = subprocess.run(command, cwd=ROOT, env=environment,
                                     capture_output=bool(matches), text=True)
@@ -449,15 +439,14 @@ def main():
             shots = ROOT / 'logs/shots' / args.route
             captured = list(shots.glob('*.png')) if shots.is_dir() else []
             if captured:
-                preserved = ordinary_path((session if store is not None else ROOT / 'logs/fighter-probe-captures' / uuid.uuid4().hex) / 'captures')
+                preserved = ordinary_path((session if session is not None else ROOT / 'logs/fighter-probe-captures' / uuid.uuid4().hex) / 'captures')
                 preserved.mkdir(parents=True)
                 for path in captured:
                     shutil.copyfile(path, preserved / path.name)
                 print('preserved fighter captures: ' + str(preserved), flush=True)
         finally:
-            if monitor is not None:
-                profile_session.finish(require_complete='result' in locals() and result.returncode == 0)
-                print('verified fighter save generations: ' + str(len(monitor.committed)), flush=True)
+            if session is not None:
+                print('fighter run data root: ' + str(data_root), flush=True)
         if matches:
             if result.returncode:
                 return result.returncode
@@ -473,8 +462,8 @@ def main():
                 checks = verify_combat(log, matches, humans=args.combat_humans, require_result=args.require_result)
                 print('native combat assertions passed: ' + str(len(checks)))
         if args.expect_save and result.returncode == 0:
-            names = verify_saved_kind(journal, monitor.committed, args.expect_save)
-            print('native acknowledged ' + args.expect_save + ' saves verified: ' + ', '.join(names))
+            names = verify_saved_kind(data_root / 'save', before, args.expect_save)
+            print('native ' + args.expect_save + ' saves written: ' + ', '.join(names))
         return result.returncode
     except (ValueError, OSError) as error:
         print(str(error), file=sys.stderr)

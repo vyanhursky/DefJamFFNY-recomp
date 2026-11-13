@@ -30,7 +30,7 @@ def tool(tmp_path_factory):
     driver = folder / 'driver.c'
     driver.write_text(DRIVER, encoding='utf-8')
     exe = folder / ('fatal.exe' if os.name == 'nt' else 'fatal')
-    sources = [str(driver), str(ROOT / 'src/patches/fighter_fatal.c'), str(ROOT / 'tests/unit/native_stubs/host_fatal.c')]
+    sources = [str(driver), str(ROOT / 'src/patches/fighter_fatal.c'), str(ROOT / 'src/patches/fighter_config.c'), str(ROOT / 'tests/unit/native_stubs/host_fatal.c')]
     command = ([cc, '/nologo', '/W4', '/WX', '/D_CRT_SECURE_NO_WARNINGS', '/I' + str(ROOT / 'src'), *sources, '/Fe:' + str(exe)]
                if os.name == 'nt' else [cc, '-std=c11', '-Wall', '-Wextra', '-Werror', '-I', str(ROOT / 'src'), *sources, '-o', str(exe)])
     result = subprocess.run(command, cwd=folder, capture_output=True, text=True, timeout=60)

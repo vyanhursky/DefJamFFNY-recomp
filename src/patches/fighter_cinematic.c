@@ -2,6 +2,7 @@
 #ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
 #endif
+#include "fighter_config.h"
 #include "fighter_cinematic.h"
 #include "fighter_fatal.h"
 #include "fighter_runtime.h"
@@ -68,7 +69,7 @@ static int cin_size(const char *path, uint32_t expected) {
     return ok;
 }
 static int cin_blazin_start(const char *path, const char *hash) {
-    const char *bindings = getenv("RECOMP_FIGHTER_BLAZIN_BINDINGS");
+    const char *bindings = defjam_fighter_env("RECOMP_FIGHTER_BLAZIN_BINDINGS");
     if (!bindings || !*bindings) return 1;
     if (strlen(bindings) >= 2048) return 0;
     FILE *file = cin_open(bindings);
@@ -114,16 +115,16 @@ static int cin_blazin_start(const char *path, const char *hash) {
     free(table); return valid;
 }
 int defjam_fighter_cinematic_start(void) {
-    const char *path = getenv("RECOMP_FIGHTER_CINEMATIC_BANKS");
-    const char *bindings = getenv("RECOMP_FIGHTER_CINEMATIC_BINDINGS");
-    const char *hash = getenv("RECOMP_FIGHTER_CINEMATIC_BANKS_SHA256");
-    const char *nis = getenv("RECOMP_FIGHTER_RESEARCH_CINEMATICS");
-    const char *nis_hash = getenv("RECOMP_FIGHTER_RESEARCH_CINEMATICS_SHA256");
-    const char *blazin = getenv("RECOMP_FIGHTER_BLAZIN_BINDINGS");
+    const char *path = defjam_fighter_env("RECOMP_FIGHTER_CINEMATIC_BANKS");
+    const char *bindings = defjam_fighter_env("RECOMP_FIGHTER_CINEMATIC_BINDINGS");
+    const char *hash = defjam_fighter_env("RECOMP_FIGHTER_CINEMATIC_BANKS_SHA256");
+    const char *nis = defjam_fighter_env("RECOMP_FIGHTER_RESEARCH_CINEMATICS");
+    const char *nis_hash = defjam_fighter_env("RECOMP_FIGHTER_RESEARCH_CINEMATICS_SHA256");
+    const char *blazin = defjam_fighter_env("RECOMP_FIGHTER_BLAZIN_BINDINGS");
     if (!path || !*path) return (!bindings || !*bindings) && (!hash || !*hash) && (!blazin || !*blazin);
     if (!defjam_fighter_research_active() || s_count || !bindings || !*bindings
         || strlen(path) >= sizeof s_archive || strlen(bindings) >= 2048 || !nis || !*nis
-        || !mod_file_matches(path, hash) || !mod_file_matches(nis, nis_hash)) return 0;
+        || !defjam_fighter_file_matches(path, hash) || !defjam_fighter_file_matches(nis, nis_hash)) return 0;
     FILE *file = cin_open(bindings);
     if (!file) return 0;
     uint8_t *table = (uint8_t *)malloc(CIN_TABLE_LIMIT + 1);
@@ -278,7 +279,7 @@ void defjam_fighter_cinematic_cache_poll(uint32_t manager) {
         s_cache_cores[slot] = core;
         /* Explicit harness-only setup: fill momentum through the native rules.
          * Activation still requires controller input; no pack can request this. */
-        const char *test_ready = getenv("RECOMP_FIGHTER_TEST_READY_BLAZIN");
+        const char *test_ready = defjam_fighter_env("RECOMP_FIGHTER_TEST_READY_BLAZIN");
         const char *observations = getenv("RECOMP_TEST_OBSERVATIONS");
         if (defjam_fighter_research_active() && test_ready && !strcmp(test_ready, "1")
             && observations && !strcmp(observations, "1") && MEM32(0x3B8F30) == 1

@@ -1,4 +1,10 @@
-"""Coherent, isolated fighter-save generations for guarded research runtime runs.
+"""Read-only access to the v1.2.0-beta.1/beta.2 fighter save store.
+
+Since beta 3 saves stay in save/ and fighter_migrate.py moves a beta store's
+head generation back there once. This module stays for that move and is
+removed in the release after. Its original description follows.
+
+Coherent, isolated fighter-save generations for guarded research runtime runs.
 
 Native writes must first finish in a disposable working directory. Publication
 uses the exact verified batch over the previous committed generation, never a
