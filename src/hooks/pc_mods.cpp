@@ -21,6 +21,7 @@
 #include <iterator>
 #if defined(_WIN32)
 #include <windows.h>
+#include <io.h>
 #if defined(_MSC_VER)
 #pragma comment(lib, "user32") /* MessageBoxW (pc_fighters_notice) */
 #endif
@@ -544,9 +545,18 @@ extern "C" void pc_fighters_restart_without_packs(const char *const *argv) {
     std::wstring command = GetCommandLineW();
     STARTUPINFOW startup = {}; startup.cb = sizeof startup;
     startup.dwFlags = STARTF_USESTDHANDLES;
+    // The CRT's own handles: when this process was started without a console its log was
+    // reopened into logs/run-<time>.log, and the new process must continue that same file
+    // (a fresh "w" open with the same second's name would truncate the lines that say why).
+    auto crt = [](FILE *stream, DWORD fallback) {
+        intptr_t handle = _get_osfhandle(_fileno(stream));
+        return handle == -1 || handle == -2 ? GetStdHandle(fallback) : (HANDLE)handle;
+    };
     startup.hStdInput = GetStdHandle(STD_INPUT_HANDLE);
-    startup.hStdOutput = GetStdHandle(STD_OUTPUT_HANDLE);
-    startup.hStdError = GetStdHandle(STD_ERROR_HANDLE);
+    startup.hStdOutput = crt(stdout, STD_OUTPUT_HANDLE);
+    startup.hStdError = crt(stderr, STD_ERROR_HANDLE);
+    for (HANDLE handle : {startup.hStdOutput, startup.hStdError})
+        if (handle && handle != INVALID_HANDLE_VALUE) SetHandleInformation(handle, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT);
     PROCESS_INFORMATION child = {};
     if (!CreateProcessW(exe, command.data(), nullptr, nullptr, TRUE, 0, nullptr, nullptr, &startup, &child)) return;
     CloseHandle(child.hThread);
