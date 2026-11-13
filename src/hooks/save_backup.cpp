@@ -6,13 +6,19 @@
 //   <data>/save-backups/<YYYYMMDD-HHMMSS>/UserData/...      copy of save/UserData
 //   <data>/save-backups/<YYYYMMDD-HHMMSS>/fighter-state/... copy of the unlock sidecar
 //
-// The last three are kept. A launch whose saves equal the newest backup adds
-// none, so repeated starts do not push a good backup out. The large partition
-// images under save/ are caches the game rebuilds and are not copied.
+// Kept: the last three, and the first backup of each of the seven most recent
+// days that have one, so a bad save noticed days later still has a good copy
+// (about ten copies of a few hundred kilobytes). A launch whose saves equal the
+// newest backup adds none, so repeated starts do not push a good backup out. The
+// large partition images under save/ are caches the game rebuilds and are not copied.
+#if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_WARNINGS)
+#define _CRT_SECURE_NO_WARNINGS
+#endif
 #include <algorithm>
 #include <cstdio>
 #include <ctime>
 #include <filesystem>
+#include <set>
 #include <fstream>
 #include <iterator>
 #include <string>
@@ -21,7 +27,8 @@
 namespace fs = std::filesystem;
 
 namespace {
-const int kKeep = 3;
+const int kKeepLast = 3;  // the most recent backups
+const int kKeepDays = 7;  // plus the first backup of each of this many recent days
 const std::uintmax_t kMaxBytes = 64u << 20; // refuse to copy a save area this large
 
 bool same_file(const fs::path &a, const fs::path &b) {
@@ -105,6 +112,21 @@ extern "C" void pc_save_backup(void) {
         return;
     }
     existing.push_back(target);
-    while ((int)existing.size() > kKeep) { fs::remove_all(existing.front(), error); existing.erase(existing.begin()); }
-    std::fprintf(stderr, "[SAVES] backed up save/UserData to %s (keeping the last %d)\n", target.string().c_str(), kKeep);
+    // Names sort by time (YYYYMMDD-HHMMSS), so the first eight characters are the day.
+    std::set<fs::path> keep;
+    for (size_t i = existing.size() > (size_t)kKeepLast ? existing.size() - kKeepLast : 0; i < existing.size(); ++i)
+        keep.insert(existing[i]);
+    std::set<std::string> days;
+    for (auto it = existing.rbegin(); it != existing.rend() && (int)days.size() < kKeepDays; ++it)
+        days.insert(it->filename().string().substr(0, 8));
+    std::set<std::string> seen;
+    for (auto &path : existing) {
+        std::string day = path.filename().string().substr(0, 8);
+        if (days.count(day) && seen.insert(day).second) keep.insert(path);  // first of its day
+    }
+    unsigned removed = 0;
+    for (auto &path : existing)
+        if (!keep.count(path)) { fs::remove_all(path, error); ++removed; }
+    std::fprintf(stderr, "[SAVES] backed up save/UserData to %s (%zu kept: the last %d and the first of each of %d days; %u removed)\n",
+                 target.string().c_str(), keep.size(), kKeepLast, kKeepDays, removed);
 }

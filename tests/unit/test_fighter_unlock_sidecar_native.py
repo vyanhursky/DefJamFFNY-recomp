@@ -15,7 +15,8 @@ ROOT = Path(__file__).resolve().parents[2]
 METADATA = 0x00800000
 
 FUNCTIONS = ['open_utf8', 'read_small_file', 'sidecar_name', 'load_identities', 'identity_name', 'identity_handle',
-             'sidecar_path', 'load_sidecar', 'open_write_utf8', 'make_state_dir', 'write_sidecar', 'remember_custom']
+             'sidecar_path', 'set_aside', 'load_sidecar', 'open_write_utf8', 'make_state_dir', 'write_sidecar',
+             'remember_custom']
 
 DRIVER = r'''
 #include <assert.h>
@@ -23,6 +24,7 @@ DRIVER = r'''
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #if defined(_WIN32)
 #include <windows.h>
 #include <io.h>
@@ -34,7 +36,7 @@ DRIVER = r'''
 #define FIGHTER_BINDINGS_MAX_COUNT 64u
 #define FIGHTER_UNLOCK_METADATA 0x00800000u
 typedef enum { FIGHTER_BINDING_STABLE, FIGHTER_BINDING_NATIVE, FIGHTER_BINDING_SELECTION } FighterBindingKey;
-typedef struct { const uint8_t *bytes; } FighterBindings;
+typedef struct { const uint8_t *bytes; uint32_t count; } FighterBindings;
 typedef struct { uint32_t stable_handle, flags; } FighterBinding;
 static FighterBindings s_bindings;
 static char s_state_dir[2048];
@@ -49,17 +51,25 @@ static size_t s_unknown_size;
 static uint32_t s_custom_keys[FIGHTER_BINDINGS_MAX_COUNT], s_custom_metadata[FIGHTER_BINDINGS_MAX_COUNT];
 static void fighter_stop(const char *message) { fprintf(stderr, "%s\n", message); exit(23); }
 static int remember_custom(uint32_t mark);
+static FILE *open_write_utf8(const char *path);
+static int write_sidecar(void);
 /* Custom fighters are 0x01000100..0x010001FF; anything else is retail. */
 static int fighter_bindings_find(const FighterBindings *bindings, FighterBindingKey domain, uint32_t key, FighterBinding *out) {
     (void)bindings; assert(domain == FIGHTER_BINDING_STABLE);
     out->stable_handle = key; out->flags = (key & 0xFFFFFF00u) == 0x01000100u;
     return 1;
 }
+/* The bindings hold three custom fighters (mode "unnamed" adds a fourth with no name). */
+static uint32_t s_custom_bindings[4] = {0x01000101u, 0x01000102u, 0x01000103u, 0x01000104u};
+static int fighter_bindings_at(const FighterBindings *bindings, uint32_t index, FighterBinding *out) {
+    (void)bindings; out->stable_handle = s_custom_bindings[index]; out->flags = 1; return 1;
+}
 @FUNCTIONS@
 int main(int argc, char **argv) {
     const char *mode = argv[3];
     assert(argc == 4);
     strcpy(s_state_dir, argv[2]);
+    s_bindings.count = !strcmp(mode, "unnamed") ? 4 : 3;
     if (!load_identities(argv[1])) return 3;
     if (!load_sidecar()) return 4;
     printf("loaded=%u dirty=%d\n", s_custom_count, s_custom_dirty);
@@ -144,16 +154,36 @@ def test_names_of_packs_not_installed_are_kept_on_rewrite(sidecar_exe, tmp_path)
     # Reading what the game wrote gives the same set back.
     again = run(sidecar_exe, identities, state, 'read')
     assert again.returncode == 0 and again.stdout.splitlines()[0] == 'loaded=3 dirty=0'
+    assert not list(state.glob('unlocks.ini.bad-*'))
 
 
-@pytest.mark.parametrize('text', ['alpha/one=1\n', '[fighter-unlocks]\nschema=2\n', '[fighter-unlocks]\nalpha/one=2\n',
-                                  '[fighter-unlocks]\nno-slash=1\n', '[fighter-unlocks]\nalpha/one\n'])
-def test_a_malformed_sidecar_is_refused_and_left_untouched(sidecar_exe, tmp_path, text):
+@pytest.mark.parametrize('text,loaded', [
+    ('alpha/one=1\n', 0),                                                  # outside the section
+    ('[fighter-unlocks]\nalpha/one=2\nbeta/three=1\n', 1),               # bad value; the good line stays
+    ('[fighter-unlocks]\nno-slash=1\nalpha/one=0\n', 1),
+    ('[fighter-unlocks]\nalpha/one\nbeta/three=0\n', 1),
+])
+def test_a_damaged_sidecar_keeps_its_good_lines_and_is_set_aside(sidecar_exe, tmp_path, text, loaded):
+    """Review feedback F1: a damaged file must never turn fighter packs off for good."""
     identities, state = setup_files(tmp_path, text)
-    result = run(sidecar_exe, identities, state, 'rewrite')
-    assert result.returncode == 4
-    assert 'malformed' in result.stderr
-    assert (state / 'unlocks.ini').read_text() == text
+    result = run(sidecar_exe, identities, state, 'read')
+    assert result.returncode == 0, result.stderr
+    # The clean file is written at once, so the good lines survive a session with no save.
+    assert result.stdout.splitlines()[0] == f'loaded={loaded} dirty=0'
+    aside = list(state.glob('unlocks.ini.bad-*'))
+    assert len(aside) == 1 and aside[0].read_text() == text
+    assert 'could not be read' in (state / 'notice.txt').read_text()
+    clean = run(sidecar_exe, identities, state, 'read')
+    assert clean.returncode == 0 and clean.stdout.splitlines()[0] == f'loaded={loaded} dirty=0'
+
+
+def test_a_sidecar_from_a_newer_version_is_set_aside_not_read(sidecar_exe, tmp_path):
+    identities, state = setup_files(tmp_path, '[fighter-unlocks]\nschema=2\nalpha/one=1\n')
+    result = run(sidecar_exe, identities, state, 'read')
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.splitlines()[0] == 'loaded=0 dirty=0'
+    assert 'newer version' in (state / 'notice.txt').read_text()
+    assert len(list(state.glob('unlocks.ini.bad-*'))) == 1
 
 
 def test_identity_names_must_match_the_bindings(sidecar_exe, tmp_path):
@@ -162,3 +192,7 @@ def test_identity_names_must_match_the_bindings(sidecar_exe, tmp_path):
     assert run(sidecar_exe, identities, state, 'read').returncode == 3
     identities.write_text('0100010 alpha/short\n')
     assert run(sidecar_exe, identities, state, 'read').returncode == 3
+    # Review feedback S3: a custom fighter with no name could never have its unlock recorded.
+    identities, state = setup_files(tmp_path)
+    result = run(sidecar_exe, identities, state, 'unnamed')
+    assert result.returncode == 3 and 'has no name' in result.stderr

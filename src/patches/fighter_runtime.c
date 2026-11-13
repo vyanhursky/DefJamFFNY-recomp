@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #if defined(_WIN32)
 #include <io.h>
 #include <direct.h>
@@ -201,6 +202,17 @@ static int load_identities(const char *path) {
         s_identity_handles[s_identity_count] = (uint32_t)handle;
         s_identity_names[s_identity_count++] = end + 1;
     }
+    for (uint32_t i = 0; i < s_bindings.count; ++i) {
+        FighterBinding binding;
+        int named = 0;
+        fighter_bindings_at(&s_bindings, i, &binding);
+        if (!(binding.flags & 1)) continue;
+        for (uint32_t j = 0; j < s_identity_count && !named; ++j) named = s_identity_handles[j] == binding.stable_handle;
+        if (!named) {
+            fprintf(stderr, "[FIGHTERS] custom fighter %08X has no name in the identity file; launch refused\n", binding.stable_handle);
+            return 0;
+        }
+    }
     return 1;
 }
 
@@ -219,14 +231,63 @@ static void sidecar_path(char *out, size_t size, const char *leaf) {
     snprintf(out, size, "%s/%s", s_state_dir, leaf);
 }
 
+static FILE *open_write_utf8(const char *path);
+static int write_sidecar(void);
+
+/* Keep a damaged unlock file beside the new one and tell the player once, through
+ * the launcher's notice (src/hooks/pc_mods.cpp). The file is renamed, not copied,
+ * so the next write starts a clean one and nothing is ever lost. */
+static int set_aside(const char *path, unsigned skipped, int newer) {
+    char aside[2200], notice[2112], when[32];
+    time_t now = time(NULL);
+    struct tm local;
+    FILE *file;
+    int moved;
+#if defined(_WIN32)
+    localtime_s(&local, &now);
+#else
+    localtime_r(&now, &local);
+#endif
+    strftime(when, sizeof when, "%Y%m%d-%H%M%S", &local);
+    snprintf(aside, sizeof aside, "%s.bad-%s", path, when);
+#if defined(_WIN32)
+    {
+        wchar_t from[2112], to[2200];
+        moved = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, path, -1, from, 2112)
+            && MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, aside, -1, to, 2200)
+            && MoveFileExW(from, to, MOVEFILE_WRITE_THROUGH);
+    }
+#else
+    moved = !rename(path, aside);
+#endif
+    if (!moved) return 0;
+    fprintf(stderr, "[FIGHTERS] custom unlock file kept as %s (%s)\n", aside,
+            newer ? "written by a newer version" : "damaged lines skipped");
+    sidecar_path(notice, sizeof notice, "notice.txt");
+    file = open_write_utf8(notice);
+    if (file) {
+        if (newer)
+            fprintf(file, "The custom fighter unlock file was written by a newer version of the game, so this version "
+                          "starts with no custom unlocks. The file was kept as %s.\n", aside);
+        else
+            fprintf(file, "%u line(s) of the custom fighter unlock file could not be read and were left out. "
+                          "The original file was kept as %s.\n", skipped, aside);
+        fclose(file);
+    }
+    return 1;
+}
+
 /* Read <state>/unlocks.ini. A missing file means no custom unlock yet. Names
- * of packs that are not installed are kept, untouched, for the next write. */
+ * of packs that are not installed are kept, untouched, for the next write.
+ * A damaged file never turns fighter packs off: its readable lines are used,
+ * the rest are skipped, and the original is kept beside it (set_aside). */
 static int load_sidecar(void) {
     char path[2112];
     size_t size = 0;
     uint8_t *bytes;
     char *line, *next;
-    int section = 0;
+    int section = 0, newer = 0;
+    unsigned skipped = 0;
     sidecar_path(path, sizeof path, "unlocks.ini");
     {
         FILE *probe = open_utf8(path);
@@ -235,10 +296,15 @@ static int load_sidecar(void) {
     }
     bytes = read_small_file(path, FIGHTER_SIDECAR_MAX, &size);
     s_unknown_lines = (char *)malloc(FIGHTER_SIDECAR_MAX + 1);
-    if (!bytes || !s_unknown_lines) {
-        free(bytes);
-        fprintf(stderr, "[FIGHTERS] cannot read the custom unlock file; launch refused, file kept\n");
-        return 0;
+    if (!s_unknown_lines) { free(bytes); return 0; }
+    if (!bytes) {
+        /* Unreadable or over 1 MiB. Without its contents a later write would replace
+         * unlocks we never saw, so move it aside first, or else leave packs off. */
+        if (!set_aside(path, 0, 0)) {
+            fprintf(stderr, "[FIGHTERS] cannot read or move the custom unlock file %s; fighter packs left off, file kept\n", path);
+            return 0;
+        }
+        return 1;
     }
     for (line = (char *)bytes; line && *line; line = next) {
         char *equals, *value;
@@ -249,27 +315,35 @@ static int load_sidecar(void) {
         if (!*line || *line == '#' || *line == ';') continue;
         if (!strcmp(line, "[fighter-unlocks]")) { section = 1; continue; }
         equals = strchr(line, '=');
-        if (!section || !equals) goto malformed;
+        if (!section || !equals) { ++skipped; continue; }
         *equals = 0; value = equals + 1;
-        if (!strcmp(line, "schema")) { if (strcmp(value, "1")) goto malformed; continue; }
-        if (!sidecar_name(line) || (strcmp(value, "0") && strcmp(value, "1"))) goto malformed;
+        if (!strcmp(line, "schema")) { if (strcmp(value, "1")) { newer = 1; break; } continue; }
+        if (!sidecar_name(line) || (strcmp(value, "0") && strcmp(value, "1"))) { ++skipped; continue; }
         if (identity_handle(line, &handle)) {
             remember_custom(handle | (*value == '1' ? FIGHTER_UNLOCK_METADATA : 0));
         } else {
             int written = snprintf(s_unknown_lines + s_unknown_size, FIGHTER_SIDECAR_MAX + 1 - s_unknown_size, "%s=%s\n", line, value);
-            if (written < 0 || (size_t)written > FIGHTER_SIDECAR_MAX - s_unknown_size) goto malformed;
+            if (written < 0 || (size_t)written > FIGHTER_SIDECAR_MAX - s_unknown_size) { ++skipped; continue; }
             s_unknown_size += (size_t)written;
         }
     }
     free(bytes);
-    s_custom_dirty = 0;
-    fprintf(stderr, "[FIGHTERS] restored %u custom unlocks from %s (%zu bytes kept for packs not installed)\n",
-            s_custom_count, path, s_unknown_size);
+    if (newer) { s_custom_count = 0; s_unknown_size = 0; }
+    if (newer || skipped) {
+        if (!set_aside(path, skipped, newer)) {
+            fprintf(stderr, "[FIGHTERS] custom unlock file %s is damaged and could not be moved aside; fighter packs left off, file kept\n", path);
+            return 0;
+        }
+        /* Write the clean file now: the good lines must survive even if this
+         * session ends before the game saves. A failure stays pending. */
+        s_custom_dirty = 1;
+        write_sidecar();
+    } else {
+        s_custom_dirty = 0;
+    }
+    fprintf(stderr, "[FIGHTERS] restored %u custom unlocks from %s (%zu bytes kept for packs not installed, %u lines skipped)\n",
+            s_custom_count, path, s_unknown_size, skipped);
     return 1;
-malformed:
-    free(bytes);
-    fprintf(stderr, "[FIGHTERS] custom unlock file %s is malformed; launch refused, file kept\n", path);
-    return 0;
 }
 
 static FILE *open_write_utf8(const char *path) {
@@ -298,7 +372,7 @@ static int write_sidecar(void) {
     size_t capacity = 256 + (size_t)s_custom_count * 176 + s_unknown_size, size = 0;
     char *text = (char *)malloc(capacity);
     FILE *file;
-    int ok;
+    int ok, unnamed = 0;
     if (!text) return 0;
     size += (size_t)snprintf(text, capacity, "%s",
         "# Custom fighter unlocks. Written by the game; keys are pack/fighter names.\n"
@@ -307,7 +381,8 @@ static int write_sidecar(void) {
     for (uint32_t i = 0; i < s_custom_count; ++i) {
         const char *name = identity_name(s_custom_keys[i]);
         if (!name) {
-            fprintf(stderr, "[FIGHTERS] custom unlock %08X has no name; not written\n", s_custom_keys[i]);
+            fprintf(stderr, "[FIGHTERS] custom unlock %08X has no name; kept for the next save\n", s_custom_keys[i]);
+            unnamed = 1;
             continue;
         }
         size += (size_t)snprintf(text + size, capacity - size, "%s=%d\n", name, s_custom_metadata[i] ? 1 : 0);
@@ -336,7 +411,7 @@ static int write_sidecar(void) {
     }
     free(text);
     if (!ok) { fprintf(stderr, "[FIGHTERS] could not write custom unlocks to %s; will retry at the next save\n", path); return 0; }
-    s_custom_dirty = 0;
+    s_custom_dirty = unnamed; /* an unlock that could not be named stays pending, never dropped */
     fprintf(stderr, "[FIGHTERS] custom unlocks written: %u (%s)\n", s_custom_count, path);
     return 1;
 }
