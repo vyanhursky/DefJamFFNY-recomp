@@ -7,6 +7,7 @@ step of its own. It is served at `https://vyanhursky.github.io/DefJamFFNY-recomp
 |---|---|
 | `index.html` | All the copy and structure: hero, features, screens, install, mods, news, roadmap and docs, FAQ, community, footer. |
 | `styles.css` | The look. Colours and fonts are variables at the top. |
+| `hd-menus-ui/` | Menu/UI page: nine before/after sliders, an ultrawide showcase, coverage, installation and credits. |
 | `hd-fighters/` | Dedicated HD Fighters page: eight interactive before/after comparisons, coverage, installation and credits. |
 | `app.js` | Live details: the latest release line, the download button for the visitor's OS, the news list and the before/after sliders. The page still works without it. |
 
@@ -101,3 +102,25 @@ Approved hosted image fingerprints (SHA-256):
 | `06-oe.jpg` | `fb6393ad7940a7a7d4b7f73ec39a4f39e180ea29094291d6c749d42ed4340589` |
 | `07-erick-sermon.jpg` | `094a377660ad8b890c74a571ec277a7454104ecffd206bc57b0042095b60a0f4` |
 | `08-masa.jpg` | `ad231e7b5fb97cb02466f3e6fae9a69f2caef511389ea49d1d32a2cf643544ec` |
+
+## HD Widescreen Menus and UI subpage
+
+`hd-menus-ui/` publishes through the same build and Pages workflow. The home Mods section links to it. Copy is a deliberate snapshot of the owner-published Thunderstore README on November 13, 2026, with the measured 1.7.2 wrapper download size added. The signed catalogue compatibility hold remains explicit; this page does not publish catalogue changes.
+
+Nine owner-approved before/after boards are hosted externally under `https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/menu-ui-hd-wide/screenshots/1.7.2/`. Both SVG viewports are 850×680: original `69 255 850 680`, HD `1001 255 850 680`, within each 1920×1080 JPEG. These rectangles are the evidence panels; no art is regenerated or stretched while moving the clip. The separate supplied PNG collage retains its native aspect and is never treated as an aligned before/after pair. No new image bytes enter Git or the Pages artifact.
+
+Original, 50/50 and HD presets, pointer dragging and native range keyboard controls mirror the HD Fighters page. Hosted fingerprints:
+
+| Image | SHA-256 |
+|---|---|
+| `01-widescreen-menu-layouts.png` | `52f40f686a0d50d49ef9010bb10f896ea3eabc042bc9720cd268fe1b6416ee3d` |
+| `02-fighter-select-brick-wall.jpg` | `42a0dc6b4c612411b0e71777bd979500768c0e86c00906d8cb74833004388756` |
+| `03-main-menu-poster-wall.jpg` | `0bda2e61d9cabd01f84713bc9ed8626197320f3a6471e815db67ea4ff19c147b` |
+| `04-wrestling.jpg` | `7748b1d08bd667880127a4ca6e0eff570e6724f9f4570f3e562155fb0b01ffc2` |
+| `05-winner.jpg` | `18559d3ddf0f05ff6534fb47f4871f3251e2582f13e63f48cb4459c705f9d2e0` |
+| `06-venue-label-club-dtp.jpg` | `c546c3d3b394cdb340fe4d6ca56b0c885473a6c67616b0e419345f78c5088b07` |
+| `07-venue-emblem-70.jpg` | `b5afd69c50e209e436308fd0129574ebe19e1ce6e8ea29a4a2d0a87848849b58` |
+| `08-method-man-as-blaze-loading.jpg` | `bf7c68d3a857ef363ae574a45974bddec31786208c08b57a404b124e7a89612b` |
+| `09-d-mob-loading.jpg` | `349857f0ff267643ca1ff7094fbb146f17241637716bbe32de76b41b0f5cb0bf` |
+| `10-busta-rhymes-as-magic-loading.jpg` | `d820a2ef160e7d54a7f1cf72d19dae78fbdfd194e5ba86fbc6d7d74143840b36` |
+| `nine-comparisons.jpg` | `4b78645564dd0c2a263fb5fa60121c3f1005919f2443f7f2290f3eb9bf36079c` |
