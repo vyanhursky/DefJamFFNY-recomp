@@ -62,6 +62,8 @@ static int s_probe, s_probed;
 static char s_research_sod[2048];
 static char s_research_screens[2048];
 int defjam_fighter_research_active(void) { return s_probe && s_research_sod[0]; }
+/* Fighter packs (or a research roster) are loaded. With none, every fighter hook is inert. */
+int defjam_fighter_runtime_active(void) { return s_research_sod[0] != 0; }
 static char s_research_assets[3][2048];
 static const char *s_asset_targets[3] = { "assets/v2ip.viv", "assets/entity.xml", "assets/nis.viv" };
 static const char *s_asset_env[3] = { "RECOMP_FIGHTER_RESEARCH_MODELS", "RECOMP_FIGHTER_RESEARCH_ENTITIES", "RECOMP_FIGHTER_RESEARCH_CINEMATICS" };
@@ -694,7 +696,9 @@ void defjam_fighter_settings_validate(uint32_t self, uint32_t payload) {
         if (!fighter_bindings_find(&s_bindings, FIGHTER_BINDING_STABLE,
                 fighter_unlocks_at(bytes, i) & ~FIGHTER_UNLOCK_METADATA, &binding)
             && fighter_window_native(&s_window, fighter_unlocks_at(bytes, i) & ~FIGHTER_UNLOCK_METADATA) == UINT32_MAX)
-            fighter_stop("Saved fighter unlock has no historical identity binding.");
+            /* Not fatal: the projection before each save keeps only marks with a retail
+             * binding, so this unknown one simply drops out of the next Options file. */
+            fprintf(stderr, "[FIGHTERS] saved unlock %08X has no fighter binding; it is ignored\n", fighter_unlocks_at(bytes, i));
     fprintf(stderr, "[FIGHTERS] native Options unlock payload verified: %u marks\n", count);
 }
 

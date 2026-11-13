@@ -117,6 +117,24 @@ Each launch copies `save/UserData` and `fighter-state` to
 `<data>/save-backups/<date>-<time>/` and keeps the last three (a launch whose
 saves equal the newest backup adds none).
 
+**When something does not match.** Fighter Mod Support has three ways to react,
+in this order of preference:
+
+1. *At start-up* (a pack, its compiled cache or the unlock file fails a check):
+   the game starts **without** fighter packs and says so; saves and custom
+   unlocks are kept, and the log names the check. Only a pending move of
+   beta.1/beta.2 saves (below) refuses Play, because playing then would use the
+   stale save the move replaces.
+2. *In a match* (a fighter's data does not match what the game holds): that
+   participant is left to the game's own handling and the log says why. The
+   Story adapter works this way for every Story fight, and with no pack enabled
+   it does nothing at all.
+3. *Only a state that would write a corrupt save* may stop the game.
+
+About 190 checks still stop the game; most guard in-match states that cannot
+happen with a valid cache. `tests/unit/test_fighter_stop_budget.py` holds their
+count per file, so it can only go down.
+
 **Moving from v1.2.0-beta.1/beta.2.** Those betas kept fighter-era saves in
 `<data>/mod-manager/fighter-profiles` and left `save/` as it was on the day
 fighter packs were first used. The first Play of a later build copies that old
