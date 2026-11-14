@@ -130,7 +130,7 @@ python setup/mods.py COMMAND --data-dir DATA --runtime VERSION --game-dir GAME
 | `install-local --archive ZIP` | Installs or updates a Fighter ZIP (checked, journalled, with rollback). It does not enable it. |
 | `fighter-enable --id PACK` / `fighter-disable --id PACK` | Enables or disables a whole installed pack, compiles the enabled set and writes the fighter manifest the game reads at Play. |
 | `fighter-prepare` | Rebuilds the manifest for the current state (Play runs it only when the manifest is stale). |
-| `fighter-digest` | Prints the `fighter-set-1` digest of the enabled packs as one JSON line. Read-only and takes no lock, so it works while the game runs. |
+| `fighter-digest` | Prints the `fighter-set-1` digest of the enabled packs as one JSON line. Changes no state and takes no lock, so it works while the game runs. |
 | `status` | Refreshes `mod-manager/view.ini`. |
 
 Each command prints JSON lines: `{"event": "progress", ...}` while it works, then
