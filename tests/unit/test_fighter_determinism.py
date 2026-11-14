@@ -6,7 +6,7 @@ host random source or the order in which our own threads finish. This is a word 
 over our modules: it guards them only and says nothing about the base game, whose own
 seeded generator and asynchronous loader (src/patches/fighter_film_async.c keeps request
 ownership by handle; completion order is the game's) are outside it. The replay check
-with a custom fighter (regress.py, row replay-fighters) is the evidence that matters.
+with a custom fighter (scripts/fighter-replay-check.py) is the evidence that matters.
 """
 from pathlib import Path
 import re

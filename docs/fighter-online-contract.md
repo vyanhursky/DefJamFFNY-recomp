@@ -15,12 +15,15 @@ Fighter Mod Support is an experimental beta. **No part of the pack format
   derived from the identity and are not part of this contract.
 - Since v1.2.0-beta.3 those numbers depend only on the set of enabled packs, not on install history.
   Two PCs with the same enabled packs, the same dump, runtime version and language get the same
-  numbers and compile the same files (tested, section 7). Use the string anyway.
+  numbers and compile the same files (tested with three pack sets, section 7). Use the string anyway.
 
 ## 2. Roster order
 
 The custom fighters appear in the roster in the order of their stable keys (sorted), after the retail
-roster. It is a function of the enabled set alone. *Tested:*
+roster; there is no grouping by tier (the menu compiler sorts the custom rows by selection key and
+appends them, `setup/fighter_menu.py`). It is a function of the enabled set alone. A pack can give a
+fighter a native roster category (`tier`); every pack tested so far used one category for all its
+fighters, so whether a different category moves a fighter in the grid is **not tested**. *Tested:*
 `test_fighter_numbers_follow_the_enabled_set_not_install_history` (three install histories, one
 result), and a game run where enabling a second pack that sorts first moved 2Pac one tile on and
 the same fighter was still selected by its new tile.
@@ -40,12 +43,23 @@ compiler reads from a pack; README and LICENSE files are left out. It does not c
 order, folder paths, the language pack, the runtime version or the fighter numbers. Anyone can
 compute it from the ZIPs: the installed `fighters.json` is byte-identical to the one in the ZIP.
 
+**What it does not cover.** Equal digests mean equal packs, nothing more. The compiled files also
+depend on the game build (the runtime version and its fighter compiler) and on the retail files they
+are compiled from: a fighter that inherits from a retail fighter takes content from the dump. Setup
+checks the dump's executable by hash, its required paths and its file count, not every data file. So
+a fork should compare its own build fingerprint as well as the digest, and treat the dump as part of
+what must match. The fighter compiler's cache key (the name of the folder under
+`mod-manager/fighter-cache/` that the manifest points to) already covers all of these: the hashes
+of the retail files it reads, the compiler's own sources, the packs, the fighter numbers and the
+language pack; it was the same in both folders of the section 7 test. It is a useful check, but **not
+part of this contract**: its inputs and format may change during the beta.
+
 Where to read it:
 
 | Where | What |
 |---|---|
 | `mod-manager/fighter-manifest.ini`, `[manifest]` | `digest_schema=fighter-set-1`, `digest=<hex>`, `packs=<ids>` |
-| `python setup/mods.py fighter-digest --data-dir DATA` | `{"event":"digest","schema":"fighter-set-1","digest":...,"packs":[{"id","version","sha256"}]}`; read-only, no lock, works while the game runs |
+| `python setup/mods.py fighter-digest --data-dir DATA` | `{"event":"digest","schema":"fighter-set-1","digest":...,"packs":[{"id","version","sha256"}]}`; changes no state, takes no lock, works while the game runs |
 | In the game process: `pc_fighters_set_digest()` (`src/hooks/pc_mods.h`) | the digest of the packs **this process loaded**, or `""` |
 | The game log at start | `[FIGHTERS] set digest=<hex> packs=<n>` |
 
@@ -94,18 +108,23 @@ Another launcher can install, enable and inspect packs without a window: see
   its own data folder with `[debug] unlock_all = true` (`RECOMP_UNLOCK_ALL=1`), which unlocks every
   retail fighter and venue in that folder's saves. **Not guaranteed:** that every player's save
   holds the same other progress (points, Story state).
+- **Unlock-everything changes how a match plays.** The same pinned fight plays differently with the
+  setting on than with it off (95 state records against the golden 80, every time; the cause is not
+  known, `docs/09-testing-harness.md`). So every player in a room must have it the same, on or off.
+  The replay results in section 7 were recorded with it on (`RECOMP_UNLOCK_ALL=1`).
 
 ## 7. Loading and timing
 
 | Statement | Status |
 |---|---|
-| Two PCs with the same packs compile byte-identical files, whatever the install order and folder | **Tested:** two data folders, different paths, opposite install and enable order: all 230 compiled files (fighter cache, UI cache, generated UI texture pack, identity file) identical, same cache keys, same digest. `fighter-manifest.ini` differs by design (it holds paths and times). |
+| Two PCs with the same packs compile byte-identical files, whatever the install order and folder | **Tested:** two data folders, different paths, opposite install and enable order: all 230 compiled files (fighter cache, UI cache, generated UI texture pack, identity file) identical, same cache keys, same digest. `fighter-manifest.ini` differs by design (it holds paths and times). The same held for two packs with authored fighters: with DMX (intro, Blazin and victory owned) 225 files, and with the Vendetta roster (46 authored fighters) 1,278 files, identical in both folders. |
 | Our fighter modules use no clock, random source or thread of their own | **Tested** by a word search (`test_fighter_determinism.py`). One allowed use: the clock names a damaged unlock file that is moved aside. Says nothing about the base game. |
-| The same match plays the same with a custom fighter in it | **Tested.** The seed-pinned, step-timed replay (the switches of `regress.py`'s `replay` row), 2Pac (custom) against a retail CPU fighter picked through the menu, `scripts/fighter-replay-check.py`: two runs from one data folder and one from a second folder with the opposite install order produced the **same game-state stream** (positions, health, buttons, events) over the full window, 81 records to fight step 1,771, and all three reached the result screen. This was with the base game's time-seeded generators pinned (`--isolate-crowd`). |
+| The same match plays the same with a custom fighter in it | **Tested.** The seed-pinned, step-timed replay (the switches of `regress.py`'s `replay` row), 2Pac (custom) against a retail CPU fighter picked through the menu, `scripts/fighter-replay-check.py`: two runs from one data folder and one from a second folder with the opposite install order produced the **same game-state stream** (positions, health, buttons, events) over the full window, 81 records to fight step 1,771, and all three reached the result screen. This was with the base game's time-seeded generators pinned (`--isolate-crowd`) and unlock-everything on (`RECOMP_UNLOCK_ALL=1`, section 6). |
+| ... and with an authored fighter, whose owned files load during the fight | **Tested.** The same check with a fighter whose intro cinematic and Blazin finisher are the pack's own files: DMX (`dmx-ffny` 0.2.0; four runs, two from each of two folders with opposite install order) and a Vendetta roster fighter (`vendetta-roster` 1.0.0, 46 authored fighters enabled; five runs over the two folders). Every run that reached the fight recorded the **same game-state stream** for its pack over the full window to fight step 1,771 and reached the result screen. In every run the owned intro was loaded at match setup, before the first fight step, and the owned Blazin clips were read during the fight, at fight step 51, through the game's asynchronous loader. One further Vendetta run stalled during start-up, before the main menu, recorded nothing and is not counted; it did not happen again. **Limit:** the stream compares positions, health, buttons and events, not guest memory. The owned pool's address is not compared and does differ (next rows), so a fork that hashes raw guest memory can still see a difference. Not tested: a Blazin finisher actually performed inside the window (the clips were loaded, not played). |
 | ... without pinning the base game's time-seeded generators | **Not guaranteed, and not ours.** Without `--isolate-crowd`, two runs from the two folders were identical but a third differed from fight step 781, in the **retail** CPU opponent's choice of move. That is the base game's known behaviour (issue #98, `docs/research/deck-determinism-98.md`): two match-logic generators are seeded from the CPU time-stamp counter and one is drawn once per presented frame, so host timing can change any CPU fighter's choices. An online mode that compares game state needs those pinned, whatever the fighters. |
 | The replay needs a save whose first-time hints were seen | A fresh save stops the fight at the first tutorial hint (for example the crowd-weapon hint), which waits for A; step-timed input does not advance during it. Use a played save for such tests. This is game behaviour, not a fault. |
-| Owned files are bound before the first simulated frame | **Not guaranteed.** Created-fighter (CAF) packs such as 2Pac load everything at match setup and never use the owned animation pool. Packs with authored cinematics or Blazin finishers read those files when the game plays them, through the game's own on-demand, asynchronous loader, which can be during the fight (seen in a recorded run: the pool was reserved when an intro cinematic was selected after the match had started). |
-| The 32 MiB owned animation pool | Reserved on the first owned cinematic or finisher read, from the host's guest heap, not the game's own arena. Its address can depend on earlier host allocations: **not guaranteed** to be the same on two PCs. It holds at most 512 allocations. |
+| Owned files are bound before the first simulated frame | **Not guaranteed.** Created-fighter (CAF) packs such as 2Pac load everything at match setup and never use the owned animation pool. Packs with authored cinematics or Blazin finishers read those files when the game plays them, through the game's own on-demand, asynchronous loader, which can be during the fight. In the replay runs above the owned intro loaded at match setup and the owned Blazin clips were read at fight step 51; another recorded run reserved the pool when an intro cinematic was selected after the match had started. |
+| The 32 MiB owned animation pool | Reserved on the first owned cinematic or finisher read, from the host's guest heap, not the game's own arena. Its address depends on earlier host allocations: **not guaranteed** to be the same on two PCs. On one PC it was the same in every run with the same packs, and different between two pack sets (`01486180` with DMX, `01486700` with the Vendetta roster). It holds at most 512 allocations. |
 | Cinematic variants | Our code chooses none: the game's own data selects the clip category (intro, outro or Blazin phase) and we substitute the one owned clip compiled for that core and category. The retail created-fighter row's counted random variants are left as they are and are never given to a new fighter; any choice among them is the game's own. |
 | Load completion order | The game's own asynchronous loader decides it; `src/patches/fighter_film_async.c` only keeps request ownership by handle and adds no thread. |
 
