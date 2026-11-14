@@ -1,9 +1,12 @@
-"""Append-only identity allocation for the fighter adapter.
+"""Identity allocation for the fighter adapter.
 
-This is runtime-owned metadata, not a field in a mod manifest. Removed fighters
-remain dormant entries and keep their selection tokens and persistent handles.
-Native sorted-row ranks are derived anew for each snapshot and never persisted
-as fighter identity. The ledger alone is not a native save migration.
+The stable identity of a fighter is its key, ``pack-id/fighter-id``. Handles,
+selection keys and symbols are internal numbers derived from it. The launcher
+calls allocate() with no previous ledger, so the numbers follow the sorted set of
+enabled keys alone: two PCs with the same packs get the same numbers whatever
+order the packs were installed in. Nothing on disk is keyed by these numbers
+(the unlock sidecar is keyed by name). allocate() can still extend an earlier
+ledger without reusing numbers; research tools and old save generations use that.
 """
 from copy import deepcopy
 import hashlib

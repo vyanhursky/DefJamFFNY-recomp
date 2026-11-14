@@ -104,6 +104,15 @@ files, the language pack, a game update), the launcher rebuilds once before
 Play; an incompatible pack stops launch with a diagnostic. With no pack enabled
 the fighter code does nothing and the game behaves as v1.1.1.
 
+**Fighter numbers.** A fighter's identity is its key, `pack-id/fighter-id`. The
+internal numbers the game uses for it (handle, selection key, native symbol) and
+the order of the custom fighters in the roster follow the set of enabled packs
+alone: the enabled keys, sorted, are numbered from the first free number above the
+retail roster. Two PCs with the same packs, game and language therefore get the
+same numbers and the same roster, whatever order the packs were installed in.
+Enabling or disabling a pack can renumber the others; nothing on disk depends on
+these numbers (custom unlocks are kept by name, and profile files hold none).
+
 **Saves.** Every save, with or without fighter packs, lives in `<data>/save`.
 The Options file there always holds retail unlocks only, so any build (and
 v1.1.1) loads it. Custom fighter unlocks are kept by the game itself in
