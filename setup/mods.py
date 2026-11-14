@@ -648,7 +648,7 @@ class Manager:
         state = self.state()
         if new and self.unchanged(target, new):
             state['installed'][journal['id']] = new
-            if journal.get('fighters') or 'fighters-v1' in (new or {}).get('capabilities', []) \
+            if 'fighters-v1' in (new or {}).get('capabilities', []) \
                     or 'fighters-v1' in (old or {}).get('capabilities', []):
                 self.fighters_changed = True
         elif old and self.unchanged(target, old):
