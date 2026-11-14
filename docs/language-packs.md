@@ -239,7 +239,7 @@ produce identical files.
 
 | Language | Pack | Author | Licence |
 |---|---|---|---|
+| Portuguese (Brazil) | `pt-br-sanvg`, from "Def Jam Fight for NY PT-BR" (v0.4.0) | San V, Gledson999, JJAlves | CC BY-NC-SA 4.0 |
 | Spanish | `es-zarf`, from "Parche textos en español DJFFNY" v1.1 ([source](https://github.com/MODZARF/Parche-textos-en-espanol-DJFFNY-Compatible-con-Xbox-360)) | ZARF (MOD-ZARF) | CC BY-NC-SA 4.0; a conversion exists and awaits its author's agreement before it is shared |
 
 French text is on the USA disc already (`cmfren.loc`); use the [built-in French setting](#the-games-own-french), which needs no separate pack.
-A Brazilian Portuguese translation exists for the European PS2 release; porting it needs its author's permission.
