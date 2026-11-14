@@ -38,6 +38,7 @@
 #include "hooks/fe_inject.h"
 #include "hooks/scene_launcher.h"
 #include "hooks/dev_module.h"
+#include "hooks/pc_speech_subs.h"
 #include "patches/picture.h"
 #include "patches/cheats.h"
 #include "patches/song_store.h"
@@ -552,6 +553,8 @@ static void ws_hud_heartbeat(void)
  * Read-only, except that RECOMP_TEST_RNG_SEED replaces the seed argument. */
 void sub_00087700_enter(void)
 {
+    if (!s_ws_hud_live)
+        pc_speech_subs_reset();
     defjam_crowd_step();
     defjam_test_step();
     s_ws_hud_live = 1;
@@ -574,7 +577,12 @@ void sub_0008BE60_enter(void)
  * through a pause that began in a live fight (issue #95); otherwise no change. */
 void sub_00079B60_enter(void) { if (s_ws_hud_live) ws_hud_heartbeat(); }
 void sub_0007A8F0_enter(void) { if (s_ws_hud_live) ws_hud_heartbeat(); }
-void sub_001A4D90_enter(void) { defjam_test_match_start(); defjam_crowd_match_start(); cheats_match_start(); song_cursor_match_start(); }
+void sub_001A4D90_enter(void) { defjam_test_match_start(); defjam_crowd_match_start(); cheats_match_start(); song_cursor_match_start(); pc_speech_subs_clear_match(); }
+void sub_0001D2C0_enter(void)
+{
+    if (MEM32(g_esp + 4) == 0u)
+        pc_speech_subs_reset();
+}
 /* Widescreen song notification (src/patches/widescreen.c, issue #118): the APT
  * movie loader (archive, name, &apt, &const), and the next step of the load,
  * which its only caller runs straight after it with the .apt data as its second
@@ -1515,8 +1523,137 @@ static void trace_voice_render(void)
     }
 }
 
+/* Kernel file I/O interceptors for in-game voice subtitles (src/hooks/pc_speech_subs.c).
+ * Thunk slots in Def Jam FFNY default.xbe:
+ *   0xFE000064 (slot 25)  -> ordinal 219 (NtReadFile)
+ *   0xFE000068 (slot 26)  -> ordinal 190 (NtCreateFile)
+ *   0xFE00006C (slot 27)  -> ordinal 187 (NtClose)
+ *   0xFE0000D0 (slot 52)  -> ordinal 202 (NtOpenFile)
+ *   0xFE0001A8 (slot 106) -> ordinal 67  (IoCreateFile)
+ */
+static void extract_guest_oa_path(uint32_t obj_attrs_va, char *out, size_t cap)
+{
+    uint32_t ansi_va, buf_va;
+    uint16_t len;
+    out[0] = 0;
+    if (!obj_attrs_va) return;
+    ansi_va = MEM32(obj_attrs_va + 4);
+    if (!ansi_va) return;
+    len = MEM16(ansi_va);
+    buf_va = MEM32(ansi_va + 4);
+    if (!buf_va || !len) return;
+    if (len >= cap) len = (uint16_t)(cap - 1);
+    memcpy(out, (const void *)XBOX_PTR(buf_va), len);
+    out[len] = 0;
+}
+
+static void speech_wrap_open(uint32_t thunk_va)
+{
+    uint32_t handle_va = MEM32(g_esp + 4);
+    uint32_t obj_attrs = MEM32(g_esp + 12);
+    char path[256];
+    recomp_func_t kfn;
+
+    extract_guest_oa_path(obj_attrs, path, sizeof path);
+    if (path[0])
+        xbox_speech_notify_path(path);
+    kfn = recomp_lookup_kernel(thunk_va);
+    if (kfn)
+        kfn();
+    if (g_eax == 0 && handle_va && path[0]) {
+        uint32_t token = MEM32(handle_va);
+        if (token)
+            xbox_speech_notify_open(path, (void *)(uintptr_t)token);
+    }
+}
+
+static void speech_wrap_NtCreateFile(void) { speech_wrap_open(0xFE000068u); }
+static void speech_wrap_NtOpenFile(void)   { speech_wrap_open(0xFE0000D0u); }
+static void speech_wrap_IoCreateFile(void) { speech_wrap_open(0xFE0001A8u); }
+
+static void speech_wrap_NtClose(void)
+{
+    uint32_t token = MEM32(g_esp + 4);
+    recomp_func_t kfn = recomp_lookup_kernel(0xFE00006Cu);
+    if (token)
+        xbox_speech_notify_close((void *)(uintptr_t)token);
+    if (kfn)
+        kfn();
+}
+
+static void speech_wrap_NtReadFile(void)
+{
+    uint32_t token     = MEM32(g_esp + 4);
+    uint32_t buffer_va = MEM32(g_esp + 24);
+    uint32_t length    = MEM32(g_esp + 28);
+    uint32_t offset_va = MEM32(g_esp + 32);
+    uint64_t off       = offset_va ? (uint64_t)MEM32(offset_va) : 0ull;
+    recomp_func_t kfn  = recomp_lookup_kernel(0xFE000064u);
+    if (kfn)
+        kfn();
+    if ((g_eax == 0 || g_eax == 0x00000103u) && token && buffer_va && length >= 4)
+        xbox_speech_notify_read((void *)(uintptr_t)token, off, (const void *)XBOX_PTR(buffer_va), length);
+}
+
+extern void sub_00034CF0(void);
+extern void sub_00034DE0(void);
+extern void sub_00034E10(void);
+extern void sub_00034FA0(void);
+
+static void speech_wrap_play_intro(void)
+{
+    /* In sub_00034CF0, esp+8 points to a pointer to the fighter index (0..3) */
+    uint32_t p = MEM32(g_esp + 8);
+    uint32_t fighter_idx = p ? MEM32(p) : 4u;
+    uint8_t was_played = (fighter_idx < 4u) ? MEM8(fighter_idx * 0x64u + 0x3403BCu) : 1u;
+    sub_00034CF0();
+    if (fighter_idx < 4u && !was_played && MEM8(fighter_idx * 0x64u + 0x3403BCu) != 0u) {
+        uint32_t slot = 0;
+        for (uint32_t f = 0; f < fighter_idx; f++) {
+            if (MEM32(f * 0x64u + 0x3403A4u) != 0xFFFFFFFFu &&
+                MEM32(f * 0x64u + 0x3403B4u) != 0xFFFFFFFFu) {
+                slot++;
+            }
+        }
+        pc_speech_subs_play_intro(slot);
+    }
+}
+
+static void speech_wrap_stop_intro(void)
+{
+    pc_speech_subs_reset();
+    sub_00034DE0();
+}
+
+static void speech_wrap_play_extro(void)
+{
+    /* In sub_00034E10, esp+8 points to a pointer to the winning fighter index (0..3) */
+    uint32_t p = MEM32(g_esp + 8);
+    uint32_t fighter_idx = p ? MEM32(p) : 4u;
+    uint8_t was_played = (fighter_idx < 4u) ? MEM8(fighter_idx * 0x64u + 0x3403BDu) : 1u;
+    sub_00034E10();
+    if (fighter_idx < 4u && !was_played && MEM8(fighter_idx * 0x64u + 0x3403BDu) != 0u) {
+        pc_speech_subs_play_extro(fighter_idx);
+    }
+}
+
+static void speech_wrap_stop_extro(void)
+{
+    pc_speech_subs_reset();
+    sub_00034FA0();
+}
+
 recomp_func_t recomp_lookup_manual(uint32_t xbox_va)
 {
+    if (xbox_va == 0xFE000064u) return speech_wrap_NtReadFile;
+    if (xbox_va == 0xFE000068u) return speech_wrap_NtCreateFile;
+    if (xbox_va == 0xFE00006Cu) return speech_wrap_NtClose;
+    if (xbox_va == 0xFE0000D0u) return speech_wrap_NtOpenFile;
+    if (xbox_va == 0xFE0001A8u) return speech_wrap_IoCreateFile;
+    if (xbox_va == 0x00034CF0u) return speech_wrap_play_intro;
+    if (xbox_va == 0x00034DE0u) return speech_wrap_stop_intro;
+    if (xbox_va == 0x00034E10u) return speech_wrap_play_extro;
+    if (xbox_va == 0x00034FA0u) return speech_wrap_stop_extro;
     if (xbox_va == 0x00029500u && defjam_fighter_research_active()) return fighter_archive_allocate;
     if (xbox_va == 0x000766B0u)
         return sub_000766B0;
