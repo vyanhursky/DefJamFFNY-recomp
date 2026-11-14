@@ -593,7 +593,7 @@ defjam-recomp/
 
 ## 5. Open questions for Vlad
 
-- No owner approval blocks v1.1.2: D398/D399 set the scope (#250 only), the branch off the v1.1.1 tag, the Windows full-regression gate and agent publication. The reporter's Beatbox crash (#230) is not reproduced on its own; ask them to retest.
+- v1.1.2 is published under D397-D399; no release approval remains pending. The #230 Beatbox crash awaits the reporter's retest.
 
 - No owner-only question blocks Beta 2: it is published under D396 on the owner's instruction after the Windows and Steam Deck results. macOS native play is untested. The Workshop ships the matching one-format exporter as 0.1 Beta 2; recipes from earlier Workshop builds are refused.
 
@@ -628,16 +628,20 @@ Upstream PR submissions still need the owner's separate approval.
 - 2026-11-13 — v1.1.2 hotfix (D397-D399) merged into main: PR #250 fixes #230, the music engine's 36-entry song-name table overrun by custom songs. On v1.1.1: 11-15 custom songs crashed at start-up, 6 froze after a One on One; fixed: 27 songs boot with music, Beatbox 60 rows, fight-result 6 and 27 reach GetMatchSummary. On main 2a602d1 + the fix: see the merge PR. The fix joins v1.2.0-beta.3 through main.
 
 - 2026-11-13 — Owner requested the Menu/UI ultrawide showcase before the before/after comparisons. Moved the existing section intact after the hero; all other page content, images, sliders and styling remain unchanged. Publication and validation are recorded in the focused website PR.
+- 2026-11-14 05:17 UTC — v1.1.2 published as Latest (D397-D399): tag `v1.1.2` at `ed60f6d` on `release/v1.1.2` (v1.1.1 + #250), merged into main by #252. Windows full regress 17/17 (4 skipped, `logs/regress-20261113-220634.txt`); main + fix: boot 27 songs, fight-result 6, Beatbox 60 rows, quick 5/5 (`logs/regress-20261113-211830.txt`). Release run 43559956551; nine assets verified; Pages 43560804321. #230 closed by #252, reporter asked to retest the Beatbox.
 
 ## 7. Hand-off
 
-### v1.1.2 hotfix - 2026-11-13
+### v1.1.2 hotfix - 2026-11-13 (published)
 
-- v1.1.2 is built on `release/v1.1.2` from the v1.1.1 tag (D398): v1.1.1 + #250 (#230, custom songs
-  overran the music engine's 36-entry song-name table at 0x33EC98) + records. The tag sits on that
-  branch; this merge makes it a main ancestor and brings the fix into the 1.2 line (v1.2.0-beta.3).
-  Main keeps its own version (1.2.0). Gate D399: one full Windows regression on the v1.1.2 candidate.
-- Open: the reporter retests the Beatbox crash from #230, which was not reproduced on its own.
+- v1.1.2 is published, Latest stable, at tag `v1.1.2` = `ed60f6d` on `release/v1.1.2` (v1.1.1 + #250 + records,
+  D397-D399); merged into main by #252 (`cddf928`), so the fix is in the 1.2 line for v1.2.0-beta.3.
+- Gate (D399): Windows full `regress.py` on the candidate 17/17 (4 macOS/Linux-only skipped), 47 min,
+  `logs/regress-20261113-220634.txt` in the `release/v1.1.2` worktree. Release workflow 43559956551 passed; all nine
+  app assets verified (GitHub digests, `.sha256`, provenance: app, 1.1.2, source `ed60f6d`, toolkit `4801dc1`,
+  non-development). Pages redeployed from main (43560804321; the release-event deploy is refused as usual).
+- Open: the #230 reporter is asked to retest the Beatbox crash (not reproduced on its own). #166 still sits in the
+  v1.1.2 milestone and was not part of the release; move it when the owner picks its milestone.
 
 ### Beta-2 candidate - 2026-11-12
 
