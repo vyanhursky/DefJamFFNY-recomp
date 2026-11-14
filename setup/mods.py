@@ -906,7 +906,8 @@ def main():
         manager = Manager(args.data_dir, args.runtime, args.capability, cancel=args.cancel_file, prerelease=args.prerelease, game=args.game_dir)
         manager.language = args.language_pack
         if args.command == 'fighter-digest':
-            # Read-only: no lock, no compile, safe while the game or another mod command runs.
+            # Changes no state: no lock, no compile, safe while the game or another mod command runs.
+            # (Manager() creates the empty mod-manager folders in a new data folder, as for any command.)
             from fighter_manifest import DIGEST_SCHEMA, set_digest
             from fighter_packages import enabled
             digest, packs = set_digest(manager, enabled(manager.state()))

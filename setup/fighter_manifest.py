@@ -24,7 +24,9 @@ from pathlib import Path
 
 from mods import atomic_bytes, check, ordinary_path
 
-SCHEMA = 1
+# 2 since v1.2.0-beta.3: numbers follow the enabled set (no history ledger) and [manifest]
+# carries the fighter-set-1 digest. The game rebuilds a manifest of any other schema once.
+SCHEMA = 2
 MANIFEST = 'fighter-manifest.ini'
 IDENTITIES = 'fighter-identities.txt'
 STATE_DIR = 'fighter-state'

@@ -65,7 +65,7 @@ def test_manifest_lists_every_input_stamp_and_names_custom_identities(tmp_path, 
     path = fighter_manifest.write(mgr, {'fighters': ['alpha']}, language=language)
     assert calls == [language]
     manifest = parse(path)
-    assert manifest['manifest'] == {'schema': '1', 'runtime': '1.2.0-beta.3', 'language': str(language), 'packs': 'alpha',
+    assert manifest['manifest'] == {'schema': '2', 'runtime': '1.2.0-beta.3', 'language': str(language), 'packs': 'alpha',
                                     'digest_schema': 'fighter-set-1', 'digest': fighter_manifest.set_digest(mgr, ['alpha'])[0]}
     environment = manifest['environment']
     assert environment['RECOMP_FIGHTER_STATE'] == str(mgr.data / 'fighter-state')
