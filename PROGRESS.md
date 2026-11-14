@@ -541,6 +541,9 @@ Run-log citations from retired status/planning prose remain protected by
 | D395 | 2026-11-12 | The mod helper reports bytes while unpacking, and the launcher draws an indeterminate bar with elapsed time for the compile step (PR #238). | The compile step has no total to measure; elapsed time and a moving bar show it has not stalled. |
 
 | D396 | 2026-11-12 | Qualify the Beta-2 candidate on Windows with one full regression on runtime 97cd1ad and carry it forward to the launcher-only commit 98070bb. | Windows 17/17 applicable checks (four SDL-launcher checks skipped as inapplicable), 46 minutes, unit stage 1917 passed. 98070bb changes only the Fighters page, the mod helper's progress reports and window drop handling, so under D382 it needs focused checks (unit suite 1918 passed, `--only m4a`, real launcher install, Browse, Cancel and error runs), not a second full run. macOS and Linux/Steam Deck native gameplay is not claimed; the owner tests those before release. |
+| D397 | 2026-11-13 | PR #250 (#230): give the music engine's song-name table (0x33EC98, 36 entries of 0xA0 bytes, filled at start-up by sub_0003C6E0 through sub_00033590) room for every Song row: the first 36 entries stay at the game's addresses, entries 36+ go in a block from the game's allocator; sub_00033590/sub_00033630 replaced, sub_0003BE50's random pick made over every entry with the same rand() call when there are more than 36. | Rows past 36 (every custom song after the third, with Holler on) overwrote the engine's state at 0x340318: start-up crashes, silence, a freeze at the results screen. Retail rows and addresses stay unchanged; only the three functions that touch the table change. |
+| D398 | 2026-11-13 | Owner: v1.1.2 is a single-fix hotfix (#250 only) built on `release/v1.1.2` from the v1.1.1 tag and tagged there, published as Latest stable; the release branch is merged into main so the fix lands there and the tag is a main ancestor (`check-release.py`). | Main is on the 1.2 betas; players on the stable channel need the fix without the 1.2 changes. |
+| D399 | 2026-11-13 | Owner: one full Windows `regress.py` on the v1.1.2 candidate before the tag; no other platform runs for this hotfix; the agent merges, tags and publishes. | The fix touches start-up audio state on every platform; one full native run plus the targeted song checks qualify it on Windows. |
 
 ## 2. Historical environment inventory (2026-09-17)
 
@@ -590,6 +593,8 @@ defjam-recomp/
 
 ## 5. Open questions for Vlad
 
+- No owner approval blocks v1.1.2: D398/D399 set the scope (#250 only), the branch off the v1.1.1 tag, the Windows full-regression gate and agent publication. The reporter's Beatbox crash (#230) is not reproduced on its own; ask them to retest.
+
 - No owner-only question blocks Beta 2: it is published under D396 on the owner's instruction after the Windows and Steam Deck results. macOS native play is untested. The Workshop ships the matching one-format exporter as 0.1 Beta 2; recipes from earlier Workshop builds are refused.
 
 - No owner-only beta decision is pending: D371 authorizes Windows qualification and experimental v1.2.0-beta.1 publication when checks pass. Native macOS/Deck, physical controls and broad M5/M6 acceptance remain explicitly unqualified.
@@ -620,10 +625,19 @@ Upstream PR submissions still need the owner's separate approval.
 - 2026-11-12 14:10 UTC - Published experimental v1.2.0-beta.2/b211c53: release PR #239 merged with CI 35/35, Source release 43305637942, nine game-free assets verified (sidecars = GitHub digests, provenance source b211c53, toolkit 8e61aec); Steam Deck full regression 19/21 on 94aed9d (replay #98, three Zig unit failures) with a three-outfit fighter pack played through two matches; Windows 17/17 on 97cd1ad. Stable 1.1.1 remains Latest. Notes updated at publication with the Deck results.
 
 - 2026-11-13 — Prepared Menu/UI website publication: nine aligned before/after sliders and a separate ultrawide showcase; 11 approved Cloudflare image downloads verify exact SHA-256/MIME. Owner-published Thunderstore 1.7.2 wording retained; 1,787 PNGs / 1,565 native mappings / 80 wide registrations. Source-only site change; no runtime, game release or signed catalogue change. Site/source/browser checks and Pages deployment recorded in the PR.
+- 2026-11-13 — v1.1.2 hotfix (D397-D399) merged into main: PR #250 fixes #230, the music engine's 36-entry song-name table overrun by custom songs. On v1.1.1: 11-15 custom songs crashed at start-up, 6 froze after a One on One; fixed: 27 songs boot with music, Beatbox 60 rows, fight-result 6 and 27 reach GetMatchSummary. On main 2a602d1 + the fix: see the merge PR. The fix joins v1.2.0-beta.3 through main.
 
 - 2026-11-13 — Owner requested the Menu/UI ultrawide showcase before the before/after comparisons. Moved the existing section intact after the hero; all other page content, images, sliders and styling remain unchanged. Publication and validation are recorded in the focused website PR.
 
 ## 7. Hand-off
+
+### v1.1.2 hotfix - 2026-11-13
+
+- v1.1.2 is built on `release/v1.1.2` from the v1.1.1 tag (D398): v1.1.1 + #250 (#230, custom songs
+  overran the music engine's 36-entry song-name table at 0x33EC98) + records. The tag sits on that
+  branch; this merge makes it a main ancestor and brings the fix into the 1.2 line (v1.2.0-beta.3).
+  Main keeps its own version (1.2.0). Gate D399: one full Windows regression on the v1.1.2 candidate.
+- Open: the reporter retests the Beatbox crash from #230, which was not reproduced on its own.
 
 ### Beta-2 candidate - 2026-11-12
 

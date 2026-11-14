@@ -162,6 +162,7 @@ The song count is bounded in more places than the playlist:
 | Shuffled playlist builder `sub_00020D70` | a 36-entry local array (esp + 0x54 .. 0xE4) | its own locals (seen: a corrupt `free` under `Audio.PlayMusic` with 49 songs on) |
 | Jukebox list builder `sub_0004FD80` | local arrays of 36 (unarranged, esp + 0xF8), 36 (by order, + 0x188), 32 (never arranged, + 0x218) | its frame |
 | The jukebox object (0xE4 bytes, `ChooseShopList(6)`) | 37 enabled-song indices at + 0x4C, then the flag at + 0xE0 | the flag and the heap block after it |
+| The music engine's song names (`0x33EC98`, 0xA0 bytes each: entity, title, artist, album; count `0x33EA20`; filled at start-up by `sub_0003C6E0` through `sub_00033590`) | 36 entries | the engine's own state from `0x340318` (found 2026-11-13, issue #230) |
 | Jukebox order | 6 bits | positions past 63 |
 
 So the stock game holds **36 Song rows**. The section below takes that to 60.
@@ -216,6 +217,28 @@ a further unticked one is refused; leaving the Beatbox; a One on One; no crash, 
 identically. Before the PlaySong limit, playing an unticked song with 36 on crashed in the
 front end's script interpreter (`sub_001588F0`, calls to 0 and garbage), which is how its
 36-entry list was found.
+
+**The music engine's song names (issue #230, 2026-11-13).** Those checks missed one more bound
+of 36. At start-up the music engine (`sub_0003C6E0`) walks the Song table and copies each row's
+Entity, Title, Artist and Album into a table of 0xA0-byte entries at `0x33EC98` (entity + 0, 16
+bytes; title + 0x10, artist + 0x40, album + 0x70, 48 bytes each; `sub_00033590`, no bound, count
+at `0x33EA20`). The engine's own state starts right after 36 entries, at `0x340318`
+(`0x34034C`, the playlist state at `0x340374` / `0x340398`, ...). Every row past 36 (with Holler
+on, every custom song past the third) was written over that state, and the damage depended on
+the lengths of the names. That gave the player reports in #230: a crash on the loading screen
+(with the test library, 11 custom songs with Holler on crashed and 10 did not, and 11 with
+Holler off did not), no music with fewer, and with 6 songs a freeze after every fight, at the
+results screen. The test clones' short names ("Test Song N") hit nothing that mattered, which
+is why the 60-row checks above passed.
+
+`src/patches/song_store.c` now keeps the first 36 entries where the game has them and puts the
+rest in a block from the game's allocator: `sub_00033590` (add) and `sub_00033630` (find by
+entity) are replaced, and `sub_0003BE50` (pick a random entry when it is given none: the game's
+`rand() % count`) gets the same pick from the same `rand()` call when there are more than 36.
+With 36 rows or fewer nothing changes. Checked on v1.1.1: 27 custom songs (60 rows) boot with
+menu music; the Beatbox opens with 60 and plays, closes and saves; a One on One reaches the
+results screen with 6 and with 27 songs. `tests/unit/test_song_info_native.py` checks 60 entries
+with names as long as the fields hold against synthetic memory (nothing past the table changes).
 
 ## 5c. Slices 3 and 4: the player's own songs (2026-11-06)
 
