@@ -584,6 +584,93 @@ void song_jukebox_enable(void (*original)(void))
     original();
 }
 
+/* ---- the music engine's song names -------------------------------------------------------------- */
+/*
+ * At start-up the music engine (sub_0003C6E0) walks the Song table and hands each row's entity,
+ * title, artist and album to sub_00033590, which copies them into a table of 0xA0-byte entries
+ * at 0x33EC98 (entity +0, 16 bytes; title +0x10, artist +0x40, album +0x70, 48 bytes each) and
+ * counts them at 0x33EA20. The table has room for 36: the engine's own state starts at
+ * 0x340318 (0x340348/0x34034C, the playlist state 0x340374/0x340398, ...). Every row past 36
+ * was written over that state, with damage that depends on the names' lengths: a crash at
+ * start-up, no music, a freeze when a fight ends (issue #230). sub_00033630 finds an entry by
+ * entity; sub_0003BE50 picks one at random when it is given none.
+ *
+ * Here the first 36 entries stay where the game keeps them and the rest go in a block of their
+ * own, so the game's own songs are where they always were.
+ */
+#define INFO_BASE    0x33EC98u
+#define INFO_COUNT   0x33EA20u
+#define INFO_SIZE    0xA0u
+#define INFO_FIXED   36u
+#define INFO_CAP     64u                /* PC_SONGS_MAX_ROWS fit */
+
+extern void sub_0002A770(void);         /* the game's rand() */
+
+static uint32_t s_info_more;            /* entries INFO_FIXED.. */
+
+static uint32_t info_entry(uint32_t i)
+{
+    if (i < INFO_FIXED) return INFO_BASE + i * INFO_SIZE;
+    if (i >= INFO_CAP || !s_info_more) return 0;
+    return s_info_more + (i - INFO_FIXED) * INFO_SIZE;
+}
+
+static void info_copy(uint32_t to, uint32_t from, uint32_t size)
+{
+    uint32_t i = 0;
+    if (from) for (; i + 1 < size && MEM8(from + i); i++) MEM8(to + i) = MEM8(from + i);
+    MEM8(to + i) = 0;
+}
+
+void song_info_add(void)
+{
+    uint32_t n = MEM32(INFO_COUNT);
+    uint32_t entity = MEM32(g_esp + 4), title = MEM32(g_esp + 8), artist = MEM32(g_esp + 12), album = MEM32(g_esp + 16);
+    if (n >= INFO_FIXED && !s_info_more && n < INFO_CAP) {
+        uint32_t args[3] = { (INFO_CAP - INFO_FIXED) * INFO_SIZE, ALLOC_TAG, 0 };
+        s_info_more = guest_call(sub_00029680, 0, 3, args);
+        if (s_info_more)
+            for (uint32_t i = 0; i < (INFO_CAP - INFO_FIXED) * INFO_SIZE; i++) MEM8(s_info_more + i) = 0;
+    }
+    uint32_t e = info_entry(n);
+    if (!e) {
+        static int told;
+        if (!told++) fprintf(stderr, "[SONGS] the music engine's song names are full at %u; later songs have no banner\n", n);
+    } else {
+        info_copy(e, entity, 0x10);
+        info_copy(e + 0x10, title, 0x30);
+        info_copy(e + 0x40, artist, 0x30);
+        info_copy(e + 0x70, album, 0x30);
+        MEM32(INFO_COUNT) = n + 1;
+    }
+    g_esp += 4;                                      /* ret */
+}
+
+void song_info_find(void)
+{
+    uint32_t want = MEM32(g_esp + 4), n = MEM32(INFO_COUNT);
+    g_eax = 0;
+    for (uint32_t i = 0; i < n && want; i++) {
+        uint32_t e = info_entry(i), k = 0;
+        if (!e) break;
+        while (MEM8(e + k) == MEM8(want + k) && MEM8(e + k) && k < 0x10) k++;
+        if (k < 0x10 && MEM8(e + k) == MEM8(want + k)) { g_eax = e; break; }
+    }
+    g_esp += 4;                                      /* ret */
+}
+
+void song_info_before_random(void)
+{
+    /* The game's pick is rand() % count over its own table; with more than 36 the same pick is
+     * made here (the same rand() call) and handed to it as the entry to use. 0x340540 set: the
+     * function returns before it picks. */
+    uint32_t n = MEM32(INFO_COUNT);
+    if (n <= INFO_FIXED || MEM32(g_esp + 4) || MEM8(0x340540)) return;
+    uint32_t r = guest_call(sub_0002A770, 0, 0, NULL);
+    uint32_t e = info_entry(r % n);
+    MEM32(g_esp + 4) = e ? e : INFO_BASE;
+}
+
 /* In place of sub_0004EEC0 (PlaySong: this = J, the list index and a flag on the stack; ret 8).
  * Playing a song that is off turns it on: with PLAY_LIMIT on already, it is not played. */
 void song_jukebox_play(void (*original)(void))

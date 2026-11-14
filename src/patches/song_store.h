@@ -36,4 +36,12 @@ int song_store_active(void);
 /* RECOMP_TEST_SONGS_ONLY (a test aid). */
 void song_store_test_only(void);
 
+/* The music engine's table of song names (entity, title, artist, album; 0xA0 bytes each),
+ * which the game keeps in 36 fixed slots at 0x33EC98: in place of sub_00033590 (add a song,
+ * cdecl entity, title, artist, album) and sub_00033630 (find one by entity, cdecl, returns
+ * the entry or 0), and before sub_0003BE50 (its random pick when no entry is given). */
+void song_info_add(void);
+void song_info_find(void);
+void song_info_before_random(void);
+
 #endif

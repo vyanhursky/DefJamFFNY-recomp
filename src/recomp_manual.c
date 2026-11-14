@@ -733,6 +733,12 @@ extern void sub_00050E00_gen(void);
 void sub_00050E00(void) { song_jukebox_enable(sub_00050E00_gen); }
 extern void sub_0004EEC0_gen(void);
 void sub_0004EEC0(void) { song_jukebox_play(sub_0004EEC0_gen); }
+/* The music engine's song names: 36 fixed slots in the game, room for every song here
+ * (src/patches/song_store.c, issue #230). */
+void sub_00033590(void) { song_info_add(); }
+void sub_00033630(void) { song_info_find(); }
+extern void sub_0003BE50_gen(void);
+void sub_0003BE50(void) { song_info_before_random(); sub_0003BE50_gen(); }
 extern void sub_0003CFF0_gen(void);
 void sub_0003CFF0(void)
 {
