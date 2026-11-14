@@ -487,6 +487,9 @@ Run-log citations from retired status/planning prose remain protected by
 | D367 | 2026-11-08 | PR #207: identify the exact installation wrapper and pass restricted inherited process handles, with a 10-second wait; check running wrappers before recovery/build and activation. | Prevent PID reuse, unrelated-process termination, inherited locks and unbounded waits. Native Windows tests cover real executable locks, quoting/Unicode, foreign installs, timeout and failed startup. |
 | D368 | 2026-11-08 | PR #207: skip recovery targets already matching their verified backup and retain activation plus recovery errors on all platforms. Keep macOS/Linux exec forwarding unchanged. | Unchanged-file restoration can repeat the Windows executable-lock error; repeated recovery and masked failures are shared defects. POSIX forwarding has no waiting wrapper. |
 | D369 | 2026-11-08 | Owner explicitly authorizes cutting and publishing v1.1.1 with #207 as the only new runtime fix, within an hour, without full regression. Keep the existing app-only publication policy and unchanged toolkit 4801dc1. | Expedite this setup hotfix using targeted tests, app/setup builds, source hygiene and verified release assets. Full gameplay regression, final GUI repair completion and new Steam/Deck play-tests are not claimed as passes. |
+| D397 | 2026-11-13 | PR #250 (#230): give the music engine's song-name table (0x33EC98, 36 entries of 0xA0 bytes, filled at start-up by sub_0003C6E0 through sub_00033590) room for every Song row: the first 36 entries stay at the game's addresses, entries 36+ go in a block from the game's allocator; sub_00033590/sub_00033630 replaced, sub_0003BE50's random pick made over every entry with the same rand() call when there are more than 36. | Rows past 36 (every custom song after the third, with Holler on) overwrote the engine's state at 0x340318: start-up crashes, silence, a freeze at the results screen. Retail rows and addresses stay unchanged; only the three functions that touch the table change. |
+| D398 | 2026-11-13 | Owner: v1.1.2 is a single-fix hotfix (#250 only) built on `release/v1.1.2` from the v1.1.1 tag and tagged there, published as Latest stable; the release branch is merged into main so the fix lands there and the tag is a main ancestor (`check-release.py`). | Main is on the 1.2 betas; players on the stable channel need the fix without the 1.2 changes. |
+| D399 | 2026-11-13 | Owner: one full Windows `regress.py` on the v1.1.2 candidate before the tag; no other platform runs for this hotfix; the agent merges, tags and publishes. | The fix touches start-up audio state on every platform; one full native run plus the targeted song checks qualify it on Windows. |
 
 ## 2. Historical environment inventory (2026-09-17)
 
@@ -536,6 +539,7 @@ defjam-recomp/
 
 ## 5. Open questions for Vlad
 
+- No owner approval blocks v1.1.2: D398/D399 set the scope (#250 only), the branch, the Windows full-regression gate and agent publication. The reporter's Beatbox crash (#230) is not reproduced on its own; ask them to retest.
 - No owner approval blocks v1.1.1: D369 explicitly authorizes this one-fix expedited hotfix and full-regression waiver. Preserve the incomplete GUI integration qualification and prior v1.1.0 known issues.
 
 - No release-blocking question for v1.1.0: GA is published under D363. Owner will play-test and update the Steam Deck through GA the next morning; record that result when received.
@@ -560,27 +564,21 @@ Upstream PR submissions still need the owner's separate approval.
 - 2026-11-08 12:29 UTC — v1.1.0 GA/Latest published (D363), PR #206+7trainPRs merged, annotated tag at0e90a3a. Source workflow 42478114248 passed 37/37 after dependency retries; all15assetSHA/5binaryprovenances/exactsource-toolkit verified (`logs/rc110-ga-asset-verification.json`), live Linux updater from 1.0.1 offers1.1.0. Pages manualmain42480179921 passed after protected tag deployment rejection. Toolkit integrationFF6c0bd55→4801dc1; milestone1.1 closed, #166 carried to1.1.1(D364). Linux20/21/twoZigfixturefails and deferred owner play-test/extra visual evidence remain qualified, not passed.
 - 2026-11-08 09:57 — D365: retired six legacy v1.1.0 setup assets after verified backup; nine app assets retained, live notes corrected. All-platform app-only packaging, explicit nine-file release upload, current guides/site/agent policy updated. Focused packaging/source/site/instruction tests 167 passed/42 platform skips; source policy 0 failures, site build passes. No runtime/toolkit changes. Backup: defjam/release-evidence-1.1.0/retired-setup. PR/CI verify future publication.
 - 2026-11-08 20:43 UTC — Prepare owner-authorized single-fix v1.1.1 hotfix (#207, D366-D369), from app-only main15e366b/#208; toolkit4801dc1 unchanged. Fix CI35/35, local unit901/53 skipped, focused139/10 skipped, real-dump install374.7s pass. Actual GUI handoff succeeded; later cache/compiler-temp permission failures and stopped Computer Use leave final GUI repair unqualified. Owner explicitly waives full regression and requests publication within an hour. Release candidate/tag CI and nine app-asset verification pending.
+- 2026-11-13 — v1.1.2 hotfix prepared (D397-D399): PR #250 fixes #230, the music engine's 36-entry song-name table overrun by custom songs. Repro on v1.1.1 (profile with all 33 songs, real FLAC/MP3 library): 11-15 custom songs crashed at start-up, 6 froze after a One on One; fixed build: 27 songs boot with music, Beatbox 60 rows, fight-result 6 and 27 songs reach GetMatchSummary. Unit 906/57 skipped (MSVC), quick 5/5 (`logs/regress-20261113-161326.txt`). Toolkit 4801dc1 unchanged. Full Windows regression on the candidate next.
 
 ## 7. Hand-off
 
-### v1.1.1 single-fix hotfix — 2026-11-08
+### v1.1.2 single-fix hotfix — 2026-11-13
 
-- Owner requests release/publication within an hour without full gameplay regression (D369).
-  Started 20:39 UTC; deadline 21:39 UTC (13:39 Vancouver). No further release approval is needed.
-- `release/v1.1.1` starts at app-only main `15e366b` (#208) and merges #207 with a merge commit.
-  No other runtime fix; #202 and allocation issue #166 remain outside the hotfix. Toolkit stays `4801dc1`.
-- #207 head `5d96961`: CI 42506702298, 35/35. Setup unit suites: Windows235/29 skipped,
-  Mac199/11, Linux235/16. Local full unit901/53 skipped, final focused139/10 skipped;
-  source policy604 files/0 failures. Game-free app/setup build and asset inventory pass.
-- Windows real-dump fresh install of the fix: 374.7 s, compilation and activation passed
-  (`../defjam-setup-handoff/build/native-install.log`). Actual app restarted out of its legacy
-  wrapper and resumed the chosen operation; later integration runs hit test-environment
-  cache and compiler-temp permission errors. Final GUI repair completion remains unclaimed.
-  Computer Use was stopped by the user. No new full regression, gameplay or Steam/Deck test.
-- Next: candidate CI, merge release PR, tag the exact main merge, wait for Source release,
-  verify all nine app-asset digests/checksums/provenance and exact source/toolkit, then publish
-  Latest and verify app update selection and Pages. Do not restore retired legacy setup assets.
-- Carry forward v1.1.0's known qualifications (release notes), including #98 replay and
-  the two recorded Zig cinema-fixture failures; #166 stays open and moves to a later milestone.
+- Scope (D398): #250 only, fixing #230 (custom songs overrun the music engine's 36-entry name
+  table at 0x33EC98). `release/v1.1.2` starts at the v1.1.1 tag `afaa9b1` and merges #250 with a
+  merge commit; toolkit stays `4801dc1`. The tag goes on the release branch head; the branch is
+  merged into main (main keeps its own version, PROGRESS and README) so the tag is a main ancestor.
+- Gate (D399): one full Windows `regress.py` on the candidate, then CI, tag, Source release
+  workflow, verify the nine app assets (digests, `.sha256`, provenance, exact source/toolkit),
+  publish Latest with `docs/releases/v1.1.2.md`, run `pages.yml` on main.
+- Evidence so far: repro and fix runs on Windows (see PR #250), unit 906/57 skipped, quick 5/5.
+  Test data root: a copy of the profiles (the one with all songs unlocked) and a real song library.
+- Open after release: the reporter retests the Beatbox crash; #166 stays open in a later milestone.
 
 Decisions are read by number or keyword: `decision D<n>`, `decisions --grep TEXT`.
