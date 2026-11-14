@@ -621,6 +621,8 @@ Upstream PR submissions still need the owner's separate approval.
 
 - 2026-11-13 — Prepared Menu/UI website publication: nine aligned before/after sliders and a separate ultrawide showcase; 11 approved Cloudflare image downloads verify exact SHA-256/MIME. Owner-published Thunderstore 1.7.2 wording retained; 1,787 PNGs / 1,565 native mappings / 80 wide registrations. Source-only site change; no runtime, game release or signed catalogue change. Site/source/browser checks and Pages deployment recorded in the PR.
 
+- 2026-11-13 — Owner requested the Menu/UI ultrawide showcase before the before/after comparisons. Moved the existing section intact after the hero; all other page content, images, sliders and styling remain unchanged. Publication and validation are recorded in the focused website PR.
+
 ## 7. Hand-off
 
 ### Beta-2 candidate - 2026-11-12
