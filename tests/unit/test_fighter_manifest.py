@@ -1,4 +1,5 @@
 """Saves stay in save/: the fighter manifest and the one-time move from the beta store."""
+import json
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -56,8 +57,7 @@ def fake_build(monkeypatch, tmp_path, ledger):
 def test_manifest_lists_every_input_stamp_and_names_custom_identities(tmp_path, monkeypatch):
     _, ledger, _, _, _ = state()
     mgr = manager(tmp_path)
-    (mgr.mods / 'alpha').mkdir()
-    (mgr.mods / 'alpha/fighters.json').write_text('{}')
+    fighter_pack(mgr.mods, 'alpha')
     calls = fake_build(monkeypatch, tmp_path, ledger)
     language = tmp_path / 'mods-lang'
     language.mkdir()
@@ -65,7 +65,8 @@ def test_manifest_lists_every_input_stamp_and_names_custom_identities(tmp_path, 
     path = fighter_manifest.write(mgr, {'fighters': ['alpha']}, language=language)
     assert calls == [language]
     manifest = parse(path)
-    assert manifest['manifest'] == {'schema': '1', 'runtime': '1.2.0-beta.3', 'language': str(language), 'packs': 'alpha'}
+    assert manifest['manifest'] == {'schema': '1', 'runtime': '1.2.0-beta.3', 'language': str(language), 'packs': 'alpha',
+                                    'digest_schema': 'fighter-set-1', 'digest': fighter_manifest.set_digest(mgr, ['alpha'])[0]}
     environment = manifest['environment']
     assert environment['RECOMP_FIGHTER_STATE'] == str(mgr.data / 'fighter-state')
     assert environment['RECOMP_FIGHTER_IDENTITIES'] == str(mgr.root / 'fighter-identities.txt')
@@ -82,6 +83,7 @@ def test_manifest_lists_every_input_stamp_and_names_custom_identities(tmp_path, 
 def test_disabling_the_last_pack_removes_the_manifest(tmp_path, monkeypatch):
     _, ledger, _, _, _ = state()
     mgr = manager(tmp_path)
+    fighter_pack(mgr.mods, 'alpha')
     fake_build(monkeypatch, tmp_path, ledger)
     fighter_manifest.write(mgr, {'fighters': ['alpha']})
     assert (mgr.root / 'fighter-manifest.ini').exists()
@@ -192,3 +194,82 @@ def test_a_data_folder_reached_through_a_link_still_migrates(tmp_path, monkeypat
         assert (mgr.data / 'save' / OPTIONS).read_bytes() == files[OPTIONS]
     finally:
         os.rmdir(link) if os.name == 'nt' else link.unlink()
+
+
+
+def fighter_pack(mods, identifier, version='1.0.0', declared='a' * 64):
+    folder = mods / identifier
+    folder.mkdir(parents=True, exist_ok=True)
+    document = {'schema': 'fighter-registry-draft-1', 'id': identifier, 'version': version, 'requires': {},
+                'resources': [{'id': 'caf', 'kind': 'caf', 'compatibility': {},
+                               'source': {'selection': {'path': 'fighter.json', 'sha256': declared}}}],
+                'fighters': [], 'overrides': []}
+    (folder / 'fighters.json').write_text(json.dumps(document), encoding='utf-8')
+    (folder / 'README.md').write_text('readme ' + identifier)
+
+
+def test_fighter_set_digest_is_the_documented_formula():
+    """fighter-set-1: SHA-256 over id NUL version NUL sha256(fighters.json) LF, sorted by id."""
+    import hashlib
+    from types import SimpleNamespace
+    root = Path(__import__('tempfile').mkdtemp())
+    fighter_pack(root, 'beta', '2.0.0')
+    fighter_pack(root, 'alpha')
+    digest, rows = fighter_manifest.set_digest(SimpleNamespace(mods=root), ['beta', 'alpha'])
+    lines = ''.join(f"{name}\0{version}\0{hashlib.sha256((root / name / 'fighters.json').read_bytes()).hexdigest()}\n"
+                    for name, version in (('alpha', '1.0.0'), ('beta', '2.0.0')))
+    assert digest == hashlib.sha256(lines.encode()).hexdigest()
+    assert [row['id'] for row in rows] == ['alpha', 'beta']
+    assert fighter_manifest.set_digest(SimpleNamespace(mods=root), []) == ('', [])
+
+
+def test_fighter_set_digest_ignores_order_paths_language_and_readme_and_follows_content(tmp_path):
+    from types import SimpleNamespace
+    first, second = tmp_path / 'one' / 'mods', tmp_path / 'a different place' / 'mods'
+    for root, order in ((first, ['alpha', 'beta']), (second, ['beta', 'alpha'])):
+        for name in order:
+            fighter_pack(root, name)
+    digest = fighter_manifest.set_digest(SimpleNamespace(mods=first), ['alpha', 'beta'])[0]
+    assert fighter_manifest.set_digest(SimpleNamespace(mods=second), ['beta', 'alpha'])[0] == digest
+    (second / 'alpha/README.md').write_text('a different readme')
+    assert fighter_manifest.set_digest(SimpleNamespace(mods=second), ['alpha', 'beta'])[0] == digest
+    fighter_pack(second, 'alpha', version='1.0.1')
+    assert fighter_manifest.set_digest(SimpleNamespace(mods=second), ['alpha', 'beta'])[0] != digest
+    fighter_pack(second, 'alpha', declared='b' * 64)        # a declared file changed
+    changed = fighter_manifest.set_digest(SimpleNamespace(mods=second), ['alpha', 'beta'])[0]
+    assert changed != digest
+    assert fighter_manifest.set_digest(SimpleNamespace(mods=first), ['alpha'])[0] != digest  # a pack removed
+
+
+def test_manifest_records_the_digest_with_or_without_a_language(tmp_path, monkeypatch):
+    _, ledger, _, _, _ = state()
+    mgr = manager(tmp_path)
+    fighter_pack(mgr.mods, 'alpha')
+    fake_build(monkeypatch, tmp_path, ledger)
+    language = tmp_path / 'lang'
+    language.mkdir()
+    (language / 'manifest.ini').write_text('[pack]\n')
+    plain = parse(fighter_manifest.write(mgr, {'fighters': ['alpha']}))['manifest']
+    composed = parse(fighter_manifest.write(mgr, {'fighters': ['alpha']}, language=language))['manifest']
+    assert plain['digest_schema'] == 'fighter-set-1' and len(plain['digest']) == 64
+    assert plain['digest'] == composed['digest']
+    assert plain['digest'] == fighter_manifest.set_digest(mgr, ['alpha'])[0]
+
+
+def test_digest_command_is_read_only_and_needs_no_lock(tmp_path):
+    import subprocess, sys
+    root = Path(__file__).resolve().parents[2]
+    data = tmp_path / 'data'
+    (data / 'mod-manager').mkdir(parents=True)
+    fighter_pack(data / 'mods', 'alpha')
+    (data / 'mod-manager/state.json').write_text(json.dumps({'schema': 1, 'installed': {}, 'fighters': ['alpha']}))
+    (data / 'mod-manager/writer.lock').write_text('')
+    files = lambda: {path.relative_to(data).as_posix(): path.read_bytes() for path in data.rglob('*') if path.is_file()}
+    before = files()
+    result = subprocess.run([sys.executable, str(root / 'setup/mods.py'), 'fighter-digest', '--data-dir', str(data)],
+                            capture_output=True, text=True, timeout=30)
+    assert result.returncode == 0, result.stderr
+    event = json.loads(result.stdout.strip().splitlines()[-1])
+    assert event['event'] == 'digest' and event['schema'] == 'fighter-set-1'
+    assert [row['id'] for row in event['packs']] == ['alpha'] and len(event['digest']) == 64
+    assert files() == before  # no file written or changed

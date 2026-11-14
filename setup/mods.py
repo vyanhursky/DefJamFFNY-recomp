@@ -886,7 +886,7 @@ class Manager:
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=('status', 'refresh', 'install', 'remove', 'rollback', 'recover', 'install-local', 'fighter-enable', 'fighter-disable', 'fighter-prepare'))
+    parser.add_argument('command', choices=('status', 'refresh', 'install', 'remove', 'rollback', 'recover', 'install-local', 'fighter-enable', 'fighter-disable', 'fighter-prepare', 'fighter-digest'))
     parser.add_argument('--data-dir', type=Path, required=True)
     parser.add_argument('--runtime', default='0.0.0')
     parser.add_argument('--capability', action='append', default=['textures-v1'])
@@ -905,6 +905,13 @@ def main():
     try:
         manager = Manager(args.data_dir, args.runtime, args.capability, cancel=args.cancel_file, prerelease=args.prerelease, game=args.game_dir)
         manager.language = args.language_pack
+        if args.command == 'fighter-digest':
+            # Read-only: no lock, no compile, safe while the game or another mod command runs.
+            from fighter_manifest import DIGEST_SCHEMA, set_digest
+            from fighter_packages import enabled
+            digest, packs = set_digest(manager, enabled(manager.state()))
+            print(json.dumps(dict(event='digest', schema=DIGEST_SCHEMA, digest=digest, packs=packs)), flush=True)
+            return 0
         with file_lock(manager.root / 'writer.lock'):
             try:
                 if (manager.root / 'journal.json').exists():

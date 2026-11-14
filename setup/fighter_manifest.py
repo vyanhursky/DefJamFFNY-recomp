@@ -18,6 +18,8 @@ were verified when the cache was written); a mismatch makes the launcher run
 ``mods.py fighter-prepare`` again before Play. With no pack enabled there is
 no manifest and the game's fighter code stays inert.
 """
+import hashlib
+import json
 from pathlib import Path
 
 from mods import atomic_bytes, check, ordinary_path
@@ -76,6 +78,32 @@ def identities(ledger):
     return ('\n'.join(['# stable-handle pack/fighter; written by mods.py, read by the game'] + rows) + '\n').encode('ascii')
 
 
+DIGEST_SCHEMA = 'fighter-set-1'
+
+
+def set_digest(manager, ids):
+    """The ``fighter-set-1`` digest of the enabled fighter packs, and its per-pack rows.
+
+    SHA-256 over one line per enabled pack, sorted by pack id:
+    ``id NUL version NUL sha256(fighters.json bytes) LF``, lower-case hex. No pack
+    enabled gives the empty string. fighters.json carries the hash of every file it
+    declares, so the digest covers every byte the compiler reads from the pack
+    (README/LICENSE excluded); it does not depend on install order, paths, the
+    language pack, the runtime version or the fighter numbers. Anyone can compute it
+    from the ZIPs: the installed fighters.json is byte-identical to the one in the ZIP.
+    """
+    rows = []
+    for identifier in sorted(ids):
+        raw = ordinary_path(manager.mods / identifier / 'fighters.json').read_bytes()
+        version = json.loads(raw)['version']
+        check(isinstance(version, str) and '\0' not in version and '\n' not in version, 'Invalid fighter pack version')
+        rows.append({'id': identifier, 'version': version, 'sha256': hashlib.sha256(raw).hexdigest()})
+    if not rows:
+        return '', rows
+    text = ''.join(f"{row['id']}\0{row['version']}\0{row['sha256']}\n" for row in rows)
+    return hashlib.sha256(text.encode('utf-8')).hexdigest(), rows
+
+
 def paths(manager):
     return ordinary_path(manager.root / MANIFEST), ordinary_path(manager.root / IDENTITIES)
 
@@ -102,8 +130,10 @@ def write(manager, state, *, language=None, built=None):
     environment['RECOMP_FIGHTER_IDENTITIES'] = str(identity_path)
     environment['RECOMP_FIGHTER_STATE'] = str(sidecar)
     atomic_bytes(identity_path, identities(report['binding_ledger']))
+    digest, _ = set_digest(manager, ids)
     lines = ['[manifest]', f'schema={SCHEMA}', 'runtime=' + _line(manager.runtime),
-             'language=' + _line(language or ''), 'packs=' + _line(','.join(ids)), '[environment]']
+             'language=' + _line(language or ''), 'packs=' + _line(','.join(ids)),
+             'digest_schema=' + DIGEST_SCHEMA, 'digest=' + digest, '[environment]']
     for key, value in sorted(environment.items()):
         check(key.startswith('RECOMP_FIGHTER_'), 'Fighter manifest may only carry fighter settings')
         lines.append(key + '=' + _line(value))

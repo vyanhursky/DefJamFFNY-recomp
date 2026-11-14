@@ -44,6 +44,11 @@ int pc_mods_game_lock(void);
 int pc_mods_needs_recovery(void);
 /* Load the fighter manifest before Play (rebuilding it first when stale). */
 int pc_fighters_prepare(const char *language);
+/* The fighter-set-1 digest (docs/fighter-online-contract.md) of the fighter packs this
+ * process loaded, or "" when no pack is enabled or packs are off for this process (for
+ * example after a failed start-up check restarted it without packs). Set once, before the
+ * game starts; the string stays valid for the life of the process. */
+const char *pc_fighters_set_digest(void);
 const char *pc_fighters_error(void);
 #ifdef __cplusplus
 }
