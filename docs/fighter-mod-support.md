@@ -112,6 +112,8 @@ retail roster. Two PCs with the same packs, game and language therefore get the
 same numbers and the same roster, whatever order the packs were installed in.
 Enabling or disabling a pack can renumber the others; nothing on disk depends on
 these numbers (custom unlocks are kept by name, and profile files hold none).
+For forks that build an online mode on these packs, see
+[Fighter packs and online forks](fighter-online-contract.md).
 
 **Saves.** Every save, with or without fighter packs, lives in `<data>/save`.
 The Options file there always holds retail unlocks only, so any build (and
