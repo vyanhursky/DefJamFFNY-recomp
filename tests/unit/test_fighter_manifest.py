@@ -208,11 +208,11 @@ def fighter_pack(mods, identifier, version='1.0.0', declared='a' * 64):
     (folder / 'README.md').write_text('readme ' + identifier)
 
 
-def test_fighter_set_digest_is_the_documented_formula():
+def test_fighter_set_digest_is_the_documented_formula(tmp_path):
     """fighter-set-1: SHA-256 over id NUL version NUL sha256(fighters.json) LF, sorted by id."""
     import hashlib
     from types import SimpleNamespace
-    root = Path(__import__('tempfile').mkdtemp())
+    root = tmp_path / 'mods'
     fighter_pack(root, 'beta', '2.0.0')
     fighter_pack(root, 'alpha')
     digest, rows = fighter_manifest.set_digest(SimpleNamespace(mods=root), ['beta', 'alpha'])
