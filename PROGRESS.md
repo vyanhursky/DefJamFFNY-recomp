@@ -8,6 +8,8 @@
 
 ## 0. Status at a glance
 
+- 2026-11-14 v1.2.0-beta.3: release PR #260 (`release/v1.2.0-beta.3`) = main (with v1.1.2 #252) + #243, #245, #246, #255-#258 and #244, D400-D413. Toolkit 8e61aec on `defjam/release-1.2.0-beta.3`. Windows `regress.py --quick` 5/5 on the merged candidate (`regress-20261114-195313`), no full run (owner, D413); CI 35/35. macOS/Linux: the owner tests the published prerelease.
+
 - 2026-11-12 Beta-2 candidate: release branch `release/v1.2.0-beta.2` (release PR #239, merged at b211c53) = Beta 1 + fighter review fixes A1-A5, one CAF format and container, HD CAF atlases, outfit titlecards, verified composition cache and the launcher Fighter ZIP picker (D384-D396). Windows full regression 17/17 on 97cd1ad; Steam Deck full regression 19/21 on 94aed9d (replay 79/80 is #98; three Zig-toolchain unit failures). Published 2026-11-12T21:10:06Z as a prerelease, not Latest (v1.1.1 remains Latest): annotated `v1.2.0-beta.2` at b211c53, Source release 43305637942, nine game-free app/checksum/provenance assets whose sidecar SHA-256 match GitHub's digests, provenance source b211c53 and toolkit 8e61aec, no development flag.
 
 - 2026-11-12 HD Fighters site: dedicated `site/hd-fighters/` presentation page with eight source-cropped, externally hosted before/after sliders and the owner's current Thunderstore copy. Home Mods links to it. Six site-build checks, source policy and desktop/mobile pointer/keyboard QA pass. Deploy through the existing Pages workflow after this documentation-only change merges; game releases, native qualifications and mod/catalogue payloads are unchanged.
@@ -557,7 +559,7 @@ Run-log citations from retired status/planning prose remain protected by
 | D410 | 2026-11-14 | PR #256 (online groundwork B1/B2): `fighter-set-1` (id NUL version NUL sha256(fighters.json) LF, sorted by id) is the one digest of the enabled fighter set; the game exposes the digest of the packs it loaded through `pc_fighters_set_digest()`. The fighter manifest is schema 2 and requires the digest; an older manifest is rebuilt once. | `snapshot['sha256']` moves with runtime versions and internal fields; a pre-schema-2 manifest from a build with the same version string would load packs and report no digest. |
 | D411 | 2026-11-14 | PR #258: `docs/fighter-online-contract.md` is the statement of what online forks can rely on; nothing in it without a test or a "not guaranteed" label; no part of `fighter-registry-draft-1` is promised stable before 1.2.0 final. | Owner decisions 2026-11-14 (online-actions section 6). |
 | D412 | 2026-11-14 | PR #258: catalogue keys stay one pinned list; a fork verifies its own catalogue and installs through `install-local`. | Owner declined the extra key file (FFNY Online Q5). |
-| D413 | 2026-11-14 | Owner: cut v1.2.0-beta.3 from the train #243, #245, #246, #255-#258 and #244 (on main with v1.1.2 #252); one full Windows `regress.py` on the candidate; the agent merges, tags and publishes the prerelease, and the owner then tests it on macOS and Linux. | Beta for player play-testing; macOS/Linux evidence comes from the owner's testing of the published prerelease. |
+| D413 | 2026-11-14 | Owner: cut v1.2.0-beta.3 from the train #243, #245, #246, #255-#258 and #244 (on main with v1.1.2 #252); no full `regress.py` for this candidate (owner: the stack's runs suffice), so the Windows gate is `regress.py --quick` on the merged candidate plus the per-PR quick runs and real-game checks; the agent merges, tags and publishes the prerelease, and the owner then tests it on macOS and Linux. | Beta for player play-testing; each PR was checked with `--quick` and real-game runs, and macOS/Linux evidence comes from the owner's testing of the published prerelease. |
 
 ## 2. Historical environment inventory (2026-09-17)
 
@@ -629,8 +631,6 @@ Upstream PR submissions still need the owner's separate approval.
 
 > Recent entries only; older entries remain unchanged in the local `docs/worklog/` archive.
 
-- 2026-11-09 08:28 — Candidate dca56f2 full Windows stock regression passes17/17 with four inapplicable skips in2912.25s;2391unit passes/60skips/one standard slow exclusion. Replay80records and both rapid-input traces pass;25stock plus87fighter-career/song/profile hashes unchanged. Real stable1.1.1 app GUI self-placement and handoff pass in synthetic default user layout; first install is building before candidate update. Supplementary #213/b8abe48 reviewed separately: clean merge/CI35green/41focused tests, reproduced CAF-versus-independent-owned-pack refusal; not integrated or added to this beta.
-- 2026-11-09 08:35 — Stable GA1.1.1 actual GUI self-placement/handoff/default synthetic-user-layout first install passes373.3s, Ready to Play, exact afaa9b1 receipt and toolkit4801dc1. Normal Quit succeeds. Extract six PR213 Clang casts and add Mac all-game-side-object CI; fresh build/full Windows rerun required before beta. No CAF extension integration.
 - 2026-11-09 09:39 — Final beta runtime0542550 qualifies Windows17/17 plus four platform skips in2942.15s; CI42656586564 35/35 incl Mac game-side object compile. Actual GUI stable GA install373.3s and clean beta update204.6s pass in isolated default layout;29protected hashes and old build retained, sealed4668file payload exact. Final evidence-only records prepared; no tag/publication yet. logs/regress-20261109-102639.txt, beta-120b1-r2-full-regression-verdict.json, beta-120b1-update-verdict.json.
 - 2026-11-09 18:10 UTC — Published experimental v1.2.0-beta.1/e950a7f: Source42667831975 37/37,9game-free app assets and all GitHub digests/source/toolkit/inventories verified; no private Vendetta bytes. Stable1.1.1 remains Latest;3public selectors exclude beta. Existing local fighter playtest update222.14s preserves48protected hashes/old executable; shortcut target unchanged. D382 carries final Windows17/17 full evidence; no third full run. beta-120b1-tag-verification/verification.json, beta-120b1-existing-playtest-update-verdict.json.
 - 2026-11-10 19:49 UTC — Owner authorized all pending source merges and Workshop GPLv3-only. Merge Workshop3–8 and runtime202/213/217–224 with qualified-tree checks; retain third-party notices, game-art/native experimental limits and #166. Workshop191/5 skips, real wheel/notices and runtime53 combined focused tests pass; exact cross-platform CI and merge commits are recorded in the integration PR. No new release or duplicate full native regression.
@@ -643,23 +643,13 @@ Upstream PR submissions still need the owner's separate approval.
 
 - 2026-11-13 — Owner requested the Menu/UI ultrawide showcase before the before/after comparisons. Moved the existing section intact after the hero; all other page content, images, sliders and styling remain unchanged. Publication and validation are recorded in the focused website PR.
 - 2026-11-14 05:17 UTC — v1.1.2 published as Latest (D397-D399): tag `v1.1.2` at `ed60f6d` on `release/v1.1.2` (v1.1.1 + #250), merged into main by #252. Windows full regress 17/17 (4 skipped, `logs/regress-20261113-220634.txt`); main + fix: boot 27 songs, fight-result 6, Beatbox 60 rows, quick 5/5 (`logs/regress-20261113-211830.txt`). Release run 43559956551; nine assets verified; Pages 43560804321. #230 closed by #252, reporter asked to retest the Beatbox.
+- 2026-11-14 20:05 — v1.2.0-beta.3 candidate f317d42 (release PR #260): main + #243/#245/#246/#255-#258/#244, D400-D413, toolkit 8e61aec; full re-lift; Windows `regress.py --quick` 5/5 (unit 2592 passed, m2, m3, m4a, fight; `regress-20261114-195313`); no full run per owner (D413); CI 35/35; CI app sha256 9929133b, provenance app 1.2.0, toolkit 8e61aec, non-development. App install/Clean Update not run (no silent mode); owner tests macOS/Linux.
 
 ## 7. Hand-off
 
-### v1.1.2 hotfix - 2026-11-13 (published)
+### v1.2.0-beta.3 - 2026-11-14
 
-- v1.1.2 is published, Latest stable, at tag `v1.1.2` = `ed60f6d` on `release/v1.1.2` (v1.1.1 + #250 + records,
-  D397-D399); merged into main by #252 (`cddf928`), so the fix is in the 1.2 line for v1.2.0-beta.3.
-- Gate (D399): Windows full `regress.py` on the candidate 17/17 (4 macOS/Linux-only skipped), 47 min,
-  `logs/regress-20261113-220634.txt` in the `release/v1.1.2` worktree. Release workflow 43559956551 passed; all nine
-  app assets verified (GitHub digests, `.sha256`, provenance: app, 1.1.2, source `ed60f6d`, toolkit `4801dc1`,
-  non-development). Pages redeployed from main (43560804321; the release-event deploy is refused as usual).
-- Open: the #230 reporter is asked to retest the Beatbox crash (not reproduced on its own). #166 still sits in the
-  v1.1.2 milestone and was not part of the release; move it when the owner picks its milestone.
+- Release PR #260 merges #243, #245, #246 (saves in `save/`, start without packs, close waits for a save), #255-#258 (online groundwork: numbers from the enabled set, `fighter-set-1` digest, command line, `docs/fighter-online-contract.md`) and #244 (visible fatal errors, UTF-8 game manifest). Decisions D400-D413.
+- Gate (D413): no full `regress.py`; `--quick` 5/5 on the merged candidate f317d42 (`logs/regress-20261114-195313.txt` in the release worktree), unit 2592 passed; per-PR quick runs and real-game checks are in each PR. CI 35/35. The app install and Clean Update from beta.2 were not run (the app has no silent mode); the owner tests the prerelease on macOS and Linux.
+- Next: collect the owner's macOS/Linux results and beta feedback; #247 (nested Options save, progress window before Play) and the in-match stop fallbacks (D405) are the open fighter items. #166 and #98 stay open.
 
-### Beta-2 candidate - 2026-11-12
-
-- State: `v1.2.0-beta.2` is published (prerelease) at main merge b211c53 (release PR #239), containing PRs #226, #228 (ported onto the unified format), #229 and #231-#238. Toolkit pin 8e61aec is on fork branch `defjam/release-1.2.0-beta.2`; `.gitmodules` still names `defjam/upstream-v0.16`.
-- Windows: one full regression on 97cd1ad passed 17/17 (46 min); the launcher commit 98070bb was checked with the unit suite (1918 passed), `--only m4a` and real launcher runs (D396). Do not repeat the full run for it.
-- Next: collect beta feedback; the macOS native play, launcher Fighters page on Linux/Mac, 3-4 player routes and the other unverified items below are open. A later beta or the final v1.2.0 is cut from main.
-- Not verified: A1 in game (random/CPU outfit pick), Rematch, 2/3/4-player layouts, edited saves on v1.1.1 and v1.2.0-beta.1, Linux/macOS/Deck native play, texture packs off with fighter UI art. #166 and #98 stay open.
