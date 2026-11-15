@@ -631,7 +631,6 @@ Upstream PR submissions still need the owner's separate approval.
 
 > Recent entries only; older entries remain unchanged in the local `docs/worklog/` archive.
 
-- 2026-11-09 09:39 — Final beta runtime0542550 qualifies Windows17/17 plus four platform skips in2942.15s; CI42656586564 35/35 incl Mac game-side object compile. Actual GUI stable GA install373.3s and clean beta update204.6s pass in isolated default layout;29protected hashes and old build retained, sealed4668file payload exact. Final evidence-only records prepared; no tag/publication yet. logs/regress-20261109-102639.txt, beta-120b1-r2-full-regression-verdict.json, beta-120b1-update-verdict.json.
 - 2026-11-09 18:10 UTC — Published experimental v1.2.0-beta.1/e950a7f: Source42667831975 37/37,9game-free app assets and all GitHub digests/source/toolkit/inventories verified; no private Vendetta bytes. Stable1.1.1 remains Latest;3public selectors exclude beta. Existing local fighter playtest update222.14s preserves48protected hashes/old executable; shortcut target unchanged. D382 carries final Windows17/17 full evidence; no third full run. beta-120b1-tag-verification/verification.json, beta-120b1-existing-playtest-update-verdict.json.
 - 2026-11-10 19:49 UTC — Owner authorized all pending source merges and Workshop GPLv3-only. Merge Workshop3–8 and runtime202/213/217–224 with qualified-tree checks; retain third-party notices, game-art/native experimental limits and #166. Workshop191/5 skips, real wheel/notices and runtime53 combined focused tests pass; exact cross-platform CI and merge commits are recorded in the integration PR. No new release or duplicate full native regression.
 - 2026-11-12 10:30 - Beta-2 candidate prepared on `release/v1.2.0-beta.2`: PRs #226/#228/#229/#231-#237 plus #238 (launcher Fighter ZIP drop, Browse and progress bar); Windows full regression 17/17 on 97cd1ad in 46 min (unit 1917 passed, 778 skipped), launcher commit 98070bb checked with unit 1918 passed, m4a and real-launcher install/Browse/Cancel/error runs; D384-D396. Not merged, tagged or published; macOS/Linux owner test pending.
@@ -644,8 +643,15 @@ Upstream PR submissions still need the owner's separate approval.
 - 2026-11-13 — Owner requested the Menu/UI ultrawide showcase before the before/after comparisons. Moved the existing section intact after the hero; all other page content, images, sliders and styling remain unchanged. Publication and validation are recorded in the focused website PR.
 - 2026-11-14 05:17 UTC — v1.1.2 published as Latest (D397-D399): tag `v1.1.2` at `ed60f6d` on `release/v1.1.2` (v1.1.1 + #250), merged into main by #252. Windows full regress 17/17 (4 skipped, `logs/regress-20261113-220634.txt`); main + fix: boot 27 songs, fight-result 6, Beatbox 60 rows, quick 5/5 (`logs/regress-20261113-211830.txt`). Release run 43559956551; nine assets verified; Pages 43560804321. #230 closed by #252, reporter asked to retest the Beatbox.
 - 2026-11-14 20:05 — v1.2.0-beta.3 candidate f317d42 (release PR #260): main + #243/#245/#246/#255-#258/#244, D400-D413, toolkit 8e61aec; full re-lift; Windows `regress.py --quick` 5/5 (unit 2592 passed, m2, m3, m4a, fight; `regress-20261114-195313`); no full run per owner (D413); CI 35/35; CI app sha256 9929133b, provenance app 1.2.0, toolkit 8e61aec, non-development. App install/Clean Update not run (no silent mode); owner tests macOS/Linux.
+- 2026-11-15 11:18 — Owner approved HD Fighter Portraits presentation: 17 hosted before/after images (seven full-body compositions and ten head/roster textures), excluding B04/B06. Every public image passes full GET size/MIME/SHA-256 verification. Added source-only site/hd-fighter-portraits with matching SVG crops, accessible independent sliders and a home Mods link. Artwork and the prepared Thunderstore ZIP remain unchanged; this page does not publish the signed catalogue. Website validation and deployment evidence are recorded in the publication PR.
 
 ## 7. Hand-off
+
+### HD Fighter Portraits comparisons — 2026-11-15
+
+- Owner approved 17 externally hosted before/after images, seven full-body and ten head/roster; B04/B06 are excluded. The source-only page is `site/hd-fighter-portraits/`, linked from the home Mods section. Image fingerprints and precise viewports are in `site/README.md`.
+- Publish via the existing Pages workflow after website PR checks pass; the intended public route is `https://vyanhursky.github.io/DefJamFFNY-recomp/hd-fighter-portraits/`. Exact PR/check/deployment evidence belongs in the publication PR. No game-runtime or signed-catalogue change is involved; keep the separate portrait Thunderstore/catalogue compatibility hold intact.
+
 
 ### v1.2.0-beta.3 - 2026-11-14
 

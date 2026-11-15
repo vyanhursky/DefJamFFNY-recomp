@@ -7,6 +7,7 @@ step of its own. It is served at `https://vyanhursky.github.io/DefJamFFNY-recomp
 |---|---|
 | `index.html` | All the copy and structure: hero, features, screens, install, mods, news, roadmap and docs, FAQ, community, footer. |
 | `styles.css` | The look. Colours and fonts are variables at the top. |
+| `hd-fighter-portraits/` | Portrait page: 17 before/after sliders for full-body compositions, heads and roster textures. |
 | `hd-menus-ui/` | Menu/UI page: nine before/after sliders, an ultrawide showcase, coverage, installation and credits. |
 | `hd-fighters/` | Dedicated HD Fighters page: eight interactive before/after comparisons, coverage, installation and credits. |
 | `app.js` | Live details: the latest release line, the download button for the visitor's OS, the news list and the before/after sliders. The page still works without it. |
@@ -138,3 +139,46 @@ Comparison viewports (`x y width height`):
 | `08-method-man-as-blaze-loading.jpg` | `69 382 850 425` | `1001 382 850 425` |
 | `09-d-mob-loading.jpg` | `69 437 850 315` | `1001 437 850 315` |
 | `10-busta-rhymes-as-magic-loading.jpg` | `69 394 850 402` | `1001 394 850 402` |
+
+
+## HD Fighter Portraits subpage
+
+`hd-fighter-portraits/` publishes through the existing build/Pages workflow. The
+home Mods section links to its 17 owner-approved comparisons: seven complete
+full-body compositions and ten head/roster textures. B04 and B06 were explicitly
+excluded from the promotional selection. No image bytes are tracked here.
+
+Full-body boards use the original ELF quad/UV translation geometry and exact
+published native PNG fragments; head boards show native textures directly.
+These are offline comparisons, not captures of gameplay. Both SVG layers sample
+the same hosted 1920×1080 JPEG with matching crop dimensions; range controls
+change clipping only. Original/50–50/HD presets, keyboard controls and pointer
+dragging use the established Menus/Fighters interaction.
+
+Copy reflects the approved portrait release and November 15, 2026 storefront
+preparation: 2,184 native PNGs, 1,334 Select/Story-family textures plus 850 loading
+textures across 294 layouts, all at 4× native dimensions. The live 1.0.1 download
+remains the page's primary package link until a Thunderstore listing is verified.
+This page does not publish or change the signed mod catalogue.
+
+Hosted source images and viewports (`x y width height`):
+
+| ID | URL | SHA-256 | Original viewport | HD viewport |
+|---|---|---|---|---|
+| B07 | [01-b07-full-body.jpg](https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-fighter-portraits/screenshots/1.0.2/approved-20261115/01-b07-full-body.jpg) | `d22e4bf78a1ab968dba74b8e138c2e1f6cdbdee52d8579113c52ba89084d7718` | `277 274 409 666` | `1233 274 409 666` |
+| B08 | [02-b08-full-body.jpg](https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-fighter-portraits/screenshots/1.0.2/approved-20261115/02-b08-full-body.jpg) | `78df849480476658071b763e466ec91374e24de030c9e246e74aade02461c7f4` | `264 274 436 666` | `1220 274 436 666` |
+| B09 | [03-b09-full-body.jpg](https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-fighter-portraits/screenshots/1.0.2/approved-20261115/03-b09-full-body.jpg) | `555257f25f7358cbe6931d974c2e2c14bc205803c9ceb59966771f12d5a38d3c` | `328 274 307 666` | `1284 274 307 666` |
+| B01 | [04-b01-full-body.jpg](https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-fighter-portraits/screenshots/1.0.2/approved-20261115/04-b01-full-body.jpg) | `0e75761e2e0156c333416f062cfac0953ea732a1cbeff7c3d01632f510ca19d7` | `297 274 369 666` | `1253 274 369 666` |
+| B02 | [05-b02-full-body.jpg](https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-fighter-portraits/screenshots/1.0.2/approved-20261115/05-b02-full-body.jpg) | `4fda0d2e465213e8fdc17d93a8b24bff72ac6fe88dfaca76b23ec6b21b0337cb` | `297 274 369 666` | `1253 274 369 666` |
+| B03 | [06-b03-full-body.jpg](https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-fighter-portraits/screenshots/1.0.2/approved-20261115/06-b03-full-body.jpg) | `68ea9df000f0b5dc47f39d604055d8631e566a88bf215c5a493479e66b154df9` | `302 274 359 666` | `1258 274 359 666` |
+| B05 | [07-b05-full-body.jpg](https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-fighter-portraits/screenshots/1.0.2/approved-20261115/07-b05-full-body.jpg) | `abdeaaf658b53c57ffa2ebc3e9fcd34142283191081a2129c8668ada7f7f8881` | `313 274 338 666` | `1269 274 338 666` |
+| P01 | [08-p01-head.jpg](https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-fighter-portraits/screenshots/1.0.2/approved-20261115/08-p01-head.jpg) | `9d510768c4450f2b5af601e95ebf08b8e9e53fc14fd169c53dad536d5f386c3a` | `172 288 620 620` | `1128 288 620 620` |
+| P02 | [09-p02-head.jpg](https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-fighter-portraits/screenshots/1.0.2/approved-20261115/09-p02-head.jpg) | `f3de9b13ee7711dc676d4d72f79e5a628edc57571adac6a1d53e18dcf251bc23` | `172 288 620 620` | `1128 288 620 620` |
+| P03 | [10-p03-head.jpg](https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-fighter-portraits/screenshots/1.0.2/approved-20261115/10-p03-head.jpg) | `4eb11b8eb442141e2495f01e10d40661b17a90befa84457b9d9bf18da785c835` | `172 288 620 620` | `1128 288 620 620` |
+| P04 | [11-p04-head.jpg](https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-fighter-portraits/screenshots/1.0.2/approved-20261115/11-p04-head.jpg) | `772d883f229c6e16685c9f30caf2bf2b1f9c06f49c0c5bfb0404c26adc5933ba` | `172 288 620 620` | `1128 288 620 620` |
+| P05 | [12-p05-head.jpg](https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-fighter-portraits/screenshots/1.0.2/approved-20261115/12-p05-head.jpg) | `db3c3af1feb07f31915d1915087935885c2b25850449efec69028d9ef8155bb0` | `172 288 620 620` | `1128 288 620 620` |
+| P06 | [13-p06-head.jpg](https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-fighter-portraits/screenshots/1.0.2/approved-20261115/13-p06-head.jpg) | `d4371a1ee3fb3e7764f47e2ab9fc62854cc79b44f32058817bdb1227590d312d` | `172 288 620 620` | `1128 288 620 620` |
+| P07 | [14-p07-head.jpg](https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-fighter-portraits/screenshots/1.0.2/approved-20261115/14-p07-head.jpg) | `b2b54040816e2e79dbf4a4256b1d5c241f0b3bd82b794c74eb52ec399a209c9c` | `172 288 620 620` | `1128 288 620 620` |
+| P08 | [15-p08-head.jpg](https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-fighter-portraits/screenshots/1.0.2/approved-20261115/15-p08-head.jpg) | `f668885f9f2fa88def4ce3515d9d6c3ab2d88352f4dfe71a9cefd3eb8fcf2dba` | `172 288 620 620` | `1128 288 620 620` |
+| P09 | [16-p09-head.jpg](https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-fighter-portraits/screenshots/1.0.2/approved-20261115/16-p09-head.jpg) | `382659da2714e19b1c50374dabdbff5c0bcfa3a25d55690a5f9f7e296ae75fd3` | `172 288 620 620` | `1128 288 620 620` |
+| P10 | [17-p10-head.jpg](https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-fighter-portraits/screenshots/1.0.2/approved-20261115/17-p10-head.jpg) | `81be6ee2378a39b88bed79c79b89d9423570f1caf9d566c923549ae2d6c1f03a` | `172 288 620 620` | `1128 288 620 620` |
