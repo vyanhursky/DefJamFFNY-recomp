@@ -35,6 +35,10 @@ std::string data;
 namespace pcui { std::string folder_path(Folder which) { return data; } }
 int main(int argc,char **argv) {
  data=argv[1];
+ if(std::string(argv[2])=="fighter-set") {
+   if(!pc_fighters_prepare("")) {std::cerr<<pc_fighters_error()<<std::endl;return 5;}
+   std::cout<<"digest="<<pc_fighters_set_digest()<<std::endl;return 0;
+ }
  if(std::string(argv[2])=="fighter" || std::string(argv[2])=="fighter-ui" || std::string(argv[2])=="fighter-lang") {
    if(!pc_fighters_prepare(std::string(argv[2])=="fighter-lang"?"frenchpack":"")) {std::cerr<<pc_fighters_error()<<std::endl;return 5;}
    std::cout<<defjam_fighter_managed()<<std::endl;
@@ -273,8 +277,12 @@ def fighter_data(tmp_path, *, enabled=True, head=False):
     return root
 
 
-def manifest(root, environment, inputs, language=''):
-    lines = ['[manifest]', 'schema=1', 'runtime=0.0.0', 'language=' + language, '[environment]']
+DIGEST = 'ab' * 32
+
+
+def manifest(root, environment, inputs, language='', digest=DIGEST):
+    lines = ['[manifest]', 'schema=2', 'runtime=0.0.0', 'language=' + language, 'packs=synthetic-fighters',
+             'digest_schema=fighter-set-1', 'digest=' + digest, '[environment]']
     lines += [key + '=' + value for key, value in environment.items()]
     lines.append('[inputs]')
     for index, path in enumerate(inputs):
@@ -333,7 +341,7 @@ def test_fresh_manifest_plays_without_python_and_ignores_inherited_switches(brid
     assert 'saves stay in save/' in result.stderr
 
 
-@pytest.mark.parametrize('change', ['size', 'missing', 'runtime', 'none'])
+@pytest.mark.parametrize('change', ['size', 'missing', 'runtime', 'none', 'schema-1', 'no-digest'])
 def test_stale_manifest_is_rebuilt_once_before_play(bridge, tmp_path, change):
     root = fighter_data(tmp_path)
     cache = tmp_path / 'names.bin'
@@ -348,6 +356,13 @@ def test_stale_manifest_is_rebuilt_once_before_play(bridge, tmp_path, change):
         (root / 'fighter-manifest.ini').write_text(text)
     elif change == 'none':
         (root / 'fighter-manifest.ini').unlink()
+    elif change == 'schema-1':
+        # Written by a build before v1.2.0-beta.3 with the same version string: history numbers, no digest.
+        text = (root / 'fighter-manifest.ini').read_text().replace('schema=2', 'schema=1')
+        (root / 'fighter-manifest.ini').write_text(text)
+    elif change == 'no-digest':
+        text = (root / 'fighter-manifest.ini').read_text().replace('digest=' + DIGEST + '\n', '')
+        (root / 'fighter-manifest.ini').write_text(text)
     fresh = tmp_path / 'fresh.bin'
     fresh.write_bytes(b'fresh')
     source, env = prepare_helper(tmp_path, f"""
@@ -437,3 +452,51 @@ def test_language_manifest_matches_however_the_path_separators_are_spelled(bridg
     assert result.returncode == 0, result.stderr
     assert result.stdout.splitlines() == ['1', 'RECOMP_FIGHTER_NAMES=' + str(cache)]
     assert commands(root) == []
+
+
+def test_the_game_reports_the_digest_of_the_packs_it_loaded_and_nothing_otherwise(bridge, tmp_path):
+    """B2: pc_fighters_set_digest() for packs loaded, no pack enabled, and packs off for this process."""
+    digest = 'cd' * 32
+    root = fighter_data(tmp_path)
+    cache = tmp_path / 'names.bin'
+    cache.write_bytes(b'names')
+    manifest(root, {'RECOMP_FIGHTER_NAMES': str(cache)}, [cache], digest=digest)
+    source, env = prepare_helper(tmp_path, 'raise SystemExit(9)')
+    loaded = subprocess.run([str(bridge), str(tmp_path), 'fighter-set'], cwd=source, env=env, capture_output=True, text=True, timeout=20)
+    assert loaded.returncode == 0, loaded.stderr
+    assert loaded.stdout.splitlines() == ['digest=' + digest]
+    assert '[FIGHTERS] set digest=' + digest + ' packs=1' in loaded.stderr
+    off = subprocess.run([str(bridge), str(tmp_path), 'fighter-set'], cwd=source,
+                         env={**env, 'DEFJAM_FIGHTERS_OFF': 'the fighter packs failed their start-up checks'},
+                         capture_output=True, text=True, timeout=20)
+    assert off.returncode == 0 and off.stdout.splitlines() == ['digest=']
+    (root / 'view.ini').write_text((root / 'view.ini').read_text().replace('enabled=1', 'enabled=0'))
+    none = subprocess.run([str(bridge), str(tmp_path), 'fighter-set'], cwd=source, env=env, capture_output=True, text=True, timeout=20)
+    assert none.returncode == 0 and none.stdout.splitlines() == ['digest=']
+
+
+def test_fighter_packs_cannot_change_while_the_game_runs(bridge, tmp_path):
+    """C2: the game holds runtime.lock shared for its life; enable/disable fail at once, changing nothing."""
+    data = tmp_path / 'data'
+    root = data / 'mod-manager'
+    root.mkdir(parents=True)
+    state = {'schema': 1, 'installed': {}, 'fighters': ['alpha']}
+    (root / 'state.json').write_text(json.dumps(state))
+    (root / 'fighter-manifest.ini').write_text('[manifest]\nschema=2\n')
+    before = {path.name: path.read_bytes() for path in root.iterdir() if path.is_file()}
+    game = subprocess.Popen([str(bridge), str(data), 'hold'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True)
+    try:
+        assert game.stdout.readline().strip() == 'locked'
+        for command in ('fighter-disable', 'fighter-enable'):
+            started = time.monotonic()
+            result = subprocess.run([sys.executable, str(ROOT / 'setup/mods.py'), command, '--id', 'alpha',
+                                     '--data-dir', str(data), '--capability', 'fighters-v1'],
+                                    capture_output=True, text=True, timeout=30)
+            assert time.monotonic() - started < 10
+            assert result.returncode == 1, result.stdout + result.stderr
+            events = [json.loads(line) for line in result.stdout.splitlines() if line.startswith('{')]
+            assert events[-1]['event'] == 'error' and 'running' in events[-1]['message']
+    finally:
+        game.communicate('done\n', timeout=10)
+    after = {path.name: path.read_bytes() for path in root.iterdir() if path.is_file() and path.name in before}
+    assert after == before

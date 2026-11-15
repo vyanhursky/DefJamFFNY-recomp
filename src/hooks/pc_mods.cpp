@@ -62,6 +62,8 @@ static bool testing_versions = false;
 static fs::path job_root;
 static std::string fighter_language;
 static std::map<std::string, std::string> fighter_config; // [environment] of the loaded manifest
+static std::map<std::string, std::string> fighter_manifest_info; // [manifest] of the loaded manifest
+static std::string fighter_digest; // fighter-set-1 of the packs loaded in this process, "" when none
 #if defined(_WIN32)
 static HANDLE process = nullptr;
 static std::wstring wide(const std::string &s) {
@@ -364,7 +366,9 @@ static std::string runtime_version() {
 // changed size or time on any input means rebuild, not hash.
 static bool fighter_manifest(std::map<std::string, std::string> &config, std::string &why) {
     auto manifest = projection(root() / "fighter-manifest.ini");
-    if (manifest["manifest"]["schema"] != "1") { why = "no compiled fighter manifest"; return false; }
+    // Schema 2 (v1.2.0-beta.3): numbers follow the enabled set and [manifest] has the fighter-set-1
+    // digest. An older manifest, from any build with the same version string, is rebuilt once.
+    if (manifest["manifest"]["schema"] != "2") { why = "no compiled fighter manifest"; return false; }
     if (manifest["manifest"]["runtime"] != runtime_version()) { why = "the game was updated"; return false; }
     // Python writes the path through pathlib, which may spell separators differently.
     auto same_path = [](const std::string &a, const std::string &b) {
@@ -383,7 +387,14 @@ static bool fighter_manifest(std::map<std::string, std::string> &config, std::st
         }
     }
     if (manifest["inputs"].empty() || manifest["environment"].empty()) { why = "the fighter manifest is empty"; return false; }
+    // Packs are loaded, so the digest must be there; without it the game would report "no packs".
+    const std::string &digest = manifest["manifest"]["digest"];
+    if (manifest["manifest"]["digest_schema"] != "fighter-set-1" || digest.size() != 64
+        || digest.find_first_not_of("0123456789abcdef") != std::string::npos) {
+        why = "the fighter manifest has no fighter set digest"; return false;
+    }
     config = manifest["environment"];
+    fighter_manifest_info = manifest["manifest"];
     for (auto &entry : config)
         if (entry.first.rfind("RECOMP_FIGHTER_", 0) != 0) { why = "the fighter manifest has an unknown setting"; return false; }
     return true;
@@ -491,6 +502,14 @@ extern "C" int pc_fighters_prepare(const char *language) {
     if (!wanted) return 1;
     if (!fighter_ui_texture_pack(config["RECOMP_FIGHTER_UI_TEXTURE_PACK"], language)) return 0;
     fighter_config = std::move(config);
+    {
+        // The digest of the packs this process actually loaded (B2), checked by fighter_manifest().
+        // Read once here; the manifest is never read again in this process.
+        fighter_digest = fighter_manifest_info["digest"];
+        size_t packs = fighter_manifest_info["packs"].empty() ? 0
+            : (size_t)std::count(fighter_manifest_info["packs"].begin(), fighter_manifest_info["packs"].end(), ',') + 1;
+        fprintf(stderr, "[FIGHTERS] set digest=%s packs=%zu\n", fighter_digest.c_str(), packs);
+    }
     defjam_fighter_config_install(fighter_lookup);
     fprintf(stderr, "[FIGHTERS] fighter manifest loaded: %zu settings, saves stay in save/\n", fighter_config.size());
     return 1;
@@ -520,6 +539,9 @@ extern "C" void pc_fighters_notice(const char *message) {
 #endif
 }
 
+// The fighter-set-1 digest of the packs this process loaded, "" when none (pc_mods.h).
+extern "C" const char *pc_fighters_set_digest(void) { return pcui::fighter_digest.c_str(); }
+
 // Turn fighter packs off for the rest of this process (nothing was loaded yet).
 extern "C" void pc_fighters_disable(const char *reason) {
 #if defined(_WIN32)
@@ -528,6 +550,7 @@ extern "C" void pc_fighters_disable(const char *reason) {
     setenv("DEFJAM_FIGHTERS_OFF", reason && *reason ? reason : "1", 1);
 #endif
     pcui::fighter_config.clear();
+    pcui::fighter_digest.clear();
     defjam_fighter_config_install(nullptr);
 }
 
