@@ -131,7 +131,7 @@ def build(manager, state, *, ids=None, replacements=None, language=None):
     snapshot = resolve(catalog.baseline(), packs)
     # Fighter numbers (handle, selection key, symbol) follow the enabled packs alone: the sorted
     # stable keys are numbered from the retail baseline. Two PCs with the same packs get the same
-    # numbers, roster order and compiled files whatever their install history (D-new, 2026-11-14).
+    # numbers, roster order and compiled files whatever their install history (D409).
     ledger = allocate(seed(catalog.db, catalog.source_sha256, catalog.rows), snapshot['fighters'], None)
     screens = manager.game / 'screens/screens.viv'
     composed = prepare_language_screens(screens, language) if language else None

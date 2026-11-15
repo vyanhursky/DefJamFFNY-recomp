@@ -151,7 +151,7 @@ def test_thunderstore_fighter_zip_imports_without_storefront_files(manager, tmp_
 
 
 def test_fighter_numbers_follow_the_enabled_set_not_install_history(manager, tmp_path):
-    """D-new 2026-11-14: the same enabled packs give the same handles, selection keys, symbols and
+    """D409: the same enabled packs give the same handles, selection keys, symbols and
     roster order, whatever order they were installed and enabled in, and whatever was enabled before."""
     donors = {'alpha': 'retail/test-alpha', 'beta': 'retail/test-beta', 'gamma': 'retail/test-alpha'}
     histories = {'ab': ['+alpha', '+beta'], 'ba': ['+beta', '+alpha'],
