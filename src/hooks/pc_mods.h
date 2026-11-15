@@ -23,6 +23,10 @@ bool mod_poll(); // true after a job completed; caller refreshes local inventory
 bool mod_busy();
 bool mod_prerelease();
 void mod_set_prerelease(bool enabled);
+// The language pack folder the launcher has chosen (empty for none). Fighter builds started from
+// the Mods screen are composed for it, so Play finds a matching manifest. The caller reads the
+// setting; this module never does (its unit-test driver has no settings).
+void mod_set_language(const std::string &pack);
 void mod_cancel();
 const ModView &mod_view();
 const std::string &mod_status();
@@ -38,10 +42,8 @@ extern "C" {
  * incomplete transaction or an active installer, including --no-launcher. */
 int pc_mods_game_lock(void);
 int pc_mods_needs_recovery(void);
+/* Load the fighter manifest before Play (rebuilding it first when stale). */
 int pc_fighters_prepare(const char *language);
-const char *pc_fighters_data_root(void);
-int pc_fighters_healthy(void);
-void pc_fighters_finish(void);
 const char *pc_fighters_error(void);
 #ifdef __cplusplus
 }

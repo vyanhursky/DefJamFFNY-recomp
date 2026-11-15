@@ -1,5 +1,6 @@
 /* Retail CAF recipe adapter. Own-dump resources, original assembly and cleanup.
  * No profile import: compiler-owned records contain selections/training only. */
+#include "fighter_config.h"
 #include "fighter_caf.h"
 #include "fighter_fatal.h"
 #include "fighter_motion.h"
@@ -279,9 +280,9 @@ int defjam_fighter_caf_container(const uint8_t *data,size_t size,CafContainer *o
     *out=c;return 1;
 }
 int defjam_fighter_caf_start(void) {
-    const char *path=getenv("RECOMP_FIGHTER_CAF"),*hash=getenv("RECOMP_FIGHTER_CAF_SHA256");
+    const char *path=defjam_fighter_env("RECOMP_FIGHTER_CAF"),*hash=defjam_fighter_env("RECOMP_FIGHTER_CAF_SHA256");
     if (!path || !*path) return !hash || !*hash;
-    if (!mod_file_matches(path,hash) || s_rows) return 0;
+    if (!defjam_fighter_file_matches(path,hash) || s_rows) return 0;
     size_t size=0;uint8_t *data=read_container(path,&size);
     if (!data) return 0;
     CafContainer c;
@@ -336,7 +337,7 @@ static uint32_t prepare_profile(const uint8_t *row) {
 /* Read-only diagnostics for the original per-CAF deform buffers. Never edits
  * archive geometry; used to qualify the custom-face ownership boundary. */
 static void face_trace(uint32_t visual,uint32_t participant) {
-    if(!getenv("RECOMP_FIGHTER_FACE_TRACE")) return;
+    if(!defjam_fighter_env("RECOMP_FIGHTER_FACE_TRACE")) return;
     uint32_t part=visual+0x140+2u*0x420,model=MEM32(part+0x12c);
     if(model<0x10000 || model>0xfffe0000u) {fprintf(stderr,"[CAF-FACE] missing head model\n");return;}
     uint32_t group=MEM32(model+0xb8)+4;
@@ -474,7 +475,7 @@ int defjam_fighter_caf_visual(uint32_t visual, uint32_t participant, int apply) 
 
 void defjam_fighter_caf_decode_trace(uint32_t output,uint32_t source,uint32_t caller,int done) {
     static int checked,enabled;static unsigned count;
-    if(!checked) {checked=1;enabled=getenv("RECOMP_FIGHTER_CAF_TRACE")!=NULL;}
+    if(!checked) {checked=1;enabled=defjam_fighter_env("RECOMP_FIGHTER_CAF_TRACE")!=NULL;}
     if(!enabled || !s_service) return;
     if(!done) ++count;
     if(count<=32 || !(count&(count-1))) {

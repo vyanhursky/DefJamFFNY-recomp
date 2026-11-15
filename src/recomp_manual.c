@@ -427,46 +427,15 @@ void sub_000D2300(void) {
     sub_000D2300_gen();
     defjam_fighter_settings_saved();
 }
-extern void sub_000D23B0_gen(void);
-void sub_000D23B0(void) {
-    defjam_fighter_profile_staging(MEM32(g_esp + 4), MEM32(g_esp + 8));
-    sub_000D23B0_gen();
-}
-extern void sub_000D2780_gen(void);
-void sub_000D2780(void) {
-    defjam_fighter_save_batch();
-    sub_000D2780_gen();
-}
-
-/* Observe actual synchronous writes and native close results. Queue sealing or
- * identical pre-existing files alone cannot acknowledge this save attempt. */
+/* Observe the game's own save writes and closes. Nothing here changes them;
+ * the hooks are kept for the window-close safe point (an open save handle). */
 extern void sub_001F8D61_gen(void);
 void sub_001F8D61(void) {
-    uint32_t handle = MEM32(g_esp + 4), buffer = MEM32(g_esp + 8), size = MEM32(g_esp + 12);
-    uint32_t written = MEM32(g_esp + 16), asynchronous = MEM32(g_esp + 20);
     sub_001F8D61_gen();
-    defjam_fighter_save_write(handle, buffer, size, written, g_eax != 0, asynchronous != 0);
 }
 extern void sub_001F694D_gen(void);
 void sub_001F694D(void) {
-    uint32_t handle = MEM32(g_esp + 4);
     sub_001F694D_gen();
-    defjam_fighter_save_close(handle, g_eax != 0);
-}
-extern void sub_001F8EBB_gen(void);
-void sub_001F8EBB(void) {
-    defjam_fighter_save_seek(MEM32(g_esp + 4));
-    sub_001F8EBB_gen();
-}
-/* XDeleteSaveGame: ANSI drive, UTF-16 profile name, DWORD error (zero success).
- * Preserve the name before the original call and acknowledge only its result.
- * The host verifier independently requires the exact old folder to be absent. */
-extern void sub_001F89FD_gen(void);
-void sub_001F89FD(void) {
-    char name[33];
-    int tracked = defjam_fighter_profile_delete_begin(MEM32(g_esp + 4), MEM32(g_esp + 8), name);
-    sub_001F89FD_gen();
-    if (tracked) defjam_fighter_profile_delete_end(name, g_eax == 0);
 }
 extern void sub_0001E700_gen(void);
 void sub_0001E700(void) {

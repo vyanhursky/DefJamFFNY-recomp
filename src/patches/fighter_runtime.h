@@ -19,14 +19,6 @@ void defjam_fighter_settings_bound(uint32_t self);
 void defjam_fighter_settings_validate(uint32_t self, uint32_t payload);
 void defjam_fighter_settings_saving(void);
 void defjam_fighter_settings_saved(void);
-void defjam_fighter_profile_staging(uint32_t name, uint32_t payload);
-void defjam_fighter_save_batch(void);
-/* written is the original guest output-count pointer; read only when active. */
-void defjam_fighter_save_write(uint32_t handle, uint32_t buffer, uint32_t size, uint32_t written, int success, int asynchronous);
-void defjam_fighter_save_seek(uint32_t handle);
-void defjam_fighter_save_close(uint32_t handle, int success);
-int defjam_fighter_profile_delete_begin(uint32_t root, uint32_t name, char snapshot[33]);
-void defjam_fighter_profile_delete_end(const char *name, int success);
 void defjam_fighter_unlock_inserting(uint32_t self);
 void defjam_fighter_selection_gate(uint32_t selection);
 /* Reads the original string vector before the native dispatcher narrows it.

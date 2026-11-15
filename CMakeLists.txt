@@ -317,7 +317,8 @@ if(DEFJAM_BUILD_APP AND DEFJAM_SDL3)
         src/hooks/pc_ui_actions.cpp
         src/hooks/pc_launcher_home.cpp
         src/hooks/pc_launcher_sdl.cpp
-        src/hooks/pc_mods.cpp)
+        src/hooks/pc_mods.cpp
+        src/patches/fighter_config.c)
     target_compile_features(defjam_app PRIVATE cxx_std_17)
     target_compile_definitions(defjam_app PRIVATE DEFJAM_APP=1 DEFJAM_VERSION=\"${PROJECT_VERSION}\")
     if(DEFJAM_MOD_WIDE)
