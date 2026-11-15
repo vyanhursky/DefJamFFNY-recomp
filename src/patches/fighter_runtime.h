@@ -12,6 +12,7 @@ void defjam_fighter_model_input(uint32_t object);
 uint32_t defjam_fighter_native_handle(uint32_t handle);
 int defjam_fighter_native_record(uint32_t database, uint32_t output, uint32_t stable);
 void defjam_fighter_match_setup(uint32_t self, uint32_t fighters);
+int defjam_fighter_runtime_active(void);
 void defjam_fighter_match_finished(void);
 void defjam_fighter_match_unloaded(void);
 void defjam_fighter_handle_produced(uint32_t database, uint32_t table, uint32_t output);

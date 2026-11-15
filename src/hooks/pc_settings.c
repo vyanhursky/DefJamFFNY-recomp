@@ -509,10 +509,20 @@ int pc_settings_init(void)
         recomp_settings_get_text("language", "pack", language, sizeof language, "");
         if (!pc_fighters_prepare(language)) {
             extern const char *pc_fighters_error(void);
+            extern int pc_fighters_saves_pending(void);
+            extern void pc_fighters_notice(const char *message);
+            extern void pc_fighters_disable(const char *reason);
             char message[2048];
-            snprintf(message, sizeof message, "Fighter Mod Support could not prepare this launch.\n\n%s\n\nYour saves and mod selection were not changed. Open Mods > Fighters to resolve the problem.", pc_fighters_error());
-            host_fatal(message);
-            return 0;
+            if (pc_fighters_saves_pending()) {
+                /* Playing now would play on the stale save that the pending move replaces. */
+                snprintf(message, sizeof message, "Fighter Mod Support could not move your fighter-mod saves back into the save folder.\n\n%s\n\nYour saves were not changed. Open Mods > Fighters to resolve the problem.", pc_fighters_error());
+                host_fatal(message);
+                return 0;
+            }
+            /* A pack that fails its checks is left out; the game itself still starts. */
+            snprintf(message, sizeof message, "Fighter packs could not be prepared, so the game starts without them.\n\n%s\n\nYour saves and custom unlocks are kept. Open Mods > Fighters to check the packs.", pc_fighters_error());
+            pc_fighters_notice(message);
+            pc_fighters_disable(pc_fighters_error());
         }
     }
     /* Publish the admitted fighter database before songs compose their table.
@@ -520,7 +530,27 @@ int pc_settings_init(void)
      * the fighter redirect correctly reject a competing djv2.sod owner. */
     {
         extern int defjam_fighter_runtime_start(void);
-        if (!defjam_fighter_runtime_start()) return 0;
+        extern int defjam_fighter_managed(void);
+        if (!defjam_fighter_runtime_start()) {
+            if (defjam_fighter_managed()) {
+                /* Normal Play: some fighter modules may already hold state, so start
+                 * again from the beginning with fighter packs off, and say so. */
+                extern void pc_fighters_notice(const char *message);
+                extern void pc_fighters_restart_without_packs(const char *const *argv);
+                pc_fighters_notice("The enabled fighter packs failed their start-up checks, so the game starts without them.\n\n"
+                                   "Your saves and custom unlocks are kept. Open Mods > Fighters to check the packs; the log names the check.");
+                /* Release the pads before the new process opens them; this one only waits. No
+                 * guest memory and no game window exist yet; the mod lock is shared. */
+                pc_input_stop();
+                #if defined(_WIN32)
+                pc_fighters_restart_without_packs(NULL);   /* Windows rebuilds the command line itself */
+#else
+                pc_fighters_restart_without_packs(g_argv);
+#endif
+                host_fatal("The game could not restart without fighter packs. Disable them in Mods > Fighters and start again.");
+            }
+            return 0;
+        }
     }
     /* [songs]: compose on the admitted fighter/language database, before XBE loading. */
     pc_songs_start(have_root ? root : NULL, "game");

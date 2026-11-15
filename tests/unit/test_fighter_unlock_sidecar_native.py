@@ -49,7 +49,6 @@ static const char *s_identity_names[FIGHTER_BINDINGS_MAX_COUNT];
 static char *s_unknown_lines;
 static size_t s_unknown_size;
 static uint32_t s_custom_keys[FIGHTER_BINDINGS_MAX_COUNT], s_custom_metadata[FIGHTER_BINDINGS_MAX_COUNT];
-static void fighter_stop(const char *message) { fprintf(stderr, "%s\n", message); exit(23); }
 static int remember_custom(uint32_t mark);
 static FILE *open_write_utf8(const char *path);
 static int write_sidecar(void);
