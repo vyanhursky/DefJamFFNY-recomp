@@ -18,6 +18,7 @@
  *   - Intercept D3D/audio calls for custom rendering or sound
  */
 
+#include "hooks/save_activity.h"
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
@@ -427,15 +428,32 @@ void sub_000D2300(void) {
     sub_000D2300_gen();
     defjam_fighter_settings_saved();
 }
-/* Observe the game's own save writes and closes. Nothing here changes them;
- * the hooks are kept for the window-close safe point (an open save handle). */
+/* Observe the game's own save writes and closes; nothing here changes them. A file
+ * that was written and not yet closed is a save in progress, and closing the window
+ * waits for it (src/hooks/save_activity.c). */
 extern void sub_001F8D61_gen(void);
 void sub_001F8D61(void) {
+    uint32_t handle = MEM32(g_esp + 4);
+    static int close_test = -1;
+    save_activity_write(handle);
     sub_001F8D61_gen();
+    /* RECOMP_TEST_CLOSE_DURING_SAVE=1: press the window's close button during the first
+     * save write, so a run shows the close waiting for the file to be closed. */
+    if (close_test < 0) {
+        const char *value = getenv("RECOMP_TEST_CLOSE_DURING_SAVE");
+        close_test = value && *value && strcmp(value, "0");
+    }
+    if (close_test == 1) {
+        close_test = 2;
+        fprintf(stderr, "[SAVES-TEST] closing the window during a save write (handle %08X)\n", handle);
+        host_request_close();
+    }
 }
 extern void sub_001F694D_gen(void);
 void sub_001F694D(void) {
+    uint32_t handle = MEM32(g_esp + 4);
     sub_001F694D_gen();
+    save_activity_close(handle);
 }
 extern void sub_0001E700_gen(void);
 void sub_0001E700(void) {

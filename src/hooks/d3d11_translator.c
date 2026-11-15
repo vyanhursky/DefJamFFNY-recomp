@@ -44,6 +44,7 @@
 #include "recomp_settings.h"
 #include "recorder.h"
 #include "d3d8_readback.h"
+#include "save_activity.h"
 
 /* The title sets a 640x480 mode. Matching it keeps the translator's screen
  * space and ours the same, so a vertex the title placed at 320,240 lands in
@@ -257,11 +258,20 @@ static LRESULT CALLBACK translator_wndproc(HWND h, UINT msg, WPARAM wp, LPARAM l
     if (msg == WM_CLOSE) {
         pc_input_stop();        /* a pad must not be left vibrating */
         fprintf(stderr, "[TRANS] window closed by the user; exiting\n");
+        /* This is the window thread; the game thread may be writing a save. Let it
+         * close the file first (a few seconds at most), so a close never truncates
+         * a profile. src/hooks/save_activity.c */
+        save_activity_wait_idle(5000);
         fflush(stderr);
         fflush(stdout);
         TerminateProcess(GetCurrentProcess(), 0);
     }
     return DefWindowProcW(h, msg, wp, lp);
+}
+
+void host_request_close(void)
+{
+    if (s_window) PostMessageW(s_window, WM_CLOSE, 0, 0);
 }
 
 static HWND make_window(void)
