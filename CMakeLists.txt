@@ -186,6 +186,8 @@ if(DEFJAM_BUILD_GAME)
     )
     target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
     if(WIN32)
+        # UTF-8 process code page (P10 of the 2026-11-12 review): one path encoding in the whole game.
+        target_sources(${PROJECT_NAME} PRIVATE src/game.manifest)
         target_link_libraries(${PROJECT_NAME} PRIVATE xboxrecomp recomp_settings defjam_imgui d3d11 dxgi dxguid xinput winmm dbghelp shell32 comdlg32)
     else()
         # One SDL for the window, the sound and the pads: SDL3, the system's.

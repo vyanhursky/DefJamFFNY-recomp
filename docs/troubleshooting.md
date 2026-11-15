@@ -14,6 +14,13 @@ reuse an existing verified extraction. Use **Clean Update** when changing versio
 **Clean Rebuild** rebuilds the selected version. An operation refused before the
 build is not evidence of a new runtime crash. See [update and recovery](setup-installer.md#update-repair-and-uninstall).
 
+- **The game closed by itself.** When the game refuses to start or stops, it shows a
+  message and also writes it to `last-error.txt` in the data folder. The launcher
+  shows that message on Home at the next start until you dismiss it, so a message
+  hidden behind the game window (Steam Deck Game Mode, macOS full screen) is not lost.
+- **Windows: a data folder whose path has accents or non-Latin letters.** Builds before
+  v1.2.0-beta.3 could not open their save folder there and closed at once. The game
+  now uses UTF-8 for every path, like the app.
 - **macOS: “python3” Not Opened.** Setups through v0.10.3 inherited download quarantine
   on the bundled Python. Use a current Setup; v0.10.4 corrected extraction. For a
   historical copy, the original recovery procedure is in the
