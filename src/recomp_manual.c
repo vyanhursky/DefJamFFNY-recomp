@@ -572,8 +572,9 @@ void sub_0008BE60_enter(void)
  * While the pause menu is open it skips the match update, so the step stops, but
  * it keeps running and the HUD stays on screen. Keep the widescreen HUD anchored
  * through a pause that began in a live fight (issue #95); otherwise no change. */
-void sub_00079B60_enter(void) { if (s_ws_hud_live) ws_hud_heartbeat(); }
-void sub_0007A8F0_enter(void) { if (s_ws_hud_live) ws_hud_heartbeat(); }
+extern void pc_restart_match_check(void);
+void sub_00079B60_enter(void) { if (s_ws_hud_live) ws_hud_heartbeat(); pc_restart_match_check(); }
+void sub_0007A8F0_enter(void) { if (s_ws_hud_live) ws_hud_heartbeat(); pc_restart_match_check(); }
 void sub_001A4D90_enter(void) { defjam_test_match_start(); defjam_crowd_match_start(); cheats_match_start(); song_cursor_match_start(); }
 /* Widescreen song notification (src/patches/widescreen.c, issue #118): the APT
  * movie loader (archive, name, &apt, &const), and the next step of the load,
