@@ -187,3 +187,42 @@ def test_an_old_state_file_with_a_stored_ledger_still_loads_and_is_not_written_b
     assert fighters.build(manager, manager.state())[1]['binding_ledger'] == fresh
     manager.activate_fighter('alpha', False)
     assert 'fighter_ledger' not in json.loads((manager.root / 'state.json').read_text())
+
+
+def run_cli(monkeypatch, capsys, *arguments):
+    """mods.py's own main(), as a command-line caller (another launcher) runs it."""
+    import mods
+    monkeypatch.setattr('sys.argv', ['mods.py', *arguments])
+    code = mods.main()
+    events = [json.loads(line) for line in capsys.readouterr().out.splitlines() if line.startswith('{')]
+    return code, events
+
+
+def test_command_line_install_and_enable_contract(manager, tmp_path, monkeypatch, capsys):
+    """C1: install-local then fighter-enable through main(); events, exit codes and the manifest."""
+    data = str(manager.data)
+    common = ['--data-dir', data, '--runtime', '1.2.0', '--game-dir', str(tmp_path / 'game'), '--capability', 'fighters-v1']
+    code, events = run_cli(monkeypatch, capsys, 'install-local', '--archive', str(archive(tmp_path, pack(count=1))), *common)
+    assert code == 0 and events[-1]['event'] == 'complete' and {e['event'] for e in events} <= {'progress', 'complete'}
+    code, events = run_cli(monkeypatch, capsys, 'fighter-enable', '--id', 'alpha', *common)
+    assert code == 0 and events[-1]['event'] == 'complete'
+    manifest = (manager.root / 'fighter-manifest.ini').read_text(encoding='utf-8')
+    assert 'runtime=1.2.0' in manifest and 'packs=alpha' in manifest and 'digest_schema=fighter-set-1' in manifest
+    code, events = run_cli(monkeypatch, capsys, 'fighter-digest', '--data-dir', data)
+    assert code == 0 and events == [{'event': 'digest', 'schema': 'fighter-set-1', 'digest': events[0]['digest'],
+                                     'packs': [{'id': 'alpha', 'version': '1.0.0', 'sha256': events[0]['packs'][0]['sha256']}]}]
+
+
+def test_command_line_refuses_a_bad_zip_with_one_error_and_no_change(manager, tmp_path, monkeypatch, capsys):
+    data = str(manager.data)
+    common = ['--data-dir', data, '--runtime', '1.2.0', '--game-dir', str(tmp_path / 'game'), '--capability', 'fighters-v1']
+    run_cli(monkeypatch, capsys, 'install-local', '--archive', str(archive(tmp_path, pack(count=1))), *common)
+    before = (manager.root / 'state.json').read_bytes()
+    broken = tmp_path / 'broken.zip'
+    with zipfile.ZipFile(broken, 'w') as bundle:
+        bundle.writestr('beta/README.md', 'no fighters.json here')
+    code, events = run_cli(monkeypatch, capsys, 'install-local', '--archive', str(broken), *common)
+    assert code == 1
+    assert [e['event'] for e in events].count('error') == 1 and events[-1]['event'] == 'error'
+    assert (manager.root / 'state.json').read_bytes() == before
+    assert not (manager.mods / 'beta').exists()
