@@ -543,6 +543,10 @@ class Manager:
     def state(self):
         state = read_json(self.root / 'state.json', {'schema': 1, 'installed': {}})
         check(state.get('schema') == 1 and isinstance(state.get('installed'), dict), 'Invalid manager state')
+        # Builds up to v1.2.0-beta.3 stored an install-history fighter ledger here. Fighter numbers now
+        # follow the enabled packs alone (fighter_bindings.allocate with no history), so an old field
+        # is read past and dropped at the next write.
+        state.pop('fighter_ledger', None)
         return state
 
     def trusted(self, fresh=False):
@@ -644,8 +648,8 @@ class Manager:
         state = self.state()
         if new and self.unchanged(target, new):
             state['installed'][journal['id']] = new
-            if journal.get('fighter_ledger') is not None:
-                state['fighter_ledger'] = journal['fighter_ledger']
+            if 'fighters-v1' in (new or {}).get('capabilities', []) \
+                    or 'fighters-v1' in (old or {}).get('capabilities', []):
                 self.fighters_changed = True
         elif old and self.unchanged(target, old):
             state['installed'][journal['id']] = old
@@ -692,8 +696,7 @@ class Manager:
             # Refuse a receipt the bounded reader could not reopen, before any
             # pack moves. The journal's own bound is checked by atomic_json.
             json_bytes(state)
-            atomic_json(self.root / 'journal.json', dict(id=mod_id, old=old, new=new,
-                                                        fighter_ledger=state.get('fighter_ledger')))
+            atomic_json(self.root / 'journal.json', dict(id=mod_id, old=old, new=new))
             if backup.exists():
                 shutil.rmtree(backup)
                 sync_directory(self.backups)
@@ -795,8 +798,6 @@ class Manager:
             proposed = {**state, 'fighters': chosen}
             self.progress('Compiling the enabled fighter packs')
             built = build(self, proposed, language=self.language) if chosen else None
-            if built:
-                proposed['fighter_ledger'] = built[1]['binding_ledger']
             self.cancelled()
             atomic_json(self.root / 'state.json', proposed)
             # The game reads only this manifest at Play; no Python runs then.

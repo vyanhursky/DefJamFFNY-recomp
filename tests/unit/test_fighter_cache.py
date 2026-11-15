@@ -85,7 +85,11 @@ def test_policy_original_content_and_identity_ledger_changes_invalidate(ready, m
         path = manager.game / 'assets/entity.xml'; path.parent.mkdir(parents=True)
         path.write_text('<original/>')
     else:
-        state['fighter_ledger']['fighters']['alpha/fighter-0']['selection'] = 2000
+        # Numbers follow the enabled set; a different set means different numbers and a new entry.
+        import fighter_bindings
+        real = fighter_bindings.allocate
+        monkeypatch.setattr(fighter_bindings, 'allocate', lambda base, keys, previous=None: (
+            lambda ledger: (ledger['fighters']['alpha/fighter-0'].update(selection=2000), ledger)[1])(real(base, keys, previous)))
     result = fighters.build(manager, state)
     assert calls == {'compile': 2, 'presentation': 2}
     equivalent(fighters.build(manager, state), result)
