@@ -74,7 +74,7 @@ def tool(tmp_path_factory):
     (folder/'texture_pack.h').write_text('#include <stdint.h>\nvoid texture_pack_memory_clear(uint32_t);\nint texture_pack_memory_register(uint32_t,uint32_t,uint32_t,uint32_t,uint32_t,const uint8_t *,uint32_t,uint32_t);\n')
     driver=folder/'driver.c';driver.write_text(DRIVER.replace('@SOURCE@',(ROOT/'src/patches/fighter_caf_hd.c').as_posix()))
     exe=folder/('hd.exe' if os.name=='nt' else 'hd')
-    extra=[str(ROOT/'src/patches/fighter_fatal.c'),str(ROOT/'tests/unit/native_stubs/host_fatal.c')]
+    extra=[str(ROOT/'src/patches/fighter_fatal.c'), str(ROOT/'src/patches/fighter_config.c'),str(ROOT/'tests/unit/native_stubs/host_fatal.c')]
     if os.name=='nt':command=[cc,'/nologo','/W4','/WX','/wd5105','/D_CRT_SECURE_NO_WARNINGS','/I'+str(folder),'/I'+str(ROOT/'src'),str(driver),*extra,'/Fe:'+str(exe)]
     else:command=[cc,'-std=c11','-D_POSIX_C_SOURCE=200809L','-Wall','-Wextra','-Werror','-I',str(folder),'-I',str(ROOT/'src'),str(driver),*extra,'-o',str(exe)]
     result=subprocess.run(command,cwd=folder,capture_output=True,text=True)

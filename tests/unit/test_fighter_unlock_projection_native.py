@@ -29,7 +29,7 @@ static FighterBindings s_bindings;
 static FighterWindowRow rows[5];
 static uint32_t s_settings=0x1000,s_validated_database=1,s_custom_count=5;
 static uint32_t s_custom_keys[5],s_custom_metadata[5];
-static char s_journal[1];
+static char s_state_dir[1];
 void defjam_fighter_caf_menu_clear(uint32_t slot){assert(slot<4 || slot==UINT32_MAX);}
 int defjam_fighter_caf_outfit(uint32_t slot,uint32_t selection,uint32_t index){(void)slot;(void)selection;(void)index;abort();}
 #ifdef _MSC_VER

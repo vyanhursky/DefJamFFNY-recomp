@@ -528,6 +528,8 @@ class Manager:
         self.message = ''
         self.prerelease = prerelease
         self.game = Path(game or Path.cwd() / 'game').resolve()  # The verified dump may use the normal game junction.
+        self.language = None          # Language pack folder the fighter manifest is composed for.
+        self.fighters_changed = False  # A command changed what the fighter manifest describes.
 
     def cancelled(self):
         check(not (self.cancel_file and self.cancel_file.exists()), 'Operation cancelled; previous installation preserved')
@@ -541,6 +543,10 @@ class Manager:
     def state(self):
         state = read_json(self.root / 'state.json', {'schema': 1, 'installed': {}})
         check(state.get('schema') == 1 and isinstance(state.get('installed'), dict), 'Invalid manager state')
+        # Builds up to v1.2.0-beta.3 stored an install-history fighter ledger here. Fighter numbers now
+        # follow the enabled packs alone (fighter_bindings.allocate with no history), so an old field
+        # is read past and dropped at the next write.
+        state.pop('fighter_ledger', None)
         return state
 
     def trusted(self, fresh=False):
@@ -642,8 +648,9 @@ class Manager:
         state = self.state()
         if new and self.unchanged(target, new):
             state['installed'][journal['id']] = new
-            if journal.get('fighter_ledger') is not None:
-                state['fighter_ledger'] = journal['fighter_ledger']
+            if 'fighters-v1' in (new or {}).get('capabilities', []) \
+                    or 'fighters-v1' in (old or {}).get('capabilities', []):
+                self.fighters_changed = True
         elif old and self.unchanged(target, old):
             state['installed'][journal['id']] = old
         elif not target.exists() and not linked(target) and old and self.unchanged(backup, old):
@@ -670,6 +677,7 @@ class Manager:
             if 'fighters-v1' in (new or {}).get('capabilities', []) or 'fighters-v1' in (old or {}).get('capabilities', []):
                 from fighter_packages import candidate
                 candidate(self, state, mod_id, stage, new)
+                self.fighters_changed = True
             target, backup = self.mods / mod_id, self.backups / mod_id
             if old:
                 check(self.unchanged(target, old), 'Managed mod has local edits/missing files; preserve them before replacing')
@@ -688,8 +696,7 @@ class Manager:
             # Refuse a receipt the bounded reader could not reopen, before any
             # pack moves. The journal's own bound is checked by atomic_json.
             json_bytes(state)
-            atomic_json(self.root / 'journal.json', dict(id=mod_id, old=old, new=new,
-                                                        fighter_ledger=state.get('fighter_ledger')))
+            atomic_json(self.root / 'journal.json', dict(id=mod_id, old=old, new=new))
             if backup.exists():
                 shutil.rmtree(backup)
                 sync_directory(self.backups)
@@ -780,6 +787,7 @@ class Manager:
 
     def activate_fighter(self, identifier, selected):
         from fighter_packages import build, enabled
+        import fighter_manifest
         contract.slug(identifier)
         with file_lock(self.root / 'runtime.lock'):
             self.recover()
@@ -788,12 +796,38 @@ class Manager:
             chosen = sorted(set(current) | {identifier}) if selected else [item for item in current if item != identifier]
             check(not selected or identifier in state['installed'], 'Install this Fighter package before enabling it')
             proposed = {**state, 'fighters': chosen}
-            self.progress('Checking fighter resources and compatibility')
-            _, report, _, _ = build(self, proposed)
-            proposed['fighter_ledger'] = report['binding_ledger']
+            self.progress('Compiling the enabled fighter packs')
+            built = build(self, proposed, language=self.language) if chosen else None
             self.cancelled()
             atomic_json(self.root / 'state.json', proposed)
+            # The game reads only this manifest at Play; no Python runs then.
+            fighter_manifest.write(self, proposed, language=self.language, built=built)
+            self.fighters_changed = False
             self.progress('Fighter selection saved. Applies on Play; custom progress is retained when disabled.')
+
+    def prepare_fighters(self):
+        """Run before Play only when the manifest is missing or stale, or saves need moving."""
+        import fighter_manifest
+        from fighter_migrate import migrate
+        # The game already holds runtime.lock shared from here until it exits;
+        # writer.lock (held by main) keeps other mod commands out meanwhile.
+        with file_lock(self.root / 'runtime.lock', shared=True):
+            backup = migrate(self)
+            self.progress('Preparing the enabled fighter packs')
+            fighter_manifest.write(self, self.state(), language=self.language)
+            self.fighters_changed = False
+            self.progress('Fighter packs ready' + ('; your saves were moved back into the save folder' if backup else ''))
+
+    def refresh_fighters(self):
+        import fighter_manifest
+        from fighter_packages import enabled
+        with file_lock(self.root / 'runtime.lock'):
+            state = self.state()
+            if not enabled(state):
+                fighter_manifest.remove(self)
+                return
+            self.progress('Updating the enabled fighter packs')
+            fighter_manifest.write(self, state, language=self.language)
 
     def rollback(self, mod_id):
         contract.slug(mod_id)
@@ -852,7 +886,7 @@ class Manager:
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=('status', 'refresh', 'install', 'remove', 'rollback', 'recover', 'install-local', 'fighter-enable', 'fighter-disable', 'fighter-session'))
+    parser.add_argument('command', choices=('status', 'refresh', 'install', 'remove', 'rollback', 'recover', 'install-local', 'fighter-enable', 'fighter-disable', 'fighter-prepare', 'fighter-digest'))
     parser.add_argument('--data-dir', type=Path, required=True)
     parser.add_argument('--runtime', default='0.0.0')
     parser.add_argument('--capability', action='append', default=['textures-v1'])
@@ -862,7 +896,6 @@ def main():
     parser.add_argument('--cancel-file')
     parser.add_argument('--archive', type=Path)
     parser.add_argument('--game-dir', type=Path)
-    parser.add_argument('--parent-pid', type=int)
     parser.add_argument('--language-pack', type=Path)
     args = parser.parse_args()
     manager = None
@@ -871,9 +904,14 @@ def main():
         return 1
     try:
         manager = Manager(args.data_dir, args.runtime, args.capability, cancel=args.cancel_file, prerelease=args.prerelease, game=args.game_dir)
-        if args.command == 'fighter-session':
-            from fighter_launch import supervise
-            supervise(manager, args.parent_pid, language=args.language_pack)
+        manager.language = args.language_pack
+        if args.command == 'fighter-digest':
+            # Changes no state: no lock, no compile, safe while the game or another mod command runs.
+            # (Manager() creates the empty mod-manager folders in a new data folder, as for any command.)
+            from fighter_manifest import DIGEST_SCHEMA, set_digest
+            from fighter_packages import enabled
+            digest, packs = set_digest(manager, enabled(manager.state()))
+            print(json.dumps(dict(event='digest', schema=DIGEST_SCHEMA, digest=digest, packs=packs)), flush=True)
             return 0
         with file_lock(manager.root / 'writer.lock'):
             try:
@@ -893,6 +931,10 @@ def main():
                     manager.install_local(args.archive)
                 elif args.command in ('fighter-enable', 'fighter-disable'):
                     manager.activate_fighter(args.id, args.command == 'fighter-enable')
+                elif args.command == 'fighter-prepare':
+                    manager.prepare_fighters()
+                if manager.fighters_changed:
+                    manager.refresh_fighters()
                 manager.view()
             except (ValueError, OSError, ImportError, KeyError, TypeError, configparser.Error, zipfile.BadZipFile) as error:
                 manager.progress(str(error))

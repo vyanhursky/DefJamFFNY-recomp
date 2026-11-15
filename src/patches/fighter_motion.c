@@ -5,6 +5,7 @@
 #ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
 #endif
+#include "fighter_config.h"
 #include "fighter_motion.h"
 #include "fighter_fatal.h"
 #include "fighter_runtime.h"
@@ -158,12 +159,12 @@ static uint8_t *read_file(const char *path, size_t limit, size_t *size) {
 }
 
 int defjam_fighter_motion_start(void) {
-    const char *path = getenv("RECOMP_FIGHTER_MOTION");
-    const char *bindings = getenv("RECOMP_FIGHTER_MOTION_BINDINGS");
-    const char *hash = getenv("RECOMP_FIGHTER_MOTION_SHA256");
+    const char *path = defjam_fighter_env("RECOMP_FIGHTER_MOTION");
+    const char *bindings = defjam_fighter_env("RECOMP_FIGHTER_MOTION_BINDINGS");
+    const char *hash = defjam_fighter_env("RECOMP_FIGHTER_MOTION_SHA256");
     if (!path || !*path) return (!bindings || !*bindings) && (!hash || !*hash);
     if (!defjam_fighter_research_active() || !bindings || !*bindings || s_count || strlen(path) >= sizeof(s_path)
-        || !mod_file_matches(path, hash)) return 0;
+        || !defjam_fighter_file_matches(path, hash)) return 0;
     size_t size = 0, bytes = 0;
     uint8_t *table = read_file(bindings, MAX_BINDINGS, &size);
     uint8_t *data = read_file(path, MAX_MOTION, &bytes);
