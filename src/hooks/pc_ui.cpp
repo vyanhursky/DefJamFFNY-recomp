@@ -2594,7 +2594,14 @@ void parse_chord_list(const std::string &text, std::vector<Chord> &chords)
             int src = xbox_InputMap_SourceFromName(name.substr(a, b - a + 1).c_str());
             if (src > INPUT_SRC_NONE) c.src[c.n++] = src;
         }
-        if (c.n) chords.push_back(c);
+        if (c.n) {
+            /* L3+R3 is reserved for the in-match rematch / restart shortcut. */
+            if (c.n == 2 &&
+                ((c.src[0] == INPUT_SRC_LEFT_STICK_CLICK && c.src[1] == INPUT_SRC_RIGHT_STICK_CLICK) ||
+                 (c.src[0] == INPUT_SRC_RIGHT_STICK_CLICK && c.src[1] == INPUT_SRC_LEFT_STICK_CLICK)))
+                continue;
+            chords.push_back(c);
+        }
     }
 }
 
