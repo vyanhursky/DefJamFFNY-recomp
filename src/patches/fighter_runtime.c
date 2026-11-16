@@ -888,7 +888,7 @@ void defjam_fighter_unlock_inserting(uint32_t self) {
     if (!s_bindings.bytes || !s_settings || self != s_settings + 0x1C) return;
     uint32_t count = MEM32(self + 4);
     if (count > FIGHTER_UNLOCK_CAPACITY || MEM32(self) != FIGHTER_UNLOCK_CAPACITY)
-        fighter_stop("Native Character unlock storage is malformed before insertion.");
+        goto invalid_unlock_storage;
     uint32_t argument=MEM32(g_esp+4),mark=MEM32(argument);
     uint32_t owner = outfit_progress_handle(mark & ~FIGHTER_UNLOCK_METADATA);
     mark = owner | (mark & FIGHTER_UNLOCK_METADATA);
@@ -908,9 +908,12 @@ void defjam_fighter_unlock_inserting(uint32_t self) {
         break;
     }
     if (count >= FIGHTER_UNLOCK_CAPACITY)
-        fighter_stop("Native Character unlock storage is full; expanded persistence is required.");
+        goto invalid_unlock_storage;
     MEM32(argument)=mark;
     if (s_state_dir[0]) remember_custom(MEM32(argument));
+    return;
+invalid_unlock_storage:
+    fighter_stop("Native Character unlock storage is full or malformed; expanded persistence is required.");
 }
 
 void defjam_fighter_selection_gate(uint32_t selection) {
