@@ -117,7 +117,18 @@ def rigs(game, names):
     return result
 
 
-def animation(game, request):
+def retail_rigs(game, pack, names):
+    """Read the selected hash-bound appearance, never a client-supplied rig/path."""
+    from fighter_appearance_authoring import preview
+    from fighter_build import retail_catalog
+    from pathlib import Path
+
+    require(names == ['retail-body'], 'Choose the current retail preview body')
+    catalog = retail_catalog(Path(game) / 'assets/djv2.sod')
+    return preview(game, pack, catalog, pins(), include_textures=False)['models']
+
+
+def animation(game, request, *, retail_pack=None):
     require(type(request) is dict and set(request) <= {'operation','core','clip','models'}, 'Unsupported animation request')
     if request.get('operation') == 'list':
         index = motion_index(game, request.get('core'))
@@ -129,7 +140,9 @@ def animation(game, request):
         return dict(clips=supported,unsupported=unsupported)
     require(request.get('operation', 'play') == 'play', 'Unknown animation operation')
     index = index_for(game, request); decoded = tracks(index, request['clip'])
-    models = rigs(game, request.get('models')); count = min(len(r['bones']) for r in models.values())
+    models = (retail_rigs(game, retail_pack, request.get('models')) if retail_pack is not None
+              else rigs(game, request.get('models')))
+    count = min(len(r['bones']) for r in models.values())
     require(all(max(destinations, default=0) < count for _,_,_,destinations,_ in decoded), 'Clip exceeds the target skeleton')
     require(len({r['topology'] for r in models.values()}) == 1, 'Preview parts have different skeleton topologies')
     duration = max(row[4] for row in decoded)
