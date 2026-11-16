@@ -1,0 +1,22 @@
+{
+  "api": 1,
+  "commands": [
+    "catalog",
+    "tag-catalog",
+    "voice-catalog",
+    "validate-voice",
+    "export-pair",
+    "export-cinematic",
+    "export-caf-portrait",
+    "export-ui-reference",
+    "export-retail-appearance",
+    "preview-fighter",
+    "validate",
+    "workshop-catalog",
+    "workshop-check",
+    "workshop-audio",
+    "workshop-animation",
+    "workshop-export"
+  ],
+  "recipe_format": "caf-fighter-1"
+}
