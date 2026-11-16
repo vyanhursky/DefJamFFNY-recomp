@@ -886,12 +886,30 @@ static uint32_t outfit_progress_handle(uint32_t handle) {
 }
 void defjam_fighter_unlock_inserting(uint32_t self) {
     if (!s_bindings.bytes || !s_settings || self != s_settings + 0x1C) return;
-    /* A larger live array also requires the save extension. Until it is wired,
-     * reject the next insertion before the original unchecked write occurs. */
-    if (MEM32(self + 4) >= MEM32(self) || MEM32(self) != FIGHTER_UNLOCK_CAPACITY)
-        fighter_stop("Native Character unlock storage is full; expanded persistence is required.");
+    uint32_t count = MEM32(self + 4);
+    if (count > FIGHTER_UNLOCK_CAPACITY || MEM32(self) != FIGHTER_UNLOCK_CAPACITY)
+        fighter_stop("Native Character unlock storage is malformed before insertion.");
     uint32_t argument=MEM32(g_esp+4),mark=MEM32(argument);
-    MEM32(argument)=outfit_progress_handle(mark&~FIGHTER_UNLOCK_METADATA)|(mark&FIGHTER_UNLOCK_METADATA);
+    uint32_t owner = outfit_progress_handle(mark & ~FIGHTER_UNLOCK_METADATA);
+    mark = owner | (mark & FIGHTER_UNLOCK_METADATA);
+    /* The original caller checks membership using the costume's identity.
+     * Canonicalizing after that check can otherwise insert its parent again
+     * on every unlock-all pass. Retire an existing owner before the original
+     * sorted insertion replaces it, preserving both old and incoming metadata. */
+    for (uint32_t i = 0; i < count; ++i) {
+        uint32_t old = MEM32(s_settings + 0x12E0 + i * 4);
+        if ((old & ~FIGHTER_UNLOCK_METADATA) != owner) continue;
+        mark |= old & FIGHTER_UNLOCK_METADATA;
+        for (uint32_t j = i + 1; j < count; ++j)
+            MEM32(s_settings + 0x12E0 + (j - 1) * 4) = MEM32(s_settings + 0x12E0 + j * 4);
+        --count;
+        MEM32(s_settings + 0x12E0 + count * 4) = 0;
+        MEM32(self + 4) = MEM32(s_settings + 0x1264) = count;
+        break;
+    }
+    if (count >= FIGHTER_UNLOCK_CAPACITY)
+        fighter_stop("Native Character unlock storage is full; expanded persistence is required.");
+    MEM32(argument)=mark;
     if (s_state_dir[0]) remember_custom(MEM32(argument));
 }
 

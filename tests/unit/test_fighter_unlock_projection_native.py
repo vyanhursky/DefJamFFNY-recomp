@@ -79,6 +79,21 @@ int main(int argc,char **argv){
  for(unsigned i=0;i<75;i++)MEM32(s_settings+0x12E0+4*i)=0x1000+i;
  for(unsigned i=0;i<4;i++)MEM32(s_settings+0x12E0+4*(75+i))=rows[i].stable_handle|FIGHTER_UNLOCK_METADATA;
  MEM32(s_settings+0x12E0+79*4)=0xDEAD;
+ if(!strcmp(argv[2],"duplicate") || !strcmp(argv[2],"overflow")){
+  MEM32(s_settings+0x20)=MEM32(s_settings+0x1264)=80;
+  MEM32(s_settings+0x1C)=80;
+  uint32_t before[80];for(unsigned i=0;i<80;i++)before[i]=MEM32(s_settings+0x12E0+i*4);
+  g_esp=0x7000;MEM32(g_esp+4)=0x7100;
+  MEM32(0x7100)=!strcmp(argv[2],"duplicate")?rows[4].stable_handle:0x9999;
+  MEM32(0x7104)=0x87654321;
+  defjam_fighter_unlock_inserting(s_settings+0x1C);
+  assert(MEM32(s_settings+0x20)==79 && MEM32(s_settings+0x1264)==79);
+  assert(MEM32(0x7100)==(rows[1].stable_handle|FIGHTER_UNLOCK_METADATA));
+  assert(MEM32(0x7104)==0x87654321);
+  for(unsigned i=0;i<76;i++)assert(MEM32(s_settings+0x12E0+i*4)==before[i]);
+  for(unsigned i=76;i<79;i++)assert(MEM32(s_settings+0x12E0+i*4)==before[i+1]);
+  assert(MEM32(s_settings+0x12E0+79*4)==0);return 0;
+ }
  unsigned expected=78;
  if(!strcmp(argv[2],"bad-count"))MEM32(s_settings+0x20)=81;
  if(!strcmp(argv[2],"prefix")){
@@ -108,6 +123,11 @@ int main(int argc,char **argv){
    defjam_fighter_unlock_inserting(s_settings+0x1C);
    assert(MEM32(0x7100)==(0x1003|FIGHTER_UNLOCK_METADATA));
    assert(MEM32(0x70FC)==0x12345678&&MEM32(0x7104)==0x87654321);
+   /* The original native insertion now replaces this one retired owner. */
+   assert(MEM32(s_settings+0x20)==77);
+   for(unsigned i=77;i>3;i--)MEM32(s_settings+0x12E0+4*i)=MEM32(s_settings+0x12E0+4*(i-1));
+   MEM32(s_settings+0x12E0+4*3)=MEM32(0x7100);
+   MEM32(s_settings+0x20)=MEM32(s_settings+0x1264)=78;
   }
   if(!strcmp(argv[2],"custom-outfit")){
    submit(0,rows[4].selection_key);expected=78;
@@ -125,7 +145,7 @@ int main(int argc,char **argv){
  assert(MEM32(s_settings+0x20)==expected&&MEM32(s_settings+0x1264)==expected);
  for(unsigned retail=0;retail<75;retail++){
   unsigned found=0;
-  for(unsigned i=0;i<expected;i++)if(MEM32(s_settings+0x12E0+i*4)==0x1000+retail)found++;
+  for(unsigned i=0;i<expected;i++)if((MEM32(s_settings+0x12E0+i*4)&~FIGHTER_UNLOCK_METADATA)==0x1000+retail)found++;
   assert(found==1);
  }
  for(unsigned i=expected;i<80;i++)assert(MEM32(s_settings+0x12E0+i*4)==0);
@@ -175,12 +195,12 @@ def projection(tmp_path_factory):
     return exe, window, outfit, custom
 
 
-@pytest.mark.parametrize('mode', ['retail', 'all', 'ready', 'bind', 'bad-count', 'outfit', 'custom-outfit', 'prefix'])
+@pytest.mark.parametrize('mode', ['retail', 'all', 'ready', 'bind', 'bad-count', 'outfit', 'custom-outfit', 'duplicate', 'overflow', 'prefix'])
 def test_actual_selection_clear_prunes_only_unbound_live_marks(projection, mode):
     exe, window, outfit, custom = projection
     if mode=='outfit':window=outfit
-    if mode=='custom-outfit':window=custom
+    if mode in ('custom-outfit','duplicate','overflow'):window=custom
     result = subprocess.run([str(exe), str(window), mode], capture_output=True, text=True, timeout=10)
-    assert result.returncode == (23 if mode in ('bad-count', 'prefix') else 0), result.stdout + result.stderr
+    assert result.returncode == (23 if mode in ('bad-count', 'prefix', 'overflow') else 0), result.stdout + result.stderr
     if mode == 'prefix':
         assert 'exceeds its budget' in result.stderr
