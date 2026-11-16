@@ -121,10 +121,36 @@ def verify_payload(payload, platform=None):
         path = payload / safe_relative(name)
         if path.is_symlink() or not path.is_file() or digest(path) != sha:
             raise SetupError('Payload verification failed: ' + name, 2)
+    remove_bytecode(payload, expected)
     actual = {p.relative_to(payload).as_posix() for p in payload.rglob('*') if p.is_file()}
-    if actual != set(expected) | {'manifest.json'}:
-        raise SetupError('Unexpected files in setup payload', 2)
+    extra = sorted(actual - set(expected) - {'manifest.json'})
+    if extra:
+        shown = ', '.join(extra[:5]) + (' and %d more' % (len(extra) - 5) if len(extra) > 5 else '')
+        raise SetupError('Unexpected files in setup payload: ' + shown, 2)
     return manifest
+
+
+def remove_bytecode(payload, expected=()):
+    """Delete interpreter bytecode left inside the payload (#263).
+
+    The payload ships with its own Python, which writes __pycache__ next to any module it imports
+    unless told not to. Those files are not part of the inventory, so one stray run used to make
+    every later setup, update and repair refuse the payload. They are deleted, not ignored: Python
+    loads a .pyc whose recorded source size and time match, so a kept one could stand in for a
+    verified source file. Only .pyc/.pyo files directly inside a __pycache__ folder that the
+    manifest does not list are touched; a folder that cannot be cleaned is left for the check to
+    name."""
+    for folder in list(payload.rglob('__pycache__')):
+        if folder.is_symlink() or not folder.is_dir():
+            continue
+        for item in list(folder.iterdir()):
+            relative = item.relative_to(payload).as_posix()
+            if (item.suffix in ('.pyc', '.pyo') and item.is_file() and not item.is_symlink()
+                    and relative not in expected):
+                with contextlib.suppress(OSError):
+                    item.unlink()
+        with contextlib.suppress(OSError):
+            folder.rmdir()
 
 
 def load_module(name, path):
@@ -266,6 +292,9 @@ class Engine:
                 self.env.pop(key)
         self.env['DEFJAM_DATA'] = str(self.data)
         self.env['PYTHONUTF8'] = '1'
+        # The payload's Python is on PATH for the build tools; whatever they start must not write
+        # bytecode into the verified payload (#263).
+        self.env['PYTHONDONTWRITEBYTECODE'] = '1'
         if IS_WINDOWS:
             self.env['PATH'] = str(self.payload / 'python') + os.pathsep + self.env.get('PATH', '')
             self.python = self.version_root / 'python/python.exe'
