@@ -18,6 +18,7 @@ were verified when the cache was written); a mismatch makes the launcher run
 ``mods.py fighter-prepare`` again before Play. With no pack enabled there is
 no manifest and the game's fighter code stays inert.
 """
+import fighter_keys
 import hashlib
 import json
 from pathlib import Path
@@ -25,8 +26,9 @@ from pathlib import Path
 from mods import atomic_bytes, check, ordinary_path
 
 # 2 since v1.2.0-beta.3: numbers follow the enabled set (no history ledger) and [manifest]
-# carries the fighter-set-1 digest. The game rebuilds a manifest of any other schema once.
-SCHEMA = 2
+# carries the fighter-set-1 digest. 3 adds fighter_keys, the bank and logical key starts
+# (fighter_keys.py). The game rebuilds a manifest of any other schema once.
+SCHEMA = 3
 MANIFEST = 'fighter-manifest.ini'
 IDENTITIES = 'fighter-identities.txt'
 STATE_DIR = 'fighter-state'
@@ -54,7 +56,9 @@ def _files(folder):
 def inputs(manager, ids, language, environment, ui_pack):
     """Every file whose change must make the game ask for a rebuild."""
     from fighter_cache import ORIGINALS
-    paths = [manager.game / name for name in ORIGINALS if (manager.game / name).is_file()]
+    import fighter_base
+    paths = [fighter_base.path(manager.game, name) for name in ORIGINALS
+             if fighter_base.path(manager.game, name).is_file()]
     for identifier in ids:
         paths += _files(manager.mods / identifier)
     if language:
@@ -135,7 +139,8 @@ def write(manager, state, *, language=None, built=None):
     digest, _ = set_digest(manager, ids)
     lines = ['[manifest]', f'schema={SCHEMA}', 'runtime=' + _line(manager.runtime),
              'language=' + _line(language or ''), 'packs=' + _line(','.join(ids)),
-             'digest_schema=' + DIGEST_SCHEMA, 'digest=' + digest, '[environment]']
+             'digest_schema=' + DIGEST_SCHEMA, 'digest=' + digest, 'fighter_keys=' + fighter_keys.manifest_value(),
+             '[environment]']
     for key, value in sorted(environment.items()):
         check(key.startswith('RECOMP_FIGHTER_'), 'Fighter manifest may only carry fighter settings')
         lines.append(key + '=' + _line(value))

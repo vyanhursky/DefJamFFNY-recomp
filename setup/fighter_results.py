@@ -7,6 +7,7 @@ Packages supply labels, never ActionScript or replacement movies.
 """
 import struct
 import textwrap
+from fighter_keys import LOGICAL_FIRST
 
 import fighter_apt as apt
 from fighter_assets import AssetError
@@ -119,7 +120,7 @@ def compile_results(movie, constants, names, *, participants=None,logos=()):
     if not 8 <= len(movie) <= MAX_MOVIE or movie[:8] != b'Apt Data' or len(constants) > MAX_MOVIE:
         raise AssetError('Invalid result movie budget')
     if not isinstance(names, dict) or not 0 < len(names) <= 16384 \
-            or any(type(key) is not int or not 100 <= key <= 0x7fffffff for key in names) \
+            or any(type(key) is not int or not LOGICAL_FIRST <= key <= 0x7fffffff for key in names) \
             or any(not isinstance(label, str) or '\0' in label or len(label.encode('utf-8')) > 65536 for label in names.values()):
         raise AssetError('Invalid result labels')
     if type(logos) not in (set,frozenset,tuple,list) or not set(logos)<=set(names):

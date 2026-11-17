@@ -1,4 +1,5 @@
 #include "fighter_window.h"
+#include "fighter_keys.h"
 #include <string.h>
 #include <stdlib.h>
 static uint32_t word(const uint8_t *p) {
@@ -34,7 +35,7 @@ int fighter_window_decode(FighterWindow *out, const uint8_t *bytes, size_t size)
         b->native_handle = word(p); b->private_handle = word(p + 4); b->symbol_hash = word(p + 8);
         b->selection_key = word(p + 12); b->record_offset = word(p + 16); b->core_id = word(p + 20);
         if (b->native_handle >> 24 != w.table || (b->native_handle & 0xffffffu) >= 0x7ffffcu
-            || b->private_handle != (w.table << 24 | (0x7ffffcu + i)) || b->selection_key != 100u + i
+            || b->private_handle != (w.table << 24 | (0x7ffffcu + i)) || b->selection_key != DEFJAM_FIGHTER_BANK_FIRST + i
             || b->record_offset % 4 || b->record_offset > w.sod_size - 104 || !b->core_id) return 0;
         for (uint32_t j = 0; j < i; ++j)
             if (w.banks[j].native_handle == b->native_handle || w.banks[j].symbol_hash == b->symbol_hash
@@ -44,7 +45,7 @@ int fighter_window_decode(FighterWindow *out, const uint8_t *bytes, size_t size)
         FighterWindowRow r;
         fighter_window_at(&w, i, &r);
         if (r.stable_handle >> 24 != w.table || (r.stable_handle & 0xffffffu) >= 0x7ffffcu
-            || r.selection_key < 100 || r.selection_key > 0x7fffffffu || (i && r.selection_key <= previous)
+            || r.selection_key < DEFJAM_FIGHTER_LOGICAL_FIRST || r.selection_key > 0x7fffffffu || (i && r.selection_key <= previous)
             || r.record_offset % 4 || r.record_offset > w.sod_size - 104 || !r.core_id
             || (word(bytes+4)==1 && r.retail_selection_plus_one) || r.retail_selection_plus_one>99) return 0;
         /* Cross-domain identities/record ownership must also be unique. */

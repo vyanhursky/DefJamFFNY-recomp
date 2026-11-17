@@ -7,6 +7,7 @@ the directory shifts the original payload block by one aligned displacement.
 """
 from dataclasses import dataclass
 import struct
+from fighter_keys import LOGICAL_FIRST
 
 from fighter_assets import AssetError, unpack
 
@@ -174,7 +175,7 @@ def portrait_aliases(data, pairs, *, results=False,extended=()):
         if target in extended:
             # oldMLoad's verified REVERSE_CHARS list contains only retail IDs
             # 7..82. Appended logical identities start100 and need no Rvariant.
-            if target<100: raise AssetError('Extended loading portraits require appended logical identities')
+            if target<LOGICAL_FIRST: raise AssetError('Extended loading portraits require appended logical identities')
             families += [('screens/portrait/l_CF/','l_CF_',0),
                          ('screens/match/3_fighters/','p_ML_',1),('screens/match/3_fighters/','l_ML_',0)]
         for prefix, stem, increment in families:

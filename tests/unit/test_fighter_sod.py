@@ -6,6 +6,8 @@ import sys
 
 import pytest
 
+# fighter_sod imports fighter_keys from the same folder.
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'setup'))
 spec = importlib.util.spec_from_file_location('fighter_sod',
     Path(__file__).resolve().parents[2] / 'setup/fighter_sod.py')
 sod = importlib.util.module_from_spec(spec)

@@ -12,6 +12,7 @@ from copy import deepcopy
 import hashlib
 import re
 import struct
+from fighter_keys import LOGICAL_FIRST
 
 from fighter_registry import MAX_DEFINITIONS, key
 from fighter_sod import CHARACTER, Database, name_hash
@@ -73,7 +74,7 @@ def allocate(baseline, identifiers, previous=None):
             raise ValueError('Invalid persistent fighter handle')
         if type(selection) is not int or not 0 <= selection <= 0x7fffffff:
             raise ValueError('Invalid persistent selection key')
-        if not identifier.startswith('retail/') and selection < 100:
+        if not identifier.startswith('retail/') and selection < LOGICAL_FIRST:
             raise ValueError('Custom binding overlaps reserved retail/created selections')
         hashed = name_hash(entry['symbol'])
         if handle in handles or selection in selections or hashed in hashes:
@@ -87,7 +88,7 @@ def allocate(baseline, identifiers, previous=None):
     if len(entries.keys() | wanted) > MAX_DEFINITIONS:
         raise ValueError('Binding ledger exceeds historical definition budget')
     next_rank = max((value & 0xffffff for value in handles), default=-1) + 1
-    next_selection = max(100, max(selections, default=99) + 1)
+    next_selection = max(LOGICAL_FIRST, max(selections, default=LOGICAL_FIRST - 1) + 1)
     for identifier in sorted(wanted - entries.keys()):
         if identifier.startswith('retail/') or next_rank > MAX_RANK or next_selection > 0x7fffffff:
             raise ValueError('Persistent fighter binding space exhausted or unknown retail identity')
