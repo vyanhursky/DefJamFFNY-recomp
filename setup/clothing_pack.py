@@ -268,6 +268,29 @@ def load_manifest(folder):
     return value
 
 
+def receipt(folder):
+    """Install-time check of a pack folder without the game: the manifest, its PNGs and nothing else.
+
+    The base items and the PNG sizes are checked against the player's own game when the
+    enabled packs are compiled (compile_packs).
+    """
+    folder = Path(folder)
+    manifest = load_manifest(folder)
+    referenced = {MANIFEST}
+    for item in manifest['items']:
+        for spec in item['textures'].values():
+            png_bytes(folder, spec)
+            referenced.add(spec['path'])
+    extra = {'README.md', 'LICENSE.txt', 'CHANGELOG.md', 'preview.png'}
+    for path in folder.rglob('*'):
+        if path.is_file():
+            relative = path.relative_to(folder).as_posix()
+            check(relative in referenced or relative in extra,
+                  f'{relative} is not part of the clothing pack (clothing.json lists every file it uses)')
+    return {'capabilities': [CAPABILITY], 'texture_ids': [], 'wide_ids': [], 'category': 'clothing',
+            'clothing_count': len(manifest['items'])}
+
+
 def png_bytes(folder, spec):
     path = Path(folder).joinpath(*safe_relative(spec['path']))
     check(path.is_file() and not path.is_symlink() and path.stat().st_size <= 16 * 1024 ** 2, 'Missing PNG ' + spec['path'])
