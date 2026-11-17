@@ -20,4 +20,5 @@ void defjam_fighter_caf_finishers(void);
 void defjam_fighter_caf_menu_clear(uint32_t participant);
 int defjam_fighter_caf_outfit(uint32_t participant, uint32_t selection, uint32_t outfit);
 uint32_t defjam_fighter_caf_presentation(uint32_t participant, uint32_t selection);
+void defjam_fighter_caf_actor_stats(uint32_t actor);
 #endif

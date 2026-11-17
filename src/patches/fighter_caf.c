@@ -225,7 +225,7 @@ static int recipes_valid(const uint8_t *data,uint32_t count) {
         valid=word(row+CAF_ROW_SELECTION)>=100 && (retail?(core>=1&&core<=86):(core>=87&&core<=141)) && styles>=1 && styles<=CAF_ROW_STYLE_COUNT_MAX
             && word(row+CAF_ROW_VALUE_AT(0))<6 && word(row+CAF_ROW_VALUE_AT(1))<=36
             && word(row+CAF_ROW_VALUE_AT(5))>=1 && word(row+CAF_ROW_VALUE_AT(5))<=8;
-        for (unsigned j=0;j<CAF_ROW_TRAINING_COUNT;++j) if (word(row+CAF_ROW_TRAINING_AT(j))>50) valid=0;
+        for (unsigned j=0;j<CAF_ROW_TRAINING_COUNT;++j) if (word(row+CAF_ROW_TRAINING_AT(j))>50u) valid=0;
         for (unsigned j=0;j<CAF_ROW_STYLE_COUNT_MAX;++j)
             if (row[CAF_ROW_STYLE_AT(j)]!=(j<styles?row[CAF_ROW_STYLE_AT(j)]:255) || (j<styles&&row[CAF_ROW_STYLE_AT(j)]>4)) valid=0;
         uint32_t index=word(row+CAF_ROW_OUTFIT),alias=word(row+CAF_ROW_ALIAS),previous=UINT32_MAX;
@@ -242,7 +242,8 @@ static int recipes_valid(const uint8_t *data,uint32_t count) {
             }
         }
         if(index && previous!=index-1) valid=0;
-        if(row[CAF_ROW_RETAIL]>1 || row[CAF_ROW_RETAIL+1] || row[CAF_ROW_RETAIL+2]) valid=0;
+        if(row[CAF_ROW_RETAIL]>1 || row[CAF_ROW_FINAL_STATS]>1 || row[CAF_ROW_CHARISMA]>50
+            || (!row[CAF_ROW_FINAL_STATS] && row[CAF_ROW_CHARISMA])) valid=0;
         if(word(row+CAF_ROW_VOICE)<1 || word(row+CAF_ROW_VOICE)>86) valid=0;
     }
     return valid;
@@ -318,6 +319,35 @@ void defjam_fighter_caf_begin_match(void) {
     memset(s_story_profiles,0,sizeof(s_story_profiles));
     defjam_fighter_caf_clear();
 }
+/* Final attributes use the retail SOD/menu scale, not CAF training. Original
+ * retail-scale conversion to battle integers is round(menu / 5):
+ * e.g. Baby Chris 30/47/37/27/47/30 -> 6/9/7/5/9/6. Never reapply CAF bonuses. */
+static void apply_final_stats(uint32_t service,uint32_t participant,const uint8_t *row) {
+    if(participant>=4 || !row[CAF_ROW_FINAL_STATS]) return;
+    uint32_t base=service+0x2b0+participant*0x1c;
+    for(unsigned j=0;j<CAF_ROW_TRAINING_COUNT;++j)
+        MEM32(base+j*4)=(word(row+CAF_ROW_TRAINING_AT(j))+2u)/5u;
+    MEM32(base+0x18)=(row[CAF_ROW_CHARISMA]+2u)/5u;
+}
+
+/* Original 1B2090 treats an all-zero table as “no override”. Apply the explicit
+ * standalone recipe after both the original and owned-motion parameter paths,
+ * including zero values, without touching Story profiles or unrelated actors. */
+void defjam_fighter_caf_actor_stats(uint32_t actor) {
+    if(!s_service || actor<0x3b92e0u || (actor-0x3b92e0u)%0x12e8u) return;
+    uint32_t slot=(actor-0x3b92e0u)/0x12e8u;
+    if(slot>=4 || s_story_profiles[slot] || !s_recipes[slot] || !s_recipes[slot][CAF_ROW_FINAL_STATS]
+        || MEM32(actor+0x28)!=slot || MEM32(actor+0x2c)+1!=word(s_recipes[slot]+CAF_ROW_CORE)) return;
+    const uint8_t *row=s_recipes[slot];
+    for(unsigned j=0;j<CAF_ROW_TRAINING_COUNT;++j)
+        MEM32(actor+0xb34+j*4)=(word(row+CAF_ROW_TRAINING_AT(j))+2u)/5u;
+    MEM32(actor+0xb48)=0;
+    MEM32(actor+0xb4c)=(row[CAF_ROW_CHARISMA]+2u)/5u;
+    fprintf(stderr,"[FIGHTERS] CAF final attributes participant=%u logical=%u battle=%u/%u/%u/%u/%u/%u\n",
+        slot,word(row+CAF_ROW_SELECTION),MEM32(actor+0xb34),MEM32(actor+0xb38),MEM32(actor+0xb3c),
+        MEM32(actor+0xb40),MEM32(actor+0xb44),MEM32(actor+0xb4c));
+}
+
 static uint32_t prepare_profile(const uint8_t *row) {
     if(!s_profile_workspace) {
         uint32_t args[]={0x5c000,0x298908,0x100};
@@ -329,7 +359,7 @@ static uint32_t prepare_profile(const uint8_t *row) {
     memset((void *)XBOX_PTR(profile),0,0x5920);
     memcpy((void *)XBOX_PTR(values),row+CAF_ROW_VALUES,4u*CAF_ROW_VALUE_COUNT);memcpy((void *)XBOX_PTR(colors),row+CAF_ROW_COLORS,CAF_ROW_COLOR_COUNT);
     MEM32(profile+0x5910)=values;MEM32(profile+0x5914)=colors;
-    for(unsigned j=0;j<CAF_ROW_TRAINING_COUNT;++j) MEM32(profile+0xfc+j*4)=word(row+CAF_ROW_TRAINING_AT(j));
+    for(unsigned j=0;j<CAF_ROW_TRAINING_COUNT;++j) MEM32(profile+0xfc+j*4)=row[CAF_ROW_FINAL_STATS]?0:word(row+CAF_ROW_TRAINING_AT(j));
     /* Original style bonuses, no Story accomplishment bonuses or currency. */
     static const uint8_t bonuses[5][6]={{2,0,0,1,0,0},{0,2,1,0,0,0},{0,1,0,0,2,0},{1,0,0,2,0,0},{0,0,2,0,1,0}};
     for(unsigned j=0;j<word(row+CAF_ROW_STYLE_COUNT);++j) for(unsigned k=0;k<6;++k) MEM32(profile+0x114+k*4)+=bonuses[row[CAF_ROW_STYLE_AT(j)]][k];
@@ -438,6 +468,7 @@ void defjam_fighter_caf_participant(uint32_t service,uint32_t participant,uint32
     uint32_t old_manager=MEM32(service+4),old_mode=MEM32(service+0x344);
     MEM32(service+4)=s_profile_workspace;MEM32(service+0x344)=0;MEM32(s_profile_workspace+0x5ac7c)=0;
     uint32_t stats_args[]={participant};guest_call(sub_0001EE80,service,1,stats_args);
+    apply_final_stats(service,participant,row);
     MEM32(service+4)=old_manager;MEM32(service+0x344)=old_mode;
     MEM8(service+0x1e8+participant)=(uint8_t)(participant+1);
     MEM32(service+0x168+participant*4)=word(row+CAF_ROW_CORE);

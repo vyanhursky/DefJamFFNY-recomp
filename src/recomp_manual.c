@@ -274,9 +274,12 @@ void sub_000A02E0(void) {
     sub_000A02E0_gen();
     MEM32(address) = bank; /* Native ret8 owns stack cleanup. */
 }
+extern void defjam_fighter_caf_actor_stats(uint32_t actor);
 extern void sub_001B2090_gen(void);
 void sub_001B2090(void) {
-    if (!defjam_fighter_motion_parameters(MEM32(g_esp + 4))) sub_001B2090_gen();
+    uint32_t actor = MEM32(g_esp + 4);
+    if (!defjam_fighter_motion_parameters(actor)) sub_001B2090_gen();
+    defjam_fighter_caf_actor_stats(actor);
 }
 extern void sub_001B4930_gen(void);
 void sub_001B4930(void) {
