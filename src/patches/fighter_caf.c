@@ -2,6 +2,7 @@
  * No profile import: compiler-owned records contain selections/training only. */
 #include "fighter_config.h"
 #include "fighter_caf.h"
+#include "hooks/fighter_keys.h"
 #include "fighter_runtime.h"
 #include "fighter_fatal.h"
 #include "fighter_motion.h"
@@ -222,14 +223,14 @@ static int recipes_valid(const uint8_t *data,uint32_t count) {
         uint32_t core=word(row+CAF_ROW_CORE),styles=word(row+CAF_ROW_STYLE_COUNT);
         /* A retail moveset borrows a retail core; every other row is one of the 55 CAF style combinations. */
         int retail=row[CAF_ROW_RETAIL]==1;
-        valid=word(row+CAF_ROW_SELECTION)>=100 && (retail?(core>=1&&core<=86):(core>=87&&core<=141)) && styles>=1 && styles<=CAF_ROW_STYLE_COUNT_MAX
+        valid=word(row+CAF_ROW_SELECTION)>=DEFJAM_FIGHTER_LOGICAL_FIRST && (retail?(core>=1&&core<=86):(core>=87&&core<=141)) && styles>=1 && styles<=CAF_ROW_STYLE_COUNT_MAX
             && word(row+CAF_ROW_VALUE_AT(0))<6 && word(row+CAF_ROW_VALUE_AT(1))<=36
             && word(row+CAF_ROW_VALUE_AT(5))>=1 && word(row+CAF_ROW_VALUE_AT(5))<=8;
         for (unsigned j=0;j<CAF_ROW_TRAINING_COUNT;++j) if (word(row+CAF_ROW_TRAINING_AT(j))>50) valid=0;
         for (unsigned j=0;j<CAF_ROW_STYLE_COUNT_MAX;++j)
             if (row[CAF_ROW_STYLE_AT(j)]!=(j<styles?row[CAF_ROW_STYLE_AT(j)]:255) || (j<styles&&row[CAF_ROW_STYLE_AT(j)]>4)) valid=0;
         uint32_t index=word(row+CAF_ROW_OUTFIT),alias=word(row+CAF_ROW_ALIAS),previous=UINT32_MAX;
-        if(index>2 || alias<100 || alias>0x7FFFFFFEu || (!index && alias!=word(row+CAF_ROW_SELECTION))) valid=0;
+        if(index>2 || alias<DEFJAM_FIGHTER_LOGICAL_FIRST || alias>0x7FFFFFFEu || (!index && alias!=word(row+CAF_ROW_SELECTION))) valid=0;
         for (uint32_t j=0;j<i;++j) {
             const uint8_t *before=data+(size_t)j*CAF_ROW_STRIDE;
             if(word(before+CAF_ROW_ALIAS)==alias) valid=0;

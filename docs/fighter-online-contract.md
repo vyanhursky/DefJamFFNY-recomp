@@ -17,6 +17,29 @@ Fighter Mod Support is an experimental beta. **No part of the pack format
   Two PCs with the same enabled packs, the same dump, runtime version and language get the same
   numbers and compile the same files (tested with three pack sets, section 7). Use the string anyway.
 
+### Moving the key range (forks only)
+
+The game's own fighters use selection keys below 100. By default custom fighters get logical keys
+from 100 up, one each in sorted stable-key order, and during a match each is mapped onto one of four
+native bank rows, keys 100 to 103. A fork that uses part of the range above the retail roster for
+its own fighters or venues can move both starts at build time:
+
+| Setting | Default | Allowed | Where |
+|---|---|---|---|
+| First bank key | 100 | 100 to 124 | `BANK_FIRST` in `setup/fighter_keys.py`, `DEFJAM_FIGHTER_BANK_FIRST` in `src/hooks/fighter_keys.h` |
+| First logical key | 100 | 100 to `0x7ffffff0` | `LOGICAL_FIRST`, `DEFJAM_FIGHTER_LOGICAL_FIRST` |
+
+- Change both files; `tests/unit/test_fighter_keys.py` fails if they disagree.
+- The fighter manifest records the pair (`fighter_keys=` in `[manifest]`, schema 3). A game built
+  with another pair treats the manifest as stale. If the rebuild still disagrees, the game starts
+  without packs and says so.
+- There is no setting, launcher control or pack field for it. A pack never chooses a native number.
+- For example, `BANK_FIRST = 124` and `LOGICAL_FIRST = 1000` leave 100 to 123 free.
+
+*Tested:* the compiler and the native window decoder with the pair (124, 1000) and with the defaults,
+and each decoder refuses the other pair's window (`test_fighter_keys.py`). **Only the defaults are
+tested in the game** by this project; a moved range is the fork's to test in play.
+
 ## 2. Roster order
 
 The custom fighters appear in the roster in the order of their stable keys (sorted), after the retail
@@ -136,6 +159,28 @@ and the game loads those copies (`runtime_environment` in `setup/fighter_package
 that also patches copies of these files (for example to add clothing parts) **cannot be combined with
 fighter packs today**: the game loads one copy of each. Combining them needs one tool to take the
 other's output as its input.
+
+### Where the compiler reads its base files (forks only)
+
+On the launcher's compile path, every read of the five files the compiler writes copies of, and
+every retail pin, goes through `setup/fighter_base.py`: `path(game, relative)` and `pins()`. The five
+are listed there (`assets/djv2.sod`, `screens/screens.viv`, `assets/entity.xml`,
+`assets/nis.viv`, `assets/v2ip.viv`). This build always returns the file in the dump and its retail
+pin; `test_fighter_base.py` fails if a launcher module reads one another way.
+
+A fork whose own tool patches one of these files can point `path()` at the patched copy and give
+`pins()` its hash, in that one module, so that its tool runs first and ours composes on top.
+
+- **Nothing else changes:** every structural check of the compiler stays as it is. A patched file
+  that moves a table the compiler relies on is refused with the normal error, and the game starts
+  without packs.
+- **Not guaranteed:** that any patched file compiles, now or after a later compiler change.
+- **Not yet:** a documented override (an input folder that is hashed and recorded in the cache key,
+  the manifest, the log and a game function). It would follow once a real patched file is shown to
+  compile through the resolver.
+
+*Tested:* with the real dump, a compile with `path()` pointed at byte-identical copies of the five
+files in another folder produced the same compiled files as a normal compile.
 
 ## 9. Created fighters
 

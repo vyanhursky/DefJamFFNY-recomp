@@ -8,6 +8,7 @@
 #include "pc_ui_model.h"
 #include "pc_ui_actions.h"
 #include "../patches/fighter_config.h"
+#include "fighter_keys.h"
 #include <algorithm>
 #include <cstdlib>
 #include <cerrno>
@@ -366,9 +367,16 @@ static std::string runtime_version() {
 // changed size or time on any input means rebuild, not hash.
 static bool fighter_manifest(std::map<std::string, std::string> &config, std::string &why) {
     auto manifest = projection(root() / "fighter-manifest.ini");
-    // Schema 2 (v1.2.0-beta.3): numbers follow the enabled set and [manifest] has the fighter-set-1
-    // digest. An older manifest, from any build with the same version string, is rebuilt once.
-    if (manifest["manifest"]["schema"] != "2") { why = "no compiled fighter manifest"; return false; }
+    // Schema 3: numbers follow the enabled set, [manifest] has the fighter-set-1 digest (2) and the
+    // fighter key starts (3). An older manifest, from any build with the same version string, is
+    // rebuilt once.
+    if (manifest["manifest"]["schema"] != "3") { why = "no compiled fighter manifest"; return false; }
+    // The compiler and this build must agree on which selection keys are ours (fighter_keys.h).
+    char keys[32];
+    snprintf(keys, sizeof keys, "%u,%u", (unsigned)DEFJAM_FIGHTER_BANK_FIRST, (unsigned)DEFJAM_FIGHTER_LOGICAL_FIRST);
+    if (manifest["manifest"]["fighter_keys"] != keys) {
+        why = "the fighter packs were compiled for another fighter key range"; return false;
+    }
     if (manifest["manifest"]["runtime"] != runtime_version()) { why = "the game was updated"; return false; }
     // Python writes the path through pathlib, which may spell separators differently.
     auto same_path = [](const std::string &a, const std::string &b) {

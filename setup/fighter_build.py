@@ -17,6 +17,7 @@ from fighter_assets import unpack as unpack_asset, MAX_ASSET
 from fighter_elf import Model
 from mods import ordinary_path, durable_rename
 from fighter_archive import MAX_ARCHIVE
+import fighter_base
 
 MAX_DOCUMENT = 8 * 1024**2
 MAX_INPUT = 32 * 1024**2
@@ -59,7 +60,7 @@ def documents(baseline_path, pack_paths):
 
 
 def retail_catalog(path, *, pin_path=None):
-    pin = json.loads((pin_path or ROOT / 'config/fighter-native-baseline.json').read_text(encoding='utf-8'))
+    pin = fighter_base.pins(pin_path)
     if pin['adapter'] != ADAPTER:
         raise ValueError('Native adapter/baseline pin mismatch')
     with path.open('rb') as stream:
@@ -69,8 +70,14 @@ def retail_catalog(path, *, pin_path=None):
     return RetailCatalog(data, pin['sha256'])
 
 
-def compile_inputs(sod, paths, packs, ledger=None, *, catalog=None, pin_path=None, **options):
-    """Resolve whole packs, validate their data, then compose native resources."""
+def compile_inputs(sod, paths, packs, ledger=None, *, catalog=None, pin_path=None, game=None, **options):
+    """Resolve whole packs, validate their data, then compose native resources.
+
+    game is the game folder every other file is read from. The launcher passes it; it must not be
+    derived from sod, which fighter_base.path() may place elsewhere. Tools that pass a dump's
+    assets/djv2.sod alone get its game folder.
+    """
+    game = Path(game) if game is not None else sod.parents[1]
     if len(paths) != len(packs):
         raise ValueError('Each fighter pack needs exactly one source manifest path')
     catalog = catalog or retail_catalog(sod, pin_path=pin_path)
@@ -94,7 +101,7 @@ def compile_inputs(sod, paths, packs, ledger=None, *, catalog=None, pin_path=Non
                         and value in snapshot['resources'] and 'source' in snapshot['resources'][value])
                for group, value in components.items() if group not in ('caf', 'portrait', 'stats', 'tier')):
             raise ValueError('CAF recipes currently support retail behavior and optional portraits only: ' + key)
-    caf_recipes = {name: load_caf(roots[value['owner']], value['source'], catalog, sod.parents[1])
+    caf_recipes = {name: load_caf(roots[value['owner']], value['source'], catalog, game)
                    for name, value in caf_sources.items()}
     caf={}
     for key,row in snapshot['fighters'].items():
@@ -108,14 +115,14 @@ def compile_inputs(sod, paths, packs, ledger=None, *, catalog=None, pin_path=Non
     appearance_sources = {key: value for key, value in sourced.items() if value['kind'] == 'appearance'}
     portrait_sources = {key: value for key, value in sourced.items() if value['kind'] == 'portrait'}
     if sourced:
-        pin = json.loads((pin_path or ROOT / 'config/fighter-native-baseline.json').read_text(encoding='utf-8'))
+        pin = fighter_base.pins(pin_path)
     if appearance_sources:
         from fighter_appearance import Appearance, AppearanceBaseline, MAX_APPEARANCE_BYTES
         from fighter_resource_files import read_appearance
         originals = {}
         for key, name in [('models', 'v2ip.viv'), ('shared', 'blingfx.viv'), ('entities', 'entity.xml'),
                           ('cinematics', 'nis.viv'), ('banks', 'v2ta.viv')]:
-            with (sod.parent / name).open('rb') as stream:
+            with fighter_base.path(game, 'assets/' + name).open('rb') as stream:
                 originals[key] = stream.read(MAX_ARCHIVE + 1)
             if len(originals[key]) > MAX_ARCHIVE:
                 raise ValueError('Original appearance archive exceeds budget')
@@ -135,7 +142,7 @@ def compile_inputs(sod, paths, packs, ledger=None, *, catalog=None, pin_path=Non
     if portrait_sources:
         from fighter_portrait import Portrait, PortraitBaseline
         from fighter_resource_files import read_portrait
-        with (sod.parents[1] / 'screens/screens.viv').open('rb') as stream:
+        with fighter_base.path(game, 'screens/screens.viv').open('rb') as stream:
             screens = stream.read(MAX_ARCHIVE + 1)
         if len(screens) > MAX_ARCHIVE:
             raise ValueError('Original screens archive exceeds budget')
@@ -160,7 +167,7 @@ def compile_inputs(sod, paths, packs, ledger=None, *, catalog=None, pin_path=Non
         from fighter_behavior import BehaviorPlan
         from fighter_bindings import seed,allocate
         ledger=allocate(seed(catalog.db,catalog.source_sha256,catalog.rows),snapshot['fighters'],ledger)
-        behavior = BehaviorPlan(catalog, snapshot, roots, sod.parents[1], pin, appearances, resources,caf=caf,ledger=ledger)
+        behavior = BehaviorPlan(catalog, snapshot, roots, game, pin, appearances, resources,caf=caf,ledger=ledger)
         resources.update(behavior.files)
         appearance_files = {path: hashlib.sha256(resources[path]).hexdigest() for path in appearance_files}
     data, report = catalog.compile(packs, ledger, appearances=appearances, portraits=portraits,

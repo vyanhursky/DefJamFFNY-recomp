@@ -1,4 +1,5 @@
 #include "fighter_bindings.h"
+#include "fighter_keys.h"
 #include <string.h>
 
 static uint32_t word(const uint8_t *p) {
@@ -32,7 +33,7 @@ int fighter_bindings_decode(FighterBindings *out, const uint8_t *bytes, size_t s
         fighter_bindings_at(&b, i, &row);
         if ((i && row.stable_handle <= previous) || row.stable_handle >> 24 != b.table
             || (row.stable_handle & 0xffffffu) >= 0x800000u || row.flags > 3
-            || row.selection_key > 0x7fffffffu || ((row.flags & 1) && row.selection_key < 100)) return 0;
+            || row.selection_key > 0x7fffffffu || ((row.flags & 1) && row.selection_key < DEFJAM_FIGHTER_LOGICAL_FIRST)) return 0;
         if (row.flags & 2) {
             if (row.native_handle == UINT32_MAX || row.native_handle >> 24 != b.table
                 || (row.native_handle & 0xffffffu) >= 0x800000u || !row.core_id || row.core_id > 0x7fffffffu) return 0;

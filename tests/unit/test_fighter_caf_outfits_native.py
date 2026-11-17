@@ -24,6 +24,7 @@ DRIVER=r'''
 #include <string.h>
 #include "patches/fighter_caf_layout.h"
 #include "patches/fighter_caf.h"
+#include "hooks/fighter_keys.h"
 static uint8_t memory[0x400000];
 #define MEM32(address) (*(uint32_t *)(memory+(uint32_t)(address)))
 #define CAF_MAX_ROWS (16384u*3u)

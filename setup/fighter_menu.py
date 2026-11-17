@@ -9,6 +9,7 @@ No original instruction/branch or asset pointer is relocated in place.
 import re
 import struct
 import textwrap
+from fighter_keys import LOGICAL_FIRST, RETAIL_LIMIT
 
 import fighter_apt as apt
 from fighter_assets import AssetError
@@ -162,7 +163,7 @@ def character_parameters(record):
     identity, stats, styles = record['selection_key'], record['stats'], record['styles']
     if 'outfit_parent' in record and (type(record['outfit_parent']) is not int or not 0<=record['outfit_parent']<99):
         raise AssetError('Invalid retail outfit parent identity')
-    if type(identity) is not int or not 100 <= identity <= 0x7fffffff:
+    if type(identity) is not int or not LOGICAL_FIRST <= identity <= 0x7fffffff:
         raise AssetError('Invalid logical menu identity')
     if not isinstance(stats, dict) or set(stats) != set('ULSTHC') \
             or any(type(value) is not int or not 0 <= value <= 100 for value in stats.values()):
@@ -173,7 +174,7 @@ def character_parameters(record):
     count = record.get('outfit_count', 1)
     portraits = record.get('outfit_portraits', [identity])
     if type(count) is not int or not 1 <= count <= 3 or type(portraits) is not list or len(portraits) != count \
-            or portraits[0] != identity or any(type(i) is not int or not 100 <= i <= 0x7ffffffe for i in portraits):
+            or portraits[0] != identity or any(type(i) is not int or not LOGICAL_FIRST <= i <= 0x7ffffffe for i in portraits):
         raise AssetError('Invalid logical fighter outfits')
     dataset = (f'&FE_ID={identity}&LOCK=1' + ''.join(f'&{key}={stats[key]}' for key in 'ULSTHC')
                + ''.join(f'&K={value}' for value in styles))
@@ -525,8 +526,8 @@ def compile_menu(movie, constants, pairs, names, records=None, *, participants=N
     if type(logos) not in (set,frozenset,tuple,list) or not set(logos)<=set(names):
         raise AssetError('Authored selector logos need owned identities')
     text_names={key:value for key,value in names.items() if key not in logos}
-    if any(type(identity) is not int or not 100 <= identity <= 0x7fffffff
-           or type(donor) is not int or not 0 <= donor < 100 for identity, donor in pairs.items()):
+    if any(type(identity) is not int or not LOGICAL_FIRST <= identity <= 0x7fffffff
+           or type(donor) is not int or not 0 <= donor < RETAIL_LIMIT for identity, donor in pairs.items()):
         raise AssetError('Selector bindings must separate custom identities and retail artwork')
     artwork = {} if artwork is None else artwork
     if type(artwork) is not dict or not set(artwork) <= set(pairs) or any(
