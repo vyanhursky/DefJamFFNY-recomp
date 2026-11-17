@@ -4,7 +4,7 @@
 #include <stdint.h>
 int defjam_fighter_caf_start(void);
 typedef struct CafContainer {
-    uint32_t recipe_count, extras_count, extras_bytes, hd_count, hd_bytes, faces_count;
+    uint32_t recipe_count, extras_count, extras_bytes, hd_count, hd_bytes, faces_count, normals_count;
 } CafContainer;
 /* Decodes and bounds-checks a fighter-caf.bin header: sections must tile the file exactly. */
 int defjam_fighter_caf_container(const uint8_t *data, size_t size, CafContainer *out);

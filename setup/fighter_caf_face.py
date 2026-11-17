@@ -35,9 +35,11 @@ def load(root, descriptor, recipe):
 
 
 def validate(value, recipe):
-    require(type(value) is dict and set(value)=={'schema','template_sha256','basis','meshes'},'Invalid CAF sculpt fields')
-    require(value['schema']=='caf-face-coordinates-1' and type(value['template_sha256']) is str
+    keys={'schema','template_sha256','basis','meshes'}
+    require(type(value) is dict and set(value)==keys|({'neck_normals'} if value.get('schema')=='caf-face-coordinates-2' else set()),'Invalid CAF sculpt fields')
+    require(value['schema'] in ('caf-face-coordinates-1','caf-face-coordinates-2') and type(value['template_sha256']) is str
             and re.fullmatch('[0-9a-f]{64}',value['template_sha256']),'Unsupported CAF sculpt contract')
+    if value['schema']=='caf-face-coordinates-2':validate_normals(value['neck_normals'])
     require(type(value['basis']) is list and all(type(v) is int for v in value['basis'])
             and value['basis']==[recipe['caf_values'][i] for i in BASIS],'CAF face basis differs from its outfit')
     meshes=value['meshes']
@@ -53,6 +55,47 @@ def validate(value, recipe):
     require(10<lo<hi<30,'CAF face reference is outside native bind space')
     require(all(max(map(abs,d))<=1e-6 for m in meshes for p,d in zip(m['positions'],m['deltas']) if p[1]<=lo+(hi-lo)*.12),'CAF face moves the protected neck seam')
     return copy.deepcopy(value)
+
+
+def validate_normals(rows):
+    require(type(rows) is list and 0<len(rows)<=128,'Invalid neck normal correction count')
+    seen=set()
+    for row in rows:
+        require(type(row) is dict and set(row)=={'slot','rm','vertex','position','original','replacement'},'Invalid neck normal correction fields')
+        require(type(row['slot']) is int and row['slot'] in (3,12)
+                and type(row['rm']) is int and 0<=row['rm']<16
+                and type(row['vertex']) is int and 0<=row['vertex']<65535,'Invalid neck normal target')
+        target=(row['slot'],row['rm'],row['vertex'])
+        require(target not in seen,'Duplicate neck normal target');seen.add(target)
+        p=row['position']
+        require(type(p) is list and len(p)==3 and all(type(v) in (int,float) and math.isfinite(v) and abs(v)<=100 for v in p)
+                and 10<p[1]<30,'Invalid neck normal reference position')
+        for key in ('original','replacement'):
+            word=row[key]
+            require(type(word) is int and 0<=word<=0xffffffff,'Invalid packed neck normal')
+            components=[]
+            for shift,bits in ((0,11),(11,11),(22,10)):
+                sign=1<<(bits-1);v=word>>shift
+                components.append(max(-1,((v&(sign-1))-(v&sign))/(sign-1)))
+            require(sum(v*v for v in components)>=.01,'Invalid packed neck normal')
+    return rows
+
+
+def encode_normals(entries, report):
+    from fighter_caf_layout import NORMAL_STRIDE, NORMAL_MAX
+    from fighter_caf_outfits import variants
+    rows=[]
+    for key,item in sorted(entries.items()):
+        for index,outfit in enumerate(variants(item)):
+            face=outfit.get('face')
+            if not face or face['schema']!='caf-face-coordinates-2':continue
+            validate(face,outfit['recipe'])
+            for r in face['neck_normals']:
+                rows.append(struct.pack('<5I3f2I',report['bindings'][key]['selection_key'],index,r['slot'],r['rm'],r['vertex'],*r['position'],r['original'],r['replacement']))
+    require(len(rows)<=NORMAL_MAX,'CAF neck normals exceed the container budget')
+    raw=b''.join(rows)
+    require(len(raw)==len(rows)*NORMAL_STRIDE,'Invalid compiled neck normal stride')
+    return len(rows),raw
 
 
 def load_recipe(root, value, catalog, game):

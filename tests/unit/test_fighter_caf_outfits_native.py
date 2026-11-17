@@ -26,6 +26,7 @@ DRIVER=r'''
 #include "patches/fighter_caf.h"
 static uint8_t memory[0x400000];
 #define MEM32(address) (*(uint32_t *)(memory+(uint32_t)(address)))
+#define MEM8(address) (memory[(uint32_t)(address)])
 #define CAF_MAX_ROWS (16384u*3u)
 #define EXTRA_MAX (16u*1024u*1024u)
 static uint32_t s_count,s_extra_count;
@@ -36,6 +37,9 @@ static const uint8_t *s_recipes[4];
 static void restore_finishers(void) {}
 static void defjam_caf_hd_clear(void) {}
 static void defjam_caf_faces_clear(void) {} /* Sculpt lifetime is tested separately. */
+static void defjam_caf_normals_clear(void) {}
+static void defjam_caf_normals_detach(uint32_t visual,uint32_t participant) {(void)visual;(void)participant;}
+static int guest_span(uint32_t at,uint32_t size) {return at<sizeof memory&&size<=sizeof memory-at;}
 @FUNCTIONS@
 static uint8_t *readfile(const char *path,size_t *size) {
  FILE *file=fopen(path,"rb");assert(file);uint8_t *bytes=(uint8_t *)malloc(CAF_CONTAINER_MAX_BYTES);assert(bytes);
@@ -46,6 +50,7 @@ int main(int argc,char **argv) {
  uint8_t *data=readfile(argv[1],&size);CafContainer c;
  if(!strcmp(mode,"bad-header")){assert(!defjam_fighter_caf_container(data,size,&c));return 0;}
  assert(defjam_fighter_caf_container(data,size,&c));
+ if(!strcmp(mode,"normals-header")){assert(c.normals_count==1);free(data);return 0;}
  uint32_t rc=c.recipe_count,ec=c.extras_count,eb=c.extras_bytes,fc=c.faces_count;
  s_rows=data+CAF_CONTAINER_HEADER_BYTES;s_count=rc;
  if(!strcmp(mode,"bad-recipe")){assert(!recipes_valid(s_rows,rc));return 0;}
@@ -124,6 +129,19 @@ def run(native,tmp_path,raw,mode):
 
 def row_at(index):return layout.HEADER_BYTES+index*layout.RECIPE_STRIDE
 def extra_at(raw,index):return layout.unpack_header(raw)['extras_offset']+index*layout.EXTRA_STRIDE
+
+
+@pytest.mark.parametrize('damage',[None,'normal-offset','normal-count','reserved','old-version'])
+def test_native_reader_bounds_optional_version2_normal_section(native,tmp_path,damage):
+    from test_fighter_caf_normals import normal_entries
+    entries,report=normal_entries();raw=bytearray(encode(entries,report))
+    if damage=='normal-offset':struct.pack_into('<I',raw,52,layout.unpack_header(raw)['normals_offset']-4)
+    if damage=='normal-count':struct.pack_into('<I',raw,56,layout.NORMAL_MAX+1)
+    if damage=='reserved':struct.pack_into('<I',raw,60,1)
+    if damage=='old-version':struct.pack_into('<I',raw,4,1)
+    path=tmp_path/'normals.bin';path.write_bytes(raw)
+    result=subprocess.run([str(native),str(path),'bad-header' if damage else 'normals-header'],capture_output=True,text=True)
+    assert result.returncode==0,result.stdout+result.stderr
 
 
 @pytest.mark.parametrize('damage',[None,'index','gap','combat','alias','extra-index','extra-combat','extra-unbound'])
