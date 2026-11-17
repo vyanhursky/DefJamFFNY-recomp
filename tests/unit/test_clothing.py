@@ -565,6 +565,9 @@ def test_game_side_serves_states_saves_and_names(clothing_tool, tmp_path):
     loaded = out['loaded'].split()
     assert int(loaded[1], 16) == after_save[0] and loaded[3] == '3'
     assert out['name'] == 'name Red Jeans native 1234'
+    # The next start reuses the merged archives while their inputs are unchanged.
+    _, again = run_tool(clothing_tool, data, game, table_rank, jeans_rank, tee_rank)
+    assert again.count('the merged copy is current') == 4, again
 
 
 def test_game_side_with_the_pack_off_keeps_base_items(clothing_tool, tmp_path):

@@ -160,6 +160,14 @@ static int write_if_changed(const char *path, const uint8_t *data, size_t n)
     return 1;
 }
 
+/* "size:mtime" of a file, "-" when it is missing. */
+static void file_stamp(const char *path, char *out, size_t size)
+{
+    struct stat st;
+    if (stat(path, &st)) snprintf(out, size, "-");
+    else snprintf(out, size, "%lld:%lld", (long long)st.st_size, (long long)st.st_mtime);
+}
+
 static BOOL serve(const char *host, xbox_host_char *host_path, DWORD size)
 {
 #if defined(_WIN32)
@@ -322,9 +330,31 @@ static int serve_archive(int slot, const char *game_dir, const char *cache)
     uint8_t *base = NULL, *add = NULL, *out = NULL;
     size_t base_n = 0, add_n = 0, out_n = 0;
     int ok = 0;
+    char key[3 * PATH_MAX_LEN], key_path[PATH_MAX_LEN + 8], stamp_source[64], stamp_add[64];
     snprintf(add_path, sizeof add_path, "%s" HOST_SEP "%s", cache, add_name);
-    if (!read_all(add_path, &add, &add_n)) return 1;              /* nothing to add: the game's file stays */
-    if (!source_file(game_dir, relative, source, sizeof source) || !read_all(source, &base, &base_n)) {
+    file_stamp(add_path, stamp_add, sizeof stamp_add);
+    if (stamp_add[0] == '-' || !strncmp(stamp_add, "0:", 2)) return 1;   /* nothing to add: the game's file stays */
+    if (!source_file(game_dir, relative, source, sizeof source)) goto done;
+    /* The merged copy is reused while its inputs are the same files (screens.viv is ~96 MB). */
+    snprintf(served, sizeof served, "%s" HOST_SEP "served" HOST_SEP "%s", cache, served_name);
+    snprintf(key_path, sizeof key_path, "%s.key", served);
+    file_stamp(source, stamp_source, sizeof stamp_source);
+    snprintf(key, sizeof key, "clothing-served-1\n%s\n%s\n%s\n", source, stamp_source, stamp_add);
+    {
+        uint8_t *old = NULL;
+        size_t old_n = 0;
+        char served_stamp[64];
+        file_stamp(served, served_stamp, sizeof served_stamp);
+        int same = served_stamp[0] != '-' && read_all(key_path, &old, &old_n) && old_n == strlen(key) && !memcmp(old, key, old_n);
+        free(old);
+        if (same) {
+            snprintf(g_served[slot], sizeof g_served[slot], "%s", served);
+            fprintf(stderr, "[CLOTHING] %s: the merged copy is current\n", relative);
+            return 1;
+        }
+    }
+    if (!read_all(add_path, &add, &add_n)) goto done;
+    if (!read_all(source, &base, &base_n)) {
         fprintf(stderr, "[CLOTHING] cannot read %s\n", source);
         goto done;
     }
@@ -332,8 +362,9 @@ static int serve_archive(int slot, const char *game_dir, const char *cache)
     static const char *const replaceable[] = { "createplayer_parts.xml", NULL };
     int added = pc_big_append(base, base_n, add, add_n, replaceable, &out, &out_n);
     if (added < 0) { fprintf(stderr, "[CLOTHING] %s not extended (%s)\n", relative, pc_big_error()); goto done; }
-    snprintf(served, sizeof served, "%s" HOST_SEP "served" HOST_SEP "%s", cache, served_name);
+    remove(key_path);
     if (!write_if_changed(served, out, out_n)) { fprintf(stderr, "[CLOTHING] cannot write %s\n", served); goto done; }
+    write_if_changed(key_path, (const uint8_t *)key, strlen(key));
     snprintf(g_served[slot], sizeof g_served[slot], "%s", served);
     fprintf(stderr, "[CLOTHING] %s: %d file(s) added\n", relative, added);
     ok = 1;
