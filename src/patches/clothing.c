@@ -563,31 +563,66 @@ void clothing_before_save(uint32_t row)
 {
     g_nswaps = 0;
     if (!g_active || !row) return;
-    char path[PATH_MAX_LEN];
-    FILE *f = NULL;
+    char path[PATH_MAX_LEN], out[16384], line[512];
+    size_t n = 0;
+    int lines = 0;
+    uint32_t manager = profiles();
+    int slot = manager && row >= manager + ROW_OFFSET ? (int)((row - manager - ROW_OFFSET) / SLOT_STRIDE) : -1;
+    n += (size_t)snprintf(out + n, sizeof out - n, "clothing-state-1\n");
     for (int a = 0; a < 2; a++)
         for (uint32_t part = PART_FIRST; part <= PART_LAST; part++) {
             uint32_t at = k_part_arrays[a] + part * 4u, w = MEM32(row + at);
             Item *it = item_of(w & 0xFF00FFFFu);
             if (!it || g_nswaps >= MAX_SWAPS) continue;
-            if (!f && g_state_dir[0]) {
-                state_path(row, path, sizeof path);
-                make_dirs(path);
-                f = fopen(path, "wb");
-                if (f) fprintf(f, "clothing-state-1\n");
-            }
             uint32_t saved = base_handle(it, w);
             g_swaps[g_nswaps].at = row + at;
             g_swaps[g_nswaps].custom = w;
             g_nswaps++;
             MEM32(row + at) = saved;
-            if (f) fprintf(f, "worn\t%04X\t%08X\t%s\t%u\n", at, saved, it->key, (w >> 16) & 0xFFu);
+            n += (size_t)snprintf(out + n, sizeof out - n, "worn\t%04X\t%08X\t%s\t%u\n", at, saved, it->key, (w >> 16) & 0xFFu);
+            lines++;
         }
-    if (f) fclose(f);
-    else if (g_state_dir[0]) {
-        /* Nothing added is worn: an earlier file no longer describes this save. */
-        state_path(row, path, sizeof path);
-        remove(path);
+    /* Bought (or otherwise changed) states of the enabled items, for this profile slot. */
+    if (slot >= 0 && slot < (int)SLOTS)
+        for (int i = 0; i < g_count; i++) {
+            uint8_t initial = strcmp(g_items[i].avail, "shop") ? STATE_OWNED : STATE_UNLOCKED;
+            for (uint32_t c = 0; c < g_items[i].colours && n + 200 < sizeof out; c++)
+                if (g_state[slot][g_items[i].first + c] != initial) {
+                    n += (size_t)snprintf(out + n, sizeof out - n, "state\t%s\t%u\t%u\n", g_items[i].key, c,
+                                          g_state[slot][g_items[i].first + c]);
+                    lines++;
+                }
+        }
+    if (!g_state_dir[0]) return;
+    state_path(row, path, sizeof path);
+    /* Lines of items whose pack is not enabled now stay, so enabling it again brings them back
+     * (a worn one only while the save still holds its base item there). */
+    FILE *old = fopen(path, "rb");
+    if (old) {
+        if (fgets(line, sizeof line, old) && !strncmp(line, "clothing-state-1", 16))
+            while (fgets(line, sizeof line, old) && n + strlen(line) + 2 < sizeof out) {
+                char copy[512], *fields[6];
+                snprintf(copy, sizeof copy, "%s", line);
+                copy[strcspn(copy, "\r\n")] = 0;
+                int nf = split_tabs(copy, fields, 6);
+                const char *key = !strcmp(fields[0], "worn") && nf == 5 ? fields[3]
+                                : !strcmp(fields[0], "state") && nf == 4 ? fields[1] : NULL;
+                if (!key || item_by_key(key)) continue;
+                uint32_t at = (uint32_t)strtoul(nf == 5 ? fields[1] : "0", NULL, 16) & 0xFFFCu;
+                if (nf == 5 && (at >= ROW_BYTES || MEM32(row + at) != (uint32_t)strtoul(fields[2], NULL, 16)))
+                    continue;
+                n += (size_t)snprintf(out + n, sizeof out - n, "%s", line);
+                if (line[strlen(line) - 1] != '\n') out[n++] = '\n';
+                lines++;
+            }
+        fclose(old);
+    }
+    if (lines) {
+        make_dirs(path);
+        if (!write_if_changed(path, (const uint8_t *)out, n))
+            fprintf(stderr, "[CLOTHING] cannot write %s\n", path);
+    } else {
+        remove(path);   /* nothing added is worn or bought: an earlier file no longer describes this save */
     }
     if (g_nswaps)
         fprintf(stderr, "[CLOTHING] save: %d added item(s) saved as their base items\n", g_nswaps);
@@ -609,6 +644,11 @@ static void restore_current(void)
     int slot = (int)MEM32(manager + SLOT_INDEX);
     if (slot < 0 || slot >= (int)SLOTS) return;
     g_restore_pending = 0;
+    /* A loaded profile starts from the items' initial states; its file says what changed. */
+    if (g_active)
+        for (int i = 0; i < g_count; i++)
+            memset(g_state[slot] + g_items[i].first, strcmp(g_items[i].avail, "shop") ? STATE_OWNED : STATE_UNLOCKED,
+                   g_items[i].colours);
     uint32_t row = manager + (uint32_t)slot * SLOT_STRIDE + ROW_OFFSET;
     char path[PATH_MAX_LEN], line[512];
     state_path(row, path, sizeof path);
@@ -619,7 +659,14 @@ static void restore_current(void)
         while (fgets(line, sizeof line, f)) {
             char *fields[6];
             line[strcspn(line, "\r\n")] = 0;
-            if (split_tabs(line, fields, 6) != 5 || strcmp(fields[0], "worn")) continue;
+            int nf = split_tabs(line, fields, 6);
+            if (nf == 4 && !strcmp(fields[0], "state")) {
+                Item *it = g_active ? item_by_key(fields[1]) : NULL;
+                uint32_t c = (uint32_t)strtoul(fields[2], NULL, 10);
+                if (it && c < it->colours) g_state[slot][it->first + c] = (uint8_t)(strtoul(fields[3], NULL, 10) & 3u);
+                continue;
+            }
+            if (nf != 5 || strcmp(fields[0], "worn")) continue;
             uint32_t at = (uint32_t)strtoul(fields[1], NULL, 16), saved = (uint32_t)strtoul(fields[2], NULL, 16);
             uint32_t colour = (uint32_t)strtoul(fields[4], NULL, 10);
             int known = 0;
