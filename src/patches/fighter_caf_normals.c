@@ -40,7 +40,12 @@ int defjam_caf_normals_start(const uint8_t *(*recipe)(uint32_t,uint32_t),const u
     n_rows=rows;n_count=count;return 1;
 }
 void defjam_caf_normals_release(void) {n_rows=NULL;n_count=0;}
-void defjam_caf_normals_clear(void) {memset(n_peers,0,sizeof n_peers);}
+/* The CAF owner detaches still-live contexts first. Forget dead model addresses
+ * too: a later match may allocate another participant at the same address. */
+void defjam_caf_normals_clear(void) {
+    memset(n_peers,0,sizeof n_peers);memset(n_models,0,sizeof n_models);
+    memset(n_tables,0,sizeof n_tables);memset(n_original,0,sizeof n_original);
+}
 void defjam_caf_normals_detach(uint32_t visual,uint32_t participant) {
     if(participant>=4)return;
     for(unsigned s=0;s<2;++s) {

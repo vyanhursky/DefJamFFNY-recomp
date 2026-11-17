@@ -55,7 +55,7 @@ int main(int argc,char **argv) {
  assert(group!=0x100100&&private_data!=0x700000&&MEM32(private_data+4)==1023u<<11);
  assert(MEM32(private_data)==1023&&MEM32(private_data+8)==1023);
  defjam_caf_normals_detach(0x10000,0);assert(MEM32(0x1000cc)==0x100100);
- defjam_caf_normals_clear();defjam_caf_normals_apply(0x10000,0,100,0);
+ defjam_caf_normals_clear();assert(!n_models[0][0]&&!n_models[1][0]&&!n_tables[0][0]);defjam_caf_normals_apply(0x10000,0,100,0);
  assert(MEM32(0x700004)==1023);defjam_caf_normals_detach(0x10000,0);
  assert(MEM32(0x1000cc)==0x100100);defjam_caf_normals_release();assert(!n_count&&!n_rows);return 0;
 }
