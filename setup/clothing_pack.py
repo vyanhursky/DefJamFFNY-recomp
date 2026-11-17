@@ -23,8 +23,9 @@ The compiler writes ``<out>`` (normally ``<data>/cache/clothing``):
 * ``items.txt``       -- one line per item for the game (src/patches/clothing.c);
 * ``v2cp_N-add.viv``  -- files added to assets/v2cp_N.viv at start: each new texture goes
                         into the archive that holds its base's textures (the creator reads a
-                        body part's files from one fixed archive, ``assets/v2cp_N.viv|<name>``),
-                        and the parts catalogue (below) replaces both of its copies (_0, _3);
+                        body part's files from one fixed archive, ``assets/v2cp_N.viv|<name>``);
+* ``parts-add.txt``   -- for every item and fit model, the line the game inserts into the parts
+                        catalogue (createplayer_parts.xml) of the copy the redirect chain serves;
 * ``screens-add.viv`` -- the new thumbnails, added to screens/screens.viv at start;
 * ``receipt.json``    -- what was compiled, with hashes.
 """
@@ -60,7 +61,9 @@ VARIANT_LETTER = os.environ.get('CLOTHING_TEST_LETTER', 'Z')  # retail texture s
 # The game's Type -> category table (16 words at 0x002898D8, read by sub_0001FE70).
 TYPE_CATEGORY = (111, 112, 113, 114, 115, 121, 122, 123, 131, 132, 133, 134, 141, 142, 143, 144)
 ARCHIVES = ('v2cp_0.viv', 'v2cp_1.viv', 'v2cp_2.viv', 'v2cp_3.viv')
-PARTS_ARCHIVES = ('v2cp_0.viv', 'v2cp_3.viv')   # both hold the same createplayer_parts.xml
+PARTS_HEADER = 'clothing-parts-1'
+DIGEST_SCHEMA = 'clothing-set-1'
+MAX_FITS = 64                        # CLOTHING_MAX_FITS in src/patches/clothing.h
 THUMBS = 'screens/shopThumbs/100/'
 ID_RE = re.compile(r'[a-z0-9](?:[a-z0-9-]{0,30}[a-z0-9])?')
 TEXTURE_KEY = re.compile(r'(\d\d)(?:@(\d{1,2}))?')
@@ -187,11 +190,6 @@ class Game:
             check(path.is_file(), 'screens/screens.viv is missing from the game folder')
             self._screens = RetailArchive(path.read_bytes())
         return self._screens
-
-    def parts(self):
-        archive = self.archives()[ARCHIVES.index(PARTS_ARCHIVES[-1])]
-        check(archive.has(PARTS), 'assets/' + PARTS_ARCHIVES[-1] + ' has no ' + PARTS)
-        return unpack(archive.read(PARTS))
 
     def base(self, name):
         check(name in self.rows, f'Unknown base item "{name}" (python setup/clothing_pack.py list --game ... shows them)')
@@ -337,6 +335,10 @@ def paint(native, raw):
     try:
         with Image.open(io.BytesIO(raw)) as image:
             check(image.format == 'PNG', 'Textures must be PNG files')
+            # The header's size first: nothing is decoded for a PNG of the wrong size.
+            check(image.size in ((tile['width'] * k, tile['height'] * k) for k in (1, 2, 4)),
+                  f'A texture PNG must be {tile["width"]}x{tile["height"]} (or 2x/4x that); '
+                  f'this one is {image.size[0]}x{image.size[1]}')
             picture = image.convert('RGB')
     except OSError as error:
         raise ClothingError('Unreadable PNG: ' + str(error)) from error
@@ -401,60 +403,6 @@ def paint(native, raw):
     return result
 
 
-PARTS = 'createplayer_parts.xml'
-
-
-def patched_parts(xml, entries):
-    """The creator's parts catalogue with each item's texture set listed under its meshes.
-
-    The catalogue lists, for every mesh (``<model>``), its texture sets (``<texture>``, the
-    first colour's name) with the further colours (``<colour>``); the creator only builds a
-    texture it finds there. An item's set goes after the base's own sets, in the same layout,
-    under the mesh of every fit (model + the fit's offset) that lists the base's set.
-    """
-    text = xml.decode('utf-8')
-    newline = '\r\n' if '\r\n' in text else '\n'
-    for entry in entries:
-        for fit in entry.get('fits', [0]):
-            text, hits = _patch_parts(text, newline, entry['base'], entry['variant'], fit)
-            check(hits or fit, f'{entry["base"]["name"]}: its mesh is not in createplayer_parts.xml')
-    return text.encode('utf-8')
-
-
-def _patch_parts(text, newline, base, variant, fit):
-    """One fit's mesh blocks: (text, how many were patched)."""
-    stem = f'V2CP_{base["category"]}_{base["model"] + fit:04d}_'
-    first = f'<name>{stem}{base["variant"]}_01</name>'
-    hits = 0
-    at = 0
-    while True:
-        start = text.find('<model>', at)
-        if start < 0:
-            break
-        end = text.find('</model>', start)
-        check(end > start, 'Unreadable createplayer_parts.xml')
-        block = text[start:end]
-        if f'<name>{stem}' in block and first in block:
-            indent = '\t\t\t\t'
-            lines = [indent + '<texture>', indent + f'\t<name>{stem}{variant}_01</name>']
-            if base['colours'] > 1:
-                lines.append(indent + f'\t<count>{base["colours"] - 1}</count>')
-                for colour in range(2, base['colours'] + 1):
-                    lines += [indent + '\t<colour>', indent + f'\t\t<name>{stem}{variant}_{colour:02d}</name>',
-                              indent + '\t</colour>']
-            lines.append(indent + '</texture>')
-            count = re.search(r'<count>(\d+)</count>', block)
-            check(count is not None, 'A mesh in createplayer_parts.xml has no texture count')
-            block = block[:count.start(1)] + str(int(count.group(1)) + 1) + block[count.end(1):]
-            block = block.rstrip('\t') + newline.join(lines) + newline + '\t\t\t'
-            text = text[:start] + block + text[end:]
-            hits += 1
-            at = start + len(block) + len('</model>')
-        else:
-            at = end + len('</model>')
-    return text, hits
-
-
 def renamed_thumb(data, old, new):
     """A thumbnail (a small archive whose members carry its own name) under a new name of the same length."""
     check(len(old) == len(new), 'Thumbnail names must keep their length')
@@ -480,6 +428,7 @@ def plan(game, packs):
             base = game.base(item['base'])
             check(len(base['variant']) == 3, f'{item["base"]} has an unusual texture-set code')
             fits = game.fits(base)
+            check(len(fits) <= MAX_FITS, f'{item["base"]} has more than {MAX_FITS} fits')
             for key in item['textures']:
                 m = TEXTURE_KEY.fullmatch(key)
                 check(int(m.group(1)) <= base['colours'], f'{item["id"]}: {item["base"]} has colours 01-{base["colours"]:02d}')
@@ -501,7 +450,7 @@ def plan(game, packs):
 
 
 def compile_items(game, items):
-    garments, thumbs, lines = {file: {} for file in ARCHIVES}, {}, [ITEMS_HEADER]
+    garments, thumbs, lines, parts = {file: {} for file in ARCHIVES}, {}, [ITEMS_HEADER], [PARTS_HEADER]
     for entry in items:
         base, item, variant = entry['base'], entry['item'], entry['variant']
         for colour in range(1, base['colours'] + 1):
@@ -519,11 +468,9 @@ def compile_items(game, items):
         fields = [entry['key'], base['name'], variant, str(base['colours']), str(item.get('price', base['cost'])),
                   item.get('availability', 'wardrobe'), item['name']]
         lines.append('\t'.join(fields))
-    if items:
-        parts = store(patched_parts(game.parts(), items))
-        for file in PARTS_ARCHIVES:
-            garments[file][PARTS] = parts
-    return garments, thumbs, '\n'.join(lines) + '\n'
+        for fit in entry['fits']:
+            parts.append(f'{entry["key"]}\t{base["category"]}\t{base["model"] + fit}\t{base["variant"]}')
+    return garments, thumbs, '\n'.join(lines) + '\n', '\n'.join(parts) + '\n'
 
 
 def write_atomic(path, data):
@@ -532,18 +479,34 @@ def write_atomic(path, data):
     part.replace(path)
 
 
+def set_digest(packs):
+    """clothing-set-1: which packs are enabled and exactly what they hold.
+
+    SHA-256 over "clothing-set-1", then one "<pack folder, lower case>\t<SHA-256 of its
+    clothing.json>" line per pack in folder order. clothing.json carries the SHA-256 of every PNG,
+    so equal digests mean equal pack sources. Like fighter-set-1, it does not cover the player's
+    dump, the compiler, or what other layers serve; the files the game builds depend on those too.
+    """
+    rows = sorted((Path(p).name.lower(), hashlib.sha256((Path(p) / MANIFEST).read_bytes()).hexdigest()) for p in packs)
+    text = DIGEST_SCHEMA + '\n' + ''.join(f'{name}\t{digest}\n' for name, digest in rows)
+    return hashlib.sha256(text.encode('utf-8')).hexdigest()
+
+
 def compile_packs(game_dir, packs, output):
     output = Path(output)
     game = Game(game_dir)
     items = plan(game, packs)
-    garments, thumbs, listing = compile_items(game, items)
+    garments, thumbs, listing, parts = compile_items(game, items)
+    digest = set_digest(packs)
+    listing = listing.replace(ITEMS_HEADER + '\n', f'{ITEMS_HEADER}\n#{DIGEST_SCHEMA}\t{digest}\n', 1)
     output.mkdir(parents=True, exist_ok=True)
-    files = {'items.txt': listing.encode('utf-8'), 'screens-add.viv': build_archive(thumbs) if thumbs else b''}
+    files = {'items.txt': listing.encode('utf-8'), 'parts-add.txt': parts.encode('utf-8'),
+             'screens-add.viv': build_archive(thumbs) if thumbs else b''}
     for file, members in garments.items():
         files[file.replace('.viv', '-add.viv')] = build_archive(members) if members else b''
     for name, data in files.items():
         write_atomic(output / name, data)
-    receipt = {'format': 'clothing-cache-1', 'items': [i['key'] for i in items],
+    receipt = {'format': 'clothing-cache-2', DIGEST_SCHEMA: digest, 'items': [i['key'] for i in items],
                'files': {name: hashlib.sha256(data).hexdigest() for name, data in files.items()}}
     write_atomic(output / 'receipt.json', (json.dumps(receipt, indent=1) + '\n').encode('utf-8'))
     return receipt

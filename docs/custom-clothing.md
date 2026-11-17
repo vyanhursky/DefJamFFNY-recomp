@@ -129,10 +129,14 @@ updated or removed) writes `<data>/cache/clothing`:
 
 | File | Content |
 |---|---|
-| `items.txt` | `clothing-items-1`, then one tab-separated line per item: key (`<pack folder>/<id>`), base row, texture-set code, colours, price, availability, name |
-| `v2cp_N-add.viv` | Files added to `assets/v2cp_N.viv`: each new texture goes into the archive that holds its base's textures, and the patched `createplayer_parts.xml` into both archives that hold it (0 and 3) |
+| `items.txt` | `clothing-items-1`, then `#clothing-set-1<TAB><digest>`, then one tab-separated line per item: key (`<pack folder>/<id>`), base row, texture-set code, colours, price, availability, name |
+| `v2cp_N-add.viv` | Files added to `assets/v2cp_N.viv`: each new texture goes into the archive that holds its base's textures |
+| `parts-add.txt` | `clothing-parts-1`, then one line per item and fit: key, category, fit model, the base's own texture-set code. The game inserts the item's texture sets into the parts catalogue from these (below) |
 | `screens-add.viv` | The items' thumbnails, added to `screens/screens.viv` |
-| `receipt.json` | The compiled items and the hash of each file |
+| `receipt.json` | `clothing-cache-2`: the compiled items, the digest and the hash of each file |
+
+The compiler checks a texture PNG's size from its header before it decodes anything: it must be the
+base texture's size or 2x/4x that.
 
 How the game finds an item's files (from the lifted code):
 
@@ -149,8 +153,8 @@ How the game finds an item's files (from the lifted code):
   (`sub_000990B0` maps the part to N), and only builds a texture set listed under its mesh in the parts
   catalogue `createplayer_parts.xml`.
 
-So an item is a copy of its base row with its own texture-set code (`Z01`, `Z02`, ...; retail sets use
-A-L; a code is chosen free on every fit model of the base, since fit ranges of different bases overlap), its
+So an item is a copy of its base row with its own texture-set code (`Z01`, `Z02`, ...; see the letter
+range below; a code is chosen free on every fit model of the base, since fit ranges of different bases overlap), its
 textures for every fit in the base's archive, its set listed in the catalogue under every fit's mesh, and copies of
 the base's thumbnails renamed to the new code (a thumbnail is a small archive whose files carry its own
 name; the codes have the same length, so the rename keeps every offset).
@@ -171,6 +175,39 @@ the same files), it reads the cache and serves through the game-file redirect:
   copy; only `createplayer_parts.xml` may be replaced).
 
 The served copies are written to `<data>/cache/clothing/served` and rewritten only when they change.
+
+**Chain safety.** Everything is built on the copies the redirect chain serves before clothing starts
+(the language pack's, the fighters', the songs', and a fork's own layer if it installs one first), not on
+the retail files:
+
+- *Codes.* The compiler picks a code free in the player's retail archives. At start, the game checks it
+  again against the names in the served `v2cp_1`...`v2cp_4`, the served parts catalogue, the thumbnails in
+  the served `screens.viv` and the items before it; if it is taken, it takes the next free code from
+  `Z01`...`Z99` (the log says so: `Z01 is taken in the files served before ours; it uses Z02`) and
+  renames the item's garments and thumbnails to it. An item with no free code is left out, with a log line;
+  clothing stays on for the others.
+- *The parts catalogue.* `createplayer_parts.xml` (byte-identical in `v2cp_0` and `v2cp_3`) is read from
+  the served `v2cp_3`; for every line of `parts-add.txt` the item's texture-set block is inserted under the
+  fit mesh's existing blocks and its `<count>` raised. Everything else, lines another tool added
+  included, is kept byte for byte (line endings and tabs too). The patched file replaces the catalogue in
+  both archives.
+
+**Letter range.** Texture-set codes are a letter and two digits. Retail uses `A`-`L`. This project's
+clothing packs use `Z01`-`Z99`; FFNY Online's Studio uses `Y`. Another tool that adds texture sets should
+pick an unused letter and tell us, so the list here stays complete. Because codes are checked against the
+served files, two layers that do share a letter do not break each other; the one served later moves.
+
+**For forks.** `src/patches/clothing.h`:
+
+- `clothing_set_digest()`: the `clothing-set-1` digest of the enabled packs (`""` when none), for a content
+  print. It is SHA-256 over `clothing-set-1\n` plus one `<pack folder, lower case>\t<SHA-256 of its
+  clothing.json>\n` line per pack, in sorted order (clothing.json carries every PNG's SHA-256). Like
+  `fighter-set-1`, it does not cover the player's dump or what other layers serve. `python setup/mods.py
+  clothing-digest` prints the same digest without starting the game.
+- `clothing_base_handle(handle)`: the retail base item's handle for an added item's handle (same colour);
+  any other handle comes back unchanged.
+- `clothing_retail_parts(parts, out, count)`: a Story hero's part array (38 words) with every added item
+  replaced by its base item, as a save holds it.
 
 **Item states.** The profile manager keeps one state set per item kind (`+0x14E4` hair, `+0x153C`
 tattoos, `+0x1594` clothing, `+0x15EC` jewelry, `+0x1644` ...): a sorted array of keys
@@ -203,7 +240,8 @@ Diagnostics: `RECOMP_CLOTHING_TRACE=1` logs the state calls answered for added i
 ### Tests
 
 `tests/unit/test_clothing.py`: the compiler's parts (painting keeps format, size and alpha; the
-catalogue patch; variant codes; manifest checks), the mod manager's install/enable/disable/remove, and a
+parts lines; variant codes; manifest checks; the digest), the mod manager's install/enable/disable/remove, a
+layer served before clothing that already uses `Z01` and has its own catalogue lines, and a
 native run of `clothing.c`, `pc_sod.c` and `pc_big.c` on a synthetic database, synthetic archives and
 synthetic guest memory: the served files, the item states, the save swap and the reload, with the pack on
 and off.

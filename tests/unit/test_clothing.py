@@ -170,23 +170,15 @@ def test_paint_keeps_format_size_and_material_alpha():
         cp.paint(native, png(48, 32))
 
 
-def test_parts_catalogue_lists_the_new_texture_set():
-    xml = ('<parts>\r\n\t\t\t<model>\r\n\t\t\t\t<name>V2CP_121_0027_C</name>\r\n\t\t\t\t<count>1</count>\r\n'
-           '\t\t\t\t<texture>\r\n\t\t\t\t\t<name>V2CP_121_0027_A04_01</name>\r\n\t\t\t\t\t<count>1</count>\r\n'
-           '\t\t\t\t\t<colour>\r\n\t\t\t\t\t\t<name>V2CP_121_0027_A04_02</name>\r\n\t\t\t\t\t</colour>\r\n'
-           '\t\t\t\t</texture>\r\n\t\t\t</model>\r\n</parts>\r\n').encode()
-    base = {'name': 'Jeans_Base', 'category': 121, 'model': 27, 'variant': 'A04', 'colours': 2}
-    out = cp.patched_parts(xml, [{'base': base, 'variant': 'Z01'}]).decode()
-    assert '<count>2</count>' in out.split('<texture>')[0]
-    assert out.count('V2CP_121_0027_Z01_01') == 1 and out.count('V2CP_121_0027_Z01_02') == 1
-    assert out.index('Z01_01') < out.index('</model>') and '\r\n' in out and '\n\n' not in out.replace('\r\n', '')
-    with pytest.raises(cp.ClothingError, match='not in createplayer_parts.xml'):
-        cp.patched_parts(xml, [{'base': dict(base, model=28), 'variant': 'Z01'}])
-    # Every fit's mesh that lists the base's set gets the item's set; a fit mesh not listed is skipped.
-    fit_mesh = xml.decode().replace('0027', '0029').encode()
-    both = xml.replace(b'</parts>', b'') + fit_mesh.replace(b'<parts>', b'')
-    out = cp.patched_parts(both, [{'base': base, 'variant': 'Z01', 'fits': [0, 2, 5]}]).decode()
-    assert out.count('V2CP_121_0027_Z01_01') == 1 and out.count('V2CP_121_0029_Z01_02') == 1 and '0032_Z01' not in out
+def test_set_digest_follows_the_packs_not_their_order(tmp_path):
+    a, b = write_pack(tmp_path / 'a'), write_pack(tmp_path / 'b')
+    digest = cp.set_digest([a, b])
+    assert digest == cp.set_digest([b, a]) and re.fullmatch('[0-9a-f]{64}', digest)
+    assert cp.set_digest([a]) != digest
+    value = json.loads((b / cp.MANIFEST).read_text())
+    value['items'][0]['price'] = 7
+    (b / cp.MANIFEST).write_text(json.dumps(value))
+    assert cp.set_digest([a, b]) != digest
 
 
 def test_archive_and_thumbnail_helpers():
@@ -366,6 +358,18 @@ typedef char xbox_host_char;
 #endif
 BOOL (*g_xbox_game_file_redirect)(const char *, xbox_host_char *, DWORD);
 static uint32_t next_alloc = 0x600000;
+static const char *studio;              /* STUDIO_DIR: a layer serving v2cp_2/3.viv before ours */
+static BOOL studio_redirect(const char *relative, xbox_host_char *host, DWORD size)
+{
+    char path[1024];
+    if (strcmp(relative, "assets/v2cp_2.viv") && strcmp(relative, "assets/v2cp_3.viv")) return FALSE;
+    snprintf(path, sizeof path, "%s/%s", studio, relative + 7);
+#if defined(_WIN32)
+    return MultiByteToWideChar(CP_UTF8, 0, path, -1, host, (int)size) != 0;
+#else
+    return (size_t)snprintf(host, size, "%s", path) < size;
+#endif
+}
 void sub_00029680(void) { uint32_t size = MEM32(g_esp + 4); g_eax = next_alloc; next_alloc += (size + 15u) & ~15u; g_esp += 4; }
 
 #define P      0x100000u
@@ -405,9 +409,13 @@ int main(int argc, char **argv)
     MEM32(P + 0x5AC7Cu) = 0;                  /* profile slot 0 */
     MEM32(SET + 0x4Cu) = P + 0x5AC7Cu;
     memcpy(&MEM8(ROW), "VY2", 4);
+    studio = getenv("STUDIO_DIR");
+    if (studio && *studio) g_xbox_game_file_redirect = studio_redirect;
     clothing_start(argv[1], argv[2]);
-    served("assets/djv2.sod"); served("assets/v2cp_1.viv"); served("assets/v2cp_3.viv"); served("screens/screens.viv");
-    served("assets/v2cp_2.viv");
+    printf("digest %s\n", clothing_set_digest());
+    printf("base %08X %08X\n", clothing_base_handle(custom0 | 1u << 16), clothing_base_handle(table << 24 | 1u));
+    served("assets/djv2.sod"); served("assets/v2cp_0.viv"); served("assets/v2cp_1.viv"); served("assets/v2cp_3.viv");
+    served("screens/screens.viv"); served("assets/v2cp_2.viv");
     /* Item states: wardrobe items owned, shop items unlocked; retail keys go to the game. */
     printf("get0 %u get1 %u getbad %u retail %u\n", call(CLOTHING_GET, custom0, 0, 0), call(CLOTHING_GET, custom1, 0, 0),
            call(CLOTHING_GET, custom0 | 7u << 16, 0, 0), call(CLOTHING_GET, table << 24 | 1u, 0, 0));
@@ -481,11 +489,30 @@ def clothing_tool(tmp_path_factory):
     return exe
 
 
+def catalogue_block(stem, sets):
+    """One mesh of createplayer_parts.xml (CRLF, tabs) with its texture sets {code: colours}."""
+    lines = ['\t\t\t<model>', f'\t\t\t\t<name>{stem}C</name>', f'\t\t\t\t<count>{len(sets)}</count>']
+    for code, colours in sets.items():
+        lines += ['\t\t\t\t<texture>', f'\t\t\t\t\t<name>{stem}{code}_01</name>']
+        if colours > 1:
+            lines.append(f'\t\t\t\t\t<count>{colours - 1}</count>')
+            for c in range(2, colours + 1):
+                lines += ['\t\t\t\t\t<colour>', f'\t\t\t\t\t\t<name>{stem}{code}_{c:02d}</name>', '\t\t\t\t\t</colour>']
+        lines.append('\t\t\t\t</texture>')
+    lines.append('\t\t\t</model>')
+    return '\r\n'.join(lines) + '\r\n'
+
+
+RETAIL_PARTS = ('<partslist>\r\n\t<parts>\r\n\t\t<contents>\r\n'
+                + catalogue_block('V2CP_115_0007_', {'A01': 3}) + catalogue_block('V2CP_121_0027_', {'A04': 2})
+                + catalogue_block('V2CP_121_0028_', {'A04': 2}) + '\t\t</contents>\r\n\t</parts>\r\n</partslist>\r\n')
+
+
 def synthetic_game(root):
     (root / 'assets').mkdir(parents=True)
     (root / 'screens').mkdir()
     (root / 'assets' / 'djv2.sod').write_bytes(clothing_database())
-    parts = b'<parts>retail</parts>'
+    parts = cp.store(RETAIL_PARTS.encode())
     archives = {
         'v2cp_0.viv': {'createplayer_parts.xml': parts, 'cp_def0.xml': b'def'},
         'v2cp_1.viv': {'V2CP_115_0007_A01_01.xsh': b'retail tee'},
@@ -498,18 +525,24 @@ def synthetic_game(root):
     return archives
 
 
+DIGEST = 'ab' * 32
+
+
 def synthetic_cache(cache):
     cache.mkdir(parents=True)
     (cache / 'items.txt').write_text('clothing-items-1\n'
+                                     f'#clothing-set-1\t{DIGEST}\n'
                                      'p/one\tJeans_Base\tZ01\t2\t45\twardrobe\tRed Jeans\n'
                                      'p/two\tT_Base\tZ01\t3\t9\tshop\tShop Tee\n')
-    patched = b'<parts>patched</parts>'
-    (cache / 'v2cp_0-add.viv').write_bytes(cp.build_archive({'createplayer_parts.xml': patched}))
-    (cache / 'v2cp_3-add.viv').write_bytes(cp.build_archive({'createplayer_parts.xml': patched}))
-    (cache / 'v2cp_2-add.viv').write_bytes(cp.build_archive({'V2CP_121_0027_Z01_01.xsh': b'new jeans 1',
-                                                             'V2CP_121_0027_Z01_02.xsh': b'new jeans 2'}))
-    (cache / 'v2cp_1-add.viv').write_bytes(b'')
-    (cache / 'screens-add.viv').write_bytes(cp.build_archive({'screens/shopThumbs/100/V2TN_121_0027_Z01_01.big': b'th'}))
+    # The jeans have two fits (models 27 and 28); the tee one.
+    (cache / 'parts-add.txt').write_text('clothing-parts-1\np/one\t121\t27\tA04\np/one\t121\t28\tA04\n'
+                                         'p/two\t115\t7\tA01\n')
+    (cache / 'v2cp_2-add.viv').write_bytes(cp.build_archive({
+        f'V2CP_121_00{m}_Z01_0{c}.xsh': f'new jeans {m} {c}'.encode() for m in (27, 28) for c in (1, 2)}))
+    (cache / 'v2cp_1-add.viv').write_bytes(cp.build_archive({
+        f'V2CP_115_0007_Z01_0{c}.xsh': f'new tee {c}'.encode() for c in (1, 2, 3)}))
+    thumb = cp.store(b'xxV2TN_121_0027_Z01_01.apt..V2TN_121_0027_Z01_01.o..')
+    (cache / 'screens-add.viv').write_bytes(cp.build_archive({'screens/shopThumbs/100/V2TN_121_0027_Z01_01.big': thumb}))
 
 
 def added_ranks():
@@ -517,9 +550,15 @@ def added_ranks():
     return len(ROWS), len(ROWS) + 1
 
 
-def run_tool(tool, data, game, *ranks_args):
+def catalogue(path):
+    from fighter_assets import unpack
+    return unpack(cp.RetailArchive(Path(path).read_bytes()).read('createplayer_parts.xml')).decode()
+
+
+def run_tool(tool, data, game, *ranks_args, studio=None):
+    env = dict(os.environ, STUDIO_DIR=str(studio) if studio else '')
     result = subprocess.run([str(tool), str(data), str(game), *map(str, ranks_args)], capture_output=True, text=True,
-                            timeout=60)
+                            timeout=60, env=env)
     assert result.returncode == 0, result.stdout + result.stderr
     return {line.split(' ', 1)[0] + (' ' + line.split(' ')[1] if line.startswith('served') else ''): line
             for line in result.stdout.splitlines()}, result.stderr
@@ -536,7 +575,8 @@ def test_game_side_serves_states_saves_and_names(clothing_tool, tmp_path):
     out, err = run_tool(clothing_tool, data, game, table_rank, jeans_rank, tee_rank)
     assert '2 custom item(s)' in err, err
     served = {key.split(' ')[1]: line.split(' ', 2)[2] for key, line in out.items() if key.startswith('served')}
-    assert served['assets/v2cp_1.viv'] == '-'          # an empty add file leaves the game's archive alone
+    assert served['assets/v2cp_1.viv'] != '-' and out['digest'] == 'digest ' + DIGEST
+    assert out['base'] == f"base {table_rank << 24 | 1 << 16 | names['Jeans_Base']:08X} {table_rank << 24 | 1:08X}"
     database = Path(served['assets/djv2.sod']).read_bytes()
     after, after_rank, db = ranks(database)
     assert after_rank == table_rank and all(after[n] == names[n] for n in names)      # retail ranks hold
@@ -552,11 +592,17 @@ def test_game_side_serves_states_saves_and_names(clothing_tool, tmp_path):
     assert db._tables[CLOTHING].count == retail + 2 and header
     # Archives: added files appended, the catalogue replaced, the game's own files unchanged.
     v2 = cp.RetailArchive(Path(served['assets/v2cp_2.viv']).read_bytes())
-    assert v2.read('V2CP_121_0027_Z01_02.xsh') == b'new jeans 2'
+    assert v2.read('V2CP_121_0028_Z01_02.xsh') == b'new jeans 28 2'
     assert all(v2.read(n) == d for n, d in archives['v2cp_2.viv'].items())
     v3 = cp.RetailArchive(Path(served['assets/v2cp_3.viv']).read_bytes())
-    assert v3.read('createplayer_parts.xml') == b'<parts>patched</parts>' and v3.read('V2CP_141_0003_B01_01.xsh') == b'hat'
-    assert len(v3.names) == 2
+    assert v3.read('V2CP_141_0003_B01_01.xsh') == b'hat' and len(v3.names) == 2
+    # The catalogue: the served one with the items' sets under every fit mesh, in its own layout.
+    text = catalogue(served['assets/v2cp_3.viv'])
+    assert text == catalogue(served['assets/v2cp_0.viv'])
+    assert text == (RETAIL_PARTS.replace(catalogue_block('V2CP_115_0007_', {'A01': 3}),
+                                         catalogue_block('V2CP_115_0007_', {'A01': 3, 'Z01': 3}))
+                    .replace(catalogue_block('V2CP_121_0027_', {'A04': 2}), catalogue_block('V2CP_121_0027_', {'A04': 2, 'Z01': 2}))
+                    .replace(catalogue_block('V2CP_121_0028_', {'A04': 2}), catalogue_block('V2CP_121_0028_', {'A04': 2, 'Z01': 2})))
     screens = cp.RetailArchive(Path(served['screens/screens.viv']).read_bytes())
     assert screens.read('screens/feflow.xml') == b'<flow/>'
     # States, by rank: the jeans are a wardrobe item (owned), the tee a shop item (unlocked).
@@ -586,7 +632,7 @@ def test_game_side_serves_states_saves_and_names(clothing_tool, tmp_path):
     assert out['name'] == 'name Red Jeans native 1234'
     # The next start reuses the merged archives while their inputs are unchanged.
     _, again = run_tool(clothing_tool, data, game, table_rank, jeans_rank, tee_rank)
-    assert again.count('the merged copy is current') == 4, again
+    assert again.count('the merged copy is current') == 5, again
 
 
 def test_game_side_with_the_pack_off_keeps_base_items(clothing_tool, tmp_path):
@@ -607,3 +653,40 @@ def test_game_side_with_the_pack_off_keeps_base_items(clothing_tool, tmp_path):
     assert 'left as their base items' in err
     # The file still remembers the custom item for when the pack is enabled again.
     assert any(line.startswith('worn') for line in (data / 'clothing-state' / 'VY2.txt').read_text().splitlines())
+
+
+def test_game_side_takes_codes_and_the_catalogue_from_the_layer_before_it(clothing_tool, tmp_path):
+    """A layer served before ours (a fork's clothing tool) already uses Z01 on the jeans' model and
+    has a line of its own in the catalogue: the jeans move to Z02, everything of that layer stays."""
+    game, data, studio = tmp_path / 'game', tmp_path / 'data', tmp_path / 'studio'
+    archives = synthetic_game(game)
+    synthetic_cache(data / 'cache' / 'clothing')
+    studio.mkdir()
+    (studio / 'v2cp_2.viv').write_bytes(cp.build_archive(dict(archives['v2cp_2.viv'], **{'V2CP_121_0027_Z01_01.xsh': b'studio'})))
+    studio_parts = RETAIL_PARTS.replace(catalogue_block('V2CP_115_0007_', {'A01': 3}),
+                                        catalogue_block('V2CP_115_0007_', {'A01': 3, 'Y01': 1}))
+    (studio / 'v2cp_3.viv').write_bytes(cp.build_archive(dict(archives['v2cp_3.viv'], **{'createplayer_parts.xml': cp.store(studio_parts.encode())})))
+    names, table_rank, _ = ranks(clothing_database())
+    jeans_rank, tee_rank = added_ranks()
+    out, err = run_tool(clothing_tool, data, game, table_rank, jeans_rank, tee_rank, studio=studio)
+    assert 'p/one: Z01 is taken in the files served before ours; it uses Z02' in err, err
+    assert '2 custom item(s)' in err
+    served = {key.split(' ')[1]: line.split(' ', 2)[2] for key, line in out.items() if key.startswith('served')}
+    v2 = cp.RetailArchive(Path(served['assets/v2cp_2.viv']).read_bytes())
+    assert v2.read('V2CP_121_0027_Z01_01.xsh') == b'studio'
+    assert v2.read('V2CP_121_0027_Z02_01.xsh') == b'new jeans 27 1' and v2.read('V2CP_121_0028_Z02_02.xsh') == b'new jeans 28 2'
+    assert not any(n.startswith('V2CP_121_0028_Z01') for n in v2.names)
+    text = catalogue(served['assets/v2cp_3.viv'])
+    assert text == (studio_parts.replace(catalogue_block('V2CP_115_0007_', {'A01': 3, 'Y01': 1}),
+                                         catalogue_block('V2CP_115_0007_', {'A01': 3, 'Y01': 1, 'Z01': 3}))
+                    .replace(catalogue_block('V2CP_121_0027_', {'A04': 2}), catalogue_block('V2CP_121_0027_', {'A04': 2, 'Z02': 2}))
+                    .replace(catalogue_block('V2CP_121_0028_', {'A04': 2}), catalogue_block('V2CP_121_0028_', {'A04': 2, 'Z02': 2})))
+    from fighter_assets import unpack
+    screens = cp.RetailArchive(Path(served['screens/screens.viv']).read_bytes())
+    thumb = unpack(screens.read('screens/shopThumbs/100/V2TN_121_0027_Z02_01.big'))
+    assert thumb == b'xxV2TN_121_0027_Z02_01.apt..V2TN_121_0027_Z02_01.o..'
+    db = Database(Path(served['assets/djv2.sod']).read_bytes())
+    rows = {db.symbol(db.word(o)): o for o in db._tables[CLOTHING].records}
+    jeans = next(n for n in rows if n.startswith('Custom_p/one'))
+    tee = next(n for n in rows if n.startswith('Custom_p/two'))
+    assert db.symbol(db.word(rows[jeans] + 8)) == 'Z02' and db.symbol(db.word(rows[tee] + 8)) == 'Z01'

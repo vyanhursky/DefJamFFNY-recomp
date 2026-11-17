@@ -961,7 +961,7 @@ class Manager:
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('command', choices=('status', 'refresh', 'install', 'remove', 'rollback', 'recover', 'install-local', 'fighter-enable', 'fighter-disable', 'fighter-prepare', 'fighter-digest',
-                                                'clothing-enable', 'clothing-disable', 'clothing-prepare'))
+                                                'clothing-enable', 'clothing-disable', 'clothing-prepare', 'clothing-digest'))
     parser.add_argument('--data-dir', type=Path, required=True)
     parser.add_argument('--runtime', default='0.0.0')
     parser.add_argument('--capability', action='append', default=['textures-v1'])
@@ -987,6 +987,14 @@ def main():
             from fighter_packages import enabled
             digest, packs = set_digest(manager, enabled(manager.state()))
             print(json.dumps(dict(event='digest', schema=DIGEST_SCHEMA, digest=digest, packs=packs)), flush=True)
+            return 0
+        if args.command == 'clothing-digest':
+            # The clothing-set-1 digest of the enabled packs; changes nothing (like fighter-digest).
+            from clothing_pack import DIGEST_SCHEMA, set_digest
+            state = manager.state()
+            packs = manager.clothing_packs(state)
+            print(json.dumps(dict(event='digest', schema=DIGEST_SCHEMA, digest=set_digest(packs) if packs else '',
+                                  packs=[p.name for p in packs])), flush=True)
             return 0
         with file_lock(manager.root / 'writer.lock'):
             try:

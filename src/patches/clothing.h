@@ -6,6 +6,7 @@
 /* Limits shared with setup/clothing_pack.py (a unit test keeps them equal). */
 #define CLOTHING_MAX_ITEMS 256
 #define CLOTHING_MAX_NAME 40
+#define CLOTHING_MAX_FITS 64
 
 /* Before the XBE loads, after the songs: read <data>/cache/clothing and serve the game's
  * database, garment archive and thumbnail archive with the items added. Chains to the
@@ -49,5 +50,12 @@ void clothing_after_save(void);
 /* sub_000156D0 copied a profile row in from a save: added items worn when it was saved come back
  * (before the next front-end call), if their pack is enabled. */
 void clothing_after_row_load(void);
+
+/* For forks (FFNY Online): the clothing-set-1 digest of the enabled packs ("" when none); the
+ * retail base handle of a clothing handle (the handle itself when it is not an added item); and a
+ * part array (a Story hero's 38 appearance words) with every added item as its base item. */
+const char *clothing_set_digest(void);
+uint32_t clothing_base_handle(uint32_t handle);
+void clothing_retail_parts(const uint32_t *parts, uint32_t *out, int count);
 
 #endif
