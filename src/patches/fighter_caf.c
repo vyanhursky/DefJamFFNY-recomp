@@ -330,7 +330,7 @@ static void apply_final_stats(uint32_t service,uint32_t participant,const uint8_
     MEM32(base+0x18)=(row[CAF_ROW_CHARISMA]+2u)/5u;
 }
 
-/* Original 1B2090 treats an all-zero table as “no override”. Apply the explicit
+/* Original 1B2090 treats an all-zero table as "no override". Apply the explicit
  * standalone recipe after both the original and owned-motion parameter paths,
  * including zero values, without touching Story profiles or unrelated actors. */
 void defjam_fighter_caf_actor_stats(uint32_t actor) {
