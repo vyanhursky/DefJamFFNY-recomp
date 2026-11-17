@@ -944,10 +944,20 @@ static void mod_catalogue(int category)
         ImGui::BeginDisabled(!launcher || pcui::mod_busy() || !mod.compatible || (!mod.installed.empty() && !mod.update));
         if (ImGui::Button(mod.installed.empty() ? "Install and enable" : "Update")) mod_job(mod.installed.empty() ? "install-enable" : "install",mod.id);
         ui_target(("mod.install."+mod.id).c_str());
-        ImGui::EndDisabled(); ImGui::PopID();
+        ImGui::EndDisabled();
+        if (!mod.page.empty()) {
+            ImGui::SameLine();
+            if (ImGui::Button("View on Thunderstore")) pcui::open_path(mod.page);
+            ui_target(("mod.page."+mod.id).c_str());
+        }
+        ImGui::PopID();
     }
     if (!category_available && !pcui::mod_busy())
         ImGui::TextWrapped("No catalogue entries available for this category. Select Refresh catalogue to check again.");
+    ImGui::Separator();
+    ImGui::TextWrapped("These mods are also listed on the project's Thunderstore community. Install them here so the launcher checks every file.");
+    if (ImGui::Button("Open the Thunderstore community")) pcui::open_path(pcui::mod_store_community);
+    ui_target("mods.community");
 }
 
 #if defined(DEFJAM_APP)
