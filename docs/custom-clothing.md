@@ -161,9 +161,12 @@ At start (after the songs, so it builds on the language pack's, the fighters' an
 the same files), it reads the cache and serves through the game-file redirect:
 
 - `assets/djv2.sod` with one row per item appended (`src/hooks/pc_sod.c`: a byte copy of the base record,
-  so the colour and fit lists are the base's; new name, texture-set code, price and display name). Row
-  names are salted until they sort after every retail name, so retail rows keep their ranks and the
-  record handles (`table << 24 | colour << 16 | rank`) that saves hold stay valid.
+  so the colour and fit lists are the base's; new name, texture-set code, price and display name). Each
+  row name is `Custom_<key>~` plus 7 characters computed so its hash is exactly the table's highest hash
+  + 1, + 2, ... in `items.txt` order (sorted pack, then manifest order; the approach of FFNY Online's
+  clothing draft; a search is the fallback). So retail rows keep their ranks and the record handles
+  (`table << 24 | colour << 16 | rank`) that saves hold stay valid, and the added rows rank in a known
+  order. Custom ranks never reach a save, so they may change when packs change.
 - `assets/v2cp_N.viv` and `screens/screens.viv` with the added files (`src/hooks/pc_big.c` appends to a
   copy; only `createplayer_parts.xml` may be replaced).
 

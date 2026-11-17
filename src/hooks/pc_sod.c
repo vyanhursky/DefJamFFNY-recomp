@@ -59,6 +59,33 @@ uint32_t pc_sod_hash(const char *s)
     return h;
 }
 
+/*
+ * A name "<prefix>~<7 characters>" whose hash is exactly `target`.
+ *
+ * The hash of prefix + c1..c7 + NUL is h*33^8 + c1*33^7 + ... + c7*33, where h is the hash state
+ * after the prefix. 33 is odd, so it has an inverse mod 2^32, and the characters follow directly:
+ * c1*33^6 + ... + c7 = (target - h*33^8) / 33. With c = '0' + d, the digits d are the 7 base-33
+ * digits of that value minus '0' * (33^6 + ... + 1); every 32-bit value has them (33^7 > 2^32),
+ * and the characters are '0'..'P'. (The approach of FFNY Online's clothing design draft.)
+ */
+int pc_sod_name_for_hash(const char *prefix, uint32_t target, char *out, size_t size)
+{
+    size_t n = strlen(prefix);
+    if (n + 9 > size) return 0;
+    uint32_t h = 5381, p8 = 1, sum = 0, inverse = 33, place = 1;
+    memcpy(out, prefix, n);
+    out[n++] = '~';
+    for (size_t i = 0; i < n; i++) h = h * 33u + (uint8_t)out[i];
+    for (int i = 0; i < 8; i++) p8 *= 33u;
+    for (int i = 0; i < 7; i++) { sum += place; place *= 33u; }
+    for (int i = 0; i < 5; i++) inverse *= 2u - 33u * inverse;          /* Newton: 33 * inverse == 1 */
+    uint32_t value = (target - h * p8) * inverse - (uint32_t)'0' * sum;
+    uint64_t rest = value;
+    for (int i = 6; i >= 0; i--) { out[n + (size_t)i] = (char)('0' + rest % 33u); rest /= 33u; }
+    out[n + 7] = 0;
+    return pc_sod_hash(out) == target;
+}
+
 typedef struct {
     const uint8_t *p;
     size_t n;
@@ -272,10 +299,14 @@ int pc_sod_add_rows(const uint8_t *in, size_t n, const char *table, const PcSodR
             { fail("bad template record"); goto done; }
         char name[160];
         if (!row->name || strlen(row->name) > 120) { fail("row without a usable name"); goto done; }
-        snprintf(name, sizeof name, "%s", row->name);
-        for (unsigned salt = 1; pc_sod_hash(name) <= max_hash; salt++) {
-            if (salt > 100000000u) { fail("no row name sorts last"); goto done; }
-            snprintf(name, sizeof name, "%s~%u", row->name, salt);
+        /* Row r gets the hash max_hash + 1 + r: added rows rank after every existing row, in the
+         * order given. A search is the fallback when that range is not free. */
+        if (max_hash > 0xFFFFFFFFu - (uint32_t)count || !pc_sod_name_for_hash(row->name, max_hash + 1u + (uint32_t)r, name, sizeof name)) {
+            snprintf(name, sizeof name, "%s", row->name);
+            for (unsigned salt = 1; pc_sod_hash(name) <= max_hash; salt++) {
+                if (salt > 100000000u) { fail("no row name sorts last"); goto done; }
+                snprintf(name, sizeof name, "%s~%u", row->name, salt);
+            }
         }
         if (names_out) snprintf(names_out[r], 160, "%s", name);
         uint8_t rec[4096];

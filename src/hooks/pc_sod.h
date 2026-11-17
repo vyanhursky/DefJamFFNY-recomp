@@ -15,7 +15,8 @@ typedef struct {
 
 typedef struct {
     const char *template_name;  /* an existing row to copy (its row name) */
-    const char *name;           /* the new row's name; salted with "~N" until it sorts after every row */
+    const char *name;           /* the new row's name; "~" + 7 characters are added so that row r of the
+                                 * call hashes to the table's highest hash + 1 + r (a search if not free) */
     int nfields;
     PcSodField fields[PC_SOD_MAX_FIELDS];
 } PcSodRow;
@@ -40,6 +41,10 @@ int pc_sod_row_count(const uint8_t *db, size_t n, const char *table);
 
 /* The database's own string hash: djb2 over the bytes and the terminating NUL. */
 uint32_t pc_sod_hash(const char *s);
+
+/* "<prefix>~" plus 7 characters ('0'..'P') whose hash is exactly `target`, in out (prefix + 9
+ * bytes). Returns 1 when it checks out. */
+int pc_sod_name_for_hash(const char *prefix, uint32_t target, char *out, size_t size);
 
 const char *pc_sod_error(void);
 #endif

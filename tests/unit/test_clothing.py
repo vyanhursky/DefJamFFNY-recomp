@@ -265,6 +265,9 @@ class FakeGame:
 def test_variant_codes_are_unique_per_mesh_and_skip_used_ones(tmp_path):
     a = write_pack(tmp_path / 'a')
     b = write_pack(tmp_path / 'b')
+    # The pack order makes no difference (FFNY Online's two-order check).
+    strip = lambda items: [(i['key'], i['variant'], i['fits']) for i in items]
+    assert strip(cp.plan(FakeGame(), [a, b])) == strip(cp.plan(FakeGame(), [b, a]))
     items = cp.plan(FakeGame(used={(121, 27, 'Z01')}), [b, a])
     assert [(i['key'], i['variant']) for i in items] == [
         ('a/one', 'Z02'), ('a/two', 'Z01'), ('b/one', 'Z03'), ('b/two', 'Z02')]
@@ -510,18 +513,8 @@ def synthetic_cache(cache):
 
 
 def added_ranks():
-    """The ranks pc_sod.c gives the two added rows: their names salted until they sort last."""
-    top = max(name_hash(r[0]) for r in ROWS)
-
-    def final(name):
-        candidate, salt = name, 0
-        while name_hash(candidate) <= top:
-            salt += 1
-            candidate = f'{name}~{salt}'
-        return candidate
-    jeans, tee = final('Custom_p/one'), final('Custom_p/two')
-    order = sorted([jeans, tee], key=name_hash)
-    return len(ROWS) + order.index(jeans), len(ROWS) + order.index(tee)
+    """The ranks pc_sod.c gives the two added rows: the hashes above the table's highest, in items.txt order."""
+    return len(ROWS), len(ROWS) + 1
 
 
 def run_tool(tool, data, game, *ranks_args):
@@ -568,6 +561,10 @@ def test_game_side_serves_states_saves_and_names(clothing_tool, tmp_path):
     assert screens.read('screens/feflow.xml') == b'<flow/>'
     # States, by rank: the jeans are a wardrobe item (owned), the tee a shop item (unlocked).
     assert after[jeans] == jeans_rank
+    # The names hit their target hashes exactly (no search): highest retail hash + 1, + 2.
+    top = max(name_hash(r[0]) for r in ROWS)
+    assert sorted(name_hash(n) for n in after if n not in names) == [top + 1, top + 2]
+    assert re.fullmatch(r'Custom_p/one~[0-P]{7}', jeans)
     get = out['get0'].split()
     assert (get[1], get[3]) == ('3', '1')
     assert get[5] == str(0xFFFFFFFF) and get[7] == str(0xBEEF)
