@@ -16,6 +16,7 @@ extern void sub_000296B0(void);
 static uint32_t nw(const uint8_t *p) {uint32_t v;memcpy(&v,p,4);return v;}
 static float nf(const uint8_t *p) {float v;memcpy(&v,p,4);return v;}
 static int ns(uint32_t p,uint32_t n) {uint32_t a=p&0x7fffffffu;return a>=0x10000u&&a<0x4000000u&&n<=0x4000000u-a;}
+static int same_address(uint32_t a,uint32_t b) {return a&&b&&((a^b)&0x7fffffffu)==0;}
 static int packed(uint32_t word) {
     float length=0;
     for(unsigned k=0;k<3;++k) {unsigned bits=k==2?10:11,shift=k==2?22:k*11;int sign=1<<(bits-1),v=(int)(word>>shift);
@@ -107,7 +108,7 @@ static const char *apply(uint32_t visual,uint32_t participant,uint32_t selection
         uint32_t part=visual+0x140+(s?12u:3u)*0x420;
         models[s]=ns(part,0x130)?MEM32(part+0x12c):0;n_peers[participant][s]=models[s];
         for(unsigned peer=0;peer<4;++peer)if(peer!=participant)for(unsigned k=0;k<2;++k)
-            if(models[s]&&models[s]==n_models[peer][k]) {
+            if(same_address(models[s],n_models[peer][k])) {
                 if(ns(models[s],0xd8)&&MEM32(models[s]+0xcc)==n_tables[peer][k])MEM32(models[s]+0xcc)=n_original[peer][k];
                 return "neck model aliases another participant";
             }
@@ -116,7 +117,7 @@ static const char *apply(uint32_t visual,uint32_t participant,uint32_t selection
         const uint8_t *r=n_rows+(size_t)i*CAF_NORMAL_STRIDE;if(nw(r)!=selection||nw(r+4)!=outfit)continue;
         unsigned s=nw(r+CAF_NORMAL_SLOT)==12;uint32_t model=models[s],rm=nw(r+CAF_NORMAL_RM),v=nw(r+CAF_NORMAL_VERTEX);
         for(unsigned peer=0;peer<4;++peer)if(peer!=participant)for(unsigned k=0;k<2;++k)
-            if(model&&model==n_peers[peer][k])return "neck model aliases another participant";
+            if(same_address(model,n_peers[peer][k]))return "neck model aliases another participant";
         if(!sizes[s]) {
             const char *why=render_rows(model,&sizes[s],fields[s],&population[s]);if(why)return why;
             bases[s]=MEM32(model+0xcc);budget+=(sizes[s]+15)&~15u;
@@ -133,7 +134,7 @@ static const char *apply(uint32_t visual,uint32_t participant,uint32_t selection
         ++count;
     }
     if(!count)return NULL;
-    if(models[0]&&models[0]==models[1])return "neck slots alias the same model";
+    if(same_address(models[0],models[1]))return "neck slots alias the same model";
     if(budget>NORMAL_CHUNK)return "neck normal private buffer budget exceeded";
     if(!n_arena){uint32_t args[]={NORMAL_ARENA,0x298908,0x100};n_arena=guest_call(sub_000296B0,0,3,args);}
     if(!ns(n_arena,NORMAL_ARENA))return "neck normal arena unavailable";

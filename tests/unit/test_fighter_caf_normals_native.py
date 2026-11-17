@@ -44,6 +44,7 @@ int main(int argc,char **argv) {
  assert(defjam_caf_normals_start(lookup,rows,count));
  model(0x10000,0x100000);model(0x30000,0x200000);g_esp=0xB00000;
  if(!strcmp(mode,"alias"))MEM32(0x30000+0x140+3u*0x420+0x12c)=0x100000;
+ if(!strcmp(mode,"mirror-alias"))MEM32(0x30000+0x140+3u*0x420+0x12c)=0x80100000;
  defjam_caf_normals_apply(0x30000,1,101,0);
  if(!strcmp(mode,"position"))MEMF(0x10100c)=.1f;
  if(!strcmp(mode,"source"))MEM32(0x700004)=1023u<<22;
@@ -77,7 +78,7 @@ def native(tmp_path_factory):
     return exe
 
 
-@pytest.mark.parametrize('mode,error',[('good',None),('position','position differs'),('source','source differs'),('alias','aliases another')])
+@pytest.mark.parametrize('mode,error',[('good',None),('position','position differs'),('source','source differs'),('alias','aliases another'),('mirror-alias','aliases another')])
 def test_private_normal_copies_reference_binding_detach_and_peer_isolation(native,tmp_path,mode,error):
     entries,report=normal_entries();count,raw=encode_normals(entries,report);assert count==1
     path=tmp_path/'normal.bin';path.write_bytes(raw)
