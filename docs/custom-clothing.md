@@ -54,6 +54,11 @@ your extracted dump (the `game` folder of a build).
    ignored: the game keeps the original texture's alpha, which it uses for its own shading. Leave out a
    colour's PNG (remove its line from `textures`) to keep the original texture for that colour.
 
+   **Fits.** Many items come in several fits (jeans: Standard, 1 Ankle Up, Both Ankles Up, ...). The game
+   keeps a texture of each fit, all drawn on the same layout, so your colour PNG is painted onto every
+   fit, each fit keeping its own shading. To give one fit its own picture, add a key `"01@5"` (colour 01,
+   the fit whose model number is 5 above the base's); `list` prints the fits' offsets.
+
 4. **Update the hashes** after editing (clothing.json records each PNG's SHA-256):
 
    ```
@@ -98,7 +103,7 @@ your extracted dump (the `game` folder of a build).
 | `base` | The game's name of the item it is based on, as `list` prints it. |
 | `price` | The store price (0-99999). Optional: the base item's price. |
 | `availability` | `wardrobe` (owned from the start) or `shop` (sold in the stores). Optional: `wardrobe`. |
-| `textures` | Colour number (`01`, `02`, ...) to a PNG in the pack and its SHA-256. Colours without an entry keep the base item's texture. |
+| `textures` | Colour number (`01`, `02`, ...) to a PNG in the pack and its SHA-256: that colour on every fit. `01@5` is colour 01 on one fit only (offset 5). Colours without an entry keep the base item's texture. |
 
 A pack contains `clothing.json`, the PNGs it lists, and optionally `README.md`, `CHANGELOG.md`,
 `LICENSE.txt` and `preview.png`. Anything else is refused at install. Nothing in a pack is run.
@@ -136,12 +141,17 @@ How the game finds an item's files (from the lifted code):
 - `sub_0001FE70` builds the names: the Type picks the category from a 16-entry table at `0x002898D8`
   (111 ... 144); garments are `V2CP_<cat>_<model>_<set>_<colour>.xsh`, shop and wardrobe thumbnails
   `screens/shopThumbs/100/V2TN_<cat>_<model>_<set>_<colour>[_t].big`.
+- A fit (word 6: count, then 3-word records) gives a model offset in its record's second word; the
+  creator builds the garment texture name from model + that offset (hats, category 141, use the model
+  itself). The game has one texture set per fit, drawn on the same layout (Dark Cargo, model 27, 20 fits:
+  sets at models 27-46).
 - The creator reads a body part's files from one fixed archive, as `assets/v2cp_N.viv|<name>`
   (`sub_000990B0` maps the part to N), and only builds a texture set listed under its mesh in the parts
   catalogue `createplayer_parts.xml`.
 
-So an item is a copy of its base row with its own texture-set code (`Z01`, `Z02`, ... per base model;
-retail sets use A-L), its textures in the base's archive, its set listed in the catalogue, and copies of
+So an item is a copy of its base row with its own texture-set code (`Z01`, `Z02`, ...; retail sets use
+A-L; a code is chosen free on every fit model of the base, since fit ranges of different bases overlap), its
+textures for every fit in the base's archive, its set listed in the catalogue under every fit's mesh, and copies of
 the base's thumbnails renamed to the new code (a thumbnail is a small archive whose files carry its own
 name; the codes have the same length, so the rename keeps every offset).
 

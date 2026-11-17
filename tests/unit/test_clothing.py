@@ -182,6 +182,11 @@ def test_parts_catalogue_lists_the_new_texture_set():
     assert out.index('Z01_01') < out.index('</model>') and '\r\n' in out and '\n\n' not in out.replace('\r\n', '')
     with pytest.raises(cp.ClothingError, match='not in createplayer_parts.xml'):
         cp.patched_parts(xml, [{'base': dict(base, model=28), 'variant': 'Z01'}])
+    # Every fit's mesh that lists the base's set gets the item's set; a fit mesh not listed is skipped.
+    fit_mesh = xml.decode().replace('0027', '0029').encode()
+    both = xml.replace(b'</parts>', b'') + fit_mesh.replace(b'<parts>', b'')
+    out = cp.patched_parts(both, [{'base': base, 'variant': 'Z01', 'fits': [0, 2, 5]}]).decode()
+    assert out.count('V2CP_121_0027_Z01_01') == 1 and out.count('V2CP_121_0029_Z01_02') == 1 and '0032_Z01' not in out
 
 
 def test_archive_and_thumbnail_helpers():
@@ -241,13 +246,17 @@ def test_receipt_counts_items_and_refuses_unlisted_files(tmp_path):
 
 
 class FakeGame:
-    def __init__(self, used=()):
+    def __init__(self, used=(), fits=None):
         self.rows = {r[0]: {'name': r[0], 'model': r[1], 'variant': r[2], 'colours': r[3], 'cost': r[4],
-                            'type': r[5], 'category': cp.TYPE_CATEGORY[r[5]]} for r in ROWS}
+                            'type': r[5], 'category': cp.TYPE_CATEGORY[r[5]], 'fits': (fits or {}).get(r[0], [0])}
+                     for r in ROWS}
         self.used = set(used)
 
     def base(self, name):
         return self.rows[name]
+
+    def fits(self, row):
+        return row['fits']
 
     def used_variants(self):
         return self.used
@@ -259,6 +268,19 @@ def test_variant_codes_are_unique_per_mesh_and_skip_used_ones(tmp_path):
     items = cp.plan(FakeGame(used={(121, 27, 'Z01')}), [b, a])
     assert [(i['key'], i['variant']) for i in items] == [
         ('a/one', 'Z02'), ('a/two', 'Z01'), ('b/one', 'Z03'), ('b/two', 'Z02')]
+    # Fit models: a code must be free on every fit model (model + offset) of the base, and the
+    # fit ranges of two bases can overlap, so their items cannot share a code there.
+    game = FakeGame(used={(121, 29, 'Z01')}, fits={'Jeans_Base': [0, 2, 3]})
+    jeans = cp.plan(game, [a])[0]
+    assert jeans['fits'] == [0, 2, 3] and jeans['variant'] == 'Z02'
+    game.rows['T_Base'].update(category=121, model=28, fits=[0, 1])      # models 28, 29: 29 overlaps
+    tee = cp.plan(game, [a])
+    assert [i['variant'] for i in tee] == ['Z02', 'Z03']
+    fit_pack = write_pack(tmp_path / 'fitpack', items=[{'id': 'x', 'name': 'X', 'base': 'Jeans_Base',
+                                                         'textures': {'01@3': {'path': 'one/01.png', 'sha256': '0' * 64}}}])
+    assert cp.plan(FakeGame(fits={'Jeans_Base': [0, 3]}), [fit_pack])[0]['fits'] == [0, 3]
+    with pytest.raises(cp.ClothingError, match='fit offsets 0'):
+        cp.plan(FakeGame(), [fit_pack])
     big = write_pack(tmp_path / 'big', items=[{'id': 'x', 'name': 'X', 'base': 'Jeans_Base',
                                                  'textures': {'03': {'path': 'one/01.png', 'sha256': '0' * 64}}}])
     with pytest.raises(cp.ClothingError, match='colours 01-02'):
