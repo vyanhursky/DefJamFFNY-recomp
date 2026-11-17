@@ -252,8 +252,8 @@ def load_manifest(folder):
         check(item['id'] not in seen, 'Duplicate item id ' + item['id'])
         seen.add(item['id'])
         name = item['name']
-        check(type(name) is str and 0 < len(name) <= MAX_NAME and name.isprintable() and '\t' not in name,
-              'Item name must be 1-40 printable characters')
+        check(type(name) is str and 0 < len(name) <= MAX_NAME and name.isprintable() and name.isascii()
+              and '\t' not in name, 'Item name must be 1-40 printable characters (the game font has no accents)')
         check(type(item['base']) is str and 0 < len(item['base']) <= 128 and '\t' not in item['base'], 'Invalid base for ' + item['id'])
         check(item.get('availability', 'wardrobe') in AVAILABILITY, 'availability must be "wardrobe" or "shop"')
         price = item.get('price', 0)
