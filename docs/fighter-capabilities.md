@@ -30,3 +30,10 @@ FWR1. The public package schema is unchanged.
 
 Companion Workshop reader:
 [Workshop PR #14](https://github.com/vyanhursky/defjam-ffny-fighter-workshop/pull/14).
+
+`caf-sculpt-normals-1` adds bounded, reference-bound packed neck normal
+corrections to CAF face coordinates. Only projects using them emit FCAF
+container version 2; coordinates-only containers retain version 1. It needs
+matching authoring tools and a rebuilt game. See
+[sculpt normal corrections](workshop-sculpt-normals.md) for the contract and
+original-normal fallback on unsupported live layouts.

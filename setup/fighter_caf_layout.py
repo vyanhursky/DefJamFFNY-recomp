@@ -15,6 +15,7 @@ import struct
 
 MAGIC = b'FCAF'
 VERSION = 1
+NORMAL_VERSION = 2
 HEADER_BYTES = 64
 HD_MAX_BYTES = 128 * 1024 ** 2
 MAX_FILE = 64 * 1024 ** 2 + HD_MAX_BYTES
@@ -75,17 +76,26 @@ FACE = {
     'basis': 8,       # BASIS u32 appearance values this sculpt was made against
     'vertices': 32,   # FACE_VERTICES * FACE_VERTEX_BYTES
 }
+NORMAL_MAX = 8192
+NORMAL_STRIDE = 40
+NORMAL_HEADER = {'normals_offset': 52, 'normals_count': 56}
+NORMAL = {'selection': 0, 'outfit': 4, 'slot': 8, 'rm': 12, 'vertex': 16,
+          'position': 20, 'original': 32, 'replacement': 36}
 
 
-def pack_header(recipe_count, extras_count, extras_bytes, hd_count, hd_bytes, faces_count):
+def pack_header(recipe_count, extras_count, extras_bytes, hd_count, hd_bytes, faces_count, normals_count=0):
     """The header for sections that follow it back to back. Offsets are derived, never supplied."""
     recipe_offset = HEADER_BYTES
     extras_offset = recipe_offset + recipe_count * RECIPE_STRIDE
     hd_offset = extras_offset + extras_bytes
     faces_offset = hd_offset + hd_bytes
     total = faces_offset + faces_count * FACE_STRIDE
-    return struct.pack(HEADER_FORMAT, MAGIC, VERSION, recipe_offset, recipe_count, extras_offset, extras_count,
-                       extras_bytes, hd_offset, hd_count, hd_bytes, faces_offset, faces_count, total)
+    raw=bytearray(struct.pack(HEADER_FORMAT, MAGIC, VERSION, recipe_offset, recipe_count, extras_offset, extras_count,
+                       extras_bytes, hd_offset, hd_count, hd_bytes, faces_offset, faces_count, total))
+    if normals_count:
+        struct.pack_into('<I',raw,4,NORMAL_VERSION)
+        struct.pack_into('<3I',raw,48,total+normals_count*NORMAL_STRIDE,total,normals_count)
+    return bytes(raw)
 
 
 def split(raw):
@@ -94,11 +104,11 @@ def split(raw):
     if header is None or header['total_bytes'] != len(raw):
         return None
     expected = pack_header(header['recipe_count'], header['extras_count'], header['extras_bytes'],
-                           header['hd_count'], header['hd_bytes'], header['faces_count'])
+                           header['hd_count'], header['hd_bytes'], header['faces_count'],header.get('normals_count',0))
     if raw[:HEADER_BYTES] != expected:
         return None
     extras, hd, faces = header['extras_offset'], header['hd_offset'], header['faces_offset']
-    return header, raw[HEADER_BYTES:extras], raw[extras:hd], raw[hd:faces], raw[faces:]
+    return header, raw[HEADER_BYTES:extras], raw[extras:hd], raw[hd:faces], raw[faces:header.get('normals_offset',len(raw))]
 
 
 def unpack_header(raw):
@@ -106,6 +116,12 @@ def unpack_header(raw):
     if len(raw) < HEADER_BYTES:
         return None
     magic, version, *words = struct.unpack_from(HEADER_FORMAT, raw)
-    if magic != MAGIC or version != VERSION:
+    if magic != MAGIC or version not in (VERSION,NORMAL_VERSION):
         return None
-    return dict(zip(HEADER, words))
+    result=dict(zip(HEADER, words))
+    if version==NORMAL_VERSION:
+        offset,count,pad=struct.unpack_from('<3I',raw,52)
+        if not 0<count<=NORMAL_MAX or pad:return None
+        result.update(normals_offset=offset,normals_count=count)
+    elif raw[52:64]!=bytes(12):return None
+    return result

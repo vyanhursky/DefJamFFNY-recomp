@@ -1,6 +1,6 @@
 {
   "api": 1,
-  "extensions": ["retail-animation-preview-1", "standalone-retail-outfits-1"],
+  "extensions": ["retail-animation-preview-1", "standalone-retail-outfits-1", "caf-sculpt-normals-1"],
   "commands": [
     "catalog",
     "tag-catalog",

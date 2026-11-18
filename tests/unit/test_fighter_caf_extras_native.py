@@ -36,6 +36,8 @@ static int test_linear;
 static uint32_t s_story_profiles[4];
 static void defjam_caf_hd_clear(void) {}
 static void defjam_caf_faces_clear(void) {} /* Sculpt lifetime is tested separately. */
+static void defjam_caf_normals_clear(void) {}
+static void defjam_caf_normals_detach(uint32_t visual,uint32_t participant) {(void)visual;(void)participant;}
 static uint32_t test_visual=0x10000;
 static void stop(const char *why) {fprintf(stderr,"CAF stopped: %s\n",why);exit(1);}
 void sub_00092BE0(void) {
