@@ -43,6 +43,21 @@ ALLOWED = {'.ini', '.png', '.dds', '.json', '.txt', '.md', '.djd'}  # .djd: lang
 STOREFRONT = 'thunderstore-zip-v1'
 STOREFRONT_FILES = {'manifest.json': 64 * 1024, 'README.md': 1024**2, 'CHANGELOG.md': 1024**2, 'icon.png': 1024**2}
 STOREFRONT_REQUIRED = ('manifest.json', 'README.md', 'icon.png')
+# The Mods page links a mod to its Thunderstore listing. The link is rebuilt from
+# a strictly matched download URL, never taken from the catalogue as text.
+COMMUNITY = 'https://thunderstore.io/c/def-jam-fight-for-ny-recompiled/'
+STORE_DOWNLOAD = re.compile(r'https://thunderstore\.io/package/download/([A-Za-z0-9_]{1,128})/([A-Za-z0-9_]{1,128})/\d+\.\d+\.\d+/')
+
+
+def store_page(mod, preferred=None):
+    """The mod's Thunderstore page from its newest Thunderstore download, or ''."""
+    versions = ([preferred] if preferred else []) + sorted(mod['versions'], key=lambda v: semver(v['version']), reverse=True)
+    for version in versions:
+        for url in version['archive']['urls']:
+            match = STORE_DOWNLOAD.fullmatch(url)
+            if match:
+                return f'{COMMUNITY}p/{match.group(1)}/{match.group(2)}/'
+    return ''
 
 
 class ModError(ValueError):
@@ -865,7 +880,7 @@ class Manager:
                     channel=latest['channel'] if latest else '', compatible=int(bool(latest) and not stale),
                     revoked=int(revoked), update=int(bool(latest) and bool(installed) and
                         semver(latest['version']) > semver(installed['version'])),
-                    load_after=','.join(latest['load_after']) if latest else ''))
+                    load_after=','.join(latest['load_after']) if latest else '', page=store_page(mod, latest)))
         except (ValueError, OSError, ImportError) as error:
             info = str(error)
         lines = ['[manager]', 'message=' + self.message, 'catalogue=' + info]

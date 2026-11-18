@@ -65,6 +65,14 @@ the pack folder only. The catalogue remains the authority for identity, dependen
 conflicts and order; Thunderstore `dependencies` are not resolved. Offline Fighter ZIP
 imports accept the same layout.
 
+Browse mods shows **View on Thunderstore** beside a mod whose catalogue lists a Thunderstore
+download (`https://thunderstore.io/package/download/<Team>/<Name>/<X.Y.Z>/`), preferring the
+version on offer and otherwise the newest one. The helper rebuilds the page link from the team
+and package names and writes it to `view.ini` as `page=`. The launcher opens only a link of
+the form `<community>/p/<Team>/<Name>/`, letters, digits and `_` only. **Open the Thunderstore
+community** below the list opens the community page. Installs still go through the launcher,
+which checks every file against the signed catalogue.
+
 State lives at `<data>/mod-manager/`, outside runtime pack discovery:
 
 - `catalogue.json`: signed exact bytes, signature, highest accepted revision/hash.

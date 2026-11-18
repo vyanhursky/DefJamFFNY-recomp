@@ -6,6 +6,7 @@
 namespace pcui {
 struct ModRow {
     std::string id, name, authors, description, installed, latest, load_after, channel, category;
+    std::string page; // Thunderstore listing, "" when the mod has none
     unsigned long long bytes = 0;
     bool compatible = false, revoked = false, update = false;
 };
@@ -13,6 +14,8 @@ struct ManagedMod {
     std::string folder, name, version; bool rollback = false;
     std::string category; bool enabled = false; unsigned fighters = 0;
 };
+// The project's Thunderstore community. Mod pages are opened only below it.
+inline constexpr const char *mod_store_community = "https://thunderstore.io/c/def-jam-fight-for-ny-recompiled/";
 struct ModView {
     std::string message, catalogue;
     std::vector<ModRow> catalogue_mods;
