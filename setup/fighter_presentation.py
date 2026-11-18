@@ -111,7 +111,7 @@ def prepare_portraits(screens, report, *, language=None, resource_cache=None, ca
                 outfit_bindings[alias] = (identifier, report['portrait_files'])
                 if 'result_logo_2p' in report['portrait_resources'][identifier]['variants']:
                     extended.add(alias)
-    result = portrait_aliases(source, pairs, results=True,extended=extended)
+    result = portrait_aliases(source, pairs, results=True,extended=extended,teams=True)
     artwork = {}
     if report.get('portrait_resources'):
         from fighter_portrait import apply_portraits

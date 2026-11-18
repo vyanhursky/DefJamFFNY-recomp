@@ -152,11 +152,12 @@ def store(data):
     return bytes(output + data[at:])
 
 
-def portrait_aliases(data, pairs, *, results=False,extended=()):
+def portrait_aliases(data, pairs, *, results=False,extended=(),teams=False):
     """Map {custom selection token: retail portrait token}; never alias identity.
 
     Portrait envelopes are renamed together without changing their payloads.
-    Custom result logos use the verified original blank movie so donor branding
+    Team selection uses the original portrait-donor movies; packages cannot
+    provide executable UI. Custom result logos use the original blank movie so donor branding
     cannot obscure custom labels. Movies must not embed their file basename.
     An occupied destination is a conflict, including another mod's same path.
     """
@@ -177,9 +178,15 @@ def portrait_aliases(data, pairs, *, results=False,extended=()):
             if target<100: raise AssetError('Extended loading portraits require appended logical identities')
             families += [('screens/portrait/l_CF/','l_CF_',0),
                          ('screens/match/3_fighters/','p_ML_',1),('screens/match/3_fighters/','l_ML_',0)]
+        if teams:
+            # Team selection waits for both movies before enabling input.
+            # Its thumbnail IDs are zero-based; body portraits add one.
+            families += [('screens/portrait/t_CT/', 't_CT_', 0),
+                         ('screens/portrait/p_CT/', 'p_CT_', 1)]
         for prefix, stem, increment in families:
-            for players in (2, 3, 4):
-                old, new = f'{stem}{donor + increment}_{players}p', f'{stem}{target + increment}_{players}p'
+            for players in ((None,) if stem in ('t_CT_', 'p_CT_') else (2, 3, 4)):
+                suffix = '' if players is None else f'_{players}p'
+                old, new = f'{stem}{donor + increment}{suffix}', f'{stem}{target + increment}{suffix}'
                 path = prefix + new + '.big'
                 if path.lower() in archive.by_name or path in additions:
                     raise AssetError('Portrait alias destination already owned: ' + path)
