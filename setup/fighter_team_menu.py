@@ -13,11 +13,36 @@ def compile_team(movie, constants, records):
         character_parameters(row)
     if not 8 <= len(movie) <= MAX_MOVIE or len(constants) > MAX_MOVIE:
         raise AssetError('Invalid Team movie budget')
-    root, _, definitions = functions(movie, constants)
+    root, entries, definitions = functions(movie, constants)
     for name in ('InitializeThumbs', 'InitializePortraits'):
         if len([d for d in definitions if d['name'] == name and d['params'] == ['characterList'] and d['owner'] is None]) != 1:
             raise AssetError('Native Team initializer differs')
+    # The native first action calls Initialize immediately, before later
+    # frame actions. Defer only that qualified zero-argument call until the
+    # owned wrappers are installed; keep function bodies and globals intact.
+    record = apt.parse_character(movie, root)
+    sites = []
+    for kind, item in record['frames'][0]:
+        if kind != 'Action':
+            continue
+        at, pool, previous = item['instructions_at'], [], []
+        while at < len(movie):
+            ins, following, end, confirmed = apt.parse_instruction(movie, at, entries, pool)
+            if not confirmed:
+                raise AssetError('Undecoded Team initialization instruction')
+            if ins.name == 'EA_CallNamedMethodPop' and any("='Initialize'" in operand for operand in ins.operands):
+                if [i.name for i in previous[-2:]] != ['EA_PushZero', 'EA_PushThisVar'] or following - at != 2:
+                    raise AssetError('Native Team initialization call differs')
+                sites.append(at)
+            previous.append(ins)
+            at = following + (ins.function_size or 0)
+            if end:
+                break
+    if len(sites) != 1:
+        raise AssetError('Native Team initialization entry differs')
     output = bytearray(movie); output += bytes(-len(output) % 4)
+    discard = Action(0); discard.op('Pop'); discard.op('Pop')
+    output[sites[0]:sites[0] + 2] = discard.code
     action = Action(len(output))
     for name in ('InitializeThumbs', 'InitializePortraits'):
         original = '_recompTeam' + name
@@ -40,6 +65,7 @@ def compile_team(movie, constants, records):
                 action.variable('_display'); action.integer(slot); action.variable('_id'); action.op('SetMember')
             action.variable('_display'); action.integer(1); action.op('EA_PushThisVar'); action.string(original); action.op('CallMethod'); action.op('Return')
         action.function(name, ['characterList'], wrapper)
+    action.integer(0); action.op('EA_PushThisVar'); action.string('Initialize'); action.op('CallMethod'); action.op('Pop')
     action_at = len(output); output += action.finish(); output += bytes(-len(output) % 4)
     record_at = len(output); output += struct.pack('<II', 1, action_at)
     frames = struct.unpack_from('<I', movie, root + 12)[0]

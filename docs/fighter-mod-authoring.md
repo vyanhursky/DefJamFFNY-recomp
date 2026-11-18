@@ -454,7 +454,9 @@ layer. Team aliases follow `p_CT_<identity+1>` and `t_CT_<identity>` (no player
 suffix). Resources replace only allocated custom/outfit aliases, never shared
 retail donor movies. A runtime-owned display adapter snapshots validated outfit
 portrait aliases at character confirmation and passes a bounded copy to Team's
-image initializers; semantic fighter/controller IDs remain unchanged.
+image initializers. The adapter defers the qualified zero-argument native Team
+initialization call until those wrappers exist; semantic fighter/controller IDs
+remain unchanged.
 
 In Workshop, choose the outfit, open **Menu artwork**, select a **Team selection**
 role and **Import PNG**. Save the project, export with a runtime advertising the
