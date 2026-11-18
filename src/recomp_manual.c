@@ -242,6 +242,55 @@ extern void sub_0003DB00_gen(void);
 void sub_0003DB00(void) {
     if (!defjam_fighter_voice_load(MEM32(g_esp + 4))) sub_0003DB00_gen();
 }
+
+/* Read-only, opt-in cinematic speech timing. The original event and dispatch
+ * bodies always run unchanged. Recorder events use the same host clock as
+ * presented-pose observations; they do not claim device playback timestamps.
+ * A bounded trace captures the event59 callback and the nested native dispatch
+ * separately, without replacing resources or changing either animation clock.
+ */
+static int cinematic_speech_trace(void) {
+    const char *on = getenv("RECOMP_CAF_SPEECH_TRACE");
+    return on && !strcmp(on, "1");
+}
+static void cinematic_speech_event(const char *phase, uint32_t slot,
+                                   uint32_t caller, uint32_t result) {
+    char fields[320];
+    if (slot >= 4) return;
+    snprintf(fields, sizeof fields,
+        "\"phase\":\"%s\",\"slot\":%u,\"caller\":%u,\"result\":%u,"
+        "\"stream_handle\":%u,\"event_seen\":%u,\"suppressed\":%u",
+        phase, slot, caller, result, MEM32(0x331E90 + 4 * slot),
+        MEM8(0x3403BC + 0x64 * slot), MEM8(0x340540));
+    recorder_event("cinematic_speech", fields);
+}
+extern void sub_00034CF0_gen(void);
+void sub_00034CF0(void) {
+    static unsigned observations;
+    int trace = cinematic_speech_trace() && observations < 32;
+    uint32_t slot = 4, caller = 0;
+    if (trace) {
+        /* The native callback immediately reads this same participant value. */
+        slot = MEM32(MEM32(g_esp + 8)); caller = MEM32(g_esp);
+        ++observations;
+        cinematic_speech_event("event_enter", slot, caller, 0);
+    }
+    sub_00034CF0_gen();
+    if (trace) cinematic_speech_event("event_return", slot, caller, g_eax);
+}
+extern void sub_0001D1F0_gen(void);
+void sub_0001D1F0(void) {
+    static unsigned observations;
+    int trace = cinematic_speech_trace() && observations < 32;
+    uint32_t slot = 4, caller = 0;
+    if (trace) {
+        slot = MEM32(g_esp + 4); caller = MEM32(g_esp); ++observations;
+        cinematic_speech_event("dispatch_enter", slot, caller, 0);
+    }
+    sub_0001D1F0_gen();
+    if (trace) cinematic_speech_event("dispatch_return", slot, caller, g_eax & 255u);
+}
+
 extern void sub_00135CB0_gen(void);
 void sub_00135CB0(void) {
     uint32_t family = MEM32(g_esp + 4), voice = MEM32(g_esp + 8);
@@ -274,9 +323,12 @@ void sub_000A02E0(void) {
     sub_000A02E0_gen();
     MEM32(address) = bank; /* Native ret8 owns stack cleanup. */
 }
+extern void defjam_fighter_caf_actor_stats(uint32_t actor);
 extern void sub_001B2090_gen(void);
 void sub_001B2090(void) {
-    if (!defjam_fighter_motion_parameters(MEM32(g_esp + 4))) sub_001B2090_gen();
+    uint32_t actor = MEM32(g_esp + 4);
+    if (!defjam_fighter_motion_parameters(actor)) sub_001B2090_gen();
+    defjam_fighter_caf_actor_stats(actor);
 }
 extern void sub_001B4930_gen(void);
 void sub_001B4930(void) {
@@ -1851,3 +1903,13 @@ void sub_00028F90_enter(void) { ws_trace_pos(); }
 void sub_0002E390_enter(void) { ws_trace_vtx_arr(); }
 void sub_0002E470_enter(void) { ws_trace_vtx(); }
 
+
+/* Participant-local normal bindings: restore ownership before native part
+ * destruction and validate private packed bytes at the actual stream consumer. */
+#include "patches/fighter_caf_face.h"
+void sub_00099BA0_enter(void) {defjam_caf_normals_release(g_ecx,MEM32(g_esp+4));}
+extern void sub_00118030_gen(void);
+void sub_00118030(void) {
+    if(defjam_caf_normals_stream(MEM32(0x3a597c),MEM32(0x3a5978)))sub_00118030_gen();
+    else {g_eax=MEM32(0x3a5388);MEM32(0x3a5978)+=8;g_esp+=4;} /* native parameter advance and ret */
+}

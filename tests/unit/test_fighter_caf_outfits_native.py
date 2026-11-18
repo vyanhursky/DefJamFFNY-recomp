@@ -46,6 +46,7 @@ int main(int argc,char **argv) {
  uint8_t *data=readfile(argv[1],&size);CafContainer c;
  if(!strcmp(mode,"bad-header")){assert(!defjam_fighter_caf_container(data,size,&c));return 0;}
  assert(defjam_fighter_caf_container(data,size,&c));
+ if(!strcmp(mode,"normal-header")){assert(c.normals_count==1&&c.normals_bytes==4108);return 0;}
  uint32_t rc=c.recipe_count,ec=c.extras_count,eb=c.extras_bytes,fc=c.faces_count;
  s_rows=data+CAF_CONTAINER_HEADER_BYTES;s_count=rc;
  if(!strcmp(mode,"bad-recipe")){assert(!recipes_valid(s_rows,rc));return 0;}

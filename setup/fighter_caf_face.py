@@ -35,8 +35,13 @@ def load(root, descriptor, recipe):
 
 
 def validate(value, recipe):
-    require(type(value) is dict and set(value)=={'schema','template_sha256','basis','meshes'},'Invalid CAF sculpt fields')
-    require(value['schema']=='caf-face-coordinates-1' and type(value['template_sha256']) is str
+    keys = {'schema','template_sha256','basis','meshes'}
+    if type(value) is dict and value.get('schema') == 'caf-face-coordinates-2':keys.add('neck_normals')
+    require(type(value) is dict and set(value)==keys,'Invalid CAF sculpt fields')
+    if value['schema']=='caf-face-coordinates-2':
+        from fighter_neck_normals import validate as validate_normals
+        validate_normals(value['neck_normals'])
+    require(value['schema'] in ('caf-face-coordinates-1','caf-face-coordinates-2') and type(value['template_sha256']) is str
             and re.fullmatch('[0-9a-f]{64}',value['template_sha256']),'Unsupported CAF sculpt contract')
     require(type(value['basis']) is list and all(type(v) is int for v in value['basis'])
             and value['basis']==[recipe['caf_values'][i] for i in BASIS],'CAF face basis differs from its outfit')
@@ -84,3 +89,21 @@ def encode_rows(entries, report):
     raw=b''.join(rows)
     require(len(raw)<=MAX_BYTES,'CAF face sculpt budget exceeded')
     return len(rows),raw
+
+
+def encode_normals(entries, report):
+    """Optional V2 annex; keys must also identify an admitted face row."""
+    from fighter_caf_layout import NORMAL_MAX, NORMAL_STRIDE
+    from fighter_caf_outfits import variants
+    rows=[]
+    for key,item in sorted(entries.items()):
+        for index,outfit in enumerate(variants(item)):
+            if 'face' not in outfit:continue
+            value=validate(outfit['face'],outfit['recipe'])
+            normals=value.get('neck_normals')
+            if not normals:continue
+            raw=struct.pack('<3I',report['bindings'][key]['selection_key'],index,len(normals))
+            raw+=b''.join(struct.pack('<3I3f2I',r['slot'],r['rm'],r['vertex'],*r['position'],r['original'],r['replacement']) for r in normals)
+            raw+=bytes((NORMAL_MAX-len(normals))*32)
+            require(len(raw)==NORMAL_STRIDE,'Invalid CAF normal stride');rows.append(raw)
+    return len(rows),b''.join(rows)

@@ -20,6 +20,8 @@
   ],
   "recipe_format": "caf-fighter-1",
   "extensions": [
+    "caf-final-stats-1",
+    "caf-sculpt-normals-1",
     "fighter-ui-team-art-1"
   ]
 }

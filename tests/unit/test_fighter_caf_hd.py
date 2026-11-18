@@ -64,7 +64,26 @@ def test_hd_encoder_refuses_bad_blocks_and_budget(monkeypatch):
     def entry(block):return {'a/b':{'extras':{'hd_atlases':{'a':block}}}}
     with pytest.raises(ValueError,match='dimensions'):encode_section(entry(struct.pack('<I',999)+bytes(8)),report)
     block=struct.pack('<I',512)+bytes(512*512*4)
-    monkeypatch.setattr(fighter_caf_hd,'HD_MAX_BYTES',1024)
+    monkeypatch.setattr(fighter_caf_hd,'HD_MAX_BYTES',64)
     with pytest.raises(ValueError,match='budget'):encode_section(entry(block),report)
     assert encode_section({'a/b':{'extras':{'atlases':{}}}},report)==(0,b'')
     assert encode_section({'a/b':{'extras':None}},report)==(0,b'')
+
+
+def test_budget_falls_back_to_lossless_rgb_without_increasing_limit(monkeypatch):
+    import fighter_caf_hd
+    edge=512
+    pixels=bytes(range(256))*(edge*edge*4//256)
+    block=struct.pack('<I',edge)+pixels
+    entries={'a/b':{'extras':{'hd_atlases':{'a':block,'d':block}}}}
+    report={'bindings':{'a/b':{'selection_key':100}}}
+    monkeypatch.setattr(fighter_caf_hd,'HD_MAX_BYTES',edge*edge*3+36)
+    count,payload=encode_section(entries,report)
+    assert count==1 and len(payload)<edge*edge*3+36
+    offsets=struct.unpack_from('<6I',payload,8)
+    assert offsets[0]==offsets[3]==32
+    assert struct.unpack_from('<I',payload,32)[0]==edge|0xc0000000
+    import zlib
+    rgb=zlib.decompress(payload[40:])
+    for channel in range(3):
+        assert rgb[channel::3]==pixels[channel::4]

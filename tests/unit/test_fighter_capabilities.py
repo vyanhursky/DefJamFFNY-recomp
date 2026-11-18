@@ -24,4 +24,6 @@ def test_capability_manifest_matches_actual_parser_and_recipe():
                     and any(isinstance(target, ast.Name) and target.id == 'FORMAT' for target in node.targets))
     assert manifest['recipe_format'] == declared
 
-    assert manifest['extensions'] == ['fighter-ui-team-art-1']
+    capability = next(ast.literal_eval(node.value) for node in recipe.body if isinstance(node, ast.Assign)
+                      and any(isinstance(target, ast.Name) and target.id == 'FINAL_STATS_CAPABILITY' for target in node.targets))
+    assert manifest['extensions'] == [capability, 'caf-sculpt-normals-1', 'fighter-ui-team-art-1']
