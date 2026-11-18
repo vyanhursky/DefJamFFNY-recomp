@@ -73,6 +73,7 @@ extern "C" {
 }
 #include "pc_input.h"
 #include "pc_settings.h"
+#include "pc_speech_subs.h"
 #include "pc_ui.h"
 #include "pc_ui_internal.h"
 #include "song_convert.h"
@@ -218,6 +219,7 @@ static const char *friendly(const char *section, const char *key)
     static const Label labels[] = {
         {"language", "pack", "Language mod"},
         {"language", "story_subtitles", "Story cutscene subtitles"},
+        {"language", "voice_subtitles", "Voice subtitles (intros, fights, shops)"},
         {"language", "game", "Game language"},
         {"display", "fullscreen", "Full screen"},
         {"display", "window_width", "Window width"},
@@ -1521,7 +1523,7 @@ static void page_general(UiMode mode)
                            "sees no input and keeps running.");
     }
     ImGui::SeparatorText("Language and subtitles");
-    settings_group("language", { "game", "story_subtitles" });
+    settings_group("language", { "game", "story_subtitles", "voice_subtitles" });
     if (!get_text("language", "pack").empty())
         ImGui::TextWrapped("A language mod is on (Mods page), so the game uses its language; the game language "
                            "above applies when no language mod is on.");
@@ -2689,6 +2691,35 @@ void set_open(bool open)
 
 } // namespace
 
+static void draw_speech_subtitle(const char *sub_text)
+{
+    if (!sub_text || !*sub_text)
+        return;
+    ImGuiIO &io = ImGui::GetIO();
+    ImDrawList *bg = ImGui::GetBackgroundDrawList();
+    ImFont *font = ImGui::GetFont();
+    float font_size = ImGui::GetFontSize() * 1.35f;
+    float wrap_w = io.DisplaySize.x * 0.82f;
+    ImVec2 sz = font->CalcTextSizeA(font_size, FLT_MAX, wrap_w, sub_text);
+    float tx_x = (io.DisplaySize.x - sz.x) * 0.5f;
+    float tx_y = io.DisplaySize.y * 0.86f - sz.y;
+    if (tx_y < 16.0f) tx_y = 16.0f;
+
+    // Cutscene-style "loose letters": strong solid black outline in 8 directions, no container box
+    const float o = (font_size >= 24.0f) ? 2.0f : 1.5f;
+    const ImU32 outline_col = IM_COL32(0, 0, 0, 255);
+    const ImVec2 offsets[] = {
+        {-o, -o}, { 0, -o}, { o, -o},
+        {-o,  0},           { o,  0},
+        {-o,  o}, { 0,  o}, { o,  o},
+    };
+    for (const auto &d : offsets) {
+        bg->AddText(font, font_size, ImVec2(tx_x + d.x, tx_y + d.y), outline_col, sub_text, nullptr, wrap_w);
+    }
+    // Main text: crisp pure white
+    bg->AddText(font, font_size, ImVec2(tx_x, tx_y), IM_COL32(255, 255, 255, 255), sub_text, nullptr, wrap_w);
+}
+
 #if defined(_WIN32)
 extern "C" void pc_ui_set_window(HWND window) { g_window = window; }
 #endif
@@ -2767,7 +2798,10 @@ extern "C" void pc_ui_overlay(void *device, void *context, void *window_rtv, uns
     if (!ui_capturing() && !g_open.load()) song_pad_poll();
     if (!ui_capturing() && !g_chords.empty() && pad_toggle_pressed()) toggled = true;
     if (toggled) set_open(!g_open.load());
-    if (!g_open.load()) { ui_unlock(); return; }
+    bool open = g_open.load();
+    char sub_text[256] = "";
+    bool has_sub = pc_speech_subs_current(sub_text, sizeof(sub_text)) != 0;
+    if (!open && !has_sub) { ui_unlock(); return; }
 
     ID3D11Device *dev = (ID3D11Device *)device;
     ID3D11DeviceContext *ctx = (ID3D11DeviceContext *)context;
@@ -2787,32 +2821,37 @@ extern "C" void pc_ui_overlay(void *device, void *context, void *window_rtv, uns
         g_extra_scale = h < 1.0f ? 1.0f : h > 2.4f ? 2.4f : h;
     }
     ui_apply_scale(g_window);
-    ui_feed_gamepad();
+    if (open) ui_feed_gamepad();
     ImGui_ImplDX11_NewFrame();
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
 
-    // Dim the game and put the settings in a panel in the middle.
-    ImGuiIO &io = ImGui::GetIO();
-    if (g_just_opened) {
-        g_just_opened = false;
-        ImGui::SetNextWindowFocus();
-    }
-    ImDrawList *bg = ImGui::GetBackgroundDrawList();
-    bg->AddRectFilled(ImVec2(0, 0), io.DisplaySize, IM_COL32(0, 0, 0, 150));
-    float pw = io.DisplaySize.x * 0.82f, ph = io.DisplaySize.y * 0.86f;
-    if (pw < 560) pw = io.DisplaySize.x;
-    if (ph < 420) ph = io.DisplaySize.y;
+    if (has_sub)
+        draw_speech_subtitle(sub_text);
+
     bool close_request = false;
-    {
-        ImGui::SetNextWindowBgAlpha(0.96f);
-        UiResult r = ui_draw(UI_OVERLAY, (io.DisplaySize.x - pw) / 2, (io.DisplaySize.y - ph) / 2, pw, ph);
-        close_request = r.leave;
+    if (open) {
+        // Dim the game and put the settings in a panel in the middle.
+        ImGuiIO &io = ImGui::GetIO();
+        if (g_just_opened) {
+            g_just_opened = false;
+            ImGui::SetNextWindowFocus();
+        }
+        ImDrawList *bg = ImGui::GetBackgroundDrawList();
+        bg->AddRectFilled(ImVec2(0, 0), io.DisplaySize, IM_COL32(0, 0, 0, 150));
+        float pw = io.DisplaySize.x * 0.82f, ph = io.DisplaySize.y * 0.86f;
+        if (pw < 560) pw = io.DisplaySize.x;
+        if (ph < 420) ph = io.DisplaySize.y;
+        {
+            ImGui::SetNextWindowBgAlpha(0.96f);
+            UiResult r = ui_draw(UI_OVERLAY, (io.DisplaySize.x - pw) / 2, (io.DisplaySize.y - ph) / 2, pw, ph);
+            close_request = r.leave;
+        }
+        // Escape or the pad's cancel button closes the overlay, unless a popup or a capture is open.
+        if (!ui_capturing() && !ImGui::IsPopupOpen(nullptr, ImGuiPopupFlags_AnyPopupId | ImGuiPopupFlags_AnyPopupLevel) &&
+            (ImGui::IsKeyPressed(ImGuiKey_Escape, false) || ImGui::IsKeyPressed(ImGuiKey_GamepadFaceRight, false)))
+            close_request = true;
     }
-    // Escape or the pad's cancel button closes the overlay, unless a popup or a capture is open.
-    if (!ui_capturing() && !ImGui::IsPopupOpen(nullptr, ImGuiPopupFlags_AnyPopupId | ImGuiPopupFlags_AnyPopupLevel) &&
-        (ImGui::IsKeyPressed(ImGuiKey_Escape, false) || ImGui::IsKeyPressed(ImGuiKey_GamepadFaceRight, false)))
-        close_request = true;
 
     ImGui::Render();
     ID3D11RenderTargetView *old_rtv = nullptr;
@@ -2956,8 +2995,10 @@ int overlay_active(void *)
     if (!ui_capturing() && !g_chords.empty() && pad_toggle_pressed()) toggled = true;
     if (toggled) set_open(!g_open.load());
     bool open = g_open.load();
+    char sub_text[256] = "";
+    bool has_sub = pc_speech_subs_current(sub_text, sizeof(sub_text)) != 0;
     ui_unlock();
-    return open ? 1 : 0;
+    return (open || has_sub) ? 1 : 0;
 }
 
 void overlay_init_backend(const D3D8VkOverlayFrame *f)
@@ -2980,7 +3021,10 @@ void overlay_init_backend(const D3D8VkOverlayFrame *f)
 void overlay_draw(const D3D8VkOverlayFrame *f, void *)
 {
     ui_lock();
-    if (!g_open.load()) { ui_unlock(); return; }
+    bool open = g_open.load();
+    char sub_text[256] = "";
+    bool has_sub = pc_speech_subs_current(sub_text, sizeof(sub_text)) != 0;
+    if (!open && !has_sub) { ui_unlock(); return; }
     if (g_ready && f->generation != g_vk_generation) {
         // The window's image has another format: the pipelines were built for the old pass.
         ImGui_ImplVulkan_Shutdown();
@@ -3002,32 +3046,37 @@ void overlay_draw(const D3D8VkOverlayFrame *f, void *)
         ui_set_extra_scale(h < 1.0f ? 1.0f : h > 2.4f ? 2.4f : h);
     }
     ui_apply_scale(nullptr);
-    ui_feed_gamepad();
+    if (open) ui_feed_gamepad();
     ImGui_ImplVulkan_NewFrame();
     ui_sdl_frame((float)f->width, (float)f->height, 1.0f);
     ImGui::NewFrame();
 
-    // Dim the game and put the settings in a panel in the middle (as the Direct3D overlay does).
-    ImGuiIO &io = ImGui::GetIO();
-    if (g_just_opened) {
-        g_just_opened = false;
-        ImGui::SetNextWindowFocus();
-    }
-    ImDrawList *bg = ImGui::GetBackgroundDrawList();
-    bg->AddRectFilled(ImVec2(0, 0), io.DisplaySize, IM_COL32(0, 0, 0, 150));
-    float pw = io.DisplaySize.x * 0.82f, ph = io.DisplaySize.y * 0.86f;
-    if (pw < 560) pw = io.DisplaySize.x;
-    if (ph < 420) ph = io.DisplaySize.y;
+    if (has_sub)
+        draw_speech_subtitle(sub_text);
+
     bool close_request = false;
-    {
-        ImGui::SetNextWindowBgAlpha(0.96f);
-        UiResult r = ui_draw(UI_OVERLAY, (io.DisplaySize.x - pw) / 2, (io.DisplaySize.y - ph) / 2, pw, ph);
-        close_request = r.leave;
+    if (open) {
+        // Dim the game and put the settings in a panel in the middle (as the Direct3D overlay does).
+        ImGuiIO &io = ImGui::GetIO();
+        if (g_just_opened) {
+            g_just_opened = false;
+            ImGui::SetNextWindowFocus();
+        }
+        ImDrawList *bg = ImGui::GetBackgroundDrawList();
+        bg->AddRectFilled(ImVec2(0, 0), io.DisplaySize, IM_COL32(0, 0, 0, 150));
+        float pw = io.DisplaySize.x * 0.82f, ph = io.DisplaySize.y * 0.86f;
+        if (pw < 560) pw = io.DisplaySize.x;
+        if (ph < 420) ph = io.DisplaySize.y;
+        {
+            ImGui::SetNextWindowBgAlpha(0.96f);
+            UiResult r = ui_draw(UI_OVERLAY, (io.DisplaySize.x - pw) / 2, (io.DisplaySize.y - ph) / 2, pw, ph);
+            close_request = r.leave;
+        }
+        // Escape or the pad's cancel button closes the overlay, unless a popup or a capture is open.
+        if (!ui_capturing() && !ImGui::IsPopupOpen(nullptr, ImGuiPopupFlags_AnyPopupId | ImGuiPopupFlags_AnyPopupLevel) &&
+            (ImGui::IsKeyPressed(ImGuiKey_Escape, false) || ImGui::IsKeyPressed(ImGuiKey_GamepadFaceRight, false)))
+            close_request = true;
     }
-    // Escape or the pad's cancel button closes the overlay, unless a popup or a capture is open.
-    if (!ui_capturing() && !ImGui::IsPopupOpen(nullptr, ImGuiPopupFlags_AnyPopupId | ImGuiPopupFlags_AnyPopupLevel) &&
-        (ImGui::IsKeyPressed(ImGuiKey_Escape, false) || ImGui::IsKeyPressed(ImGuiKey_GamepadFaceRight, false)))
-        close_request = true;
 
     ImGui::Render();
     ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), (VkCommandBuffer)f->command_buffer);
