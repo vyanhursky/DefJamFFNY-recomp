@@ -156,6 +156,12 @@ def prepare_portraits(screens, report, *, language=None, resource_cache=None, ca
         inner = Archive(unpack(archive.read(path)))
         movie, constants, _ = compile_results(inner.read(stem + '.apt'), inner.read(stem + '.const'), result_names, participants=count,logos=extended)
         replacements[path] = store(inner.compose(replacements={stem + '.apt': movie, stem + '.const': constants}))
+    if report.get('binding_mode') in ('logical-menu-only', 'participant-window'):
+        from fighter_team_menu import compile_team
+        stem = 'chsTeam4'; path = 'screens/battle/' + stem + '.big'
+        inner = Archive(unpack(archive.read(path)))
+        movie, constants = compile_team(inner.read(stem + '.apt'), inner.read(stem + '.const'), list(report['menu_roster'].values()))
+        replacements[path] = store(inner.compose(replacements={stem + '.apt': movie, stem + '.const': constants}))
     result = archive.compose(replacements=replacements)
     digest = hashlib.sha256(result).hexdigest()
     root.mkdir(parents=True, exist_ok=True)

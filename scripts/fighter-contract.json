@@ -18,5 +18,8 @@
     "workshop-animation",
     "workshop-export"
   ],
-  "recipe_format": "caf-fighter-1"
+  "recipe_format": "caf-fighter-1",
+  "extensions": [
+    "fighter-ui-team-art-1"
+  ]
 }

@@ -13,7 +13,7 @@ from fighter_archive import Archive, store
 from fighter_assets import unpack
 from fighter_registry import fingerprint, key
 from fighter_resource_files import (PORTRAIT_PARTS,PORTRAIT_EXTENDED_PARTS,PORTRAIT_GRID_PARTS,PORTRAIT_ALL_PARTS,
-                                    portrait_parts,portrait_source,resource_name,portrait_target)
+                                    portrait_parts,portrait_source,resource_name,portrait_target,TEAM_PARTS)
 from fighter_xsh import Textures, require
 
 
@@ -122,6 +122,11 @@ class PortraitTextureTemplate:
 
 
 def variant_path(part, selection):
+    if part in TEAM_PARTS:
+        require(type(selection) is int and 0 <= selection <= 0x7ffffffe, 'Invalid Team portrait identity')
+        family, increment = ('p_CT', 1) if part == 'team_portrait' else ('t_CT', 0)
+        stem = f'{family}_{selection + increment}'
+        return f'screens/portrait/{family}/{stem}.big', stem
     require(part in PORTRAIT_EXTENDED_PARTS and type(selection) is int and 0 <= selection <= 0x7ffffffe,
             'Invalid portrait variant or selection identity')
     role,count=part.rsplit('_',1)
@@ -204,9 +209,15 @@ class Portrait:
         if source['format']=='eagl-portrait-png-1':
             from fighter_ui_art import render
             native,hd,receipt=render(source,files,baseline,donor_selection)
+            team = {part: raw for part, raw in native.items() if part in TEAM_PARTS}
+            native = {part: raw for part, raw in native.items() if part not in TEAM_PARTS}
             internal={'format':'eagl-portrait-3','donor':source['donor'],**{
                 part:{'path':part+'.xsh','sha256':hashlib.sha256(raw).hexdigest()} for part,raw in native.items()}}
             self.__init__(identifier,internal,native,baseline,donor_selection,budget)
+            from fighter_team_art import compile_movies
+            added, summaries = compile_movies(identifier, team, baseline, donor_selection)
+            self.files.update(added); self.summary['variants'].update(summaries)
+            self.byte_count += sum(map(len, added.values()))
             self.source_sha256=fingerprint(source);self.summary['source_sha256']=self.source_sha256
             self.summary['png_import']=receipt;self.hd_images=hd
             self.byte_count+=sum(map(len,hd.values()))
@@ -266,6 +277,7 @@ def apply_portraits(screens, bindings, resources):
         prefix=f'portraits/{resource_name(identifier)}/'
         parts=tuple(part for part in PORTRAIT_EXTENDED_PARTS if prefix+part+'.big' in files)
         require(set(parts) in (set(PORTRAIT_PARTS),set(PORTRAIT_EXTENDED_PARTS)),'Incomplete compiled portrait role set')
+        parts += tuple(part for part in TEAM_PARTS if prefix+part+'.big' in files)
         for part in parts:
             path, stem = variant_path(part, selection)
             require(path.lower() in archive.by_name and path not in replacements,

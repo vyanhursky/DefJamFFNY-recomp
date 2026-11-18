@@ -436,3 +436,28 @@ ordinary46fighter candidate exists. The additional legacy runtime reference
 establishes owned absolute phase4 cameras; native and wider acceptance remain
 separate gates before declaring complete faithful acceptance.
 See the [current M5 checkpoint](research/fighter-mod-m5-2026-11-08.md).
+
+
+### Editable Team-selection artwork
+
+The optional `fighter-ui-team-art-1` capability extends `eagl-portrait-png-1`
+with `team_portrait`, `team_icon` and `team_icon_selected`. These are independent
+PNG roles; they do not add required members to the older binary portrait formats.
+The tall card fits inside the native101×195 rectangle. Both icon states fit the
+native59×59 rectangle and retain its original overlapping quads. Supply a separate
+picked icon for exact art direction; otherwise an authored available icon derives
+a muted picked state. Missing roles retain the donor artwork.
+
+The compiler changes verified raster spans only, retaining donor APT actions,
+constants, geometry and material controls. HD tiles use the existing owned hash
+layer. Team aliases follow `p_CT_<identity+1>` and `t_CT_<identity>` (no player
+suffix). Resources replace only allocated custom/outfit aliases, never shared
+retail donor movies. A runtime-owned display adapter snapshots validated outfit
+portrait aliases at character confirmation and passes a bounded copy to Team's
+image initializers; semantic fighter/controller IDs remain unchanged.
+
+In Workshop, choose the outfit, open **Menu artwork**, select a **Team selection**
+role and **Import PNG**. Save the project, export with a runtime advertising the
+capability, install the ZIP and use Play. Existing projects without explicit Team
+roles preserve their current artwork. Transparent margins remain meaningful;
+prepare a tightly framed PNG when the card should fill its native rectangle.
