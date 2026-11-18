@@ -78,7 +78,19 @@ def surface_triangles(positions,strip):
     return result
 
 
-def preview(game,folder,catalog,pins):
+def preview_skin(skin, symbol, used):
+    """Match the compacted preview vertices to their original native palette rows."""
+    resource = next((row for row in skin.resources if row['resource'] == symbol), None)
+    require(resource is not None, 'Preview surface has no verified skin palette')
+    selectors = skin.vertex_selectors[symbol]
+    require(used and all(type(index) is int and 0 <= index < len(selectors) for index in used),
+            'Preview skin differs from its source vertex order')
+    rows = [resource['palette'][selectors[index]] for index in used]
+    return dict(indices=[[bone if weight else 0 for bone, weight in zip(row['bones'], row['weights'])]+[0]
+                         for row in rows], weights=[row['weights']+[0] for row in rows])
+
+
+def preview(game,folder,catalog,pins,*,include_textures=True):
     from fighter_packages import inventory
     from fighter_registry import resolve
     folder=Path(folder);pack=inventory(folder);snapshot=resolve(catalog.baseline(),[pack])
@@ -98,7 +110,8 @@ def preview(game,folder,catalog,pins):
         donor=catalog.bindings[key]['donor'];stem=catalog.rows[donor]['fields']['Model']['symbol']
         data=(Path(game)/'assets/v2ip.viv').read_bytes();require(hashlib.sha256(data).hexdigest()==pins['v2ip_sha256'],'Original models changed')
         archive=Archive(data);raw=unpack(archive.read(stem+'.o'));textures=Textures(unpack(archive.read(stem+'.xsh')))
-    model=Model(raw);geometry=Geometry(model);Skin(model)
+    model=Model(raw);geometry=Geometry(model);skin=Skin(model)
+    rig_meshes={};source_sha256=hashlib.sha256(model.data).hexdigest()
     labels={i:g['name'] for g in geometry.groups for i in g['render_resources']};meshes=[];points=[];skipped=[]
     for mesh in geometry.meshes:
         index=mesh['index'];label=labels[index]
@@ -120,11 +133,14 @@ def preview(game,folder,catalog,pins):
         shapes={m[1] for ref in refs if (m:=re.search('SHAPENAME=([A-Za-z0-9_]{4}),1;',ref))}
         if len(shapes)!=1:skipped.append(label+' (external material)');continue
         shape=next(iter(shapes));points.extend(positions)
+        symbol='__RM:::__GP_RM_'+geometry.name+'_'+str(index)
+        rig_meshes[str(index)]=preview_skin(skin,symbol,used)
         meshes.append({'name':label+' / '+str(index),'group':label,'positions':positions,'uv':uv,'normals':normals,'indices':indices,'atlas':shape,
+                       'source_model':'retail-body','source_model_sha256':source_sha256,'rm':index,
                        'transparent':'ALPHA' in label or any('ABM_BLEND' in ref for ref in refs)})
     require(points,'No supported textured surfaces for preview')
     images={}
-    for tile in textures.images:
+    for tile in textures.images if include_textures else []:
         stream=io.BytesIO();picture=raster(textures,tile)
         if 'source' in resource and resource['source']['format']=='eagl-appearance-png-1' and tile['name'] in files['images']:
             from fighter_appearance_png import png
@@ -132,5 +148,8 @@ def preview(game,folder,catalog,pins):
         picture.putalpha(255);picture.save(stream,format='PNG')
         images[tile['name']]='data:image/png;base64,'+base64.b64encode(stream.getvalue()).decode('ascii')
     return {'meshes':meshes,'textures':images,'bounds':[[min(p[i] for p in points) for i in range(3)],[max(p[i] for p in points) for i in range(3)]],
+            'models':{'retail-body':dict(
+                bones=[dict(parent=r[3],scale=list(r[:3]),quaternion=list(r[4:8]),position=list(r[8:11])) for r in skin.skeleton.rows],
+                meshes=rig_meshes,topology=skin.skeleton.topology_sha256,source_sha256=source_sha256)},
             'shapes':[{'name':t['name'],'width':t['width'],'height':t['height']} for t in textures.images],
             'notices':['Static source pose; no animation or native material emulation.',*sorted(set(skipped))]}

@@ -15,5 +15,11 @@ the JSON against the actual argparse declaration and recipe constant without
 importing or executing runtime code. Refactoring the parser should update that
 drift test while preserving this manifest's external contract.
 
+Optional `extensions` lists finer-grained authoring features without changing
+the command names or API number. `retail-animation-preview-1` means
+`workshop-animation --pack <one-pack>` can use the pack's selected, hash-bound
+retail body. Readers must not infer this extension from command presence alone.
+Older readers ignore the optional field and retain existing behavior.
+
 Companion Workshop reader:
 [Workshop PR #14](https://github.com/vyanhursky/defjam-ffny-fighter-workshop/pull/14).

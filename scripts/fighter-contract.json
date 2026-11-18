@@ -1,5 +1,6 @@
 {
   "api": 1,
+  "extensions": ["retail-animation-preview-1"],
   "commands": [
     "catalog",
     "tag-catalog",
