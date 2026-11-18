@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[2]
 def test_capability_manifest_matches_actual_parser_and_recipe():
     manifest = json.loads((ROOT / 'scripts/fighter-contract.json').read_text(encoding='utf-8'))
     assert set(manifest) == {'api', 'commands', 'recipe_format', 'extensions'}
-    assert manifest['extensions'] == ['retail-animation-preview-1']
+    assert manifest['extensions'] == ['retail-animation-preview-1', 'standalone-retail-outfits-1']
     assert type(manifest['api']) is int and manifest['api'] == 1
     tree = ast.parse((ROOT / 'scripts/fighter-contract.py').read_text(encoding='utf-8'))
     commands = next(ast.literal_eval(keyword.value)

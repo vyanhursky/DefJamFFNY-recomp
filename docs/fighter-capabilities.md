@@ -21,5 +21,12 @@ the command names or API number. `retail-animation-preview-1` means
 retail body. Readers must not infer this extension from command presence alone.
 Older readers ignore the optional field and retain existing behavior.
 
+`standalone-retail-outfits-1` permits up to three looks under one standalone
+retail-derived fighter. Hidden appearance records may declare a same-pack
+independent parent through `outfit_of`; generated FWR3 bindings retain that
+parent's progress and each look's own loading/result artwork. Original retail
+outfits continue to use FWR2. Packs containing independent fighters only retain
+FWR1. The public package schema is unchanged.
+
 Companion Workshop reader:
 [Workshop PR #14](https://github.com/vyanhursky/defjam-ffny-fighter-workshop/pull/14).

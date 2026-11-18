@@ -41,7 +41,11 @@ static void fighter_stop(const char *message){fprintf(stderr,"%s\n",message);exi
 int fighter_bindings_find(const FighterBindings *bindings,FighterBindingKey domain,uint32_t key,FighterBinding *out){
  assert(bindings==&s_bindings);
  memset(out,0,sizeof *out);out->stable_handle=key;
- if(domain==FIGHTER_BINDING_SELECTION){assert(key<75);out->stable_handle=0x1000+key;return 1;}
+ if(domain==FIGHTER_BINDING_SELECTION){
+  if(key<75){out->stable_handle=0x1000+key;return 1;}
+  for(unsigned i=0;i<5;i++)if(rows[i].selection_key==key){out->flags=1;out->stable_handle=rows[i].stable_handle;return 1;}
+  return 0;
+ }
  assert(domain==FIGHTER_BINDING_STABLE);
  if(key>=0x1000&&key<0x1000+75)return 1;
  for(unsigned i=0;i<5;i++)if(rows[i].stable_handle==key){out->flags=1;return 1;}
@@ -75,6 +79,21 @@ int main(int argc,char **argv){
  for(unsigned i=0;i<75;i++)MEM32(s_settings+0x12E0+4*i)=0x1000+i;
  for(unsigned i=0;i<4;i++)MEM32(s_settings+0x12E0+4*(75+i))=rows[i].stable_handle|FIGHTER_UNLOCK_METADATA;
  MEM32(s_settings+0x12E0+79*4)=0xDEAD;
+ if(!strcmp(argv[2],"duplicate") || !strcmp(argv[2],"overflow")){
+  MEM32(s_settings+0x20)=MEM32(s_settings+0x1264)=80;
+  MEM32(s_settings+0x1C)=80;
+  uint32_t before[80];for(unsigned i=0;i<80;i++)before[i]=MEM32(s_settings+0x12E0+i*4);
+  g_esp=0x7000;MEM32(g_esp+4)=0x7100;
+  MEM32(0x7100)=!strcmp(argv[2],"duplicate")?rows[4].stable_handle:0x9999;
+  MEM32(0x7104)=0x87654321;
+  defjam_fighter_unlock_inserting(s_settings+0x1C);
+  assert(MEM32(s_settings+0x20)==79 && MEM32(s_settings+0x1264)==79);
+  assert(MEM32(0x7100)==(rows[1].stable_handle|FIGHTER_UNLOCK_METADATA));
+  assert(MEM32(0x7104)==0x87654321);
+  for(unsigned i=0;i<76;i++)assert(MEM32(s_settings+0x12E0+i*4)==before[i]);
+  for(unsigned i=76;i<79;i++)assert(MEM32(s_settings+0x12E0+i*4)==before[i+1]);
+  assert(MEM32(s_settings+0x12E0+79*4)==0);return 0;
+ }
  unsigned expected=78;
  if(!strcmp(argv[2],"bad-count"))MEM32(s_settings+0x20)=81;
  if(!strcmp(argv[2],"prefix")){
@@ -104,12 +123,29 @@ int main(int argc,char **argv){
    defjam_fighter_unlock_inserting(s_settings+0x1C);
    assert(MEM32(0x7100)==(0x1003|FIGHTER_UNLOCK_METADATA));
    assert(MEM32(0x70FC)==0x12345678&&MEM32(0x7104)==0x87654321);
+   /* The original native insertion now replaces this one retired owner. */
+   assert(MEM32(s_settings+0x20)==77);
+   for(unsigned i=77;i>3;i--)MEM32(s_settings+0x12E0+4*i)=MEM32(s_settings+0x12E0+4*(i-1));
+   MEM32(s_settings+0x12E0+4*3)=MEM32(0x7100);
+   MEM32(s_settings+0x20)=MEM32(s_settings+0x1264)=78;
+  }
+  if(!strcmp(argv[2],"custom-outfit")){
+   submit(0,rows[4].selection_key);expected=78;
+   assert(outfit_progress_handle(rows[4].stable_handle)==rows[1].stable_handle);
+   /* The sibling already owns this unlock, including its historical metadata. */
+   unsigned found=0;
+   for(unsigned i=0;i<expected;i++)if(MEM32(s_settings+0x12E0+4*i)==(rows[1].stable_handle|FIGHTER_UNLOCK_METADATA))found++;
+   assert(found==1);
+   /* Retiring the parent's participant must retain the selected child's owner. */
+   submit(1,1);
+   found=0;for(unsigned i=0;i<expected;i++)if(MEM32(s_settings+0x12E0+4*i)==(rows[1].stable_handle|FIGHTER_UNLOCK_METADATA))found++;
+   assert(found==1);
   }
  }
  assert(MEM32(s_settings+0x20)==expected&&MEM32(s_settings+0x1264)==expected);
  for(unsigned retail=0;retail<75;retail++){
   unsigned found=0;
-  for(unsigned i=0;i<expected;i++)if(MEM32(s_settings+0x12E0+i*4)==0x1000+retail)found++;
+  for(unsigned i=0;i<expected;i++)if((MEM32(s_settings+0x12E0+i*4)&~FIGHTER_UNLOCK_METADATA)==0x1000+retail)found++;
   assert(found==1);
  }
  for(unsigned i=expected;i<80;i++)assert(MEM32(s_settings+0x12E0+i*4)==0);
@@ -137,7 +173,7 @@ def projection(tmp_path_factory):
              'defjam_fighter_controller_submission', 'defjam_fighter_ui_command']
     helper = 'prune_participant_unlocks'
     if 'static void ' + helper + '(' in runtime:
-        names.insert(0, helper)
+        names.insert(1, helper)
     functions = '\n'.join(definition(runtime, name) for name in names)
     source = folder / 'probe.c'
     source.write_text(DRIVER.replace('@FUNCTIONS@', functions), encoding='utf-8')
@@ -154,14 +190,17 @@ def projection(tmp_path_factory):
     window.write_bytes(encode_window(report['window']))
     report['window']['fighters'][4]['reserved']=4  # native retail selection3+1
     outfit=folder/'outfit.bin';outfit.write_bytes(encode_window(report['window']))
-    return exe, window, outfit
+    report['window']['fighters'][4]['reserved']=report['window']['fighters'][1]['selection_key']+1
+    custom=folder/'custom.bin';custom.write_bytes(encode_window(report['window']))
+    return exe, window, outfit, custom
 
 
-@pytest.mark.parametrize('mode', ['retail', 'all', 'ready', 'bind', 'bad-count', 'outfit', 'prefix'])
+@pytest.mark.parametrize('mode', ['retail', 'all', 'ready', 'bind', 'bad-count', 'outfit', 'custom-outfit', 'duplicate', 'overflow', 'prefix'])
 def test_actual_selection_clear_prunes_only_unbound_live_marks(projection, mode):
-    exe, window, outfit = projection
+    exe, window, outfit, custom = projection
     if mode=='outfit':window=outfit
+    if mode in ('custom-outfit','duplicate','overflow'):window=custom
     result = subprocess.run([str(exe), str(window), mode], capture_output=True, text=True, timeout=10)
-    assert result.returncode == (23 if mode in ('bad-count', 'prefix') else 0), result.stdout + result.stderr
+    assert result.returncode == (23 if mode in ('bad-count', 'prefix', 'overflow') else 0), result.stdout + result.stderr
     if mode == 'prefix':
         assert 'exceeds its budget' in result.stderr

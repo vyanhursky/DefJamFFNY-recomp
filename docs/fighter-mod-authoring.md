@@ -375,7 +375,8 @@ A selectable extra outfit uses a normal fighter definition plus `outfit_of`:
 ```
 
 Declare the referenced appearance resource in the pack as usual. The target
-must be an original retail fighter. All components except appearance/portrait
+may be an original retail fighter or an independent fighter in the same pack.
+All components except appearance/portrait
 must resolve identically to the parent. The compiler adds a hidden native
 appearance binding and extends the original clothing selector, retaining one
 public retail cell. Original and added outfits together must not exceed three.
@@ -383,6 +384,15 @@ Use the matching runtime with FWR2 support. Progress, loading and results keep
 the retail identity; the selected battle appearance uses the owned resource.
 The selector portrait is separate artwork and does not change merely because
 the body atlas changes. See [native evidence and limits](research/retail-overrides-outfits.md).
+
+For a standalone parent use `inherits: "example-pack/fighter"` and
+`outfit_of: "example-pack/fighter"`, overriding appearance/portrait only. The
+parent must not itself be an outfit. The default plus hidden children must not
+exceed three looks. This requires `standalone-retail-outfits-1` and generated
+FWR3 support; older runtimes refuse the window version. The original clothing
+selector retains one public fighter; combat and saved progress belong to the
+parent. Loading/results use each look's own artwork. CAF recipe outfit groups
+retain their existing separate adapter.
 
 ### Conflicting component claims
 
