@@ -463,8 +463,10 @@ int main(int argc, char **argv)
             loaded = 1;
             printf("loaded %08X get1 %u\n", MEM32(A1), call(CLOTHING_GET, custom1, 0, 0));
         } else if (!strncmp(s, "new", 3)) {
+            /* sub_00016240: the slot setup, then every set of the profile reset to 0 */
             clothing_slot_init(P + 0x177Cu);
-            printf("new get1 %u\n", call(CLOTHING_GET, custom1, 0, 0));
+            clothing_set_all(SET, 0);
+            printf("new get0 %u get1 %u\n", call(CLOTHING_GET, custom0, 0, 0), call(CLOTHING_GET, custom1, 0, 0));
         }
     }
     /* Names. */
@@ -688,7 +690,9 @@ def test_game_side_uses_a_clothing_file_only_for_the_save_it_was_written_for(clo
     _, table_rank, _ = ranks(clothing_database())
     jeans_rank, tee_rank = added_ranks()
     out, _ = run_tool(clothing_tool, data, game, table_rank, jeans_rank, tee_rank, steps='save,new')
-    assert out['new'] == 'new get1 1'                       # the old hero's bought tee is not the new hero's
+    # The new hero owns the wardrobe jeans and sees the tee in the shop, not bought: neither the old
+    # hero's purchase nor the game's reset of the new profile's sets (to locked) reaches them.
+    assert out['new'] == 'new get0 3 get1 1'
     saved = int(out['saving'].split()[1], 16)
     row = bytearray((data / 'row.bin').read_bytes())
     row[0x200] ^= 0x55                                       # another hero, the same name and base items

@@ -217,7 +217,9 @@ would sort between retail ones and shift every retail state, and overflow the bl
 only retail keys (`clothing_after_build`), and its methods (`sub_00017260` get, `sub_000173A0` set,
 `sub_00017410` or-all, `sub_00017310` any, `sub_00017480` or, `sub_000174D0` clear, and the retail
 cheats' `sub_000168E0` set-all) answer for added keys from a table in `clothing.c`, one per profile slot.
-Two of the originals would write through a `-1` index for a key they do not know.
+A new hero (`sub_00016240`) resets every set of its profile with set-all 0 after the slot setup; for
+added items that puts back their starting state (owned in the wardrobe, unlocked in the shop) rather
+than locking them, and a nonzero set-all (the cheats) is added to the starting state. Two of the originals would write through a `-1` index for a key they do not know.
 
 The shop list builder (`sub_0004E650`) walks the database rows of one Type and asks the set for each,
 so added rows appear in stores and in the Wardrobe without further changes. Names: a DisplayName string

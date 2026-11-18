@@ -861,11 +861,19 @@ int clothing_set_call(int op, uint32_t set, uint32_t a1, uint32_t a2, uint32_t a
     return 1;
 }
 
+/* Sets every state of the set (sub_000168E0). A new hero (sub_00016240) resets the profile's sets
+ * with 0, after the slot setup: for added items that is their starting state (owned in the
+ * wardrobe, unlocked in the shop), not locked, so the reset never takes away what a pack gives. A
+ * nonzero state (the cheats) is added to the starting state. */
 void clothing_set_all(uint32_t set, uint32_t state)
 {
     if (!g_active || set != profiles() + SET_CLOTHING) return;
     uint8_t *st = slot_states(set);
-    memset(st, (int)(state & 3u), g_states);
+    if (!st) return;
+    for (int i = 0; i < g_count; i++)
+        memset(st + g_items[i].first,
+               (int)((strcmp(g_items[i].avail, "shop") ? STATE_OWNED : STATE_UNLOCKED) | (state & 3u)),
+               g_items[i].colours);
 }
 
 /* ---- names --------------------------------------------------------------------------------------- */
