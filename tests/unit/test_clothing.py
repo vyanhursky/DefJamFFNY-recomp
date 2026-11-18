@@ -377,6 +377,8 @@ void sub_00029680(void) { uint32_t size = MEM32(g_esp + 4); g_eax = next_alloc; 
 #define SET    (P + 0x1594u)
 #define A1     (ROW + 0x5558u + 12u * 4u)   /* part 12 of the outfit worn */
 #define A2     (ROW + 0x5618u + 13u * 4u)   /* part 13 of the creator's undo copy */
+#define SRC    0x400000u                    /* a save's row, as the game reads it in */
+#define ROWB   0x5904u
 
 static void served(const char *name)
 {
@@ -400,7 +402,7 @@ static uint32_t call(int op, uint32_t a1, uint32_t a2, uint32_t a3)
 
 int main(int argc, char **argv)
 {
-    /* argv: data, game, table rank, the jeans' rank, the tee's rank [, the handle to load at A1] */
+    /* argv: data, game, table rank, the jeans' rank, the tee's rank */
     unsigned table = (unsigned)strtoul(argv[3], NULL, 0);
     uint32_t custom0 = table << 24 | (unsigned)strtoul(argv[4], NULL, 0);
     uint32_t custom1 = table << 24 | (unsigned)strtoul(argv[5], NULL, 0);
@@ -430,20 +432,41 @@ int main(int argc, char **argv)
     MEM32(SET + 8) = 4;
     clothing_after_build(SET);
     printf("keys %u %08X %08X\n", MEM32(SET + 8), MEM32(0x210000u), MEM32(0x210004u));
-    /* A save holds base items; the row is put back right after. */
-    MEM32(A1) = custom0 | 1u << 16;
-    MEM32(A2) = custom1;
-    clothing_before_save(ROW);
-    uint32_t saved_a1 = argc > 6 ? (uint32_t)strtoul(argv[6], NULL, 0) : MEM32(A1);
-    printf("saving %08X %08X\n", MEM32(A1), MEM32(A2));
-    clothing_after_save();
-    printf("after %08X %08X\n", MEM32(A1), MEM32(A2));
-    /* A load of that save, in a new run: states start over, then the file. */
-    MEM32(A1) = saved_a1;
-    call(CLOTHING_SET, custom1, 1, 0);
-    clothing_after_row_load();
-    clothing_on_funccall("Crib.Enter()");
-    printf("loaded %08X get1 %u\n", MEM32(A1), call(CLOTHING_GET, custom1, 0, 0));
+    /* DRIVER_STEPS (default "save,load"). save: the hero wears the added items (or, after a load,
+     * has played since); the save holds base items, written to <data>/row.bin, and the row is put
+     * back right after. load: row.bin comes back as sub_000156D0 does it (sub_000148B0 sets up the
+     * slot, then a byte copy); states start over, then the file. new: a hero made in the slot. */
+    const char *steps = getenv("DRIVER_STEPS");
+    char rowfile[1024];
+    int loaded = 0;
+    (void)argc;
+    snprintf(rowfile, sizeof rowfile, "%s/row.bin", argv[1]);
+    if (!steps || !*steps) steps = "save,load";
+    for (const char *s = steps; *s; s += strcspn(s, ","), s += *s == ',') {
+        FILE *f;
+        if (!strncmp(s, "save", 4)) {
+            if (!loaded) { MEM32(A1) = custom0 | 1u << 16; MEM32(A2) = custom1; }
+            else MEM8(ROW + 0x100u) ^= 1u;
+            clothing_before_save(ROW);
+            printf("saving %08X %08X\n", MEM32(A1), MEM32(A2));
+            if ((f = fopen(rowfile, "wb")) != NULL) { fwrite(&MEM8(ROW), 1, ROWB, f); fclose(f); }
+            clothing_after_save();
+            printf("after %08X %08X\n", MEM32(A1), MEM32(A2));
+        } else if (!strncmp(s, "load", 4)) {
+            if ((f = fopen(rowfile, "rb")) != NULL) { fread(&MEM8(SRC), 1, ROWB, f); fclose(f); }
+            call(CLOTHING_SET, custom1, 1, 0);
+            clothing_before_row_load();
+            clothing_slot_init(P + 0x177Cu);
+            memcpy(&MEM8(ROW), &MEM8(SRC), ROWB);
+            clothing_after_row_load();
+            clothing_on_funccall("Crib.Enter()");
+            loaded = 1;
+            printf("loaded %08X get1 %u\n", MEM32(A1), call(CLOTHING_GET, custom1, 0, 0));
+        } else if (!strncmp(s, "new", 3)) {
+            clothing_slot_init(P + 0x177Cu);
+            printf("new get1 %u\n", call(CLOTHING_GET, custom1, 0, 0));
+        }
+    }
     /* Names. */
     uint32_t text = clothing_localized(pc_sod_hash("Red Jeans"), 0), keep = clothing_localized(pc_sod_hash("Red Jeans"), 0x1234u);
     char name[64] = {0};
@@ -555,8 +578,8 @@ def catalogue(path):
     return unpack(cp.RetailArchive(Path(path).read_bytes()).read('createplayer_parts.xml')).decode()
 
 
-def run_tool(tool, data, game, *ranks_args, studio=None):
-    env = dict(os.environ, STUDIO_DIR=str(studio) if studio else '')
+def run_tool(tool, data, game, *ranks_args, studio=None, steps=''):
+    env = dict(os.environ, STUDIO_DIR=str(studio) if studio else '', DRIVER_STEPS=steps)
     result = subprocess.run([str(tool), str(data), str(game), *map(str, ranks_args)], capture_output=True, text=True,
                             timeout=60, env=env)
     assert result.returncode == 0, result.stdout + result.stderr
@@ -619,7 +642,8 @@ def test_game_side_serves_states_saves_and_names(clothing_tool, tmp_path):
     saving = [int(x, 16) for x in out['saving'].split()[1:3]]
     assert all(h >> 24 == table_rank and h & 0xFFFF < retail for h in saving)          # base items only
     state = (data / 'clothing-state' / 'VY2.txt').read_text().splitlines()
-    assert state[0] == 'clothing-state-1' and sum(line.startswith('worn') for line in state) == 2
+    assert state[0] == 'clothing-state-2' and sum(line.startswith('worn') for line in state) == 2
+    assert re.fullmatch(r'row\t[0-9A-F]{16}', state[1])
     assert [int(line.split('\t')[2], 16) for line in state if line.startswith('worn')] == saving
     after_save = [int(x, 16) for x in out['after'].split()[1:3]]
     assert sorted(h & 0xFFFF for h in after_save) == [retail, retail + 1]              # the row is back
@@ -646,13 +670,50 @@ def test_game_side_with_the_pack_off_keeps_base_items(clothing_tool, tmp_path):
     worn = [line.split('\t') for line in (data / 'clothing-state' / 'VY2.txt').read_text().splitlines()
             if line.startswith('worn')]
     recorded = next(int(w[2], 16) for w in worn if w[1] == '5588')
-    out, err = run_tool(clothing_tool, data, game, table_rank, jeans_rank, tee_rank, hex(recorded))
+    out, err = run_tool(clothing_tool, data, game, table_rank, jeans_rank, tee_rank, steps='load')
     assert 'custom item' not in err.split('profile slot')[0]
     assert out['served assets/djv2.sod'].endswith(' -')
     assert int(out['loaded'].split()[1], 16) == recorded   # the hero keeps the base item
     assert 'left as their base items' in err
     # The file still remembers the custom item for when the pack is enabled again.
     assert any(line.startswith('worn') for line in (data / 'clothing-state' / 'VY2.txt').read_text().splitlines())
+
+
+def test_game_side_uses_a_clothing_file_only_for_the_save_it_was_written_for(clothing_tool, tmp_path):
+    """A hero deleted and made again under the same name (or a save written without the file) has
+    another row: the file of the old save is not used. A new hero in a slot starts its added items over."""
+    game, data = tmp_path / 'game', tmp_path / 'data'
+    synthetic_game(game)
+    synthetic_cache(data / 'cache' / 'clothing')
+    _, table_rank, _ = ranks(clothing_database())
+    jeans_rank, tee_rank = added_ranks()
+    out, _ = run_tool(clothing_tool, data, game, table_rank, jeans_rank, tee_rank, steps='save,new')
+    assert out['new'] == 'new get1 1'                       # the old hero's bought tee is not the new hero's
+    saved = int(out['saving'].split()[1], 16)
+    row = bytearray((data / 'row.bin').read_bytes())
+    row[0x200] ^= 0x55                                       # another hero, the same name and base items
+    (data / 'row.bin').write_bytes(bytes(row))
+    out, err = run_tool(clothing_tool, data, game, table_rank, jeans_rank, tee_rank, steps='load')
+    assert 'written for another save of this name' in err, err
+    assert out['loaded'] == f'loaded {saved:08X} get1 1'    # base item, tee not bought
+
+
+def test_game_side_file_follows_saves_made_with_no_pack_enabled(clothing_tool, tmp_path):
+    """Saved with the pack on, played and saved with it off, loaded with it on again: the items come back."""
+    game, data = tmp_path / 'game', tmp_path / 'data'
+    synthetic_game(game)
+    synthetic_cache(data / 'cache' / 'clothing')
+    _, table_rank, _ = ranks(clothing_database())
+    jeans_rank, tee_rank = added_ranks()
+    first, _ = run_tool(clothing_tool, data, game, table_rank, jeans_rank, tee_rank)
+    shutil.rmtree(data / 'cache' / 'clothing')
+    before = (data / 'clothing-state' / 'VY2.txt').read_text().splitlines()
+    out, err = run_tool(clothing_tool, data, game, table_rank, jeans_rank, tee_rank, steps='load,save')
+    after = (data / 'clothing-state' / 'VY2.txt').read_text().splitlines()
+    assert after[1] != before[1] and after[2:] == before[2:]     # a new fingerprint, the same lines
+    synthetic_cache(data / 'cache' / 'clothing')
+    out, err = run_tool(clothing_tool, data, game, table_rank, jeans_rank, tee_rank, steps='load')
+    assert out['loaded'] == first['loaded'], err             # the custom jeans and the bought tee again
 
 
 def test_game_side_takes_codes_and_the_catalogue_from_the_layer_before_it(clothing_tool, tmp_path):

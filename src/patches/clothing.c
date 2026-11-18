@@ -929,12 +929,23 @@ void clothing_after_load(uint32_t loader)
  * <data>/clothing-state, with the base handle it was saved as; when the row is loaded again and
  * still holds that base handle there, the added item comes back, if its pack is enabled. With
  * the pack off, the hero wears the base item and the save is one the original game reads.
+ *
+ * The file is named after the profile, as the save is, and its second line is a fingerprint of
+ * the row as that save holds it (FNV-1a 64 over the 0x5904 bytes). A load copies the save's row
+ * byte for byte (sub_000156D0), so the file is used only when the loaded row has that
+ * fingerprint: a hero deleted and made again under the same name, or a save written by a build
+ * without this file, does not pick up another save's items. sub_000148B0 sets up a profile slot,
+ * for a load and for a new hero, so it starts the slot's added items over.
  */
 
 #define MAX_SWAPS 16
+#define STATE_HEADER "clothing-state-2"
 static struct { uint32_t at, custom; } g_swaps[MAX_SWAPS];
 static int g_nswaps;
 static int g_restore_pending;             /* a row was loaded: restore before the next front-end call */
+static uint64_t g_row_fp[SLOTS];          /* each slot's row as last loaded or saved */
+static uint8_t g_row_known[SLOTS];
+static int g_init_slot = -1;              /* the slot sub_000148B0 set up during a load */
 
 static Item *item_by_key(const char *key)
 {
@@ -969,17 +980,90 @@ static void state_path(uint32_t row, char *out, size_t size)
     snprintf(out, size, "%s" HOST_SEP "%s.txt", g_state_dir, name);
 }
 
+static uint64_t row_fingerprint(uint32_t row)
+{
+    uint64_t h = 0xCBF29CE484222325ull;
+    for (uint32_t i = 0; i < ROW_BYTES; i++) { h ^= MEM8(row + i); h *= 0x100000001B3ull; }
+    return h;
+}
+
+static int slot_of_row(uint32_t row)
+{
+    uint32_t manager = profiles();
+    if (!manager || row < manager + ROW_OFFSET) return -1;
+    uint32_t d = row - manager - ROW_OFFSET;
+    return d % SLOT_STRIDE == 0 && d / SLOT_STRIDE < SLOTS ? (int)(d / SLOT_STRIDE) : -1;
+}
+
+/* A profile's file, read past its fingerprint; NULL when there is none or it has another format. */
+static FILE *open_state(const char *path, uint64_t *fp)
+{
+    char line[128];
+    FILE *f = fopen(path, "rb");
+    if (!f) return NULL;
+    if (fgets(line, sizeof line, f) && !strncmp(line, STATE_HEADER, sizeof STATE_HEADER - 1)
+        && (line[sizeof STATE_HEADER - 1] == '\n' || line[sizeof STATE_HEADER - 1] == '\r')
+        && fgets(line, sizeof line, f) && !strncmp(line, "row\t", 4)) {
+        *fp = strtoull(line + 4, NULL, 16);
+        return f;
+    }
+    fclose(f);
+    return NULL;
+}
+
+/* The file was written for the row now in this slot (as loaded, or as last saved). */
+static int state_matches(int slot, uint64_t fp)
+{
+    return slot >= 0 && g_row_known[slot] && g_row_fp[slot] == fp;
+}
+
+static void initial_states(int slot)
+{
+    for (int i = 0; g_state[slot] && i < g_count; i++)
+        memset(g_state[slot] + g_items[i].first, strcmp(g_items[i].avail, "shop") ? STATE_OWNED : STATE_UNLOCKED,
+               g_items[i].colours);
+}
+
+void clothing_slot_init(uint32_t slot_base)
+{
+    int slot = slot_of_row(slot_base + 0xCu);   /* this = slot + 0x177C; the row is at + 0x1788 */
+    if (slot < 0) return;
+    g_row_known[slot] = 0;
+    g_init_slot = slot;
+    if (g_active) initial_states(slot);
+}
+
+/* No pack enabled: the file keeps its lines and follows the save, so they still apply when a pack
+ * is enabled again. A file written for another hero is left alone (it does not match). */
+static void follow_save(const char *path, uint32_t row, int slot)
+{
+    static char out[16384];
+    uint64_t old_fp, fp = row_fingerprint(row);
+    FILE *f = open_state(path, &old_fp);
+    if (f) {
+        int ours = state_matches(slot, old_fp);
+        size_t n = (size_t)snprintf(out, sizeof out, STATE_HEADER "\nrow\t%016llX\n", (unsigned long long)fp);
+        n += ours ? fread(out + n, 1, sizeof out - n, f) : 0;
+        fclose(f);
+        if (ours && old_fp != fp && !write_if_changed(path, (const uint8_t *)out, n))
+            fprintf(stderr, "[CLOTHING] cannot write %s\n", path);
+    }
+    if (slot >= 0) { g_row_fp[slot] = fp; g_row_known[slot] = 1; }
+}
+
 /* sub_000D23B0 (name, row): about to copy a profile row into a save. */
 void clothing_before_save(uint32_t row)
 {
     g_nswaps = 0;
-    if (!g_active || !row) return;
-    char path[PATH_MAX_LEN], out[16384], line[512];
+    if (!row || !g_state_dir[0]) return;
+    char path[PATH_MAX_LEN], line[512];
+    static char out[16384];
     size_t n = 0;
     int lines = 0;
-    uint32_t manager = profiles();
-    int slot = manager && row >= manager + ROW_OFFSET ? (int)((row - manager - ROW_OFFSET) / SLOT_STRIDE) : -1;
-    n += (size_t)snprintf(out + n, sizeof out - n, "clothing-state-1\n");
+    int slot = slot_of_row(row);
+    state_path(row, path, sizeof path);
+    if (!g_active) { follow_save(path, row, slot); return; }
+    n += (size_t)snprintf(out + n, sizeof out - n, STATE_HEADER "\nrow\t%016llX\n", 0ull);   /* filled in below */
     for (int a = 0; a < 2; a++)
         for (uint32_t part = PART_FIRST; part <= PART_LAST; part++) {
             uint32_t at = k_part_arrays[a] + part * 4u, w = MEM32(row + at);
@@ -1004,13 +1088,16 @@ void clothing_before_save(uint32_t row)
                     lines++;
                 }
         }
-    if (!g_state_dir[0]) return;
-    state_path(row, path, sizeof path);
     /* Lines of items whose pack is not enabled now stay, so enabling it again brings them back
-     * (a worn one only while the save still holds its base item there). */
-    FILE *old = fopen(path, "rb");
+     * (a worn one only while the save still holds its base item there); not from a file written
+     * for another hero of the same name. */
+    uint64_t old_fp, fp = row_fingerprint(row);           /* the row as the save holds it */
+    char head[64];
+    snprintf(head, sizeof head, STATE_HEADER "\nrow\t%016llX\n", (unsigned long long)fp);
+    memcpy(out, head, strlen(head));
+    FILE *old = open_state(path, &old_fp);
     if (old) {
-        if (fgets(line, sizeof line, old) && !strncmp(line, "clothing-state-1", 16))
+        if (state_matches(slot, old_fp))
             while (fgets(line, sizeof line, old) && n + strlen(line) + 2 < sizeof out) {
                 char copy[512], *fields[6];
                 snprintf(copy, sizeof copy, "%s", line);
@@ -1035,6 +1122,7 @@ void clothing_before_save(uint32_t row)
     } else {
         remove(path);   /* nothing added is worn or bought: an earlier file no longer describes this save */
     }
+    if (slot >= 0) { g_row_fp[slot] = fp; g_row_known[slot] = 1; }
     if (g_nswaps)
         fprintf(stderr, "[CLOTHING] save: %d added item(s) saved as their base items\n", g_nswaps);
 }
@@ -1045,8 +1133,19 @@ void clothing_after_save(void)
     g_nswaps = 0;
 }
 
-/* sub_000156D0: a profile row was loaded from a save. */
-void clothing_after_row_load(void) { g_restore_pending = 1; }
+/* sub_000156D0: a profile row is loaded from a save, into the slot sub_000148B0 sets up. */
+void clothing_before_row_load(void) { g_init_slot = -1; }
+
+void clothing_after_row_load(void)
+{
+    uint32_t manager = profiles();
+    if (manager && g_init_slot >= 0) {
+        g_row_fp[g_init_slot] = row_fingerprint(manager + (uint32_t)g_init_slot * SLOT_STRIDE + ROW_OFFSET);
+        g_row_known[g_init_slot] = 1;
+    }
+    g_init_slot = -1;
+    g_restore_pending = 1;
+}
 
 static void restore_current(void)
 {
@@ -1056,17 +1155,18 @@ static void restore_current(void)
     if (slot < 0 || slot >= (int)SLOTS) return;
     g_restore_pending = 0;
     /* A loaded profile starts from the items' initial states; its file says what changed. */
-    if (g_active)
-        for (int i = 0; i < g_count; i++)
-            memset(g_state[slot] + g_items[i].first, strcmp(g_items[i].avail, "shop") ? STATE_OWNED : STATE_UNLOCKED,
-                   g_items[i].colours);
+    if (g_active) initial_states(slot);
     uint32_t row = manager + (uint32_t)slot * SLOT_STRIDE + ROW_OFFSET;
     char path[PATH_MAX_LEN], line[512];
+    uint64_t fp;
     state_path(row, path, sizeof path);
-    FILE *f = fopen(path, "rb");
+    FILE *f = open_state(path, &fp);
     if (!f) return;
     int restored = 0, kept = 0;
-    if (fgets(line, sizeof line, f) && !strncmp(line, "clothing-state-1", 16)) {
+    if (!state_matches(slot, fp)) {
+        fprintf(stderr, "[CLOTHING] profile slot %d: its clothing file was written for another save of this name "
+                        "(a hero made again, or saved without the file); not used\n", slot);
+    } else {
         while (fgets(line, sizeof line, f)) {
             char *fields[6];
             line[strcspn(line, "\r\n")] = 0;

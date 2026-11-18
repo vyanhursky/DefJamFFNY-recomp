@@ -467,7 +467,10 @@ void sub_000168E0(void) { uint32_t set = g_ecx, state = MEM8(g_esp + 4); sub_000
 extern void sub_000D23B0_gen(void);
 void sub_000D23B0(void) { clothing_before_save(MEM32(g_esp + 8)); sub_000D23B0_gen(); clothing_after_save(); }
 extern void sub_000156D0_gen(void);
-void sub_000156D0(void) { sub_000156D0_gen(); clothing_after_row_load(); }
+void sub_000156D0(void) { clothing_before_row_load(); sub_000156D0_gen(); clothing_after_row_load(); }
+/* Sets up a profile slot (this = slot + 0x177C), for a load and for a new hero (sub_00016240). */
+extern void sub_000148B0_gen(void);
+void sub_000148B0(void) { clothing_slot_init(g_ecx); sub_000148B0_gen(); }
 extern void sub_00016810_gen(void);
 void sub_00016810(void) {
     defjam_fighter_unlock_inserting(g_ecx);

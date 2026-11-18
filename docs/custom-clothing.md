@@ -233,6 +233,15 @@ what was swapped (`worn <offset> <base handle> <key> <colour>`) and the items' c
 front-end call restores: an added item comes back where the save still holds the recorded base handle
 and its pack is enabled. Lines of packs that are not enabled are kept when the file is rewritten.
 
+The file (`clothing-state-2`) is named after the profile, as the save is, and its second line,
+`row <fingerprint>`, is FNV-1a 64 over the row as that save holds it (0x5904 bytes). A load copies the
+save's row byte for byte, so the file is used only when the loaded row has that fingerprint: a hero
+deleted and made again under the same name, or a save written by a build without the file, does not get
+another save's items (the log says so). Saves made with no clothing pack enabled update the fingerprint
+and keep the lines, so the items return when a pack is enabled again. `sub_000148B0` sets up a profile
+slot, for a load and for a new hero (`sub_00016240`); the slot's added items start from their initial
+states there.
+
 Diagnostics: `RECOMP_CLOTHING_TRACE=1` logs the state calls answered for added items,
 `RECOMP_CLOTHING_PROBE=1` the clothing state set and the clothing handles in the current profile row,
 `RECOMP_CLOTHING_CACHE=<folder>` reads a compiled cache from another folder.
@@ -244,4 +253,5 @@ parts lines; variant codes; manifest checks; the digest), the mod manager's inst
 layer served before clothing that already uses `Z01` and has its own catalogue lines, and a
 native run of `clothing.c`, `pc_sod.c` and `pc_big.c` on a synthetic database, synthetic archives and
 synthetic guest memory: the served files, the item states, the save swap and the reload, with the pack on
-and off.
+and off; a clothing file is not used for another save of the same name, and follows saves made with no
+pack enabled.

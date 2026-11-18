@@ -47,9 +47,15 @@ void clothing_set_all(uint32_t set, uint32_t state);
 void clothing_before_save(uint32_t row);
 void clothing_after_save(void);
 
-/* sub_000156D0 copied a profile row in from a save: added items worn when it was saved come back
- * (before the next front-end call), if their pack is enabled. */
+/* sub_000156D0 copies a profile row in from a save: added items worn when it was saved come back
+ * (before the next front-end call), if their pack is enabled and the profile's clothing file was
+ * written for this save (its row fingerprint). */
+void clothing_before_row_load(void);
 void clothing_after_row_load(void);
+
+/* sub_000148B0 (this = slot + 0x177C) sets up a profile slot, for a load or a new hero: the slot's
+ * added items start over. */
+void clothing_slot_init(uint32_t slot_base);
 
 /* For forks (FFNY Online): the clothing-set-1 digest of the enabled packs ("" when none); the
  * retail base handle of a clothing handle (the handle itself when it is not an added item); and a
