@@ -64,8 +64,7 @@ intro/000	2	108620416	0.00	2.50	VOCÊ VAI SER DESTRUÍDO!
 
 When present, the runtime (`src/hooks/pc_speech_subs.c`) matches each `SCHl` audio stream read from
 `audio/speech1..3.viv` (or opened by path) and draws timed subtitle lines on the ImGui overlay. Controlled
-by `[language] voice_subtitles` (`0` = auto when the pack provides `speech_subtitles.txt`, `1` = on,
-`2` = off).
+by `[language] voice_subtitles` (`auto` when the pack provides `speech_subtitles.txt`, `on`, `off`).
 
 ### The game's own French
 

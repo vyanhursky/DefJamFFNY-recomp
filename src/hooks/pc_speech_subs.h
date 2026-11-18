@@ -1,7 +1,7 @@
 /* Speech subtitles for in-game voices (fighter intros/extros, career player
  * voices, shops, taunts, tutorial, front-end, voicemail).
  *
- * Loaded from <mod_dir>/speech_subtitles.tsv when a language pack has one.
+ * Loaded from <mod_dir>/speech_subtitles.txt when a language pack has one.
  * Triggered deterministically when the game opens a loose speech stream path
  * or reads a SCHl audio block from audio/speech1..3.viv.
  */
@@ -16,7 +16,7 @@
 extern "C" {
 #endif
 
-/* Load <mod_dir>/speech_subtitles.tsv. Safe to call with NULL/missing file. */
+/* Load <mod_dir>/speech_subtitles.txt. Safe to call with NULL/missing file. */
 void pc_speech_subs_load(const char *mod_dir);
 
 /* Whether voice subtitles should be displayed right now ([language] voice_subtitles). */
