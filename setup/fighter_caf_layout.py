@@ -39,6 +39,8 @@ RECIPE = {
     'colors': 184,    # COLORS bytes
     'styles': 222,    # STYLES bytes
     'retail': 225,    # byte: 1 when `core` is a retail moveset
+    'final_stats': 226, # byte: 1 means the five training words hold final 0..50 attributes
+    'charisma': 227,    # byte: final 0..50 charisma, zero in legacy training mode
     'voice': 228,     # retail voice core, 1..86
     'outfit': 232,    # outfit index 0..2
     'alias': 236,     # presentation alias the selector shows for this outfit

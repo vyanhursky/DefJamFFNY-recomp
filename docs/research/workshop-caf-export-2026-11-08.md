@@ -224,3 +224,32 @@ native CAF playtest, merge, tag or release is claimed by this correction.
 Published `v1.2.0-beta.1` remains immutable and does not include the CAF extension.
 All original and converted Vendetta bytes, private canaries and compiled caches
 remain local. Source-only PR updates are authorized; pack publication is not.
+
+## Standalone final attributes extension
+
+`caf-final-stats-1` adds optional shared `final_stats` to `caf-fighter-1`:
+`upper`, `lower`, `speed`, `toughness`, `health`, `charisma`, all six integer
+values in 0–50. The five existing `stats` remain CAF training inputs in 0–50.
+Absent overrides retain the exact legacy conversion. Optional final values wrap
+all flat, finisher, atlas, outfit, sculpt, moveset and voice paths; outfit-local
+stats remain refused. The menu uses the explicit six values.
+
+The 240-byte compiled row keeps its size. Byte 226 is final-attribute mode
+(0/1), byte 227 is Charisma (0–50, zero in legacy mode). In final mode the five
+training words carry the other five final attributes. Every outfit must agree.
+Old native readers reject these formerly reserved nonzero bytes; old compilers
+reject the unknown recipe field. Workshop gates export on the manifest extension.
+No additional guest allocation, save field, texture limit or toolkit change.
+
+Final attributes use the retail menu scale, converted to integer battle values
+with `round(value / 5)`, without CAF training/style bonuses. Own-dump SOD and
+packed WPAR audit confirms the requested six-field retail match. Some original
+retail menu/battle records deliberately differ; this extension is a direct
+attribute editor, not a promise to copy every donor's hidden motion parameters.
+The native adapter writes the participant cache after normal CAF construction
+and reapplies the explicit seven-word block (including the unused zero field)
+after parameter initialization. This handles the original all-zero/no-override
+sentinel, owned motion cores and rematches while excluding Story and other actors.
+
+Validation distinguishes source/compiler/compiled native fixtures from actual
+gameplay; PR acceptance evidence and remaining platform checks are in the PR.
