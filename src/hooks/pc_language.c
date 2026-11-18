@@ -45,6 +45,7 @@
 
 #include "recomp_settings.h"
 #include "pc_language.h"
+#include "pc_speech_subs.h"
 
 /* The toolkit's game-file redirect (kernel.h, not on this target's include path). */
 #if defined(_WIN32)
@@ -848,6 +849,7 @@ void pc_language_start(const char *data_root, const char *game_dir)
     fprintf(stderr, "[LANG] %s (%s, %s): %d file(s) served from %s%s\n", g_pack.name, g_pack.language, folder,
             g_served_count, cache, fresh ? "" : " (built now)");
     language_texture_layer(dir, folder);
+    pc_speech_subs_load(dir);
     /* Keep only what pc_language_patch_xbe still needs. */
     for (int i = 0; i < g_pack.count; i++) {
         char file[256];
