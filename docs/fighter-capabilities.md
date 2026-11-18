@@ -37,3 +37,10 @@ container version 2; coordinates-only containers retain version 1. It needs
 matching authoring tools and a rebuilt game. See
 [sculpt normal corrections](workshop-sculpt-normals.md) for the contract and
 original-normal fallback on unsupported live layouts.
+
+`caf-final-stats-1` adds optional shared `final_stats` (Upper/Lower power,
+Speed, Toughness, Health, Charisma) to `caf-fighter-1` recipes; see the
+[CAF export notes](research/workshop-caf-export-2026-11-08.md).
+
+`fighter-ui-team-art-1` adds optional Team portrait and available/picked icon
+PNG roles; see [fighter mod authoring](fighter-mod-authoring.md).
