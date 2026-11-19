@@ -31,6 +31,7 @@ def test_caf_donor_identity_and_duplicate_edits():
     with pytest.raises(ValueError):validate(dict(format=FORMAT,template='CI_113B',edits=[]))
 
 DRIVER=r'''
+#define _CRT_SECURE_NO_WARNINGS
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>

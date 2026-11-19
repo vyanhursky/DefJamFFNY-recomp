@@ -140,7 +140,7 @@ def test_native_annex_rejects_unbound_rows_invalid_samples_and_nonzero_padding(n
 def test_rejected_upload_preserves_native_dispatcher_cursor_and_guest_return_abi(tmp_path):
     cc=shutil.which('cc')
     if not cc:pytest.skip('POSIX compiler fixture')
-    source=(ROOT/'src/recomp_manual.c').read_text()
+    source=(ROOT/'src/recomp_manual.c').read_text(encoding='utf-8')
     wrapper=source[source.index('void sub_00118030(void) {'):].split('\n}',1)[0]+'\n}'
     driver=r'''#include <assert.h>
 #include <stdint.h>

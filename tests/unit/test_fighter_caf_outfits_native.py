@@ -95,7 +95,7 @@ def native(tmp_path_factory):
     cc=shutil.which('cl') if os.name=='nt' else shutil.which('cc')
     if not cc:pytest.skip('Native compiler unavailable')
     folder=tmp_path_factory.mktemp('caf-outfits')
-    text=(ROOT/'src/patches/fighter_caf.c').read_text()
+    text=(ROOT/'src/patches/fighter_caf.c').read_text(encoding='utf-8')
     names=['word','row_outfit','recipes_valid','defjam_fighter_caf_container','defjam_fighter_caf_menu_clear','defjam_fighter_caf_outfit',
            'confirmed_outfit','defjam_fighter_caf_presentation','extras_valid','defjam_fighter_caf_clear']
     functions=definition(text,'word')+'\n'+definition(text,'row_outfit')

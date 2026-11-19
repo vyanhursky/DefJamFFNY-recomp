@@ -63,7 +63,7 @@ static void normal_unbind(unsigned p,unsigned i) {
                 MEM32(0x3a6e20+stream*4)=0;MEM32(0x3a6e60+stream*4)=0;
             }
         }
-        s_normal_resources[p][i][v]=s_normal_drawn[p][i][v]=s_normal_hash[p][i][v]=0;
+        s_normal_resources[p][i][v]=s_normal_hash[p][i][v]=0;s_normal_drawn[p][i][v]=0;
         /* Retain parameter tombstones for a quarantined arena: an in-flight
          * RM dispatcher may still hold these addresses after model rollback. */
         if(!s_normals[p].blocked)s_normal_params[p][i][v]=s_normal_bytes[p][i][v]=0;

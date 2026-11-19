@@ -78,7 +78,7 @@ def modal_fixture():
     # Blender4.5's Event has type/value but no public timer attribute.
     import ast
     source = Path(__file__).resolve().parents[2] / 'scripts/blender/fighter_voice_controls.py'
-    tree = ast.parse(source.read_text())
+    tree = ast.parse(source.read_text(encoding='utf-8'))
     cls = next(n for n in tree.body if isinstance(n, ast.ClassDef) and n.name == 'FFNY_OT_preview_play')
     method = next(n for n in cls.body if isinstance(n, ast.FunctionDef) and n.name == 'modal')
     player = object(); calls = []

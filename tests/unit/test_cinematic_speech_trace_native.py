@@ -13,7 +13,7 @@ def test_speech_probe_delegation_and_budget(tmp_path):
     compiler = shutil.which("cl") if os.name == "nt" else shutil.which("cc")
     if not compiler:
         pytest.skip("native C compiler unavailable")
-    source = (ROOT / "src/recomp_manual.c").read_text()
+    source = (ROOT / "src/recomp_manual.c").read_text(encoding='utf-8')
     probes = source.split("static int cinematic_speech_trace(void)", 1)[1]
     probes = "static int cinematic_speech_trace(void)" + probes.split("extern void sub_00135CB0_gen", 1)[0]
     prefix = r"""

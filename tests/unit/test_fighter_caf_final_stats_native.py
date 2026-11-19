@@ -21,7 +21,7 @@ def test_native_final_attribute_writes_are_participant_local_and_opt_in(tmp_path
     item,report=fixture()
     for o in item['outfits']:o['recipe']['final_stats']=dict(zip(('upper','lower','speed','toughness','health','charisma'),(30,47,37,27,47,30)))
     _,raw=encode_rows({'example/fighter':item},report);(tmp_path/'rows.bin').write_bytes(raw)
-    production=(ROOT/'src/patches/fighter_caf.c').read_text()
+    production=(ROOT/'src/patches/fighter_caf.c').read_text(encoding='utf-8')
     source=r'''
 #include <assert.h>
 #include <stdint.h>
