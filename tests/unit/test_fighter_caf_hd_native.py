@@ -75,6 +75,8 @@ int main(int argc,char **argv) {
 def tool(tmp_path_factory):
     cc=shutil.which('cl') if os.name=='nt' else shutil.which('cc') or shutil.which('clang')
     if not cc:pytest.skip('native compiler unavailable')
+    if not (ROOT/'tools/xboxrecomp/src/nv2a/stb/stb_image.h').is_file():
+        pytest.skip('the HD reader needs the toolkit submodule (stb deflate decoder)')
     folder=tmp_path_factory.mktemp('caf-hd-native');(folder/'recomp/gen').mkdir(parents=True)
     (folder/'recomp/gen/recomp_types.h').write_text(TYPES)
     (folder/'kernel').mkdir()
