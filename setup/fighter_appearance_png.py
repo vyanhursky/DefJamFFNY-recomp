@@ -37,6 +37,9 @@ def indexed(image,native,texture,tile):
         source=Image.new('RGB',(width,height));source.putdata([pixels[i] for i in positions]+[(0,0,0)]*(width*height-len(positions)))
         quantized=source.quantize(colors=counts[alpha],method=Image.Quantize.MEDIANCUT,dither=Image.Dither.NONE)
         colors=quantized.getpalette();indices=quantized.tobytes()
+        # Pillow may return fewer entries than requested for flat-color art.
+        # Unused palette slots still retain their native alpha class.
+        colors += [0] * max(0, counts[alpha]*3-len(colors))
         for n,position in enumerate(positions):output[position]=start+indices[n]
         for i in range(counts[alpha]):
             r,g,b=colors[i*3:i*3+3];palette[(start+i)*4:(start+i+1)*4]=bytes((b,g,r,alpha))

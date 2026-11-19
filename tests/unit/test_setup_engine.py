@@ -77,6 +77,42 @@ def test_payload_tampering_and_extra_files_fail_before_execution(tmp_path):
         engine.verify_payload(folder)
 
 
+def test_stray_bytecode_is_removed_and_does_not_block_the_payload(tmp_path):
+    # #263: the payload's own Python writes __pycache__ beside what it imports; one stray run
+    # used to make every later setup, update and repair refuse the payload.
+    folder = payload(tmp_path)
+    caches = [folder / 'source/__pycache__', folder / 'source/scripts/__pycache__']
+    for cache in caches:
+        cache.mkdir(parents=True, exist_ok=True)
+        (cache / 'module.cpython-313.pyc').write_bytes(b'\x00bytecode')
+        (cache / 'other.cpython-313.opt-1.pyc').write_bytes(b'\x00bytecode')
+    assert engine.verify_payload(folder)['version'] == '0.4.1'
+    assert not list(folder.rglob('__pycache__'))
+    assert not list(folder.rglob('*.pyc'))
+    assert engine.verify_payload(folder)['version'] == '0.4.1'      # and it stays verifiable
+
+
+def test_only_bytecode_is_removed_and_the_error_names_the_rest(tmp_path):
+    folder = payload(tmp_path)
+    cache = folder / 'source/__pycache__'
+    cache.mkdir()
+    (cache / 'module.cpython-313.pyc').write_bytes(b'\x00bytecode')
+    (cache / 'note.txt').write_text('not bytecode')
+    (folder / 'source/loose.pyc').write_bytes(b'\x00bytecode')     # not under __pycache__
+    with pytest.raises(engine.SetupError, match='Unexpected files in setup payload') as refused:
+        engine.verify_payload(folder)
+    assert 'source/__pycache__/note.txt' in str(refused.value)
+    assert 'source/loose.pyc' in str(refused.value)
+    assert 'module.cpython-313.pyc' not in str(refused.value)
+    assert not (cache / 'module.cpython-313.pyc').exists()
+    assert (cache / 'note.txt').exists() and (folder / 'source/loose.pyc').exists()
+
+
+def test_the_engine_tells_every_child_python_not_to_write_bytecode(tmp_path, monkeypatch):
+    monkeypatch.delenv('PYTHONDONTWRITEBYTECODE', raising=False)    # whatever the caller had set
+    assert installer(tmp_path).env['PYTHONDONTWRITEBYTECODE'] == '1'
+
+
 @pytest.mark.parametrize('data,dump', [('app/data','dump'), ('data','app'), ('data','data/dump')])
 def test_nested_destinations_are_refused(tmp_path, data, dump):
     with pytest.raises(engine.SetupError, match='separate'):

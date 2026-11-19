@@ -27,6 +27,7 @@ static uint8_t recipe[CAF_ROW_STRIDE];
 static unsigned calls;
 static int wrong_result;
 static const uint8_t *lookup(uint32_t selection,uint32_t outfit) {return selection==100&&outfit==0?recipe:NULL;}
+void sub_0021BB10(void) {assert(!"unexpected stream unbind");}
 void sub_000296B0(void) {assert(MEM32(g_esp+4)==0x4000);g_eax=0x600000;g_esp+=4;}
 void sub_00026140(void) {
  uint32_t wrapper=MEM32(g_esp+4),root=MEM32(wrapper),at=root+36,model=MEM32(g_ecx+0x12c);

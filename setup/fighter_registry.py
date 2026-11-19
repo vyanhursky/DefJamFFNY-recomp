@@ -130,7 +130,8 @@ def validate_pack(pack, builtin=False):
         fields(fighter, {'id', 'name', 'components'}, {'inherits','outfit_of'})
         if 'outfit_of' in fighter:
             key(fighter['outfit_of'])
-            check(fighter['outfit_of'].startswith('retail/'), 'outfit-parent', 'Outfits currently extend an original retail fighter')
+            check(fighter['outfit_of'].startswith('retail/') or fighter['outfit_of'].split('/')[0] == pack['id'],
+                  'outfit-parent', 'Outfits extend an original retail fighter or a parent in the same pack')
         identifier = slug(fighter['id'])
         check(identifier not in seen, 'duplicate-fighter', 'Duplicate fighter identity')
         seen.add(identifier)
@@ -270,6 +271,7 @@ def resolve(baseline, packs):
         if 'outfit_of' in value:
             parent=value['outfit_of']
             check(parent in resolved and parent!=identifier,'outfit-parent','Unknown retail outfit parent')
+            check('outfit_of' not in resolved[parent], 'outfit-parent', 'Outfit parents cannot themselves be outfits')
             baseline_components=resolved[parent]['components']
             check({k:v for k,v in value['components'].items() if k not in ('appearance','portrait')} ==
                   {k:v for k,v in baseline_components.items() if k not in ('appearance','portrait')},

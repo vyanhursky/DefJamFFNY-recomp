@@ -151,3 +151,15 @@ def parse_owned_stream(data):
         from fighter_voice_r2 import parse_r2
         return parse_r2(data)
     return parse_stream(data)
+
+
+# Native38440 and3C400 reserve fixed resident slots before scanning to SCEl.
+# Combat bank streams use a different path and retain their existing budget.
+PRESENTATION_BYTES = {'intro': 0x25800, 'extro': 0x7D000}
+
+
+def presentation_stream(data, purpose):
+    require(purpose in PRESENTATION_BYTES, 'Unknown presentation voice purpose')
+    require(isinstance(data,bytes) and len(data)<=PRESENTATION_BYTES[purpose],
+            purpose+' encoded voice exceeds native preload ('+str(PRESENTATION_BYTES[purpose])+' bytes); use a lower sample rate or a shorter recording')
+    return parse_owned_stream(data)

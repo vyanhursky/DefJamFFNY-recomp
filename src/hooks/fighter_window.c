@@ -23,9 +23,11 @@ int fighter_window_decode(FighterWindow *out, const uint8_t *bytes, size_t size)
     if (!out) return 0;
     memset(out, 0, sizeof *out);
     if (!bytes || size < 144 || size > FIGHTER_WINDOW_MAX_FILE
-        || !((!memcmp(bytes,"FWR1",4) && word(bytes+4)==1) || (!memcmp(bytes,"FWR2",4) && word(bytes+4)==2))
+        || !((!memcmp(bytes,"FWR1",4) && word(bytes+4)==1) || (!memcmp(bytes,"FWR2",4) && word(bytes+4)==2)
+             || (!memcmp(bytes,"FWR3",4) && word(bytes+4)==3))
         || word(bytes + 12) != FIGHTER_WINDOW_BANKS) return 0;
     w.bytes = bytes; w.count = word(bytes + 8); w.table = word(bytes + 16); w.sod_size = word(bytes + 20);
+    w.version=word(bytes+4);
     if (!w.count || w.count > FIGHTER_WINDOW_MAX_COUNT || size != 120 + w.count * 24u
         || w.table > 255 || w.sod_size < 104 || w.sod_size > 64u * 1024u * 1024u) return 0;
     for (uint32_t i = 0; i < FIGHTER_WINDOW_BANKS; ++i) {
@@ -46,11 +48,28 @@ int fighter_window_decode(FighterWindow *out, const uint8_t *bytes, size_t size)
         if (r.stable_handle >> 24 != w.table || (r.stable_handle & 0xffffffu) >= 0x7ffffcu
             || r.selection_key < 100 || r.selection_key > 0x7fffffffu || (i && r.selection_key <= previous)
             || r.record_offset % 4 || r.record_offset > w.sod_size - 104 || !r.core_id
-            || (word(bytes+4)==1 && r.retail_selection_plus_one) || r.retail_selection_plus_one>99) return 0;
+            || (w.version==1 && r.retail_selection_plus_one)
+            || (w.version<3 && r.retail_selection_plus_one>99)
+            || r.retail_selection_plus_one==100 || r.retail_selection_plus_one>0x7fffffffu) return 0;
         /* Cross-domain identities/record ownership must also be unique. */
         for (uint32_t j = 0; j < FIGHTER_WINDOW_BANKS; ++j)
             if (r.record_offset == w.banks[j].record_offset || r.symbol_hash == w.banks[j].symbol_hash) return 0;
         previous = r.selection_key;
+    }
+    if (w.version == 3) {
+        uint8_t *children = (uint8_t *)calloc(w.count, 1);
+        if (!children) return 0;
+        for (uint32_t i = 0; i < w.count; ++i) {
+            FighterWindowRow row, parent; uint32_t parent_index;
+            fighter_window_at(&w, i, &row);
+            if (row.retail_selection_plus_one > 99
+                && (!fighter_window_find(&w, row.retail_selection_plus_one - 1, &parent_index, &parent)
+                    || parent_index == i || parent.retail_selection_plus_one || parent.core_id != row.core_id
+                    || ++children[parent_index] > 2)) {
+                free(children); return 0;
+            }
+        }
+        free(children);
     }
     {
         uint32_t *keys = (uint32_t *)malloc(w.count * 3u * sizeof *keys);

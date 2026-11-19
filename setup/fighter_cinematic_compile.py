@@ -116,7 +116,7 @@ class CinematicArchive:
                 'Cinematic archive requires a verified local baseline')
         self.archive, self.sha256 = Archive(data), expected_sha256
 
-    def compose(self, resources,*,graphs=None,hands=None):
+    def compose(self, resources,*,graphs=None,hands=None,game=None):
         require(type(resources) is dict and 0 < len(resources) <= 4096
                 and all(isinstance(k, str) and 0 < len(k) <= 255 for k in resources),
                 'Cinematic resource population exceeds budget')
@@ -142,7 +142,11 @@ class CinematicArchive:
             require(number <= 99999, 'Cinematic native identifier capacity exhausted')
             assigned = prefix + f'{number:05}'
             native = assigned + '.viv'
-            if full:
+            if full and resource['tracks'].get('format') in ('fighter-caf-cinematic-1','fighter-caf-cinematic-2'):
+                from fighter_caf_cinematic import compose as caf_compose
+                require(game is not None,'CAF donor compiler needs verified game contexts')
+                data,receipt=caf_compose(game,resource['tracks'],assigned)
+            elif full:
                 require(graphs is not None,'Full cinematic needs its verified graph compiler')
                 data,receipt=graphs.compose(resource['tracks'],assigned,resource['rig_sha256'],resource['bone_count'],hands)
                 require(resource['tracks']['layout']==('intro' if prefix=='FI' else 'single-camera'),'Cinematic layout differs from resource category')
@@ -180,6 +184,7 @@ def bind_cinematics(banks, receipt, nis, expected_nis_sha256, cores):
     compiler = Cinematics(xml, hashlib.sha256(xml).hexdigest())
     version=2 if any(type(value) is dict and value.get('full_graph') for value in receipt['bindings'].values()) else 1
     if any(core & CAF_BIT for core in cores):version=3
+    if any(type(v) is dict and v.get('caf_profile')==1 for v in receipt['bindings'].values()):version=4
     entries, rows, report = [], bytearray(), {}
     caf_index=16384
     for core, pair in sorted(cores.items()):
@@ -208,7 +213,7 @@ def bind_cinematics(banks, receipt, nis, expected_nis_sha256, cores):
         report[str(core)] = {'label': label, 'intro': names[0], 'victory': names[1]}
     result = native.compose(replacements={'assets/IntroExtro.xml': compiler.compose(entries, {
         entry.name[:-4] for entry in archive.entries if entry.name.endswith('.viv')})})
-    table = (struct.pack('<4s5I', b'FIC3' if version==3 else b'FIC2' if version==2 else b'FIC1', version, len(cores), len(banks), len(result), 0)
+    table = (struct.pack('<4s5I', b'FIC4' if version==4 else b'FIC3' if version==3 else b'FIC2' if version==2 else b'FIC1', version, len(cores), len(banks), len(result), 0)
              + hashlib.sha256(banks).digest() + hashlib.sha256(result).digest() + rows)
     return result, bytes(table), {'schema': 'fighter-cinematic-bindings-1', 'bindings': report,
                                  'banks_sha256': hashlib.sha256(banks).hexdigest(),

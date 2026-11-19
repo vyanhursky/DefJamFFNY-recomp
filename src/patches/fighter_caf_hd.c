@@ -9,6 +9,26 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+/* Reuse the pinned toolkit's bounded deflate decoder; no new dependency. */
+#define STBI_ONLY_ZLIB
+#define STBI_SUPPORT_ZLIB
+#define STBI_NO_STDIO
+#define STB_IMAGE_STATIC
+#define STB_IMAGE_IMPLEMENTATION
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable:4505 4100)
+#else
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
+#include "stb/stb_image.h"
+#ifdef _MSC_VER
+#pragma warning(pop)
+#else
+#pragma GCC diagnostic pop
+#endif
 static const uint8_t *s_hd; /* hd section inside the container, which stays resident */
 static uint32_t s_hd_count,s_hd_owners[4];
 static uint32_t hd_word(const uint8_t *p) {return (uint32_t)p[0]|(uint32_t)p[1]<<8|(uint32_t)p[2]<<16|(uint32_t)p[3]<<24;}
@@ -17,13 +37,25 @@ static void hd_stop(const char *why) {defjam_fighter_fatal("HD CAF",why);}
 static int hd_valid(const uint8_t *data,size_t size,uint32_t count,const uint8_t *(*recipe)(uint32_t,uint32_t)) {
     if(size>CAF_HD_MAX_BYTES || !count || count>49152) return 0;
     uint32_t offsets[CAF_HD_MAX_BLOCKS],blocks=0;uint8_t used[CAF_HD_MAX_BLOCKS]={0};
-    size_t base=(size_t)count*CAF_HD_STRIDE,at=base;
+    size_t base=(size_t)count*CAF_HD_STRIDE,at=base,expanded=0;
     if(base>=size) return 0;
     while(at<size) {
         if(blocks==CAF_HD_MAX_BLOCKS || size-at<4) return 0;
-        uint32_t edge=hd_word(data+at);
+        uint32_t tag=hd_word(data+at),edge=tag&0x3fffffffu;
         if(edge!=512 && edge!=1024 && edge!=2048) return 0;
-        size_t bytes=4+(size_t)edge*edge*4;
+        if((tag&0xc0000000u)==0x40000000u)return 0;
+        expanded+=(size_t)edge*edge*4;
+        if(expanded>CAF_CONTAINER_MAX_BYTES)return 0;
+        size_t bytes=4+(size_t)edge*edge*((tag&0x80000000u)?3u:4u);
+        if((tag&0xc0000000u)==0xc0000000u) {
+            if(size-at<8)return 0;
+            uint32_t packed=hd_word(data+at+4);bytes=8+(size_t)packed;
+            if(!packed || bytes>size-at || packed>CAF_HD_MAX_BYTES)return 0;
+            size_t rgb_bytes=(size_t)edge*edge*3;
+            char *rgb=malloc(rgb_bytes);if(!rgb)return 0;
+            int decoded=stbi_zlib_decode_buffer(rgb,(int)rgb_bytes,(const char *)data+at+8,(int)packed);
+            free(rgb);if(decoded!=(int)rgb_bytes)return 0;
+        }
         if(bytes>size-at) return 0;
         offsets[blocks++]=(uint32_t)at;at+=bytes;
     }
@@ -72,9 +104,23 @@ void defjam_caf_hd_apply(uint32_t visual,uint32_t selection,uint32_t outfit) {
         if(!hd_span(bitmap,20) || MEM8(bitmap)!=0x7D || MEM16(bitmap+4)!=256 || MEM16(bitmap+6)!=256)hd_stop("native fallback bitmap differs");
         uint32_t flags=MEM32(bitmap+12),pixels=bitmap+((flags&0x1000u)?MEM32(bitmap+16):16u);
         if(!hd_span(pixels,256u*256u*4u))hd_stop("native alpha exceeds guest memory");
-        uint32_t edge=hd_word(s_hd+offset),scale=edge/256;
+        uint32_t tag=hd_word(s_hd+offset),edge=tag&0x3fffffffu,scale=edge/256;
         uint8_t *bgra=malloc((size_t)edge*edge*4);if(!bgra)hd_stop("HD material allocation failed");
-        memcpy(bgra,s_hd+offset+4,(size_t)edge*edge*4);
+        if(tag&0x80000000u) {
+            const uint8_t *rgb=s_hd+offset+4;uint8_t *decoded=NULL;
+            if(tag&0x40000000u) {
+                size_t bytes=(size_t)edge*edge*3;decoded=malloc(bytes);
+                if(!decoded || stbi_zlib_decode_buffer((char *)decoded,(int)bytes,(const char *)s_hd+offset+8,(int)hd_word(s_hd+offset+4))!=(int)bytes)
+                {
+                    free(decoded);free(bgra);texture_pack_memory_clear(visual);
+                    fprintf(stderr,"[FIGHTERS] CAF packed HD decode unavailable; retaining native atlas fallback logical=%u outfit=%u\n",selection,outfit);
+                    return;
+                }
+                rgb=decoded;
+            }
+            for(size_t i=0;i<(size_t)edge*edge;++i)memcpy(bgra+i*4,rgb+i*3,3);
+            free(decoded);
+        } else memcpy(bgra,s_hd+offset+4,(size_t)edge*edge*4);
         for(uint32_t y=0;y<edge;y++)for(uint32_t x=0;x<edge;x++) {
             uint32_t nx=x/scale,ny=y/scale;
             uint32_t native=(flags&0x2000u)?hd_swizzle(nx)|(hd_swizzle(ny)<<1):ny*256+nx;

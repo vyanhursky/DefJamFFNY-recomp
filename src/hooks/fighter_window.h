@@ -9,12 +9,12 @@ typedef struct FighterWindowBank {
     uint32_t native_handle, private_handle, symbol_hash, selection_key, record_offset, core_id;
 } FighterWindowBank;
 typedef struct FighterWindowRow {
-    /* FWR2: zero means independent; retail selection+1 includes native ID zero. */
+    /* FWR2: retail selection+1; FWR3 also permits a validated independent logical parent. */
     uint32_t stable_handle, selection_key, symbol_hash, record_offset, core_id, retail_selection_plus_one;
 } FighterWindowRow;
 typedef struct FighterWindow {
     const uint8_t *bytes;
-    uint32_t count, table, sod_size;
+    uint32_t count, table, sod_size, version;
     FighterWindowBank banks[FIGHTER_WINDOW_BANKS];
     /* Index+1, zero means unbound. No native ID is a persistent identity. */
     uint32_t selected[FIGHTER_WINDOW_BANKS];

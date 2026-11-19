@@ -12,6 +12,17 @@ from mods import ordinary_path, safe_relative
 # an outfit collection (outfit_name, outfits, portraits, face), retail_moveset and voice_donor.
 FORMAT = 'caf-fighter-1'
 CAPABILITY = FORMAT
+FINAL_STATS_CAPABILITY = 'caf-final-stats-1'
+STAT_KEYS = ('upper', 'lower', 'speed', 'toughness', 'health', 'charisma')
+
+
+def final_stats(value):
+    require(type(value) is dict and set(value) == set(STAT_KEYS)
+            and all(type(n) is int and 0 <= n <= 50 for n in value.values()),
+            'CAF final stats need all six integer attributes in 0..50')
+    return value
+
+
 OUTFIT_SECTIONS = {'outfit_name', 'outfits', 'portraits', 'face'}
 
 
@@ -164,7 +175,14 @@ def load(root, spec, catalog, game):
         from fighter_caf_face import load_recipe
     else:
         load_recipe=load_flat
+    attributes = clean.pop('final_stats', None)
+    if 'final_stats' in value:
+        final_stats(attributes)
     result=load_recipe(root,clean,catalog,game)
+    if attributes is not None:
+        from fighter_caf_outfits import variants
+        for outfit in variants(result):
+            outfit['recipe']['final_stats'] = dict(attributes)
     result.update(voice_donor=voice,sha256=fingerprint(value))
     return result
 
@@ -189,7 +207,10 @@ def encode_rows(entries,report):
         binding=report['bindings'][key]
         aliases=item.get('outfit_aliases',[binding['selection_key']])
         for index, outfit in enumerate(variants(item)):
-            r=outfit['recipe'];s=r['stats'];row=bytearray(RECIPE_STRIDE)
+            r=outfit['recipe'];s=final_stats(r['final_stats']) if 'final_stats' in r else r['stats'];row=bytearray(RECIPE_STRIDE)
+            if 'final_stats' in r:
+                row[R['final_stats']] = 1
+                row[R['charisma']] = s['charisma']
             struct.pack_into('<I',row,R['selection'],binding['selection_key'])
             struct.pack_into('<I',row,R['core'],item['core'])
             struct.pack_into('<%dI'%TRAINING,row,R['training'],*(s[k] for k in ('upper','lower','speed','toughness','health')))
@@ -209,12 +230,13 @@ def encode(entries,report):
     import fighter_caf_layout as layout
     from fighter_caf_extras import encode_section as encode_extras
     from fighter_caf_hd import encode_section as encode_hd
-    from fighter_caf_face import encode_rows as encode_faces
+    from fighter_caf_face import encode_rows as encode_faces, encode_normals
     recipe_count,recipes=encode_rows(entries,report)
     extras_count,extras=encode_extras(entries,report)
     hd_count,hd=encode_hd(entries,report)
     faces_count,faces=encode_faces(entries,report)
-    raw=layout.pack_header(recipe_count,extras_count,len(extras),hd_count,len(hd),faces_count)+recipes+extras+hd+faces
+    normals_count,normals=encode_normals(entries,report)
+    raw=layout.pack_header(recipe_count,extras_count,len(extras),hd_count,len(hd),faces_count,normals_count)+recipes+extras+hd+faces+normals
     require(len(raw)<=layout.MAX_FILE,'Compiled CAF fighters exceed the container budget')
     return raw
 
@@ -230,4 +252,6 @@ def menu_record(recipe, selection):
     training=[recipe['stats'][k] for k in ('upper','lower','speed','toughness','health')]+[0]
     values={letter:int(((n//5)*1.274999976158142+sum(bonuses[s][i] for s in recipe['styles'])*0.45000001788139343)*3.3333330154418945+0.5)
             for i,(letter,n) in enumerate(zip('ULSTHC',training))}
+    if 'final_stats' in recipe:
+        values = dict(zip('ULSTHC', (final_stats(recipe['final_stats'])[k] for k in STAT_KEYS)))
     return {'selection_key':selection,'stats':values,'styles':[(1,0,4,3,2)[s] for s in recipe['styles']]}

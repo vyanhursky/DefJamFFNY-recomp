@@ -375,7 +375,8 @@ A selectable extra outfit uses a normal fighter definition plus `outfit_of`:
 ```
 
 Declare the referenced appearance resource in the pack as usual. The target
-must be an original retail fighter. All components except appearance/portrait
+may be an original retail fighter or an independent fighter in the same pack.
+All components except appearance/portrait
 must resolve identically to the parent. The compiler adds a hidden native
 appearance binding and extends the original clothing selector, retaining one
 public retail cell. Original and added outfits together must not exceed three.
@@ -383,6 +384,15 @@ Use the matching runtime with FWR2 support. Progress, loading and results keep
 the retail identity; the selected battle appearance uses the owned resource.
 The selector portrait is separate artwork and does not change merely because
 the body atlas changes. See [native evidence and limits](research/retail-overrides-outfits.md).
+
+For a standalone parent use `inherits: "example-pack/fighter"` and
+`outfit_of: "example-pack/fighter"`, overriding appearance/portrait only. The
+parent must not itself be an outfit. The default plus hidden children must not
+exceed three looks. This requires `standalone-retail-outfits-1` and generated
+FWR3 support; older runtimes refuse the window version. The original clothing
+selector retains one public fighter; combat and saved progress belong to the
+parent. Loading/results use each look's own artwork. CAF recipe outfit groups
+retain their existing separate adapter.
 
 ### Conflicting component claims
 
@@ -436,3 +446,30 @@ ordinary46fighter candidate exists. The additional legacy runtime reference
 establishes owned absolute phase4 cameras; native and wider acceptance remain
 separate gates before declaring complete faithful acceptance.
 See the [current M5 checkpoint](research/fighter-mod-m5-2026-11-08.md).
+
+
+### Editable Team-selection artwork
+
+The optional `fighter-ui-team-art-1` capability extends `eagl-portrait-png-1`
+with `team_portrait`, `team_icon` and `team_icon_selected`. These are independent
+PNG roles; they do not add required members to the older binary portrait formats.
+The tall card fits inside the native101×195 rectangle. Both icon states fit the
+native59×59 rectangle and retain its original overlapping quads. Supply a separate
+picked icon for exact art direction; otherwise an authored available icon derives
+a muted picked state. Missing roles retain the donor artwork.
+
+The compiler changes verified raster spans only, retaining donor APT actions,
+constants, geometry and material controls. HD tiles use the existing owned hash
+layer. Team aliases follow `p_CT_<identity+1>` and `t_CT_<identity>` (no player
+suffix). Resources replace only allocated custom/outfit aliases, never shared
+retail donor movies. A runtime-owned display adapter snapshots validated outfit
+portrait aliases at character confirmation and passes a bounded copy to Team's
+image initializers. The adapter defers the qualified zero-argument native Team
+initialization call until those wrappers exist; semantic fighter/controller IDs
+remain unchanged.
+
+In Workshop, choose the outfit, open **Menu artwork**, select a **Team selection**
+role and **Import PNG**. Save the project, export with a runtime advertising the
+capability, install the ZIP and use Play. Existing projects without explicit Team
+roles preserve their current artwork. Transparent margins remain meaningful;
+prepare a tightly framed PNG when the card should fill its native rectangle.

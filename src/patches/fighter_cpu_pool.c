@@ -112,6 +112,7 @@ void defjam_fighter_cpu_result(uint32_t address, uint32_t bytes) {
     s_spans[s_allocations].address=address;s_spans[s_allocations].bytes=bytes;
     s_spans[s_allocations].film=s_pending_film;s_pending_film=0;
     ++s_allocations;
+    if (getenv("RECOMP_CAF_CINEMATIC_TRACE")) fprintf(stderr,"[FILM-ALLOC] address=%08X bytes=%u owner=%u\n",address,bytes,s_spans[s_allocations-1].film);
 }
 void defjam_fighter_cpu_released(void) {
     if (!s_open) return;
