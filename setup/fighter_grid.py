@@ -125,6 +125,26 @@ def append_grid(movie, constants, model, textures, templates):
     return bytes(output), model.compose(), textures.appended(images)
 
 
+def selector_textures(current, original):
+    """The selector images to extend: the original file, or a language mod's translation of it (#284).
+
+    A translation repaints existing selector images (their text) and keeps the image directory: the
+    same names in the same order, each with the same kind and size. The custom grid images are
+    appended after them, so the translated pixels are kept. Any other difference means another mod
+    owns the selector."""
+    if current == original:
+        return UITextures(original)
+    try:
+        ours = UITextures(current)
+    except ValueError:
+        ours = None
+    def layout(textures):
+        return [(image['name'], image['kind'], image['width'], image['height']) for image in textures.images]
+    require(ours is not None and layout(ours) == layout(UITextures(original)),
+            'Another mod already owns the selector image/model data')
+    return ours
+
+
 def compose_grid(screens, report, baseline,*,resource_files=None):
     require(type(baseline) is PortraitBaseline, 'Grid templates require the verified original screens')
     archive, replacements = Archive(screens), {}
@@ -136,8 +156,8 @@ def compose_grid(screens, report, baseline,*,resource_files=None):
         current = Archive(unpack(archive.read(path)))
         original = Archive(unpack(baseline.archive.read(path)))
         model_bytes = original.read(stem + '.o')
-        require(current.read(stem + '.o') == model_bytes and current.read(stem + '.xsh') == original.read(stem + '.xsh'),
-                'Another mod already owns the selector image/model data')
+        require(current.read(stem + '.o') == model_bytes, 'Another mod already owns the selector image/model data')
+        selector_images = selector_textures(current.read(stem + '.xsh'), original.read(stem + '.xsh'))
         model = UIModel(model_bytes, hashlib.sha256(model_bytes).hexdigest())
         templates = {}
         for identifier in resources:
@@ -163,6 +183,6 @@ def compose_grid(screens, report, baseline,*,resource_files=None):
             templates[tokens[identifier]] = (donor.read(donor_stem + '.apt'),
                 UIModel(template, hashlib.sha256(template).hexdigest()), UITextures(texture))
         movie, model, textures = append_grid(current.read(stem + '.apt'), current.read(stem + '.const'), model,
-                                            UITextures(original.read(stem + '.xsh')), templates)
+                                            selector_images, templates)
         replacements[path] = store(current.compose(replacements={stem + '.apt': movie, stem + '.o': model, stem + '.xsh': textures}))
     return archive.compose(replacements=replacements), bindings
