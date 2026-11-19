@@ -567,6 +567,12 @@ static void recorder_frame_done(double present_ms, double capture_ms)
         texture_pack_stats(&resident, NULL);
         in.hd_cache_bytes = resident;
     }
+    if (recorder_on()) {
+        extern int defjam_fighter_cinematic_sample(char *,size_t);
+        char pose[2048];int sample=defjam_fighter_cinematic_sample(pose,sizeof pose);
+        if (sample==1) recorder_event("cinematic_pose",pose);
+        else if (sample==2) recorder_mark("CAF cinematic finished");
+    }
     /* Where the log has got to: with this in every row, scripts/bug-bundle.py puts each
      * log line on the frames' clock without the log's format changing. Flushing once a
      * frame also keeps the log's end on disk if the process is killed. */

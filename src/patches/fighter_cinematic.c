@@ -30,7 +30,7 @@ static uint32_t s_cache_manager, s_cache_count, s_cache_descriptors, s_cache_req
 static unsigned s_cache_allocations, s_cache_constructed;
 static uint32_t s_cache_cores[4];
 static unsigned s_test_readied;
-static struct {uint32_t descriptor,manager,slot,core;char name[8];} s_owners[256];
+static struct {uint32_t descriptor,manager,slot,core,actual_core;char name[8];} s_owners[256];
 static unsigned owner_record(uint32_t descriptor) {
     unsigned empty=256;
     for (unsigned i=0;i<256;++i) {
@@ -137,8 +137,8 @@ int defjam_fighter_cinematic_start(void) {
     char banks_digest[65], nis_digest[65];
     if (valid) {
         hex(table + 24, banks_digest); hex(table + 56, nis_digest);
-        valid = ((version==1 && !memcmp(table,"FIC1",4)) || (version==2 && !memcmp(table,"FIC2",4)) || (version==3 && !memcmp(table,"FIC3",4))) && count
-            && count <= (version==3?CIN_BINDING_LIMIT:CIN_CORE_LIMIT-141) && size == 88u + count * stride
+        valid = ((version==1 && !memcmp(table,"FIC1",4)) || (version==2 && !memcmp(table,"FIC2",4)) || (version==3 && !memcmp(table,"FIC3",4)) || (version==4 && !memcmp(table,"FIC4",4))) && count
+            && count <= (version>=3?CIN_BINDING_LIMIT:CIN_CORE_LIMIT-141) && size == 88u + count * stride
             && cin_word(table + 20) == 0 && !strcmp(banks_digest, hash) && !strcmp(nis_digest, nis_hash)
             && cin_size(path, cin_word(table + 12)) && cin_size(nis, cin_word(table + 16));
     }
@@ -149,7 +149,7 @@ int defjam_fighter_cinematic_start(void) {
     for (uint32_t i = 0; valid && i < count; ++i) {
         const uint8_t *row = table + 88 + i * stride;
         uint32_t core = cin_word(row);
-        int caf=version==3 && caf_behavior_key(core);
+        int caf=version>=3 && caf_behavior_key(core);
         if (core <= previous || (!caf && core >= CIN_CORE_LIMIT) || (caf && s_caf_count>=CAF_BEHAVIOR_MAX)) { valid = 0; break; }
         for (unsigned category = 0; category < 2; ++category) {
             const uint8_t *name = row + 4 + category * 8;
@@ -157,7 +157,7 @@ int defjam_fighter_cinematic_start(void) {
             for (unsigned j = 2; j < 7; ++j) if (name[j] < '0' || name[j] > '9') valid = 0;
         }
         uint32_t flags=version>=2?cin_word(row+20):0;
-        if ((flags&~3u) || (caf && flags)) valid=0;
+        if ((flags&~3u) || (caf && flags && version!=4)) valid=0;
         if (valid) {
             previous=core;
             if(caf) {uint32_t index=CIN_CORE_LIMIT+s_caf_count;
@@ -176,7 +176,8 @@ const char *defjam_fighter_cinematic_path(void) { return s_archive; }
 int defjam_fighter_cinematic_proofs(void) {
     for (unsigned core=141;core<CIN_BINDING_LIMIT;++core) {
         for (unsigned role=0;role<2;++role)
-            if ((s_full_clips[core]&(1u<<role)) && !defjam_fighter_film_complete(s_clips[core][role],role==0)) return 0;
+            if ((s_full_clips[core]&(1u<<role)) && (!defjam_fighter_film_complete(s_clips[core][role],role==0)
+                || (core>=CIN_CORE_LIMIT && !defjam_fighter_film_caf(s_clips[core][role])))) return 0;
         for (unsigned phase=0;core<CIN_CORE_LIMIT && phase<4;++phase)
             if ((s_full_blazin[core]&(1u<<phase)) && !defjam_fighter_film_complete(s_blazin[core][phase],0)) return 0;
     }
@@ -395,7 +396,7 @@ uint64_t defjam_fighter_cinematic_enter(uint32_t manager, uint32_t descriptor, u
     s_context = ((uint64_t)descriptor << 32) | core | (blazin ? 0x80000000u : 0u);
     if (owner>=256) cin_stop("cinematic descriptor ownership population exceeds bound");
     s_owners[owner].descriptor=descriptor;s_owners[owner].manager=manager;
-    s_owners[owner].slot=slot;s_owners[owner].core=core;
+    s_owners[owner].slot=slot;s_owners[owner].core=core;s_owners[owner].actual_core=actual_core;
     return previous;
 }
 void defjam_fighter_cinematic_leave(uint64_t previous, uint32_t request) {
@@ -454,16 +455,52 @@ void defjam_fighter_cinematic_selected(uint32_t descriptor, uint32_t name) {
 void defjam_fighter_cinematic_bind(uint32_t descriptor) {
     unsigned owner=owner_record(descriptor);
     if (owner>=256 || s_owners[owner].descriptor!=descriptor || !s_owners[owner].name[0]
-        || !defjam_fighter_film_known(s_owners[owner].name)) return;
+        ) return;
     uint32_t manager=s_owners[owner].manager,slot=s_owners[owner].slot,core=s_owners[owner].core;
     uint32_t entry=MEM32(descriptor+0x90),config=MEM32(manager+0x2FF5C);
-    if (slot>=4 || !entry || MEM32(descriptor+0x94)!=1 || MEM32(0x3B90B8+4*slot)!=core
-        || !config || MEM32(config+0xA8+4*slot)!=core+1
-        || memcmp((const void *)XBOX_PTR(entry),s_owners[owner].name,strlen(s_owners[owner].name)+1))
-        cin_stop("full cinematic actor differs from its immutable request owner");
+    if (slot>=4 || !entry || MEM32(descriptor+0x94)!=1 || MEM32(0x3B90B8+4*slot)!=s_owners[owner].actual_core
+        || !config || MEM32(config+0xA8+4*slot)!=s_owners[owner].actual_core+1
+        || memcmp((const void *)XBOX_PTR(entry),s_owners[owner].name,strlen(s_owners[owner].name)+1)
+        || (core>=CIN_CORE_LIMIT && caf_behavior_index(s_caf_bindings,s_caf_count,slot)!=core))
+        cin_stop("full cinematic actor or CAF selection differs from its immutable request owner");
     uint32_t visual=MEM32(manager+0x2B9C0+4*slot);
-    if (!visual || MEM32(entry+0x44)!=visual || !defjam_fighter_film_bind(s_owners[owner].name,entry,visual,descriptor))
+    if (!visual || MEM32(entry+0x44)!=visual || (defjam_fighter_film_known(s_owners[owner].name)
+            && !defjam_fighter_film_bind(s_owners[owner].name,entry,visual,descriptor)))
         cin_stop("full cinematic banks or actual output context differ from their proofs");
-    fprintf(stderr,"[FIGHTERS] full cinematic context verified name=%s slot=%u core=%u visual=%08X\n",
+    fprintf(stderr,"[FIGHTERS] cinematic output context verified name=%s slot=%u core=%u visual=%08X\n",
             s_owners[owner].name,slot,core,visual);
+}
+
+/* Read-only presented-frame diagnostic. Samples the completed local pose, never
+ * changes clocks or resources. A double clock read rejects concurrent updates. */
+static float sample_float(uint32_t p) {uint32_t bits=MEM32(p);float f;memcpy(&f,&bits,4);return f;}
+int defjam_fighter_cinematic_sample(char *out,size_t capacity) {
+    static uint32_t previous_descriptor;static float previous_time=-1;static int active;
+    const char *enabled=getenv("RECOMP_CAF_CINEMATIC_TRACE");
+    if (!enabled || strcmp(enabled,"1") || !out || capacity<1024) return 0;
+    for (unsigned i=0;i<256;++i) {
+        uint32_t d=s_owners[i].descriptor;
+        if (!d || s_owners[i].slot!=0 || !s_owners[i].name[0]) continue;
+        if (!(MEM8(d)&9)) {
+            if (active && previous_descriptor==d) {active=0;return 2;}
+            continue;
+        }
+        uint32_t entry=MEM32(d+0x90),visual=entry?MEM32(entry+0x44):0;
+        if (!visual) continue;
+        uint32_t model=(MEM8(visual+0xABB4)&1)?MEM32(visual+0x9D0):visual+0x30;
+        if (!model || !(MEM8(model+0x138)&1) || MEM32(model+0x15C)!=94) continue;
+        uint32_t pose=MEM32(model+0x14C);if (!pose) continue;
+        float time=sample_float(model+0x200),face=sample_float(model+0x230),hand=sample_float(model+0x260);
+        if (previous_descriptor==d && previous_time==time) continue;
+        const unsigned bones[]={68,69,70,71,72,74,76,77,78,79,80};float values[44];
+        for (unsigned b=0;b<11;++b) for (unsigned j=0;j<4;++j) values[4*b+j]=sample_float(pose+48*bones[b]+16+4*j);
+        if (sample_float(model+0x200)!=time) continue;
+        int n=snprintf(out,capacity,"\"clip\":\"%s\",\"slot\":0,\"body_tick\":%.9g,\"face_tick\":%.9g,\"hand_tick\":%.9g,\"model\":%u,\"pose\":%u,\"quaternions\":[",s_owners[i].name,time,face,hand,model,pose);
+        if (n<0 || (size_t)n>=capacity) return 0;
+        for (unsigned j=0;j<44;++j) {int k=snprintf(out+n,capacity-(size_t)n,"%s%.9g",j?",":"",values[j]);if(k<0 || (size_t)k>=capacity-(size_t)n)return 0;n+=k;}
+        if ((size_t)n+2>=capacity) return 0;out[n++]=']';out[n]=0;
+        fprintf(stderr,"[CIN-POSE] {%s}\n",out);
+        previous_descriptor=d;previous_time=time;active=1;return 1;
+    }
+    return 0;
 }

@@ -10,7 +10,7 @@ import struct
 
 from fighter_archive import Archive
 from fighter_registry import key
-from fighter_voice import parse_owned_stream, require
+from fighter_voice import presentation_stream, require
 from fighter_voice_bank import VoiceBankTemplate, FAMILIES
 
 CATEGORIES = ('Character', 'Taunts', 'Enviro')
@@ -81,8 +81,7 @@ class VoiceCompiler:
                         'Unknown voice sample category')
                 banks = {category: {'template_voice': donor, 'family': None,
                                    'samples': voice['samples'].get(category, {})} for category in CATEGORIES}
-            parse_owned_stream(voice['intro'])
-            parse_owned_stream(voice['extro'])
+            for purpose in ('intro','extro'):presentation_stream(voice[purpose],purpose)
             while next_id in self.occupied:
                 next_id += 1
             require(next_id < 65535, 'Voice WORD namespace is exhausted')
@@ -167,7 +166,7 @@ def encode_voice_bindings(data, report, cores):
                     'Voice bank differs from composition receipt')
             require(struct.unpack_from('<H', h, 2)[0] == native_id, 'Voice bank key differs')
         for purpose in ('intro', 'extro'):
-            parse_owned_stream(archive.read(f'speech/streams/{purpose}/{native_id:03d}.asf'))
+            presentation_stream(archive.read(f'speech/streams/{purpose}/{native_id:03d}.asf'),purpose)
         require(native_id not in masks or masks[native_id] == mask,
                 'Shared voice ID has conflicting category presence masks')
         masks[native_id] = mask

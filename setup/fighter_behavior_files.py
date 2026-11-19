@@ -63,6 +63,7 @@ def validate_source(kind, source):
     version3 = kind == 'voice' and type(source) is dict and source.get('format') in ('fighter-voice-3', 'fighter-voice-4')
     version4 = version3 and source['format'] == 'fighter-voice-4'
     cinematic2=kind=='cinematic' and type(source) is dict and source.get('format')=='fighter-cinematic-2'
+    caf_donor=kind=='cinematic' and type(source) is dict and source.get('format') in ('fighter-cinematic-caf-donor-1','fighter-cinematic-caf-performance-2')
     cinematic_retail=kind=='cinematic' and type(source) is dict and source.get('format')=='fighter-cinematic-retail-1'
     ai2=kind=='ai' and type(source) is dict and source.get('format')=='fighter-ai-2'
     voice_retail=kind=='voice' and type(source) is dict and source.get('format')=='fighter-voice-retail-1'
@@ -73,6 +74,7 @@ def validate_source(kind, source):
     if version3:
         expected['voice'] = {'format', 'banks', 'intro', 'extro'}
     if cinematic2:expected['cinematic']={'format','template','graph','tags'}
+    if caf_donor:expected['cinematic']={'format','template','edits'}|({'mouth','speech_tick'} if source['format']=='fighter-cinematic-caf-performance-2' else set())
     if cinematic_retail:expected['cinematic']={'format','template'}
     if voice_retail:expected['voice']={'format','donor'}
     if blazin2:
@@ -82,7 +84,7 @@ def validate_source(kind, source):
     require(kind in KINDS and type(source) is dict
             and (set(source) == expected[kind] or kind == 'blazin' and not blazin2 and set(source) == expected[kind] | {'pairs'})
             and (source['format'] == 'fighter-' + kind + '-1'
-                 or kind == 'voice' and source['format'] in ('fighter-voice-2', 'fighter-voice-3', 'fighter-voice-4') or blazin2 or cinematic2 or cinematic_retail or ai2 or voice_retail),
+                 or kind == 'voice' and source['format'] in ('fighter-voice-2', 'fighter-voice-3', 'fighter-voice-4') or blazin2 or cinematic2 or cinematic_retail or caf_donor or ai2 or voice_retail),
             'Unsupported behavior source fields or format')
     if kind=='tag-override':
         require(all(type(source[name]) is str and re.fullmatch('[A-Za-z0-9_]{1,8}',source[name]) for name in ('target','template')),
@@ -191,6 +193,10 @@ def validate_source(kind, source):
     else:
         require(type(source['template']) is str and re.fullmatch(r'C[IE]_[A-Za-z0-9]{4}', source['template']),
                 'Cinematic requires a supported simple intro/victory template')
+        if caf_donor:
+            from fighter_caf_cinematic import validate,FORMAT
+            from fighter_caf_mouth import FORMAT as VOICE_FORMAT
+            validate(dict(source,format=VOICE_FORMAT if source['format']=='fighter-cinematic-caf-performance-2' else FORMAT));return source
         if cinematic_retail:return source
         if cinematic2:
             file_spec(source['graph'])
@@ -284,6 +290,10 @@ class Reader:
             from fighter_timelines import TAG_FORMAT
             return {**{key:source[key] for key in ('target','template','original_sha256')},
                     'timeline':typed_json(source['timeline'],TAG_FORMAT)}
+        if kind=='cinematic' and source['format'] in ('fighter-cinematic-caf-donor-1','fighter-cinematic-caf-performance-2'):
+            from fighter_caf_cinematic import FORMAT
+            from fighter_caf_mouth import FORMAT as VOICE_FORMAT
+            return {'template':source['template'],'tracks':dict(source,format=VOICE_FORMAT if source['format']=='fighter-cinematic-caf-performance-2' else FORMAT),'tags':'donor'}
         if kind=='cinematic' and source['format']=='fighter-cinematic-2':
             return {'template':source['template'],'tracks':film(source['graph']),'tags':film_tags(source['tags'])}
         if kind == 'moveset':

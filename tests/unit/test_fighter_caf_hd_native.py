@@ -23,7 +23,11 @@ DRIVER=r'''
 unsigned char memory[0xC00000];
 uint32_t g_eax,g_ecx,g_edx,g_esp,g_ebx,g_esi,g_edi,g_ebp;
 int g_fp_top;
+static int fail_rgb_alloc;
+static void *hd_test_malloc(size_t bytes) {return fail_rgb_alloc && bytes==512u*512u*3u?NULL:malloc(bytes);}
+#define malloc hd_test_malloc
 #include "@SOURCE@"
+#undef malloc
 static uint8_t recipe[CAF_ROW_STRIDE];
 static unsigned calls,cleared;
 static int linear;
@@ -54,8 +58,12 @@ int main(int argc,char **argv) {
   unsigned native=y*256+x,at=linear?native:hd_swizzle(x)|(hd_swizzle(y)<<1);
   MEM8(0x100010+at*4+3)=(uint8_t)(native%3==0?133:219);
  }
+ if(!strcmp(argv[3],"decode-oom"))fail_rgb_alloc=1;
+ if(!strcmp(argv[3],"decode-corrupt"))section[40]^=255;
  defjam_caf_hd_apply(0x10000,999,0);assert(!calls && !cleared);
- defjam_caf_hd_apply(0x10000,100,0);assert(calls==1 && cleared==1);
+ defjam_caf_hd_apply(0x10000,100,0);
+ if(fail_rgb_alloc || !strcmp(argv[3],"decode-corrupt")) {assert(!calls && cleared==2);defjam_caf_hd_clear();assert(cleared==3);return 0;}
+ assert(calls==1 && cleared==1);
  defjam_caf_hd_apply(0x10000,100,1);assert(calls==1 && cleared==1);
  defjam_caf_hd_clear();assert(cleared==2 && !s_hd_owners[0]);
  defjam_caf_hd_clear();assert(cleared==2);
@@ -75,8 +83,8 @@ def tool(tmp_path_factory):
     driver=folder/'driver.c';driver.write_text(DRIVER.replace('@SOURCE@',(ROOT/'src/patches/fighter_caf_hd.c').as_posix()))
     exe=folder/('hd.exe' if os.name=='nt' else 'hd')
     extra=[str(ROOT/'src/patches/fighter_fatal.c'), str(ROOT/'src/patches/fighter_config.c'),str(ROOT/'tests/unit/native_stubs/host_fatal.c')]
-    if os.name=='nt':command=[cc,'/nologo','/W4','/WX','/wd5105','/D_CRT_SECURE_NO_WARNINGS','/I'+str(folder),'/I'+str(ROOT/'src'),str(driver),*extra,'/Fe:'+str(exe)]
-    else:command=[cc,'-std=c11','-D_POSIX_C_SOURCE=200809L','-Wall','-Wextra','-Werror','-I',str(folder),'-I',str(ROOT/'src'),str(driver),*extra,'-o',str(exe)]
+    if os.name=='nt':command=[cc,'/nologo','/W4','/WX','/wd5105','/D_CRT_SECURE_NO_WARNINGS','/I'+str(folder),'/I'+str(ROOT/'src'),'/I'+str(ROOT/'tools/xboxrecomp/src/nv2a'),str(driver),*extra,'/Fe:'+str(exe)]
+    else:command=[cc,'-std=c11','-D_POSIX_C_SOURCE=200809L','-Wall','-Wextra','-Werror','-I',str(folder),'-I',str(ROOT/'src'),'-I',str(ROOT/'tools/xboxrecomp/src/nv2a'),str(driver),*extra,'-o',str(exe)]
     result=subprocess.run(command,cwd=folder,capture_output=True,text=True)
     assert result.returncode==0,result.stdout+result.stderr
     return exe
@@ -104,3 +112,37 @@ def test_native_reader_rejects_malformed_and_unbound_blocks(tool,tmp_path,field,
 def test_native_reader_rejects_trailing_bytes(tool,tmp_path):
     count,payload=raw()
     run(tool,tmp_path,payload+bytes(4),'invalid',count)
+
+@pytest.mark.parametrize('edge',[512,1024,2048])
+@pytest.mark.parametrize('mode',['linear','swizzled'])
+def test_packed_rgb_preserves_native_alpha_and_lifetime(tool,tmp_path,edge,mode):
+    block=struct.pack('<I',edge)+bytes((11,22,33,0))*(edge*edge)
+    count,payload=encode_section({'a/b':{'extras':{'hd_atlases':{'a':block}}}},
+        {'bindings':{'a/b':{'selection_key':100}}},compact=True)
+    assert len(payload)<layout.HD_STRIDE+4+edge*edge*3
+    run(tool,tmp_path,payload,mode,count)
+    run(tool,tmp_path,payload[:-1],'invalid',count)
+    run(tool,tmp_path,payload+b'\0','invalid',count)
+
+@pytest.mark.parametrize('damage',['length','short-output','long-output','bad-stream','reserved-tag','bad-edge'])
+def test_deflate_block_refuses_invalid_dimensions_lengths_and_output(tool,tmp_path,damage):
+    import zlib
+    edge=512
+    rgb=bytes((11,22,33))*(edge*edge)
+    if damage=='short-output':rgb=rgb[:-1]
+    if damage=='long-output':rgb+=b'!'
+    packed=zlib.compress(rgb)
+    if damage=='bad-stream':packed=b'not deflate'
+    tag=edge|0xc0000000
+    if damage=='reserved-tag':tag=edge|0x40000000
+    if damage=='bad-edge':tag=513|0xc0000000
+    length=len(packed)+(1 if damage=='length' else 0)
+    row=struct.pack('<8I',100,0,32,0,0,0,0,0)
+    run(tool,tmp_path,row+struct.pack('<II',tag,length)+packed,'invalid')
+
+@pytest.mark.parametrize('mode',['decode-oom','decode-corrupt'])
+def test_live_decode_failure_clears_partial_hd_without_stopping(tool,tmp_path,mode):
+    edge=512;block=struct.pack('<I',edge)+bytes((11,22,33,0))*(edge*edge)
+    count,payload=encode_section({'a/b':{'extras':{'hd_atlases':{'a':block}}}},
+        {'bindings':{'a/b':{'selection_key':100}}},compact=True)
+    run(tool,tmp_path,payload,mode,count)

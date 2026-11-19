@@ -6,7 +6,6 @@
 #include "fighter_fatal.h"
 #include "fighter_motion.h"
 #include "fighter_caf_face.h"
-#include "fighter_caf_normals.h"
 #include "fighter_caf_hd.h"
 #include "fighter_caf_layout.h"
 #include "hooks/guest_call.h"
@@ -271,18 +270,18 @@ static uint8_t *read_container(const char *path,size_t *size) {
 }
 /* The header must describe sections that tile the file exactly: header, recipes, extras, hd, faces. */
 int defjam_fighter_caf_container(const uint8_t *data,size_t size,CafContainer *out) {
-    if(size<CAF_CONTAINER_HEADER_BYTES || size>CAF_CONTAINER_MAX_BYTES || memcmp(data,CAF_CONTAINER_MAGIC,4)) return 0;
-    uint32_t version=word(data+4);
-    if(version!=CAF_CONTAINER_VERSION&&version!=CAF_CONTAINER_NORMAL_VERSION)return 0;
+    if(size<CAF_CONTAINER_HEADER_BYTES || size>CAF_CONTAINER_MAX_BYTES || memcmp(data,CAF_CONTAINER_MAGIC,4) || (word(data+4)!=CAF_CONTAINER_VERSION && word(data+4)!=CAF_CONTAINER_NORMAL_VERSION)) return 0;
     CafContainer c={word(data+CAF_HEADER_RECIPE_COUNT),word(data+CAF_HEADER_EXTRAS_COUNT),word(data+CAF_HEADER_EXTRAS_BYTES),
-        word(data+CAF_HEADER_HD_COUNT),word(data+CAF_HEADER_HD_BYTES),word(data+CAF_HEADER_FACES_COUNT),version==CAF_CONTAINER_NORMAL_VERSION?word(data+CAF_HEADER_NORMALS_COUNT):0};
-    if(word(data+60)||c.normals_count>CAF_NORMAL_MAX||(version==CAF_CONTAINER_NORMAL_VERSION&&!c.normals_count)
-        ||(version==CAF_CONTAINER_VERSION&&(word(data+52)||word(data+56))))return 0;
+        word(data+CAF_HEADER_HD_COUNT),word(data+CAF_HEADER_HD_BYTES),word(data+CAF_HEADER_FACES_COUNT),0,0};
+    if(word(data+4)==CAF_CONTAINER_NORMAL_VERSION) {
+        c.normals_count=word(data+CAF_HEADER_NORMALS_COUNT);c.normals_bytes=word(data+CAF_HEADER_NORMALS_BYTES);
+        if(!c.normals_count || c.normals_count>CAF_MAX_ROWS || c.normals_bytes!=(size_t)c.normals_count*CAF_NORMAL_STRIDE)return 0;
+    } else if(word(data+52)||word(data+56)||word(data+60))return 0;
     if(!c.recipe_count || c.recipe_count>CAF_MAX_ROWS || c.extras_count>CAF_MAX_ROWS || c.extras_bytes>EXTRA_MAX || (!c.extras_count && c.extras_bytes) || (c.extras_count && !c.extras_bytes)
         || c.hd_count>CAF_MAX_ROWS || c.hd_bytes>CAF_HD_MAX_BYTES || (!c.hd_count && c.hd_bytes) || (c.hd_count && !c.hd_bytes) || c.faces_count>CAF_MAX_ROWS) return 0;
     size_t recipes=CAF_CONTAINER_HEADER_BYTES,extras=recipes+(size_t)c.recipe_count*CAF_ROW_STRIDE,hd=extras+c.extras_bytes,faces=hd+c.hd_bytes;
-    size_t normals=faces+(size_t)c.faces_count*CAF_FACE_STRIDE,total=normals+(size_t)c.normals_count*CAF_NORMAL_STRIDE;
-    if(version==CAF_CONTAINER_NORMAL_VERSION&&word(data+CAF_HEADER_NORMALS_OFFSET)!=normals)return 0;
+    size_t normals=faces+(size_t)c.faces_count*CAF_FACE_STRIDE,total=normals+c.normals_bytes;
+    if(c.normals_count && word(data+CAF_HEADER_NORMALS_OFFSET)!=normals)return 0;
     if(word(data+CAF_HEADER_RECIPE_OFFSET)!=recipes || word(data+CAF_HEADER_EXTRAS_OFFSET)!=extras || word(data+CAF_HEADER_HD_OFFSET)!=hd
         || word(data+CAF_HEADER_FACES_OFFSET)!=faces || word(data+CAF_HEADER_TOTAL_BYTES)!=total || total!=size) return 0;
     *out=c;return 1;
@@ -299,10 +298,10 @@ int defjam_fighter_caf_start(void) {
     s_rows=data+CAF_CONTAINER_HEADER_BYTES;s_count=c.recipe_count;
     if (!recipes_valid(s_rows,c.recipe_count) || (c.extras_count && !extras_valid(extras,c.extras_bytes,c.extras_count))
         || (c.faces_count && !defjam_caf_faces_start(recipe_row,faces,c.faces_count))
-        || (c.normals_count && !defjam_caf_normals_start(recipe_row,faces+(size_t)c.faces_count*CAF_FACE_STRIDE,c.normals_count))
+        || (c.normals_count && !defjam_caf_normals_start(faces+(size_t)c.faces_count*CAF_FACE_STRIDE,c.normals_count))
         || (c.hd_count && !defjam_caf_hd_start(recipe_row,hd,c.hd_bytes,c.hd_count))) {
         /* Sections keep pointers into the container, so release them all before freeing it. */
-        defjam_caf_faces_release();defjam_caf_normals_release();defjam_caf_hd_release();
+        defjam_caf_faces_release();defjam_caf_hd_release();
         free(data);s_rows=NULL;s_count=0;return 0;
     }
     if (c.extras_count) {s_extras=(uint8_t *)extras;s_extra_count=c.extras_count;fprintf(stderr,"[FIGHTERS] validated %u CAF extras (%u bytes)\n",c.extras_count,c.extras_bytes);}
@@ -310,9 +309,6 @@ int defjam_fighter_caf_start(void) {
 }
 /* Called before each match/after it finishes: no stale context may be reused. */
 void defjam_fighter_caf_clear(void) {
-    for(unsigned i=0;i<4;++i)if(s_contexts[i]&&guest_span(s_contexts[i],0x1c)&&MEM8(s_contexts[i])&&MEM32(s_contexts[i]+8))
-        defjam_caf_normals_detach(MEM32(s_contexts[i]+8)+0x8B0,i);
-    defjam_caf_normals_clear();
     defjam_caf_faces_clear();
     defjam_caf_hd_clear();
     restore_finishers();
@@ -403,10 +399,7 @@ static uint32_t construct_caf(uint32_t service,uint32_t participant,const uint8_
     if(MEM32(contexts-4)!=4 || (s_service && s_service!=service)) stop("native CAF context owner differs");
     s_service=service;
     uint32_t context=contexts+participant*0x1c;
-    if(MEM8(context)) {
-        if(MEM32(context+8))defjam_caf_normals_detach(MEM32(context+8)+0x8B0,participant);
-        guest_call(sub_00063770,context,0,NULL);
-    }
+    if(MEM8(context)) guest_call(sub_00063770,context,0,NULL);
     /* 62960 installs the single-preview 1.5 MiB arena. Match CAFs use
      * the existing normal game allocators, as 62A00 supports natively. */
     uint32_t resource_manager=guest_call(sub_00063720,0,0,NULL),load_args[]={0x400};
@@ -475,7 +468,6 @@ void defjam_fighter_caf_participant(uint32_t service,uint32_t participant,uint32
         fprintf(stderr,"[FIGHTERS] CAF outfit not confirmed participant=%u logical=%u; using the default outfit\n",participant,selection);
     uint32_t context=construct_caf(service,participant,row,prepare_profile(row));
     defjam_caf_faces_apply(MEM32(context+8)+0x8B0,participant,selection,outfit,row);
-    defjam_caf_normals_apply(MEM32(context+8)+0x8B0,participant,selection,outfit);
     face_trace(MEM32(context+8)+0x8B0,participant);
     apply_atlases(MEM32(context+8)+0x8B0,extra_row(selection,outfit));
     defjam_caf_hd_apply(MEM32(context+8)+0x8B0,selection,outfit);

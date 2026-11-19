@@ -1,6 +1,7 @@
 #ifndef DEFJAM_FIGHTER_CINEMATIC_H
 #define DEFJAM_FIGHTER_CINEMATIC_H
 #include "recomp/gen/recomp_types.h"
+#include <stddef.h>
 int defjam_fighter_cinematic_start(void);
 int defjam_fighter_cinematic_proofs(void);
 int defjam_fighter_cinematic_absolute(uint32_t descriptor);
@@ -18,4 +19,5 @@ void defjam_fighter_cinematic_leave(uint64_t previous, uint32_t request);
 void defjam_fighter_cinematic_name(uint32_t descriptor);
 void defjam_fighter_cinematic_selected(uint32_t descriptor, uint32_t name);
 void defjam_fighter_cinematic_bind(uint32_t descriptor);
+int defjam_fighter_cinematic_sample(char *out,size_t capacity);
 #endif
