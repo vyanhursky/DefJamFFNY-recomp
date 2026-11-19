@@ -5,8 +5,9 @@ import sys
 from types import SimpleNamespace
 import wave
 
-import numpy as np
 import pytest
+
+np = pytest.importorskip('numpy')  # the Blender preview helper needs NumPy; CI's unit job has none
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'scripts/blender'))
 from fighter_preview_playback import PreviewAudio, timeline_pcm

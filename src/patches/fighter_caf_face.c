@@ -38,7 +38,10 @@ static unsigned normal_error(const char *why) {
 static int normal_unit(uint32_t w,float n[3]) {
     static const unsigned bits[3]={11,11,10},shifts[3]={0,11,22};float len=0;
     for(unsigned i=0;i<3;++i){int v=(w>>shifts[i])&((1u<<bits[i])-1);if(v&(1u<<(bits[i]-1)))v-=1u<<bits[i];n[i]=fmaxf(-1.f,(float)v/((1u<<(bits[i]-1))-1));len+=n[i]*n[i];}
-    if(len<.25f)return 0;len=sqrtf(len);for(unsigned i=0;i<3;++i)n[i]/=len;return 1;
+    if(len<.25f)return 0;
+    len=sqrtf(len);
+    for(unsigned i=0;i<3;++i)n[i]/=len;
+    return 1;
 }
 static int normal_records_valid(const uint8_t *p) {
     unsigned n=word(p);if(!n||n>NORMAL_MAX)return 0;
@@ -148,7 +151,8 @@ static void normals_apply(uint32_t visual,unsigned participant,const uint8_t *so
     s_normals[participant].used=0;s_normals[participant].visual=visual;
     /* Build both parts completely before publishing either model pointer. */
     for(unsigned part_index=0;part_index<2;++part_index){unsigned slot=part_index?12:3,needed=0;
-        for(unsigned i=0;i<count;++i)needed+=word(rows+i*32)==slot;if(!needed)continue;
+        for(unsigned i=0;i<count;++i)needed+=word(rows+i*32)==slot;
+        if(!needed)continue;
         uint32_t part=visual+0x140+slot*0x420;if(!span(part+0x12c,4)){reason="normal part bounds";goto reject;};
         uint32_t model=MEM32(part+0x12c);if(!span(model,0xd8)){reason="normal model bounds";goto reject;};
         unsigned groups=MEM32(model+0x9c);uint32_t table=MEM32(model+0xcc),end=table+4;
