@@ -498,7 +498,8 @@ int defjam_fighter_cinematic_sample(char *out,size_t capacity) {
         int n=snprintf(out,capacity,"\"clip\":\"%s\",\"slot\":0,\"body_tick\":%.9g,\"face_tick\":%.9g,\"hand_tick\":%.9g,\"model\":%u,\"pose\":%u,\"quaternions\":[",s_owners[i].name,time,face,hand,model,pose);
         if (n<0 || (size_t)n>=capacity) return 0;
         for (unsigned j=0;j<44;++j) {int k=snprintf(out+n,capacity-(size_t)n,"%s%.9g",j?",":"",values[j]);if(k<0 || (size_t)k>=capacity-(size_t)n)return 0;n+=k;}
-        if ((size_t)n+2>=capacity) return 0;out[n++]=']';out[n]=0;
+        if ((size_t)n+2>=capacity) return 0;
+        out[n++]=']';out[n]=0;
         fprintf(stderr,"[CIN-POSE] {%s}\n",out);
         previous_descriptor=d;previous_time=time;active=1;return 1;
     }
