@@ -117,6 +117,9 @@ the older [setup installers](docs/setup-installer.md) remain available on earlie
 [Build and play](docs/build-and-play.md) for Windows or
 [Build on macOS and Linux](docs/build-macos-linux.md).
 
+[v1.2.0](docs/releases/v1.2.0.md) brings Fighter Mod Support out of beta, adds voice subtitles
+for language mods and links the launcher's mods to Thunderstore.
+
 [v1.1.2](docs/releases/v1.1.2.md) fixes crashes, silence and a freeze after fights with
 more than a few custom songs.
 
