@@ -60,7 +60,8 @@ def update_pose(scene, *_):
         tick = max(0., min(model.duration, scene.frame_current_final - 1.))
         mouth=STATE['voice_module'].mouth_data() if STATE.get('voice_module') else None
         if STATE.get('voice_module'):STATE['voice_module'].sync_controls(scene,tick,mouth)
-        worlds, matrices = model.matrices(tick,cues,mouth)
+        hand=STATE['hand_module'].hand_data() if STATE.get('hand_module') else None
+        worlds, matrices = model.matrices(tick,cues,mouth,hand)
         from fighter_blender_preview import C, deform
         for part in model.document['meshes']:
             obj = bpy.data.objects['FFNY_Mesh_' + str(part['slot']) + '_' + str(part['rm'])]
@@ -88,7 +89,8 @@ def validate_scene():
     tick = max(0., min(model.duration, scene.frame_current_final - 1.))
     from fighter_blender_preview import C, deform
     mouth=STATE['voice_module'].mouth_data() if STATE.get('voice_module') else None
-    worlds, matrices = model.matrices(tick,cues,mouth)
+    hand=STATE['hand_module'].hand_data() if STATE.get('hand_module') else None
+    worlds, matrices = model.matrices(tick,cues,mouth,hand)
     for part in model.document['meshes']:
         obj = bpy.data.objects['FFNY_Mesh_' + str(part['slot']) + '_' + str(part['rm'])]
         if (obj.modifiers or obj.data.shape_keys or obj.parent or
@@ -128,7 +130,7 @@ def validate_scene():
         from fighter_caf_mouth import require_voice_fit,PREVIEW_AUDIO_DELAY
         voice=STATE['voice_module'];speech_tick=voice.speech_tick()
         require_voice_fit(voice.voice_bytes(),speech_tick,int(model.duration),purpose=voice.voice_purpose())
-    return model.source(cues,mouth,speech_tick)
+    return model.source(cues,mouth,speech_tick,hand)
 
 
 def export(path):
@@ -145,6 +147,9 @@ def export(path):
         result.update(schema='fighter-blender-cinematic-export-2',voice=spec)
         result['locked_layers']=['body','root','hands','cameras','non_speech_events','geometry','rig','weights','uv','normal_contract']
         with Path(spec['path']).open('xb') as stream:stream.write(raw)
+    if 'left_hand' in source:
+        result['locked_layers']=[x for x in result['locked_layers'] if x!='hands']+['right_hand','left_wrist']
+        result['editable_layers']=['left_finger_pose_envelope']
     path.write_text(json.dumps(result, indent=2, allow_nan=False)+'\n')
     bpy.context.scene['ffny_status'] = 'Exported ' + path.name
     return result
@@ -370,6 +375,10 @@ def main():
         import fighter_voice_controls
         fighter_voice_controls.register(sys.modules[__name__]);STATE['voice_module']=fighter_voice_controls
         if args.audio_converter:STATE['audio_converter']=str(Path(args.audio_converter).resolve())
+    if document['schema']=='fighter-blender-preview-2':
+        import fighter_hand_controls
+        fighter_hand_controls.register(sys.modules[__name__]);STATE['hand_module']=fighter_hand_controls
+        fighter_hand_controls.initialize(document)
     if args.create:create(document)
     else:
         if 'FFNY_Cues' not in bpy.context.scene.objects or 'FFNY_NativeRig' not in bpy.context.scene.objects:

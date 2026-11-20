@@ -500,6 +500,19 @@ int defjam_fighter_cinematic_sample(char *out,size_t capacity) {
         for (unsigned j=0;j<44;++j) {int k=snprintf(out+n,capacity-(size_t)n,"%s%.9g",j?",":"",values[j]);if(k<0 || (size_t)k>=capacity-(size_t)n)return 0;n+=k;}
         if ((size_t)n+2>=capacity) return 0;
         out[n++]=']';out[n]=0;
+        const char *hand_trace=getenv("RECOMP_CAF_HAND_TRACE");
+        if (hand_trace && !strcmp(hand_trace,"1")) {
+            const unsigned fingers[]={21,22,23,24,26,25,27,28,29,34,33,35,30,31,32};
+            int k=snprintf(out+n,capacity-(size_t)n,",\"left_hand_quaternions\":[");
+            if(k<0 || (size_t)k>=capacity-(size_t)n)return 0;n+=k;
+            for (unsigned b=0;b<15;++b) for (unsigned j=0;j<4;++j) {
+                float v=sample_float(pose+48*fingers[b]+16+4*j);
+                k=snprintf(out+n,capacity-(size_t)n,"%s%.9g",b||j?",":"",v);
+                if(k<0 || (size_t)k>=capacity-(size_t)n)return 0;n+=k;
+            }
+            if ((size_t)n+2>=capacity || sample_float(model+0x260)!=hand || sample_float(model+0x200)!=time) return 0;
+            out[n++]=']';out[n]=0;
+        }
         fprintf(stderr,"[CIN-POSE] {%s}\n",out);
         previous_descriptor=d;previous_time=time;active=1;return 1;
     }
