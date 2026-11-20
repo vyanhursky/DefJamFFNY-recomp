@@ -17,7 +17,7 @@ from fighter_animation_timed_quaternions import blend
 FORMAT = 'fighter-caf-cinematic-2'
 PUBLIC_FORMAT = 'fighter-cinematic-caf-performance-2'
 DURATION = 65
-DURATIONS = {"CI_132A": 65, "CI_113A": 106}
+DURATIONS = {"CI_132A": 65, "CI_113A": 106, "CE_113A": 106}
 JAW_DESTINATION = 69 * 12 + 4
 MAX_JAW_DEGREES = 12.0
 PREVIEW_AUDIO_DELAY = 5  # Existing measured approx reference; native test calibrates this separately.
@@ -116,23 +116,25 @@ def wav_info(raw):
     return dict(sample_rate=rate,samples=count,seconds=count/rate)
 
 
-def require_voice_fit(raw, speech_tick, duration=DURATION):
+def require_voice_fit(raw, speech_tick, duration=DURATION, *, purpose="intro"):
     require(type(speech_tick) is int and 0<=speech_tick<duration, 'Speech start tick exceeds donor')
     info=wav_info(raw)
     require(speech_tick+PREVIEW_AUDIO_DELAY+math.ceil(info['seconds']*30)<=duration,
-            'Voice extends beyond this donor entrance; trim the clip or choose a longer donor')
+            'Voice extends beyond this donor cinematic; trim the clip or choose a longer donor')
     from fighter_voice import encode_stream,presentation_stream
     with wave.open(io.BytesIO(raw),'rb') as audio:pcm=audio.readframes(info['samples'])
     encoded=encode_stream(pcm,info['sample_rate']);info['encoded_bytes']=len(encoded)
-    presentation_stream(encoded,'intro')
+    presentation_stream(encoded,purpose)
     return info
 
 
-def jaw_guide(raw, speech_tick=0, duration=DURATION):
+def jaw_guide(raw, speech_tick=0, duration=DURATION, *, purpose="intro", preview_delay=PREVIEW_AUDIO_DELAY):
     """A labelled amplitude guide, not phoneme recognition or finished lip sync."""
-    info=require_voice_fit(raw,speech_tick,duration)
+    info=require_voice_fit(raw,speech_tick,duration,purpose=purpose)
     with wave.open(io.BytesIO(raw),'rb') as w:pcm=struct.unpack('<'+'h'*info['samples'],w.readframes(info['samples']))
-    start=speech_tick+PREVIEW_AUDIO_DELAY; levels=[]
+    require(type(preview_delay) is int and 0<=preview_delay<=12, 'Invalid preview audio delay')
+    start=speech_tick+preview_delay; levels=[]
+    require(start+math.ceil(info['seconds']*30)<=duration, 'Preview guide voice extends beyond donor')
     for tick in range(math.ceil(info['seconds']*30)):
         chunk=pcm[round(tick*info['sample_rate']/30):round((tick+1)*info['sample_rate']/30)]
         levels.append(math.sqrt(sum(v*v for v in chunk)/max(1,len(chunk))))
@@ -148,11 +150,13 @@ def jaw_guide(raw, speech_tick=0, duration=DURATION):
 
 
 def speech_timeline(library, token, tick):
-    """One trusted intro-start payload, private name only; preserve non-speech data."""
+    """One trusted donor speech start; preserve every other event in order."""
+    require(token in DURATIONS, 'Unreviewed speech donor')
     rows=library.by_name[token]['events']
-    starts=[payload for _,payload in rows if payload==[59,[0]]]
+    start=[60 if token.startswith('CE_') else 59,[0]]
+    starts=[payload for _,payload in rows if payload==start]
     require(starts and type(tick) is int and 0<=tick<DURATIONS[token], 'No verified donor speech event')
-    events=[(at,copy.deepcopy(payload)) for at,payload in rows if payload!=[59,[0]]]
+    events=[(at,copy.deepcopy(payload)) for at,payload in rows if payload!=start]
     events.append((tick,copy.deepcopy(starts[0])));events.sort(key=lambda r:r[0])
     return library.library.export(events)
 
@@ -174,14 +178,17 @@ PHONE_POSES = {
 }
 
 
-def phoneme_guide(cues, raw, speech_tick=0, duration=DURATION):
+def phoneme_guide(cues, raw, speech_tick=0, duration=DURATION, *, purpose="intro", preview_delay=PREVIEW_AUDIO_DELAY):
     """Bounded whole-word/phone timing -> editable native jaw and lip samples."""
     import hashlib
-    info=require_voice_fit(raw,speech_tick,duration)
+    info=require_voice_fit(raw,speech_tick,duration,purpose=purpose)
     require(type(cues) is dict and cues.get('schema')=='fighter-speech-cues-1'
             and cues.get('source_sha256')==hashlib.sha256(raw).hexdigest(), 'Speech cues belong to another voice')
     words=cues.get('words');require(type(words) is list and 1<=len(words)<=100,'Speech word budget exceeded')
-    offset=speech_tick+PREVIEW_AUDIO_DELAY;values={0:(0.,0),duration:(0.,0)};previous=0.
+    require(type(preview_delay) is int and 0<=preview_delay<=12, 'Invalid preview audio delay')
+    offset=speech_tick+preview_delay
+    require(offset+math.ceil(info['seconds']*30)<=duration, 'Preview guide voice extends beyond donor')
+    values={0:(0.,0),duration:(0.,0)};previous=0.
     for word in words:
         require(type(word) is dict and type(word.get('phones')) is list and len(word['phones'])<=100,'Invalid speech word')
         for phone in word['phones']:

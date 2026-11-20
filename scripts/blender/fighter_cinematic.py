@@ -127,7 +127,7 @@ def validate_scene():
     if mouth is not None:
         from fighter_caf_mouth import require_voice_fit,PREVIEW_AUDIO_DELAY
         voice=STATE['voice_module'];speech_tick=voice.speech_tick()
-        require_voice_fit(voice.voice_bytes(),speech_tick,int(model.duration))
+        require_voice_fit(voice.voice_bytes(),speech_tick,int(model.duration),purpose=voice.voice_purpose())
     return model.source(cues,mouth,speech_tick)
 
 

@@ -20,7 +20,7 @@ def validate(value):
     fields={'format','template','edits'}|({'mouth','speech_tick'} if voice else set())
     require(type(value) is dict and set(value)==fields
             and value['format'] in (FORMAT,VOICE_FORMAT)
-            and type(value['template']) is str and value['template'] in (tuple(DURATIONS) if voice else ('CI_132A','CE_132A','CI_113A')),
+            and type(value['template']) is str and value['template'] in (tuple(DURATIONS) if voice else ('CI_132A','CE_132A','CI_113A','CE_113A')),
             'CAF donor proof supports only the reviewed donor/profile')
     if voice:
         duration=DURATIONS[value['template']];validate_mouth(value['mouth'],duration)

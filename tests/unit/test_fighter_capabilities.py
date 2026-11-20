@@ -19,7 +19,7 @@ def test_capability_manifest_matches_actual_parser_and_recipe():
                           object_pairs_hook=no_duplicates)
     assert set(manifest) == {'api', 'commands', 'recipe_format', 'extensions'}
     assert manifest['extensions'] == ['retail-animation-preview-1', 'standalone-retail-outfits-1', 'caf-sculpt-normals-1',
-                                     'caf-final-stats-1', 'fighter-ui-team-art-1']
+                                     'caf-final-stats-1', 'fighter-ui-team-art-1', 'caf-victory-mouth-1']
     assert type(manifest['api']) is int and manifest['api'] == 1
     tree = ast.parse((ROOT / 'scripts/fighter-contract.py').read_text(encoding='utf-8'))
     commands = next(ast.literal_eval(keyword.value)
