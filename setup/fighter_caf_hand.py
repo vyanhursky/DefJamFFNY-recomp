@@ -32,7 +32,8 @@ def validate_hand(value, template):
                 and type(row[1]) in (int,float) and math.isfinite(row[1]) and 0<=row[1]<=1,
                 'Hand envelope requires bounded increasing source ticks and weights')
         previous=row[0]
-    require(rows[0]==[0,0] and rows[-1]==[106,0], 'Hand must return to its donor pose at both endpoints')
+    require((rows[0]==[0,0] and rows[-1]==[106,0]) or rows==[[0,1],[106,1]],
+            'Hand requires neutral endpoints or an explicit constant full-clip pose')
     return value
 
 

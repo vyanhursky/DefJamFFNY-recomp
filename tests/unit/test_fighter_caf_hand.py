@@ -53,3 +53,20 @@ def test_generated_left_writer_cannot_overwrite_right_or_body_and_returns_to_don
     assert 0<weight_at(value()['envelope'],21.5)<1
     bad=SimpleNamespace(quaternion_destinations=tuple(reversed(DESTINATIONS)),vector_destinations=(),frames=[frame]*32)
     with pytest.raises(ValueError):apply_graphs(graph,value(),'CE_113A',SimpleNamespace(palettes=[bad]))
+
+
+def test_explicit_full_clip_pose_is_held_at_start_middle_and_end():
+    from fighter_caf_mouth import decoded_jaw
+    v=value();v['envelope']=[[0,1],[106,1]];validate_hand(v,'CE_113A')
+    assert all(weight_at(v['envelope'],t)==1 for t in (0,.5,19,30,44,105.5,106))
+    left=dict(kind=25,selector=0,times=[0,44,52,105],samples=[21,21,9,9])
+    right=dict(kind=25,selector=1,times=[0,46,53,105],samples=[21,21,20,20])
+    graph={'CE_113A_p':dict(duration_ticks=106,time_scale=29,children=[left,right])}
+    frame=tuple((0.,0.,0.,1.) for _ in range(15));pal=SimpleNamespace(quaternion_destinations=DESTINATIONS,vector_destinations=(),frames=[frame]*32)
+    result=apply_graphs(graph,v,'CE_113A',SimpleNamespace(palettes=[pal]));poses=decoded_jaw(result['CE_113A_s']['children'][0])
+    target=[x for q in v['pose'] for x in q]
+    assert all(p==pytest.approx(target,abs=.0002) for p in poses)
+    assert result['CE_113A_p']['children']==[right]
+    for rows in ([[0,1],[106,0]],[[0,0],[106,1]],[[0,.5],[106,.5]],[[0,1],[50,1],[106,1]]):
+        bad=copy.deepcopy(v);bad['envelope']=rows
+        with pytest.raises(ValueError):validate_hand(bad,'CE_113A')

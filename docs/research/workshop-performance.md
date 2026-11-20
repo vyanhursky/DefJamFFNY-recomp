@@ -157,3 +157,29 @@ reported one skipped cold-start callback already observed before the hand change
 so this is not a clean full-regression result. Skip/rematch, other outfits and
 platforms, and a separate retail-donor gameplay rerun remain unqualified. The
 owner explicitly kept donor arm motion/cameras, which can crop the authored hand.
+
+### Full-victory holding
+
+`caf-left-fingers-hold-1` adds one explicit full-clip variant: the envelope must
+be exactly `[[0,1],[106,1]]`. Timed gestures still require neutral endpoints;
+partial nonneutral endpoints and arbitrary extra hold keys remain refused.
+This writes a bounded pose through the same participant-owned hand `_s`
+controller for the original cinematic duration. It adds no procedural layer,
+global palette replacement or persistent suppression flag. The native controller
+continues to own normal completion/skip/teardown, rather than an external
+per-frame override. Rig/destination, numeric, sample, seal and ownership checks
+remain unchanged. New source data must not be treated as an old compiler feature;
+Workshop checks the separate hold extension before exporting it.
+
+The Blender Left Hand Pose panel exposes “Hold throughout victory”; its timing
+sliders are disabled while this explicit constant profile is selected. Existing
+scenes default to their previous timed envelope. The pose and preview-only sound
+speed/calibration remain independent of native body/camera and audio timing.
+
+A focused full-hold macOS run on the default CAF outfit at Terrordome reached
+results with unchanged original/guarded saves and no classified run faults.
+The 198 observed victory samples (ticks0.5–104.5) matched the expected left
+fingers within6.1e-8 and face within1.2e-7; body and hand clocks agreed exactly.
+The compiled full duration, including endpoints, was also sampled at849 points.
+This qualifies the bounded hold path only; skip/rematch, other outfits/platforms
+and later asset-pose revisions require their own evidence.
