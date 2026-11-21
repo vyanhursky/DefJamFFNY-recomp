@@ -84,5 +84,12 @@ std::string replace_with(const std::vector<std::string> &argv);
 // Whether files can be created in `dir` (a probe file is made and removed).
 bool writable(const std::filesystem::path &dir);
 
+// Windows: the player's desktop folder (where Explorer has it, OneDrive's included; under
+// DEFJAM_APP_USER_BASE when that test hook is set), a shortcut there to `target`, and what an
+// existing shortcut points at. Empty, false and empty elsewhere.
+std::filesystem::path desktop_folder();
+bool make_shortcut(const std::filesystem::path &link, const std::filesystem::path &target, std::string *error);
+std::filesystem::path shortcut_target(const std::filesystem::path &link);
+
 } // namespace os
 } // namespace app

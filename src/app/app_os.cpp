@@ -182,6 +182,14 @@ std::string replace_with(const std::vector<std::string> &argv) { return exec_pro
 
 bool writable(const fs::path &dir) { return access(dir.c_str(), W_OK) == 0; }
 
+fs::path desktop_folder() { return {}; }
+bool make_shortcut(const fs::path &, const fs::path &, std::string *error)
+{
+    *error = "not on this system";
+    return false;
+}
+fs::path shortcut_target(const fs::path &) { return {}; }
+
 #else // _WIN32
 
 namespace
@@ -423,6 +431,66 @@ bool writable(const fs::path &dir)
     if (h == INVALID_HANDLE_VALUE) return false;
     CloseHandle(h);
     return true;
+}
+
+fs::path desktop_folder()
+{
+    if (const char *base = getenv("DEFJAM_APP_USER_BASE"); base && *base) return fs::path(base) / "Desktop";
+    PWSTR value = nullptr;
+    if (FAILED(SHGetKnownFolderPath(FOLDERID_Desktop, 0, nullptr, &value))) return {};
+    fs::path out(value);
+    CoTaskMemFree(value);
+    return out;
+}
+
+// COM for this thread for as long as it is in scope (the shell link is an STA object).
+struct ComScope
+{
+    HRESULT hr = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+    ~ComScope() { if (SUCCEEDED(hr)) CoUninitialize(); }
+};
+
+bool make_shortcut(const fs::path &link, const fs::path &target, std::string *error)
+{
+    ComScope com;
+    IShellLinkW *shell = nullptr;
+    IPersistFile *file = nullptr;
+    HRESULT hr = CoCreateInstance(CLSID_ShellLink, nullptr, CLSCTX_INPROC_SERVER, IID_IShellLinkW, (void **)&shell);
+    if (SUCCEEDED(hr)) {
+        shell->SetPath(target.wstring().c_str());
+        shell->SetWorkingDirectory(target.parent_path().wstring().c_str());
+        shell->SetIconLocation(target.wstring().c_str(), 0);
+        shell->SetDescription(L"Def Jam Recompiled");
+        hr = shell->QueryInterface(IID_IPersistFile, (void **)&file);
+    }
+    if (SUCCEEDED(hr)) hr = file->Save(link.wstring().c_str(), TRUE);
+    if (file) file->Release();
+    if (shell) shell->Release();
+    if (FAILED(hr)) {
+        char code[16];
+        snprintf(code, sizeof code, "0x%08lx", (unsigned long)hr);
+        *error = code;
+    }
+    return SUCCEEDED(hr);
+}
+
+fs::path shortcut_target(const fs::path &link)
+{
+    std::error_code ec;
+    if (!fs::is_regular_file(link, ec)) return {};
+    ComScope com;
+    IShellLinkW *shell = nullptr;
+    IPersistFile *file = nullptr;
+    wchar_t path[MAX_PATH * 2] = {0};
+    HRESULT hr = CoCreateInstance(CLSID_ShellLink, nullptr, CLSCTX_INPROC_SERVER, IID_IShellLinkW, (void **)&shell);
+    if (SUCCEEDED(hr)) hr = shell->QueryInterface(IID_IPersistFile, (void **)&file);
+    if (SUCCEEDED(hr)) hr = file->Load(link.wstring().c_str(), STGM_READ);
+    if (SUCCEEDED(hr)) hr = shell->GetPath(path, MAX_PATH * 2, nullptr, SLGP_RAWPATH);
+    if (file) file->Release();
+    if (shell) shell->Release();
+    if (FAILED(hr) || !path[0]) return {};
+    fs::path out = fs::weakly_canonical(fs::path(path), ec);
+    return ec ? fs::path(path) : out;
 }
 
 #endif

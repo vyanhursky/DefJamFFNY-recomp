@@ -5,8 +5,10 @@
 // app lives in a folder of its own, its home: the program and, beside it, payload\ (unpacked from
 // that resource), %LOCALAPPDATA%\Programs\DefJamRecompiled unless the player chose another. The
 // chosen home is recorded in %LOCALAPPDATA%\DefJamRecompiled\location.json, so any other copy (the
-// download, opened again) finds it. The built game and the data folder are elsewhere, chosen on the
-// first-run screen as before. No Start-menu or desktop shortcut is made (owner's choice, 2026-10-27).
+// download, opened again) finds it. A home the install page makes holds everything (k_portable_marker):
+// the game in game\ and the data and saves in data\, and the page's choices start the first setup in the
+// installed copy (--first-setup). It adds one desktop shortcut; no Start-menu entry. A home an earlier
+// release made keeps its game and data where its first-run screen put them.
 //
 // When the app starts without --payload:
 //   - a program without the resource (a development build) does nothing here;
@@ -14,9 +16,10 @@
 //     unpacking it again when it is missing or another build's;
 //   - another copy (the download) hands over to the copy in the home: it first replaces that copy
 //     when it is a newer release, then starts it with the same arguments and exits;
-//   - with no home yet, the window opens on "Install Def Jam Recompiled": the folder, checked (not
-//     Program Files, not a synced, network or FAT drive, short enough), then the program copied
-//     there, its payload unpacked and the home recorded, and the installed copy started.
+//   - with no home yet, the window opens on "Install Def Jam Recompiled": an empty folder and the
+//     game copy, checked (not Program Files, not a synced, network or FAT drive, short enough, the
+//     copy outside the folder), then the program copied there, its payload unpacked, the home
+//     recorded, the desktop shortcut made, and the installed copy started on its first setup.
 // Replacing files in a home follows the update's rule (app_update.cpp): renamed aside to .old one
 // by one, each step undone if a later one fails; the started copy removes the .old files.
 
@@ -272,37 +275,127 @@ std::string folder_problem(const fs::path &folder)
 }
 
 // ---- the install page ---------------------------------------------------------------------------------
+// One page, one folder: the player chooses an empty folder and their copy of the game, and the app
+// puts everything in that folder (the app and payload\, the game in game\, the dump copy, saves and
+// settings in data\), adds a desktop shortcut, and starts the installed copy, which sets the game up
+// at once (--first-setup). The folder can be moved or copied whole.
 
 bool g_page = false;
+bool g_retry_update = false;    // the installed copy could not be updated: only the folder, tried again
 char g_folder[1024];
+char g_dump[2048];
+int g_experience = 1;
 std::string g_error;
 std::atomic<bool> g_working(false), g_finished(false);
 std::mutex g_result_lock;
 std::string g_result;
 
+enum class Pick { None, Folder, Dump };
 std::mutex g_pick_lock;
 std::string g_picked;
-bool g_has_pick = false;
+Pick g_has_pick = Pick::None;
 
-void SDLCALL picked(void *, const char *const *files, int)
+void SDLCALL picked_folder(void *, const char *const *files, int)
 {
     std::lock_guard<std::mutex> hold(g_pick_lock);
     if (files && files[0]) {
         g_picked = files[0];
-        g_has_pick = true;
+        g_has_pick = Pick::Folder;
     }
+}
+
+void SDLCALL picked_dump(void *, const char *const *files, int)
+{
+    std::lock_guard<std::mutex> hold(g_pick_lock);
+    if (files && files[0]) {
+        g_picked = files[0];
+        g_has_pick = Pick::Dump;
+    }
+}
+
+// What a folder holds that this app did not put there (the first such name), or "" when it is empty,
+// missing, or a folder the install page made before (an attempt that stopped, or Install again).
+std::string foreign_entry(const fs::path &folder)
+{
+    std::error_code ec;
+    if (!fs::exists(folder, ec)) return "";
+    if (fs::is_regular_file(folder / k_portable_marker, ec)) return "";
+    static const char *ours[] = {k_program, "payload", "payload.new", "payload.old", "payload.sha256",
+                                 "play.lock", "setup.lock", "desktop.ini"};
+    for (auto it = fs::directory_iterator(folder, ec); !ec && it != fs::directory_iterator(); it.increment(ec)) {
+        std::string name = it->path().filename().string();
+        bool known = false;
+        for (const char *o : ours) known = known || _stricmp(name.c_str(), o) == 0;
+        if (!known) return name;
+    }
+    return "";
+}
+
+bool inside(const fs::path &outer, const fs::path &inner)
+{
+    std::error_code ec;
+    fs::path a = fs::weakly_canonical(outer, ec), b = fs::weakly_canonical(inner, ec);
+    for (fs::path p = b; !p.empty(); p = p.parent_path()) {
+        if (_wcsicmp(p.wstring().c_str(), a.wstring().c_str()) == 0) return true;
+        if (p == p.parent_path()) break;
+    }
+    return false;
+}
+
+// Why the page's choices will not do, or "".
+std::string choices_problem(const fs::path &folder, const fs::path &dump)
+{
+    std::string why = folder_problem(folder);
+    if (!why.empty()) return why;
+    // Setup's own limit is 140 characters for the game\ and data\ folders inside it.
+    if (folder.string().size() > 130) return "Choose a shorter folder path (at most 130 characters).";
+    if (g_retry_update) return "";
+    std::error_code ec;
+    if (fs::exists(folder, ec) && !fs::is_directory(folder, ec)) return folder.string() + " is a file, not a folder.";
+    std::string other = foreign_entry(folder);
+    if (!other.empty())
+        return "That folder is not empty (it holds \"" + other + "\"). Choose an empty folder, or add a new "
+               "folder name at the end of the path: it is created.";
+    if (dump.empty()) return "Choose your copy of the game: a disc image (.iso) or an extracted folder.";
+    if (!dump.is_absolute()) return "Choose your game copy with a full path.";
+    if (!fs::exists(dump, ec)) return "Your game copy was not found: " + dump.string();
+    if (fs::is_directory(dump, ec) && !fs::is_regular_file(dump / "default.xbe", ec))
+        return "That folder is not an extracted Xbox game: it has no default.xbe. Choose the folder that holds "
+               "default.xbe, or the disc image.";
+    if (inside(folder, dump)) return "Your game copy is inside the install folder. Choose a folder elsewhere to install in.";
+    if (inside(dump, folder)) return "The install folder is inside your game copy. Choose a folder elsewhere to install in.";
+    return "";
 }
 
 void start_install()
 {
     fs::path folder = fs::path(std::string(g_folder));
-    g_error = folder_problem(folder);
+    fs::path dump = fs::path(std::string(g_dump));
+    g_error = choices_problem(folder, dump);
     if (!g_error.empty()) return;
+    bool fresh = !g_retry_update;
     g_working = true;
     g_finished = false;
-    std::thread([folder] {
+    std::thread([folder, fresh] {
         std::string why = place_into(folder, true);
         if (why.empty() && !record_home(folder)) why = "The app's location could not be recorded in " + location_file().string() + ".";
+        if (why.empty() && fresh) {
+            std::ofstream marker(folder / k_portable_marker, std::ios::binary | std::ios::trunc);
+            marker << "Def Jam Recompiled keeps everything in this folder: the app, the game (game\\) and your "
+                      "game data, saves and settings (data\\). Move or copy the whole folder.\n";
+            if (!marker) why = "Files cannot be created in " + folder.string() + ".";
+        }
+        if (why.empty() && fresh) {
+            // Not needed to play (the app is in the folder), so a failure is only logged.
+            fs::path desktop = os::desktop_folder();
+            std::string error;
+            std::error_code ec;
+            if (!desktop.empty() && fs::is_directory(desktop, ec) &&
+                os::make_shortcut(desktop / k_shortcut_name, folder / k_program, &error))
+                fprintf(stderr, "[APP] desktop shortcut: %s\n", (desktop / k_shortcut_name).string().c_str());
+            else
+                fprintf(stderr, "[APP] desktop shortcut not made (%s)\n", error.empty() ? "no desktop folder" : error.c_str());
+        }
         std::lock_guard<std::mutex> hold(g_result_lock);
         g_result = why;
         g_finished = true;
@@ -319,9 +412,21 @@ Placement place_app(std::string *error)
     fs::path me = os::program(), here = me.parent_path(), h = home();
     std::error_code ec;
     if (same_folder(here, h)) return Placement::Installed;
+    // A one-folder install that was moved or copied here: this is the installed copy now. The desktop
+    // shortcut follows when it pointed at a program that is no longer there.
+    if (fs::is_regular_file(here / k_portable_marker, ec) && _wcsicmp(me.filename().wstring().c_str(), L"DefJamRecompiled.exe") == 0) {
+        fprintf(stderr, "[APP] this folder holds the app now (it was in %s)\n", h.string().c_str());
+        record_home(here);
+        fs::path link = os::desktop_folder() / k_shortcut_name, was = os::shortcut_target(link);
+        std::string error;
+        if (!was.empty() && !fs::exists(was, ec) && os::make_shortcut(link, me, &error))
+            fprintf(stderr, "[APP] desktop shortcut now points at %s\n", me.string().c_str());
+        return Placement::Installed;
+    }
     fs::path installed = h / k_program;
     if (!fs::is_regular_file(installed, ec)) {
         snprintf(g_folder, sizeof g_folder, "%s", h.string().c_str());
+        snprintf(g_dump, sizeof g_dump, "%s", first_run().dump.c_str());   // --dump, when given
         g_page = true;
         return Placement::NeedsInstall;
     }
@@ -346,6 +451,7 @@ Placement place_app(std::string *error)
         std::string why = place_into(h, true);
         if (!why.empty()) {
             g_error = "Could not update the installed app: " + why + " Retry installation below. The existing copy was kept.";
+            g_retry_update = true;
             snprintf(g_folder, sizeof g_folder, "%s", h.string().c_str());
             g_page = true; return Placement::NeedsInstall;
         }
@@ -376,10 +482,18 @@ bool install_screen_draw(float width, float height, UiResult *result)
     if (!g_page) return false;
     {
         std::lock_guard<std::mutex> hold(g_pick_lock);
-        if (g_has_pick) {
-            snprintf(g_folder, sizeof g_folder, "%s", (fs::path(g_picked) / "DefJamRecompiled").string().c_str());
-            g_has_pick = false;
+        if (g_has_pick == Pick::Folder) {
+            // A chosen empty folder is used as it is; any other gets a folder of the app's own in it.
+            fs::path chosen = fs::path(g_picked);
+            std::error_code ec;
+            bool empty = !fs::exists(chosen, ec) || fs::is_empty(chosen, ec) || foreign_entry(chosen).empty();
+            snprintf(g_folder, sizeof g_folder, "%s", (empty ? chosen : chosen / "DefJamRecompiled").string().c_str());
+            g_error.clear();
+        } else if (g_has_pick == Pick::Dump) {
+            snprintf(g_dump, sizeof g_dump, "%s", g_picked.c_str());
+            g_error.clear();
         }
+        g_has_pick = Pick::None;
     }
     if (g_finished.exchange(false)) {
         g_working = false;
@@ -390,6 +504,7 @@ bool install_screen_draw(float width, float height, UiResult *result)
             auto &next = relaunch();
             next = {installed.string()};
             for (const std::string &a : arguments()) next.push_back(a);
+            if (!g_retry_update) next.insert(next.end(), {"--first-setup", g_experience ? "1" : "0", std::string(g_dump)});
             result->leave = true;
         } else {
             g_error = g_result;
@@ -397,27 +512,59 @@ bool install_screen_draw(float width, float height, UiResult *result)
         }
     }
     page_begin(width, height, "INSTALL DEF JAM RECOMPILED");
-    ImGui::TextWrapped("The app installs itself in a folder of its own. On the next screen it builds the game from "
-                       "your own copy of Def Jam: Fight for NY, in a folder you choose there.");
-    ImGui::Spacing();
-    ImGui::TextWrapped("Nothing is added to the Start menu or the desktop. To open the app again, open this file "
-                       "again, or DefJamRecompiled.exe in the folder below.");
-    ImGui::Spacing();
-    ImGui::TextUnformatted("Install the app in");
-    float button = ImGui::CalcTextSize("Change...").x + ImGui::GetStyle().FramePadding.x * 2;
+    float pad = ImGui::GetStyle().FramePadding.x * 2, gap = ImGui::GetStyle().ItemSpacing.x;
     ImGui::BeginDisabled(g_working);
-    ImGui::SetNextItemWidth(std::max(120.0f, ImGui::GetContentRegionAvail().x - button - ImGui::GetStyle().ItemSpacing.x));
-    ImGui::InputText("##home", g_folder, sizeof g_folder);
+    if (g_retry_update) {
+        ImGui::TextWrapped("The app installed in the folder below could not be updated. Close anything using that "
+                           "folder, then try again.");
+    } else {
+        ImGui::TextWrapped("Choose an empty folder and your USA Xbox copy of Def Jam: Fight for NY. Everything goes in "
+                           "that folder: the app, the game it builds from your copy, and your saves and settings. "
+                           "Move or copy the whole folder to take the game elsewhere.");
+    }
+    ImGui::Spacing();
+    ImGui::TextUnformatted("Install folder");
+    float folder_button = ImGui::CalcTextSize("CHOOSE FOLDER...").x + pad;
+    ImGui::SetNextItemWidth(std::max(120.0f, ImGui::GetContentRegionAvail().x - folder_button - gap));
+    if (ImGui::InputText("##home", g_folder, sizeof g_folder)) g_error.clear();
     ui_target("install.folder");
     ImGui::SameLine();
-    if (ImGui::Button("Change...")) SDL_ShowOpenFolderDialog(picked, nullptr, nullptr, nullptr, false);
+    if (ImGui::Button("CHOOSE FOLDER...")) SDL_ShowOpenFolderDialog(picked_folder, nullptr, nullptr, g_folder[0] ? g_folder : nullptr, false);
+    ui_target("install.choose-folder");
+    if (!g_retry_update) {
+        ImGui::Spacing();
+        ImGui::TextUnformatted("Your game copy (disc image or extracted folder)");
+        float image_button = ImGui::CalcTextSize("SELECT ISO...").x + pad;
+        float dir_button = ImGui::CalcTextSize("SELECT FOLDER...").x + pad;
+        ImGui::SetNextItemWidth(std::max(120.0f, ImGui::GetContentRegionAvail().x - image_button - dir_button - gap * 2));
+        if (ImGui::InputText("##dump", g_dump, sizeof g_dump)) g_error.clear();
+        ui_target("install.dump");
+        ImGui::SameLine();
+        if (ImGui::Button("SELECT ISO...")) {
+            static const SDL_DialogFileFilter images[] = {{"Disc images", "iso;xiso"}, {"All files", "*"}};
+            SDL_ShowOpenFileDialog(picked_dump, nullptr, nullptr, images, 2, nullptr, false);
+        }
+        ui_target("install.choose-image");
+        ImGui::SameLine();
+        if (ImGui::Button("SELECT FOLDER...")) SDL_ShowOpenFolderDialog(picked_dump, nullptr, nullptr, nullptr, false);
+        ui_target("install.choose-dump-folder");
+        ImGui::Spacing();
+        ImGui::TextUnformatted("Experience");
+        ImGui::RadioButton("Modern (recommended): widescreen, sharper 2x graphics", &g_experience, 1);
+        ui_target("install.modern");
+        ImGui::RadioButton("Original: 4:3, 480p, as on the console", &g_experience, 0);
+        ui_target("install.original");
+        ImGui::Spacing();
+        ImGui::TextDisabled("A Def Jam Recompiled shortcut is added to your desktop. Building takes several minutes; "
+                            "if Microsoft's C++ Build Tools are missing they are installed first (Windows asks for permission).");
+    }
     ImGui::EndDisabled();
     ImGui::Spacing();
     if (!g_error.empty()) ImGui::TextColored(ImVec4(1, 0.45f, 0.4f, 1), "%s", g_error.c_str());
-    if (g_working) ImGui::TextDisabled("Installing...");
+    if (g_working) ImGui::TextDisabled("Copying the app into the folder...");
     page_actions();
-    ImGui::BeginDisabled(g_working || !g_folder[0]);
-    if (pcui::play_button("INSTALL", ImVec2(ImGui::GetFontSize() * 10, ImGui::GetFrameHeight() * 1.8f), 26))
+    ImGui::BeginDisabled(g_working || !g_folder[0] || (!g_retry_update && !g_dump[0]));
+    if (pcui::play_button(g_retry_update ? "TRY AGAIN" : "INSTALL", ImVec2(ImGui::GetFontSize() * 10, ImGui::GetFrameHeight() * 1.8f), 26))
         start_install();
     ui_target("install.start");
     ImGui::EndDisabled();
