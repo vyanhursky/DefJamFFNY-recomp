@@ -5,8 +5,14 @@ b=bridge;v=b.STATE['voice_module'];s=bpy.context.scene;model=b.STATE['model'];ac
 assert accepted['mouth']==mouth and accepted['template']==model.token
 assert v.voice_strip().show_waveform and v.voice_strip().sound.packed_file
 from fighter_caf_mouth import sample_jaw,require_voice_fit,PREVIEW_AUDIO_DELAY
-raw=v.voice_bytes();voice_info=require_voice_fit(raw,accepted['speech_tick'],int(model.duration))
+raw=v.voice_bytes();voice_info=require_voice_fit(raw,accepted['speech_tick'],int(model.duration),purpose=v.voice_purpose())
 checks=[];samples=[]
+original_delay=s.ffny_preview_delay;original_start=v.voice_strip().frame_start;original_tick=v.speech_tick()
+s.ffny_preview_delay=3 if original_delay!=3 else 5
+assert v.speech_tick()==original_tick and v.voice_bytes()==raw and b.validate_scene()==accepted
+s.ffny_preview_delay=original_delay
+assert v.voice_strip().frame_start==original_start
+checks.append('preview-audio-calibration-preserves-native-export')
 for tick in [0.,.5,5.,15.,30.,45.,60.,75.,90.,100.,float(model.duration)]:
  s.frame_set(int(tick)+1,subframe=tick-int(tick));assert b.validate_scene()==accepted
  q=model.pose(tick,b.read_cues(),mouth)[69,4:8]

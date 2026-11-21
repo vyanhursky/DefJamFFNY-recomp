@@ -11,6 +11,25 @@ MOUTH_OBJECT='FFNY_Mouth'
 PREVIEW=None
 
 
+def voice_purpose():
+    return "extro" if BRIDGE.STATE["model"].token.startswith("CE_") else "intro"
+
+
+def preview_delay():
+    value=bpy.context.scene.ffny_preview_delay
+    if type(value) is not int or not 0<=value<=12:raise ValueError('Preview audio delay must be 0–12 source frames')
+    return value
+
+
+def update_preview_delay(scene, context):
+    # Move preview sound only; its exported native event tick is invariant.
+    old=scene.get('ffny_applied_preview_delay',5);new=scene.ffny_preview_delay
+    s=voice_strip()
+    if s:s.frame_start+=new-old
+    scene['ffny_applied_preview_delay']=new
+    stop_preview()
+
+
 def strips():
     ed=bpy.context.scene.sequence_editor_create()
     return ed.strips if hasattr(ed,'strips') else ed.sequences
@@ -104,7 +123,7 @@ def import_voice(path):
             r=subprocess.run([converter,'-hide_banner','-loglevel','error','-i',str(source),'-ac','1','-ar','24000','-c:a','pcm_s16le','-fs','8388609',str(temporary)],capture_output=True,text=True)
             if r.returncode:raise ValueError('Audio conversion failed: '+r.stderr[-1200:])
         raw=temporary.read_bytes()
-    info=require_voice_fit(raw,0,int(BRIDGE.STATE['model'].duration));digest=hashlib.sha256(raw).hexdigest();canonical=output/(digest+'.wav')
+    info=require_voice_fit(raw,0,int(BRIDGE.STATE['model'].duration),purpose=voice_purpose());digest=hashlib.sha256(raw).hexdigest();canonical=output/(digest+'.wav')
     if canonical.exists():
         if canonical.read_bytes()!=raw:raise ValueError('Voice cache checksum changed')
     else:canonical.write_bytes(raw)
@@ -112,7 +131,7 @@ def import_voice(path):
     if old:strips().remove(old)
     for s in strips():
         if s.type=='SOUND':s.mute=True
-    s=strips().new_sound(VOICE_NAME,str(canonical),channel=2,frame_start=1+PREVIEW_AUDIO_DELAY)
+    s=strips().new_sound(VOICE_NAME,str(canonical),channel=2,frame_start=1+preview_delay())
     s.sound.pack();s.show_waveform=True;s.mute=False
     scene['ffny_voice_sha256']=digest;scene['ffny_voice_label']=source.name;scene['ffny_voice_seconds']=info['seconds']
     scene.frame_end=int(BRIDGE.STATE['model'].duration)+1;scene.render.fps=30;scene.render.fps_base=1.;scene.sync_mode='AUDIO_SYNC'
@@ -128,7 +147,7 @@ def speech_tick():
     if scene.render.fps!=30 or scene.render.fps_base!=1.:raise ValueError('Keep the native preview at30frames per second')
     if s.frame_start!=round(s.frame_start):raise ValueError('Voice starts on a whole source frame')
     if any(x.type=='SOUND' and x!=s and not x.mute for x in strips()):raise ValueError('Mute other sound strips; export contains one voice')
-    return int(s.frame_start)-1-PREVIEW_AUDIO_DELAY
+    return int(s.frame_start)-1-preview_delay()
 
 
 def checked_voice():
@@ -136,7 +155,7 @@ def checked_voice():
     raw=voice_bytes();s=voice_strip();tick=speech_tick()
     if s.mute or s.frame_offset_start or s.frame_offset_end or s.volume!=1 or getattr(s,'pitch',1)!=1 or getattr(s,'speed_factor',1)!=1 or bool(getattr(s,'modifiers',[])):
         raise ValueError('Keep voice untrimmed/unmuted at normal volume/pitch; edit a source copy then re-import')
-    require_voice_fit(raw,tick,int(BRIDGE.STATE['model'].duration))
+    require_voice_fit(raw,tick,int(BRIDGE.STATE['model'].duration),purpose=voice_purpose())
     return raw,tick
 
 
@@ -262,7 +281,7 @@ class FFNY_OT_jaw_guide(bpy.types.Operator):
         try:
             stop_preview()
             from fighter_caf_mouth import jaw_guide,PREVIEW_AUDIO_DELAY
-            data=jaw_guide(voice_bytes(),speech_tick(),int(BRIDGE.STATE['model'].duration))
+            data=jaw_guide(voice_bytes(),speech_tick(),int(BRIDGE.STATE['model'].duration),purpose=voice_purpose(),preview_delay=preview_delay())
             data['lips']=mouth_data()['lips'];set_mouth(data)
             context.scene['ffny_status']='Amplitude guide only: refine closures and lip shapes manually';return {'FINISHED'}
         except Exception as e:self.report({'ERROR'},str(e));return {'CANCELLED'}
@@ -288,7 +307,7 @@ def generate_speech_guide():
     log=target.with_suffix('.log');log.write_text(result.stdout+result.stderr)
     if result.returncode:raise ValueError('Local alignment failed; see '+str(log))
     cues=json.loads(target.read_text());tick=speech_tick()
-    mouth=phoneme_guide(cues,raw,tick,int(BRIDGE.STATE['model'].duration));set_mouth(mouth)
+    mouth=phoneme_guide(cues,raw,tick,int(BRIDGE.STATE['model'].duration),purpose=voice_purpose(),preview_delay=preview_delay());set_mouth(mouth)
     scene['ffny_alignment']=str(target);scene['ffny_status']='Estimated phone guide loaded; refine closure timing and lip poses manually'
     return cues
 
@@ -326,6 +345,8 @@ class FFNY_PT_voice(bpy.types.Panel):
         if PREVIEW:
             l.operator('ffny.preview_stop',icon='PAUSE');l.label(text='Preview %d%% · Space/Esc stops'%(PREVIEW['speed']*100))
         l.label(text='Preview only · 50% lowers voice pitch')
+        l.prop(s,'ffny_preview_delay',text='Preview audio lag')
+        l.label(text='Sound calibration only · export unchanged')
         l.label(text='Set pose, then press Key Mouth Pose:')
         l.prop(s,'ffny_jaw_open',text='Jaw Open');l.prop(s,'ffny_lip_shape',text='Lip Shape')
         l.operator('ffny.key_mouth')
@@ -342,6 +363,7 @@ def register(bridge):
     for handlers in (bpy.app.handlers.load_pre,bpy.app.handlers.undo_pre,bpy.app.handlers.redo_pre):
         if preview_teardown not in handlers:handlers.append(preview_teardown)
     for c in (FFNY_OT_voice_import,FFNY_OT_mouth_key,FFNY_OT_jaw_guide,FFNY_OT_speech_guide,FFNY_OT_voice_timeline,FFNY_OT_preview_play,FFNY_OT_preview_stop,FFNY_PT_voice):bpy.utils.register_class(c)
+    bpy.types.Scene.ffny_preview_delay=bpy.props.IntProperty(name='Preview audio lag',description='Measured native sound delay in source frames. Moves preview sound only; native speech start and export timing stay unchanged. Mouth keys stay in place.',min=0,max=12,default=5,update=update_preview_delay,options=set())
     bpy.types.Scene.ffny_transcript=bpy.props.StringProperty(name='Spoken words',description='Exact English words in the imported recording',maxlen=500,options=set())
     bpy.types.Scene.ffny_jaw_open=bpy.props.FloatProperty(name='Jaw Open',min=0,max=1,default=0,options=set())
     bpy.types.Scene.ffny_lip_shape=bpy.props.EnumProperty(items=[(str(i),'Neutral' if i==0 else 'Native lip pose %02d'%i,'Native CAF lip-expression palette sample') for i in range(15)],options=set())

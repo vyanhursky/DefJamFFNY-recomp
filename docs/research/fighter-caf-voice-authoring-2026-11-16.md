@@ -181,3 +181,47 @@ Eight preview checks and the existing nine voice checks pass, plus32focused
 preview/mouth unit cases. The existing preview-model group also passes.
 Live UI verifies both buttons, Stop and Space/Esc. Source code under src/ and
 the toolkit are unchanged; no new native-game qualification is implied.
+
+
+## Bounded Blaze victory authoring (2026-11-20)
+
+The reviewed mouth profile also admits `CE_113A`, 106 source ticks, on the
+same 94-bone CAF topology. Its five original body/face/hand/camera members
+round-trip through the typed compiler; body, root, hands, cameras and the
+upper-face selector remain donor-owned. Other victory mouth donors remain
+refused. No new native destinations, programs or pointer inputs are accepted.
+
+`performance.cinematics.victory` binds to `performance.victory` and the WAV
+in `voice.clips.extro`; entrance stays bound to `voice.clips.intro`. Validation
+checks the role prefix and voice hash independently for both. Victory audio
+uses the existing 512000-byte resident limit; entrance retains 153600 bytes.
+The compiler chooses the original tag60/argument0 payload for victory speech
+(tag59/argument0 for entrance), retaining the other donor events. Native
+34110 dispatches tag60/0 through F000000C to 34E10; tag60/1 follows the
+separate F0000030 path and is preserved. Repeated original starts collapse
+to one owned start; no shared retail timeline is modified.
+
+The Blender import, voice validation, guides and audit derive the audio purpose
+from the verified donor. The 50% player retains normal export timing. Workshop
+requires `caf-victory-mouth-1` at export so an older entrance-only compiler is
+refused explicitly. This extension does not qualify arbitrary victory donors,
+other outfits, multiplayer winners, skip/rematch or other platforms. Native
+performance and acting acceptance remain separate from source/Blender checks.
+
+Blender also exposes a per-scene preview audio lag (0–12 source frames, default5).
+Changing it moves only the sound strip by the same delta; the exported speech
+event tick and mouth keys remain invariant. Guides use that selected display
+lag, while native voice duration/preload validation retains its separate
+conservative lifetime margin. The saved scene retains the calibration; the
+performance document contains no arbitrary runtime delay/control program.
+
+Focused private macOS qualification: two native CAF/default-outfit victories
+completed through results. The final pass sampled204 poses/11 facial
+quaternions with maximum component error1.20e-7 against the exported controls;
+protected channels have the same bound. Six high-correlation voiced windows
+place the mixed voice about2.80 ticks after its event (10–90percentile2.57–2.93);
+preview calibration3ticks preserves event tick0. One supplied quiet recording
+was levelled in a private derived WAV without clipping, pitch or time changes.
+The final capture reports zero device drops/dry buffers and zero clipped
+samples. This is one performance/venue/outfit, not general synchronization or
+platform qualification. Owner acting review remains pending.

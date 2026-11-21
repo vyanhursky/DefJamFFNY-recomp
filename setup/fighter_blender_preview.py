@@ -109,7 +109,8 @@ class Preview:
         self.cues = [copy.deepcopy(leaf['samples']) for leaf in self.face_leaves]
         self.duration = document['duration_ticks']
 
-    def source(self, cues, mouth=None, speech_tick=0):
+    def source(self, cues, mouth=None, speech_tick=0, left_hand=None):
+        require(left_hand is None or mouth is not None, 'Left-finger editing requires an authored mouth performance')
         require(type(cues) is list and len(cues) == 2, 'Expected two original face selectors')
         edits = []
         for selector, (original, values) in enumerate(zip(self.cues, cues)):
@@ -120,11 +121,12 @@ class Preview:
         if mouth is not None or self.token=='CI_113A':
             from fighter_caf_mouth import FORMAT as MOUTH_FORMAT,PUBLIC_FORMAT,neutral_mouth,DURATIONS
             value=dict(format=MOUTH_FORMAT,template=self.token,edits=edits,mouth=mouth if mouth is not None else neutral_mouth(DURATIONS[self.token]),speech_tick=speech_tick)
+            if left_hand is not None:value['left_hand']=copy.deepcopy(left_hand)
             validate(value);return dict(value,format=PUBLIC_FORMAT)
         value = dict(format=FORMAT, template=self.token, edits=edits); validate(value)
         return dict(value, format='fighter-cinematic-caf-donor-1')
 
-    def pose(self, tick, cues=None, mouth=None):
+    def pose(self, tick, cues=None, mouth=None, left_hand=None):
         require(type(tick) in (int, float) and math.isfinite(tick) and 0 <= tick <= self.duration,
                 'Preview time outside cinematic')
         poses = self.defaults.copy()
@@ -145,11 +147,23 @@ class Preview:
                 for destination, value in zip(palette.quaternion_destinations + palette.vector_destinations, values):
                     bone, channel = divmod(destination, 12)
                     poses[bone, channel:channel + len(value)] = value
+        if left_hand is not None:
+            from fighter_caf_hand import apply_graphs as apply_hand
+            from fighter_caf_mouth import decoded_jaw
+            signature=fingerprint(left_hand)
+            if getattr(self,'_hand_signature',None)!=signature:
+                graph={self.token+'_p':dict(duration_ticks=self.duration,time_scale=29,children=self.hand_leaves)}
+                generated=apply_hand(graph,left_hand,self.token,self.hands)[self.token+'_s']['children'][0]
+                self._hand_poses=decoded_jaw(generated);self._hand_signature=signature
+            first=int(tick);second=min(first+1,len(self._hand_poses)-1);weight=f32(tick-first)
+            for i,d in enumerate(self.hands.palettes[0].quaternion_destinations):
+                a,b=self._hand_poses[first][4*i:4*i+4],self._hand_poses[second][4*i:4*i+4]
+                poses[d//12,4:8]=a if not weight else blend(a,b,weight,precision_bits=24)
         if mouth is not None:
             from fighter_caf_mouth import validate_mouth,sample_jaw
             validate_mouth(mouth,self.duration);poses[69,4:8]=sample_jaw(mouth['jaw'],tick)
         return poses
 
-    def matrices(self, tick, cues=None, mouth=None):
-        worlds = global_matrices(self.pose(tick,cues,mouth), self.skeleton.parents)
+    def matrices(self, tick, cues=None, mouth=None, left_hand=None):
+        worlds = global_matrices(self.pose(tick,cues,mouth,left_hand), self.skeleton.parents)
         return worlds, worlds @ self.inverse_bind
