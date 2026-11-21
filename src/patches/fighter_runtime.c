@@ -1031,6 +1031,32 @@ uint32_t defjam_fighter_controller_submission(uint32_t arguments) {
     }
 }
 
+/* Controller.ControllerSelect is how Choose Teams (team and tag matches) hands the
+ * roster to the match, by team position: its third argument is the selection plus
+ * one. ControllerSetup already swapped a custom fighter for its participant's
+ * private bank (above); without the same swap here the match was started with the
+ * logical fighter id, which names no bank, and the result screen then found an
+ * identity that matched no participant. Retail ids pass through untouched. */
+uint32_t defjam_fighter_team_selection(uint32_t arguments) {
+    int32_t values[4];
+    FighterWindowRow row;
+    if (!s_window.bytes || !s_bindings.bytes) return UINT32_MAX;
+    for (uint32_t i = 0; i < 4; ++i)
+        if (!submission_integer(MEM32(arguments + i * 4), &values[i])) return UINT32_MAX;
+    if (values[2] < 101) return UINT32_MAX;
+    for (uint32_t p = 0; p < FIGHTER_WINDOW_BANKS; ++p)
+        if (s_window.selected[p] && fighter_window_at(&s_window, s_window.selected[p] - 1, &row)
+            && row.selection_key == (uint32_t)values[2] - 1u) {
+            fprintf(stderr, "[FIGHTERS] team selection: logical=%u -> participant=%u native=%u\n",
+                    row.selection_key, p, s_window.banks[p].selection_key);
+            return s_window.banks[p].selection_key + 1u;
+        }
+    /* Stops only go down (test_fighter_stop_budget): an id no participant owns passes through
+     * unchanged, as every id did before this wrapper, and is reported. */
+    fprintf(stderr, "[FIGHTERS] team selection: logical=%d has no participant binding\n", values[2] - 1);
+    return UINT32_MAX;
+}
+
 /* The prefix length is the literal's own, so it can never drift from its text. */
 #define STARTS_WITH(text, literal) (!strncmp((text), (literal), sizeof(literal) - 1))
 
@@ -1082,9 +1108,19 @@ void defjam_fighter_menu_event(const char *text) {
     }
 }
 
-uint32_t defjam_fighter_result_identity(uint32_t participant, uint32_t native) {
+uint32_t defjam_fighter_result_identity(uint32_t index, uint32_t native) {
     FighterWindowRow row;
-    if (!s_window.bytes || participant >= FIGHTER_WINDOW_BANKS || !s_window.selected[participant]) return native;
+    uint32_t participant = FIGHTER_WINDOW_BANKS;
+    (void)index;
+    if (!s_window.bytes) return native;
+    /* The summary lists fighters in the match's own order, which is not the
+     * selection slot order: a Team Match lists each team's fighters together
+     * (Choose Teams can swap them), so the entry at `index` may belong to another
+     * participant. Own the entry by its native identity, which is the bank key
+     * of the participant it was bound to; any other value is a retail fighter. */
+    for (uint32_t i = 0; i < FIGHTER_WINDOW_BANKS; ++i)
+        if (s_window.banks[i].selection_key == native) { participant = i; break; }
+    if (participant >= FIGHTER_WINDOW_BANKS || !s_window.selected[participant]) return native;
     if (!s_window.frozen || native != s_window.banks[participant].selection_key
         || !fighter_window_at(&s_window, s_window.selected[participant] - 1, &row))
         fighter_stop("Result identity does not match its frozen participant binding.");

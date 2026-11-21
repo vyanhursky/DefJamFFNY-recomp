@@ -118,6 +118,10 @@ int main(int argc,char **argv) {
  assert(defjam_fighter_loading_identity(100)==257&&!s_window.frozen);
  s_window.frozen=1;assert(defjam_fighter_loading_identity(100)==257);
  assert(defjam_fighter_result_identity(0,100)==257&&s_window.frozen);
+ /* A Team Match lists its fighters in team order, so the entry that holds the custom fighter need not be
+ * its participant's index, and the entries of retail fighters beside it are not bank keys. */
+ assert(defjam_fighter_result_identity(2,100)==257);
+ assert(defjam_fighter_result_identity(0,56)==56&&defjam_fighter_result_identity(1,99)==99);
  assert(fighter_window_finish(&s_window));
  assert(fighter_window_clear(&s_window,0));
  assert(defjam_fighter_loading_identity(100)==100);
