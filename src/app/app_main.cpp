@@ -710,7 +710,7 @@ int main(int argc, char **argv)
     app::FirstRun &first = app::first_run();
     for (int a = 1; a < argc; a++) {
         if (!strcmp(argv[a], "--resume-setup") && a + 7 < argc) a += 7;
-        else if (!strcmp(argv[a], "--first-setup") && a + 2 < argc) a += 2;   // one-shot, never handed on
+        else if (!strcmp(argv[a], "--first-setup") && a + 3 < argc) a += 3;   // one-shot, never handed on
         else g_arguments.push_back(argv[a]);
     }
     for (int a = 1; a < argc; a++) {
@@ -727,9 +727,9 @@ int main(int argc, char **argv)
             a += 7;
             force_launcher = true;
         }
-        else if (!strcmp(argv[a], "--first-setup") && a + 2 < argc) {   // from the install page
-            app::first_setup(!strcmp(argv[a+1], "0") ? 0 : 1, argv[a+2]);
-            a += 2;
+        else if (!strcmp(argv[a], "--first-setup") && a + 3 < argc) {   // from the install page
+            app::first_setup(!strcmp(argv[a+1], "0") ? 0 : 1, !strcmp(argv[a+2], "1"), argv[a+3]);
+            a += 3;
             force_launcher = true;
         }
         else if (!strncmp(argv[a], "-psn", 4)) continue;                   // macOS's own, from Finder

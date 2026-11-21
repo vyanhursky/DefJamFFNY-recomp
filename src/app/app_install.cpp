@@ -285,6 +285,7 @@ bool g_retry_update = false;    // the installed copy could not be updated: only
 char g_folder[1024];
 char g_dump[2048];
 int g_experience = 1;
+bool g_hd = false;              // Upscaled Original Textures, generated during setup (Modern only)
 std::string g_error;
 std::atomic<bool> g_working(false), g_finished(false);
 std::mutex g_result_lock;
@@ -504,7 +505,9 @@ bool install_screen_draw(float width, float height, UiResult *result)
             auto &next = relaunch();
             next = {installed.string()};
             for (const std::string &a : arguments()) next.push_back(a);
-            if (!g_retry_update) next.insert(next.end(), {"--first-setup", g_experience ? "1" : "0", std::string(g_dump)});
+            if (!g_retry_update)
+                next.insert(next.end(), {"--first-setup", g_experience ? "1" : "0", g_experience && g_hd ? "1" : "0",
+                                         std::string(g_dump)});
             result->leave = true;
         } else {
             g_error = g_result;
@@ -554,6 +557,18 @@ bool install_screen_draw(float width, float height, UiResult *result)
         ui_target("install.modern");
         ImGui::RadioButton("Original: 4:3, 480p, as on the console", &g_experience, 0);
         ui_target("install.original");
+        ImGui::Spacing();
+        // As the first run's step 3 offered it: only with Modern, which uses them.
+        ImGui::BeginDisabled(!g_experience);
+        bool hd = g_experience && g_hd;
+        if (ImGui::Checkbox("Upscaled Original Textures (optional)", &hd)) g_hd = hd;
+        ui_target("install.hd");
+        ImGui::EndDisabled();
+        ImGui::TextWrapped(g_experience
+            ? "Generates higher-resolution versions of the original textures from your game copy on this PC. Adds "
+              "several minutes and 15 GiB of working space. You can also do this later in Mods. Downloadable texture "
+              "packs are in Mods after setup."
+            : "Upscaled Original Textures go with Modern. Downloadable texture packs are in Mods after setup.");
         ImGui::Spacing();
         ImGui::TextDisabled("A Def Jam Recompiled shortcut is added to your desktop. Building takes several minutes; "
                             "if Microsoft's C++ Build Tools are missing they are installed first (Windows asks for permission).");

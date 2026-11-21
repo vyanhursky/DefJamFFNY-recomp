@@ -53,7 +53,9 @@ The app isn't code-signed yet, so your system may ask you to confirm the first t
    `DefJamRecompiled` folder inside it.
 3. Choose your game copy with **SELECT ISO...** (a disc image) or **SELECT FOLDER...** (an extracted folder
    that holds `default.xbe`). It must not be inside the install folder.
-4. Choose **Modern** or **Original** (see [step 2](#step-2-choose-your-experience)), then **INSTALL**.
+4. Choose **Modern** or **Original** (see [step 2](#step-2-choose-your-experience)). With Modern, you can tick
+   **Upscaled Original Textures** (see [step 3](#step-3-review-and-start)): they're generated during setup, adding
+   several minutes and 15 GiB of working space, or later in **Mods**. Then choose **INSTALL**.
 
 The app copies itself into the folder, adds a **Def Jam Recompiled** shortcut to your desktop, and starts
 setting up the game straight away ([While it builds](#while-it-builds)). If Microsoft's C++ Build Tools are

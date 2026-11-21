@@ -121,6 +121,7 @@ bool g_tools_known = false;     // the check has answered (or there is none to w
 // The install page's choices, to set up the game with as soon as the Build Tools are known.
 bool g_first_setup = false;
 int g_first_experience = 1;
+bool g_first_hd = false;
 std::string g_first_dump;
 
 // A folder or file chosen in the system's dialog arrives on another thread.
@@ -1192,6 +1193,7 @@ bool screen_draw(float width, float height, UiResult *result)
         if (g_first_setup) {
             snprintf(g_dump, sizeof g_dump, "%s", g_first_dump.c_str());
             g_experience = g_first_experience;
+            g_hd = g_first_experience && g_first_hd;     // as the first run's step 3: Modern only
         }
     }
     take_pick();
@@ -1203,7 +1205,7 @@ bool screen_draw(float width, float height, UiResult *result)
         g_form_error.clear();
         g_apply_experience = true;
         app::install().root = g_root;
-        if (!start("install", "SETTING UP YOUR GAME", g_root, g_data, g_dump, false))
+        if (!start("install", "SETTING UP YOUR GAME", g_root, g_data, g_dump, g_hd))
             g_screen = Screen::FirstRun;
     }
     poll();
@@ -1234,10 +1236,11 @@ void resume_setup(const std::string &operation, const std::string &title, const 
     g_resume_setup = true;
 }
 
-void first_setup(int experience, const std::string &dump)
+void first_setup(int experience, bool hd, const std::string &dump)
 {
     g_first_setup = !dump.empty();
     g_first_experience = experience;
+    g_first_hd = hd;
     g_first_dump = dump;
 }
 

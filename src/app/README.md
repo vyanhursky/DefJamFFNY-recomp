@@ -62,10 +62,10 @@ Play starts the game that setup built on this computer, with `--no-launcher`.
   one page, as a portable install: an empty install folder (**CHOOSE FOLDER...**; a chosen folder
   that holds other files gets a `DefJamRecompiled` folder inside it; not Program Files, OneDrive, a
   network or FAT drive, at most 130 characters), the game copy (**SELECT ISO...** or **SELECT
-  FOLDER...**, outside that folder; `--dump` fills it in) and Modern or Original. **INSTALL** copies
+  FOLDER...**, outside that folder; `--dump` fills it in), Modern or Original and, with Modern, Upscaled Original Textures. **INSTALL** copies
   the program there, unpacks its payload beside it, writes `.defjam-portable`, records the folder in
   `%LOCALAPPDATA%\DefJamRecompiled\location.json`, adds a `Def Jam Recompiled` desktop shortcut and
-  starts the installed copy with `--first-setup <experience> <dump>`, which starts setup by itself
+  starts the installed copy with `--first-setup <experience> <hd> <dump>`, which starts setup by itself
   once the Build Tools check has answered (installing them first when missing). Beside
   `.defjam-portable` the first run's locations are `game\` and `data\` in that folder, so everything
   is in one folder that can be moved or copied whole: opened from a moved folder, the app
