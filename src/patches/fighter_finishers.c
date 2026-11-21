@@ -4,6 +4,7 @@
 #ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
 #endif
+#include "fighter_config.h"
 #include "fighter_finishers.h"
 #include "fighter_fatal.h"
 #include "fighter_runtime.h"
@@ -54,12 +55,12 @@ static FILE *fin_open(const char *path) {
 #endif
 }
 int defjam_fighter_finishers_start(void) {
-    const char *path = getenv("RECOMP_FIGHTER_FINISHERS");
-    const char *binding = getenv("RECOMP_FIGHTER_FINISHER_BINDINGS");
-    const char *hash = getenv("RECOMP_FIGHTER_FINISHERS_SHA256");
+    const char *path = defjam_fighter_env("RECOMP_FIGHTER_FINISHERS");
+    const char *binding = defjam_fighter_env("RECOMP_FIGHTER_FINISHER_BINDINGS");
+    const char *hash = defjam_fighter_env("RECOMP_FIGHTER_FINISHERS_SHA256");
     if (!path || !*path) return (!binding || !*binding) && (!hash || !*hash);
     if (!defjam_fighter_research_active() || s_rows || !binding || !*binding
-        || strlen(path) >= sizeof s_archive || strlen(binding) >= 2048 || !mod_file_matches(path, hash)) return 0;
+        || strlen(path) >= sizeof s_archive || strlen(binding) >= 2048 || !defjam_fighter_file_matches(path, hash)) return 0;
     FILE *file = fin_open(binding);
     if (!file) return 0;
     int sized=!fseek(file,0,SEEK_END);

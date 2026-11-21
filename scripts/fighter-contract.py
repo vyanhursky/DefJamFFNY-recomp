@@ -152,7 +152,8 @@ def main():
                 payload=workshop.export_performance(args.game,request,args.workshop_out)
             else:
                 from fighter_workshop_animation import animation
-                payload=animation(args.game,request)
+                if len(args.pack)>1:raise ValueError('Preview one retail fighter pack at a time')
+                payload=animation(args.game,request,retail_pack=args.pack[0] if args.pack else None)
             result={'protocol':PROTOCOL,'ok':True,**payload}
         elif args.command == 'catalog':
             catalog=retail_catalog(args.game/'assets/djv2.sod')

@@ -27,6 +27,7 @@ static uint8_t recipe[CAF_ROW_STRIDE];
 static unsigned calls;
 static int wrong_result;
 static const uint8_t *lookup(uint32_t selection,uint32_t outfit) {return selection==100&&outfit==0?recipe:NULL;}
+void sub_0021BB10(void) {assert(!"unexpected stream unbind");}
 void sub_000296B0(void) {assert(MEM32(g_esp+4)==0x4000);g_eax=0x600000;g_esp+=4;}
 void sub_00026140(void) {
  uint32_t wrapper=MEM32(g_esp+4),root=MEM32(wrapper),at=root+36,model=MEM32(g_ecx+0x12c);
@@ -94,7 +95,7 @@ def tool(tmp_path_factory):
     source=ROOT/'src/patches/fighter_caf_face.c'
     driver=folder/'driver.c';driver.write_text(DRIVER.replace('@SOURCE@',source.as_posix()))
     exe=folder/('face.exe' if os.name=='nt' else 'face')
-    extra=[str(ROOT/'src/patches/fighter_fatal.c'),str(ROOT/'tests/unit/native_stubs/host_fatal.c')]
+    extra=[str(ROOT/'src/patches/fighter_fatal.c'), str(ROOT/'src/patches/fighter_config.c'),str(ROOT/'tests/unit/native_stubs/host_fatal.c')]
     if os.name=='nt':
         command=[cc,'/nologo','/W4','/WX','/wd5105','/D_CRT_SECURE_NO_WARNINGS','/I'+str(folder),'/I'+str(ROOT/'src'),str(driver),*extra,'/Fe:'+str(exe)]
     else:

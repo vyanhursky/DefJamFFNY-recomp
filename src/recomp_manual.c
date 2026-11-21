@@ -18,6 +18,7 @@
  *   - Intercept D3D/audio calls for custom rendering or sound
  */
 
+#include "hooks/save_activity.h"
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
@@ -242,6 +243,55 @@ extern void sub_0003DB00_gen(void);
 void sub_0003DB00(void) {
     if (!defjam_fighter_voice_load(MEM32(g_esp + 4))) sub_0003DB00_gen();
 }
+
+/* Read-only, opt-in cinematic speech timing. The original event and dispatch
+ * bodies always run unchanged. Recorder events use the same host clock as
+ * presented-pose observations; they do not claim device playback timestamps.
+ * A bounded trace captures the event59 callback and the nested native dispatch
+ * separately, without replacing resources or changing either animation clock.
+ */
+static int cinematic_speech_trace(void) {
+    const char *on = getenv("RECOMP_CAF_SPEECH_TRACE");
+    return on && !strcmp(on, "1");
+}
+static void cinematic_speech_event(const char *phase, uint32_t slot,
+                                   uint32_t caller, uint32_t result) {
+    char fields[320];
+    if (slot >= 4) return;
+    snprintf(fields, sizeof fields,
+        "\"phase\":\"%s\",\"slot\":%u,\"caller\":%u,\"result\":%u,"
+        "\"stream_handle\":%u,\"event_seen\":%u,\"suppressed\":%u",
+        phase, slot, caller, result, MEM32(0x331E90 + 4 * slot),
+        MEM8(0x3403BC + 0x64 * slot), MEM8(0x340540));
+    recorder_event("cinematic_speech", fields);
+}
+extern void sub_00034CF0_gen(void);
+void sub_00034CF0(void) {
+    static unsigned observations;
+    int trace = cinematic_speech_trace() && observations < 32;
+    uint32_t slot = 4, caller = 0;
+    if (trace) {
+        /* The native callback immediately reads this same participant value. */
+        slot = MEM32(MEM32(g_esp + 8)); caller = MEM32(g_esp);
+        ++observations;
+        cinematic_speech_event("event_enter", slot, caller, 0);
+    }
+    sub_00034CF0_gen();
+    if (trace) cinematic_speech_event("event_return", slot, caller, g_eax);
+}
+extern void sub_0001D1F0_gen(void);
+void sub_0001D1F0(void) {
+    static unsigned observations;
+    int trace = cinematic_speech_trace() && observations < 32;
+    uint32_t slot = 4, caller = 0;
+    if (trace) {
+        slot = MEM32(g_esp + 4); caller = MEM32(g_esp); ++observations;
+        cinematic_speech_event("dispatch_enter", slot, caller, 0);
+    }
+    sub_0001D1F0_gen();
+    if (trace) cinematic_speech_event("dispatch_return", slot, caller, g_eax & 255u);
+}
+
 extern void sub_00135CB0_gen(void);
 void sub_00135CB0(void) {
     uint32_t family = MEM32(g_esp + 4), voice = MEM32(g_esp + 8);
@@ -274,9 +324,12 @@ void sub_000A02E0(void) {
     sub_000A02E0_gen();
     MEM32(address) = bank; /* Native ret8 owns stack cleanup. */
 }
+extern void defjam_fighter_caf_actor_stats(uint32_t actor);
 extern void sub_001B2090_gen(void);
 void sub_001B2090(void) {
-    if (!defjam_fighter_motion_parameters(MEM32(g_esp + 4))) sub_001B2090_gen();
+    uint32_t actor = MEM32(g_esp + 4);
+    if (!defjam_fighter_motion_parameters(actor)) sub_001B2090_gen();
+    defjam_fighter_caf_actor_stats(actor);
 }
 extern void sub_001B4930_gen(void);
 void sub_001B4930(void) {
@@ -428,46 +481,32 @@ void sub_000D2300(void) {
     sub_000D2300_gen();
     defjam_fighter_settings_saved();
 }
-extern void sub_000D23B0_gen(void);
-void sub_000D23B0(void) {
-    defjam_fighter_profile_staging(MEM32(g_esp + 4), MEM32(g_esp + 8));
-    sub_000D23B0_gen();
-}
-extern void sub_000D2780_gen(void);
-void sub_000D2780(void) {
-    defjam_fighter_save_batch();
-    sub_000D2780_gen();
-}
-
-/* Observe actual synchronous writes and native close results. Queue sealing or
- * identical pre-existing files alone cannot acknowledge this save attempt. */
+/* Observe the game's own save writes and closes; nothing here changes them. A file
+ * that was written and not yet closed is a save in progress, and closing the window
+ * waits for it (src/hooks/save_activity.c). */
 extern void sub_001F8D61_gen(void);
 void sub_001F8D61(void) {
-    uint32_t handle = MEM32(g_esp + 4), buffer = MEM32(g_esp + 8), size = MEM32(g_esp + 12);
-    uint32_t written = MEM32(g_esp + 16), asynchronous = MEM32(g_esp + 20);
+    uint32_t handle = MEM32(g_esp + 4);
+    static int close_test = -1;
+    save_activity_write(handle);
     sub_001F8D61_gen();
-    defjam_fighter_save_write(handle, buffer, size, written, g_eax != 0, asynchronous != 0);
+    /* RECOMP_TEST_CLOSE_DURING_SAVE=1: press the window's close button during the first
+     * save write, so a run shows the close waiting for the file to be closed. */
+    if (close_test < 0) {
+        const char *value = getenv("RECOMP_TEST_CLOSE_DURING_SAVE");
+        close_test = value && *value && strcmp(value, "0");
+    }
+    if (close_test == 1) {
+        close_test = 2;
+        fprintf(stderr, "[SAVES-TEST] closing the window during a save write (handle %08X)\n", handle);
+        host_request_close();
+    }
 }
 extern void sub_001F694D_gen(void);
 void sub_001F694D(void) {
     uint32_t handle = MEM32(g_esp + 4);
     sub_001F694D_gen();
-    defjam_fighter_save_close(handle, g_eax != 0);
-}
-extern void sub_001F8EBB_gen(void);
-void sub_001F8EBB(void) {
-    defjam_fighter_save_seek(MEM32(g_esp + 4));
-    sub_001F8EBB_gen();
-}
-/* XDeleteSaveGame: ANSI drive, UTF-16 profile name, DWORD error (zero success).
- * Preserve the name before the original call and acknowledge only its result.
- * The host verifier independently requires the exact old folder to be absent. */
-extern void sub_001F89FD_gen(void);
-void sub_001F89FD(void) {
-    char name[33];
-    int tracked = defjam_fighter_profile_delete_begin(MEM32(g_esp + 4), MEM32(g_esp + 8), name);
-    sub_001F89FD_gen();
-    if (tracked) defjam_fighter_profile_delete_end(name, g_eax == 0);
+    save_activity_close(handle);
 }
 extern void sub_0001E700_gen(void);
 void sub_0001E700(void) {
@@ -2016,3 +2055,13 @@ void sub_00028F90_enter(void) { ws_trace_pos(); }
 void sub_0002E390_enter(void) { ws_trace_vtx_arr(); }
 void sub_0002E470_enter(void) { ws_trace_vtx(); }
 
+
+/* Participant-local normal bindings: restore ownership before native part
+ * destruction and validate private packed bytes at the actual stream consumer. */
+#include "patches/fighter_caf_face.h"
+void sub_00099BA0_enter(void) {defjam_caf_normals_release(g_ecx,MEM32(g_esp+4));}
+extern void sub_00118030_gen(void);
+void sub_00118030(void) {
+    if(defjam_caf_normals_stream(MEM32(0x3a597c),MEM32(0x3a5978)))sub_00118030_gen();
+    else {g_eax=MEM32(0x3a5388);MEM32(0x3a5978)+=8;g_esp+=4;} /* native parameter advance and ret */
+}

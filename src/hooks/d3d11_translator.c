@@ -44,6 +44,7 @@
 #include "recomp_settings.h"
 #include "recorder.h"
 #include "d3d8_readback.h"
+#include "save_activity.h"
 
 /* The title sets a 640x480 mode. Matching it keeps the translator's screen
  * space and ours the same, so a vertex the title placed at 320,240 lands in
@@ -255,15 +256,22 @@ static LRESULT CALLBACK translator_wndproc(HWND h, UINT msg, WPARAM wp, LPARAM l
      * the window and leave the title running with nothing to draw into; the
      * log line keeps a deliberate close from reading like a crash. */
     if (msg == WM_CLOSE) {
-        extern void pc_fighters_finish(void);
-        pc_fighters_finish();   /* TerminateProcess bypasses atexit. */
         pc_input_stop();        /* a pad must not be left vibrating */
         fprintf(stderr, "[TRANS] window closed by the user; exiting\n");
+        /* This is the window thread; the game thread may be writing a save. Let it
+         * close the file first (a few seconds at most), so a close never truncates
+         * a profile. src/hooks/save_activity.c */
+        save_activity_wait_idle(5000);
         fflush(stderr);
         fflush(stdout);
         TerminateProcess(GetCurrentProcess(), 0);
     }
     return DefWindowProcW(h, msg, wp, lp);
+}
+
+void host_request_close(void)
+{
+    if (s_window) PostMessageW(s_window, WM_CLOSE, 0, 0);
 }
 
 static HWND make_window(void)
@@ -558,6 +566,12 @@ static void recorder_frame_done(double present_ms, double capture_ms)
         uint64_t resident = 0;
         texture_pack_stats(&resident, NULL);
         in.hd_cache_bytes = resident;
+    }
+    if (recorder_on()) {
+        extern int defjam_fighter_cinematic_sample(char *,size_t);
+        char pose[2048];int sample=defjam_fighter_cinematic_sample(pose,sizeof pose);
+        if (sample==1) recorder_event("cinematic_pose",pose);
+        else if (sample==2) recorder_mark("CAF cinematic finished");
     }
     /* Where the log has got to: with this in every row, scripts/bug-bundle.py puts each
      * log line on the frames' clock without the log's format changing. Flushing once a

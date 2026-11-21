@@ -129,7 +129,10 @@ def build(manager, state, *, ids=None, replacements=None, language=None):
     from fighter_registry import resolve
     from fighter_bindings import seed, allocate
     snapshot = resolve(catalog.baseline(), packs)
-    ledger = allocate(seed(catalog.db, catalog.source_sha256, catalog.rows), snapshot['fighters'], state.get('fighter_ledger'))
+    # Fighter numbers (handle, selection key, symbol) follow the enabled packs alone: the sorted
+    # stable keys are numbered from the retail baseline. Two PCs with the same packs get the same
+    # numbers, roster order and compiled files whatever their install history (D409).
+    ledger = allocate(seed(catalog.db, catalog.source_sha256, catalog.rows), snapshot['fighters'], None)
     screens = manager.game / 'screens/screens.viv'
     composed = prepare_language_screens(screens, language) if language else None
     from fighter_cache import VerifiedCache, request
@@ -173,8 +176,7 @@ def candidate(manager, state, identifier, stage, new):
         check(row and CAPABILITY in row.get('capabilities', []), 'Install required fighter dependency first: ' + item)
         pending.extend(row.get('requires', {}))
     if identifier in enabled(state):
-        _, report, _, _ = build(manager, state, replacements={identifier: stage})
-        state['fighter_ledger'] = report['binding_ledger']
+        build(manager, state, replacements={identifier: stage})
     else:
         build(manager, state, ids=ids, replacements={identifier: stage})
 

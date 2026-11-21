@@ -220,6 +220,9 @@ def portrait_inputs(tmp_path):
     from test_fighter_menu import selector_fixture
     from test_fighter_results import fitted_result_fixture
     entries = {'screens/language-marker.txt': b'original language bytes'}
+    for family, number in (('t_CT', 7), ('p_CT', 8)):
+        stem = f'{family}_{number}'
+        entries[f'screens/portrait/{family}/{stem}.big'] = fixture({stem + suffix: suffix.encode() for suffix in ('.apt', '.const', '.o', '.xsh')})
     entries['screens/trans/empty2.big'] = fixture({'empty2.apt': b'blank movie', 'empty2.const': b'blank constants'})
     for count in (2, 3, 4):
         stem = f'p_cf_8_{count}p'
@@ -251,6 +254,8 @@ def test_portrait_cache_verifies_source_and_existing_output(tmp_path, monkeypatc
     from fighter_composition import language_base
     from fighter_archive import Archive
     from test_langpack import lp
+    for movie in ("screens/portrait/t_CT/t_CT_100.big", "screens/portrait/p_CT/p_CT_101.big"):
+        assert Archive(output.read_bytes()).read(movie)
     language = language_base(source.read_bytes(), [(('screens/language-marker.txt',),
                               lp.delta_make(b'original language bytes', b'translated language bytes'))],
                               hashlib.sha256(source.read_bytes()).hexdigest())
@@ -411,23 +416,20 @@ def test_texture_environment_rejects_redirected_images_and_native_list_truncatio
     with pytest.raises(ValueError, match='pack-list budget'): probe.texture_environment(folders[:16], language)
 
 
-def test_native_save_acceptance_requires_the_requested_kind_in_a_committed_closed_batch(tmp_path, monkeypatch):
-    from test_fighter_save_journal import batch, put_acks, state, OPTIONS, PROFILE
+def test_native_save_acceptance_requires_a_written_save_of_the_requested_kind(tmp_path, monkeypatch):
+    import os
     probe = driver(tmp_path, monkeypatch)
-    journal = tmp_path / 'journal'; journal.mkdir()
-    _, _, _, files, _ = state()
-    (journal / '000001.batch').write_bytes(batch({OPTIONS: files[OPTIONS]}, {}))
-    put_acks(journal, {OPTIONS: files[OPTIONS]})
-    committed = [(1, 'verified-generation')]
-    assert probe.verify_saved_kind(journal, committed, 'options') == ['Options']
-    with pytest.raises(ValueError, match='acknowledged profile'):
-        probe.verify_saved_kind(journal, committed, 'profile')
-    (journal / '000002.batch').write_bytes(batch({PROFILE: files[PROFILE]}, {}, 2))
-    put_acks(journal, {PROFILE: files[PROFILE]}, 2)
-    with pytest.raises(ValueError, match='acknowledged profile'):
-        probe.verify_saved_kind(journal, committed, 'profile')
-    committed.append((2, 'next-verified-generation'))
-    assert probe.verify_saved_kind(journal, committed, 'profile') == [PROFILE.rsplit('/', 1)[1]]
-    (journal / '000002-00.closed').unlink()
-    with pytest.raises(ValueError, match='close receipt'):
-        probe.verify_saved_kind(journal, committed, 'profile')
+    save = tmp_path / 'save'
+    folder = save / 'UserData/45410049/ABCDEF012345'
+    folder.mkdir(parents=True)
+    (folder / 'Options').write_bytes(bytes(0x1490 + 0x8c))
+    (folder / 'SaveMeta.xbx').write_bytes(b'meta')
+    before = probe.save_stamps(save)
+    with pytest.raises(ValueError, match='did not write a options save'):
+        probe.verify_saved_kind(save, before, 'options')
+    os.utime(folder / 'Options', ns=(1, before['ABCDEF012345/Options'][1] + 10**9))
+    assert probe.verify_saved_kind(save, before, 'options') == ['ABCDEF012345/Options']
+    with pytest.raises(ValueError, match='did not write a profile save'):
+        probe.verify_saved_kind(save, before, 'profile')
+    (folder / 'VY1').write_bytes(bytes(0x5904 + 0x8c))
+    assert probe.verify_saved_kind(save, before, 'profile') == ['ABCDEF012345/VY1']

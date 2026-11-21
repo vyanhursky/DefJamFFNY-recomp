@@ -30,6 +30,7 @@ static unsigned absolute_selections;
 static unsigned proof_checks;
 static int proofs_available=1;
 int defjam_fighter_film_complete(const char *name,int intro){assert(name&&name[0]&&(intro==0||intro==1));proof_checks++;return proofs_available;}
+int defjam_fighter_film_caf(const char *name){(void)name;return 0;}
 int defjam_fighter_film_known(const char *name){return full&&!strcmp(name,"FV00000");}
 int defjam_fighter_film_bind(const char *name,uint32_t entry,uint32_t visual,uint32_t descriptor){assert(!strcmp(name,"FV00000")&&entry==0x71000&&visual==0x72000&&descriptor);full_binds++;return 1;}
 static unsigned constructed, started, ready, pending, peak_pending;
@@ -261,7 +262,7 @@ def tool(tmp_path_factory):
     driver = folder / 'driver.c'
     driver.write_text(DRIVER, encoding='utf-8')
     exe = folder / ('cinematic.exe' if os.name == 'nt' else 'cinematic')
-    sources = [str(driver), str(ROOT / 'src/patches/fighter_cinematic.c'), str(ROOT / 'src/patches/fighter_fatal.c'), str(ROOT / 'tests/unit/native_stubs/host_fatal.c')]
+    sources = [str(driver), str(ROOT / 'src/patches/fighter_cinematic.c'), str(ROOT / 'src/patches/fighter_fatal.c'), str(ROOT / 'src/patches/fighter_config.c'), str(ROOT / 'tests/unit/native_stubs/host_fatal.c')]
     command = ([cc, '/nologo', '/W4', '/WX', '/D_CRT_SECURE_NO_WARNINGS',
                 '/I' + str(folder), '/I' + str(ROOT / 'src'), *sources, '/Fe:' + str(exe)]
                if os.name == 'nt' else [cc, '-std=c11', '-D_POSIX_C_SOURCE=200809L', '-Wall', '-Wextra',

@@ -1,6 +1,8 @@
 /* Retail CAF recipe adapter. Own-dump resources, original assembly and cleanup.
  * No profile import: compiler-owned records contain selections/training only. */
+#include "fighter_config.h"
 #include "fighter_caf.h"
+#include "fighter_runtime.h"
 #include "fighter_fatal.h"
 #include "fighter_motion.h"
 #include "fighter_caf_face.h"
@@ -223,7 +225,7 @@ static int recipes_valid(const uint8_t *data,uint32_t count) {
         valid=word(row+CAF_ROW_SELECTION)>=100 && (retail?(core>=1&&core<=86):(core>=87&&core<=141)) && styles>=1 && styles<=CAF_ROW_STYLE_COUNT_MAX
             && word(row+CAF_ROW_VALUE_AT(0))<6 && word(row+CAF_ROW_VALUE_AT(1))<=36
             && word(row+CAF_ROW_VALUE_AT(5))>=1 && word(row+CAF_ROW_VALUE_AT(5))<=8;
-        for (unsigned j=0;j<CAF_ROW_TRAINING_COUNT;++j) if (word(row+CAF_ROW_TRAINING_AT(j))>50) valid=0;
+        for (unsigned j=0;j<CAF_ROW_TRAINING_COUNT;++j) if (word(row+CAF_ROW_TRAINING_AT(j))>50u) valid=0;
         for (unsigned j=0;j<CAF_ROW_STYLE_COUNT_MAX;++j)
             if (row[CAF_ROW_STYLE_AT(j)]!=(j<styles?row[CAF_ROW_STYLE_AT(j)]:255) || (j<styles&&row[CAF_ROW_STYLE_AT(j)]>4)) valid=0;
         uint32_t index=word(row+CAF_ROW_OUTFIT),alias=word(row+CAF_ROW_ALIAS),previous=UINT32_MAX;
@@ -240,7 +242,8 @@ static int recipes_valid(const uint8_t *data,uint32_t count) {
             }
         }
         if(index && previous!=index-1) valid=0;
-        if(row[CAF_ROW_RETAIL]>1 || row[CAF_ROW_RETAIL+1] || row[CAF_ROW_RETAIL+2]) valid=0;
+        if(row[CAF_ROW_RETAIL]>1 || row[CAF_ROW_FINAL_STATS]>1 || row[CAF_ROW_CHARISMA]>50
+            || (!row[CAF_ROW_FINAL_STATS] && row[CAF_ROW_CHARISMA])) valid=0;
         if(word(row+CAF_ROW_VOICE)<1 || word(row+CAF_ROW_VOICE)>86) valid=0;
     }
     return valid;
@@ -267,21 +270,26 @@ static uint8_t *read_container(const char *path,size_t *size) {
 }
 /* The header must describe sections that tile the file exactly: header, recipes, extras, hd, faces. */
 int defjam_fighter_caf_container(const uint8_t *data,size_t size,CafContainer *out) {
-    if(size<CAF_CONTAINER_HEADER_BYTES || size>CAF_CONTAINER_MAX_BYTES || memcmp(data,CAF_CONTAINER_MAGIC,4) || word(data+4)!=CAF_CONTAINER_VERSION) return 0;
+    if(size<CAF_CONTAINER_HEADER_BYTES || size>CAF_CONTAINER_MAX_BYTES || memcmp(data,CAF_CONTAINER_MAGIC,4) || (word(data+4)!=CAF_CONTAINER_VERSION && word(data+4)!=CAF_CONTAINER_NORMAL_VERSION)) return 0;
     CafContainer c={word(data+CAF_HEADER_RECIPE_COUNT),word(data+CAF_HEADER_EXTRAS_COUNT),word(data+CAF_HEADER_EXTRAS_BYTES),
-        word(data+CAF_HEADER_HD_COUNT),word(data+CAF_HEADER_HD_BYTES),word(data+CAF_HEADER_FACES_COUNT)};
+        word(data+CAF_HEADER_HD_COUNT),word(data+CAF_HEADER_HD_BYTES),word(data+CAF_HEADER_FACES_COUNT),0,0};
+    if(word(data+4)==CAF_CONTAINER_NORMAL_VERSION) {
+        c.normals_count=word(data+CAF_HEADER_NORMALS_COUNT);c.normals_bytes=word(data+CAF_HEADER_NORMALS_BYTES);
+        if(!c.normals_count || c.normals_count>CAF_MAX_ROWS || c.normals_bytes!=(size_t)c.normals_count*CAF_NORMAL_STRIDE)return 0;
+    } else if(word(data+52)||word(data+56)||word(data+60))return 0;
     if(!c.recipe_count || c.recipe_count>CAF_MAX_ROWS || c.extras_count>CAF_MAX_ROWS || c.extras_bytes>EXTRA_MAX || (!c.extras_count && c.extras_bytes) || (c.extras_count && !c.extras_bytes)
         || c.hd_count>CAF_MAX_ROWS || c.hd_bytes>CAF_HD_MAX_BYTES || (!c.hd_count && c.hd_bytes) || (c.hd_count && !c.hd_bytes) || c.faces_count>CAF_MAX_ROWS) return 0;
     size_t recipes=CAF_CONTAINER_HEADER_BYTES,extras=recipes+(size_t)c.recipe_count*CAF_ROW_STRIDE,hd=extras+c.extras_bytes,faces=hd+c.hd_bytes;
-    size_t total=faces+(size_t)c.faces_count*CAF_FACE_STRIDE;
+    size_t normals=faces+(size_t)c.faces_count*CAF_FACE_STRIDE,total=normals+c.normals_bytes;
+    if(c.normals_count && word(data+CAF_HEADER_NORMALS_OFFSET)!=normals)return 0;
     if(word(data+CAF_HEADER_RECIPE_OFFSET)!=recipes || word(data+CAF_HEADER_EXTRAS_OFFSET)!=extras || word(data+CAF_HEADER_HD_OFFSET)!=hd
         || word(data+CAF_HEADER_FACES_OFFSET)!=faces || word(data+CAF_HEADER_TOTAL_BYTES)!=total || total!=size) return 0;
     *out=c;return 1;
 }
 int defjam_fighter_caf_start(void) {
-    const char *path=getenv("RECOMP_FIGHTER_CAF"),*hash=getenv("RECOMP_FIGHTER_CAF_SHA256");
+    const char *path=defjam_fighter_env("RECOMP_FIGHTER_CAF"),*hash=defjam_fighter_env("RECOMP_FIGHTER_CAF_SHA256");
     if (!path || !*path) return !hash || !*hash;
-    if (!mod_file_matches(path,hash) || s_rows) return 0;
+    if (!defjam_fighter_file_matches(path,hash) || s_rows) return 0;
     size_t size=0;uint8_t *data=read_container(path,&size);
     if (!data) return 0;
     CafContainer c;
@@ -290,6 +298,7 @@ int defjam_fighter_caf_start(void) {
     s_rows=data+CAF_CONTAINER_HEADER_BYTES;s_count=c.recipe_count;
     if (!recipes_valid(s_rows,c.recipe_count) || (c.extras_count && !extras_valid(extras,c.extras_bytes,c.extras_count))
         || (c.faces_count && !defjam_caf_faces_start(recipe_row,faces,c.faces_count))
+        || (c.normals_count && !defjam_caf_normals_start(faces+(size_t)c.faces_count*CAF_FACE_STRIDE,c.normals_count))
         || (c.hd_count && !defjam_caf_hd_start(recipe_row,hd,c.hd_bytes,c.hd_count))) {
         /* Sections keep pointers into the container, so release them all before freeing it. */
         defjam_caf_faces_release();defjam_caf_hd_release();
@@ -316,6 +325,35 @@ void defjam_fighter_caf_begin_match(void) {
     memset(s_story_profiles,0,sizeof(s_story_profiles));
     defjam_fighter_caf_clear();
 }
+/* Final attributes use the retail SOD/menu scale, not CAF training. Original
+ * retail-scale conversion to battle integers is round(menu / 5):
+ * e.g. Baby Chris 30/47/37/27/47/30 -> 6/9/7/5/9/6. Never reapply CAF bonuses. */
+static void apply_final_stats(uint32_t service,uint32_t participant,const uint8_t *row) {
+    if(participant>=4 || !row[CAF_ROW_FINAL_STATS]) return;
+    uint32_t base=service+0x2b0+participant*0x1c;
+    for(unsigned j=0;j<CAF_ROW_TRAINING_COUNT;++j)
+        MEM32(base+j*4)=(word(row+CAF_ROW_TRAINING_AT(j))+2u)/5u;
+    MEM32(base+0x18)=(row[CAF_ROW_CHARISMA]+2u)/5u;
+}
+
+/* Original 1B2090 treats an all-zero table as "no override". Apply the explicit
+ * standalone recipe after both the original and owned-motion parameter paths,
+ * including zero values, without touching Story profiles or unrelated actors. */
+void defjam_fighter_caf_actor_stats(uint32_t actor) {
+    if(!s_service || actor<0x3b92e0u || (actor-0x3b92e0u)%0x12e8u) return;
+    uint32_t slot=(actor-0x3b92e0u)/0x12e8u;
+    if(slot>=4 || s_story_profiles[slot] || !s_recipes[slot] || !s_recipes[slot][CAF_ROW_FINAL_STATS]
+        || MEM32(actor+0x28)!=slot || MEM32(actor+0x2c)+1!=word(s_recipes[slot]+CAF_ROW_CORE)) return;
+    const uint8_t *row=s_recipes[slot];
+    for(unsigned j=0;j<CAF_ROW_TRAINING_COUNT;++j)
+        MEM32(actor+0xb34+j*4)=(word(row+CAF_ROW_TRAINING_AT(j))+2u)/5u;
+    MEM32(actor+0xb48)=0;
+    MEM32(actor+0xb4c)=(row[CAF_ROW_CHARISMA]+2u)/5u;
+    fprintf(stderr,"[FIGHTERS] CAF final attributes participant=%u logical=%u battle=%u/%u/%u/%u/%u/%u\n",
+        slot,word(row+CAF_ROW_SELECTION),MEM32(actor+0xb34),MEM32(actor+0xb38),MEM32(actor+0xb3c),
+        MEM32(actor+0xb40),MEM32(actor+0xb44),MEM32(actor+0xb4c));
+}
+
 static uint32_t prepare_profile(const uint8_t *row) {
     if(!s_profile_workspace) {
         uint32_t args[]={0x5c000,0x298908,0x100};
@@ -327,7 +365,7 @@ static uint32_t prepare_profile(const uint8_t *row) {
     memset((void *)XBOX_PTR(profile),0,0x5920);
     memcpy((void *)XBOX_PTR(values),row+CAF_ROW_VALUES,4u*CAF_ROW_VALUE_COUNT);memcpy((void *)XBOX_PTR(colors),row+CAF_ROW_COLORS,CAF_ROW_COLOR_COUNT);
     MEM32(profile+0x5910)=values;MEM32(profile+0x5914)=colors;
-    for(unsigned j=0;j<CAF_ROW_TRAINING_COUNT;++j) MEM32(profile+0xfc+j*4)=word(row+CAF_ROW_TRAINING_AT(j));
+    for(unsigned j=0;j<CAF_ROW_TRAINING_COUNT;++j) MEM32(profile+0xfc+j*4)=row[CAF_ROW_FINAL_STATS]?0:word(row+CAF_ROW_TRAINING_AT(j));
     /* Original style bonuses, no Story accomplishment bonuses or currency. */
     static const uint8_t bonuses[5][6]={{2,0,0,1,0,0},{0,2,1,0,0,0},{0,1,0,0,2,0},{1,0,0,2,0,0},{0,0,2,0,1,0}};
     for(unsigned j=0;j<word(row+CAF_ROW_STYLE_COUNT);++j) for(unsigned k=0;k<6;++k) MEM32(profile+0x114+k*4)+=bonuses[row[CAF_ROW_STYLE_AT(j)]][k];
@@ -336,7 +374,7 @@ static uint32_t prepare_profile(const uint8_t *row) {
 /* Read-only diagnostics for the original per-CAF deform buffers. Never edits
  * archive geometry; used to qualify the custom-face ownership boundary. */
 static void face_trace(uint32_t visual,uint32_t participant) {
-    if(!getenv("RECOMP_FIGHTER_FACE_TRACE")) return;
+    if(!defjam_fighter_env("RECOMP_FIGHTER_FACE_TRACE")) return;
     uint32_t part=visual+0x140+2u*0x420,model=MEM32(part+0x12c);
     if(model<0x10000 || model>0xfffe0000u) {fprintf(stderr,"[CAF-FACE] missing head model\n");return;}
     uint32_t group=MEM32(model+0xb8)+4;
@@ -384,6 +422,7 @@ void defjam_fighter_caf_story(uint32_t service,uint32_t fighters) {
     /* A profile-owned fighter retains the original loader and its event timing.
      * Only track its context/voice/finishers for retail motion compatibility;
      * never preassemble or replace the player's real profile object. */
+    if(!defjam_fighter_runtime_active())return; /* No pack: the game's own Story path, untouched. */
     uint32_t manager=MEM32(service+4),mode=MEM32(service+0x344);
     uint32_t game=MEM32(service);
     for(uint32_t slot=0;slot<4;++slot) {
@@ -394,10 +433,12 @@ void defjam_fighter_caf_story(uint32_t service,uint32_t fighters) {
         int32_t index=-1;
         if(mode==0 && guest_span(manager,0x5ac80))index=(int32_t)MEM32(manager+0x5ac7c);
         else if(mode==1)index=(int8_t)guest_call(sub_0001E8F0,service,1,&slot);
-        if(index<0 || index>=16)stop("Story CAF retail moveset has no signed-in profile");
+        /* These come from save contents, so they must never close the game: leave
+         * the participant to the game's own Story handling, as without any pack. */
+        if(index<0 || index>=16){fprintf(stderr,"[FIGHTERS] Story CAF participant=%u has no signed-in profile; left to the game\n",slot);continue;}
         uint32_t profile=manager+0x177c+(uint32_t)index*0x5950;
-        if(!guest_span(profile,0x5950) || MEM8(profile+0x4d93)<87 || MEM8(profile+0x4d93)>141)
-            stop("Story CAF retail moveset has no preserved career moveset to fall back on");
+        if(!guest_span(profile,0x5950) || MEM8(profile+0x4d93)<87 || MEM8(profile+0x4d93)>141){
+            fprintf(stderr,"[FIGHTERS] Story CAF participant=%u has no preserved career moveset; left to the game\n",slot);continue;}
         uint32_t career=MEM8(profile+0x4d93);
         if(MEM8(profile+0x143)!=core){story_fallback(service,slot,career,"saved moveset differs from the live one");continue;}
         uint8_t *row=s_story_rows[slot];memset(row,0,CAF_ROW_STRIDE);
@@ -412,8 +453,9 @@ void defjam_fighter_caf_story(uint32_t service,uint32_t fighters) {
         value=MEM8(profile+0x4d93);memcpy(row+CAF_ROW_VOICE,&value,4); /* Original profile voice route. */
         s_story_profiles[slot]=profile;
         uint32_t context=guest_call(sub_0001E410_gen,service,1,&slot);
-        if(!guest_span(context,0x1c))stop("Story CAF has no native context");
-        if(s_service && s_service!=service)stop("Story CAF context owner differs");
+        if(!guest_span(context,0x1c) || (s_service && s_service!=service)){
+            s_story_profiles[slot]=0;
+            fprintf(stderr,"[FIGHTERS] Story CAF participant=%u has no usable native context; left to the game\n",slot);continue;}
         s_service=service;s_contexts[slot]=context;s_recipes[slot]=row;
         fprintf(stderr,"[FIGHTERS] Story CAF retail moveset participant=%u core=%u profile=%08X context=%08X career=%u\n",slot,core,profile,context,value);
     }
@@ -432,6 +474,7 @@ void defjam_fighter_caf_participant(uint32_t service,uint32_t participant,uint32
     uint32_t old_manager=MEM32(service+4),old_mode=MEM32(service+0x344);
     MEM32(service+4)=s_profile_workspace;MEM32(service+0x344)=0;MEM32(s_profile_workspace+0x5ac7c)=0;
     uint32_t stats_args[]={participant};guest_call(sub_0001EE80,service,1,stats_args);
+    apply_final_stats(service,participant,row);
     MEM32(service+4)=old_manager;MEM32(service+0x344)=old_mode;
     MEM8(service+0x1e8+participant)=(uint8_t)(participant+1);
     MEM32(service+0x168+participant*4)=word(row+CAF_ROW_CORE);
@@ -474,7 +517,7 @@ int defjam_fighter_caf_visual(uint32_t visual, uint32_t participant, int apply) 
 
 void defjam_fighter_caf_decode_trace(uint32_t output,uint32_t source,uint32_t caller,int done) {
     static int checked,enabled;static unsigned count;
-    if(!checked) {checked=1;enabled=getenv("RECOMP_FIGHTER_CAF_TRACE")!=NULL;}
+    if(!checked) {checked=1;enabled=defjam_fighter_env("RECOMP_FIGHTER_CAF_TRACE")!=NULL;}
     if(!enabled || !s_service) return;
     if(!done) ++count;
     if(count<=32 || !(count&(count-1))) {

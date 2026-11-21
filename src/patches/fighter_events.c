@@ -4,6 +4,7 @@
 #ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
 #endif
+#include "fighter_config.h"
 #include "fighter_events.h"
 #include "fighter_runtime.h"
 #include "hooks/mod_sha256.h"
@@ -33,14 +34,14 @@ static int file_size(const char *path,uint32_t expected) {
     return ok;
 }
 int defjam_fighter_events_start(void) {
-    const char *tags=getenv("RECOMP_FIGHTER_TAGS"),*cameras=getenv("RECOMP_FIGHTER_CAMERAS");
-    const char *tag_hash=getenv("RECOMP_FIGHTER_TAGS_SHA256"),*camera_hash=getenv("RECOMP_FIGHTER_CAMERAS_SHA256");
-    const char *binding=getenv("RECOMP_FIGHTER_TIMELINE_BINDINGS");
+    const char *tags=defjam_fighter_env("RECOMP_FIGHTER_TAGS"),*cameras=defjam_fighter_env("RECOMP_FIGHTER_CAMERAS");
+    const char *tag_hash=defjam_fighter_env("RECOMP_FIGHTER_TAGS_SHA256"),*camera_hash=defjam_fighter_env("RECOMP_FIGHTER_CAMERAS_SHA256");
+    const char *binding=defjam_fighter_env("RECOMP_FIGHTER_TIMELINE_BINDINGS");
     if ((!tags || !*tags) && (!cameras || !*cameras))
         return (!binding || !*binding) && (!tag_hash || !*tag_hash) && (!camera_hash || !*camera_hash);
     if (s_count || !defjam_fighter_research_active() || !tags || !*tags || !cameras || !*cameras
         || !binding || !*binding || strlen(tags)>=sizeof s_tags || strlen(cameras)>=sizeof s_cameras
-        || strlen(binding)>=2048 || !mod_file_matches(tags,tag_hash) || !mod_file_matches(cameras,camera_hash)) return 0;
+        || strlen(binding)>=2048 || !defjam_fighter_file_matches(tags,tag_hash) || !defjam_fighter_file_matches(cameras,camera_hash)) return 0;
     FILE *file=open_file(binding);if (!file) return 0;
     size_t limit=96u+12u*EVENT_ROWS;
     uint8_t *table=(uint8_t *)malloc(limit+1);if (!table) { fclose(file);return 0; }

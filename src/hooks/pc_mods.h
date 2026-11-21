@@ -6,6 +6,7 @@
 namespace pcui {
 struct ModRow {
     std::string id, name, authors, description, installed, latest, load_after, channel, category;
+    std::string page; // Thunderstore listing, "" when the mod has none
     unsigned long long bytes = 0;
     bool compatible = false, revoked = false, update = false;
 };
@@ -13,6 +14,8 @@ struct ManagedMod {
     std::string folder, name, version; bool rollback = false;
     std::string category; bool enabled = false; unsigned fighters = 0;
 };
+// The project's Thunderstore community. Mod pages are opened only below it.
+inline constexpr const char *mod_store_community = "https://thunderstore.io/c/def-jam-fight-for-ny-recompiled/";
 struct ModView {
     std::string message, catalogue;
     std::vector<ModRow> catalogue_mods;
@@ -23,6 +26,10 @@ bool mod_poll(); // true after a job completed; caller refreshes local inventory
 bool mod_busy();
 bool mod_prerelease();
 void mod_set_prerelease(bool enabled);
+// The language pack folder the launcher has chosen (empty for none). Fighter builds started from
+// the Mods screen are composed for it, so Play finds a matching manifest. The caller reads the
+// setting; this module never does (its unit-test driver has no settings).
+void mod_set_language(const std::string &pack);
 void mod_cancel();
 const ModView &mod_view();
 const std::string &mod_status();
@@ -38,10 +45,13 @@ extern "C" {
  * incomplete transaction or an active installer, including --no-launcher. */
 int pc_mods_game_lock(void);
 int pc_mods_needs_recovery(void);
+/* Load the fighter manifest before Play (rebuilding it first when stale). */
 int pc_fighters_prepare(const char *language);
-const char *pc_fighters_data_root(void);
-int pc_fighters_healthy(void);
-void pc_fighters_finish(void);
+/* The fighter-set-1 digest (docs/fighter-online-contract.md) of the fighter packs this
+ * process loaded, or "" when no pack is enabled or packs are off for this process (for
+ * example after a failed start-up check restarted it without packs). Set once, before the
+ * game starts; the string stays valid for the life of the process. */
+const char *pc_fighters_set_digest(void);
 const char *pc_fighters_error(void);
 #ifdef __cplusplus
 }

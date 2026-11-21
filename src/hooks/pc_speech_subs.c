@@ -2,7 +2,7 @@
  * Speech subtitles for in-game voices (fighter intros/extros, career player
  * voices, shops, taunts, tutorial, front-end, voicemail).
  *
- * File format (<mod_dir>/speech_subtitles.txt, UTF-8):
+ * File format (<mod_dir>/speech_subtitles.txt, UTF-8; .tsv is also read):
  *   clip_key \t viv_id \t offset \t start_sec \t end_sec \t text_ptbr
  *
  * Multiple consecutive rows with the same (viv_id, offset) or clip_key form
@@ -19,6 +19,19 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if !defined(_WIN32)
+#include <strings.h>
+#ifndef _stricmp
+#define _stricmp strcasecmp
+#endif
+#ifndef _strnicmp
+#define _strnicmp strncasecmp
+#endif
+#endif
+
+/* One lock guards the clip state and the row table: the kernel I/O wrappers write
+ * it on the game thread and the overlay reads it on the render thread. It is
+ * independent of the clock so the unit-test clock build is locked too. */
 #if defined(_WIN32)
 #include <windows.h>
 static INIT_ONCE s_subs_lock_once = INIT_ONCE_STATIC_INIT;
@@ -38,13 +51,9 @@ static void subs_unlock(void)
 {
     LeaveCriticalSection(&s_subs_lock);
 }
-static uint64_t now_ms(void) { return (uint64_t)GetTickCount64(); }
 #else
 #include <pthread.h>
 #include <time.h>
-#ifndef _stricmp
-#define _stricmp strcasecmp
-#endif
 static pthread_once_t s_subs_lock_once = PTHREAD_ONCE_INIT;
 static pthread_mutex_t s_subs_lock;
 static void init_subs_lock(void)
@@ -64,6 +73,15 @@ static void subs_unlock(void)
 {
     pthread_mutex_unlock(&s_subs_lock);
 }
+#endif
+
+#if defined(PC_SPEECH_SUBS_TEST_CLOCK)
+/* tests/unit/test_speech_subs_native.py drives the clock. */
+uint64_t pc_speech_subs_test_now_ms(void);
+static uint64_t now_ms(void) { return pc_speech_subs_test_now_ms(); }
+#elif defined(_WIN32)
+static uint64_t now_ms(void) { return (uint64_t)GetTickCount64(); }
+#else
 static uint64_t now_ms(void)
 {
     struct timespec ts;
@@ -234,6 +252,9 @@ void pc_speech_subs_load(const char *mod_dir)
 
     while (fgets(line, sizeof line, f)) {
         char *p = trim_ws(line);
+        /* A UTF-8 BOM before the first line (often the "# clip_key ..." header) */
+        if (!memcmp(p, "\xEF\xBB\xBF", 3))
+            p = trim_ws(p + 3);
         if (!*p || *p == '#')
             continue;
         /* Parse 6 tab-separated columns: clip_key, viv_id, offset, start_sec, end_sec, text */
@@ -248,10 +269,6 @@ void pc_speech_subs_load(const char *mod_dir)
         }
         if (c < 6)
             continue;
-        /* Strip UTF-8 BOM if on first row */
-        if (!memcmp(cols[0], "\xEF\xBB\xBF", 3))
-            cols[0] += 3;
-
         if (g_row_count >= g_row_cap) {
             size_t ncap = g_row_cap ? g_row_cap * 2 : 512;
             SpeechSubRow *nrow = (SpeechSubRow *)realloc(g_rows, ncap * sizeof(SpeechSubRow));
@@ -285,7 +302,7 @@ int pc_speech_subs_enabled(void)
 {
     if (!g_loaded || g_row_count == 0)
         return 0;
-    /* [language] voice_subtitles: 0 = auto (on when pack has speech_subtitles.tsv), 1 = on, 2 = off */
+    /* [language] voice_subtitles: auto (on when the pack has speech_subtitles.txt), on, off (index 2) */
     int choice = recomp_settings_get("language", "voice_subtitles", 0);
     if (choice == 2)
         return 0;

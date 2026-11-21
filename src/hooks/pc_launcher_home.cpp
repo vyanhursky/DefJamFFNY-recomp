@@ -5,6 +5,10 @@
 #include "pc_ui_internal.h"
 #include <algorithm>
 #include <cstring>
+#include <filesystem>
+#include <fstream>
+#include <iterator>
+#include <string>
 #ifndef DEFJAM_VERSION
 #define DEFJAM_VERSION "dev"
 #endif
@@ -13,6 +17,24 @@ const char *pc_app_game_version();
 float pc_app_beside_play_width();
 void pc_app_beside_play(float width, float height);
 #endif
+
+// <data>/last-error.txt: the game's last fatal message (host_fatal in src/main.c). On a Steam
+// Deck or a Mac the dialog can go unseen, so Home repeats it until the player dismisses it.
+static std::string last_error(bool dismiss = false)
+{
+    static bool loaded = false;
+    static std::string text;
+    auto path = std::filesystem::u8path(pcui::folder_path(pcui::Folder::Data)) / "last-error.txt";
+    std::error_code error;
+    if (dismiss) { std::filesystem::remove(path, error); text.clear(); return text; }
+    if (loaded) return text;
+    loaded = true;
+    if (!std::filesystem::is_regular_file(path, error) || std::filesystem::file_size(path, error) > 8192) return text;
+    std::ifstream input(path, std::ios::binary);
+    text.assign(std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>());
+    while (!text.empty() && (text.back() == '\n' || text.back() == '\r')) text.pop_back();
+    return text;
+}
 
 UiHomeResult ui_launcher_home(float width, float height, const char *focus)
 {
@@ -40,6 +62,17 @@ UiHomeResult ui_launcher_home(float width, float height, const char *focus)
     if (pcui::mod_recovery_needed())
         ImGui::TextWrapped("Play is unavailable until an interrupted mod installation is recovered. Open Mods to fix it.");
     else if (pcui::mod_busy()) ImGui::TextWrapped("Finishing a mod operation. Play will be available when it finishes.");
+    {
+        std::string stopped = last_error();
+        if (!stopped.empty()) {
+            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.5f, 0.45f, 1.0f));
+            ImGui::TextWrapped("The game stopped with an error last time:");
+            ImGui::PopStyleColor();
+            ImGui::TextWrapped("%s", stopped.c_str());
+            if (ImGui::SmallButton("Dismiss")) last_error(true);
+            ui_target("Dismiss error");
+        }
+    }
     const char *labels[] = {"Settings", "Controls", "Mods", "Songs", "Help"};
     const char *targets[] = {"Settings", "Configure", "Mods", "Songs", "Help"};
     int routes[] = {1, 2, 3, 5, 4};

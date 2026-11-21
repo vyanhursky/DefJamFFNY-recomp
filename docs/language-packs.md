@@ -64,7 +64,8 @@ intro/000	2	108620416	0.00	2.50	VOCÊ VAI SER DESTRUÍDO!
 
 When present, the runtime (`src/hooks/pc_speech_subs.c`) matches each `SCHl` audio stream read from
 `audio/speech1..3.viv` (or opened by path) and draws timed subtitle lines on the ImGui overlay. Controlled
-by `[language] voice_subtitles` (`auto` when the pack provides `speech_subtitles.txt`, `on`, `off`).
+by `[language] voice_subtitles` (`auto` = on when the pack provides `speech_subtitles.txt`, `on`,
+`off`).
 
 ### The game's own French
 
@@ -238,7 +239,7 @@ produce identical files.
 
 | Language | Pack | Author | Licence |
 |---|---|---|---|
-| Portuguese (Brazil) | `pt-br-sanvg`, from "Def Jam Fight for NY PT-BR" (v0.4.0) | San V, Gledson999, JJAlves | CC BY-NC-SA 4.0 |
+| Portuguese (Brazil) | `pt-br-sanvg` 1.0.0, in the launcher's Mods page ([Thunderstore](https://thunderstore.io/c/def-jam-fight-for-ny-recompiled/p/JJalesTeam/Portuguese_Translation/)); voice subtitles need 1.2.0 | SanVG (original PS2 translation and art); Joao13 / Joao13 Traduções (hosting and permission to re-use and re-host); jjalles-dev (PC Recompiled adaptation: Xbox deltas, fonts, 4× HD textures, speech subtitles, widescreen art) | CC BY-NC-SA 4.0 |
 | Spanish | `es-zarf`, from "Parche textos en español DJFFNY" v1.1 ([source](https://github.com/MODZARF/Parche-textos-en-espanol-DJFFNY-Compatible-con-Xbox-360)) | ZARF (MOD-ZARF) | CC BY-NC-SA 4.0; a conversion exists and awaits its author's agreement before it is shared |
 
 French text is on the USA disc already (`cmfren.loc`); use the [built-in French setting](#the-games-own-french), which needs no separate pack.

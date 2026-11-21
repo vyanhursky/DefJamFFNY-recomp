@@ -134,6 +134,16 @@ static std::string get_text(const char *section, const char *key)
 }
 
 static bool g_save_failed = false;
+
+// A Mods job that may compile fighter packs: compose them for the chosen language,
+// so the manifest still matches at Play and Play needs no Python (review feedback S4).
+static bool mod_job(const char *command, const std::string &id)
+{
+    char language[RECOMP_SETTING_TEXT_MAX];
+    recomp_settings_get_text("language", "pack", language, sizeof language, "");
+    pcui::mod_set_language(language);
+    return pcui::mod_start(command, id);
+}
 static void commit()
 {
     pcui::clear_action_status();
@@ -934,12 +944,22 @@ static void mod_catalogue(int category)
         if (mod.channel == "prerelease") ImGui::TextWrapped("Testing version: please report problems before the final release.");
         if (!mod.load_after.empty()) ImGui::TextWrapped("Suggested after: %s",mod.load_after.c_str());
         ImGui::BeginDisabled(!launcher || pcui::mod_busy() || !mod.compatible || (!mod.installed.empty() && !mod.update));
-        if (ImGui::Button(mod.installed.empty() ? "Install and enable" : "Update")) pcui::mod_start(mod.installed.empty() ? "install-enable" : "install",mod.id);
+        if (ImGui::Button(mod.installed.empty() ? "Install and enable" : "Update")) mod_job(mod.installed.empty() ? "install-enable" : "install",mod.id);
         ui_target(("mod.install."+mod.id).c_str());
-        ImGui::EndDisabled(); ImGui::PopID();
+        ImGui::EndDisabled();
+        if (!mod.page.empty()) {
+            ImGui::SameLine();
+            if (ImGui::Button("View on Thunderstore")) pcui::open_path(mod.page);
+            ui_target(("mod.page."+mod.id).c_str());
+        }
+        ImGui::PopID();
     }
     if (!category_available && !pcui::mod_busy())
         ImGui::TextWrapped("No catalogue entries available for this category. Select Refresh catalogue to check again.");
+    ImGui::Separator();
+    ImGui::TextWrapped("These mods are also listed on the project's Thunderstore community. Install them here so the launcher checks every file.");
+    if (ImGui::Button("Open the Thunderstore community")) pcui::open_path(pcui::mod_store_community);
+    ui_target("mods.community");
 }
 
 #if defined(DEFJAM_APP)
@@ -1052,11 +1072,11 @@ static void page_textures(int category)
             }
             if(found!=managed.end() && launcher) {
                 if(found->second.rollback) {
-                    if(ImGui::SmallButton("Restore previous version")) pcui::mod_start("rollback",pack_id);
+                    if(ImGui::SmallButton("Restore previous version")) mod_job("rollback",pack_id);
                     ui_target(("mod.rollback."+pack_id).c_str());
                 }
                 ImGui::BeginDisabled(p.selected);
-                if(ImGui::SmallButton("Uninstall mod")) pcui::mod_start("remove",pack_id);
+                if(ImGui::SmallButton("Uninstall mod")) mod_job("remove",pack_id);
                 ui_target(("mod.remove."+pack_id).c_str());
                 ImGui::EndDisabled();
                 if(p.selected) ImGui::TextWrapped("Disable before uninstalling.");
@@ -1190,7 +1210,7 @@ static void page_fighters()
     ui_target("mods.fighters.browse");
     ImGui::SameLine();
     ImGui::BeginDisabled(!archive[0]);
-    if (ImGui::Button("Install or update from ZIP")) pcui::mod_start("install-local", archive);
+    if (ImGui::Button("Install or update from ZIP")) mod_job("install-local", archive);
     ui_target("mods.fighters.import");
     ImGui::EndDisabled();
     ImGui::SameLine();
@@ -1236,15 +1256,15 @@ static void page_fighters()
         ImGui::PushID(entry.first.c_str()); ImGui::Separator();
         ImGui::BeginDisabled(!launcher || pcui::mod_busy());
         bool selected = pack.enabled;
-        if (ImGui::Checkbox(pack.name.c_str(), &selected)) pcui::mod_start(selected ? "fighter-enable" : "fighter-disable", entry.first);
+        if (ImGui::Checkbox(pack.name.c_str(), &selected)) mod_job(selected ? "fighter-enable" : "fighter-disable", entry.first);
         ui_target(("mods.fighters.enable." + entry.first).c_str());
         ImGui::Text("%s  |  %u fighter%s", pack.version.c_str(), pack.fighters, pack.fighters == 1 ? "" : "s");
         if (pack.rollback) {
-            if (ImGui::Button("Restore previous version")) pcui::mod_start("rollback", entry.first);
+            if (ImGui::Button("Restore previous version")) mod_job("rollback", entry.first);
             ui_target(("mods.fighters.rollback." + entry.first).c_str());
         }
         ImGui::BeginDisabled(pack.enabled);
-        if (ImGui::Button("Remove pack")) pcui::mod_start("remove", entry.first);
+        if (ImGui::Button("Remove pack")) mod_job("remove", entry.first);
         ui_target(("mods.fighters.remove." + entry.first).c_str());
         ImGui::EndDisabled(); ImGui::EndDisabled();
         if (pack.enabled) ImGui::TextWrapped("Disable this pack before removing it.");

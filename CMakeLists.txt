@@ -13,7 +13,7 @@ cmake_minimum_required(VERSION 3.20)
 # Nothing from the game disc is in this tree. Put your own dump in ./game
 # (a junction/symlink is fine) and run scripts/verify-dump.py first.
 # =====================================================================
-project(defjam_recomp VERSION 1.2.0 LANGUAGES C CXX)
+project(defjam_recomp VERSION 1.2.1 LANGUAGES C CXX)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -186,6 +186,8 @@ if(DEFJAM_BUILD_GAME)
     )
     target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
     if(WIN32)
+        # UTF-8 process code page (P10 of the 2026-11-12 review): one path encoding in the whole game.
+        target_sources(${PROJECT_NAME} PRIVATE src/game.manifest)
         target_link_libraries(${PROJECT_NAME} PRIVATE xboxrecomp recomp_settings defjam_imgui d3d11 dxgi dxguid xinput winmm dbghelp shell32 comdlg32)
     else()
         # One SDL for the window, the sound and the pads: SDL3, the system's.
@@ -317,7 +319,8 @@ if(DEFJAM_BUILD_APP AND DEFJAM_SDL3)
         src/hooks/pc_ui_actions.cpp
         src/hooks/pc_launcher_home.cpp
         src/hooks/pc_launcher_sdl.cpp
-        src/hooks/pc_mods.cpp)
+        src/hooks/pc_mods.cpp
+        src/patches/fighter_config.c)
     target_compile_features(defjam_app PRIVATE cxx_std_17)
     target_compile_definitions(defjam_app PRIVATE DEFJAM_APP=1 DEFJAM_VERSION=\"${PROJECT_VERSION}\")
     if(DEFJAM_MOD_WIDE)

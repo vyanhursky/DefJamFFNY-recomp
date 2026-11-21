@@ -69,18 +69,20 @@ def test_whole_pack_install_enable_update_rollback_disable_remove(manager, tmp_p
     manager.activate_fighter('alpha', True)
     state = manager.state()
     assert state['fighters'] == ['alpha']
-    assert {'alpha/fighter-0', 'alpha/fighter-1'} <= state['fighter_ledger']['fighters'].keys()
+    assert 'fighter_ledger' not in state  # numbers are not stored; they follow the enabled set
+    ledger = fighters.build(manager, state)[1]['binding_ledger']
+    assert {'alpha/fighter-0', 'alpha/fighter-1'} <= ledger['fighters'].keys()
     definition['version'] = '1.1.0'
     definition['fighters'][0]['name'] = 'Updated'
     manager.install_local(archive(tmp_path, definition))
-    assert manager.state()['fighter_ledger'] == state['fighter_ledger']
+    assert fighters.build(manager, manager.state())[1]['binding_ledger'] == ledger
     manager.rollback('alpha')
     assert manager.state()['installed']['alpha']['version'] == '1.0.0'
     with pytest.raises(ValueError, match='Disable'):
         manager.remove('alpha')
     manager.activate_fighter('alpha', False)
     manager.remove('alpha')
-    assert manager.state()['fighter_ledger'] == state['fighter_ledger']
+    assert 'fighter_ledger' not in manager.state()
     assert manager.state()['fighters'] == []
     assert not (manager.data / 'save').exists()  # Activation never adopts/mutates profiles.
 
@@ -145,3 +147,82 @@ def test_thunderstore_fighter_zip_imports_without_storefront_files(manager, tmp_
         bundle.writestr('stray.txt', 'not storefront metadata')
     with pytest.raises(ValueError, match='one pack-id root'):
         manager.install_local(path)
+
+
+
+def test_fighter_numbers_follow_the_enabled_set_not_install_history(manager, tmp_path):
+    """D409: the same enabled packs give the same handles, selection keys, symbols and
+    roster order, whatever order they were installed and enabled in, and whatever was enabled before."""
+    donors = {'alpha': 'retail/test-alpha', 'beta': 'retail/test-beta', 'gamma': 'retail/test-alpha'}
+    histories = {'ab': ['+alpha', '+beta'], 'ba': ['+beta', '+alpha'],
+                 'a-c-b-then-c-off': ['+alpha', '+gamma', '+beta', '-gamma']}
+    ledgers = {}
+    for name, steps in histories.items():
+        current = Manager(tmp_path / ('data-' + name), capabilities=['textures-v1', 'fighters-v1'], game=tmp_path / 'game')
+        for step in steps:
+            owner = step[1:]
+            if owner not in current.state()['installed']:
+                current.install_local(archive(tmp_path, pack(owner=owner, donor=donors[owner], count=2)))
+            current.activate_fighter(owner, step[0] == '+')
+        state = current.state()
+        assert sorted(state['fighters']) == ['alpha', 'beta'] and 'fighter_ledger' not in state
+        ledgers[name] = fighters.build(current, state)[1]['binding_ledger']
+    assert ledgers['ab'] == ledgers['ba'] == ledgers['a-c-b-then-c-off']
+    custom = {key: entry for key, entry in ledgers['ab']['fighters'].items() if not key.startswith('retail/')}
+    # Numbered in sorted key order from the first free number above the retail baseline.
+    assert [key for key, _ in sorted(custom.items(), key=lambda item: item[1]['selection'])] == sorted(custom)
+    assert min(entry['selection'] for entry in custom.values()) == 100
+
+
+def test_an_old_state_file_with_a_stored_ledger_still_loads_and_is_not_written_back(manager, tmp_path):
+    manager.install_local(archive(tmp_path, pack(count=1)))
+    manager.activate_fighter('alpha', True)
+    state = json.loads((manager.root / 'state.json').read_text())
+    fresh = fighters.build(manager, manager.state())[1]['binding_ledger']
+    stale = json.loads(json.dumps(fresh))
+    stale['fighters']['alpha/fighter-0']['selection'] = 777  # an install history this PC remembers
+    state['fighter_ledger'] = stale
+    (manager.root / 'state.json').write_text(json.dumps(state))
+    assert 'fighter_ledger' not in manager.state()
+    assert fighters.build(manager, manager.state())[1]['binding_ledger'] == fresh
+    manager.activate_fighter('alpha', False)
+    assert 'fighter_ledger' not in json.loads((manager.root / 'state.json').read_text())
+
+
+def run_cli(monkeypatch, capsys, *arguments):
+    """mods.py's own main(), as a command-line caller (another launcher) runs it."""
+    import mods
+    monkeypatch.setattr('sys.argv', ['mods.py', *arguments])
+    code = mods.main()
+    events = [json.loads(line) for line in capsys.readouterr().out.splitlines() if line.startswith('{')]
+    return code, events
+
+
+def test_command_line_install_and_enable_contract(manager, tmp_path, monkeypatch, capsys):
+    """C1: install-local then fighter-enable through main(); events, exit codes and the manifest."""
+    data = str(manager.data)
+    common = ['--data-dir', data, '--runtime', '1.2.0', '--game-dir', str(tmp_path / 'game'), '--capability', 'fighters-v1']
+    code, events = run_cli(monkeypatch, capsys, 'install-local', '--archive', str(archive(tmp_path, pack(count=1))), *common)
+    assert code == 0 and events[-1]['event'] == 'complete' and {e['event'] for e in events} <= {'progress', 'complete'}
+    code, events = run_cli(monkeypatch, capsys, 'fighter-enable', '--id', 'alpha', *common)
+    assert code == 0 and events[-1]['event'] == 'complete'
+    manifest = (manager.root / 'fighter-manifest.ini').read_text(encoding='utf-8')
+    assert 'runtime=1.2.0' in manifest and 'packs=alpha' in manifest and 'digest_schema=fighter-set-1' in manifest
+    code, events = run_cli(monkeypatch, capsys, 'fighter-digest', '--data-dir', data)
+    assert code == 0 and events == [{'event': 'digest', 'schema': 'fighter-set-1', 'digest': events[0]['digest'],
+                                     'packs': [{'id': 'alpha', 'version': '1.0.0', 'sha256': events[0]['packs'][0]['sha256']}]}]
+
+
+def test_command_line_refuses_a_bad_zip_with_one_error_and_no_change(manager, tmp_path, monkeypatch, capsys):
+    data = str(manager.data)
+    common = ['--data-dir', data, '--runtime', '1.2.0', '--game-dir', str(tmp_path / 'game'), '--capability', 'fighters-v1']
+    run_cli(monkeypatch, capsys, 'install-local', '--archive', str(archive(tmp_path, pack(count=1))), *common)
+    before = (manager.root / 'state.json').read_bytes()
+    broken = tmp_path / 'broken.zip'
+    with zipfile.ZipFile(broken, 'w') as bundle:
+        bundle.writestr('beta/README.md', 'no fighters.json here')
+    code, events = run_cli(monkeypatch, capsys, 'install-local', '--archive', str(broken), *common)
+    assert code == 1
+    assert [e['event'] for e in events].count('error') == 1 and events[-1]['event'] == 'error'
+    assert (manager.root / 'state.json').read_bytes() == before
+    assert not (manager.mods / 'beta').exists()

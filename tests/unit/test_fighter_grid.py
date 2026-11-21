@@ -185,3 +185,23 @@ def test_selected_grid_rejects_truncated_or_changed_native_model_tail():
     with pytest.raises(AssetError,match='closure'):original.selected_grid(2)
     original=selected_model_fixture();original.parts[1][0xF450+0x448]=1
     with pytest.raises(AssetError,match='tail'):original.selected_grid(2)
+
+
+def test_selector_textures_accept_a_translation_that_only_repaints_images():
+    """#284: a language mod's chooseF*.xsh repaints the selector text; the grid extends it."""
+    from fighter_grid import selector_textures
+    original = ui()
+    image, = UITextures(original).images
+    start, size = image['pixels_offset'], image['pixels_bytes']
+    translated = bytearray(original)
+    translated[start:start + size] = b'\x42' * size
+    translated = bytes(translated)
+    assert selector_textures(original, original).data == original
+    kept = selector_textures(translated, original)
+    assert kept.data == translated                       # the translated pixels are what gets extended
+    resized = bytearray(original)
+    struct.pack_into('<HH', resized, image['pixels_offset'] - 12, 8, 2)  # same pixel count, other size
+    assert UITextures(bytes(resized)).images[0]['width'] == 8
+    for other in (bytes(resized), b'SHPX' + bytes(20), original[:-16]):
+        with pytest.raises(AssetError, match='already owns the selector'):
+            selector_textures(other, original)

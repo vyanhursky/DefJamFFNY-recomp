@@ -131,3 +131,30 @@ def test_result_alias_uses_exact_id_for_portrait_and_blank_custom_name_logo():
         logo = Archive(unpack(changed.read(f'screens/portrait/l_MS_256_{count}p.big')))
         assert {e.name for e in logo.entries} == {f'l_MS_256_{count}p.apt', f'l_MS_256_{count}p.const'}
         assert logo.read(f'l_MS_256_{count}p.apt') == b'blank'
+
+
+@pytest.mark.parametrize('identity', (100, 256, 0x60000000))
+def test_team_aliases_cover_both_waited_movies_and_preserve_retail(identity):
+    entries = {}
+    for count in (2, 3, 4):
+        stem=f'p_cf_8_{count}p'
+        entries[f'screens/portrait/p_CF/{stem}.big']=fixture({stem+suffix:suffix.encode() for suffix in ('.apt','.const','.o','.xsh')})
+    for family,number in (('t_CT',7),('p_CT',8)):
+        stem=f'{family}_{number}'
+        entries[f'screens/portrait/{family}/{stem}.big']=fixture({stem+suffix:suffix.encode() for suffix in ('.apt','.const','.o','.xsh')})
+    original=Archive(fixture(entries))
+    changed=Archive(portrait_aliases(original.data,{identity:7},teams=True))
+    assert all(changed.read(e.name)==original.read(e.name) for e in original.entries)
+    for family,number in (('t_CT',identity),('p_CT',identity+1)):
+        stem=f'{family}_{number}'
+        inner=Archive(unpack(changed.read(f'screens/portrait/{family}/{stem}.big')))
+        assert {e.name for e in inner.entries}=={stem+s for s in ('.apt','.const','.o','.xsh')}
+        for e in inner.entries:
+            assert inner.read(e.name)==Path(e.name).suffix.encode()
+    # Team readiness cannot wait forever on an alias silently skipped by the compiler.
+    missing=Archive(original.data).compose(renames={'screens/portrait/t_CT/t_CT_7.big':'screens/unrelated.big'})
+    with pytest.raises(AssetError,match='Missing BIG entry'):
+        portrait_aliases(missing,{identity:7},teams=True)
+    occupied=original.compose({'screens/portrait/t_CT/t_CT_'+str(identity)+'.big':b'conflict'})
+    with pytest.raises(AssetError,match='already owned'):
+        portrait_aliases(occupied,{identity:7},teams=True)

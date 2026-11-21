@@ -27,6 +27,11 @@ def render():
         '#define CAF_CONTAINER_HEADER_BYTES %du' % layout.HEADER_BYTES,
         '#define CAF_CONTAINER_MAX_BYTES %du' % layout.MAX_FILE,
     ]
+    lines += ['#define CAF_CONTAINER_NORMAL_VERSION %du' % layout.NORMAL_VERSION,
+              '#define CAF_NORMAL_STRIDE %du' % layout.NORMAL_STRIDE,
+              '#define CAF_NORMAL_MAX %du' % layout.NORMAL_MAX]
+    for index, name in enumerate(layout.NORMAL_HEADER):
+        lines.append('#define CAF_HEADER_%s %du' % (name.upper(), 52 + 4 * index))
     # Header words follow the 4-byte magic and the 4-byte version.
     for index, name in enumerate(layout.HEADER):
         lines.append('#define CAF_HEADER_%s %du' % (name.upper(), 8 + 4 * index))

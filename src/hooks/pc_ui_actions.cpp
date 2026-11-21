@@ -51,10 +51,7 @@ std::string folder_path(Folder which)
     case Folder::Data:
         return path_utf8(data);
     case Folder::Saves:
-        // After adoption this is the authoritative career, even with no packs
-        // enabled. The original save folder remains the import-time backup.
-        if (fs::exists(data / "mod-manager/fighter-adoption.json"))
-            return path_utf8(data / "mod-manager/fighter-profiles");
+        // Every save, with or without fighter packs, lives here.
         return path_utf8(data / "save");
     case Folder::Mods: {
         auto root = env("RECOMP_TEXTURE_ROOT");

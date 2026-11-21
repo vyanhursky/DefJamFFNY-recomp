@@ -2,6 +2,7 @@
 #ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
 #endif
+#include "fighter_config.h"
 #include "fighter_film_proof.h"
 #include "recomp/gen/recomp_types.h"
 #include "fighter_cpu_pool.h"
@@ -14,7 +15,8 @@
 #define FILM_LIMIT 8192u
 static struct {const uint8_t *record;uint32_t bank;} s_films[FILM_LIMIT];
 static uint8_t *s_data;
-static unsigned s_count,s_logs;
+static unsigned s_count,s_logs,s_version=1;
+static size_t reloc_start(void) {return s_version==2?176u:128u;}
 static struct {unsigned proof;uint32_t bank;} s_instances[512];
 static unsigned s_instances_count;
 static size_t token_width(const char *name) {return name[0]=='B'?6u:7u;}
@@ -37,29 +39,36 @@ static FILE *open_file(const char *path) {
 #endif
 }
 int defjam_fighter_film_start(void) {
-    const char *path=getenv("RECOMP_FIGHTER_FILM_PROOFS");if (!path || !*path) return defjam_fighter_cinematic_proofs();
-    const char *archive=getenv("RECOMP_FIGHTER_CINEMATIC_BANKS"),*hash=getenv("RECOMP_FIGHTER_CINEMATIC_BANKS_SHA256");
-    if (s_count || strlen(path)>=2048 || !archive || !hash || !mod_file_matches(archive,hash)) return 0;
+    const char *path=defjam_fighter_env("RECOMP_FIGHTER_FILM_PROOFS");if (!path || !*path) return defjam_fighter_cinematic_proofs();
+    const char *archive=defjam_fighter_env("RECOMP_FIGHTER_CINEMATIC_BANKS"),*hash=defjam_fighter_env("RECOMP_FIGHTER_CINEMATIC_BANKS_SHA256");
+    if (s_count || strlen(path)>=2048 || !archive || !hash || !defjam_fighter_file_matches(archive,hash)) return 0;
     FILE *file=open_file(path);if (!file) return 0;
     uint8_t *data=(uint8_t *)malloc((64u<<20)+1);if (!data) {fclose(file);return 0;}
     size_t bytes=fread(data,1,(64u<<20)+1,file);int valid=!ferror(file) && bytes>=52 && bytes<=(64u<<20);
     if (fclose(file)) valid=0;
     uint32_t count=valid?word(data+8):0;char digest[65];
-    if (valid) {hex(data+20,digest);valid=!memcmp(data,"FCP1",4) && word(data+4)==1 && count && count<=FILM_LIMIT
+    if (valid) {hex(data+20,digest);valid=((!memcmp(data,"FCP1",4) && word(data+4)==1) || (!memcmp(data,"FCP2",4) && word(data+4)==2)) && count && count<=FILM_LIMIT
         && !word(data+16) && !strcmp(digest,hash);}
     if (valid) {
         FILE *f=open_file(archive);if (!f) valid=0;
         else {long size=fseek(f,0,SEEK_END)?-1:ftell(f);if (size<0 || (uint64_t)size!=word(data+12)) valid=0;if (fclose(f)) valid=0;}
     }
+    s_version=valid?word(data+4):1;size_t prefix=reloc_start();
     size_t at=52;const uint8_t *previous=NULL;
     for (unsigned i=0;valid && i<count;++i) {
-        if (bytes-at<128) {valid=0;break;}const uint8_t *p=data+at;
+        if (bytes-at<prefix) {valid=0;break;}const uint8_t *p=data+at;
         unsigned length=0;while (length<32 && p[length]) ++length;
         uint32_t size=word(p+32),root=word(p+36),relocs=word(p+40),bones=word(p+44),role=word(p+56),tags=word(p+60);
-        size_t record_bytes=128u+8u*relocs;
+        size_t record_bytes=prefix+8u*relocs;
         if (!length || length>=32 || (previous && memcmp(previous,p,32)>=0) || record_bytes>bytes-at
             || size<24 || size>(32u<<20) || root>size-24 || !relocs || relocs>65536 || !bones || bones>256
             || word(p+48)>32 || word(p+52)>32 || (!word(p+48)!=!word(p+52)) || role<1 || role>4 || tags>1) {valid=0;break;}
+        if (s_version==2) {
+            uint32_t profile=word(p+128),f0=word(p+132),f1=word(p+136),rigs=word(p+140);
+            if (profile>1 || rigs!=(profile?2u:1u) || (profile && (bones!=94 || p[0]=='B' || !f0 || !f1 || f0>13 || f1>15))
+                || (!profile && (f0 || f1 || memcmp(p+144,(const uint8_t[32]){0},32)))
+                || (profile && (memcmp(p+64,p+144,32)>=0 || !memcmp(p+64,(const uint8_t[32]){0},32)))) {valid=0;break;}
+        }
         for (unsigned c=0;c<32;++c) if (c>=length ? p[c]!=0 : !((p[c]>='A'&&p[c]<='Z')||(p[c]>='a'&&p[c]<='z')||(p[c]>='0'&&p[c]<='9')||p[c]=='_'||p[c]=='.')) valid=0;
         size_t stem=token_width((const char *)p);
         if (p[0]!='B' && !(p[0]=='F' && (p[1]=='I'||p[1]=='V'))) valid=0;
@@ -70,7 +79,7 @@ int defjam_fighter_film_start(void) {
              && strcmp(suffix,"1_TARGET.o") && strcmp(suffix,"2_EYE.o") && strcmp(suffix,"2_TARGET.o"))) valid=0;
         uint32_t end=0;
         for (unsigned j=0;valid && j<relocs;++j) {
-            uint32_t field=word(p+128+8*j),target=word(p+132+8*j);
+            uint32_t field=word(p+reloc_start()+8*j),target=word(p+reloc_start()+4+8*j);
             if (field<end || (field&3) || field>size-4 || target>=size) valid=0;
             end=field+4;
         }
@@ -99,15 +108,15 @@ static int seal(unsigned owner,uint32_t bank) {
     const uint8_t *p=s_films[owner-1].record;uint32_t size=word(p+32),root=word(p+36),relocs=word(p+40);
     if (bank<root) return 0;
     uint32_t base=bank-root;
-    if (!defjam_fighter_cpu_range(base,size)) return 0;
+    if (!defjam_fighter_cpu_range(base,size)) {if(getenv("RECOMP_CAF_CINEMATIC_TRACE"))fprintf(stderr,"[FILM-TRY] %s base=%08X size=%u range=0\n",p,base,size);return 0;}
     Sha sha;sha_init(&sha);uint32_t end=0;
     for (unsigned j=0;j<relocs;++j) {
-        uint32_t field=word(p+128+8*j),target=word(p+132+8*j);
-        if (MEM32(base+field)!=base+target) return 0;
-        sha_update(&sha,(const void *)XBOX_PTR(base+end),field-end);sha_update(&sha,p+132+8*j,4);end=field+4;
+        uint32_t field=word(p+reloc_start()+8*j),target=word(p+reloc_start()+4+8*j);
+        if (MEM32(base+field)!=base+target) {if(getenv("RECOMP_CAF_CINEMATIC_TRACE"))fprintf(stderr,"[FILM-TRY] %s field=%u actual=%08X expected=%08X\n",p,field,MEM32(base+field),base+target);return 0;}
+        sha_update(&sha,(const void *)XBOX_PTR(base+end),field-end);sha_update(&sha,p+reloc_start()+4+8*j,4);end=field+4;
     }
     sha_update(&sha,(const void *)XBOX_PTR(base+end),size-end);uint8_t digest[32];sha_final(&sha,digest);
-    if (memcmp(digest,p+96,32)) return 0;
+    if (memcmp(digest,p+96,32)) {if(getenv("RECOMP_CAF_CINEMATIC_TRACE"))fprintf(stderr,"[FILM-TRY] %s payload-hash differs bank=%08X\n",p,bank);return 0;}
     s_films[owner-1].bank=bank;
     unsigned instance=0;
     for (;instance<s_instances_count;++instance) if (s_instances[instance].bank==bank) break;
@@ -136,6 +145,18 @@ int defjam_fighter_film_complete(const char *name,int intro) {
     if (intro) return find(name,"1_EYE.o") && find(name,"1_TARGET.o") && find(name,"2_EYE.o") && find(name,"2_TARGET.o");
     return find(name,"_EYE.o") && find(name,"_TARGET.o");
 }
+int defjam_fighter_film_caf(const char *name) {
+    unsigned id=find(name,".o");if (!id || s_version!=2) return 0;
+    const uint8_t *p=s_films[id-1].record;
+    if (word(p+128)!=1 || !defjam_fighter_film_complete(name,name[1]=='I')) return 0;
+    size_t stem=strlen(name);
+    for (unsigned i=0;i<s_count;++i) {
+        const uint8_t *q=s_films[i].record;
+        if (!memcmp(q,name,stem) && token_width((const char *)q)==stem
+            && (memcmp(p+44,q+44,12) || memcmp(p+60,q+60,36) || memcmp(p+128,q+128,48))) return 0;
+    }
+    return 1;
+}
 static int sealed(unsigned proof,uint32_t bank) {
     if (!bank || !proof) return 0;
     for (unsigned i=0;i<s_instances_count;++i) if (s_instances[i].proof==proof && s_instances[i].bank==bank) return 1;
@@ -159,6 +180,12 @@ int defjam_fighter_film_bind(const char *name,uint32_t entry,uint32_t visual,uin
             || !MEM32(descriptor+0x13C)) return 0;
     } else if (MEM32(descriptor+0xA4)!=2 || MEM32(descriptor+0xD4)!=3) return 0;
     uint32_t hand_need[2]={word(p+48),word(p+52)};
+    if (s_version==2 && word(p+128)==1) {
+        if (!(MEM8(visual+0xABB4)&1) || !defjam_fighter_film_caf(name)) return 0;
+        uint8_t rigs[64];memcpy(rigs,p+64,32);memcpy(rigs+32,p+144,32);
+        uint32_t face_need[2]={word(p+132),word(p+136)};
+        return defjam_fighter_graph_visual(visual,94,rigs,2,face_need,hand_need);
+    }
     return defjam_fighter_graph_visual(visual,word(p+44),p+64,1,NULL,hand_need);
 }
 void defjam_fighter_film_release(void) {for (unsigned i=0;i<s_count;++i) s_films[i].bank=0;s_logs=s_instances_count=0;}

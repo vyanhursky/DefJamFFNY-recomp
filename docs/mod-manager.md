@@ -65,6 +65,14 @@ the pack folder only. The catalogue remains the authority for identity, dependen
 conflicts and order; Thunderstore `dependencies` are not resolved. Offline Fighter ZIP
 imports accept the same layout.
 
+Browse mods shows **View on Thunderstore** beside a mod whose catalogue lists a Thunderstore
+download (`https://thunderstore.io/package/download/<Team>/<Name>/<X.Y.Z>/`), preferring the
+version on offer and otherwise the newest one. The helper rebuilds the page link from the team
+and package names and writes it to `view.ini` as `page=`. The launcher opens only a link of
+the form `<community>/p/<Team>/<Name>/`, letters, digits and `_` only. **Open the Thunderstore
+community** below the list opens the community page. Installs still go through the launcher,
+which checks every file against the signed catalogue.
+
 State lives at `<data>/mod-manager/`, outside runtime pack discovery:
 
 - `catalogue.json`: signed exact bytes, signature, highest accepted revision/hash.
@@ -111,3 +119,53 @@ not changed. Revisions increase and existing package records stay immutable.
 Generated Recomp HD components are grouped only when their bounded builder-ownership marker, recipe ID, folder and mip policy agree. Custom lookalike names remain ordinary local mods. A partly enabled group stays partly enabled until its checkbox is clicked; grouping never silently changes component order. Contiguous components move together in Load Order. If a custom mod is interleaved, individual component priorities remain visible so grouping preserves every texture winner. Missing saved selections appear in a separate warning and retain their positions; a legacy `faithful-hd` selection is distinct from installed channels/opacity components.
 
 Authors are displayed from verified catalogue metadata, without a hardcoded client override. The native order window uses generic next-launch guidance; the owner removed its mod-specific recommendation. Managed updates preserve enablement and relative order. `[textures] packs` remains texture precedence authority; manager receipts and UI projections do not override it.
+
+## Command line
+
+The launcher drives every mod operation through `setup/mods.py`. Another program (for
+example a fork's own launcher) can call the same commands without a window. Use the Python
+that Setup installed beside the game (`python/python.exe` on Windows, `python/bin/python3`
+elsewhere); its packages are the ones the commands are tested with.
+
+```
+python setup/mods.py COMMAND --data-dir DATA --runtime VERSION --game-dir GAME
+       --capability fighters-v1 --capability language-v1 [--capability wide-v1]
+       [--language-pack DATA/mods/LANGUAGE] [--id PACK | --archive ZIP]
+```
+
+| Command | Does |
+|---|---|
+| `install-local --archive ZIP` | Installs or updates a Fighter ZIP (checked, journalled, with rollback). It does not enable it. |
+| `fighter-enable --id PACK` / `fighter-disable --id PACK` | Enables or disables a whole installed pack, compiles the enabled set and writes the fighter manifest the game reads at Play. |
+| `fighter-prepare` | Rebuilds the manifest for the current state (Play runs it only when the manifest is stale). |
+| `fighter-digest` | Prints the `fighter-set-1` digest of the enabled packs as one JSON line. Changes no state and takes no lock, so it works while the game runs. |
+| `status` | Refreshes `mod-manager/view.ini`. |
+
+Each command prints JSON lines: `{"event": "progress", ...}` while it works, then
+`{"event": "complete", "message": ...}` with exit code 0, or `{"event": "error",
+"message": ...}` with exit code 1. `fighter-digest` prints one `{"event": "digest", ...}`
+line instead.
+
+Pass the same values the launcher passes, or the next Play will rebuild everything before
+the window opens:
+
+- **`--runtime` must be the game's version** (the launcher passes its own). It defaults to
+  `0.0.0`; the manifest records it, and a mismatch makes the game rebuild the fighter cache
+  at the next Play.
+- **`--language-pack` must name the language pack chosen in the launcher**, or be left out
+  when none is chosen, for the same reason.
+- `--game-dir` is the folder holding the extracted dump (the installation's `game` link).
+- `--data-dir` is the data folder the game uses (`DEFJAM_DATA`). A separate data folder
+  keeps its own saves, unlocks and packs (see `docs/fighter-online-contract.md`).
+
+`mod-manager/writer.lock` allows one writing command at a time; a second one fails at once
+with `error`. While the game runs it holds `mod-manager/runtime.lock`, so `fighter-enable`,
+`fighter-disable`, installs and removals fail at once with `error` and change nothing.
+
+`scripts/fighter-contract.py validate --game DIR --pack PACK` checks a pack against an
+extracted dump without a display (about ten seconds for a one-fighter pack); it needs that dump on
+the machine that runs it. Pass absolute paths: a path containing `..` is refused, as is any path
+through a link. It prints one JSON object with `"ok": true` or an `error`.
+
+What is promised during the beta: the command names above, these arguments, the three event
+names and the exit codes. Other fields of the JSON lines may change.

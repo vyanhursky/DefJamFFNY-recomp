@@ -95,28 +95,63 @@ uses the same validation. A failed operation retains the prior installation
 and activation state. Disable dependent packs before disabling their required
 pack; dependency/version conflicts identify the requirement to fix. Disable a
 pack before removing it. Modified installed files are refused, not overwritten.
-Play revalidates the active roster together with the selected language's native
-screen composition; incompatible resources stop launch with a diagnostic.
+Enabling, disabling, updating or restoring a pack compiles the enabled roster
+right then, with progress in the Mods screen, and writes one manifest
+(`<data>/mod-manager/fighter-manifest.ini`). Play reads only that manifest: it
+checks the size and time of every file the build read or produced and starts
+the game with no helper process. If anything changed (a pack's files, the game
+files, the language pack, a game update), the launcher rebuilds once before
+Play; an incompatible pack stops launch with a diagnostic. With no pack enabled
+the fighter code does nothing and the game behaves as v1.1.1.
 
-On the first Play with fighters enabled, existing native profiles are imported
-once into managed save history. This continues the same career. The original
-`<data>/save` is retained unchanged as the import-time backup. Every later Play,
-including after disabling/removing **all** fighter packs, uses the latest verified
-managed generation. Custom progression stays dormant while its pack is absent.
-Re-enabling the same stable fighter identities restores it. Editing the original
-import folder after adoption does not change the active career.
+**Fighter numbers.** A fighter's identity is its key, `pack-id/fighter-id`. The
+internal numbers the game uses for it (handle, selection key, native symbol) and
+the order of the custom fighters in the roster follow the set of enabled packs
+alone: the enabled keys, sorted, are numbered from the first free number above the
+retail roster. Two PCs with the same packs, game and language therefore get the
+same numbers and the same roster, whatever order the packs were installed in.
+Enabling or disabling a pack can renumber the others; nothing on disk depends on
+these numbers (custom unlocks are kept by name, and profile files hold none).
+For forks that build an online mode on these packs, see
+[Fighter packs and online forks](fighter-online-contract.md).
 
-**Open saves** opens `<data>/mod-manager/fighter-profiles` after adoption. For a
-backup, close the game and copy this entire folder together with
-`fighter-adoption.json`; keep the installed packs and manager state to reproduce
-the roster. Generations contain native saves, stable identity mappings and their
-matching extension. Restore those together from one complete backup. Do not
-replace individual native files inside a generation, delete the adoption marker
-to force a re-import, or recover an unfinished `fighter-sessions` workspace.
-A missing/corrupt committed generation stops Play rather than silently loading
-the older import backup. Dedicated backup selection/import tooling remains a
-follow-up; this local M4 workflow does not provide arbitrary post-adoption save
-merging.
+**Saves.** Every save, with or without fighter packs, lives in `<data>/save`.
+The Options file there always holds retail unlocks only, so any build (and
+v1.1.1) loads it. Custom fighter unlocks are kept by the game itself in
+`<data>/fighter-state/unlocks.ini`, keyed by `pack/fighter` name. The game
+writes that file (temporary file, flush, replacing rename) just before each
+Options save, so a crash between the two keeps an unlock rather than losing
+one. Names of packs that are not installed are kept untouched, so disabling a
+pack and enabling it again later restores its unlocks.
+
+Each launch copies `save/UserData` and `fighter-state` to
+`<data>/save-backups/<date>-<time>/` and keeps the last three (a launch whose
+saves equal the newest backup adds none).
+
+**When something does not match.** Fighter Mod Support has three ways to react,
+in this order of preference:
+
+1. *At start-up* (a pack, its compiled cache or the unlock file fails a check):
+   the game starts **without** fighter packs and says so; saves and custom
+   unlocks are kept, and the log names the check. Only a pending move of
+   beta.1/beta.2 saves (below) refuses Play, because playing then would use the
+   stale save the move replaces.
+2. *In a match* (a fighter's data does not match what the game holds): that
+   participant is left to the game's own handling and the log says why. The
+   Story adapter works this way for every Story fight, and with no pack enabled
+   it does nothing at all.
+3. *Only a state that would write a corrupt save* may stop the game.
+
+About 190 checks still stop the game; most guard in-match states that cannot
+happen with a valid cache. `tests/unit/test_fighter_stop_budget.py` holds their
+count per file, so it can only go down.
+
+**Moving from v1.2.0-beta.1/beta.2.** Those betas kept fighter-era saves in
+`<data>/mod-manager/fighter-profiles` and left `save/` as it was on the day
+fighter packs were first used. The first Play of a later build copies that old
+`save/UserData` to `<data>/save-backup-<date>-<time>/`, writes the newest
+stored saves into `save/`, writes their custom unlocks into the sidecar, and
+says so once in the launcher. The old store is left read-only for one release.
 
 ### Approved architecture
 

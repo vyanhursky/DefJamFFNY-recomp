@@ -95,11 +95,24 @@ class RetailCatalog:
                 behavior=None, caf=None):
         check(not (logical_menu and binding_window), 'native-mode', 'Choose one logical binding mode')
         snapshot = resolve(self._baseline, packs)
+        outfit_orders = {}
+        for pack in packs:
+            counts = {}
+            for fighter in pack['fighters']:
+                parent = fighter.get('outfit_of', '')
+                if parent.startswith(pack['id'] + '/'):
+                    outfit_orders[pack['id'] + '/' + fighter['id']] = counts.get(parent, 0)
+                    counts[parent] = counts.get(parent, 0) + 1
         if behavior is not None:
             from fighter_behavior import BehaviorPlan
             check(type(behavior) is BehaviorPlan, 'native-behavior', 'Expected a validated behavior generation')
             behavior.validate(self, snapshot)
         caf = {} if caf is None else caf
+        for fighter in snapshot['fighters'].values():
+            parent = fighter.get('outfit_of')
+            if parent and parent not in self.rows:
+                check(binding_window, 'outfit-parent', 'Standalone outfits require the participant binding window')
+                check(parent not in caf, 'outfit-parent', 'CAF parents use their recipe outfit adapter')
         appearances = {} if appearances is None else appearances
         check(type(appearances) is dict, 'native-resource', 'Expected validated appearance resources')
         from fighter_appearance import Appearance
@@ -203,17 +216,23 @@ class RetailCatalog:
                     else:
                         menu_roster[identifier] = self.menu_record(donor, components, ledger['fighters'][identifier]['selection'])
                     if fighter.get('outfit_of'):
-                        parent=self.rows.get(fighter['outfit_of'])
-                        check(parent is not None and 1<=parent['native_binding']['core_id']<=86,
-                              'outfit-parent','Outfits need an original retail parent')
-                        menu_roster[identifier]['outfit_parent']=parent['native_binding']['selection_key']
-                        native_fields['DisplayName']=parent['fields']['DisplayName']['symbol']
+                        parent_key=fighter['outfit_of'];parent=self.rows.get(parent_key)
+                        if parent is not None:
+                            check(1<=parent['native_binding']['core_id']<=86,'outfit-parent','Unsupported retail outfit parent')
+                            menu_roster[identifier]['outfit_parent']=parent['native_binding']['selection_key']
+                            native_fields['DisplayName']=parent['fields']['DisplayName']['symbol']
+                        else:
+                            check(parent_key in ledger['fighters'] and parent_key in snapshot['fighters'],
+                                  'outfit-parent','Unknown standalone outfit parent')
+                            menu_roster[identifier]['outfit_parent']=ledger['fighters'][parent_key]['selection']
+                            menu_roster[identifier]['outfit_order']=outfit_orders[identifier]
+                            native_fields['DisplayName']=symbol(parent_key)
         # Removing the last pack is a valid lifecycle transition. Keep its
         # historical ledger dormant, but do not invent native banks without
         # an active fighter/template or emit an empty window for the runtime.
         for parent in {value.get('outfit_of') for value in snapshot['fighters'].values()}-{None}:
-            core=self.rows[parent]['native_binding']['core_id']
-            original_count=sum(row['native_binding']['core_id']==core for row in self.rows.values())
+            core=self.rows[parent]['native_binding']['core_id'] if parent in self.rows else None
+            original_count=sum(row['native_binding']['core_id']==core for row in self.rows.values()) if core is not None else 1
             extra_count=sum(value.get('outfit_of')==parent for value in snapshot['fighters'].values())
             check(original_count+extra_count<=3,'outfit-capacity','A retail fighter supports at most three outfits including original costumes')
         retail_only = binding_window and not additions
@@ -295,7 +314,7 @@ class RetailCatalog:
             for row in report['window']['fighters']:
                 entry=next((k for k,v in ledger['fighters'].items() if v['selection']==row['selection_key']),None)
                 parent=snapshot['fighters'].get(entry,{}).get('outfit_of')
-                if parent:row['reserved']=self.rows[parent]['native_binding']['selection_key']+1
+                if parent:row['reserved']=(self.rows[parent]['native_binding']['selection_key'] if parent in self.rows else ledger['fighters'][parent]['selection'])+1
             report['window_sha256'] = hashlib.sha256(encode_window(report['window'])).hexdigest()
             report['blockers'].extend(['window-lifetime-acceptance', 'window-save-extension'])
         if any(len(label.encode('utf-8')) > 19 for label in localization.values()):

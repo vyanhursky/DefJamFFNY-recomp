@@ -50,6 +50,17 @@ def test_exact_original_native_import_is_a_byte_identical_noop():
     assert rebuilt==raw and hd=={}
 
 
+def test_flat_color_art_can_fill_a_larger_indexed_palette():
+    raw=bytearray(texture(width=32,height=32));tile=Textures(bytes(raw)).images[0]
+    # Keep one alpha class and both available slots; quantization only needs one.
+    raw[tile['palette_offset']+3]=raw[tile['palette_offset']+7]=255
+    data=png(Image.new('RGB',(32,32),(9,40,80)))
+    spec={'TEST':{'path':'flat.png','sha256':hashlib.sha256(data).hexdigest()}}
+    rebuilt,_,_=paint(bytes(raw),spec,{'TEST':data})
+    result=Textures(rebuilt);image=raster(result,result.images[0])
+    assert image.tobytes()==bytes((9,40,80,255))*(32*32)
+
+
 @pytest.mark.parametrize('size',[(33,32),(64,32),(96,96),(16,16)])
 def test_invalid_atlas_dimensions_refused(size):
     data=png(Image.new('RGB',size));spec={'TEST':{'path':'a.png','sha256':hashlib.sha256(data).hexdigest()}}

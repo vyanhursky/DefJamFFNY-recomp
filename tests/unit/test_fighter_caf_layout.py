@@ -29,7 +29,7 @@ def test_the_committed_c_header_matches_the_python_layout():
 
 @pytest.mark.parametrize('fields,stride,counts', [
     (layout.RECIPE, layout.RECIPE_STRIDE, {'training': 4 * layout.TRAINING, 'values': 4 * layout.VALUES, 'colors': layout.COLORS, 'styles': layout.STYLES,
-                                           'selection': 4, 'core': 4, 'style_count': 4, 'retail': 1, 'voice': 4, 'outfit': 4, 'alias': 4}),
+                                           'selection': 4, 'core': 4, 'style_count': 4, 'retail': 1, 'final_stats': 1, 'charisma': 1, 'voice': 4, 'outfit': 4, 'alias': 4}),
     (layout.EXTRA, layout.EXTRA_STRIDE, {'selection': 4, 'has_finishers': 4, 'finishers': 4 * layout.FINISHERS, 'atlases': 4 * layout.ATLASES, 'outfit': 4}),
     (layout.HD, layout.HD_STRIDE, {'selection': 4, 'outfit': 4, 'atlases': 4 * layout.ATLASES}),
     (layout.FACE, layout.FACE_STRIDE, {'selection': 4, 'outfit': 4, 'basis': 4 * layout.BASIS, 'vertices': layout.FACE_VERTICES * layout.FACE_VERTEX_BYTES}),
