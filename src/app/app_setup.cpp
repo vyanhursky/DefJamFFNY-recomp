@@ -116,6 +116,13 @@ bool g_resume_setup = false, g_handoff_started = false, g_resume_tools = false;
 // and whether setup should install them first.
 os::Process g_tools_check;
 bool g_tools_missing = false, g_install_tools = true;
+bool g_tools_known = false;     // the check has answered (or there is none to wait for)
+
+// The install page's choices, to set up the game with as soon as the Build Tools are known.
+bool g_first_setup = false;
+int g_first_experience = 1;
+bool g_first_hd = false;
+std::string g_first_dump;
 
 // A folder or file chosen in the system's dialog arrives on another thread.
 std::mutex g_pick_lock;
@@ -345,11 +352,15 @@ void start_tools_check()
 {
 #if defined(_WIN32)
     fs::path python = python_in(app::payload());
-    if (python.empty()) return;
+    if (python.empty()) { g_tools_known = true; return; }
     std::string error;
     if (!os::start({python.string(), "-B", (app::payload() / "engine/engine.py").string(), "--payload",
-                    app::payload().string(), "--check-toolchain"}, nullptr, &g_tools_check, &error))
+                    app::payload().string(), "--check-toolchain"}, nullptr, &g_tools_check, &error)) {
         fprintf(stderr, "[APP] Build Tools check: %s\n", error.c_str());
+        g_tools_known = true;
+    }
+#else
+    g_tools_known = true;
 #endif
 }
 
@@ -357,6 +368,7 @@ void poll_tools_check()
 {
     int code = os::finished(g_tools_check);
     if (code < 0) return;
+    g_tools_known = true;
     g_tools_missing = code == 3;
     fprintf(stderr, "[APP] Microsoft C++ Build Tools: %s\n", g_tools_missing ? "missing" : "installed");
 }
@@ -910,13 +922,28 @@ void removal_cleanup()
     fs::path folder = app::program().parent_path();
     bool installed_app = fs::is_regular_file(folder / "payload.sha256", ec) && fs::is_directory(folder / "payload", ec) &&
                          folder != folder.root_path();
+    bool portable = installed_app && fs::is_regular_file(folder / app::k_portable_marker, ec);
     fs::path base = app::os::user_base() / "DefJamRecompiled";
     fs::path script = fs::temp_directory_path(ec) /
                       ("DefJamRecompiled-uninstall-" + std::to_string(app::os::process_id()) + ".cmd");
     {
         std::ofstream out(script, std::ios::binary | std::ios::trunc);
-        out << "@echo off\r\nping -n 4 127.0.0.1 >nul\r\n";
-        if (installed_app) out << "rmdir /s /q \"" << folder.string() << "\"\r\n";
+        // The paths are written in UTF-8, and cmd reads a script in the console's code page: switch
+        // it first, or a folder named with accents ("Café") is not found and nothing is removed.
+        out << "@echo off\r\nchcp 65001 >nul\r\nping -n 4 127.0.0.1 >nul\r\n";
+        if (portable) {
+            // One folder holds the data too, kept unless the player chose to delete it: only the app's
+            // own files go, then the folder when nothing is left in it.
+            fs::path link = app::os::desktop_folder() / app::k_shortcut_name;
+            fs::path points_at = app::os::shortcut_target(link);
+            if (!points_at.empty() && fs::equivalent(points_at, app::program(), ec))
+                out << "del /f /q \"" << link.string() << "\" 2>nul\r\n";
+            for (const char *name : {"DefJamRecompiled.exe", "payload.sha256", app::k_portable_marker})
+                out << "del /f /q \"" << (folder / name).string() << "\" 2>nul\r\n";
+            out << "rmdir /s /q \"" << (folder / "payload").string() << "\" 2>nul\r\n";
+            out << "rmdir \"" << (folder / "game").string() << "\" 2>nul\r\n";
+            out << "rmdir \"" << folder.string() << "\" 2>nul\r\n";
+        } else if (installed_app) out << "rmdir /s /q \"" << folder.string() << "\"\r\n";
         out << "rmdir /s /q \"" << (base / "logs").string() << "\"\r\n";
         out << "rmdir \"" << base.string() << "\" 2>nul\r\n";
         out << "del \"%~f0\"\r\n";
@@ -940,7 +967,7 @@ void uninstall_page(float width, float height, UiResult *result)
 #if defined(_WIN32)
         ImGui::BulletText("its Steam shortcut and artwork, if this app added them (Steam is closed and started "
                           "again if it is running)");
-        ImGui::BulletText("this app, when you close it afterwards");
+        ImGui::BulletText("this app and its desktop shortcut, when you close it afterwards");
 #endif
         ImGui::Spacing();
         ImGui::Checkbox("Also delete the data folder", &g_removal.data);
@@ -1162,9 +1189,25 @@ bool screen_draw(float width, float height, UiResult *result)
             else g_screen = Screen::UpdateReady;
         }
         start_tools_check();
+        if (g_first_setup && (in.installed || g_screen != Screen::FirstRun)) g_first_setup = false;
+        if (g_first_setup) {
+            snprintf(g_dump, sizeof g_dump, "%s", g_first_dump.c_str());
+            g_experience = g_first_experience;
+            g_hd = g_first_experience && g_first_hd;     // as the first run's step 3: Modern only
+        }
     }
     take_pick();
     poll_tools_check();
+    // From the install page: its choices were the whole first run, so setup starts by itself once the
+    // Build Tools are known (installed with it when missing; Windows asks for permission).
+    if (g_first_setup && g_tools_known) {
+        g_first_setup = false;
+        g_form_error.clear();
+        g_apply_experience = true;
+        app::install().root = g_root;
+        if (!start("install", "SETTING UP YOUR GAME", g_root, g_data, g_dump, g_hd))
+            g_screen = Screen::FirstRun;
+    }
     poll();
 #if defined(_WIN32) || defined(__linux__)
     if (install_screen_draw(width, height, result)) return true;
@@ -1191,6 +1234,14 @@ void resume_setup(const std::string &operation, const std::string &title, const 
     g_request = {operation, title, root, data, dump, hd};
     g_resume_tools = install_tools;
     g_resume_setup = true;
+}
+
+void first_setup(int experience, bool hd, const std::string &dump)
+{
+    g_first_setup = !dump.empty();
+    g_first_experience = experience;
+    g_first_hd = hd;
+    g_first_dump = dump;
 }
 
 void screen_open_maintenance()

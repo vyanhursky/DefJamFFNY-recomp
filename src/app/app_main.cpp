@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <wctype.h>
 
 #include <algorithm>
 #include <filesystem>
@@ -43,6 +44,7 @@
 #endif
 #if defined(_WIN32)
 #include <windows.h>
+#include <winioctl.h>
 #define strcasecmp _stricmp
 #endif
 
@@ -171,6 +173,14 @@ void default_locations(fs::path *root, fs::path *data)
     fs::path base = app::os::user_base();
     if (base.empty()) base = fs::current_path();
 #if defined(_WIN32)
+    // A one-folder install (the install page's): everything beside the program.
+    fs::path here = program_path().parent_path();
+    std::error_code ec;
+    if (fs::is_regular_file(here / app::k_portable_marker, ec)) {
+        *root = here / "game";
+        *data = here / "data";
+        return;
+    }
     base /= "DefJamRecompiled";
     *root = base / "app";
     *data = base / "data";
@@ -209,6 +219,11 @@ fs::path find_install(const char *named)
         if (dir == dir.parent_path()) break;
         dir = dir.parent_path();
     }
+#if defined(_WIN32)
+    // A one-folder install keeps its game in game\ beside the program, whatever an older record says.
+    if (std::error_code ec; fs::is_regular_file(program_path().parent_path() / app::k_portable_marker, ec))
+        return program_path().parent_path() / "game";
+#endif
     if (std::ifstream record(install_record(), std::ios::binary); record) {
         std::stringstream text;
         text << record.rdbuf();
@@ -497,6 +512,138 @@ void remember_install(const fs::path &root)
     fprintf(stderr, "[APP] remembering the install folder %s\n", text.c_str());
 }
 
+#if defined(_WIN32)
+namespace
+{
+
+// A path as setup's json.dumps writes it: ASCII as it is (with \ and " escaped), the rest as \uXXXX.
+std::string json_escaped(const fs::path &path)
+{
+    std::wstring wide = path.wstring();
+    std::string out;
+    char hex[8];
+    for (wchar_t c : wide) {
+        if (c == L'\\' || c == L'"') { out += '\\'; out += (char)c; }
+        else if (c >= 0x20 && c < 0x7f) out += (char)c;
+        else { snprintf(hex, sizeof hex, "\\u%04x", (unsigned)c); out += hex; }
+    }
+    return out;
+}
+
+// Replace `from` (a whole folder: followed by a separator or the end of the string) with `to`.
+size_t replace_folder(std::string &text, const std::string &from, const std::string &to)
+{
+    size_t count = 0;
+    for (size_t at = 0; (at = text.find(from, at)) != std::string::npos;) {
+        char next = at + from.size() < text.size() ? text[at + from.size()] : '"';
+        if (next == '\\' || next == '"') {
+            text.replace(at, from.size(), to);
+            at += to.size();
+            count++;
+        } else at += from.size();
+    }
+    return count;
+}
+
+// A directory junction at `link` (an empty folder made for it) to `target`, as setup's New-Item makes one.
+bool make_junction(const fs::path &link, const fs::path &target)
+{
+    std::error_code ec;
+    if (!fs::create_directory(link, ec) && !fs::is_empty(link, ec)) return false;
+    HANDLE h = CreateFileW(link.wstring().c_str(), GENERIC_WRITE, 0, nullptr, OPEN_EXISTING,
+                           FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT, nullptr);
+    if (h == INVALID_HANDLE_VALUE) return false;
+    std::wstring sub = L"\\??\\" + target.wstring(), print = target.wstring();
+    size_t names = (sub.size() + 1 + print.size() + 1) * sizeof(wchar_t);
+    std::vector<BYTE> buffer(16 + names, 0);
+    auto put16 = [&](size_t at, size_t v) { buffer[at] = (BYTE)(v & 0xff); buffer[at + 1] = (BYTE)(v >> 8); };
+    DWORD tag = IO_REPARSE_TAG_MOUNT_POINT;
+    memcpy(buffer.data(), &tag, 4);
+    put16(4, 8 + names);                                          // ReparseDataLength
+    put16(8, 0);                                                  // SubstituteNameOffset
+    put16(10, sub.size() * sizeof(wchar_t));                      // SubstituteNameLength
+    put16(12, (sub.size() + 1) * sizeof(wchar_t));                // PrintNameOffset
+    put16(14, print.size() * sizeof(wchar_t));                    // PrintNameLength
+    memcpy(buffer.data() + 16, sub.c_str(), (sub.size() + 1) * sizeof(wchar_t));
+    memcpy(buffer.data() + 16 + (sub.size() + 1) * sizeof(wchar_t), print.c_str(), (print.size() + 1) * sizeof(wchar_t));
+    DWORD returned = 0;
+    BOOL ok = DeviceIoControl(h, FSCTL_SET_REPARSE_POINT, buffer.data(), (DWORD)buffer.size(), nullptr, 0, &returned, nullptr);
+    CloseHandle(h);
+    if (!ok) RemoveDirectoryW(link.wstring().c_str());
+    return ok != 0;
+}
+
+// The built game finds the dump through source\game, setup's junction to data\extracted, which names
+// the folder by its full path. In a one-folder install that was moved, point it at this folder's data.
+// Only a junction is replaced (never a real folder), and only when it no longer leads to the dump.
+void follow_moved_game_link(const fs::path &source, const fs::path &data)
+{
+    fs::path link = source / "game", target = data / "extracted";
+    std::error_code ec;
+    DWORD attributes = GetFileAttributesW(link.wstring().c_str());
+    if (attributes == INVALID_FILE_ATTRIBUTES || !(attributes & FILE_ATTRIBUTE_REPARSE_POINT)) return;
+    if (fs::is_regular_file(link / "default.xbe", ec) || !fs::is_regular_file(target / "default.xbe", ec)) return;
+    if (!RemoveDirectoryW(link.wstring().c_str())) return;       // the junction itself, not what it led to
+    if (make_junction(link, target))
+        fprintf(stderr, "[APP] the game's link to the dump now points at %s\n", target.string().c_str());
+    else
+        fprintf(stderr, "[APP] the game's link to the dump could not be made again; Repair makes it\n");
+}
+
+bool same_path_text(const fs::path &a, const fs::path &b)
+{
+    return _wcsicmp(a.lexically_normal().wstring().c_str(), b.lexically_normal().wstring().c_str()) == 0;
+}
+
+// A one-folder install moved or copied whole still has setup's receipt naming the old folder (the
+// game in game\, the data in data\). Point installed.json and installed.ini here, and drop the build's
+// CMake cache, which names the old folder too (Repair configures again; the built game stays).
+void follow_moved_folder(const fs::path &root, std::string &text)
+{
+    fs::path here = program_path().parent_path();
+    std::error_code ec;
+    if (!fs::is_regular_file(here / app::k_portable_marker, ec) || !same_path_text(root, here / "game")) return;
+    auto receipt = json_strings(text);
+    fs::path old_data = receipt["data"], old_source = receipt["source"], new_data = here / "data";
+    if (old_data.empty() || same_path_text(old_data, new_data) || !fs::is_directory(new_data, ec)) return;
+    std::wstring source = old_source.wstring(), lower = source;
+    for (wchar_t &c : lower) c = towlower(c);
+    size_t cut = lower.find(L"\\versions\\");
+    if (cut == std::wstring::npos) return;
+    fs::path old_root = source.substr(0, cut);
+    std::string moved = text;
+    replace_folder(moved, json_escaped(old_root), json_escaped(root));
+    replace_folder(moved, json_escaped(old_data), json_escaped(new_data));
+    auto now = json_strings(moved);
+    fs::path executable = now["executable"];
+    if (!fs::is_regular_file(executable, ec)) {
+        fprintf(stderr, "[APP] the folder moved, but %s is not there; the receipt is left as it is\n", executable.string().c_str());
+        return;
+    }
+    fs::path temp = root / "installed.json.moving";
+    {
+        std::ofstream out(temp, std::ios::binary | std::ios::trunc);
+        out << moved;
+        if (!out) return;
+    }
+    fs::rename(temp, root / "installed.json", ec);
+    if (ec) return;
+    text = moved;
+    if (fs::exists(root / "installed.ini", ec)) {
+        // What the old play wrapper reads, as setup writes it: UTF-16 with a BOM, CRLF.
+        std::wstring ini = L"\xfeff[install]\r\nsource=" + fs::path(now["source"]).wstring() + L"\r\ndata=" +
+              fs::path(now["data"]).wstring() + L"\r\nexecutable=" + executable.wstring() + L"\r\n";
+        std::ofstream out(root / "installed.ini", std::ios::binary | std::ios::trunc);
+        out.write((const char *)ini.data(), (std::streamsize)(ini.size() * sizeof(wchar_t)));
+    }
+    fs::remove(executable.parent_path() / "CMakeCache.txt", ec);
+    fprintf(stderr, "[APP] the folder was moved from %s: its receipt now names %s\n", old_root.parent_path().string().c_str(),
+            here.string().c_str());
+}
+
+} // namespace
+#endif
+
 bool load_install(std::string *why)
 {
     Install &in = install();
@@ -507,7 +654,16 @@ bool load_install(std::string *why)
     if (!file) return false;                                    // the first run: nothing to say
     std::stringstream text;
     text << file.rdbuf();
-    auto receipt = json_strings(text.str());
+    file.close();
+    std::string raw = text.str();
+#if defined(_WIN32)
+    follow_moved_folder(in.root, raw);
+#endif
+    auto receipt = json_strings(raw);
+#if defined(_WIN32)
+    if (std::error_code portable; fs::is_regular_file(program_path().parent_path() / app::k_portable_marker, portable))
+        follow_moved_game_link(receipt["source"], receipt["data"]);
+#endif
     in.data = receipt["data"];
     in.source = receipt["source"];
     in.executable = receipt["executable"];
@@ -554,6 +710,7 @@ int main(int argc, char **argv)
     app::FirstRun &first = app::first_run();
     for (int a = 1; a < argc; a++) {
         if (!strcmp(argv[a], "--resume-setup") && a + 7 < argc) a += 7;
+        else if (!strcmp(argv[a], "--first-setup") && a + 3 < argc) a += 3;   // one-shot, never handed on
         else g_arguments.push_back(argv[a]);
     }
     for (int a = 1; a < argc; a++) {
@@ -568,6 +725,11 @@ int main(int argc, char **argv)
             app::resume_setup(argv[a+1], argv[a+2], argv[a+3], argv[a+4], argv[a+5],
                               !strcmp(argv[a+6], "1"), !strcmp(argv[a+7], "1"));
             a += 7;
+            force_launcher = true;
+        }
+        else if (!strcmp(argv[a], "--first-setup") && a + 3 < argc) {   // from the install page
+            app::first_setup(!strcmp(argv[a+1], "0") ? 0 : 1, !strcmp(argv[a+2], "1"), argv[a+3]);
+            a += 3;
             force_launcher = true;
         }
         else if (!strncmp(argv[a], "-psn", 4)) continue;                   // macOS's own, from Finder

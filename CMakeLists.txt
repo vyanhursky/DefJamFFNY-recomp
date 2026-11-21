@@ -338,7 +338,7 @@ if(DEFJAM_BUILD_APP AND DEFJAM_SDL3)
             target_compile_definitions(defjam_app PRIVATE DEFJAM_APP_PAYLOAD_SHA256="${DEFJAM_APP_PAYLOAD_SHA256}")
         endif()
         target_compile_options(defjam_app PRIVATE /utf-8)
-        target_link_libraries(defjam_app PRIVATE shell32 ole32 shlwapi bcrypt)
+        target_link_libraries(defjam_app PRIVATE shell32 ole32 uuid shlwapi bcrypt)
     elseif(APPLE)
         # Shift held at start-up is read from the window server, as the game does.
         target_link_libraries(defjam_app PRIVATE "-framework ApplicationServices")

@@ -9,8 +9,7 @@ Play starts the game that setup built on this computer, with `--no-launcher`.
 
 - **Setup inside the app** (`app_setup.cpp`). With nothing installed it opens on the first run:
   the dump (an image or an extracted folder), the install and data folders, and optional Upscaled Original Textures generated locally.
-  Setup makes no shortcuts: the app the player downloaded is the only copy, and they move it
-  wherever they like. Home → Help → Repair game opens recovery:
+  Setup makes no shortcuts (on Windows the install page adds the one desktop shortcut). Home → Help → Repair game opens recovery:
   Repair and Clean Rebuild. Each runs `setup/engine.py` from the app's setup payload with that payload's Python, as
   the setup wizards do: the choices on its command line, its progress read from `--status-file`
   every frame and shown as a list of stages, Cancel through `--cancel-file`, and its exit code and
@@ -59,14 +58,26 @@ Play starts the game that setup built on this computer, with `--no-launcher`.
   the release's provenance.
 - **Installs itself on Windows** (`app_install.cpp`). The released program,
   `DefJamRecompiled-<version>-windows-x64.exe`, carries the setup payload ZIP as resource 101 with
-  its SHA-256 built in, as `DefJamSetup.exe` does. Opened from wherever it was downloaded, it asks
-  where to install itself (`%LOCALAPPDATA%\Programs\DefJamRecompiled` unless the player chooses
-  another folder; not Program Files, OneDrive, a network or FAT drive), copies itself there, unpacks
-  its payload beside it, records the folder in `%LOCALAPPDATA%\DefJamRecompiled\location.json` and
-  starts the installed copy. Opened again, the download hands over to the installed copy, first
-  replacing it when the download is a newer release. No Start-menu or desktop shortcut is made
-  (owner's choice, 2026-10-27). The installed copy unpacks its payload again when `payload\` is
-  missing or from another build (`payload.sha256`).
+  its SHA-256 built in, as `DefJamSetup.exe` does. Opened from wherever it was downloaded, it opens on
+  one page, as a portable install: an empty install folder (**CHOOSE FOLDER...**; a chosen folder
+  that holds other files gets a `DefJamRecompiled` folder inside it; not Program Files, OneDrive, a
+  network or FAT drive, at most 130 characters), the game copy (**SELECT ISO...** or **SELECT
+  FOLDER...**, outside that folder; `--dump` fills it in), Modern or Original and, with Modern, Upscaled Original Textures. **INSTALL** copies
+  the program there, unpacks its payload beside it, writes `.defjam-portable`, records the folder in
+  `%LOCALAPPDATA%\DefJamRecompiled\location.json`, adds a `Def Jam Recompiled` desktop shortcut and
+  starts the installed copy with `--first-setup <experience> <hd> <dump>`, which starts setup by itself
+  once the Build Tools check has answered (installing them first when missing). Beside
+  `.defjam-portable` the first run's locations are `game\` and `data\` in that folder, so everything
+  is in one folder that can be moved or copied whole: opened from a moved folder, the app
+  records it as its home, repoints a desktop shortcut whose target is gone, rewrites setup's receipt
+  (`installed.json`, `installed.ini`), removes the build's `CMakeCache.txt` and makes `source\game`, setup's
+  junction to `data\extracted`, point at the new folder. Opened again, the download hands over to the
+  installed copy, first replacing it when the download is a newer release. A home an older release
+  made (without `.defjam-portable`) keeps its game and data where its first run put them. The
+  installed copy unpacks its payload again when `payload\` is missing or from another build
+  (`payload.sha256`). Uninstall on Windows removes the desktop shortcut when it points at this
+  program; in a portable folder it deletes only the app's own files and then the folder if it is
+  empty, so a kept `data\` stays (the script switches cmd to UTF-8 first, for folders named with accents).
 - **Installs itself on Linux** (`app_install_linux.cpp`; design §3.3, §6). The released app is one
   AppImage, `DefJamRecompiled-<version>-linux-x86_64.AppImage`: the AppImage runtime and a read-only image
   holding the program with the setup payload beside it. The runtime mounts it at a new
