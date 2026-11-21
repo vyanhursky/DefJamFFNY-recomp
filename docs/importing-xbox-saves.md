@@ -1,5 +1,7 @@
 # Importing Xbox saves
 
+For PS2/PCSX2 profiles, use the separate [PS2 converter](importing-ps2-saves.md).
+
 Profiles from the original Xbox game (a console, an emulator, or save zips shared by the community)
 do not load by simply copying them into the save area: the game lists the profiles and then shows
 **Damaged game**. Each profile file carries signatures made with the key of the console that wrote

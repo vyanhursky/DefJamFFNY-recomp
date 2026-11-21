@@ -47,6 +47,10 @@ confidence labels and disproved hypotheses remain distinct from measured facts.
 - [Current runtime compatibility review](../fighter-mod-review-notes.md)
 - [M5/M6 acceptance ledger](../fighter-mod-acceptance.md)
 
+## Save conversion
+
+- [PS2 save import](ps2-save-import.md) — format/layout findings, five representative samples, extra-input differences and native qualification limits for issue #248.
+
 ## Current release qualifications
 
 - [v0.13.0 Windows HD memory investigation â€” 2026-10-31](rc-v0.13.0-hd-memory.md)

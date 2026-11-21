@@ -15,6 +15,7 @@
 | [Custom songs](custom-songs.md) | Your own music files (MP3, FLAC, Ogg, WAV) in the Beatbox, the menus and fights; how many the game holds |
 | [Language packs](language-packs.md) | Playing in another language with a language mod, subtitles in every Story cutscene, use with texture packs, and making a pack |
 | [Importing Xbox saves](importing-xbox-saves.md) | Bring profiles from an original Xbox, an emulator or shared save zips into the port |
+| [Importing PS2 saves](importing-ps2-saves.md) | Convert PCSX2 exports and PS2 save files into native Story profiles; optionally transfer global unlocks |
 | [Troubleshooting](troubleshooting.md) | Setup/startup recovery, saved thumbnails, pack/presentation checks and permitted report diagnostics |
 
 ## Develop and test
