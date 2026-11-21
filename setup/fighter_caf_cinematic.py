@@ -18,9 +18,13 @@ def validate(value):
     from fighter_caf_mouth import FORMAT as VOICE_FORMAT, DURATIONS, validate_mouth
     voice=type(value) is dict and value.get('format')==VOICE_FORMAT
     fields={'format','template','edits'}|({'mouth','speech_tick'} if voice else set())
+    if type(value) is dict and 'left_hand' in value:
+        require(voice,'Hand editing requires an authored performance')
+        from fighter_caf_hand import validate_hand
+        validate_hand(value['left_hand'],value.get('template'));fields.add('left_hand')
     require(type(value) is dict and set(value)==fields
             and value['format'] in (FORMAT,VOICE_FORMAT)
-            and type(value['template']) is str and value['template'] in (tuple(DURATIONS) if voice else ('CI_132A','CE_132A','CI_113A')),
+            and type(value['template']) is str and value['template'] in (tuple(DURATIONS) if voice else ('CI_132A','CE_132A','CI_113A','CE_113A')),
             'CAF donor proof supports only the reviewed donor/profile')
     if voice:
         duration=DURATIONS[value['template']];validate_mouth(value['mouth'],duration)
@@ -80,9 +84,13 @@ def compose(game,value,assigned):
             for ordinal,leaf in enumerate(leaves):
                 require(leaf['selector']==ordinal,'Donor palette selectors differ')
                 for palette in (faces if role=='face' else [hands]):palette.require_samples(ordinal,tuple(leaf['samples']))
+        if role=='hands' and 'left_hand' in value:
+            from fighter_caf_hand import apply_graphs as apply_hand
+            graphs=apply_hand(graphs,value['left_hand'],token,hands)
         rebuilt=compile_member(raw,graphs,faces[0],hands,role=role,permit_face_samples=role=='face',
-            mouth=value.get('mouth') if role=='face' else None,reference=unpack(bundle.read(token+'.o')) if role=='face' and 'mouth' in value else None)
-        if role!='face' or not value['edits'] and 'mouth' not in value:compare_decoded(raw,rebuilt)
+            hand=value.get('left_hand') if role=='hands' else None,
+            mouth=value.get('mouth') if role=='face' else None,reference=unpack(bundle.read(token+'.o')) if (role=='face' and 'mouth' in value or role=='hands' and 'left_hand' in value) else None)
+        if not (role=='face' and (value['edits'] or 'mouth' in value) or role=='hands' and 'left_hand' in value):compare_decoded(raw,rebuilt)
         replacements[entry.name]=rename_bank(rebuilt,token,assigned);renames[entry.name]=assigned+entry.name[len(token):]
     result=bundle.compose(replacements=replacements,renames=renames)
     return result,dict(schema=FORMAT,native_name=assigned,template=token,full_graph=True,caf_profile=1,
@@ -136,10 +144,10 @@ def type13(writer, leaf, control):
     return record
 
 
-def compile_member(template, document, face, hands, *, role, permit_face_samples=False, mouth=None, reference=None):
+def compile_member(template, document, face, hands, *, role, permit_face_samples=False, mouth=None, reference=None, hand=None):
     index, layout, trusted = parse(template)
-    # This bounded proof admits only original curves, plus face sample changes.
-    # It does not accept new destinations, controls, key times or raw pointers.
+    # Original data plus explicitly generated mouth/left-finger profiles only.
+    # Caller-supplied destinations, controls, programs and pointers stay refused.
     expected = copy.deepcopy(trusted)
     require(role in ('body', 'face', 'hands', 'camera'), 'Coordinator must supply a verified member role')
     facial = role == 'face'
@@ -155,7 +163,11 @@ def compile_member(template, document, face, hands, *, role, permit_face_samples
         from fighter_caf_mouth import apply_graphs
         require(facial and reference is not None,'Mouth needs a verified donor body control reference')
         token=next(iter(trusted))[:-2];expected=apply_graphs(expected,mouth,token)
-    require(document == expected, 'Only verified donor data and explicitly permitted face samples are admitted')
+    if hand is not None:
+        from fighter_caf_hand import apply_graphs as apply_hand
+        require(role=='hands' and reference is not None,'Hand needs its verified donor body control reference')
+        token=next(iter(trusted))[:-2];expected=apply_hand(expected,hand,token,hands)
+    require(document == expected, 'Only verified donor data and explicitly permitted controls are admitted')
     start, size = index.model.sections[1][4:6]
     payload = bytearray(index.model.data[start:start + size])
     writer = Writer(payload, {offset: pointer['target'] for offset, pointer in index.model.pointers.items()})
@@ -167,10 +179,10 @@ def compile_member(template, document, face, hands, *, role, permit_face_samples
         if fresh_parent:
             ref_index,ref_layout,ref_graphs=parse(reference)
             require(name.endswith('_s') and name in ref_index.lookup and len(graph['children'])==1,
-                    'Only the closed jaw root may be added')
+                    'Only the verified secondary _s root may be added')
             ref_parent=ref_index.records[ref_index.lookup[name]]
             parent_control,padding,duration,scale=parent_profile(ref_layout,ref_parent)
-            require((duration,scale)==(graph['duration_ticks'],graph['time_scale']),'Jaw clock differs from donor')
+            require((duration,scale)==(graph['duration_ticks'],graph['time_scale']),'Secondary clock differs from donor')
             attributes=writer.append(struct.pack('<3I',1,65537,padding|scale))
             parent=writer.append(struct.pack('<HHIHHI',15,parent_control,0,1,duration,0))
             writer.pointer(parent+4,attributes)
@@ -178,6 +190,10 @@ def compile_member(template, document, face, hands, *, role, permit_face_samples
         else:
             parent=index.records[index.lookup[name]];old_children=index.children[parent]
             controls=[layout.values(old+2,1)[0] for old in old_children]
+            if hand is not None:
+                require(name.endswith('_p') and len(old_children)==2 and len(graph['children'])==1, 'Hand palette shape differs')
+                old_children=[old_children[1]];controls=[controls[1]]
+                struct.pack_into('<H',payload,parent+8,1)
         for ordinal,leaf in enumerate(graph['children']):
             control=controls[ordinal];kind=leaf['kind']
             if kind==13:

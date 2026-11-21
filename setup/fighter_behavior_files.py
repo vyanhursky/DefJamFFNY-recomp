@@ -75,6 +75,7 @@ def validate_source(kind, source):
         expected['voice'] = {'format', 'banks', 'intro', 'extro'}
     if cinematic2:expected['cinematic']={'format','template','graph','tags'}
     if caf_donor:expected['cinematic']={'format','template','edits'}|({'mouth','speech_tick'} if source['format']=='fighter-cinematic-caf-performance-2' else set())
+    if caf_donor and 'left_hand' in source:expected['cinematic'].add('left_hand')
     if cinematic_retail:expected['cinematic']={'format','template'}
     if voice_retail:expected['voice']={'format','donor'}
     if blazin2:

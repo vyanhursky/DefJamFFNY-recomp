@@ -130,18 +130,20 @@ def check(settings, choices):
         from fighter_caf_cinematic import validate as validate_caf
         from fighter_caf_mouth import FORMAT as VOICE_FORMAT, require_voice_fit, DURATIONS
         authored=settings['cinematics']
-        require(type(authored) is dict and set(authored)<={'intro'},'Unsupported authored cinematic role')
+        require(type(authored) is dict and set(authored)<={'intro','victory'},'Unsupported authored cinematic role')
         for role,envelope in authored.items():
             require(type(envelope) is dict and set(envelope)=={'source','voice_sha256'},'Invalid authored cinematic envelope')
             source=envelope['source']
             require(type(source) is dict and source.get('format')=='fighter-cinematic-caf-performance-2'
-                    and source.get('template')==settings.get(role),'Authored donor differs from entrance')
+                    and source.get('template')==settings.get(role),'Authored donor differs from cinematic role')
             validate_caf(dict(source,format=VOICE_FORMAT))
-            encoded=settings.get('voice',{}).get('clips',{}).get(role)
+            require(source['template'].startswith('CI_' if role=='intro' else 'CE_'), 'Authored cinematic role differs')
+            audio_role='intro' if role=='intro' else 'extro'
+            encoded=settings.get('voice',{}).get('clips',{}).get(audio_role)
             require(type(encoded) is str,'Authored mouth needs its imported voice')
             raw=base64.b64decode(encoded,validate=True)
             require(hashlib.sha256(raw).hexdigest()==envelope['voice_sha256'],'Voice changed; retime mouth in Blender')
-            require_voice_fit(raw,source['speech_tick'],DURATIONS[source['template']])
+            require_voice_fit(raw,source['speech_tick'],DURATIONS[source['template']],purpose=audio_role)
     if 'ai' in settings:
         ai=settings['ai'];require(any(row['key']==ai['preset'] for row in choices['ai']),'Unknown AI profile')
         require(set(ai['tendencies'])==set(DIFFICULTIES),'AI needs all difficulty levels')

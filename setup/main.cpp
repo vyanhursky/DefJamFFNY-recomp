@@ -32,7 +32,8 @@ static fs::path payload, scratch, statusPath, cancelPath, logPath;
 static bool running = false;
 static bool preparationSmoke = false;
 static unsigned timerTicks = 0;
-static unsigned preparationTicks = 0;
+static unsigned preparationTicks = 0, preparationRequiredTicks = 0;
+static ULONGLONG preparationStartedAt = 0, preparationElapsedMs = 0;
 static int smokeResult = 4;
 static constexpr UINT WM_SETUP_READY = WM_APP + 1, WM_SETUP_FAILED = WM_APP + 2, WM_RELEASES_READY = WM_APP + 3;
 // Release picker item data: what the picker allows for each row.
@@ -220,12 +221,22 @@ static void unpack() {
     auto archive = scratch / L"payload.zip";
     { std::ofstream out(archive, std::ios::binary); out.write((const char*)bytes, size);
       if (!out) throw std::runtime_error("Could not write payload; check disk space"); }
-    SetEnvironmentVariableW(L"DEFJAM_SETUP_ARCHIVE", archive.c_str());
-    SetEnvironmentVariableW(L"DEFJAM_SETUP_PAYLOAD", payload.c_str());
-    DWORD result = wait(spawn(systemTool(L"WindowsPowerShell/v1.0/powershell.exe"),
-        {L"-NoProfile", L"-NonInteractive", L"-Command",
-         L"$ErrorActionPreference='Stop'; Expand-Archive -LiteralPath $env:DEFJAM_SETUP_ARCHIVE -DestinationPath $env:DEFJAM_SETUP_PAYLOAD"}));
-    if (result) throw std::runtime_error("Cannot unpack setup payload");
+    DWORD result;
+    auto tar = systemTool(L"tar.exe");
+    if (fs::is_regular_file(tar)) {
+        // Use the same Windows ZIP extractor as the current app.
+        fs::create_directories(payload);
+        result = wait(spawn(tar, {L"-xf", archive.wstring(), L"-C", payload.wstring()}));
+    } else {
+        SetEnvironmentVariableW(L"DEFJAM_SETUP_ARCHIVE", archive.c_str());
+        SetEnvironmentVariableW(L"DEFJAM_SETUP_PAYLOAD", payload.c_str());
+        result = wait(spawn(systemTool(L"WindowsPowerShell/v1.0/powershell.exe"),
+            {L"-NoProfile", L"-NonInteractive", L"-Command",
+             L"$ErrorActionPreference='Stop'; Expand-Archive -LiteralPath $env:DEFJAM_SETUP_ARCHIVE -DestinationPath $env:DEFJAM_SETUP_PAYLOAD"}));
+        SetEnvironmentVariableW(L"DEFJAM_SETUP_ARCHIVE", nullptr);
+        SetEnvironmentVariableW(L"DEFJAM_SETUP_PAYLOAD", nullptr);
+    }
+    if (result) throw std::runtime_error("Cannot unpack setup payload (exit " + std::to_string(result) + ")");
     nativeLog("Setup payload prepared.");
 }
 
@@ -430,7 +441,7 @@ static LRESULT CALLBACK windowProc(HWND hwnd, UINT message, WPARAM wp, LPARAM lp
                     args.push_back(L"--no-desktop-shortcut");
                 if (SendMessageW(hdUpscale, BM_GETCHECK, 0, 0) == BST_CHECKED)
                     args.push_back(L"--hd-textures");
-                setBusy(true); timerTicks = 0; SetTimer(window, 1, 400, nullptr);
+                setBusy(true); timerTicks = 0; preparationStartedAt = GetTickCount64(); SetTimer(window, 1, 400, nullptr);
                 SetWindowTextW(statusLabel, L"Preparing setup files... You can move the window or cancel.");
                 std::thread([args]() {
                     try {
@@ -489,7 +500,14 @@ static LRESULT CALLBACK windowProc(HWND hwnd, UINT message, WPARAM wp, LPARAM lp
         delete rows; SendMessageW(releaseChoice, CB_SETCURSEL, defaultRelease, 0);
         setBusy(false); SetWindowTextW(statusLabel, L"Choose a release and operation. Unsupported versions are refused before installation."); return 0;
     }
-    if (message == WM_SETUP_READY) { preparationTicks = timerTicks; worker = (HANDLE)wp; return 0; }
+    if (message == WM_SETUP_READY) {
+        preparationTicks = timerTicks;
+        preparationElapsedMs = GetTickCount64() - preparationStartedAt;
+        // A preparation shorter than one timer period cannot produce three
+        // ticks. Long preparations must still demonstrate three UI callbacks.
+        preparationRequiredTicks = (unsigned)std::min<ULONGLONG>(3, preparationElapsedMs / 400);
+        worker = (HANDLE)wp; return 0;
+    }
     if (message == WM_SETUP_FAILED) {
         auto error = reinterpret_cast<std::wstring*>(lp);
         auto text = *error + L"\n\nLog: " + logPath.wstring(); delete error;
@@ -515,7 +533,13 @@ static LRESULT CALLBACK windowProc(HWND hwnd, UINT message, WPARAM wp, LPARAM lp
             }
             if (preparationSmoke) {
                 std::ifstream in(logPath); std::string log((std::istreambuf_iterator<char>(in)), {});
-                smokeResult = code == 2 && preparationTicks >= 3 && log.find("separate, non-nested") != std::string::npos ? 0 : 4;
+                bool expectedLog = log.find("separate, non-nested") != std::string::npos;
+                nativeLog("Preparation probe: engine exit=" + std::to_string(code) +
+                          ", UI ticks=" + std::to_string(preparationTicks) +
+                          ", required ticks=" + std::to_string(preparationRequiredTicks) +
+                          ", preparation ms=" + std::to_string(preparationElapsedMs) +
+                          ", expected boundary log=" + (expectedLog ? "yes" : "no"));
+                smokeResult = code == 2 && preparationTicks >= preparationRequiredTicks && expectedLog ? 0 : 4;
                 DestroyWindow(window); return 0;
             }
             if (code) {

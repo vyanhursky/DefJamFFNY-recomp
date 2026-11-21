@@ -96,3 +96,90 @@ for CAF v6. Full game launch, native mixed-CAF/rematch/cinematic/audio behavior,
 the full unsupported codec set and cross-platform gameplay remain pending joint
 testing. No packaged release or merge is implied. Original assets, private art,
 decoded models, projects, captures and built executables are not source payloads.
+
+## Bounded Blender left-finger pose authoring
+
+The separate native-channel Blender bridge can retain an optional `left_hand`
+in a `fighter-cinematic-caf-performance-2` source. This is distinct from the
+Workshop's ordinary body-only source-animation preview described above.
+The compiler advertises `caf-left-fingers-1`; Workshop refuses exporting a
+project with this field through a runtime lacking that extension.
+
+This profile is limited to reviewed `CE_113A` on the verified 94-bone CAF
+contexts. `fighter-native-left-hand-1` contains exactly fifteen finite unit
+quaternions and a bounded, increasing source-tick weight envelope with zero
+endpoints. Destinations, rig pointers, controls and programs are never input.
+The fixed destinations are the three joints of each anatomical left finger,
+bones21..35, in the trusted palette's native channel order. The wrist20,
+right hand, body/root, face, cameras and non-speech events remain donor-owned.
+No mesh, skin weight or shared `share_hp.o` palette is replaced.
+
+The native hand controller24610 resolves the same `_t`, `_s`, `_p` namespaces
+as the face controller24430 and delegates to22010/22150. `_s` uses the numeric
+slot+18 path, before `_p` uses the palette slot+30 path. A type13 record placed
+under `_p` would not author a hand pose. The coordinator instead generates a
+participant-owned `_s` with only the fifteen left-finger quaternion channels,
+and keeps the original selector1/right palette leaf under `_p`. Original
+selector0 must not also run afterward and overwrite the new pose. This is an
+explicit closed transformation; general donor reconstruction still rejects
+unapproved graph, destination, control and clock changes. Existing CAF rig,
+capacity, resource hash, constructor, lifetime and binding proofs remain in force.
+
+`fighter_caf_hand.py` samples the trusted left palette and authored envelope
+at whole 30Hz source ticks and encodes native sixteen-bit type13 deltas.
+The decoder must stay within0.0002 component error and0.001 norm-squared error.
+This preserves decoded authored keys within that budget, but interpolation
+between keys approximates the original type25 smoothstep. A measured donor
+comparison at eighth ticks found a maximum0.8562-degree orientation difference
+outside the gesture; do not call the reconstructed left track lossless. The
+right palette leaf and other cinematic members are preserved exactly.
+
+Blender previews that same quantized track, retains it on export and exposes
+Begin/Full pose/Hold until/Return source ticks in the Left Hand Pose panel.
+The preset finger shape is retained as validated native quaternions; this is
+not a general free-rig or shape-key exporter. Frame1 corresponds to source tick0.
+Body animation and cinematic framing are independent; a valid finger pose can
+be off screen in a donor camera. Preview-only sound playback calibration and
+50% playback do not change native export timing.
+
+`RECOMP_CAF_HAND_TRACE=1` adds the fifteen left-finger quaternions, in the
+fixed destination order, to the existing opt-in recorded cinematic pose sample.
+It only reads the completed pose and rechecks clocks; it does not alter animation.
+Native admission and visual acceptance must be recorded separately from a
+successful Blender render, decoded curve comparison or package compilation.
+
+A focused macOS/default-outfit CAF proof reached entrance, combat, authored
+victory and results. The completed-pose diagnostic matched199 entrance and202
+victory face/left-finger samples to the expected curves within1.2e-7 per component;
+body and hand clocks agreed. Both imported voice streams were identified in the
+captured mixed audio; copied and original saves stayed byte-exact. The run still
+reported one skipped cold-start callback already observed before the hand change,
+so this is not a clean full-regression result. Skip/rematch, other outfits and
+platforms, and a separate retail-donor gameplay rerun remain unqualified. The
+owner explicitly kept donor arm motion/cameras, which can crop the authored hand.
+
+### Full-victory holding
+
+`caf-left-fingers-hold-1` adds one explicit full-clip variant: the envelope must
+be exactly `[[0,1],[106,1]]`. Timed gestures still require neutral endpoints;
+partial nonneutral endpoints and arbitrary extra hold keys remain refused.
+This writes a bounded pose through the same participant-owned hand `_s`
+controller for the original cinematic duration. It adds no procedural layer,
+global palette replacement or persistent suppression flag. The native controller
+continues to own normal completion/skip/teardown, rather than an external
+per-frame override. Rig/destination, numeric, sample, seal and ownership checks
+remain unchanged. New source data must not be treated as an old compiler feature;
+Workshop checks the separate hold extension before exporting it.
+
+The Blender Left Hand Pose panel exposes “Hold throughout victory”; its timing
+sliders are disabled while this explicit constant profile is selected. Existing
+scenes default to their previous timed envelope. The pose and preview-only sound
+speed/calibration remain independent of native body/camera and audio timing.
+
+A focused full-hold macOS run on the default CAF outfit at Terrordome reached
+results with unchanged original/guarded saves and no classified run faults.
+The 198 observed victory samples (ticks0.5–104.5) matched the expected left
+fingers within6.1e-8 and face within1.2e-7; body and hand clocks agreed exactly.
+The compiled full duration, including endpoints, was also sampled at849 points.
+This qualifies the bounded hold path only; skip/rematch, other outfits/platforms
+and later asset-pose revisions require their own evidence.
