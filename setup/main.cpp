@@ -434,6 +434,10 @@ static LRESULT CALLBACK windowProc(HWND hwnd, UINT message, WPARAM wp, LPARAM lp
                 SetWindowTextW(statusLabel, L"Preparing setup files... You can move the window or cancel.");
                 std::thread([args]() {
                     try {
+                        // Exercise three 400 ms UI ticks even when the CI payload
+                        // extracts quickly. Only the explicit smoke probe waits;
+                        // normal setup preparation has no artificial delay.
+                        if (preparationSmoke) Sleep(2000);
                         unpack();
                         if (fs::exists(cancelPath)) {
                             nativeLog("Setup cancelled during preparation.");
@@ -515,7 +519,11 @@ static LRESULT CALLBACK windowProc(HWND hwnd, UINT message, WPARAM wp, LPARAM lp
             }
             if (preparationSmoke) {
                 std::ifstream in(logPath); std::string log((std::istreambuf_iterator<char>(in)), {});
-                smokeResult = code == 2 && preparationTicks >= 3 && log.find("separate, non-nested") != std::string::npos ? 0 : 4;
+                bool expectedLog = log.find("separate, non-nested") != std::string::npos;
+                nativeLog("Preparation probe: engine exit=" + std::to_string(code) +
+                          ", UI ticks=" + std::to_string(preparationTicks) +
+                          ", expected boundary log=" + (expectedLog ? "yes" : "no"));
+                smokeResult = code == 2 && preparationTicks >= 3 && expectedLog ? 0 : 4;
                 DestroyWindow(window); return 0;
             }
             if (code) {
