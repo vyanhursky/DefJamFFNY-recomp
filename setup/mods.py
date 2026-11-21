@@ -315,6 +315,14 @@ def validate_language(folder):
 
 
 def validate_pack(folder):
+    if (folder / 'clothing.json').exists():
+        check(not any((folder / name).exists() for name in ('fighters.json', 'language.ini', 'manifest.ini')),
+              'Clothing packs cannot also be fighter, texture or language packages')
+        from clothing_pack import ClothingError, receipt
+        try:
+            return receipt(folder)
+        except ClothingError as error:
+            raise ModError(str(error)) from error
     if (folder / 'fighters.json').exists():
         check(not (folder / 'language.ini').exists() and not (folder / 'manifest.ini').exists(),
               'Fighter packages cannot also be texture or language packages')
@@ -545,6 +553,7 @@ class Manager:
         self.game = Path(game or Path.cwd() / 'game').resolve()  # The verified dump may use the normal game junction.
         self.language = None          # Language pack folder the fighter manifest is composed for.
         self.fighters_changed = False  # A command changed what the fighter manifest describes.
+        self.clothing_changed = False  # A command changed an installed or enabled clothing pack.
 
     def cancelled(self):
         check(not (self.cancel_file and self.cancel_file.exists()), 'Operation cancelled; previous installation preserved')
@@ -693,6 +702,10 @@ class Manager:
                 from fighter_packages import candidate
                 candidate(self, state, mod_id, stage, new)
                 self.fighters_changed = True
+            if mod_id in state.get('clothing', []):
+                self.clothing_changed = True
+                if new is None:  # A removed clothing pack is no longer enabled.
+                    state['clothing'] = [item for item in state['clothing'] if item != mod_id]
             target, backup = self.mods / mod_id, self.backups / mod_id
             if old:
                 check(self.unchanged(target, old), 'Managed mod has local edits/missing files; preserve them before replacing')
@@ -760,10 +773,9 @@ class Manager:
         self.progress('Removed managed mod; local folders were preserved')
 
     def install_local(self, archive):
-        """Offline Fighter ZIP import uses the same verified install transaction."""
-        check('fighters-v1' in self.capabilities, 'This runtime does not support Fighter packs')
+        """Offline Fighter or Clothing ZIP import uses the same verified install transaction."""
         archive = ordinary_path(archive)
-        check(archive.is_file() and archive.stat().st_size <= MAX_ARCHIVE, 'Missing or oversized Fighter ZIP')
+        check(archive.is_file() and archive.stat().st_size <= MAX_ARCHIVE, 'Missing or oversized ZIP')
         with zipfile.ZipFile(archive) as bundle:
             entries = bundle.infolist()
             check(0 < len(entries) <= MAX_FILES * 2, 'Fighter ZIP entry budget exceeded')
@@ -773,13 +785,18 @@ class Manager:
             roots = {safe_relative(row.filename.rstrip('/'))[0] for row in payload}
             check(len(roots) == 1, 'Fighter ZIP needs one pack-id root folder')
             root = roots.pop(); contract.slug(root)
-            check(root + '/fighters.json' in bundle.namelist(), 'Fighter ZIP is missing fighters.json')
+            clothing = root + '/clothing.json' in bundle.namelist()
+            check(clothing or root + '/fighters.json' in bundle.namelist(),
+                  'The ZIP has neither fighters.json (a Fighter pack) nor clothing.json (a Clothing pack)')
+            check(clothing or 'fighters-v1' in self.capabilities, 'This runtime does not support Fighter packs')
+            check(not clothing or 'clothing-v1' in self.capabilities, 'This runtime does not support Clothing packs')
             files = [row for row in payload if not row.is_dir()]
             descriptor = dict(root=root, size=archive.stat().st_size, sha256=sha(archive),
                               file_count=len(files), unpacked_size=sum(row.file_size for row in files))
         stage = self.staging / uuid.uuid4().hex
         try:
-            self.progress('Checking the Fighter ZIP')
+            kind = 'Clothing' if clothing else 'Fighter'
+            self.progress(f'Checking the {kind} ZIP')
             last = [0.0]
 
             def copying(done, total):
@@ -787,15 +804,17 @@ class Manager:
                 now = time.monotonic()
                 if done >= total or now - last[0] >= 0.1:
                     last[0] = now
-                    self.progress('Unpacking the Fighter ZIP', done, total)
+                    self.progress(f'Unpacking the {kind} ZIP', done, total)
             receipt = unpack_archive(archive, descriptor, stage, self.cancelled, storefront=storefront, progress=copying)
             self.progress('Checking the pack and saving it')
-            check(receipt.get('category') == 'fighters', 'Expected a Fighter package')
-            receipt.update(id=root, folder=root, version=receipt['fighter_version'], name=root,
+            check(receipt.get('category') == ('clothing' if clothing else 'fighters'), f'Expected a {kind} package')
+            version = descriptor['sha256'][:12] if clothing else receipt['fighter_version']
+            receipt.update(id=root, folder=root, version=version, name=root,
                            archive_sha256=descriptor['sha256'], conflicts=[], origin='local')
             self.cancelled()
             self.commit(root, stage, receipt)
-            self.progress('Fighter package installed. Enable the whole pack in Fighters; applies on Play.')
+            self.progress('Clothing pack installed. Enable it in Clothing; applies on Play.' if clothing else
+                          'Fighter package installed. Enable the whole pack in Fighters; applies on Play.')
         finally:
             if stage.exists():
                 shutil.rmtree(stage)
@@ -832,6 +851,59 @@ class Manager:
             fighter_manifest.write(self, self.state(), language=self.language)
             self.fighters_changed = False
             self.progress('Fighter packs ready' + ('; your saves were moved back into the save folder' if backup else ''))
+
+    def clothing_packs(self, state):
+        """Folders of the enabled, installed clothing packs."""
+        return [self.mods / item for item in state.get('clothing', []) if item in state['installed']]
+
+    def build_clothing(self, state):
+        """Compile the enabled clothing packs into <data>/cache/clothing; none enabled, no cache.
+
+        The game reads only that cache (src/patches/clothing.c), so it is rebuilt whenever a
+        clothing pack is enabled or disabled, and when an enabled one is updated or removed."""
+        from clothing_pack import ClothingError, compile_packs
+        cache = self.data / 'cache' / 'clothing'
+        packs = self.clothing_packs(state)
+        if not packs:
+            if cache.exists():
+                shutil.rmtree(cache)
+            return None
+        stage = self.data / 'cache' / ('clothing-' + uuid.uuid4().hex)
+        try:
+            built = compile_packs(self.game, packs, stage)
+            if cache.exists():
+                shutil.rmtree(cache)
+            durable_rename(stage, cache)
+            return built
+        except ClothingError as error:
+            raise ModError(str(error)) from error
+        finally:
+            if stage.exists():
+                shutil.rmtree(stage)
+
+    def activate_clothing(self, identifier, selected):
+        contract.slug(identifier)
+        with file_lock(self.root / 'runtime.lock'):
+            self.recover()
+            state = self.state()
+            check(not selected or identifier in state['installed'], 'Install this Clothing pack before enabling it')
+            check(not selected or state['installed'][identifier].get('category') == 'clothing',
+                  'That pack is not a Clothing pack')
+            current = state.get('clothing', [])
+            chosen = sorted(set(current) | {identifier}) if selected else [item for item in current if item != identifier]
+            proposed = {**state, 'clothing': chosen}
+            self.progress('Compiling the enabled clothing packs')
+            built = self.build_clothing(proposed)
+            atomic_json(self.root / 'state.json', proposed)
+            self.clothing_changed = False
+            count = len(built['items']) if built else 0
+            self.progress(f'Clothing selection saved: {count} custom item(s). Applies on Play.')
+
+    def refresh_clothing(self):
+        with file_lock(self.root / 'runtime.lock'):
+            self.progress('Updating the enabled clothing packs')
+            self.build_clothing(self.state())
+            self.clothing_changed = False
 
     def refresh_fighters(self):
         import fighter_manifest
@@ -874,6 +946,7 @@ class Manager:
                 revoked = installed.get('version') in mod['revoked_versions']
                 rows.append(dict(id=mod['id'], name=mod['name'], authors=', '.join(mod['authors']), description=mod['description'],
                     category='fighters' if 'fighters-v1' in (latest or mod['versions'][-1])['capabilities'] else
+                             'clothing' if 'clothing-v1' in (latest or mod['versions'][-1])['capabilities'] else
                              'language' if 'language-v1' in (latest or mod['versions'][-1])['capabilities'] else 'textures',
                     installed=installed.get('version', ''), latest=latest['version'] if latest else '',
                     bytes=latest['archive']['size'] if latest else 0,
@@ -895,13 +968,15 @@ class Manager:
             section('installed.' + mod_id, dict(id=mod_id, folder=receipt['folder'], name=receipt['name'],
                     version=receipt['version'], rollback=int(bool(receipt.get('previous'))),
                     category=receipt.get('category', 'language' if 'language-v1' in receipt['capabilities'] else 'textures'),
-                    enabled=int(mod_id in state.get('fighters', [])), fighters=receipt.get('fighter_count', 0)))
+                    enabled=int(mod_id in state.get('fighters', []) or mod_id in state.get('clothing', [])),
+                    fighters=receipt.get('fighter_count', receipt.get('clothing_count', 0))))
         atomic_bytes(self.root / 'view.ini', ('\n'.join(lines) + '\n').encode())
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=('status', 'refresh', 'install', 'remove', 'rollback', 'recover', 'install-local', 'fighter-enable', 'fighter-disable', 'fighter-prepare', 'fighter-digest'))
+    parser.add_argument('command', choices=('status', 'refresh', 'install', 'remove', 'rollback', 'recover', 'install-local', 'fighter-enable', 'fighter-disable', 'fighter-prepare', 'fighter-digest',
+                                                'clothing-enable', 'clothing-disable', 'clothing-prepare', 'clothing-digest'))
     parser.add_argument('--data-dir', type=Path, required=True)
     parser.add_argument('--runtime', default='0.0.0')
     parser.add_argument('--capability', action='append', default=['textures-v1'])
@@ -928,6 +1003,14 @@ def main():
             digest, packs = set_digest(manager, enabled(manager.state()))
             print(json.dumps(dict(event='digest', schema=DIGEST_SCHEMA, digest=digest, packs=packs)), flush=True)
             return 0
+        if args.command == 'clothing-digest':
+            # The clothing-set-1 digest of the enabled packs; changes nothing (like fighter-digest).
+            from clothing_pack import DIGEST_SCHEMA, set_digest
+            state = manager.state()
+            packs = manager.clothing_packs(state)
+            print(json.dumps(dict(event='digest', schema=DIGEST_SCHEMA, digest=set_digest(packs) if packs else '',
+                                  packs=[p.name for p in packs])), flush=True)
+            return 0
         with file_lock(manager.root / 'writer.lock'):
             try:
                 if (manager.root / 'journal.json').exists():
@@ -948,8 +1031,14 @@ def main():
                     manager.activate_fighter(args.id, args.command == 'fighter-enable')
                 elif args.command == 'fighter-prepare':
                     manager.prepare_fighters()
+                elif args.command in ('clothing-enable', 'clothing-disable'):
+                    manager.activate_clothing(args.id, args.command == 'clothing-enable')
+                elif args.command == 'clothing-prepare':
+                    manager.clothing_changed = True
                 if manager.fighters_changed:
                     manager.refresh_fighters()
+                if manager.clothing_changed:
+                    manager.refresh_clothing()
                 manager.view()
             except (ValueError, OSError, ImportError, KeyError, TypeError, configparser.Error, zipfile.BadZipFile) as error:
                 manager.progress(str(error))

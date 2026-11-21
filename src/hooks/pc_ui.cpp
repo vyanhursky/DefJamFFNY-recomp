@@ -1274,6 +1274,65 @@ static void page_fighters()
     mod_catalogue(2);
 }
 
+// Custom Story clothing packs (docs/custom-clothing.md): install from a ZIP, enable, remove.
+// Enabling or disabling compiles the enabled packs (setup/clothing_pack.py) before Play.
+static void page_clothing()
+{
+    const bool launcher = g_mode == UI_LAUNCHER;
+    ImGui::SeparatorText("Custom clothing for your Story fighter");
+    ImGui::TextWrapped("Enable one or more clothing packs. Wardrobe items are in your Wardrobe from the start; "
+                       "shop items are sold in the stores. Changes apply on Play. Saves stay readable without the pack: "
+                       "a custom item you wear is saved as the item it is based on.");
+    if (!launcher) ImGui::TextWrapped("Return to the launcher to change clothing packs.");
+    static char archive[2048] = "";
+    {
+        std::string arrived;
+        if (pcui::archive_take(arrived) && arrived.size() < sizeof archive) memcpy(archive, arrived.c_str(), arrived.size() + 1);
+    }
+    const bool busy = pcui::mod_busy();
+    ImGui::BeginDisabled(!launcher || busy);
+    ImGui::InputText("Clothing ZIP file", archive, sizeof archive);
+    ui_target("mods.clothing.archive");
+    if (ImGui::Button("Browse for ZIP...")) pcui::archive_choose();
+    ui_target("mods.clothing.browse");
+    ImGui::SameLine();
+    ImGui::BeginDisabled(!archive[0]);
+    if (ImGui::Button("Install or update from ZIP")) mod_job("install-local", archive);
+    ui_target("mods.clothing.import");
+    ImGui::EndDisabled();
+    ImGui::EndDisabled();
+    if (busy) {
+        ImGui::SameLine();
+        if (ImGui::Button("Cancel")) pcui::mod_cancel();
+        ui_target("mods.cancel");
+        ImGui::TextWrapped("%s", pcui::mod_status().c_str());
+    } else if (!pcui::mod_status().empty()) {
+        const bool failed = pcui::mod_failed();
+        ImGui::PushStyleColor(ImGuiCol_Text, failed ? ImVec4(1.0f, 0.5f, 0.45f, 1.0f) : ImVec4(0.55f, 0.88f, 0.55f, 1.0f));
+        ImGui::TextWrapped("%s", pcui::mod_status().c_str());
+        ImGui::PopStyleColor();
+    }
+    bool any = false;
+    for (const auto &entry : pcui::mod_view().installed) {
+        const auto &pack = entry.second;
+        if (pack.category != "clothing") continue;
+        any = true;
+        ImGui::PushID(entry.first.c_str()); ImGui::Separator();
+        ImGui::BeginDisabled(!launcher || busy);
+        bool selected = pack.enabled;
+        if (ImGui::Checkbox(pack.name.c_str(), &selected)) mod_job(selected ? "clothing-enable" : "clothing-disable", entry.first);
+        ui_target(("mods.clothing.enable." + entry.first).c_str());
+        ImGui::Text("%u item%s", pack.fighters, pack.fighters == 1 ? "" : "s");
+        ImGui::BeginDisabled(pack.enabled);
+        if (ImGui::Button("Remove pack")) mod_job("remove", entry.first);
+        ui_target(("mods.clothing.remove." + entry.first).c_str());
+        ImGui::EndDisabled(); ImGui::EndDisabled();
+        if (pack.enabled) ImGui::TextWrapped("Disable this pack before removing it.");
+        ImGui::PopID();
+    }
+    if (!any) ImGui::TextWrapped("No Clothing packs installed. Install a Clothing pack ZIP above.");
+}
+
 static void page_mods()
 {
     static bool requested = false;
@@ -1288,6 +1347,9 @@ static void page_mods()
         selected = ImGui::BeginTabItem("Fighters");
         ui_target("mods.fighters.tab");
         if (selected) { page_fighters(); ImGui::EndTabItem(); }
+        selected = ImGui::BeginTabItem("Clothing");
+        ui_target("mods.clothing.tab");
+        if (selected) { page_clothing(); ImGui::EndTabItem(); }
         ImGui::EndTabBar();
     }
 }

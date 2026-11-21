@@ -40,6 +40,7 @@
 #include "patches/widescreen.h"
 #include "patches/picture.h"
 #include "patches/cheats.h"
+#include "patches/clothing.h"
 
 static char g_path[MAX_PATH * 4];   /* empty: do not load or save */
 static char g_log_name[MAX_PATH * 2];   /* the log this program opened for itself, if it did */
@@ -554,6 +555,9 @@ int pc_settings_init(void)
     }
     /* [songs]: compose on the admitted fighter/language database, before XBE loading. */
     pc_songs_start(have_root ? root : NULL, "game");
+    /* Custom Story clothing: on the database the songs (and before them the language and the
+     * fighters) composed, before XBE loading (src/patches/clothing.c). */
+    clothing_start(have_root ? root : NULL, "game");
 
     /* [debug] unlock_all: src/patches/dev_unlock.c reads the variable once the game runs. */
     if (!getenv("RECOMP_UNLOCK_ALL") && recomp_settings_get("debug", "unlock_all", 0))

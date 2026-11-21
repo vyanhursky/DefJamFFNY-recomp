@@ -173,7 +173,8 @@ bool mod_start(const std::string &requested, const std::string &id) {
     std::string command = requested == "install-enable" ? "install" : requested;
     if (running) return false;
     if (command != "status" && command != "refresh" && command != "install" && command != "remove" && command != "rollback" && command != "recover"
-        && command != "install-local" && command != "fighter-enable" && command != "fighter-disable" && command != "fighter-prepare") return false;
+        && command != "install-local" && command != "fighter-enable" && command != "fighter-disable" && command != "fighter-prepare"
+        && command != "clothing-enable" && command != "clothing-disable") return false;
     if (!id.empty() && command != "install-local" && !pack_name(id)) return false;
     const char *override_root = getenv("RECOMP_TEXTURE_ROOT");
     if (override_root && *override_root && command != "status" && command != "refresh" && command != "fighter-prepare") {
@@ -226,6 +227,8 @@ bool mod_start(const std::string &requested, const std::string &id) {
     // Language mods (src/hooks/pc_language.c): every build with this launcher loads them.
     args.insert(args.end(), {"--capability", "language-v1"});
     args.insert(args.end(), {"--capability", "fighters-v1", "--game-dir", path_utf8(fs::current_path() / "game")});
+    // Custom Story clothing (src/patches/clothing.c): every build with this launcher loads it.
+    args.insert(args.end(), {"--capability", "clothing-v1"});
     if (testing_versions) args.push_back("--prerelease");
     if (!id.empty()) args.insert(args.end(), {command == "install-local" ? "--archive" : "--id",id});
     // Fighter builds are composed for the chosen language: set by the launcher before a Mods

@@ -236,8 +236,9 @@ inline std::vector<Pack> inventory(const fs::path &mods, const std::string &chos
             auto folder = mods / fs::u8path(p.name);
             if (!fs::is_directory(folder, folder_error))
                 p.problem = "Not installed";
-            else if (fs::exists(folder / "fighters.json", folder_error))
+            else if (fs::exists(folder / "fighters.json", folder_error) || fs::exists(folder / "clothing.json", folder_error))
             {
+                // Fighter and Clothing packs have pages of their own: never texture packs.
                 p.fighter = true;
                 p.selected = false;
             }
