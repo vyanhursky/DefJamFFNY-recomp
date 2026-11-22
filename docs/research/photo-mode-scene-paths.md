@@ -8,6 +8,8 @@ The measured Battle screen has vtable `0x29D5E4`, update `sub_00079B60` and rend
 
 The camera is registry slot 4 (`MEM32(0x2FB158)`). Eye/target/up start at `view+0x4C/+0x5C/+0x6C`. Projection is `MEM32(view+0x34)` and horizontal-at-4:3 FOV is at `projection+0xC`. Publish through `sub_00018F90` before culling, set the projection dirty bit and restore the entry camera on exit. Temporary source vectors, guest registers, FPU and XMM state are preserved.
 
+`E46C0` builds a right-handed view: normalized `eye-target` is its z axis, and `EAD40(up,z,out)` computes camera-right. For Photo Mode's forward `(sin(yaw),0,cos(yaw))`, right is `(-cos(yaw),0,sin(yaw))`. Positive right-stick X must therefore **decrease** yaw; the initial positive delta turned opposite to positive strafe X. The final camera-direction correction retains this verified basis.
+
 All guest calls run on the guest thread. The GPU callback only copies completed pixels. When pause stops normal fight rendering, `sub_00077740` supplies a guest root-render boundary. Photo Mode calls the stored fight renderer under the original render lock (`0x2FB000`), preserving the pause modal for return.
 
 ## Pause and UI ownership

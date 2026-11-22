@@ -282,7 +282,9 @@ int photo_mode_tick(uint32_t screen)
             raw.src[INPUT_SRC_LEFT_TRIGGER]=raw.src[INPUT_SRC_RIGHT_TRIGGER]=0;
             raw.src[INPUT_SRC_LEFT_SHOULDER]=raw.src[INPUT_SRC_RIGHT_SHOULDER]=0;
         }
-        yaw += axis(raw.rx) * dt * 1.5f * look_speed;
+        /* E46C0 builds a right-handed view (z = eye - target). Positive yaw
+         * turns away from its right basis, so right-stick X decreases yaw. */
+        yaw -= axis(raw.rx) * dt * 1.5f * look_speed;
         pitch += axis(raw.ry) * dt * 1.2f * look_speed * (invert_y ? -1 : 1);
         if (pitch > 1.5f) pitch = 1.5f;
         if (pitch < -1.5f) pitch = -1.5f;
