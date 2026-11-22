@@ -1555,9 +1555,13 @@ void pc_app_open_uninstall();            // src/app/app_setup.cpp: the app's Uni
 static bool g_setup_request = false;
 static void page_maintenance(UiMode mode)
 {
-    const char *names[] = {"Data", "Saves", "Mods", "Installation", "Settings file", "Play logs"};
+    const char *names[] = {"Data", "Saves", "Mods", "Installation", "Settings file", "Play logs", "Game logs"};
     pcui::Folder paths[] = {pcui::Folder::Data,    pcui::Folder::Saves,    pcui::Folder::Mods,
-                            pcui::Folder::Install, pcui::Folder::Settings, pcui::Folder::Logs};
+                            pcui::Folder::Install, pcui::Folder::Settings, pcui::Folder::Logs,
+                            pcui::Folder::GameLogs};
+    // The launcher's own play logs and the game's run logs are two folders in the app on Windows,
+    // and one everywhere else: then a single row serves, as it always did.
+    const bool logs_apart = pcui::folder_path(pcui::Folder::Logs) != pcui::folder_path(pcui::Folder::GameLogs);
     // Update / Repair first: what the page is most often opened for (owner, 2026-11-02).
     ImGui::SeparatorText("Repair game");
 #if defined(DEFJAM_APP)
@@ -1579,8 +1583,9 @@ static void page_maintenance(UiMode mode)
     ImGui::TextWrapped("Use Update / Repair on the launcher's Home screen to open the wizard and close the "
                        "game. Setup verifies releases and builds your dump locally.");
 #endif
-    for (int i = 0; i < 6; i++)
+    for (int i = 0; i < 7; i++)
     {
+        if (i == 6 && !logs_apart) continue;
         ImGui::PushID(i);
         auto path = pcui::folder_path(paths[i]);
         ImGui::SeparatorText(names[i]);
