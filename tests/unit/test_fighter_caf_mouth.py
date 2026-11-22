@@ -116,3 +116,43 @@ def test_workshop_authored_source_is_bound_to_its_voice_and_donor():
     with pytest.raises(ValueError):check(bad,choices)
     bad=copy.deepcopy(settings);bad['cinematics']['intro']['voice_sha256']='00'*32
     with pytest.raises(ValueError):check(bad,choices)
+
+
+def test_blaze_victory_binds_extro_audio_and_keeps_intro_separate():
+    import base64, hashlib
+    from fighter_workshop import check
+    raw=wav(3.135,48000)
+    assert require_voice_fit(raw,0,106,purpose='extro')['encoded_bytes']>153600
+    source=dict(value(),template='CE_113A',format='fighter-cinematic-caf-performance-2')
+    settings=dict(victory='CE_113A',voice=dict(preset='retail/blaze',banks={},clips={'extro':base64.b64encode(raw).decode()}),
+                  cinematics={'victory':dict(source=source,voice_sha256=hashlib.sha256(raw).hexdigest())})
+    choices=dict(cinematics=[dict(key='CE_113A',role='victory'),dict(key='CI_113A',role='intro')],fighters=[dict(key='retail/blaze',voice=1)],banks=[])
+    assert check(settings,choices)['valid']
+    wrong=copy.deepcopy(settings);wrong['voice']['clips']={'intro':wrong['voice']['clips']['extro']}
+    with pytest.raises(ValueError):check(wrong,choices)
+    wrong=copy.deepcopy(settings);wrong['cinematics']['victory']['source']['template']='CI_113A'
+    with pytest.raises(ValueError):check(wrong,choices)
+
+
+def test_victory_speech_uses_only_verified_extro_start_and_preserves_other_events():
+    from fighter_caf_mouth import speech_timeline
+    from fighter_timelines import EventLibrary
+    from types import SimpleNamespace
+    events=[(0,[60,[0]]),(6,[68,[1]]),(72,[60,[1]]),(101,[60,[0]])]
+    rows=[dict(name='CE_113A',events=events)]
+    library=SimpleNamespace(by_name={'CE_113A':rows[0]},library=EventLibrary('tag',rows))
+    result=library.library.compile(speech_timeline(library,'CE_113A',8))
+    assert result==[(6,[68,[1]]),(8,[60,[0]]),(72,[60,[1]])]
+    assert events==rows[0]['events']
+
+
+def test_preview_calibration_moves_guide_only_and_keeps_native_fit_limits():
+    raw=wav(1)
+    late=jaw_guide(raw,0,106,preview_delay=5)
+    early=jaw_guide(raw,0,106,preview_delay=3)
+    assert early['jaw'][1][0]==late['jaw'][1][0]-2
+    assert early['jaw'][0]==late['jaw'][0]==[0,0.]
+    assert early['jaw'][-1]==late['jaw'][-1]==[106,0.]
+    with pytest.raises(ValueError):jaw_guide(raw,0,106,preview_delay=True)
+    with pytest.raises(ValueError):jaw_guide(raw,0,106,preview_delay=13)
+    with pytest.raises(ValueError):jaw_guide(wav(3.3),0,106,preview_delay=12)

@@ -8,6 +8,8 @@
 
 ## 0. Status at a glance
 
+- v1.2.1 / Workshop 0.3.1: published stable/Latest on 2026-11-20 (D447), game merge `2496bd3` / Workshop `2f0a317`; PRs #288/#289 and Workshop #40/#41 merged. Tagged game CI 37/37; Workshop four native packages audited. All nine game and ten Workshop asset digests match checksums/provenance. Toolkit `d108a64` unchanged; native qualification limits below still apply.
+
 - 2026-11-14 v1.2.0-beta.3: release PR #260 (`release/v1.2.0-beta.3`) = main (with v1.1.2 #252) + #243, #245, #246, #255-#258 and #244, D400-D413. Toolkit 8e61aec on `defjam/release-1.2.0-beta.3`. Windows `regress.py --quick` 5/5 on the merged candidate (`regress-20261114-195313`), no full run (owner, D413); CI 35/35. macOS/Linux: the owner tests the published prerelease.
 
 - 2026-11-12 Beta-2 candidate: release branch `release/v1.2.0-beta.2` (release PR #239, merged at b211c53) = Beta 1 + fighter review fixes A1-A5, one CAF format and container, HD CAF atlases, outfit titlecards, verified composition cache and the launcher Fighter ZIP picker (D384-D396). Windows full regression 17/17 on 97cd1ad; Steam Deck full regression 19/21 on 94aed9d (replay 79/80 is #98; three Zig-toolchain unit failures). Published 2026-11-12T21:10:06Z as a prerelease, not Latest (v1.1.1 remains Latest): annotated `v1.2.0-beta.2` at b211c53, Source release 43305637942, nine game-free app/checksum/provenance assets whose sidecar SHA-256 match GitHub's digests, provenance source b211c53 and toolkit 8e61aec, no development flag.
@@ -590,6 +592,11 @@ Run-log citations from retired status/planning prose remain protected by
 | D441 | 2026-11-19 | Release v1.2.0 accepts the macOS (Apple Silicon, macOS 26.5.2) candidate evidence on #281: full `regress.py` 16/21 with the five failures rerun to pass (intro/crib/gym from the agent's save fixture; m2/launcher = the intermittent non-code call `0x81000344` from guest `0x0027EC6E`, recorded since v0.13, 0 in 72 further boots), A1-A3, M1-M5, L1-L3, F1-F8 pass; test-only fix `324512b` (resolve the macOS temp folder in the fighter-set digest test). | The non-code call predates this release and did not recur; owner declined a tracking issue for now. Original failures stay on the record. |
 | D442 | 2026-11-19 | Release v1.2.0 accepts the Linux/Steam Deck candidate evidence on #281: full `regress.py` 20/21 (replay 87 vs 80 records = #98), A1-A3 plus AppImage self-install and Add/Remove Steam on a stand-in, M1-M5, L1-L3, F1-F8 pass; ships `c7209de` (`pcui::play_button` widens a button whose label does not fit; UPDATE GAME clipped at 1280x800), checked on Windows from the CI app at 1100x720, 1280x800 and 900x600. | A UI-only, behavior-preserving change: CI 35/35 and the focused Windows look replace another full run (docs/releasing.md §4). |
 | D443 | 2026-11-19 | Publish v1.2.0 GA and Fighter Workshop 0.3.0 (Workshop PR #38) together after the Windows, macOS and Linux/Deck gates, on the owner's instruction; the owner play-test is not recorded before publication. | Owner asked to finish the records, tag and release; the release notes link the Workshop release. |
+| D444 | 2026-11-20 | Admit the reviewed CE_113A CAF victory mouth and fifteen native left-finger channels through explicit compiler capabilities (PR #288). | The existing native evaluator consumes these generated tracks; arbitrary destinations/programs/pointers and binding/output ownership guards remain closed. |
+| D445 | 2026-11-20 | Preserve independent body/camera, facial acting, hand-pose and preview sound timing layers. | Owner approved the private animation and explicitly kept the donor arm/camera; preview speed/calibration must not alter exported timing. |
+| D446 | 2026-11-20 | Align legacy Windows setup ZIP extraction with the current app (system tar, PowerShell when absent), retain smoke error/log checks and measure UI ticks against actual preparation duration. | CI diagnostics showed extraction failed before the original timer assertion; the interim artificial delay was removed, and the packaged Windows gate passes on64667dc. |
+| D447 | 2026-11-20 | Prepare and publish game1.2.1 with PR #288 and Workshop0.3.1 with PR #40 on the owner's explicit instruction; carry forward applicable1.2.0 qualifications and record new native-profile limits. | Native production gameplay/toolkit and shipped app/update code are unchanged; source/compiler fixtures, focused approved macOS performance and new packaged CI cover this patch. No new Windows/Deck native profile or full-regression qualification is claimed. |
+
 
 ## 2. Historical environment inventory (2026-09-17)
 
@@ -639,6 +646,7 @@ defjam-recomp/
 
 ## 5. Open questions for Vlad
 
+- v1.2.1 and Workshop 0.3.1 are published stable/Latest under D447 on the owner's explicit instruction; no release approval is pending. Milestone 16 is closed; the next train is v1.2.2 (17). Existing issues and unqualified native cases remain open.
 - v1.2.0 is published under D440-D443 (2026-11-19, Latest) with Fighter Workshop 0.3.0; no release approval remains pending. #283 stays open by choice; #285 is unreproduced; #259's later commit `97b47da` (subtitle locking) is not in 1.2.0; the owner play-test is not recorded.
 
 - v1.1.2 is published under D397-D399; no release approval remains pending. The #230 Beatbox crash awaits the reporter's retest.
@@ -663,25 +671,49 @@ Upstream PR submissions still need the owner's separate approval.
 
 > Recent entries only; older entries remain unchanged in the local `docs/worklog/` archive.
 
-- 2026-11-12 10:37 — Added HD Fighters GitHub Pages subpage:8 before/after sliders from approved Cloudflare JPEG crops, native range/keyboard/buttons/pointer controls, same published Thunderstore information.6 site-build tests and source policy pass; desktop1440/mobile390 widths show0overflow/0failed images,8/8Home/End/arrows pass, pointer75% and full original/HD presets verified. Source only; existing Pages workflow deploys after merge, no game/mod/catalogue rebuild. Browser evidence remains private.
-- 2026-11-12 14:10 UTC - Published experimental v1.2.0-beta.2/b211c53: release PR #239 merged with CI 35/35, Source release 43305637942, nine game-free assets verified (sidecars = GitHub digests, provenance source b211c53, toolkit 8e61aec); Steam Deck full regression 19/21 on 94aed9d (replay #98, three Zig unit failures) with a three-outfit fighter pack played through two matches; Windows 17/17 on 97cd1ad. Stable 1.1.1 remains Latest. Notes updated at publication with the Deck results.
-
-- 2026-11-13 — Prepared Menu/UI website publication: nine aligned before/after sliders and a separate ultrawide showcase; 11 approved Cloudflare image downloads verify exact SHA-256/MIME. Owner-published Thunderstore 1.7.2 wording retained; 1,787 PNGs / 1,565 native mappings / 80 wide registrations. Source-only site change; no runtime, game release or signed catalogue change. Site/source/browser checks and Pages deployment recorded in the PR.
-- 2026-11-13 — v1.1.2 hotfix (D397-D399) merged into main: PR #250 fixes #230, the music engine's 36-entry song-name table overrun by custom songs. On v1.1.1: 11-15 custom songs crashed at start-up, 6 froze after a One on One; fixed: 27 songs boot with music, Beatbox 60 rows, fight-result 6 and 27 reach GetMatchSummary. On main 2a602d1 + the fix: see the merge PR. The fix joins v1.2.0-beta.3 through main.
-
-- 2026-11-13 — Owner requested the Menu/UI ultrawide showcase before the before/after comparisons. Moved the existing section intact after the hero; all other page content, images, sliders and styling remain unchanged. Publication and validation are recorded in the focused website PR.
 - 2026-11-14 05:17 UTC — v1.1.2 published as Latest (D397-D399): tag `v1.1.2` at `ed60f6d` on `release/v1.1.2` (v1.1.1 + #250), merged into main by #252. Windows full regress 17/17 (4 skipped, `logs/regress-20261113-220634.txt`); main + fix: boot 27 songs, fight-result 6, Beatbox 60 rows, quick 5/5 (`logs/regress-20261113-211830.txt`). Release run 43559956551; nine assets verified; Pages 43560804321. #230 closed by #252, reporter asked to retest the Beatbox.
 - 2026-11-14 20:05 — v1.2.0-beta.3 candidate f317d42 (release PR #260): main + #243/#245/#246/#255-#258/#244, D400-D413, toolkit 8e61aec; full re-lift; Windows `regress.py --quick` 5/5 (unit 2592 passed, m2, m3, m4a, fight; `regress-20261114-195313`); no full run per owner (D413); CI 35/35; CI app sha256 9929133b, provenance app 1.2.0, toolkit 8e61aec, non-development. App install/Clean Update not run (no silent mode); owner tests macOS/Linux.
 - 2026-11-15 11:18 — Owner approved HD Fighter Portraits presentation: 17 hosted before/after images (seven full-body compositions and ten head/roster textures), excluding B04/B06. Every public image passes full GET size/MIME/SHA-256 verification. Added source-only site/hd-fighter-portraits with matching SVG crops, accessible independent sliders and a home Mods link. Artwork and the prepared Thunderstore ZIP remain unchanged; this page does not publish the signed catalogue. Website validation and deployment evidence are recorded in the publication PR.
 - 2026-11-18 19:55 — v1.2.0 GA candidate (release PR #281, branch `release/v1.2.0`): main + #272, #273, #277, #259, #267, #269, #270, #274, #278, #279, #280, #282; toolkit `d108a64` (fork `defjam/release-1.2.0`); D414-D438. Review fixes on the branch: one `extensions` list in `fighter-contract.json` (merge produced duplicate keys), #259 subtitle native test + POSIX/BOM fixes, #282 MSVC/GCC/CI fixes, #282's neck normals replace #274's (D438). Windows full regress 17/17 twice: 15:57 before #282 (`logs/regress-20261118-155702.txt`) and 19:31 on the final runtime d0fffe4 (`logs/regress-20261118-193159.txt`, unit 2763). Hands-on (data root `logs/rc-data`): CI app install 362 s, in-place candidate update 370 s, v1.1.2 -> candidate update 203 s (save byte-identical); launcher Thunderstore installs HD Menus 1.7.3 and ZARF 1.0.1 active in a match; PT-BR menus + intro subtitles; 2Pac Review36 1.6.33 outfits 1/3 to results, final stats 6/9/7/5/9/6, neck normals drawn, entrance, Team art and chsTeam4 -> venue. Found and fixed #284 (fighters + translation, D439: PT-BR + 2Pac match passes with the Portuguese selector); #283 (HD budget) stays open; one unreproduced start-up crash filed as #285 (1 in 13 starts). PT-BR installed from Thunderstore through the launcher after the owner approved the catalogue publish. Workshop 0.3.0 RC = Workshop PR #38 (+ Workshop #39).
 - 2026-11-19 16:40 — v1.2.0 three-platform gate complete on #281: macOS 16/21 then all five reruns pass (D441, `324512b` test fix), Linux/Deck 20/21 with replay = #98 (D442, `c7209de` play-button fix, checked on Windows), CI 35/35 on `c7209de`. #283 left open (D440). Release notes gain the beta features, the Deck fix and the macOS/Linux results; owner asked to publish v1.2.0 with Workshop 0.3.0 (D443).
 - 2026-11-19 17:00 — Published v1.2.0 (Latest, merge `6840b4a`, toolkit `d108a64`) and Fighter Workshop 0.3.0 (Latest, `013c76d`). Nine Def Jam assets and four Workshop packages verified against GitHub digests and provenance. Source release needed four attempts of the flaky Windows legacy-setup preparation smoke. Fork `defjam/upstream-v0.16` -> `d108a64`; `pages.yml` run; release worktrees removed.
+- 2026-11-20 17:49 — Prepared owner-authorizedv1.2.1 train withPR288 (64667dc), unchangedtoolkitd108a64, D444-D447; featureCI35/35, approved focusedCAF macOS204intro/201victory poses<1.2e-7/savesexact, existing1.2.0platform/install qualifications carriedforward with newprofilelimits. Workshop0.3.1 integratesPR40(c1812aa,CI5/5). Releaseversion/notes/records prepared; releaseCI/assets pending.
+- 2026-11-20 18:18 — Published v1.2.1 Latest (2496bd3, PR #289/#288, unchanged toolkit d108a64) and Workshop 0.3.1 Latest (2f0a317, #41/#40). Tagged game CI 37/37, Workshop native four-target CI and staged archive/startup audit pass; all nine/ten release assets verified against GitHub digests, source and provenance. Existing gameplay/install qualifications and focused macOS CAF limits retained; no new game run. Milestone 16 closed, v1.2.2 opened as 17.
 
 ## 7. Hand-off
 
-### v1.2.0 published - 2026-11-19
+### v1.2.1 / Workshop 0.3.1 published — 2026-11-20
 
-- **Published** `v1.2.0` (Latest) at merge `6840b4a` (#281), toolkit `d108a64`; Source release run 44637854182 (attempt 4: the Windows legacy-setup `--ui-preparation-smoke` failed three times there and twice on PR runs today, then passed; it needs three 400 ms timer ticks while the payload unpacks and the CI job keeps no setup log). Nine assets, SHA-256 checked against GitHub's digests and `kind: app` provenance (source `6840b4a`): Windows exe `5e8742e0...1d772f`, macOS zip `6988d8d6...094483`, Linux AppImage `02b46bd4...fcaa`.
-- **Published** Fighter Workshop `v0.3.0` (Latest) at `013c76d` (#38; #35, #36, #37 merged, #39 closed as shipped through #38), native build run 44635845453, Stage release run 44636578557; four packages checked against `SHA256SUMS`, provenance and GitHub's digests.
-- Done after: `pages.yml` on main; fork `defjam/upstream-v0.16` fast-forwarded to `d108a64`; release worktrees removed (the Windows full-regression report was copied to the main checkout's `logs/regress-20261118-193159.txt`).
-- Open: milestone v1.2.0 still holds PR #259, whose contributor pushed `97b47da` (subtitle-state locking, clear on match start, docs) after the merge; it needs a rebase onto main for the next release. Make the legacy-setup preparation smoke robust (or upload its log) before the next tag. #283 (by choice), #285, #98, #166, #247, the intermittent macOS start-up non-code call (D441), PR #276 (custom clothing), owner play-test.
+Owner-authorized stable/Latest releases are public. Game PR #289 merged the
+PR #288 feature at `2496bd3429a854a842701070cbeb5a54c5e3f445`; annotated v1.2.1
+is immutable. Toolkit remains `d108a64` (release fork branch has the same pin).
+Workshop PR #41 merged #40 at `2f0a31719577c0d913cf535734d4f3d490eb6400`;
+annotated v0.3.1 is immutable. Both public Latest APIs confirm non-draft stable
+releases. Milestone 16 is closed; v1.2.2 is milestone 17.
+
+Tagged Source release run 44848181412 passed all 37 jobs. Its nine game-free
+app/checksum/provenance assets match GitHub SHA-256 digests, source and toolkit.
+The three packages contain the new mouth/hand compiler helpers and capability
+contract. Their modern install/update code and protocol match 1.2.0.
+Workshop native push run 44847341419 passed all four platform jobs at the exact
+tagged source. Stage release 44848092031 audited all four archives and startup
+receipts; ten published assets (archives, sidecars, SHA256SUMS, provenance) match
+GitHub digests and exact source/build identity. No game binaries or private
+fighter/audio/model/save assets were published.
+
+Reuse the original 1.2.0 Windows 17/17, macOS 16/21 plus five successful reruns,
+Deck 20/21 (#98), and real app install/update qualifications only for unchanged
+paths. New CAF victory/finger evidence is focused macOS/default CAF outfit at
+Terrordome through results: 204 intro/201 victory samples within 1.2e-7, original
+and guarded saves exact, owner-approved performance. Do not claim new broad
+Windows/Deck performance, outfit, skip/rematch or individual voice acceptance.
+Retained GCC, Windows extraction and transient hdiutil CI failures remain in
+the PR records; all final candidate/tagged checks passed. See v1.2.1 notes.
+
+Review39-style projects can use public game 1.2.1 and Workshop 0.3.1. Regular
+Workshop animation preview still omits facial/finger evaluation; the paired
+Blender bridge provides authoring. Issues #283/#285/#98/#166/#247 remain open;
+PR #259's later branch commit is outside this release. No native regression was
+repeated for merge, tag or publication. Preserve previous failures and evidence.
+
+Decisions are read by number or keyword: `decision D<n>`, `decisions --grep TEXT`.
