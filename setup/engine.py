@@ -1410,7 +1410,7 @@ def size_text(size):
     return '%.1f GB' % (size / 1e9) if size >= 1e9 else '%d MB' % round(size / 1e6)
 
 
-def uninstall(install, report=None):
+def uninstall(install, report=None, backup_dir=None):
     """Remove the application from `install`, never the data folder. `report` gets one line for each
     thing found, removed or kept; main() sends the lines to the screen and to the --log file."""
     if report is None:
@@ -1433,6 +1433,9 @@ def uninstall(install, report=None):
     with install_lock(root), install_lock(Path(receipt['data'])), game_lock(root):
         transaction.Activation(root, receipt['data']).recover()
         receipt = json.loads(receipt_file.read_text(encoding='utf-8'))
+        if backup_dir is not None:
+            storage = load_module('setup_save_storage', Path(__file__).with_name('save_storage.py'))
+            storage.backup(Path(receipt['data']), backup_dir, report, forbidden=(root,))
         active = Path(receipt['source']).parent.name
         # Python 3.13 rmtree does not traverse Windows junction contents. Data is
         # outside versions by contract; verify the final target before deletion.
@@ -1551,6 +1554,7 @@ def main(argv=None):
     parser.add_argument('--handoff-parent', type=int, help=argparse.SUPPRESS)
     parser.add_argument('--data-dir')
     parser.add_argument('--uninstall', action='store_true')
+    parser.add_argument('--backup-dir', help='Uninstall: make a verified sparse-preserving saves/settings backup first')
     parser.add_argument('--no-shortcuts', action='store_true', help='Do not create desktop/Start-menu shortcuts')
     parser.add_argument('--no-desktop-shortcut', action='store_true', help='Create only the Start-menu shortcut')
     parser.add_argument('--install-prerequisites', action='store_true')
@@ -1575,6 +1579,8 @@ def main(argv=None):
     parser.add_argument('--status-file')
     parser.add_argument('--cancel-file')
     args = parser.parse_args(argv)
+    if args.backup_dir and not args.uninstall:
+        parser.error('--backup-dir requires --uninstall')
     if args.check_toolchain:
         # Needs nothing from the payload or the network, so it answers in a moment.
         return 0 if not IS_WINDOWS or windows_toolchain_present() else 3
@@ -1699,7 +1705,7 @@ def main(argv=None):
                 if args.log:
                     with Path(args.log).open('a', encoding='utf-8') as stream:
                         stream.write(message + '\n')
-            uninstall(args.install_dir, report)
+            uninstall(args.install_dir, report, backup_dir=args.backup_dir)
             return 0
         if args.steam_art:
             return apply_steam_art(args.install_dir)
