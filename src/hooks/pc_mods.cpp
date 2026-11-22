@@ -10,6 +10,7 @@
 #include "../patches/fighter_config.h"
 #include "fighter_keys.h"
 #include <algorithm>
+#include <cctype>
 #include <cstdlib>
 #include <cerrno>
 #include <cstdio>
@@ -100,6 +101,20 @@ static std::map<std::string, std::map<std::string, std::string>> projection(cons
     }
     return result;
 }
+// "<community>p/<Team>/<Name>/" with Thunderstore name characters only, so the
+// shell open sees nothing it could read as anything but this page.
+static bool store_page(const std::string &url) {
+    std::string prefix = std::string(mod_store_community) + "p/";
+    if (url.size() > 400 || url.rfind(prefix, 0) != 0) return false;
+    std::string rest = url.substr(prefix.size());
+    int slashes = 0; bool empty = true;
+    for (char c : rest) {
+        if (c == '/') { if (empty) return false; slashes++; empty = true; }
+        else if (std::isalnum((unsigned char)c) || c == '_') empty = false;
+        else return false;
+    }
+    return slashes == 2 && empty;
+}
 static void read_view() {
     ModView next;
     auto saved = projection(root() / "view.ini");
@@ -112,6 +127,7 @@ static void read_view() {
             mod.id = row["id"]; mod.name = row["name"]; mod.authors = row["authors"]; mod.description = row["description"];
             mod.installed = row["installed"]; mod.latest = row["latest"]; mod.load_after = row["load_after"]; mod.channel = row["channel"];
             mod.category = row["category"];
+            if (store_page(row["page"])) mod.page = row["page"];
             mod.bytes = strtoull(row["bytes"].c_str(), nullptr, 10);
             mod.compatible = row["compatible"] == "1"; mod.revoked = row["revoked"] == "1"; mod.update = row["update"] == "1";
             if (pack_name(mod.id)) next.catalogue_mods.push_back(mod);

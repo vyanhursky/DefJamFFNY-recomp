@@ -12,6 +12,9 @@ PORTRAIT_EXTENDED_PARTS = PORTRAIT_PARTS + tuple(f'{role}_{count}p' for role in
                             ('selector_logo','result_logo','loading','loading_logo') for count in (2,3,4))
 PORTRAIT_GRID_PARTS=tuple(f'grid_{state}_{count}p' for state in ('normal','selected') for count in (2,3,4))
 PORTRAIT_ALL_PARTS=PORTRAIT_EXTENDED_PARTS+PORTRAIT_GRID_PARTS
+TEAM_PARTS = ('team_portrait', 'team_icon')
+TEAM_IMAGE_ROLES = (*TEAM_PARTS, 'team_icon_selected')
+TEAM_CAPABILITY = 'fighter-ui-team-art-1'
 
 
 def portrait_parts(source):
@@ -25,7 +28,7 @@ def portrait_parts(source):
 
 
 def portrait_target(identifier,part):
-    require(part in PORTRAIT_ALL_PARTS,'Unsupported portrait role')
+    require(part in (*PORTRAIT_ALL_PARTS, *TEAM_PARTS),'Unsupported portrait role')
     return f'portraits/{resource_name(identifier)}/{part}'+('.xsh' if part in PORTRAIT_GRID_PARTS else '.big')
 
 

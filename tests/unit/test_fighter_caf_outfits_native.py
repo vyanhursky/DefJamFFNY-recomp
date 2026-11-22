@@ -47,6 +47,7 @@ int main(int argc,char **argv) {
  uint8_t *data=readfile(argv[1],&size);CafContainer c;
  if(!strcmp(mode,"bad-header")){assert(!defjam_fighter_caf_container(data,size,&c));return 0;}
  assert(defjam_fighter_caf_container(data,size,&c));
+ if(!strcmp(mode,"normal-header")){assert(c.normals_count==1&&c.normals_bytes==4108);return 0;}
  uint32_t rc=c.recipe_count,ec=c.extras_count,eb=c.extras_bytes,fc=c.faces_count;
  s_rows=data+CAF_CONTAINER_HEADER_BYTES;s_count=rc;
  if(!strcmp(mode,"bad-recipe")){assert(!recipes_valid(s_rows,rc));return 0;}
@@ -95,7 +96,7 @@ def native(tmp_path_factory):
     cc=shutil.which('cl') if os.name=='nt' else shutil.which('cc')
     if not cc:pytest.skip('Native compiler unavailable')
     folder=tmp_path_factory.mktemp('caf-outfits')
-    text=(ROOT/'src/patches/fighter_caf.c').read_text()
+    text=(ROOT/'src/patches/fighter_caf.c').read_text(encoding='utf-8')
     names=['word','row_outfit','recipes_valid','defjam_fighter_caf_container','defjam_fighter_caf_menu_clear','defjam_fighter_caf_outfit',
            'confirmed_outfit','defjam_fighter_caf_presentation','extras_valid','defjam_fighter_caf_clear']
     functions=definition(text,'word')+'\n'+definition(text,'row_outfit')

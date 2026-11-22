@@ -122,10 +122,28 @@ def catalog(game):
 
 
 def check(settings, choices):
-    require(type(settings) is dict and set(settings)<={'voice','ai','intro','victory'},'Unknown performance setting')
+    require(type(settings) is dict and set(settings)<={'voice','ai','intro','victory','cinematics'},'Unknown performance setting')
     for role in ('intro','victory'):
         if role in settings:
             require(any(row['key']==settings[role] and row['role']==role for row in choices['cinematics']), 'Unavailable '+role+' sequence')
+    if 'cinematics' in settings:
+        from fighter_caf_cinematic import validate as validate_caf
+        from fighter_caf_mouth import FORMAT as VOICE_FORMAT, require_voice_fit, DURATIONS
+        authored=settings['cinematics']
+        require(type(authored) is dict and set(authored)<={'intro','victory'},'Unsupported authored cinematic role')
+        for role,envelope in authored.items():
+            require(type(envelope) is dict and set(envelope)=={'source','voice_sha256'},'Invalid authored cinematic envelope')
+            source=envelope['source']
+            require(type(source) is dict and source.get('format')=='fighter-cinematic-caf-performance-2'
+                    and source.get('template')==settings.get(role),'Authored donor differs from cinematic role')
+            validate_caf(dict(source,format=VOICE_FORMAT))
+            require(source['template'].startswith('CI_' if role=='intro' else 'CE_'), 'Authored cinematic role differs')
+            audio_role='intro' if role=='intro' else 'extro'
+            encoded=settings.get('voice',{}).get('clips',{}).get(audio_role)
+            require(type(encoded) is str,'Authored mouth needs its imported voice')
+            raw=base64.b64decode(encoded,validate=True)
+            require(hashlib.sha256(raw).hexdigest()==envelope['voice_sha256'],'Voice changed; retime mouth in Blender')
+            require_voice_fit(raw,source['speech_tick'],DURATIONS[source['template']],purpose=audio_role)
     if 'ai' in settings:
         ai=settings['ai'];require(any(row['key']==ai['preset'] for row in choices['ai']),'Unknown AI profile')
         require(set(ai['tendencies'])==set(DIFFICULTIES),'AI needs all difficulty levels')
@@ -251,6 +269,6 @@ def export_performance(game,request,destination):
     for role in ('intro','victory'):
         if role not in settings:continue
         resources.append(dict(id='performance-'+role,kind='cinematic',compatibility={'skeleton':family,'events':family},
-            source=dict(format='fighter-cinematic-retail-1',template=settings[role])))
+            source=settings.get('cinematics',{}).get(role,{}).get('source',dict(format='fighter-cinematic-retail-1',template=settings[role]))))
         components[role]=pack+'/performance-'+role
     return dict(resources=resources,components=components)

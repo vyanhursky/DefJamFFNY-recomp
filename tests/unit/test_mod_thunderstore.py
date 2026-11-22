@@ -93,3 +93,31 @@ def test_storefront_file_inside_pack_folder_is_still_pack_content(tmp_path):
     descriptor.update(file_count=descriptor['file_count'] + 1, unpacked_size=descriptor['unpacked_size'] + 10)
     receipt = mods.unpack_archive(source, descriptor, tmp_path / 'out', storefront=True, version='1.0.0')
     assert 'README.md' in receipt['files']
+
+
+@pytest.mark.parametrize('url, page', [
+    ('https://thunderstore.io/package/download/DefJamRecompiled/Paper_Test/1.0.0/',
+     'https://thunderstore.io/c/def-jam-fight-for-ny-recompiled/p/DefJamRecompiled/Paper_Test/'),
+    ('https://example.com/package/download/DefJamRecompiled/Paper_Test/1.0.0/', ''),
+    ('https://thunderstore.io/package/download/Def-Jam/Paper_Test/1.0.0/', ''),
+    ('https://thunderstore.io/package/download/DefJamRecompiled/Paper_Test/1.0.0/?x=1', ''),
+])
+def test_view_links_a_mod_to_its_thunderstore_page(manager, tmp_path, url, page):
+    manager, key = manager
+    _, row = package(tmp_path)
+    row['versions'][0]['archive']['urls'] = [url, 'https://mirror.example/paper.zip']
+    signed(manager, key, [row])
+    manager.view()
+    assert f'page={page}\n' in (manager.root / 'view.ini').read_text()
+
+
+def test_page_comes_from_any_version_when_none_is_offered(manager, tmp_path):
+    manager, key = manager
+    _, row = package(tmp_path)
+    row['versions'][0]['archive']['urls'].append(
+        'https://thunderstore.io/package/download/DefJamRecompiled/Paper_Test/1.0.0/')
+    row['versions'][0]['min_recomp'] = '99.0.0'
+    signed(manager, key, [row])
+    manager.view()
+    text = (manager.root / 'view.ini').read_text()
+    assert 'compatible=0' in text and 'page=https://thunderstore.io/c/def-jam-fight-for-ny-recompiled/p/DefJamRecompiled/Paper_Test/\n' in text

@@ -87,6 +87,7 @@ def install(action, movie, entries, definitions, records):
     def confirm():
         # Snapshot before the original handler can unload the final grid. Send
         # after ControllerSetup has established native participant ownership.
+        action.variable('_level0'); action.member('_root'); action.string('_recompTeamPortraits'); action.integer(0); action.string('Object'); action.op('NewObject'); action.op('SetMember')
         for slot in range(4):
             done = action.unique()
             action.local('_command' + str(slot), lambda: action.string(''))
@@ -101,6 +102,8 @@ def install(action, movie, entries, definitions, records):
             for row in rows:
                 action.variable('_id'); action.integer(row['selection_key']); action.op('Equals2'); action.branch('BranchIfTrue', owned)
             action.branch('BranchAlways', done); action.label(owned)
+            action.variable('_level0'); action.member('_root'); action.member('_recompTeamPortraits'); action.variable('_id')
+            action.variable('_recompOutfitPortraits'); action.variable('_id'); action.string(':'); action.op('Add2'); action.variable('_index'); action.op('Add2'); action.op('GetMember'); action.op('SetMember')
             action.string('_command' + str(slot)); action.string(f'Fighters.Outfit({slot},'); action.variable('_id'); action.op('Add2'); action.string(','); action.op('Add2'); action.variable('_index'); action.op('Add2'); action.string(')'); action.op('Add2'); action.op('SetVariable')
             action.label(done)
         action.variable('nConID'); action.integer(1); action.string('_recompOutfitKeyX'); action.op('CallFunction'); action.op('Pop')

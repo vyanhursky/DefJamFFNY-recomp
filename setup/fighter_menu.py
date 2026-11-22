@@ -158,11 +158,13 @@ def functions(movie, constants):
 def character_parameters(record):
     """Typed native CCharacter data. No display text or executable input here."""
     if not isinstance(record, dict) or not {'selection_key', 'stats', 'styles'} <= set(record) \
-            or not set(record) <= {'selection_key', 'stats', 'styles', 'outfit_count', 'outfit_portraits','outfit_parent'}:
+            or not set(record) <= {'selection_key', 'stats', 'styles', 'outfit_count', 'outfit_portraits','outfit_parent','outfit_order'}:
         raise AssetError('Invalid logical menu fighter fields')
     identity, stats, styles = record['selection_key'], record['stats'], record['styles']
-    if 'outfit_parent' in record and (type(record['outfit_parent']) is not int or not 0<=record['outfit_parent']<99):
+    if 'outfit_parent' in record and (type(record['outfit_parent']) is not int or not (0<=record['outfit_parent']<99 or LOGICAL_FIRST<=record['outfit_parent']<=0x7ffffffe)):
         raise AssetError('Invalid retail outfit parent identity')
+    if 'outfit_order' in record and ('outfit_parent' not in record or type(record['outfit_order']) is not int or not 0<=record['outfit_order']<2):
+        raise AssetError('Invalid standalone outfit order')
     if type(identity) is not int or not LOGICAL_FIRST <= identity <= 0x7fffffff:
         raise AssetError('Invalid logical menu identity')
     if not isinstance(stats, dict) or set(stats) != set('ULSTHC') \
@@ -185,7 +187,8 @@ def character_parameters(record):
 
 
 def append_logical_roster(action, definitions, records):
-    outfits=[r for r in records if 'outfit_parent' in r]
+    outfits=sorted((r for r in records if 'outfit_parent' in r),
+                   key=lambda r:(r['outfit_parent'],r.get('outfit_order',r['selection_key'])))
     records=[r for r in records if 'outfit_parent' not in r]
     if len([d for d in definitions if d['name'] == 'getCharData' and not d['params']]) != 1:
         raise AssetError('Native character-list constructor differs from the reviewed template')

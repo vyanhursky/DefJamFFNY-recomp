@@ -220,6 +220,9 @@ def portrait_inputs(tmp_path):
     from test_fighter_menu import selector_fixture
     from test_fighter_results import fitted_result_fixture
     entries = {'screens/language-marker.txt': b'original language bytes'}
+    for family, number in (('t_CT', 7), ('p_CT', 8)):
+        stem = f'{family}_{number}'
+        entries[f'screens/portrait/{family}/{stem}.big'] = fixture({stem + suffix: suffix.encode() for suffix in ('.apt', '.const', '.o', '.xsh')})
     entries['screens/trans/empty2.big'] = fixture({'empty2.apt': b'blank movie', 'empty2.const': b'blank constants'})
     for count in (2, 3, 4):
         stem = f'p_cf_8_{count}p'
@@ -251,6 +254,8 @@ def test_portrait_cache_verifies_source_and_existing_output(tmp_path, monkeypatc
     from fighter_composition import language_base
     from fighter_archive import Archive
     from test_langpack import lp
+    for movie in ("screens/portrait/t_CT/t_CT_100.big", "screens/portrait/p_CT/p_CT_101.big"):
+        assert Archive(output.read_bytes()).read(movie)
     language = language_base(source.read_bytes(), [(('screens/language-marker.txt',),
                               lp.delta_make(b'original language bytes', b'translated language bytes'))],
                               hashlib.sha256(source.read_bytes()).hexdigest())

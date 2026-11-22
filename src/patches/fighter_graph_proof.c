@@ -94,6 +94,8 @@ static int seal(GraphProof *proof,uint32_t bank) {
     return 1;
 }
 int defjam_fighter_graph_preconstruct(uint32_t bank) {
+    if (getenv("RECOMP_CAF_CINEMATIC_TRACE") && defjam_fighter_cpu_range(bank,24))
+        fprintf(stderr,"[FILM-PRE] bank=%08X owner=%u\n",bank,defjam_fighter_cpu_film(bank));
     if (defjam_fighter_cpu_film(bank)) return 1;
     if (!s_data || !defjam_fighter_cpu_range(bank,24)) return 1;
     uint32_t count=MEM32(bank+4),names=MEM32(bank+20);

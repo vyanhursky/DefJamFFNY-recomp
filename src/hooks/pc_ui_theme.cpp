@@ -173,6 +173,12 @@ bool play_button(const char *text, ImVec2 size, float font_size)
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(.78f, .60f, .26f, 1));
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(.086f, .075f, .05f, 1));
     ImGui::PushFont(display_font, font_size);
+    // A caller sizes the button from the body font; the display face is wider, so the label of a long
+    // button ("UPDATE GAME" at 1280x800 on the Steam Deck) was clipped at the right edge. Widen it to fit.
+    if (size.x > 0) {
+        float need = ImGui::CalcTextSize(text).x + ImGui::GetStyle().FramePadding.x * 2 + font_size;
+        if (size.x < need) size.x = need;
+    }
     bool hit = ImGui::Button(text, size);
     ImGui::PopFont();
     ImGui::PopStyleColor(4);

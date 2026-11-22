@@ -50,6 +50,23 @@ that, with or without a language mod:
 The launcher has it under **Interface → Language and subtitles**. Env `RECOMP_STORY_SUBTITLES` and
 `RECOMP_LANGUAGE_PACK` override the file for one run (the Mods page then shows the language as locked).
 
+### Voice subtitles (fighter intros/extros, shops, tutorial, taunts, voicemail)
+
+The game has no built-in subtitle track for pre-fight intros, post-fight extros, Career player voices, shop
+greetings, gym tutorial speech, in-fight taunts or answering-machine messages (`audio/speech2.viv` and
+`audio/speech3.viv`). A language pack may ship a UTF-8 tab-separated table named `speech_subtitles.txt` at
+the root of the pack folder:
+
+```text
+# clip_key	viv_id	offset	start_sec	end_sec	text
+intro/000	2	108620416	0.00	2.50	VOCÊ VAI SER DESTRUÍDO!
+```
+
+When present, the runtime (`src/hooks/pc_speech_subs.c`) matches each `SCHl` audio stream read from
+`audio/speech1..3.viv` (or opened by path) and draws timed subtitle lines on the ImGui overlay. Controlled
+by `[language] voice_subtitles` (`auto` = on when the pack provides `speech_subtitles.txt`, `on`,
+`off`).
+
 ### The game's own French
 
 The disc has a French translation of its own, `cmfren.loc` (2,825 of its 3,068 strings translated; the
@@ -222,7 +239,7 @@ produce identical files.
 
 | Language | Pack | Author | Licence |
 |---|---|---|---|
+| Portuguese (Brazil) | `pt-br-sanvg` 1.0.0, in the launcher's Mods page ([Thunderstore](https://thunderstore.io/c/def-jam-fight-for-ny-recompiled/p/JJalesTeam/Portuguese_Translation/)); voice subtitles need 1.2.0 | SanVG (original PS2 translation and art); Joao13 / Joao13 Traduções (hosting and permission to re-use and re-host); jjalles-dev (PC Recompiled adaptation: Xbox deltas, fonts, 4× HD textures, speech subtitles, widescreen art) | CC BY-NC-SA 4.0 |
 | Spanish | `es-zarf`, from "Parche textos en español DJFFNY" v1.1 ([source](https://github.com/MODZARF/Parche-textos-en-espanol-DJFFNY-Compatible-con-Xbox-360)) | ZARF (MOD-ZARF) | CC BY-NC-SA 4.0; a conversion exists and awaits its author's agreement before it is shared |
 
 French text is on the USA disc already (`cmfren.loc`); use the [built-in French setting](#the-games-own-french), which needs no separate pack.
-A Brazilian Portuguese translation exists for the European PS2 release; porting it needs its author's permission.

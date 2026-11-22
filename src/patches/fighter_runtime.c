@@ -877,7 +877,8 @@ static uint32_t outfit_progress_handle(uint32_t handle) {
         FighterWindowRow row;FighterBinding parent;
         if(!fighter_window_at(&s_window,i,&row))break;
         if(row.stable_handle==handle && row.retail_selection_plus_one) {
-            if(!fighter_bindings_find(&s_bindings,FIGHTER_BINDING_SELECTION,row.retail_selection_plus_one-1,&parent) || (parent.flags&1u))
+            if(!fighter_bindings_find(&s_bindings,FIGHTER_BINDING_SELECTION,row.retail_selection_plus_one-1,&parent)
+               || (s_window.version<3 && (parent.flags&1u)))
                 fighter_stop("Retail outfit has no canonical progress owner.");
             return parent.stable_handle;
         }
@@ -886,13 +887,34 @@ static uint32_t outfit_progress_handle(uint32_t handle) {
 }
 void defjam_fighter_unlock_inserting(uint32_t self) {
     if (!s_bindings.bytes || !s_settings || self != s_settings + 0x1C) return;
-    /* A larger live array also requires the save extension. Until it is wired,
-     * reject the next insertion before the original unchecked write occurs. */
-    if (MEM32(self + 4) >= MEM32(self) || MEM32(self) != FIGHTER_UNLOCK_CAPACITY)
-        fighter_stop("Native Character unlock storage is full; expanded persistence is required.");
+    uint32_t count = MEM32(self + 4);
+    if (count > FIGHTER_UNLOCK_CAPACITY || MEM32(self) != FIGHTER_UNLOCK_CAPACITY)
+        goto invalid_unlock_storage;
     uint32_t argument=MEM32(g_esp+4),mark=MEM32(argument);
-    MEM32(argument)=outfit_progress_handle(mark&~FIGHTER_UNLOCK_METADATA)|(mark&FIGHTER_UNLOCK_METADATA);
+    uint32_t owner = outfit_progress_handle(mark & ~FIGHTER_UNLOCK_METADATA);
+    mark = owner | (mark & FIGHTER_UNLOCK_METADATA);
+    /* The original caller checks membership using the costume's identity.
+     * Canonicalizing after that check can otherwise insert its parent again
+     * on every unlock-all pass. Retire an existing owner before the original
+     * sorted insertion replaces it, preserving both old and incoming metadata. */
+    for (uint32_t i = 0; i < count; ++i) {
+        uint32_t old = MEM32(s_settings + 0x12E0 + i * 4);
+        if ((old & ~FIGHTER_UNLOCK_METADATA) != owner) continue;
+        mark |= old & FIGHTER_UNLOCK_METADATA;
+        for (uint32_t j = i + 1; j < count; ++j)
+            MEM32(s_settings + 0x12E0 + (j - 1) * 4) = MEM32(s_settings + 0x12E0 + j * 4);
+        --count;
+        MEM32(s_settings + 0x12E0 + count * 4) = 0;
+        MEM32(self + 4) = MEM32(s_settings + 0x1264) = count;
+        break;
+    }
+    if (count >= FIGHTER_UNLOCK_CAPACITY)
+        goto invalid_unlock_storage;
+    MEM32(argument)=mark;
     if (s_state_dir[0]) remember_custom(MEM32(argument));
+    return;
+invalid_unlock_storage:
+    fighter_stop("Native Character unlock storage is full or malformed; expanded persistence is required.");
 }
 
 void defjam_fighter_selection_gate(uint32_t selection) {
@@ -922,7 +944,7 @@ static void prune_participant_unlocks(void) {
         for (uint32_t slot = 0; slot < FIGHTER_WINDOW_BANKS; ++slot) {
             FighterWindowRow selected;
             if (s_window.selected[slot] && fighter_window_at(&s_window, s_window.selected[slot] - 1, &selected)
-                && selected.stable_handle == identity) retain = 1;
+                && outfit_progress_handle(selected.stable_handle) == identity) retain = 1;
         }
         if (retain) MEM32(s_settings + 0x12E0 + kept++ * 4) = mark;
     }
@@ -981,21 +1003,21 @@ uint32_t defjam_fighter_controller_submission(uint32_t arguments) {
             for (uint32_t j = 0; j < FIGHTER_WINDOW_BANKS; ++j) {
                 FighterWindowRow selected;
                 if (j != (uint32_t)values[0] && s_window.selected[j]
-                    && fighter_window_at(&s_window, s_window.selected[j] - 1, &selected) && selected.stable_handle == identity) retain = 1;
+                    && fighter_window_at(&s_window, s_window.selected[j] - 1, &selected)
+                    && outfit_progress_handle(selected.stable_handle) == identity) retain = 1;
             }
             if (retain) keys[kept++] = mark;
         }
         if (kept >= FIGHTER_UNLOCK_CAPACITY) fighter_stop("Participant unlock projection exceeds native capacity.");
         {
-            uint32_t mark = outfit_progress_handle(row.stable_handle);
+            uint32_t owner = outfit_progress_handle(row.stable_handle), mark = owner;
             /* A costume shares the retail parent's progress. Historical
              * standalone marks for its logical key stay in the extension,
              * never become a duplicate or change the parent on selection. */
-            if (!row.retail_selection_plus_one)
-                for (uint32_t i = 0; i < s_custom_count; ++i)
-                    if (s_custom_keys[i] == row.stable_handle) mark |= s_custom_metadata[i];
+            for (uint32_t i = 0; i < s_custom_count; ++i)
+                if (s_custom_keys[i] == owner) mark |= s_custom_metadata[i];
             int present=0;
-            if(row.retail_selection_plus_one)for(uint32_t i=0;i<kept;++i)if((keys[i]&~FIGHTER_UNLOCK_METADATA)==mark)present=1;
+            for(uint32_t i=0;i<kept;++i)if((keys[i]&~FIGHTER_UNLOCK_METADATA)==owner)present=1;
             if(!present)keys[kept++] = mark;
             if (remember_custom(mark)) custom_progress_changed();
         }
@@ -1071,7 +1093,7 @@ uint32_t defjam_fighter_result_identity(uint32_t participant, uint32_t native) {
         fighter_stop("Result identity does not match its frozen participant binding.");
     fprintf(stderr, "[FIGHTERS] result participant=%u native=%u logical=%u stable=%08X\n",
             participant, native, row.selection_key, row.stable_handle);
-    return row.retail_selection_plus_one?row.retail_selection_plus_one-1:defjam_fighter_caf_presentation(participant,row.selection_key);
+    return row.retail_selection_plus_one && row.retail_selection_plus_one<=99?row.retail_selection_plus_one-1:defjam_fighter_caf_presentation(participant,row.selection_key);
 }
 
 uint32_t defjam_fighter_loading_identity(uint32_t native) {
@@ -1087,7 +1109,7 @@ uint32_t defjam_fighter_loading_identity(uint32_t native) {
         fighter_stop("Loading identity does not match its participant binding.");
     fprintf(stderr, "[FIGHTERS] loading participant=%u native=%u logical=%u stable=%08X\n",
             participant, native, row.selection_key, row.stable_handle);
-    return row.retail_selection_plus_one?row.retail_selection_plus_one-1:defjam_fighter_caf_presentation(participant,row.selection_key);
+    return row.retail_selection_plus_one && row.retail_selection_plus_one<=99?row.retail_selection_plus_one-1:defjam_fighter_caf_presentation(participant,row.selection_key);
 }
 
 static uint32_t read_word(const uint8_t *p) {

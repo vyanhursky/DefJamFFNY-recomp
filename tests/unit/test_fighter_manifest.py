@@ -213,7 +213,8 @@ def test_fighter_set_digest_is_the_documented_formula():
     """fighter-set-1: SHA-256 over id NUL version NUL sha256(fighters.json) LF, sorted by id."""
     import hashlib
     from types import SimpleNamespace
-    root = Path(__import__('tempfile').mkdtemp())
+    # Resolve: on macOS the temp folder sits under /var, a symlink, which ordinary_path rightly refuses.
+    root = Path(__import__('tempfile').mkdtemp()).resolve()
     fighter_pack(root, 'beta', '2.0.0')
     fighter_pack(root, 'alpha')
     digest, rows = fighter_manifest.set_digest(SimpleNamespace(mods=root), ['beta', 'alpha'])

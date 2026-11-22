@@ -211,11 +211,19 @@ class BehaviorPlan:
                     pair={}
                     for role in ('intro','victory'):
                         ref=components.get(role);source=typed.get(ref)
-                        require(ref is None or source is not None and source.get('tracks') is None,'CAF presentation currently selects original sequences')
+                        require(ref is None or source is not None and (source.get('tracks') is None or type(source.get('tracks')) is dict and source['tracks'].get('format') in ('fighter-caf-cinematic-1','fighter-caf-cinematic-2')),'CAF presentation needs a validated donor profile')
                         token=source['template'] if source else getattr(inherited,role)
                         require(token.startswith('CI_' if role=='intro' else 'CE_'),'CAF cinematic category differs')
-                        internal='@caf-retail/'+fingerprint([token,rig.pose_sha256])
-                        cinematic_resources[internal]=dict(template=token,tracks=None,rig_sha256=rig.pose_sha256,bone_count=len(rig.rows))
+                        tracks=source.get('tracks') if source else None
+                        internal='@caf-retail/'+fingerprint([token,rig.pose_sha256,tracks])
+                        cinematic_resources[internal]=dict(template=token,tracks=tracks,rig_sha256=rig.pose_sha256,bone_count=len(rig.rows))
+                        from fighter_timelines import TagTimelines
+                        library=TagTimelines(original('audio/animtags.dat','tags_sha256'),pins['tags_sha256'])
+                        timeline=library.library.export(library.by_name[token]['events']) if token in library.by_name else None
+                        if tracks and tracks.get('format')=='fighter-caf-cinematic-2':
+                            from fighter_caf_mouth import speech_timeline
+                            timeline=speech_timeline(library,token,tracks['speech_tick'])
+                        film_tags[internal]=(timeline,'cinematic-intro-1' if role=='intro' else 'cinematic-victory-1')
                         pair[role]=internal
                     cinematic_keys[fighter]=pair
                 continue
@@ -404,7 +412,7 @@ class BehaviorPlan:
             if blazin_resources:
                 source, blazin_receipt = BlazinArchive(source, pins['v2ta_sha256']).compose(blazin_resources,graphs=film_graphs,hands=film_hands)
                 self.receipts['blazin'] = blazin_receipt
-            data, receipt = CinematicArchive(source, digest(source)).compose(cinematic_resources,graphs=film_graphs,hands=film_hands)
+            data, receipt = CinematicArchive(source, digest(source)).compose(cinematic_resources,graphs=film_graphs,hands=film_hands,game=game)
             if blazin_resources:
                 self.files['fighter-blazin.bin'] = encode_blazin_bindings(
                     data, blazin_receipt, cores(blazin_keys), extension=receipt)
@@ -418,10 +426,13 @@ class BehaviorPlan:
             self.receipts.update(cinematic=receipt, cinematic_bindings=binding)
             full_films={}
             for key,info in receipt['bindings'].items():
-                if not info.get('full_graph'):continue
+                if key not in film_tags:continue
                 timeline,profile=film_tags[key];name=info['native_name']
-                full_films[name]={**info,'tags':int(timeline is not None)};timeline_claims[name]=int(timeline is not None)
-                if timeline is not None:tag_additions[name]={'profile':profile,'timeline':timeline}
+                timeline_claims[name]=int(timeline is not None)
+                if info.get('full_graph'):full_films[name]={**info,'tags':int(timeline is not None)}
+                if timeline is not None:
+                    tag_additions[name]=({'profile':profile,'timeline':timeline} if info.get('full_graph')
+                                         else {'template':info['template'],'timeline':timeline})
             if blazin_resources:
                 for key,shots in blazin_receipt['bindings'].items():
                     for phase,info in enumerate(shots):
@@ -429,11 +440,12 @@ class BehaviorPlan:
                         timeline=blazin_resources[key]['shots'][phase]['tags'];name=info['native_name']
                         full_films[name]={**info,'tags':int(timeline is not None)};timeline_claims[name]=int(timeline is not None)
                         if timeline is not None:tag_additions[name]={'profile':'cinematic-activation-1','timeline':timeline}
-            if full_films:
+            if full_films or timeline_claims:
                 from fighter_film_proof import encode_film_proofs
                 from fighter_timelines import TagTimelines,CameraTimelines,encode_timeline_bindings
-                table=encode_film_proofs(data,full_films);self.files['fighter-film-proofs.bin']=table
-                self.receipts['film_proofs']={'sha256':digest(table),'members':sum(info['members'] for info in full_films.values())}
+                if full_films:
+                    table=encode_film_proofs(data,full_films);self.files['fighter-film-proofs.bin']=table
+                    self.receipts['film_proofs']={'sha256':digest(table),'members':sum(info['members'] for info in full_films.values())}
                 tags=TagTimelines(original('audio/animtags.dat','tags_sha256'),pins['tags_sha256'])
                 cameras=CameraTimelines(original('motion/camera.xml','camera_sha256'),pins['camera_sha256'])
                 tag_data=tags.compose(tag_additions,overrides=global_tag_overrides) if tag_additions or global_tag_overrides else tags.data

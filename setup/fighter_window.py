@@ -2,9 +2,10 @@
 
 Logical fighters retain historical identities. Only four indexed native rows
 are resident; typed, unindexed records supply their values at match setup.
-FWR1/2 contain offsets into the separately hash-verified generated SODB, not
+FWR1/2/3 contain offsets into the separately hash-verified generated SODB, not
 guest pointers, instructions, or author-selected native IDs.
 FWR2 uses the last row word for retail selection+1; zero remains independent.
+FWR3 also permits a same-pack independent logical parent, checked before use.
 """
 import struct
 
@@ -52,10 +53,20 @@ def encode_window(window):
     banks, fighters = window['banks'], window['fighters']
     if len(banks) != BANKS or not 0 < len(fighters) <= MAX_FIGHTERS:
         raise ValueError('Invalid fighter window population')
-    version=2 if any(row['reserved'] for row in fighters) else 1
-    if any(type(row['reserved']) is not int or not 0<=row['reserved']<=99 for row in fighters):
+    if any(type(row['reserved']) is not int or not (0<=row['reserved']<=99 or 101<=row['reserved']<=0x7fffffff) for row in fighters):
         raise ValueError('Invalid retail outfit canonical selection')
-    output = bytearray((b'FWR2' if version==2 else b'FWR1') + struct.pack('<5I', version, len(fighters), BANKS, window['table'], window['sod_size']))
+    version=3 if any(row['reserved']>99 for row in fighters) else 2 if any(row['reserved'] for row in fighters) else 1
+    by_selection={row['selection_key']:row for row in fighters}
+    children={}
+    for row in fighters:
+        if row['reserved']>99:
+            parent=by_selection.get(row['reserved']-1)
+            if parent is None or parent is row or parent['reserved'] or parent['core_id'] != row['core_id']:
+                raise ValueError('Invalid standalone outfit parent')
+            children[row['reserved']]=children.get(row['reserved'],0)+1
+            if children[row['reserved']]>2:
+                raise ValueError('Standalone fighters support at most three outfits')
+    output = bytearray((b'FWR3' if version==3 else b'FWR2' if version==2 else b'FWR1') + struct.pack('<5I', version, len(fighters), BANKS, window['table'], window['sod_size']))
     for rows, fields in ((banks, ('native_handle', 'private_handle', 'symbol_hash', 'selection_key', 'record_offset', 'core_id')),
                          (fighters, ('stable_handle', 'selection_key', 'symbol_hash', 'record_offset', 'core_id', 'reserved'))):
         for row in rows:

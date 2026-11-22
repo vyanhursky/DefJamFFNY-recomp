@@ -5,11 +5,11 @@ import struct
 
 from fighter_assets import unpack
 from fighter_archive import Archive
-from fighter_resource_files import PORTRAIT_ALL_PARTS, PORTRAIT_GRID_PARTS, require
+from fighter_resource_files import PORTRAIT_ALL_PARTS, PORTRAIT_GRID_PARTS, TEAM_IMAGE_ROLES, require
 
 FORMAT = 'eagl-portrait-png-1'
 MASTERS = ('selector', 'loading', 'icon', 'titlecard', 'grid_normal', 'grid_selected')
-ROLES = MASTERS + PORTRAIT_ALL_PARTS
+ROLES = MASTERS + PORTRAIT_ALL_PARTS + TEAM_IMAGE_ROLES
 MAX_BYTES = 64 * 1024**2
 
 
@@ -135,6 +135,12 @@ def render(source, files, baseline, selection):
             role_receipt['tiles'].append({'native_id':identifier,'native_size':[tile['width'],tile['height']],
                                          'hd_size':[tile['width']*scale,tile['height']*scale]})
         receipt[part]=role_receipt
+    from fighter_team_art import render as render_team
+    team, team_hd, team_receipt = render_team(images, baseline, selection, scale)
+    native.update(team); receipt.update(team_receipt)
+    for identity, png in team_hd.items():
+        require(identity not in hd or hd[identity] == png, 'Conflicting Team HD art')
+        hd[identity] = png
     require(sum(map(len,native.values()))+sum(map(len,hd.values()))<=MAX_BYTES,'Compiled UI art exceeds 64 MiB')
     return native,hd,receipt
 
@@ -203,8 +209,12 @@ def export_reference(game,donor,output,catalog,pin):
     baseline=PortraitBaseline((Path(game)/'screens/screens.viv').read_bytes(),pin['screens_sha256'])
     selection=catalog.rows[donor]['native_binding']['selection_key'];output.mkdir(parents=True)
     descriptors={};layouts={}
-    for part in PORTRAIT_ALL_PARTS:
-        picture=(retail_grid_image if part in PORTRAIT_GRID_PARTS else retail_image)(baseline,selection,part)
+    for part in (*PORTRAIT_ALL_PARTS, *TEAM_IMAGE_ROLES):
+        if part in TEAM_IMAGE_ROLES:
+            from fighter_team_art import reference
+            picture = reference(baseline, selection, part)
+        else:
+            picture=(retail_grid_image if part in PORTRAIT_GRID_PARTS else retail_image)(baseline,selection,part)
         path=output/(part+'.png');picture.save(path)
         descriptors[part]={'path':path.name,'sha256':hashlib.sha256(path.read_bytes()).hexdigest()}
         layouts[part]=list(picture.size)

@@ -117,6 +117,11 @@ the older [setup installers](docs/setup-installer.md) remain available on earlie
 [Build and play](docs/build-and-play.md) for Windows or
 [Build on macOS and Linux](docs/build-macos-linux.md).
 
+[v1.2.1](docs/releases/v1.2.1.md) adds reviewed custom-fighter victory lip sync and left-finger poses, paired with [Fighter Workshop 0.3.1](https://github.com/vyanhursky/defjam-ffny-fighter-workshop/releases/tag/v0.3.1).
+
+[v1.2.0](docs/releases/v1.2.0.md) brings Fighter Mod Support out of beta, adds voice subtitles
+for language mods and links the launcher's mods to Thunderstore.
+
 [v1.1.2](docs/releases/v1.1.2.md) fixes crashes, silence and a freeze after fights with
 more than a few custom songs.
 
