@@ -12,6 +12,10 @@ corresponding topic references below; their original versions remain in Git
 history. A later successful retry does not erase a failed aggregate. Research
 confidence labels and disproved hypotheses remain distinct from measured facts.
 
+## Installation and disk space
+
+- [Issue #180: base-install disk space](disk-space-180.md) — build retention implementation, sparse versus allocated image sizes, uninstall backup safety, repair budgets and source-data practices in other recomp projects; HD textures excluded.
+
 ## Fighter Mod Support
 
 - [Approved pending-PR integration](pending-pr-integration-2026-11-10.md) — owner-authorized source merges, combined validation and retained gameplay/art qualification limits.
