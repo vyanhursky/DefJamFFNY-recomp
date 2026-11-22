@@ -494,7 +494,10 @@ ROUTES = {
         "stages": [
             "getscreeninfo(intmain/mainmenu=a@6",
             "getscreeninfo(options/userid=down@4;down@6;a@9",
-            "getscreeninfo(story/crib=down@4;a@6;a@10;a@16;down@24;a@29",
+            "getscreeninfo(story/crib=down@4;a@6;a@10;a@16",
+            # A messages prompt can consume the first A. Start the map presses
+            # when the map actually opens, rather than entering Clothing early.
+            "crib.entermap(=a@6;down@12;a@17",
             "getscreeninfo(story/gym=down@4;down@6;a@9;x@16",
         ],
         "until": "getscreeninfo(story/gym", "after": 26, "secs": 300,
