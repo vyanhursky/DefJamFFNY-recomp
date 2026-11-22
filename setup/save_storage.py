@@ -1,5 +1,6 @@
 """Verified, zero-skipping save copies. No image contents are assumed disposable."""
 import ctypes
+import contextlib
 import hashlib
 import json
 import os
@@ -163,3 +164,137 @@ def backup(data, destination, report=print, forbidden=()):
         # A partial backup is evidence, not permission to uninstall. Keep it and all sources.
         report('Backup incomplete; game builds and original data were kept. Partial copy: ' + str(destination))
         raise
+
+
+def allocated_bytes(path):
+    """Allocated storage, rather than a sparse image's logical length."""
+    if os.name != 'nt':
+        return Path(path).stat().st_blocks * 512
+    kernel = ctypes.WinDLL('kernel32', use_last_error=True)
+    kernel.GetCompressedFileSizeW.argtypes = [ctypes.c_wchar_p, ctypes.POINTER(ctypes.c_ulong)]
+    kernel.GetCompressedFileSizeW.restype = ctypes.c_ulong
+    high = ctypes.c_ulong()
+    ctypes.set_last_error(0)
+    low = kernel.GetCompressedFileSizeW(str(path), ctypes.byref(high))
+    if low == 0xffffffff and ctypes.get_last_error():
+        raise ctypes.WinError(ctypes.get_last_error())
+    return low + (high.value << 32)
+
+
+@contextlib.contextmanager
+def exclusive_image(path):
+    """OS-enforced writer/deletion exclusion also covers other installs/older games."""
+    if os.name != 'nt':
+        raise ValueError('Experimental compaction apply is Windows-only; allocation reporting is available here')
+    import msvcrt
+    kernel = ctypes.WinDLL('kernel32', use_last_error=True)
+    kernel.CreateFileW.argtypes = [ctypes.c_wchar_p, ctypes.c_ulong, ctypes.c_ulong, ctypes.c_void_p,
+                                  ctypes.c_ulong, ctypes.c_ulong, ctypes.c_void_p]
+    kernel.CreateFileW.restype = ctypes.c_void_p
+    # READ|WRITE access, READ sharing only. Existing writers make this fail, and
+    # new writers/deleters remain denied until our handle closes.
+    handle = kernel.CreateFileW(str(path), 0xC0000000, 1, None, 3, 0x80000000, None)
+    if handle == ctypes.c_void_p(-1).value:
+        raise ctypes.WinError(ctypes.get_last_error())
+    try:
+        descriptor = msvcrt.open_osfhandle(handle, os.O_RDWR | os.O_BINARY)
+    except BaseException:
+        kernel.CloseHandle.argtypes = [ctypes.c_void_p]
+        kernel.CloseHandle(handle)
+        raise
+    with os.fdopen(descriptor, 'r+b') as stream:
+        yield stream
+
+
+def zero_range(stream, start, end):
+    """Deallocate only a range already proved zero while writers are excluded.
+
+    FSCTL_SET_ZERO_DATA never changes logical size; holes read as the same zeros.
+    https://learn.microsoft.com/windows/win32/api/winioctl/ni-winioctl-fsctl_set_zero_data
+    """
+    import msvcrt
+    class Range(ctypes.Structure):
+        _fields_ = [('start', ctypes.c_longlong), ('end', ctypes.c_longlong)]
+    region = Range(start, end)
+    returned = ctypes.c_ulong()
+    kernel = ctypes.WinDLL('kernel32', use_last_error=True)
+    kernel.DeviceIoControl.argtypes = [ctypes.c_void_p, ctypes.c_ulong, ctypes.c_void_p,
+                                     ctypes.c_ulong, ctypes.c_void_p, ctypes.c_ulong,
+                                     ctypes.POINTER(ctypes.c_ulong), ctypes.c_void_p]
+    kernel.DeviceIoControl.restype = ctypes.c_int
+    if not kernel.DeviceIoControl(msvcrt.get_osfhandle(stream.fileno()), 0x980C8,
+                                  ctypes.byref(region), ctypes.sizeof(region), None, 0,
+                                  ctypes.byref(returned), None):
+        raise ctypes.WinError(ctypes.get_last_error())
+
+
+def restore_times(stream, before):
+    """Use our owned handle; do not reopen a path while writes are excluded."""
+    import msvcrt
+    class FileTime(ctypes.Structure):
+        _fields_ = [('low', ctypes.c_ulong), ('high', ctypes.c_ulong)]
+    def encoded(ns):
+        ticks = ns // 100 + 116444736000000000
+        return FileTime(ticks & 0xffffffff, ticks >> 32)
+    access, modified = encoded(before.st_atime_ns), encoded(before.st_mtime_ns)
+    kernel = ctypes.WinDLL('kernel32', use_last_error=True)
+    kernel.SetFileTime.argtypes = [ctypes.c_void_p, ctypes.POINTER(FileTime),
+                                   ctypes.POINTER(FileTime), ctypes.POINTER(FileTime)]
+    kernel.SetFileTime.restype = ctypes.c_int
+    if not kernel.SetFileTime(msvcrt.get_osfhandle(stream.fileno()), None,
+                              ctypes.byref(access), ctypes.byref(modified)):
+        raise ctypes.WinError(ctypes.get_last_error())
+
+
+def compact_image(path, report=print):
+    """Preverified zero ranges only; no rename, truncation or discarded image bytes.
+
+    Caller holds setup/data/play locks. The image handle excludes every writer
+    (including games using another installation). In-place zero-range deallocation
+    preserves the inode, ACLs, alternate streams and hardlinks; a crash leaves a
+    partially compacted but byte-identical file. Full hashes also verify the result.
+    """
+    path = ordinary(Path(path))
+    if path.stat().st_nlink > 1:
+        raise ValueError('Image has multiple hard links; original kept: ' + path.name)
+    with exclusive_image(path) as stream:
+        before = os.fstat(stream.fileno())
+        if before.st_nlink > 1:
+            raise ValueError('Image has multiple hard links; original kept: ' + path.name)
+        allocated = allocated_bytes(path)
+        digest = hashlib.file_digest(stream, 'sha256').hexdigest()
+        stream.seek(0)
+        # Discover and verify every range before mutation. Mixed blocks are kept.
+        ranges = []
+        offset, start = 0, None
+        while block := stream.read(BLOCK):
+            if block == ZERO[:len(block)]:
+                if start is None:
+                    start = offset
+            elif start is not None:
+                ranges.append((start, offset))
+                start = None
+            offset += len(block)
+        if start is not None:
+            ranges.append((start, offset))
+        if not ranges or not allocated:
+            report(path.name + ': no allocated zero range to compact')
+            return dict(image=path.name, logical=before.st_size, before=allocated, after=allocated, changed=False)
+        if not sparse_output(stream):
+            raise ValueError('This volume cannot create sparse images; bytes unchanged')
+        try:
+            for first, end in ranges:
+                zero_range(stream, first, end)
+            os.fsync(stream.fileno())
+            stream.seek(0)
+            if (os.fstat(stream.fileno()).st_size != before.st_size
+                    or hashlib.file_digest(stream, 'sha256').hexdigest() != digest):
+                raise ValueError('Compaction byte verification failed: ' + path.name)
+        finally:
+            # Updating allocation may change timestamps. Restore access/write time;
+            # the OS handle remains held so no writer can race this operation.
+            restore_times(stream, before)
+            os.fsync(stream.fileno())
+        after = allocated_bytes(path)
+    report(path.name + ': freed ' + str(max(0, allocated - after)) + ' bytes; all bytes verified')
+    return dict(image=path.name, logical=before.st_size, before=allocated, after=after, changed=after < allocated)

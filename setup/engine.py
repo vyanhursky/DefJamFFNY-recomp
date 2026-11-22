@@ -1410,6 +1410,41 @@ def size_text(size):
     return '%.1f GB' % (size / 1e9) if size >= 1e9 else '%d MB' % round(size / 1e6)
 
 
+def compact_save_images(install, apply=False, report=print):
+    root = Path(install).resolve()
+    if root == Path(root.anchor):
+        raise SetupError('Choose a recognized installation folder', 2)
+    with install_lock(root):
+        receipt_file = root / 'installed.json'
+        receipt = json.loads(receipt_file.read_text(encoding='utf-8'))
+        versions = root / 'versions'
+        if (receipt.get('schema') != 1 or versions.resolve() != versions
+                or versions not in Path(receipt['source']).parents):
+            raise SetupError('Invalid installation ownership receipt', 2)
+        data = Path(receipt['data']).resolve()
+        with install_lock(data), game_lock(root):
+            transaction.Activation(root, data).recover()
+            if json.loads(receipt_file.read_text(encoding='utf-8')) != receipt:
+                raise SetupError('Installation recovered; run compaction again', 2)
+            storage = load_module('setup_save_storage', Path(__file__).with_name('save_storage.py'))
+            save = storage.ordinary(data / 'save')
+            results = []
+            for number in range(6):
+                path = storage.ordinary(save / ('Partition%d.img' % number))
+                if not path.exists():
+                    continue
+                if not path.is_file():
+                    raise SetupError('Partition image must be a regular file: ' + path.name, 2)
+                if apply:
+                    results.append(storage.compact_image(path, report))
+                else:
+                    report('%s: logical %d bytes, allocated %d bytes (report only)' %
+                           (path.name, path.stat().st_size, storage.allocated_bytes(path)))
+            if not apply:
+                report('No images changed. Add --apply-compaction to deallocate verified zero ranges on Windows.')
+            return results
+
+
 def uninstall(install, report=None, backup_dir=None):
     """Remove the application from `install`, never the data folder. `report` gets one line for each
     thing found, removed or kept; main() sends the lines to the screen and to the --log file."""
@@ -1555,6 +1590,8 @@ def main(argv=None):
     parser.add_argument('--data-dir')
     parser.add_argument('--uninstall', action='store_true')
     parser.add_argument('--backup-dir', help='Uninstall: make a verified sparse-preserving saves/settings backup first')
+    parser.add_argument('--compact-save-images', action='store_true', help='Experimental: report installed partition image allocation')
+    parser.add_argument('--apply-compaction', action='store_true', help='With --compact-save-images: verify zero ranges and deallocate them (experimental Windows-only)')
     parser.add_argument('--no-shortcuts', action='store_true', help='Do not create desktop/Start-menu shortcuts')
     parser.add_argument('--no-desktop-shortcut', action='store_true', help='Create only the Start-menu shortcut')
     parser.add_argument('--install-prerequisites', action='store_true')
@@ -1581,6 +1618,10 @@ def main(argv=None):
     args = parser.parse_args(argv)
     if args.backup_dir and not args.uninstall:
         parser.error('--backup-dir requires --uninstall')
+    if args.apply_compaction and not args.compact_save_images:
+        parser.error('--apply-compaction requires --compact-save-images')
+    if args.compact_save_images and (args.uninstall or args.release or args.dump or args.steam_art or args.steam):
+        parser.error('--compact-save-images cannot be combined with another operation')
     if args.check_toolchain:
         # Needs nothing from the payload or the network, so it answers in a moment.
         return 0 if not IS_WINDOWS or windows_toolchain_present() else 3
@@ -1697,6 +1738,9 @@ def main(argv=None):
                 return releases.run_selected(args, HOST_PLATFORM, selected, cancelled)
             finally:
                 shutil.rmtree(scratch)
+        if args.compact_save_images:
+            compact_save_images(args.install_dir, apply=args.apply_compaction)
+            return 0
         if args.uninstall:
             verify_payload(Path(args.payload))
 
