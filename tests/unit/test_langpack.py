@@ -237,9 +237,9 @@ uint32_t defjam_game_language_at_boot(uint32_t asked);
 
 int main(int argc, char **argv)
 {
-    RecompSetting settings[4];
+    RecompSetting settings[8];
     char path[2048];
-    size_t n = pc_language_settings(settings, 4);
+    size_t n = pc_language_settings(settings, 8);
     recomp_settings_register(settings, n);
     pc_language_start(argv[1], argv[2]);
     if (getenv("TEST_COMPOSE_BASE")) {
