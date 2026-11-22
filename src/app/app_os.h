@@ -97,6 +97,13 @@ std::filesystem::path shortcut_target(const std::filesystem::path &link);
 // then each of those folders if nothing else is left in it. Any other file stays.
 bool remove_after_exit(const std::filesystem::path &program, const std::filesystem::path &shortcut,
                        const std::filesystem::path &user_folder, std::string *error);
+
+// A moved or copied one-folder install's link to the dump (`link`, setup's source\game junction) made
+// to lead to `target` (this folder's data\extracted) when it leads anywhere else, whether or not that
+// still exists. Only a link is replaced, never a real folder, and only once `target` holds a dump and
+// its replacement could be made.
+enum class Relink { Unneeded, Done, Failed };
+Relink relink_game(const std::filesystem::path &link, const std::filesystem::path &target);
 #endif
 
 } // namespace os

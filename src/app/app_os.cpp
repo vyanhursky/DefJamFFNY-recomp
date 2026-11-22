@@ -10,6 +10,7 @@
 
 #if defined(_WIN32)
 #include <windows.h>
+#include <winioctl.h>
 #include <io.h>
 #include <shlobj.h>
 #else
@@ -26,6 +27,7 @@ extern char **environ;
 
 #include <algorithm>
 #include <fstream>
+#include <vector>
 
 namespace fs = std::filesystem;
 
@@ -581,6 +583,73 @@ bool remove_after_exit(const fs::path &program, const fs::path &shortcut, const 
     CloseHandle(pi.hThread);
     CloseHandle(pi.hProcess);
     return true;
+}
+
+namespace
+{
+
+// Whether `path` itself is a junction or a directory link. A real folder is not, nor is a cloud
+// placeholder, which is a reparse point too.
+bool is_folder_link(const fs::path &path)
+{
+    WIN32_FIND_DATAW found;
+    HANDLE h = FindFirstFileW(path.c_str(), &found);
+    if (h == INVALID_HANDLE_VALUE) return false;
+    FindClose(h);
+    return (found.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && (found.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) &&
+           (found.dwReserved0 == IO_REPARSE_TAG_MOUNT_POINT || found.dwReserved0 == IO_REPARSE_TAG_SYMLINK);
+}
+
+// A directory junction at `link`, which must not exist, to `target`, as setup's New-Item makes one.
+bool make_junction(const fs::path &link, const fs::path &target)
+{
+    if (!CreateDirectoryW(link.c_str(), nullptr)) return false;
+    HANDLE h = CreateFileW(link.c_str(), GENERIC_WRITE, 0, nullptr, OPEN_EXISTING,
+                           FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT, nullptr);
+    if (h == INVALID_HANDLE_VALUE) {
+        RemoveDirectoryW(link.c_str());
+        return false;
+    }
+    std::wstring sub = L"\\??\\" + target.wstring(), print = target.wstring();
+    size_t names = (sub.size() + 1 + print.size() + 1) * sizeof(wchar_t);
+    std::vector<BYTE> buffer(16 + names, 0);
+    auto put16 = [&](size_t at, size_t v) { buffer[at] = (BYTE)(v & 0xff); buffer[at + 1] = (BYTE)(v >> 8); };
+    DWORD tag = IO_REPARSE_TAG_MOUNT_POINT;
+    memcpy(buffer.data(), &tag, 4);
+    put16(4, 8 + names);                                          // ReparseDataLength
+    put16(8, 0);                                                  // SubstituteNameOffset
+    put16(10, sub.size() * sizeof(wchar_t));                      // SubstituteNameLength
+    put16(12, (sub.size() + 1) * sizeof(wchar_t));                // PrintNameOffset
+    put16(14, print.size() * sizeof(wchar_t));                    // PrintNameLength
+    memcpy(buffer.data() + 16, sub.c_str(), (sub.size() + 1) * sizeof(wchar_t));
+    memcpy(buffer.data() + 16 + (sub.size() + 1) * sizeof(wchar_t), print.c_str(), (print.size() + 1) * sizeof(wchar_t));
+    DWORD returned = 0;
+    BOOL ok = DeviceIoControl(h, FSCTL_SET_REPARSE_POINT, buffer.data(), (DWORD)buffer.size(), nullptr, 0, &returned, nullptr);
+    CloseHandle(h);
+    if (!ok) RemoveDirectoryW(link.c_str());
+    return ok != 0;
+}
+
+} // namespace
+
+Relink relink_game(const fs::path &link, const fs::path &target)
+{
+    std::error_code ec;
+    if (!is_folder_link(link)) return Relink::Unneeded;
+    // Follows the link: the same folder, however its path is written. That the link has a default.xbe
+    // proves nothing, for a copy's still has the original's.
+    if (fs::equivalent(link, target, ec)) return Relink::Unneeded;
+    if (!fs::is_regular_file(target / "default.xbe", ec)) return Relink::Unneeded;
+    fs::path next = link;
+    next += L".relink";
+    if (is_folder_link(next)) RemoveDirectoryW(next.c_str());    // left by a start that was interrupted
+    if (!make_junction(next, target)) return Relink::Failed;
+    // RemoveDirectoryW takes away the link itself, not what it leads to.
+    if (!RemoveDirectoryW(link.c_str())) {
+        RemoveDirectoryW(next.c_str());
+        return Relink::Failed;
+    }
+    return MoveFileExW(next.c_str(), link.c_str(), 0) || make_junction(link, target) ? Relink::Done : Relink::Failed;
 }
 
 #endif

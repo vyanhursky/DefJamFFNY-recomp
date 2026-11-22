@@ -44,7 +44,6 @@
 #endif
 #if defined(_WIN32)
 #include <windows.h>
-#include <winioctl.h>
 #define strcasecmp _stricmp
 #endif
 
@@ -545,49 +544,17 @@ size_t replace_folder(std::string &text, const std::string &from, const std::str
     return count;
 }
 
-// A directory junction at `link` (an empty folder made for it) to `target`, as setup's New-Item makes one.
-bool make_junction(const fs::path &link, const fs::path &target)
-{
-    std::error_code ec;
-    if (!fs::create_directory(link, ec) && !fs::is_empty(link, ec)) return false;
-    HANDLE h = CreateFileW(link.wstring().c_str(), GENERIC_WRITE, 0, nullptr, OPEN_EXISTING,
-                           FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT, nullptr);
-    if (h == INVALID_HANDLE_VALUE) return false;
-    std::wstring sub = L"\\??\\" + target.wstring(), print = target.wstring();
-    size_t names = (sub.size() + 1 + print.size() + 1) * sizeof(wchar_t);
-    std::vector<BYTE> buffer(16 + names, 0);
-    auto put16 = [&](size_t at, size_t v) { buffer[at] = (BYTE)(v & 0xff); buffer[at + 1] = (BYTE)(v >> 8); };
-    DWORD tag = IO_REPARSE_TAG_MOUNT_POINT;
-    memcpy(buffer.data(), &tag, 4);
-    put16(4, 8 + names);                                          // ReparseDataLength
-    put16(8, 0);                                                  // SubstituteNameOffset
-    put16(10, sub.size() * sizeof(wchar_t));                      // SubstituteNameLength
-    put16(12, (sub.size() + 1) * sizeof(wchar_t));                // PrintNameOffset
-    put16(14, print.size() * sizeof(wchar_t));                    // PrintNameLength
-    memcpy(buffer.data() + 16, sub.c_str(), (sub.size() + 1) * sizeof(wchar_t));
-    memcpy(buffer.data() + 16 + (sub.size() + 1) * sizeof(wchar_t), print.c_str(), (print.size() + 1) * sizeof(wchar_t));
-    DWORD returned = 0;
-    BOOL ok = DeviceIoControl(h, FSCTL_SET_REPARSE_POINT, buffer.data(), (DWORD)buffer.size(), nullptr, 0, &returned, nullptr);
-    CloseHandle(h);
-    if (!ok) RemoveDirectoryW(link.wstring().c_str());
-    return ok != 0;
-}
-
 // The built game finds the dump through source\game, setup's junction to data\extracted, which names
-// the folder by its full path. In a one-folder install that was moved, point it at this folder's data.
-// Only a junction is replaced (never a real folder), and only when it no longer leads to the dump.
+// the folder by its full path: in a moved or copied one-folder install, point it at this folder's data.
 void follow_moved_game_link(const fs::path &source, const fs::path &data)
 {
-    fs::path link = source / "game", target = data / "extracted";
-    std::error_code ec;
-    DWORD attributes = GetFileAttributesW(link.wstring().c_str());
-    if (attributes == INVALID_FILE_ATTRIBUTES || !(attributes & FILE_ATTRIBUTE_REPARSE_POINT)) return;
-    if (fs::is_regular_file(link / "default.xbe", ec) || !fs::is_regular_file(target / "default.xbe", ec)) return;
-    if (!RemoveDirectoryW(link.wstring().c_str())) return;       // the junction itself, not what it led to
-    if (make_junction(link, target))
+    fs::path target = data / "extracted";
+    app::os::Relink done = app::os::relink_game(source / "game", target);
+    if (done == app::os::Relink::Done)
         fprintf(stderr, "[APP] the game's link to the dump now points at %s\n", target.string().c_str());
-    else
-        fprintf(stderr, "[APP] the game's link to the dump could not be made again; Repair makes it\n");
+    else if (done == app::os::Relink::Failed)
+        fprintf(stderr, "[APP] the game's link to the dump could not be pointed at %s; Repair makes it again\n",
+                target.string().c_str());
 }
 
 bool same_path_text(const fs::path &a, const fs::path &b)

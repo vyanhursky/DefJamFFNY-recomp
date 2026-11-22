@@ -26,6 +26,7 @@ int wmain(int argc, wchar_t **argv)
         Sleep(_wtoi(argv[4]));                          // the app's window closing
         return 0;
     }
+    if (mode == L"relink" && argc == 4) return 20 + (int)app::os::relink_game(argv[2], argv[3]);
     return 10;
 }
 """
@@ -124,3 +125,88 @@ def test_uninstall_waits_for_the_app_to_exit(native, tmp_path):
         time.sleep(4.5)
         assert app.poll() is None and program.exists() and payload.exists()
     assert wait_until(lambda: not home.exists())
+
+
+UNNEEDED, RELINKED, FAILED = 20, 21, 22
+
+
+def relink(native, link, target):
+    return subprocess.run([str(native), 'relink', str(link), str(target)], timeout=30).returncode
+
+
+def junction(link, target):
+    link.parent.mkdir(parents=True, exist_ok=True)
+    import _winapi
+    _winapi.CreateJunction(str(target), str(link))
+
+
+def installation(folder, dump):
+    write(folder / 'data/extracted/default.xbe', dump)
+    link = folder / 'game/versions/v/source/game'
+    junction(link, folder / 'data/extracted')
+    return link
+
+
+def copy_installation(old, new):
+    """The folder copied with its junction kept as one, still naming the old folder."""
+    write(new / 'data/extracted/default.xbe', 'copy')
+    link = new / 'game/versions/v/source/game'
+    junction(link, old / 'data/extracted')
+    return link
+
+
+@pytest.mark.parametrize('name', ['copy', 'Café DJ', 'Łódź', 'Jam %PATH% !x'])
+def test_a_copy_is_repointed_while_the_original_still_exists(native, tmp_path, name):
+    original = installation(tmp_path / 'original', 'original')
+    link = copy_installation(tmp_path / 'original', tmp_path / name)
+    assert (link / 'default.xbe').read_text() == 'original'  # the reported fault
+    assert relink(native, link, tmp_path / name / 'data/extracted') == RELINKED
+    assert (link / 'default.xbe').read_text() == 'copy'
+    assert os.path.samefile(link, tmp_path / name / 'data/extracted')
+    assert (original / 'default.xbe').read_text() == 'original'
+    assert not link.with_name('game.relink').exists()
+
+
+@pytest.mark.parametrize('name', ['moved', 'Café DJ', 'Łódź'])
+def test_a_move_is_repointed_when_the_original_is_gone(native, tmp_path, name):
+    installation(tmp_path / 'original', 'the dump')
+    (tmp_path / 'original').rename(tmp_path / name)
+    link = tmp_path / name / 'game/versions/v/source/game'
+    assert not (link / 'default.xbe').exists()
+    assert relink(native, link, tmp_path / name / 'data/extracted') == RELINKED
+    assert (link / 'default.xbe').read_text() == 'the dump'
+
+
+def test_a_link_that_already_leads_here_is_left_alone(native, tmp_path):
+    link = installation(tmp_path / 'here', 'x')
+    made = os.lstat(link).st_ino
+    assert relink(native, link, tmp_path / 'HERE/data/extracted') == UNNEEDED
+    assert os.lstat(link).st_ino == made
+
+
+@pytest.mark.parametrize('files', [[], ['default.xbe'], ['mine.txt']], ids=['empty', 'a-dump', 'other-files'])
+def test_a_real_folder_is_never_replaced(native, tmp_path, files):
+    write(tmp_path / 'data/extracted/default.xbe')
+    link = tmp_path / 'source/game'
+    link.mkdir(parents=True)
+    for name in files:
+        write(link / name, 'real')
+    assert relink(native, link, tmp_path / 'data/extracted') == UNNEEDED
+    assert not os.path.isjunction(link) and sorted(p.name for p in link.iterdir()) == files
+
+
+def test_a_link_stays_when_this_folder_has_no_dump(native, tmp_path):
+    installation(tmp_path / 'original', 'original')
+    link = tmp_path / 'copy/source/game'
+    junction(link, tmp_path / 'original/data/extracted')
+    (tmp_path / 'copy/data/extracted').mkdir(parents=True)
+    assert relink(native, link, tmp_path / 'copy/data/extracted') == UNNEEDED
+    assert (link / 'default.xbe').read_text() == 'original'
+
+
+def test_a_link_stays_when_its_replacement_cannot_be_made(native, tmp_path):
+    installation(tmp_path / 'original', 'original')
+    link = copy_installation(tmp_path / 'original', tmp_path / 'copy')
+    write(link.with_name('game.relink') / 'in the way')
+    assert relink(native, link, tmp_path / 'copy/data/extracted') == FAILED
+    assert (link / 'default.xbe').read_text() == 'original'

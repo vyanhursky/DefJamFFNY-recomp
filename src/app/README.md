@@ -68,10 +68,11 @@ Play starts the game that setup built on this computer, with `--no-launcher`.
   starts the installed copy with `--first-setup <experience> <hd> <dump>`, which starts setup by itself
   once the Build Tools check has answered (installing them first when missing). Beside
   `.defjam-portable` the first run's locations are `game\` and `data\` in that folder, so everything
-  is in one folder that can be moved or copied whole: opened from a moved folder, the app
+  is in one folder that can be moved or copied whole: opened from a moved or copied folder, the app
   records it as its home, repoints a desktop shortcut whose target is gone, rewrites setup's receipt
   (`installed.json`, `installed.ini`), removes the build's `CMakeCache.txt` and makes `source\game`, setup's
-  junction to `data\extracted`, point at the new folder. Opened again, the download hands over to the
+  junction to `data\extracted`, point at the new folder whenever it leads elsewhere
+  (a copy's still reaches the original's dump). Opened again, the download hands over to the
   installed copy, first replacing it when the download is a newer release. A home an older release
   made (without `.defjam-portable`) keeps its game and data where its first run put them. The
   installed copy unpacks its payload again when `payload\` is missing or from another build
