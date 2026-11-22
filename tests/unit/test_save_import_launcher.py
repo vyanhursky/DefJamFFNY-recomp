@@ -207,7 +207,8 @@ def bridge(tmp_path_factory, request):
     exe = folder / ('bridge.exe' if msvc else 'bridge')
     native = ROOT / 'src/hooks/pc_save_import.cpp'
     if msvc:
-        cmd = [compiler, '/nologo', '/std:' + request.param, '/EHsc', '/I' + str(ROOT / 'src/hooks'),
+        cmd = [compiler, '/nologo', '/std:' + request.param, '/EHsc', '/utf-8', '/DNOMINMAX',
+               '/I' + str(ROOT / 'src/hooks'),
                '/DDEFJAM_SAVE_SOURCE_DIR="' + str(ROOT) + '"', str(main), str(native), '/Fe:' + str(exe),
                '/link', 'shell32.lib', 'comdlg32.lib', 'ole32.lib', 'user32.lib']
     else:
