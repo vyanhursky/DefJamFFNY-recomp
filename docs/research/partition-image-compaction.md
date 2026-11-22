@@ -79,8 +79,16 @@ and engine can run the same arguments. There is no prerequisite to supply the or
   numbered-image scope, hard kill after the first real zero-range deallocation and retry.
 - A write-after-compaction test proves new nonzero data can allocate storage in a hole and
   remains intact after another compaction. No new format/geometry is introduced.
-- Full available unit suite and final packaged CLI qualification are recorded in the PR;
-  native game/runtime recompilation is not repeated for this setup-only prototype.
+- Available full suite: **2,021 passed, 845 skipped, one slow test deselected**
+  (`compact-units.log`), before final owned-handle timestamp restoration/flush. Final nine
+  native compaction tests pass after that refinement (`compact-final-native.log`).
+- Final game-free payload: **4,730 inventoried files / 62,586,422 bytes**. Payload inspection,
+  embedded Python imports and 95 fighter imports pass (`compact-payload-inspection.log`).
+  The actual packaged engine's report-only and explicit-apply commands both exit 0 against
+  the compacted disposable fixture (`compact-cli-report.log`, `compact-cli-apply.log`).
+  The apply rerun reports no further allocation reclaimed, with hashes rechecked afterwards.
+  Existing PR #300 native C++ build is reused because this draft changes only Python setup
+  behavior, tests and docs; no native game/runtime recompilation was repeated.
 - Before ready/merge: owner-approved native save/load/play qualification from a compacted
   disposable data root, native Mac/Deck report-only checks, and a decision on non-Windows
   apply plus app UI. No original player images have been compacted by this work.
