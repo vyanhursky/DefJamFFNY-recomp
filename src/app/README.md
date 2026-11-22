@@ -25,6 +25,14 @@ Play starts the game that setup built on this computer, with `--no-launcher`.
   out the overlay and the Debug page's controls for a running game (the recorder's mark, Story
   scenes, EA's developer menu). It registers the same catalogue
   (`src/hooks/pc_settings_catalog.c`) and edits the same `settings.ini` as the game.
+- **Optimize disk usage** (`app_optimize.cpp`). Maintenance inspects save-image allocation, then
+  offers an explicit Optimize now when the backend supports apply. Successful updates also offer
+  this once; a verified successful apply records `data/disk-optimization.json` and suppresses that
+  offer on later updates. Maintenance stays available. Work runs in the verified payload's engine
+  with the app's play lock released; completion/cancellation takes it back. The screen and result
+  protocol are shared across Windows, macOS and Linux. Windows apply is implemented; POSIX currently
+  reports allocation/unavailability until safe writer exclusion is implemented. See the
+  [platform hand-off](../../docs/research/disk-space-platform-handoff.md).
 - **Uninstall** (`app_setup.cpp`; last on Help, below repair and file tools). It takes out the Steam shortcut and art this app added (Windows and Linux), copies the saves and
   `settings.ini` to `Def Jam Recompiled saves <date>` in Documents when the data folder goes too
   (nothing is deleted unless the copy matches), runs setup's own uninstall (`engine.py

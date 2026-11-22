@@ -126,6 +126,12 @@ bool screen_draw(float width, float height, UiResult *result);
 
 // Show Maintenance: Repair and Clean Rebuild of this install.
 void screen_open_maintenance();
+// Shared Maintenance/post-update disk optimization screen. Backend reports OS capability.
+void screen_open_optimization();
+bool optimization_screen_draw(float width, float height, UiResult *result);
+bool optimization_busy();
+void optimization_request_cancel();
+bool disk_optimization_completed();
 
 // An operation is running: the window may not close (a close asks to cancel instead).
 bool screen_busy();
