@@ -2,6 +2,7 @@
 #include "pc_ui_theme.h"
 #include "pc_ui_actions.h"
 #include "pc_mods.h"
+#include "pc_save_import.h"
 #include "pc_ui_internal.h"
 #include <algorithm>
 #include <cstring>
@@ -61,6 +62,7 @@ UiHomeResult ui_launcher_home(float width, float height, const char *focus)
 #endif
     if (pcui::mod_recovery_needed())
         ImGui::TextWrapped("Play is unavailable until an interrupted mod installation is recovered. Open Mods to fix it.");
+    else if (pcui::save_import_busy()) ImGui::TextWrapped("Finishing save import. Play will be available when it finishes.");
     else if (pcui::mod_busy()) ImGui::TextWrapped("Finishing a mod operation. Play will be available when it finishes.");
     {
         std::string stopped = last_error();

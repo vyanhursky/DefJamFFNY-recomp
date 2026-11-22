@@ -6,18 +6,14 @@ PSV field layout: https://github.com/PCSX2/myMCpp/blob/master/src/core/formats/P
 Only the contained FFNY MC02 data is used; PS2 icons and PS3 signatures are not
 converted. The inner MC02 checksums are independently verified by the importer.
 """
-import io
 import struct
-import zipfile
 import zlib
-from pathlib import Path
 
 from ps2_lzari import LzariDecoder
 
 MAX_FILE = 4 << 20
 MAX_TOTAL = 32 << 20
 MAX_FILES = 256
-EXTENSIONS = {'.max', '.cbs', '.sps', '.xps', '.psu', '.psv', '.zip'}
 
 CBS_STATE = [0x5f, 0x1f, 0x85, 0x6f, 0x31, 0xaa, 0x3b, 0x18,
 		    0x21, 0xb9, 0xce, 0x1c, 0x07, 0x4c, 0x9c, 0xb4,
@@ -176,49 +172,3 @@ def unpack(data):
         require(offset == len(data), 'PSU member count/length mismatch')
         return files
     raise ValueError('unsupported input; export the FFNY save from a PCSX2 card as .psu, or use a save folder')
-
-
-def read_sources(paths):
-    """Yield (source label, inner name, raw MC02), with a shared expansion budget."""
-    total, members = 0, 0
-
-    def read(data, label, depth=0):
-        nonlocal total, members
-        total += len(data)
-        members += 1
-        require(total <= MAX_TOTAL and members <= MAX_FILES, 'input batch exceeds size/member limit')
-        if data.startswith(b'PK\x03\x04'):
-            require(depth < 2, 'nested ZIP limit exceeded')
-            with zipfile.ZipFile(io.BytesIO(data)) as archive:
-                require(len(archive.infolist()) <= MAX_FILES, 'too many ZIP members')
-                for entry in archive.infolist():
-                    if entry.is_dir():
-                        continue
-                    parts = entry.filename.replace('\\', '/').split('/')
-                    require(not entry.filename.startswith(('/', '\\')) and
-                            all(p not in ('.', '..') and ':' not in p for p in parts), 'unsafe ZIP member path')
-                    require(not entry.flag_bits & 1 and entry.file_size <= MAX_FILE, 'encrypted/oversized ZIP member')
-                    suffix = Path(parts[-1]).suffix.lower()
-                    if suffix not in EXTENSIONS and not parts[-1].startswith(('BASLUS-', 'BESLES-')):
-                        continue
-                    yield from read(archive.read(entry), label + ':' + entry.filename, depth + 1)
-            return
-        for inner_name, raw in unpack(data):
-            if raw.startswith(b'20CM'):
-                yield label, inner_name, raw
-
-    for source in paths:
-        source = Path(source)
-        require(not source.is_symlink(), 'source must not be a symbolic link')
-        files = sorted(source.rglob('*')) if source.is_dir() else [source]
-        for file in files:
-            if file.is_dir():
-                continue
-            if source.is_dir() and file.suffix.lower() not in EXTENSIONS and not file.name.startswith(('BASLUS-', 'BESLES-')):
-                continue
-            require(not file.is_symlink() and (not source.is_dir() or not any((source / p).is_symlink() for p in file.relative_to(source).parents)),
-                    'linked source paths are not supported')
-            with file.open('rb') as stream:
-                data = stream.read(MAX_FILE + 1)
-            require(len(data) <= MAX_FILE, 'source exceeds 4 MiB; export individual saves from the memory card')
-            yield from read(data, str(file))

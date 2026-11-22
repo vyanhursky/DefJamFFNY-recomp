@@ -47,6 +47,7 @@
 #include <iterator>
 #include "pc_ui_model.h"
 #include "pc_mods.h"
+#include "pc_save_import.h"
 #include "pc_ui_theme.h"
 #include "pc_ui_actions.h"
 #include "pc_launcher_home.h"
@@ -786,7 +787,7 @@ static void experience_widget()
     ImGui::SetNextWindowSize(ImVec2(std::min(560.0f * ImGui::GetStyle().FontScaleMain, area.x - 24),
                                   std::min(460.0f * ImGui::GetStyle().FontScaleMain, area.y - 24)), ImGuiCond_Appearing);
     if (ImGui::BeginPopupModal("Choose experience", nullptr, ImGuiWindowFlags_NoResize)) {
-        ImGui::BeginChild("preset choices", ImVec2(0, -ImGui::GetFrameHeightWithSpacing() * 2));
+        ImGui::BeginChild("preset choices", ImVec2(0, -ImGui::GetFrameHeightWithSpacing() * 1.4f));
         ImGui::RadioButton("Modern - recommended", &proposed, 1);
         ui_target("experience.modern");
         ImGui::TextWrapped("Widescreen Auto, 2x (960p), high-quality scaling, mipmaps, 2x anti-aliasing and 16x texture filtering. Keeps the original scene effects. Upscaled Original Textures and downloadable texture packs are optional.");
@@ -1553,6 +1554,78 @@ void pc_app_home_notice();               // src/app/app_update.cpp: a newer app,
 void pc_app_open_uninstall();            // src/app/app_setup.cpp: the app's Uninstall screen
 #endif
 static bool g_setup_request = false;
+static void save_import_dialog()
+{
+    static char source[32768] = {};
+    static bool options = false, replace = false;
+    std::string picked;
+    if (pcui::save_import_take(picked)) {
+        snprintf(source, sizeof source, "%s", picked.c_str());
+        pcui::save_import_clear();
+    }
+    float scale = ImGui::GetStyle().FontScaleMain;
+    ImVec2 screen = ImGui::GetIO().DisplaySize;
+    ImGui::SetNextWindowSize(ImVec2(std::min(650.0f * scale, screen.x - 24),
+                                  std::min(580.0f * scale, screen.y - 24)), ImGuiCond_Appearing);
+    if (!ImGui::BeginPopupModal("Import saves", nullptr)) return;
+    const bool busy = pcui::save_import_busy();
+    ImGui::BeginChild("import content", ImVec2(0, -ImGui::GetFrameHeightWithSpacing() * 1.4f));
+    ImGui::TextWrapped("Import Xbox or PS2 Story profiles. Original exports are kept.");
+    ImGui::BeginDisabled(busy);
+    ImGui::SetNextItemWidth(-1);
+    if (ImGui::InputTextWithHint("##save source", "Save file or folder path", source, sizeof source))
+        pcui::save_import_clear();
+    ui_target("save_import.source");
+    if (ImGui::Button("Choose file...")) pcui::save_import_choose(false);
+    ui_target("save_import.file");
+    ImGui::SameLine();
+    if (ImGui::Button("Choose folder...")) pcui::save_import_choose(true);
+    ui_target("save_import.folder");
+    if (ImGui::Checkbox("Include shared unlocks (Options)", &options)) pcui::save_import_clear();
+    ui_target("save_import.options");
+    item_tooltip("Transfers shared fighter, venue and music unlocks, keeping native preferences and leaderboards. "
+                 "Start the game once first. Enable replacement too, since Options already exists.");
+    if (ImGui::Checkbox("Back up and replace matching profiles", &replace)) pcui::save_import_clear();
+    ui_target("save_import.replace");
+    item_tooltip("Existing profiles are kept by default. Replacement first backs up the entire old profile folder.");
+    ImGui::TextWrapped("Replacements are backed up in save/import-backup-... folders.");
+    ImGui::TextWrapped("Destination: %s", pcui::folder_path(pcui::Folder::Saves).c_str());
+    ImGui::EndDisabled();
+    const auto &view = pcui::save_import_view();
+    if (!view.status.empty()) {
+        if (view.failed) ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, .5f, .45f, 1));
+        ImGui::TextWrapped("%s", view.status.c_str());
+        if (view.failed) ImGui::PopStyleColor();
+    }
+    if (!view.rows.empty() && ImGui::BeginTable("save preview", 3,
+            ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_SizingStretchProp)) {
+        ImGui::TableSetupColumn("Profile"); ImGui::TableSetupColumn("From"); ImGui::TableSetupColumn("Action", 0, 2);
+        ImGui::TableHeadersRow();
+        for (const auto &row : view.rows) {
+            ImGui::TableNextRow(); ImGui::TableNextColumn(); ImGui::TextWrapped("%s", row.name.c_str());
+            ImGui::TableNextColumn(); ImGui::TextUnformatted(row.platform.c_str());
+            ImGui::TableNextColumn(); ImGui::TextWrapped("%s", row.action.c_str());
+        }
+        ImGui::EndTable();
+    }
+    ImGui::EndChild();
+    ImGui::BeginDisabled(busy || !*source);
+    if (ImGui::Button("Check saves")) pcui::save_import_start(source, options, replace, false);
+    ui_target("save_import.check");
+    ImGui::EndDisabled();
+    ImGui::SameLine();
+    ImGui::BeginDisabled(busy || view.token.empty() || view.count == 0);
+    if (ImGui::Button("Import")) pcui::save_import_start(source, options, replace, true);
+    ui_target("save_import.apply");
+    ImGui::EndDisabled();
+    ImGui::SameLine();
+    ImGui::BeginDisabled(busy);
+    if (ImGui::Button("Close")) ImGui::CloseCurrentPopup();
+    ui_target("save_import.close");
+    ImGui::EndDisabled();
+    ImGui::EndPopup();
+}
+
 static void page_maintenance(UiMode mode)
 {
     const char *names[] = {"Data", "Saves", "Mods", "Installation", "Settings file", "Play logs"};
@@ -1584,6 +1657,15 @@ static void page_maintenance(UiMode mode)
         ImGui::PushID(i);
         auto path = pcui::folder_path(paths[i]);
         ImGui::SeparatorText(names[i]);
+        if (i == 1) {
+            if (mode == UI_LAUNCHER) {
+                ImGui::BeginDisabled(pcui::mod_busy());
+                if (ImGui::Button("Import saves...")) ImGui::OpenPopup("Import saves");
+                ui_target("save_import.open");
+                ImGui::EndDisabled();
+                save_import_dialog();
+            } else ImGui::TextWrapped("Import Xbox or PS2 saves from Help in the launcher, before starting the game.");
+        }
         ImGui::TextWrapped("%s", path.empty() ? "Not available for this run" : path.c_str());
         if (ImGui::Button("Open"))
             pcui::open_path(path, i == 4);
@@ -2129,7 +2211,7 @@ static void page_cheats(UiMode mode)
     ImGui::SeparatorText("Story profile");
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 0.75f, 0.2f, 1));
     ImGui::TextWrapped("These change the Story profile you are playing. Once the game saves, the change is permanent "
-                       "and cannot be undone. Copy your save folder first (Maintenance, Saves).");
+                       "and cannot be undone. Copy your save folder first (Help, Saves).");
     ImGui::PopStyleColor();
     if (mode == UI_LAUNCHER)
     {
@@ -2223,6 +2305,7 @@ UiResult ui_draw(UiMode mode, float x, float y, float width, float height)
     g_targets.clear();
     g_help.clear();
     pcui::setup_poll();
+    pcui::save_import_poll();
     if (pcui::mod_poll()) refresh_packs(true);
     static bool recovery_attempted = false;
     if (mode == UI_LAUNCHER && pcui::mod_recovery_needed() && !pcui::mod_busy() && !recovery_attempted) {
@@ -2273,7 +2356,7 @@ UiResult ui_draw(UiMode mode, float x, float y, float width, float height)
         auto home = ui_launcher_home(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y,
                                      g_return_focus ? g_home_return.c_str() : nullptr);
         g_return_focus = false;
-        result.play = home.play && !pcui::mod_busy() && !pcui::mod_recovery_needed();
+        result.play = home.play && !pcui::save_import_busy() && !pcui::mod_busy() && !pcui::mod_recovery_needed();
         if (home.route >= 1 && home.route <= 3)
         {
             g_advanced = true;
@@ -2473,7 +2556,7 @@ UiResult ui_draw(UiMode mode, float x, float y, float width, float height)
         ImGui::SameLine();
         if (true)
         {
-            ImGui::BeginDisabled(pcui::mod_busy() || pcui::mod_recovery_needed());
+            ImGui::BeginDisabled(pcui::save_import_busy() || pcui::mod_busy() || pcui::mod_recovery_needed());
             if (pcui::play_button("PLAY", ImVec2(100 * scale, 0),
                                   tight ? ImGui::GetFontSize() / scale : 30.0f))
                 result.play = true;
@@ -2510,6 +2593,10 @@ UiResult ui_draw(UiMode mode, float x, float y, float width, float height)
             if (ImGui::GetContentRegionAvail().x >= ImGui::CalcTextSize(status).x)
                 ImGui::TextDisabled("%s", status);
         }
+    }
+    if (mode == UI_LAUNCHER && pcui::save_import_busy()) {
+        result.play = result.setup = result.leave = false;
+        ImGui::TextWrapped("%s", pcui::save_import_view().status.c_str());
     }
     if (mode == UI_LAUNCHER && pcui::mod_busy()) {
         result.play = false;

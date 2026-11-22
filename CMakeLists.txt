@@ -146,6 +146,9 @@ file(GLOB PATCH_SOURCES      CONFIGURE_DEPENDS "src/patches/*.c")
 set_property(SOURCE src/hooks/pc_mods.cpp APPEND PROPERTY COMPILE_DEFINITIONS
              DEFJAM_MOD_SOURCE_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\")
 
+set_property(SOURCE src/hooks/pc_save_import.cpp APPEND PROPERTY COMPILE_DEFINITIONS
+             DEFJAM_SAVE_SOURCE_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\")
+
 if(DEFJAM_BUILD_GAME)
     # Dear ImGui (MIT): the launcher and the in-game overlay. Fetched at a pinned hash.
     list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
@@ -188,7 +191,7 @@ if(DEFJAM_BUILD_GAME)
     if(WIN32)
         # UTF-8 process code page (P10 of the 2026-11-12 review): one path encoding in the whole game.
         target_sources(${PROJECT_NAME} PRIVATE src/game.manifest)
-        target_link_libraries(${PROJECT_NAME} PRIVATE xboxrecomp recomp_settings defjam_imgui d3d11 dxgi dxguid xinput winmm dbghelp shell32 comdlg32)
+        target_link_libraries(${PROJECT_NAME} PRIVATE xboxrecomp recomp_settings defjam_imgui d3d11 dxgi dxguid xinput winmm dbghelp shell32 comdlg32 ole32)
     else()
         # One SDL for the window, the sound and the pads: SDL3, the system's.
         defjam_app_icon(${PROJECT_NAME})
@@ -317,6 +320,7 @@ if(DEFJAM_BUILD_APP AND DEFJAM_SDL3)
         src/hooks/pc_ui.cpp
         src/hooks/pc_ui_theme.cpp
         src/hooks/pc_ui_actions.cpp
+        src/hooks/pc_save_import.cpp
         src/hooks/pc_launcher_home.cpp
         src/hooks/pc_launcher_sdl.cpp
         src/hooks/pc_mods.cpp
@@ -338,7 +342,7 @@ if(DEFJAM_BUILD_APP AND DEFJAM_SDL3)
             target_compile_definitions(defjam_app PRIVATE DEFJAM_APP_PAYLOAD_SHA256="${DEFJAM_APP_PAYLOAD_SHA256}")
         endif()
         target_compile_options(defjam_app PRIVATE /utf-8)
-        target_link_libraries(defjam_app PRIVATE shell32 ole32 shlwapi bcrypt)
+        target_link_libraries(defjam_app PRIVATE shell32 ole32 shlwapi bcrypt comdlg32)
     elseif(APPLE)
         # Shift held at start-up is read from the window server, as the game does.
         target_link_libraries(defjam_app PRIVATE "-framework ApplicationServices")

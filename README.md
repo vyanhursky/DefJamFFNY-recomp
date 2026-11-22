@@ -152,6 +152,11 @@ The [format reference](docs/hd-textures.md) and [mod-manager reference](docs/mod
 cover the technical details. Language mods have their own
 [delta format](docs/language-packs.md).
 
+**Save import (planned for v1.3.0):** bring Xbox or PS2 Story profiles into your
+installation from **Help → Saves → Import saves…** in the launcher. Preview the
+import and back up any matching profiles before replacement; see
+[Import Xbox and PS2 saves](docs/importing-saves.md).
+
 Your own music is supported separately on the Songs page: [add and manage songs](docs/custom-songs.md).
 
 **Coming up:** custom fighters, stages and game modes. See the roadmap below.

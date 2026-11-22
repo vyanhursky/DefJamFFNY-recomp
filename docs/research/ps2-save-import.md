@@ -3,7 +3,7 @@
 Investigation on November 21, 2026. Source inputs were downloaded by the owner
 from the [GameFAQs save listing](https://gamefaqs.gamespot.com/ps2/920171-def-jam-fight-for-ny/saves).
 Only hashes and findings are retained here; saves, icons, captures and generated
-code remain local. User instructions: [importing PS2 saves](../importing-ps2-saves.md).
+code remain local. User instructions: [launcher save import](../importing-saves.md).
 
 ## Samples and archive differences
 
@@ -54,7 +54,7 @@ header, a 64-byte identity and a `0x590C` Story payload. Global Options uses
 They use EA's non-reflected polynomial recurrence, not zlib's reflected CRC.
 The independently implemented recurrence matches every checksum in all inputs.
 The identity is version 17/build -2048007603; the supported Xbox identity uses
-version 17/build -2030886228. The existing Xbox importer supplies the signing
+version 17/build -2030886228. The shared Xbox format module supplies the signing
 implementation and native folder hash.
 
 Xbox's original `sub_000148B0` initializes a `0x5904`-byte serialized profile;
@@ -147,3 +147,33 @@ unit-tested script under CONTRIBUTING.md; this is not a runtime qualification.
 - [EA MC02 checksum reference](https://gist.github.com/NWPlayer123/191de6941915f2ddb4ff65e0bded9e78):
   corroborates the polynomial/byte-feed rule; our table is generated from the
   polynomial and verified against the local samples and an independent unit oracle.
+
+## Launcher integration (PR #295)
+
+Help → Saves → Import saves uses `pc_save_import.cpp` to start the bundled
+Python helper without a shell. `save_import.py` owns discovery, preview, Options
+merging and transactional publication for both platforms; `xbox_save_format.py`
+and `ps2_save_format.py` own the format-specific operations. Both legacy CLI
+filenames delegate to this service. The PS2 wrapper is a compatibility alias.
+
+A preview binds the selected sources, output bytes, native target contents and
+checkbox choices to a SHA-256 token. Import rechecks that token under the same
+exclusive runtime lock used by the mod manager. No game or mod operation can
+share the data folder while import publishes profiles. Current and legacy native
+folder hashes are recognized. The batch is staged before publication; replacement
+folders are retained in a unique backup and a publication failure rolls back
+already published profiles. Shared Options imports from either platform transfer
+only the known unlock/music block into an existing valid native Options file.
+
+Xbox profile files carry three HMAC-SHA1 fields in a 76-byte header: `0x10` over
+the identity at `0x4C:0x8C`, `0x24` over the payload from `0x8C`, and `0x38` over
+the first 56 bytes. The native kernel exports a zero 16-byte XboxSignatureKey.
+Re-signing changes those three fields, preserving the Xbox Story payload. The
+console's original key is unknown, so structural validation does not authenticate
+its original signatures. The signing-key contract is tested against the kernel;
+see [issue #154](https://github.com/vyanhursky/DefJamFFNY-recomp/issues/154).
+
+The earlier gameplay evidence above predates the Help button. Launcher-build
+qualification and the remaining Windows/Linux/packaged-app checks are recorded
+in PR #295. The [single import guide](../importing-saves.md#functional-retest-on-each-operating-system)
+contains the reusable functional checklist.

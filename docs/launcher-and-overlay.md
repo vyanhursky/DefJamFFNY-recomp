@@ -25,6 +25,11 @@ remains in Interface. Display DPI and the existing text/control size setting sti
 - Test runs (`RECOMP_SETTINGS=none`) and headless runs (`RECOMP_HEADLESS=1`) do not show the launcher.
 - On macOS the Metal launcher closes before the game window opens. Its red close button/Cmd+Q quits.
 
+Save import is in **Help → Saves → Import saves…** before Play. Choose an Xbox
+or PS2 save export/folder, check the preview, then import. Existing profiles are
+kept by default; replacements are backed up. See [Import Xbox and PS2 saves](importing-saves.md)
+for PCSX2 export instructions, Options and backup recovery. Planned for v1.3.0.
+
 ## The settings pages
 
 ![Advanced Display settings with brighter slider tracks and contextual help](media/launcher-advanced.png)
@@ -37,7 +42,7 @@ remains in Interface. Display DPI and the existing text/control size setting sti
 | Interface | Launcher skip, startup movies, overlay key/pad chord, text/control size |
 | Cheats | Fight cheats (infinite health, max Blazin', no health regeneration, giant/tiny fighters), the Story fighter swap and, in-game, the Story profile one-shots (cash, development points, fighting styles) |
 | Diagnostics | Recorder/capture/retention settings, texture authoring, save-affecting unlock tools and, in-game, Story scenes and EA's developer menu |
-| Maintenance | Data/save/mod/install/settings/play-log paths with Open and Copy path; setup selection, reset settings, version and licenses |
+| Help | Import Xbox or PS2 saves (launcher only); data/save/mod/install/settings/play-log paths with Open and Copy path; setup selection, reset settings, version and licenses |
 
 New settings default to **Windowed, 1920×1080, Widescreen (Auto), 2× render scale**, with VSync on. Existing saved choices are preserved. Auto follows the monitor's shape, so a 16:10 monitor can show bars inside a 16:9 window. The Render scale tooltip explains internal heights: 2× is 960p, 3× is 1440p; window size is separate.
 
@@ -79,7 +84,7 @@ for helper behavior, see [mod management](mod-manager.md).
 ### Folders, logs and setup
 
 Open Folder offers Data, Saves, Mods, Installation and Settings file. Open Logs uses the installed
-wrapper's play-log location; a developer checkout uses `logs`. Maintenance shows the resolved paths and
+wrapper's play-log location; a developer checkout uses `logs`. Help shows the resolved paths and
 has Copy path, useful in Steam Gaming Mode when a file manager cannot open.
 
 Update / Repair opens a dialog. Choose a locally available **Def Jam Setup** application, or use
@@ -91,7 +96,7 @@ This is only a tool path; gameplay settings remain in `settings.ini`.
 **Open Setup** destroys the launcher window, opens the setup wizard and exits the
 game process. Setup does not inherit the play lock. No installation starts automatically: choose the
 release and operation in the wizard. New installed wrappers supply installation/data/log context, so
-setup is prefilled. In the overlay, Maintenance directs you to close the game and return to the launcher
+setup is prefilled. In the overlay, Help directs you to close the game and return to the launcher
 before updating. A missing or moved setup can be selected again.
 
 ### Cheats
@@ -107,7 +112,7 @@ The **Cheats** page (`[cheats]` in `settings.ini`, all off by default) has two k
 - **Story profile** one-shots, in the overlay while you play Story: **Max cash** ($999,999), **Max
   development points** (99,999) and **Change fighting styles** (a main style and up to two hybrids). These
   write into the Story profile, and the game saves it: the change is permanent. Each asks first; copy your
-  save folder (Maintenance, Saves) before using them.
+  save folder (Help, Saves) before using them.
 
 ### Developer options
 
