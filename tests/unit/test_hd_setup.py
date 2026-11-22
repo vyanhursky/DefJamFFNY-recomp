@@ -162,6 +162,7 @@ def test_activation_publishes_hd_with_receipts_or_preserves_previous_bytes(tmp_p
     obj=object.__new__(engine.Engine)
     obj.args=SimpleNamespace(no_shortcuts=False,no_desktop_shortcut=False,cancel_file=None)
     obj.install=tmp_path/'install';obj.data=tmp_path/'data';obj.payload=tmp_path/'payload'
+    obj.dump=None
     for path in (obj.install,obj.data,obj.payload):path.mkdir()
     obj.source=obj.install/'versions/new/source'
     obj.manifest=dict(version='0.6.0',source_commit='a'*40,toolkit_commit='b'*40)
