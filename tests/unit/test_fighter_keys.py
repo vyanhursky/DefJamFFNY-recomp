@@ -63,6 +63,10 @@ from test_fighter_native import catalog, pack
 from fighter_window import encode_window
 source, _, _ = catalog(menu=True)
 _, report = source.compile([pack(count=300)], binding_window=True)
+if len(sys.argv) > 4:
+    parent, child = report['window']['fighters'][:2]
+    child['reserved'] = parent['selection_key'] + 1
+    child['core_id'] = parent['core_id']
 open(sys.argv[3], 'wb').write(encode_window(report['window']))
 ledger = report['binding_ledger']['fighters']
 custom = sorted(entry['selection'] for key, entry in ledger.items() if not key.startswith('retail/'))
@@ -71,11 +75,12 @@ print(custom[0], custom[-1], len(custom), *banks)
 '''
 
 
-def compile_window(tmp_path, bank, logical):
+def compile_window(tmp_path, bank, logical, outfit=False):
     """Compile the fixture roster with a key pair in a fresh process (modules read the pair at import)."""
-    path = tmp_path / f'window-{bank}-{logical}.bin'
+    path = tmp_path / f'window-{bank}-{logical}-{outfit}.bin'
     env = {**os.environ, 'PYTHONPATH': os.pathsep.join([str(ROOT / 'setup'), str(ROOT / 'tests/unit')])}
-    result = subprocess.run([sys.executable, '-c', COMPILE, str(bank), str(logical), str(path)],
+    result = subprocess.run([sys.executable, '-c', COMPILE, str(bank), str(logical), str(path),
+                             *(['outfit'] if outfit else [])],
                             capture_output=True, text=True, timeout=120, env=env, cwd=ROOT)
     assert result.returncode == 0, result.stdout + result.stderr
     return path, [int(value) for value in result.stdout.split()]
@@ -96,10 +101,12 @@ def probes(tmp_path_factory):
     return default, moved
 
 
-def test_native_window_works_with_a_moved_range_and_refuses_the_other(probes, tmp_path):
+@pytest.mark.parametrize('outfit', [False, True])
+def test_native_window_works_with_a_moved_range_and_refuses_the_other(probes, tmp_path, outfit):
     default_probe, moved_probe = probes
-    default_window, _ = compile_window(tmp_path, 100, 100)
-    moved_window, _ = compile_window(tmp_path, *ALTERNATE)
+    default_window, _ = compile_window(tmp_path, 100, 100, outfit=outfit)
+    moved_window, _ = compile_window(tmp_path, *ALTERNATE, outfit=outfit)
+    assert default_window.read_bytes()[:4] == moved_window.read_bytes()[:4] == (b'FWR3' if outfit else b'FWR1')
 
     def run(probe, window):
         return subprocess.run([str(probe), str(window), 'bind'], capture_output=True, text=True, timeout=10).returncode
@@ -116,3 +123,16 @@ def test_a_bank_start_outside_the_supported_range_is_a_build_error(tmp_path):
     probe_dir.mkdir()
     with pytest.raises(AssertionError, match='DEFJAM_FIGHTER_BANK_FIRST must be'):
         build_probe(probe_dir, ('DEFJAM_FIGHTER_BANK_FIRST=125u',))
+
+
+def test_moved_logical_keys_keep_standalone_outfit_parents_and_order(monkeypatch):
+    import fighter_menu
+    monkeypatch.setattr(fighter_menu, 'LOGICAL_FIRST', ALTERNATE[1])
+    record = dict(selection_key=1000, stats=dict.fromkeys('ULSTHC', 50), styles=[0],
+                  outfit_parent=1001, outfit_order=1)
+    assert 'FE_ID=1000' in fighter_menu.character_parameters(record)
+    assert fighter_menu.character_parameters({**record, 'outfit_parent': 98})
+    for changes in ({'outfit_parent': 100}, {'outfit_parent': 99}, {'outfit_order': 2},
+                    {'selection_key': 100}):
+        with pytest.raises(ValueError):
+            fighter_menu.character_parameters({**record, **changes})

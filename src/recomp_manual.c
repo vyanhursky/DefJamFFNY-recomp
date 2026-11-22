@@ -525,7 +525,10 @@ void sub_000558E0(void) {
     MEM32(g_esp + 4) = g_esp + 16; MEM32(g_esp + 8) = MEM32(stack + 8);
     for (uint32_t i = 0; i < 4; ++i) MEM32(g_esp + 16 + i * 4) = MEM32(arguments + i * 4);
     MEM32(g_esp + 24) = g_esp + 32;
-    MEM8(g_esp + 32) = '1'; MEM8(g_esp + 33) = '0'; MEM8(g_esp + 34) = (uint8_t)('0' + selection - 100);
+    /* Native bank keys are three digits, including a fork's moved banks (up to 127). */
+    MEM8(g_esp + 32) = (uint8_t)('0' + selection / 100 % 10);
+    MEM8(g_esp + 33) = (uint8_t)('0' + selection / 10 % 10);
+    MEM8(g_esp + 34) = (uint8_t)('0' + selection % 10);
     MEM8(g_esp + 35) = 0;
     sub_000558E0_gen();
     g_esp = stack + 12; /* Native thiscall ret 8. */

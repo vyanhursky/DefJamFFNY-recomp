@@ -37,7 +37,9 @@ its own fighters or venues can move both starts at build time:
 - For example, `BANK_FIRST = 124` and `LOGICAL_FIRST = 1000` leave 100 to 123 free.
 
 *Tested:* the compiler and the native window decoder with the pair (124, 1000) and with the defaults,
-and each decoder refuses the other pair's window (`test_fighter_keys.py`). **Only the defaults are
+including FWR3 standalone outfit parents; each decoder refuses the other pair's window
+(`test_fighter_keys.py`). The native ControllerSetup shim also passes banks 100–103 and 124–127 as
+decimal arguments while preserving its call frame (`test_fighter_controller_shim_native.py`). **Only the defaults are
 tested in the game** by this project; a moved range is the fork's to test in play.
 
 ## 2. Roster order
@@ -181,6 +183,10 @@ A fork whose own tool patches one of these files can point `path()` at the patch
 
 *Tested:* with the real dump, a compile with `path()` pointed at byte-identical copies of the five
 files in another folder produced the same compiled files as a normal compile.
+The CAF cinematic donor path also uses this resolver through `fighter_workshop.original()` and
+`pins()`. A synthetic test reaches that read through cinematic composition and verifies both the
+redirected bytes and rejection of an incorrect hash (`test_fighter_base.py`). Rig, topology and
+facial-capacity checks remain in place.
 
 ## 9. Created fighters
 

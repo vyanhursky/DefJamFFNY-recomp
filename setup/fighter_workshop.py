@@ -30,7 +30,8 @@ def require(condition, message):
 
 
 def original(game, relative, pin):
-    with (Path(game)/relative).open('rb') as stream:
+    import fighter_base
+    with fighter_base.path(game, relative).open('rb') as stream:
         raw = stream.read(MAX_ARCHIVE+1)
     require(0 < len(raw) <= MAX_ARCHIVE and hashlib.sha256(raw).hexdigest()==pin,
             'Original authoring asset differs from the supported game: '+relative)
@@ -38,7 +39,8 @@ def original(game, relative, pin):
 
 
 def pins():
-    return json.loads((ROOT/'config/fighter-native-baseline.json').read_text())
+    import fighter_base
+    return fighter_base.pins()
 
 
 def bank(archive, category, voice):
