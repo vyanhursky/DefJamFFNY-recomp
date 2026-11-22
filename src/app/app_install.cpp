@@ -59,6 +59,12 @@ namespace
 
 const char *k_program = "DefJamRecompiled.exe";
 
+// The longest install folder, in UTF-16 units. Inside it the build needs game\versions\<version>-attempt-<id>
+// to fit setup/engine.py's WINDOWS_VERSION_ROOT_MAX, and Upscaled Original Textures need 188 more
+// (data\hd-work\...) to fit Windows' 259. The default folder is 69 with the longest user name.
+// tests/unit/test_setup_paths.py checks all three.
+const size_t k_install_folder_max = 70;
+
 fs::path default_home() { return os::user_base() / "Programs" / "DefJamRecompiled"; }
 fs::path location_file() { return os::user_base() / "DefJamRecompiled" / "location.json"; }
 
@@ -348,9 +354,11 @@ std::string choices_problem(const fs::path &folder, const fs::path &dump)
 {
     std::string why = folder_problem(folder);
     if (!why.empty()) return why;
-    // Setup's own limit is 140 characters for the game\ and data\ folders inside it.
-    if (folder.string().size() > 130) return "Choose a shorter folder path (at most 130 characters).";
-    if (g_retry_update) return "";
+    if (g_retry_update) return "";                  // an older home, which may be longer, only gets updated
+    size_t length = folder.wstring().size();
+    if (length > k_install_folder_max)
+        return "Choose a shorter folder path: this one has " + std::to_string(length) + " characters, and the game "
+               "can be built in at most " + std::to_string(k_install_folder_max) + ".";
     std::error_code ec;
     if (fs::exists(folder, ec) && !fs::is_directory(folder, ec)) return folder.string() + " is a file, not a folder.";
     std::string other = foreign_entry(folder);

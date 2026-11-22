@@ -50,7 +50,8 @@ The app isn't code-signed yet, so your system may ask you to confirm the first t
 1. Open the `.exe`. If SmartScreen appears, choose **More info**, then **Run anyway**.
 2. Choose the install folder with **CHOOSE FOLDER...**: an empty folder, or type a new folder name at the end
    of the path and it is created. If you choose a folder that already has other files in it, the app uses a
-   `DefJamRecompiled` folder inside it.
+   `DefJamRecompiled` folder inside it. The whole path can have at most 70 characters, because
+   Microsoft's C++ tools can't build the game deeper than that.
 3. Choose your game copy with **SELECT ISO...** (a disc image) or **SELECT FOLDER...** (an extracted folder
    that holds `default.xbe`). It must not be inside the install folder.
 4. Choose **Modern** or **Original** (see [step 2](#step-2-choose-your-experience)). With Modern, you can tick

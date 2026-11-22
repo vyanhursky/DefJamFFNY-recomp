@@ -61,7 +61,7 @@ Play starts the game that setup built on this computer, with `--no-launcher`.
   its SHA-256 built in, as `DefJamSetup.exe` does. Opened from wherever it was downloaded, it opens on
   one page, as a portable install: an empty install folder (**CHOOSE FOLDER...**; a chosen folder
   that holds other files gets a `DefJamRecompiled` folder inside it; not Program Files, OneDrive, a
-  network or FAT drive, at most 130 characters), the game copy (**SELECT ISO...** or **SELECT
+  network or FAT drive, at most 70 characters: the C++ build tools stop at 260 inside it), the game copy (**SELECT ISO...** or **SELECT
   FOLDER...**, outside that folder; `--dump` fills it in), Modern or Original and, with Modern, Upscaled Original Textures. **INSTALL** copies
   the program there, unpacks its payload beside it, writes `.defjam-portable`, records the folder in
   `%LOCALAPPDATA%\DefJamRecompiled\location.json`, adds a `Def Jam Recompiled` desktop shortcut and

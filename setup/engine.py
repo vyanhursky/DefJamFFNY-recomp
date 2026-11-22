@@ -33,6 +33,11 @@ IS_LINUX = sys.platform.startswith('linux')
 # The payload manifest names the platform it was built for; a payload for
 # another one is refused before anything in it runs.
 HOST_PLATFORM = 'windows-x64' if IS_WINDOWS else 'macos-arm64' if IS_MACOS else 'linux-x64'
+# Windows: the longest version folder (<install>\\versions\\<name>) a build works in. cl, rc and the linker
+# stop at 260 characters whatever LongPathsEnabled says: measured with CMake 3.20/Ninja 1.10 and
+# CMake 3.31/Ninja 1.12, SDL3's longest object builds at 134 and fails at 136. The longest file in the
+# payload's source (129 characters below this folder) needs 129 without long-path support.
+WINDOWS_VERSION_ROOT_MAX = 128
 PRESET = 'win-x64-release' if IS_WINDOWS else 'posix-release'
 HD_SUPPORTED = IS_WINDOWS or IS_MACOS or IS_LINUX  # Direct3D 11 on Windows; Vulkan on macOS (v0.6.1) and Linux (v0.7.2)
 LAUNCHER_BUNDLE = 'Def Jam Recompiled.app'
@@ -175,6 +180,19 @@ def nearest_existing(path):
     return path
 
 
+def windows_path_length(path):
+    """A path's length as Windows counts it, in UTF-16 units."""
+    return len(str(path).encode('utf-16-le')) // 2
+
+
+def check_build_path(version_root):
+    """Refuse a folder the toolchain cannot build in now, not after extraction, analysis and lift."""
+    over = windows_path_length(version_root) - WINDOWS_VERSION_ROOT_MAX
+    if over > 0:
+        raise SetupError('The install folder path is %d characters too long for the C++ build tools. '
+                         'Choose, or move it to, a shorter path: %s' % (over, version_root.parent.parent), 2)
+
+
 def validate_locations(install, data, dump):
     install, data = (Path(p).resolve() for p in (install, data))
     dump = Path(dump).resolve() if dump else None
@@ -283,7 +301,12 @@ class Engine:
         identity = self.manifest['source_commit'][:12] + '-' + self.manifest['toolkit_commit'][:12]
         self.operation = getattr(args, 'operation', 'auto')
         suffix = ('-attempt-' + uuid.uuid4().hex[:8]) if hasattr(args, 'operation') else ''
-        self.version_root = self.install / 'versions' / (self.manifest['version'] + '-' + identity + suffix)
+        name = self.manifest['version'] + '-' + identity + suffix
+        if IS_WINDOWS and suffix:
+            # Every character here comes off the install folder the player may choose. The random suffix
+            # alone makes the folder unique; installed.json records both commits.
+            name = self.manifest['version'] + suffix
+        self.version_root = self.install / 'versions' / name
         self.source = self.version_root / 'source'
         self.env = os.environ.copy()
         # Do not inherit the developer's test switches or another installation's data.
@@ -1175,6 +1198,8 @@ class Engine:
                 self.event('Setup ' + json.dumps({k: self.manifest[k] for k in ('version', 'source_commit', 'toolkit_commit')}))
                 check_launcher_closed(self.install)
                 transaction.Activation(self.install, self.data).recover()
+                if IS_WINDOWS:
+                    check_build_path(self.version_root)
                 self.check_install_destination()
                 self.check_existing_install()
                 previous = self.install / 'installed.json'
