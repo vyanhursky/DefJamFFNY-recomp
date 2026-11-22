@@ -32,7 +32,7 @@ def load(name):
 
 harness = load('harness')
 # Routes that play a fight until the game records its result.
-RESULT_ROUTES = ('fight-result', 'ffa-result')
+RESULT_ROUTES = ('fight-result', 'fight-result-menu', 'ffa-result')
 # Routes in which every fighter is driven by a pad.
 TWO_PAD_ROUTES = ('versus',)
 # Routes that play several matches in one launch: (match ordinal, fighters) for each.
@@ -56,22 +56,40 @@ def source_identity(repo):
             'host': platform.platform(), 'python': platform.python_version()}
 
 
-def create_fixture(source, output, profile):
+def create_fixture(source, output, profile, story_profile=None, story_ready=()):
     source, output = Path(source).resolve(), Path(output).resolve()
     files = evidence.tree_manifest(source)
     if source == output or source in output.parents:
         raise ValueError('fixture output cannot be inside source saves')
     output.mkdir(parents=True, exist_ok=False)
     shutil.copytree(source, output / 'save')
+    selection = None
+    if story_profile is not None:
+        profiles = evidence.saved_profiles(output / 'save')
+        selected = [p for p in profiles if p['name'] == story_profile]
+        if len(selected) != 1 or not story_ready:
+            raise ValueError('--story-profile must name exactly one saved user and needs --story-ready progression')
+        for candidate in profiles:
+            if candidate != selected[0]:
+                target = (output / 'save' / candidate['path']).resolve()
+                if not target.is_relative_to(output / 'save'):
+                    raise ValueError('profile removal escapes the copied fixture')
+                shutil.rmtree(target)
+        files = evidence.tree_manifest(output / 'save')
+        selection = {'profile': selected[0], 'ready_for': list(story_ready),
+                     'progression_evidence': 'preparer declaration bound to exact fixture files'}
     metadata = []
-    for path in sorted(source.rglob('SaveMeta.xbx')):
+    for path in sorted((output / 'save').rglob('SaveMeta.xbx')):
         raw = path.read_bytes()
         text = raw.decode('utf-16', errors='replace') if raw.startswith((b'\xff\xfe', b'\xfe\xff')) else raw.decode('utf-8', errors='replace')
         name = next((line[5:] for line in text.splitlines() if line.startswith('Name=')), None)
-        metadata.append({'path': path.relative_to(source).as_posix(), 'name': name})
+        metadata.append({'path': path.relative_to(output / 'save').as_posix(), 'name': name})
     meta = {'schema': 1, 'profile': profile, 'files': files, 'save_metadata': metadata,
             'selection': 'caller-prepared save root; route must be calibrated for this exact profile list',
             'rng_seed': None, 'rng_status': 'not controlled', 'input_clock': 'anchored wall seconds'}
+    if selection:
+        meta['story_selection'] = selection
+        meta['selection'] = 'single saved user; one Down past Create User ID'
     (output / 'fixture.json').write_text(json.dumps(meta, indent=2), encoding='utf-8')
     return evidence.fixture_identity(output)
 
@@ -180,7 +198,7 @@ def scenario_settings(path=None):
     return settings, env
 
 
-def route_assertions(route, run, preset):
+def route_assertions(route, run, preset, expected_characters=None):
     checks = [evidence.assertion('runtime.faults', not harness.run_faults(run),
                                 '; '.join(harness.run_faults(run)) or 'no detected runtime faults'),
               evidence.assertion('save.restoration', run.save_ok is True, 'complete disposable save-root restoration')]
@@ -188,6 +206,19 @@ def route_assertions(route, run, preset):
                'intro': ['game.startstorymode(', 'getscreeninfo(story/chardec'],
                'crib': ['getscreeninfo(story/crib'], 'gym': ['getscreeninfo(story/gym']}
     fight = route.startswith(('fight', 'ffa', 'versus', 'two-matches'))
+    if expected_characters:
+        scenarios = load('scenarios')
+        ok, detail = scenarios.check_expectations(run.text, expected_characters)
+        checks.append(evidence.assertion('identity.fighters', ok, detail,
+                      expected=expected_characters, observed=scenarios.match_fighters(run.text)))
+    config = harness.ROUTES.get(route, {})
+    if config.get('story_requirements'):
+        checks.append(evidence.story_selection_check(run.text))
+    if config.get('final_menu_timeout'):
+        checks.append(evidence.final_menu_check(run.timeline, config['final_menu_timeout']))
+    observed_venue = config.get('expected_venue', config.get('venue_index'))
+    if observed_venue is not None:
+        checks.append(evidence.venue_check(run.text, observed_venue))
     for anchor in (['game.startgame('] if fight else anchors.get(route, [])):
         checks.append(evidence.assertion('route.' + anchor, harness.reached(run.summary, anchor), 'expected FUNCCALL'))
     if route in ('gym', 'story-tour'):
@@ -289,8 +320,12 @@ def execute(args):
               'assertions': [], 'images': [], 'seconds': 0}
     try:
         fixture = evidence.fixture_identity(args.fixture)
+        expected_characters = load('scenarios').parse_expect(getattr(args, 'expect_character', None))
         settings, display_env = scenario_settings(args.settings)
         report['identity']['fixture'] = fixture
+        story_required = harness.ROUTES[args.route].get('story_requirements', ())
+        if story_required:
+            report['identity']['story_selection'] = evidence.story_fixture(args.fixture, story_required)
         report['identity']['environment'] = evidence.environment_identity()
         report['identity']['scenario_settings'] = settings
         if args.settings:
@@ -308,6 +343,7 @@ def execute(args):
             shutil.copytree(Path(args.fixture) / 'save', Path(disposable) / 'save')
             env = {'DEFJAM_DATA': disposable, 'RECOMP_SETTINGS': 'none',
                    'RECOMP_PAD_HOST': '0', 'RECOMP_PRESENT_PACING': '1'}
+            env['RECOMP_STORY_FIXTURE'] = str(Path(args.fixture).resolve())
             env.update(display_env)
             # Fixture saves live in a disposable data root; HD pack assets can
             # be read explicitly from the caller's separate mods directory.
@@ -318,8 +354,10 @@ def execute(args):
                 env['RECOMP_TEXTURE_ROOT'] = str(Path(args.texture_root).resolve())
             if args.no_unlock:
                 env['RECOMP_UNLOCK_ALL'] = '0'
-            if args.observe_combat or args.require_combat:
+            if args.observe_combat or args.require_combat or expected_characters:
                 env['RECOMP_TEST_OBSERVATIONS'] = '1'
+            if any(k in harness.ROUTES[args.route] for k in ('expected_venue', 'venue_index')):
+                env['RECOMP_START_LOG'] = '1'
             for item in args.test_env or []:
                 name, _, value = item.partition('=')
                 if not name.startswith('RECOMP_TEST_'):
@@ -358,11 +396,15 @@ def execute(args):
                 bootstrap = plan.get('bootstrap_route', 'boot')
                 if bootstrap not in harness.ROUTES:
                     raise ValueError('unknown session bootstrap route: ' + str(bootstrap))
+                bootstrap_story = harness.ROUTES[bootstrap].get('story_requirements', ())
+                if bootstrap_story:
+                    report['identity']['story_selection'] = evidence.story_fixture(args.fixture, bootstrap_story)
                 # Reuse a calibrated front-end setup, then let the live driver
                 # own fight/return/next-mode input. No repeating static tail.
                 run = harness.run_game(args.route, stages=bootstrap_stages(bootstrap),
                                        secs=plan.get('timeout_seconds', 900), shots=plan.get('shots', ''),
-                                       preset=args.preset, env=env, quiet=True, controller=controller, inherit_recomp=False)
+                                       preset=args.preset, env=env, quiet=True, controller=controller, inherit_recomp=False,
+                                       story_requirements=bootstrap_story)
             elif args.step_input:
                 # The fight's input comes from the step-timed file; the host-timed
                 # script only drives the menus and is closed when the match starts.
@@ -388,7 +430,8 @@ def execute(args):
             report['pcm_boundaries'] = run.pcm_boundaries
             shutil.copyfile(run.log, folder / 'game.log.err')
             report['identity']['log'] = str(folder / 'game.log.err')
-            report['assertions'] += route_assertions(args.route, run, args.preset)
+            report['identity']['toolchain'] = evidence.toolchain_identity(run.identity.get('build_state', {}))
+            report['assertions'] += route_assertions(args.route, run, args.preset, expected_characters)
             if controller is not None:
                 report['assertions'] += controller.assertions()
             report['assertions'].append(evidence.assertion('fixture.unchanged', evidence.fixture_identity(args.fixture) == fixture,
@@ -478,6 +521,9 @@ def main(argv=None):
     fixture.add_argument('--source', required=True, help='caller-prepared save root, copied without changes')
     fixture.add_argument('--output', required=True, help='new ignored/local directory')
     fixture.add_argument('--profile', required=True, help='explicit identity and progression description')
+    fixture.add_argument('--story-profile', help='retain only this named saved user in the copied fixture')
+    fixture.add_argument('--story-ready', action='append', default=[], metavar='CHECKPOINT',
+                         help='declare prepared progression: crib, gym, map-shops or unlock (repeatable)')
     candidates = sub.add_parser('baseline-candidates', help='copy report captures into a new local review folder, unapproved')
     candidates.add_argument('--report', required=True, help='retained report.json')
     candidates.add_argument('--output', required=True, help='new local folder; keep under ignored logs')
@@ -522,9 +568,12 @@ def main(argv=None):
                      help='with --record: a frame this long writes a bundle by itself')
     run.add_argument('--require-combat', action='store_true',
                      help='assert movement, a player attack, damage and (on routes that play to the end) the result from game state')
+    run.add_argument('--expect-character', action='append', metavar='SLOT:INDEX',
+                     help='require match_start fighter identity and include the verdict in all reports')
     args = parser.parse_args(argv)
     if args.action == 'fixture':
-        print(json.dumps(create_fixture(args.source, args.output, args.profile), indent=2))
+        print(json.dumps(create_fixture(args.source, args.output, args.profile,
+                                       args.story_profile, args.story_ready), indent=2))
         return 0
     if args.action == 'baseline-candidates':
         print(baseline_candidates(args.report, args.output))
