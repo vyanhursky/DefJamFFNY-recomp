@@ -1,7 +1,10 @@
 """Setup's Windows path rules: how long and how named an install folder may be for the build to work."""
 import importlib.util
+import os
 from pathlib import Path
 import re
+import shutil
+import subprocess
 from types import SimpleNamespace
 
 import pytest
@@ -97,3 +100,106 @@ def test_a_long_folder_is_refused_before_anything_expensive(monkeypatch, tmp_pat
     with pytest.raises(engine.SetupError, match='too long') as refused:
         state.execute()
     assert refused.value.code == 2 and not reached
+
+
+windows_only = pytest.mark.skipif(os.name != 'nt', reason='Windows code pages and tools')
+
+
+def test_precompiled_headers_are_off_only_outside_ascii():
+    assert engine.windows_path_options(Path('D:/Games/Def Jam/source')) == []
+    for folder in ('D:/Caf\u00e9 DJ/source', 'C:/Users/Jo\u00e3o/source', 'D:/\u0141\u00f3d\u017a/source'):
+        assert engine.windows_path_options(Path(folder)) == ['-DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON']
+
+
+def encoding_check(monkeypatch, representable, ninja, cmake='3.31.6-msvc6'):
+    state = engine.Engine.__new__(engine.Engine)
+    state.install = state.source = Path('folder')
+    monkeypatch.setattr(engine, 'in_ansi_code_page', lambda path: representable)
+
+    def run(argv, **options):
+        assert not representable, 'must not be asked'
+        if argv[0] == 'cmake':
+            return 'cmake version ' + cmake + '\n'
+        if isinstance(ninja, Exception):
+            raise ninja
+        return ninja
+    state.run = run
+    state.check_path_encoding()
+
+
+def test_a_folder_in_the_code_page_needs_no_newer_tools(monkeypatch):
+    encoding_check(monkeypatch, True, '', '3.20.0')
+
+
+@pytest.mark.parametrize('cmake', ['3.21.0', '3.31.6-msvc6', '4.1.2'])
+def test_newer_tools_build_outside_the_code_page(monkeypatch, cmake):
+    encoding_check(monkeypatch, False, 'Build file encoding: UTF-8\n', cmake)
+
+
+@pytest.mark.parametrize('cmake', ['3.20.21032501-MSVC_2', '3.9.0', 'unknown'])
+def test_an_older_cmake_is_refused_outside_the_code_page_whatever_ninja_is(monkeypatch, cmake):
+    with pytest.raises(engine.SetupError, match='cannot build in a folder'):
+        encoding_check(monkeypatch, False, 'Build file encoding: UTF-8\n', cmake)
+
+
+@pytest.mark.parametrize('ninja', ['Build file encoding: ANSI\n', engine.SetupError('unknown tool')],
+                         ids=['ansi', 'before-1.11'])
+def test_an_ansi_ninja_is_refused_outside_the_code_page(monkeypatch, ninja):
+    with pytest.raises(engine.SetupError, match='cannot build in a folder') as refused:
+        encoding_check(monkeypatch, False, ninja)
+    assert refused.value.code == 2
+
+
+def test_cancelling_is_not_taken_for_an_old_ninja(monkeypatch):
+    with pytest.raises(engine.SetupError) as stopped:
+        encoding_check(monkeypatch, False, engine.SetupError('cancelled', 6))
+    assert stopped.value.code == 6
+
+
+@windows_only
+def test_the_code_page_check_knows_what_no_ansi_page_holds():
+    assert engine.in_ansi_code_page('D:/Games/Def Jam')
+    import locale
+    if locale.getencoding().lower() in ('utf-8', 'cp65001'):
+        pytest.skip('this Windows uses UTF-8 as its ANSI code page')
+    assert not engine.in_ansi_code_page('D:/\U0001F3A4')
+
+
+@windows_only
+def test_the_imported_toolchain_environment_keeps_non_ascii_values(tmp_path):
+    if not shutil.which('cl'):
+        pytest.skip('Visual Studio Build Tools required')
+    given = {'DEFJAM_DATA': 'D:\\Caf\u00e9 DJ\\data', 'DEFJAM_PROBE_USER': 'C:\\Users\\Jo\u00e3o\\Temp',
+             'DEFJAM_PROBE_WIDE': 'D:\\\u0141\u00f3d\u017a \u683c'}
+    state = engine.Engine.__new__(engine.Engine)
+    state.args = SimpleNamespace(status_file=None, cancel_file=None, install_prerequisites=False)
+    state.log, state.payload, state.version_root, state.python = None, tmp_path, tmp_path, tmp_path / 'python.exe'
+    state.env = dict(os.environ, **given)
+    state.event = lambda message: None
+    state.toolchain()
+    assert {key: state.env[key] for key in given} == given
+
+
+@windows_only
+@pytest.mark.parametrize('name', ['plain', 'Caf\u00e9 DJ', '\u0141\u00f3d\u017a'])
+def test_the_resource_script_compiles_in_any_folder(tmp_path, name):
+    tools = [shutil.which(tool) for tool in ('cmake', 'ninja', 'cl', 'rc')]
+    if not all(tools):
+        pytest.skip('CMake, Ninja and MSVC required')
+    if name != 'plain' and not name.isascii() and not engine.in_ansi_code_page(name):
+        probe = subprocess.run([tools[1], '-t', 'wincodepage'], capture_output=True)
+        if b'UTF-8' not in probe.stdout:
+            pytest.skip('this Ninja cannot build outside the code page, which setup refuses')
+    top = tmp_path / name
+    for part in ('cmake/windows_resource.cmake', 'cmake/app.rc.in', 'branding/icon/defjam.ico'):
+        (top / part).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(ROOT / part, top / part)
+    (top / 'main.c').write_text('int main(void) { return 0; }\n')
+    (top / 'CMakeLists.txt').write_text(
+        'cmake_minimum_required(VERSION 3.20)\nproject(probe C RC)\ninclude(cmake/windows_resource.cmake)\n'
+        'defjam_windows_resource(RC NAME probe VERSION 1.2.3 DESCRIPTION "probe")\n'
+        'add_executable(probe main.c "${RC}")\n')
+    for command in ([tools[0], '-G', 'Ninja', '-S', '.', '-B', 'out'], [tools[0], '--build', 'out']):
+        done = subprocess.run(command, cwd=top, capture_output=True)
+        assert done.returncode == 0, (done.stdout + done.stderr).decode(errors='replace')
+    assert (top / 'out/probe.exe').is_file()

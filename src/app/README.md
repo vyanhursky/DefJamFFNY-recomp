@@ -76,7 +76,9 @@ Play starts the game that setup built on this computer, with `--no-launcher`.
   installed copy, first replacing it when the download is a newer release. A home an older release
   made (without `.defjam-portable`) keeps its game and data where its first run put them. The
   installed copy unpacks its payload again when `payload\` is missing or from another build
-  (`payload.sha256`). Uninstall on Windows removes the desktop shortcut when it points at this
+  (`payload.sha256`). Setup builds in folders named with accents (`engine.py`: no precompiled headers
+  outside ASCII, the toolchain's environment read as UTF-8, the icon named relative to its `.rc`) and
+  refuses, before analysis, a name outside the ANSI code page when Ninja is older than 1.11. Uninstall on Windows removes the desktop shortcut when it points at this
   program; in a portable folder and in an older home alike it deletes only the app's own files and then
   the folder if it is empty, so a kept `data\` and any other file stay (`remove_after_exit` in
   `app_os.cpp`: the script is constant text and gets the paths in the environment, because cmd would

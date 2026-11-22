@@ -17,6 +17,10 @@ function(defjam_windows_resource out)
     set(RC_DESCRIPTION "${RC_DESCRIPTION}")
     set(RC_NAME "${RC_NAME}")
     set(target "${CMAKE_CURRENT_BINARY_DIR}/${RC_NAME}.rc")
+    # rc.exe reads the .rc in the ANSI code page and CMake writes it in UTF-8, so a path in it breaks in
+    # a folder named with accents. The icon is copied beside the .rc and named there by file name alone.
+    configure_file("${RC_ICON}" "${CMAKE_CURRENT_BINARY_DIR}/${RC_NAME}.ico" COPYONLY)
+    set(RC_ICON "${RC_NAME}.ico")
     configure_file("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/app.rc.in" "${target}" @ONLY)
     set(${out} "${target}" PARENT_SCOPE)
 endfunction()

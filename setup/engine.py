@@ -185,6 +185,20 @@ def windows_path_length(path):
     return len(str(path).encode('utf-16-le')) // 2
 
 
+def in_ansi_code_page(path):
+    try:
+        str(path).encode('mbcs')
+        return True
+    except UnicodeEncodeError:
+        return False
+
+
+def windows_path_options(source):
+    """CMake options a build folder's name calls for. With older tools the precompiled header SDL3 uses
+    breaks outside ASCII (C1083): CMake writes the include path in ANSI and cl reads it as UTF-8."""
+    return [] if str(source).isascii() else ['-DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON']
+
+
 def check_build_path(version_root):
     """Refuse a folder the toolchain cannot build in now, not after extraction, analysis and lift."""
     over = windows_path_length(version_root) - WINDOWS_VERSION_ROOT_MAX
@@ -853,8 +867,10 @@ class Engine:
         # Import VsDevCmd through a fixed script with an environment-supplied path.
         devcmd = vs / 'Common7/Tools/VsDevCmd.bat'
         self.env['DEFJAM_SETUP_VSDEVCMD'] = str(devcmd)
+        # SET writes in the console's code page, and run() reads UTF-8: hence chcp before it, or every
+        # value with an accent (TEMP under an accented user name, DEFJAM_DATA) reaches the build broken.
         batch = self.version_root / 'toolchain.cmd'
-        batch.write_text('@echo off\ncall "%DEFJAM_SETUP_VSDEVCMD%" -arch=amd64 -host_arch=amd64 -no_logo\nif errorlevel 1 exit /b %errorlevel%\nset\n', encoding='utf-8')
+        batch.write_text('@echo off\ncall "%DEFJAM_SETUP_VSDEVCMD%" -arch=amd64 -host_arch=amd64 -no_logo\nif errorlevel 1 exit /b %errorlevel%\nchcp 65001 >nul\nset\n', encoding='utf-8')
         # CMD does not understand list2cmdline's backslash-escaped inner quotes.
         # Expand one quoted environment value after parsing a constant command;
         # omit CALL, whose second expansion would reinterpret percent characters.
@@ -876,6 +892,25 @@ class Engine:
                 raise SetupError('Missing toolchain component: ' + executable, 3)
         self.run(['cmake', '--version'])
         self.run(['ninja', '--version'])
+
+    def check_path_encoding(self):
+        """Outside the ANSI code page a build needs UTF-8 build files: CMake 3.21 or newer writes them,
+        Ninja 1.11 or newer reads them. Visual Studio 2019 has 3.20 and 1.10, and either alone fails, so
+        say it before analysis and lift."""
+        if in_ansi_code_page(self.source):
+            return
+        found = re.search(r'cmake version (\d+)\.(\d+)', self.run(['cmake', '--version'], capture=True))
+        able = bool(found) and (int(found[1]), int(found[2])) >= (3, 21)
+        if able:
+            try:
+                able = 'UTF-8' in self.run(['ninja', '-t', 'wincodepage'], capture=True)
+            except SetupError as ex:
+                if ex.code == 6:
+                    raise
+                able = False            # no such tool: older than 1.11
+        if not able:
+            raise SetupError('These C++ Build Tools cannot build in a folder with these characters: ' + str(self.install) +
+                             '. Use a folder with a simpler name, or install Visual Studio 2022 Build Tools.', 2)
 
     def install_prerequisites(self):
         self.event('Installing Microsoft Build Tools; Windows may request administrator consent')
@@ -944,6 +979,7 @@ class Engine:
                     deps = json.loads((self.payload / 'dependencies.json').read_text())
                     overrides = [f'-DFETCHCONTENT_SOURCE_DIR_{name.upper()}={self.source / item["source_dir"]}'
                                  for name, item in zip(('sdl3', 'imgui'), [d for d in deps if 'source_dir' in d])]
+                    overrides += windows_path_options(self.source)
                 else:
                     # SDL3, MoltenVK and shaderc come prebuilt with the setup; nothing is
                     # looked for in /opt/homebrew, /usr/local or any other prefix.
@@ -1222,6 +1258,8 @@ class Engine:
                 self.timed('Prepare source', self.prepare_source)
                 self.timed('Verify and extract dump', self.extract)
                 self.timed('Check toolchain', self.toolchain)
+                if IS_WINDOWS:
+                    self.check_path_encoding()
                 self.link_game()
                 self.pipeline()
                 self.timed('HD textures', self.build_hd_textures)
