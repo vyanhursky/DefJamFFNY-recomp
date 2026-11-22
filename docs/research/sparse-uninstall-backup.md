@@ -48,8 +48,13 @@ the result occupies very little disk. Evidence: local `logs/storage-probe-final.
   one slow test deselected (`sparse-units.log`). Final focused checks: 78 passed, six skipped
   (`sparse-focused-final.log`), including an actual-allocation assertion, byte equality,
   dense fallback, links, corruption/disk-full/source-mutation failures and held locks.
-- Windows native app/setup packaging passes; final package and packaged CLI acceptance are
-  recorded in the PR. Explicit payload validation now requires engine/save_storage.py;
+- Final Windows native app/setup packaging passes (`sparse-package-final.log`), including
+  embedded imports, 95 fighter imports and game-free asset validation. Packaged engine CLI
+  `--uninstall --backup-dir` also passed on the full-size disposable image fixture: it published
+  the verified manifest before removing the synthetic installed build/receipt, and kept the
+  source data. Logs: `packaged-uninstall-console.log`, `logs/packaged-uninstall.log`.
+  This exercises shipped Python/engine/helper plumbing, not a repeated fresh game compile.
+  Explicit payload validation now requires engine/save_storage.py;
   Windows/macOS/Linux staging all include it. Existing app argument-contract coverage includes
   uninstall and backup-dir. The UI reports a completed manifest even if a later uninstall step fails.
 - Release gate: native macOS/Deck filesystem and uninstall acceptance, restore the backup to a
