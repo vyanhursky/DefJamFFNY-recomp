@@ -66,6 +66,7 @@ extern "C" {
 #include "scene_launcher.h"
 #include "dev_module.h"
 #include "patches/song_cursor.h"
+#include "patches/photo_mode.h"
 #endif
 #include "patches/cheats.h"
 #include "input_host.h"
@@ -2679,6 +2680,7 @@ void song_pad_poll()
 // [songs] skip_key / restart_key: which request a key-down is, if any.
 int song_key_request(int vk)
 {
+    if (photo_mode_active()) return 0;
     if (vk <= 0 || vk == g_overlay_vk) return 0;
     if (vk == g_song_vk[0]) return SONG_REQUEST_SKIP;
     if (vk == g_song_vk[1]) return SONG_REQUEST_RESTART;
@@ -2687,6 +2689,7 @@ int song_key_request(int vk)
 
 void set_open(bool open)
 {
+    if (open && photo_mode_active()) return;
     if (g_open.load() == open) return;
     g_open = open;
     g_just_opened = open;
@@ -2805,7 +2808,7 @@ extern "C" void pc_ui_overlay(void *device, void *context, void *window_rtv, uns
     ui_lock();
     bool toggled = g_toggle.exchange(false);
     pad_mark_poll();
-    if (!ui_capturing() && !g_open.load()) song_pad_poll();
+    if (!ui_capturing() && !g_open.load() && !photo_mode_active()) song_pad_poll();
     if (!ui_capturing() && !g_chords.empty() && pad_toggle_pressed()) toggled = true;
     if (toggled) set_open(!g_open.load());
     bool open = g_open.load();
@@ -3001,7 +3004,7 @@ int overlay_active(void *)
     ui_lock();
     bool toggled = g_toggle.exchange(false);
     pad_mark_poll();
-    if (!ui_capturing() && !g_open.load()) song_pad_poll();
+    if (!ui_capturing() && !g_open.load() && !photo_mode_active()) song_pad_poll();
     if (!ui_capturing() && !g_chords.empty() && pad_toggle_pressed()) toggled = true;
     if (toggled) set_open(!g_open.load());
     bool open = g_open.load();

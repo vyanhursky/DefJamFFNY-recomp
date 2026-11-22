@@ -19,6 +19,7 @@
  */
 
 #include "hooks/save_activity.h"
+#include "patches/photo_mode.h"
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
@@ -616,6 +617,30 @@ void sub_0008BE60_enter(void)
  * through a pause that began in a live fight (issue #95); otherwise no change. */
 void sub_00079B60_enter(void) { if (s_ws_hud_live) ws_hud_heartbeat(); }
 void sub_0007A8F0_enter(void) { if (s_ws_hud_live) ws_hud_heartbeat(); }
+extern void sub_00079B60_gen(void);
+void sub_00079B60(void)
+{
+    if (photo_mode_freeze(g_ecx)) {
+        if (s_ws_hud_live) ws_hud_heartbeat();
+        g_esp += 8; return; /* thiscall ret 4 */
+    }
+    sub_00079B60_gen();
+}
+extern void sub_0007A8F0_gen(void);
+void sub_0007A8F0(void)
+{
+    if (photo_mode_freeze(g_ecx)) {
+        if (s_ws_hud_live) ws_hud_heartbeat();
+        g_esp += 8; return;
+    }
+    sub_0007A8F0_gen();
+}
+extern void sub_00079E40_gen(void);
+void sub_00079E40(void) { photo_mode_tick(g_ecx); sub_00079E40_gen(); }
+/* The measured Battle screen uses 796A0; 79E40 belongs to the other screen
+ * family. Route its indirect render callback without renaming the guest body. */
+extern void sub_000796A0(void);
+static void photo_battle_render(void) { photo_mode_tick(g_ecx); sub_000796A0(); }
 void sub_001A4D90_enter(void) { defjam_test_match_start(); defjam_crowd_match_start(); cheats_match_start(); song_cursor_match_start(); pc_speech_subs_clear_match(); }
 void sub_0001D2C0_enter(void)
 {
@@ -1684,6 +1709,7 @@ static void speech_wrap_stop_extro(void)
 
 recomp_func_t recomp_lookup_manual(uint32_t xbox_va)
 {
+    if (xbox_va == 0x000796A0u) return photo_battle_render;
     if (xbox_va == 0xFE000064u) return speech_wrap_NtReadFile;
     if (xbox_va == 0xFE000068u) return speech_wrap_NtCreateFile;
     if (xbox_va == 0xFE00006Cu) return speech_wrap_NtClose;
