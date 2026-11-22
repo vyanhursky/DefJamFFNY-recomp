@@ -602,6 +602,7 @@ void sub_00087700_enter(void)
     ws_hud_heartbeat();
     cheats_fight_step();        /* [cheats] fight cheats (src/patches/cheats.c) */
 }
+void sub_0008AB00_enter(void) { photo_mode_result_boundary(); }
 /* The match's update (thiscall; the match at 0x349760, its state at +0x2D820).
  * Only states 5 and 8 run the simulation step above; any other state (intro,
  * special-move camera, match end) ends the live HUD. */

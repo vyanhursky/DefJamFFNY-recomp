@@ -88,6 +88,10 @@ def main():
         'getscreeninfo(battle/choosef2=right@5;a@8;left@12;a@15;a@20+3x8',
         'getscreeninfo(battle/chsvenue=a@5+3x8']
     tail = harness.FIGHT_TAIL
+    if args.context == 'victory':
+        # Repeated attack/confirm buttons can skip the extro before a frame is
+        # rendered. Let the CPU finish an idle opponent, then observe its scene.
+        tail = '@game.startgame(,back:9999:10000'
     expected_pause = args.context in ('paused', 'controller-paused')
     negative = args.context.startswith('reject-')
     virtual = args.context.startswith('controller') or negative
@@ -158,6 +162,9 @@ def main():
         receipt['rejection_passed'] = not receipt['entered'] and '[PAD] script: rs sampled' in run.text \
             and ('[SCENE] playing sc05 ' in run.text if args.context == 'reject-cutscene' else 'getscreeninfo(intmain/mainmenu' in run.text.lower())
         receipt['passed'] = receipt['rejection_passed'] and receipt['save_restored'] and receipt['runtime_clean'] and not photos
+    elif args.context == 'victory':
+        receipt['capture_passed'] = len(photos) == 1 and photos[0]['valid']
+        receipt['passed'] = receipt['passed'] and receipt['capture_passed']
     elif virtual:
         if args.expect_save_failure:
             receipt['capture_passed'] = '[PHOTO] save failed:' in run.text and not photos

@@ -2,6 +2,8 @@
 
 Photo Mode freezes a loaded fight while the player composes and saves a photograph with a controller. The first version targets features 1–8 for milestone v1.3.0. Entrances and victory scenes are also candidates for activation, provided their animation and camera can freeze and resume correctly. Story cutscenes and ordinary menus remain excluded.
 
+The implemented controls and capture behavior are in the [Photo Mode guide](photo-mode.md). Native evidence and remaining coverage are in the [scene qualification](research/photo-mode-scene-paths.md). The catalogue below keeps the original feature IDs for later selection.
+
 ## Entry and return behavior
 
 Hold R3 + D-pad Down on one controller for 0.5 seconds. A completed hold fires once and must be released before reuse. The initiating controller owns the camera. Other controllers cannot complete the chord or operate gameplay while Photo Mode is active.

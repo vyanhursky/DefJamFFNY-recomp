@@ -23,7 +23,7 @@ extern void sub_001ECF10(void);
 #define VIEW_SLOT 0x2FB158u
 static volatile LONG active;
 static uint32_t owner_screen, view, projection;
-static int pad, test_done, test_kind, test_ticks, live_ticks, entrance_ticks, victory_ticks, enabled, draining;
+static int pad, test_done, test_kind, test_ticks, live_ticks, entrance_ticks, victory_ticks, test_photo_done, enabled, draining;
 static unsigned held_ms[4];
 static ULONGLONG last_tick, entered;
 static float entry_camera[12], pos[3], yaw, pitch, roll, fov, entry_fov;
@@ -114,6 +114,16 @@ static void setting_change(int direction)
 }
 
 void photo_mode_simulation_step(void) { last_simulation = GetTickCount64(); }
+void photo_mode_result_boundary(void)
+{
+    /* Test fixture: select 8AB00's extro branch only after a natural result.
+     * The transient decision word is otherwise rewritten by input updates. */
+    if (test_kind == 4 && !test_done && (MEM32(0x3BE0F4u) & 8u) && !(MEM32(0x3BE0F8u) & 0x40u)) {
+        fprintf(stderr,"[PHOTO] fixture select victory branch flags=%08X -> %08X\n",
+            MEM32(0x3BE0F8u), MEM32(0x3BE0F8u) | 0x40u);
+        MEM32(0x3BE0F8u) |= 0x40u;
+    }
+}
 static int fight_was_paused(void)
 {
     uint32_t state = MEM32(MATCH + 0x2D820);
@@ -204,7 +214,7 @@ static int begin(uint32_t screen, int slot, const InputRaw *raw)
                            entry_camera[8]*up[0] + entry_camera[9]*up[1] + entry_camera[10]*up[2]);
     }
     roll = entry_roll; fov = entry_fov; pad = slot; previous = *raw;
-    panel = 1; settings = 0; row = 0; exit_after_capture = 0;
+    panel = 1; settings = 0; row = 0; exit_after_capture = test_photo_done = 0;
     owner_screen = screen; entered = GetTickCount64(); draw_count = 0;
     force_only = fight_was_paused();
     frozen_hash = scene_hash();
@@ -265,6 +275,9 @@ int photo_mode_tick(uint32_t screen)
             else { photo_mode_cancel(); previous = raw; return 1; }
         }
         if (test_kind && now - entered >= 6000) { photo_mode_cancel(); return 1; }
+        if (test_kind == 4 && !test_photo_done && now - entered >= 2500) {
+            photo_capture_request(); test_photo_done = 1;
+        }
         if (pressed(&raw, INPUT_SRC_WEST)) panel = !panel;
         if (pressed(&raw, INPUT_SRC_NORTH)) { settings = !settings; panel = 1; }
         if (settings) {

@@ -34,3 +34,5 @@ Photo Mode is intended for loaded fights, including entry from the game's pause 
 The free camera has no wall collision. Moving outside the arena can reveal missing geometry or scenery designed to be seen from one direction. The first version contains features 1–8 from the [complete 18-feature plan](photo-mode-plan.md); later features remain proposals.
 
 For diagnostics, `RECOMP_PHOTO_MODE=0` disables the feature and `RECOMP_PHOTO_TRACE=1` logs camera settings. Developers can run `scripts/photo-probe.py` against this checkout's guarded `logs/runtime-data` to exercise freeze, camera motion, pause restoration and PNG output without changing the player's save root.
+
+Standard builds include SDL for PNG saving. Custom Windows builds with `DEFJAM_SDL3=OFF` report that saving requires an SDL-enabled build.

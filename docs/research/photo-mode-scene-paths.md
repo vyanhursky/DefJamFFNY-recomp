@@ -36,12 +36,19 @@ Runs use the owner's extracted dump through directory links and an independently
 | Paused prototype | `run-20261122-111505.log.err`: 346 publications, stable hash, zero simulation samples during/after, scale 1.00 preserved. |
 | Full controller, paused | `run-20261122-114133.log.err`, `photo-controller-paused-probe-3.log`: 964 publications, zero simulation steps during/after, settings and reset passed. Three 1708×960 PNGs; first two byte-identical with controls shown/hidden. Clean PNG visually inspected; pause panel/HUD restored on exit. |
 | Full controller, live | `run-20261122-114527.log.err`, `photo-final-controller.log`: chord, flight, height, look, FOV, roll, speed, sensitivity, invert Y, HUD, guides, reset, three PNGs and combat resumption passed. Window inspection confirmed controls/save feedback/guides; PNG inspection confirmed their exclusion with HUD preview enabled. |
+| Entrance | `run-20261122-114735.log.err`, `photo-final-entrance.log`: entry in state 3, 346 camera publications over six seconds, unchanged fighter/joint/timer hash, zero simulation during Photo Mode, then the entrance progressed into combat. |
+| Rejected contexts | `run-20261122-115410.log.err` (main menu), `run-20261122-115450.log.err` (Story sc05): the virtual pad sampled the complete chord twice, Photo Mode never entered, captures and clean runtime confirmed the intended contexts. |
+| Save failure | `run-20261122-115512.log.err`, `photo-save-failure.log`: output destination was a regular file; three save errors, no PNGs, controls/reset and return to the paused fight passed. |
 
 Freeze hashes cover four fighter records, including twenty world joints each, and timer bytes. No changed hash or simulation sample during Photo Mode is accepted. Identical same-pose PNGs additionally cover visible crowd/scenery/effects in these sampled frames. This does not qualify every hazard, effect or venue.
 
 ## Retained failed trials
 
 Initial probes incorrectly assumed only state 8 was combat, selected an unused renderer, or inferred pause from unrelated fields. `run-20261122-112717.log.err` sent `rthumb` in the seconds-script grammar, which requires `rs`; no chord reached the controller. The corrected trial passed controls/file checks but PNGs still contained GAME PAUSED (`run-20261122-113440.log.err`). That image failure led to the owned `CE200` guard and successful repeat. File validity alone is insufficient clean-capture evidence.
+
+The first victory route (`run-20261122-114942.log.err`) went from combat directly to state 11 and results; no victory scene was rendered and the probe correctly failed. `8AB00` branches to state 11 when the transient word at `3BE0F8` omits bit `0x40`. A second attempt (`run-20261122-115801.log.err`) set that word from the render callback, but normal updates rewrote it before the result decision. The controlled fixture must select the engine's extro branch at the result boundary. This is a test setup, not evidence of ordinary Battle automatically playing a victory scene. Production Photo Mode does not alter this word or force scenes to play.
+
+The final fixture uses the `8AB00` entry boundary, after a natural result, and also requests one clean PNG during the frozen victory. Source-specific victory and regression results are recorded in [PR #303](https://github.com/vyanhursky/DefJamFFNY-recomp/pull/303), including any failed or unqualified cases.
 
 ## Remaining qualification
 

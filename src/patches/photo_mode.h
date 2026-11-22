@@ -13,6 +13,8 @@ void photo_mode_cancel(void);
 void photo_mode_render(uint32_t screen);
 void photo_mode_clear(void);
 void photo_mode_simulation_step(void);
+/* Test-only selection of the engine's authored victory path. */
+void photo_mode_result_boundary(void);
 /* Guest root-render boundary; 1 when Photo Mode drew the frozen world itself. */
 int photo_mode_frame(void);
 typedef struct PhotoModeStatus {

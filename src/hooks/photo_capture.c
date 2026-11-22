@@ -4,6 +4,7 @@
 #include "host.h"
 #include "photo_capture.h"
 #include "patches/photo_mode.h"
+#ifdef XBOXRECOMP_HAVE_SDL3
 #include "d3d8_xbox.h"
 #include <SDL3/SDL.h>
 #include <stdio.h>
@@ -157,3 +158,15 @@ failed:
     fprintf(stderr, "[PHOTO] capture failed\n");
     InterlockedExchange(&stage, 0);
 }
+#else
+/* Preserve custom XInput-only builds; standard builds include SDL. */
+int photo_capture_busy(void) { return 0; }
+int photo_capture_waiting(void) { return 0; }
+void photo_capture_cancel_pending(void) {}
+void photo_capture_frame(void *device) { (void)device; }
+int photo_capture_request(void)
+{
+    photo_mode_capture_result("Photo saving requires an SDL-enabled build.");
+    return 0;
+}
+#endif
