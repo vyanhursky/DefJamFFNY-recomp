@@ -10,6 +10,7 @@
 | [Build on macOS and Linux](build-macos-linux.md) | The same pipeline off Windows, and what works there |
 | [Launcher and overlay](launcher-and-overlay.md) | The start-up window and the in-game settings screen (F1) |
 | [Controllers, keyboard and mouse](10-input.md) | Gamepads, the keyboard player, default keys, remapping and rumble |
+| [Photo Mode](photo-mode.md) | Freeze a fight, fly the camera with a controller and save PNG photos |
 | [settings.ini and keybinds](settings-reference.md) | Every setting, the default keys and key names, with examples |
 | [HD textures](hd-textures.md) | Optional texture packs on Windows, macOS and Linux: generation, settings and fallback |
 | [Custom songs](custom-songs.md) | Your own music files (MP3, FLAC, Ogg, WAV) in the Beatbox, the menus and fights; how many the game holds |

@@ -13,11 +13,11 @@ spec.loader.exec_module(probe)
 
 
 def trace(paused=False):
-    return ['[PHOTO] enter module=0 flags=' + ('00000040' if paused else '00000000'),
+    return ['[PHOTO] enter module=0 flags=0 origin_paused=' + str(int(paused)) + ' scale=1.00',
             '[PHOTO] draw=60 frozen=yes pos=0,1,2',
             '[PHOTO] draw=120 frozen=yes pos=1,1,2',
             '[PHOTO] draw=180 frozen=yes pos=1,1,2',
-            '[PHOTO] exit frozen=yes flags=' + ('00000040' if paused else '00000000')] + ([] if paused else ['[TEST-STATE] {"step":300}'])
+            '[PHOTO] exit frozen=yes flags=0 scale=1.00'] + ([] if paused else ['[TEST-STATE] {"step":300}'])
 
 
 @pytest.mark.parametrize('context', ['live', 'paused'])
@@ -42,3 +42,23 @@ def test_rejects_incomplete_proof(change):
 def test_rejects_paused_exit_that_resumes_or_was_never_paused():
     assert not probe.analyse_photo(trace() + ['[TEST-STATE] {}'], 'paused')['passed']
     assert not probe.analyse_photo(trace(True) + ['[TEST-STATE] {}'], 'paused')['passed']
+
+
+def test_pause_does_not_require_zero_time_scale():
+    result = probe.analyse_photo(trace(True), 'paused')
+    assert result['entry_scale'] == 1.0
+    assert result['passed']
+
+
+def test_rejects_pause_with_changed_scale_on_return():
+    lines = trace(True)
+    lines[-1] = lines[-1].replace('scale=1.00', 'scale=0.00')
+    assert not probe.analyse_photo(lines, 'paused')['passed']
+
+
+def test_victory_must_progress_after_camera_exit():
+    lines = trace(True)
+    lines[0] += ' state=10'
+    assert not probe.analyse_photo(lines, 'victory')['passed']
+    lines.append('[PHOTO] context state=11 screen24=0')
+    assert probe.analyse_photo(lines, 'victory')['passed']

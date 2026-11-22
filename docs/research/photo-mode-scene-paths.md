@@ -1,91 +1,48 @@
-# Photo mode screen path findings
+# Photo Mode scene paths and qualification
 
-Bounded static read of `src/recomp/gen/recomp_0003.c` around `sub_00079B60`,
-`sub_00079E40`, `sub_0007A7D0`, and `sub_0007A8F0`, plus their XBE method-pointer
-table and selected render callbacks. No code was changed and no game was run.
+Windows native investigation on 2026-11-22, branch `feat/photo-mode`, based on `f80a792`, toolkit `d108a64c0f272da2ab29016914f473018c3e2347`, Release preset. See the [player guide](../photo-mode.md) and [complete plan](../photo-mode-plan.md).
 
-## Screen fields and activation
+## Freeze and camera boundaries
 
-- Both tick routines read `MEM32([screen+4] + 0x24)` and materialize
-  `(value == 0)` as a boolean. The field is the underlying context's pause
-  status: zero is unpaused; nonzero is paused. Root's live combat trace confirms
-  module24=0 during active attacks. Photo mode should permit nonzero module24
-  when the user deliberately enters from pause.
-- `MEM32(screen + 0x24)` is the screen-local phase/status, not pause. Value 1
-  enters a one-time setup path (`79B60` calls `79190`; `7A8F0` calls `79DE0`)
-  and writes 2. Root observed zero through normal combat. Use `screen+0x24 == 0`
-  as the observed live fight-screen qualification; do not reinterpret it as
-  the pause gate.
-- `[screen+0x2C]+0x24` is a third, separate attached-object field inspected by
-  conditional update logic. It is not pause. It was zero in normal combat
-  (`menu24=0` in Root's trace); no exact object/UI type is proven.
-- Narrow entry gate: screen-local `+0x24 == 0`, loaded-fight CLogic state range
-  (prototype currently uses 1..13, covering entrance/combat/victory), and host
-  UI/menu/results closed. Do not require `[screen+4]+0x24 == 0`, since that
-  excludes intended pause entry. State names and range boundaries are not
-  proved by these functions alone. Root observed active combat at CLogic state
-  5 with timer 12; auto-entry checks must include 5 (state 8 alone is invalid).
+The measured Battle screen has vtable `0x29D5E4`, update `sub_00079B60` and renderer `sub_000796A0`. The other fight family pairs `sub_0007A8F0` with `sub_00079E40`. Freezing the fight tick retains rendering while stopping simulation work. `sub_00087700` supplies the simulation heartbeat.
 
-## Render pairing and original overlays
+The camera is registry slot 4 (`MEM32(0x2FB158)`). Eye/target/up start at `view+0x4C/+0x5C/+0x6C`. Projection is `MEM32(view+0x34)` and horizontal-at-4:3 FOV is at `projection+0xC`. Publish through `sub_00018F90` before culling, set the projection dirty bit and restore the entry camera on exit. Temporary source vectors, guest registers, FPU and XMM state are preserved.
 
-- `sub_00079E40` is a no-argument scene-render method at XBE raw pointer-table
-  offset `0x28C3D4`; `sub_0007A8F0` is a one-argument tick at adjacent offset
-  `0x28C3D0`. `sub_00079B60` is another tick at `0x28C3B0`. This table supports
-  E40 being reachable as the render peer for A8F0's screen family, but does not
-  establish that E40 is Story-only. Its body renders the fight scene and Root
-  identifies it as the Battle renderer. A distinct Story-only render address
-  was not established in this bounded read; keep that pairing unresolved.
-- E40's conditional calls are not safe draw-suppression seams after inspecting
-  their bodies:
-  - `sub_000B5AD0(screen+0x2C)` processes a manager/global table (16 entries),
-    calls `sub_000B2350`, `sub_000B3C30(0x39C1E0, ...)`, and conditionally
-    `sub_000B54E0(screen+0x2C)`. This is state/subsystem work, not a demonstrated
-    isolated paint callback.
-  - `sub_000B70D0(screen+0x30)` checks byte `[object+1]`, then calls
-    `sub_000B6B30(object)` and tail-calls `sub_000B6E50(object)`. These are long
-    state/geometry processing routines, not a demonstrated isolated overlay
-    paint path.
-  - `sub_000CE200(screen+0x34)` is categorized `game_audio`; do not suppress it
-    as HUD.
-  - `sub_0006AFD0(screen+0x40)` checks byte `[object+4]`; when enabled it calls
-    `sub_00068800([object+8])`, then increments `[object+0x90]`. This is a
-    tick/counter path, not isolated drawing.
-- No APT display name was visible in those bounded callback bodies. The E40
-  18Dxx/1A2xx/1B5F0 sequence and world scene share the method, so skipping E40
-  suppresses the whole scene. Mutating screen+0x24 also changes phase-dependent
-  render cleanup/setup. This static pass identifies no safe original HUD,
-  pause, or menu draw suppression call; leave E40 intact and trace APT/render
-  dispatches separately if overlay removal is required.
+All guest calls run on the guest thread. The GPU callback only copies completed pixels. When pause stops normal fight rendering, `sub_00077740` supplies a guest root-render boundary. Photo Mode calls the stored fight renderer under the original render lock (`0x2FB000`), preserving the pause modal for return.
 
-## Limits
+## Pause and UI ownership
 
-The field behavior above is from static branching plus Root's live combat
-observation. Paused-entry probe is pending; it should confirm the nonzero
-module24 value and ensure photo mode remains usable there. Overlay visual
-ownership and a Story-specific render address are not proved here.
+Battle pause leaves the observed time scale at **1.00**, with no simulation heartbeat. Neither `[screen+4]+0x24` nor `0x39C0C0 & 0x40` is a verified pause flag. Paused origin is detected from absence of simulation for over 200 ms in combat; the activation chord lasts 500 ms.
 
-## Correct renderer for the `79B60` screen (follow-up)
+`screen+0x24` is a lifecycle field. Accept only zero phase and identified fight states 3 (entrance), 4/5 (lead-in/combat), 8 (combat), 9 (decided), 10 (victory). `8BE60` dispatches state 10 through `89F20` to IntroExtro updater `A2EA0`.
 
-The original XBE raw pointer table at offset `0x28C3B0` contains
-`sub_00079B60`; the next pointer at `0x28C3B4` is `sub_000796A0`. This is the
-matching update/render pair for the class dispatched through `79B60`, and is
-the draw hook to use for the Story fight screen represented by this table.
-The separate table around `0x28C3D0` contains `sub_0007A8F0` followed by
-`sub_00079E40`, the Story/Battle-adjacent table previously inspected. Thus
-`79E40` is not the renderer dispatched for the screen whose tick is `79B60`.
+| Callback | Visibility handling |
+| --- | --- |
+| `B5AD0`, `B70D0` | Hide fight HUD/tutorial passes when requested or during pending capture. |
+| `6AFD0` | Suppress only the attached fight panel (`screen+0x38`, other family `+0x40`). |
+| `CE200` | Suppress only the owned pause panel/dimmer (`screen+0x2C`, other family `+0x34`). |
 
-`sub_000796A0` is a no-argument `thiscall` returning int, Category
-`game_vtable`, 495 bytes/135 instructions. Its body performs the full scene
-render: calls `968A0`, `B8850`, the 18Dxx/1A2xx setup and draw sequence, global
-render passes, and ends with `18DE0`, `97250`, and `18DF0`; it returns 1. The
-body is structurally similar to `79E40`, but has screen-family-specific fields
-and additional setup. Its `797CE` call passes `[screen+0x38]` to
-`sub_0006AFD0`. It therefore explains why wrapping only `79E40` produced no
-photo draw callback for the `79B60` screen.
+The generated **game_audio** category on `CE200` was misleading. `793A0` constructs the `screen+0x2C` child through `CCE60`, stores it at `794FF`, then initializes it through `CDDC0` (`pause.xsh`). `796A0` passes that exact child to `CE200` at `79844–7984C`. Quad/text code and native images established the correct seam. Unrelated `CE200` callers remain unchanged.
 
-`sub_00079190` is not the screen constructor and does not assign a vtable. It
-updates the attached timing/UI resources: reads `screen+0x1C`'s `+0x3A0`, `+0x344`,
-uses `[screen+0x1C]+0x3BC`, calls `sub_000647F0`, updates a float at `screen+0x48`,
-and calls `sub_0006B000`/`sub_0006BF90`. This invocation occurs from the
-`79B60` value-1 initialization branch. Runtime screen log gives `screen=810232F0`,
-state 5; the table adjacency is the static address-level match.
+Menus do not acquire a fight-render candidate. Match start and Battle teardown clear ownership. Nonzero projection modes are rejected; the existing [camera investigation](../widescreen/05-cameras-and-venues.md) identifies mode 1 on the CINEMA path. This is a conservative projection check, not a semantic cutscene flag. Story and other-family coverage remain distinct from Battle evidence.
+
+## Native evidence
+
+Runs use the owner's extracted dump through directory links and an independently copied save under `logs/runtime-data`. Harness guards restore the complete save root byte-identically. Logs, captures and save bytes stay local.
+
+| Check | Evidence |
+| --- | --- |
+| Live prototype | `run-20261122-103500.log.err`: 354 camera publications over six seconds, stable fighter/timer hash, visible camera translation, combat resumed. |
+| Paused prototype | `run-20261122-111505.log.err`: 346 publications, stable hash, zero simulation samples during/after, scale 1.00 preserved. |
+| Full controller, paused | `run-20261122-114133.log.err`, `photo-controller-paused-probe-3.log`: 964 publications, zero simulation steps during/after, settings and reset passed. Three 1708×960 PNGs; first two byte-identical with controls shown/hidden. Clean PNG visually inspected; pause panel/HUD restored on exit. |
+| Full controller, live | `run-20261122-114527.log.err`, `photo-final-controller.log`: chord, flight, height, look, FOV, roll, speed, sensitivity, invert Y, HUD, guides, reset, three PNGs and combat resumption passed. Window inspection confirmed controls/save feedback/guides; PNG inspection confirmed their exclusion with HUD preview enabled. |
+
+Freeze hashes cover four fighter records, including twenty world joints each, and timer bytes. No changed hash or simulation sample during Photo Mode is accepted. Identical same-pose PNGs additionally cover visible crowd/scenery/effects in these sampled frames. This does not qualify every hazard, effect or venue.
+
+## Retained failed trials
+
+Initial probes incorrectly assumed only state 8 was combat, selected an unused renderer, or inferred pause from unrelated fields. `run-20261122-112717.log.err` sent `rthumb` in the seconds-script grammar, which requires `rs`; no chord reached the controller. The corrected trial passed controls/file checks but PNGs still contained GAME PAUSED (`run-20261122-113440.log.err`). That image failure led to the owned `CE200` guard and successful repeat. File validity alone is insufficient clean-capture evidence.
+
+## Remaining qualification
+
+Native macOS/Linux, physical controllers, disconnect/reconnect, multiplayer, Story fights, special attacks, venue hazards and repeated long sessions need release/owner play-testing. No complete campaign acceptance is implied by the Windows probes.

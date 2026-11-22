@@ -2813,8 +2813,8 @@ extern "C" void pc_ui_overlay(void *device, void *context, void *window_rtv, uns
     if (toggled) set_open(!g_open.load());
     bool open = g_open.load();
     char sub_text[256] = "";
-    bool has_sub = pc_speech_subs_current(sub_text, sizeof(sub_text)) != 0;
-    if (!open && !has_sub) { ui_unlock(); return; }
+    bool has_sub = !photo_mode_active() && pc_speech_subs_current(sub_text, sizeof(sub_text)) != 0;
+    if (!open && !has_sub && !photo_mode_active()) { ui_unlock(); return; }
 
     ID3D11Device *dev = (ID3D11Device *)device;
     ID3D11DeviceContext *ctx = (ID3D11DeviceContext *)context;
@@ -2839,6 +2839,7 @@ extern "C" void pc_ui_overlay(void *device, void *context, void *window_rtv, uns
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
 
+    photo_mode_ui();
     if (has_sub)
         draw_speech_subtitle(sub_text);
 
@@ -3009,9 +3010,9 @@ int overlay_active(void *)
     if (toggled) set_open(!g_open.load());
     bool open = g_open.load();
     char sub_text[256] = "";
-    bool has_sub = pc_speech_subs_current(sub_text, sizeof(sub_text)) != 0;
+    bool has_sub = !photo_mode_active() && pc_speech_subs_current(sub_text, sizeof(sub_text)) != 0;
     ui_unlock();
-    return (open || has_sub) ? 1 : 0;
+    return (open || has_sub || photo_mode_active()) ? 1 : 0;
 }
 
 void overlay_init_backend(const D3D8VkOverlayFrame *f)
@@ -3036,8 +3037,8 @@ void overlay_draw(const D3D8VkOverlayFrame *f, void *)
     ui_lock();
     bool open = g_open.load();
     char sub_text[256] = "";
-    bool has_sub = pc_speech_subs_current(sub_text, sizeof(sub_text)) != 0;
-    if (!open && !has_sub) { ui_unlock(); return; }
+    bool has_sub = !photo_mode_active() && pc_speech_subs_current(sub_text, sizeof(sub_text)) != 0;
+    if (!open && !has_sub && !photo_mode_active()) { ui_unlock(); return; }
     if (g_ready && f->generation != g_vk_generation) {
         // The window's image has another format: the pipelines were built for the old pass.
         ImGui_ImplVulkan_Shutdown();
@@ -3064,6 +3065,7 @@ void overlay_draw(const D3D8VkOverlayFrame *f, void *)
     ui_sdl_frame((float)f->width, (float)f->height, 1.0f);
     ImGui::NewFrame();
 
+    photo_mode_ui();
     if (has_sub)
         draw_speech_subtitle(sub_text);
 

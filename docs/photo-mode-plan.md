@@ -56,7 +56,7 @@ The numbers remain stable so later decisions can reference them. Features 9–18
 | B / Circle | Exit to the entry fight or pause state. |
 | D-pad in settings | Select/change speed, roll, HUD and guides; reset camera. |
 
-Prompts follow the connected controller. Opening the camera settings suspends flight controls that conflict with menu navigation. Photo Mode, PC settings and song shortcuts must have explicit priority and must not combine inputs across pads.
+The first version shows Xbox and PlayStation face-button labels together. Opening the camera settings suspends flight controls that conflict with menu navigation. Photo Mode, PC settings and song shortcuts have explicit priority and must not combine inputs across pads. B / Circle closes settings before exiting Photo Mode.
 
 ## Prototype and implementation stages
 
