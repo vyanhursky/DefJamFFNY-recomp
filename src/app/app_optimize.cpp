@@ -46,7 +46,10 @@ void begin(bool apply)
         "--optimization-result", job.answer.string(), "--cancel-file", job.cancel.string(), "--log", job.log.string()};
     if (apply) args.push_back("--apply-compaction");
     unlock_install();
-    if (!spawn_engine(args, &job.process, &job.message)) lock_install();
+    if (!spawn_engine(args, &job.process, &job.message)) {
+        lock_install();
+        fs::remove_all(job.scratch, ec);
+    }
     job.started = SDL_GetTicks();
 }
 
@@ -88,7 +91,14 @@ bool optimization_busy() { return g_optimization.process.id != 0; }
 void optimization_request_cancel()
 {
     if (!optimization_busy() || g_optimization.cancelling) return;
-    std::ofstream(g_optimization.cancel) << "cancel";
+    std::ofstream marker(g_optimization.cancel);
+    marker << "cancel";
+    marker.close();
+    if (!marker) {
+        g_optimization.message = "Could not request cancellation. Try Cancel again or wait for optimization to finish.";
+        return;
+    }
+    g_optimization.message.clear();
     g_optimization.cancelling = true;
 }
 
@@ -102,6 +112,7 @@ bool optimization_screen_draw(float width, float height, UiResult *)
         ImGui::TextWrapped("%s", job.cancelling ? "Stopping disk optimization..." :
             job.applying ? "Optimizing save images. Keep this window open until it finishes." : "Checking disk usage...");
         ImGui::TextDisabled("%u seconds elapsed", unsigned((SDL_GetTicks() - job.started) / 1000));
+        if (!job.message.empty()) ImGui::TextWrapped("%s", job.message.c_str());
     } else {
         ImGui::TextWrapped("%s", job.message.c_str());
     }
