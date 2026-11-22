@@ -23,7 +23,7 @@ extern void sub_001ECF10(void);
 #define VIEW_SLOT 0x2FB158u
 static volatile LONG active;
 static uint32_t owner_screen, view, projection;
-static int pad, test_done, test_kind, test_ticks, live_ticks, entrance_ticks, victory_ticks, test_photo_done, enabled, draining;
+static int pad, test_done, test_kind, test_ticks, live_ticks, entrance_ticks, enabled, draining;
 static unsigned held_ms[4];
 static ULONGLONG last_tick, entered;
 static float entry_camera[12], pos[3], yaw, pitch, roll, fov, entry_fov;
@@ -114,16 +114,6 @@ static void setting_change(int direction)
 }
 
 void photo_mode_simulation_step(void) { last_simulation = GetTickCount64(); }
-void photo_mode_result_boundary(void)
-{
-    /* Test fixture: select 8AB00's extro branch only after a natural result.
-     * The transient decision word is otherwise rewritten by input updates. */
-    if (test_kind == 4 && !test_done && (MEM32(0x3BE0F4u) & 8u) && !(MEM32(0x3BE0F8u) & 0x40u)) {
-        fprintf(stderr,"[PHOTO] fixture select victory branch flags=%08X -> %08X\n",
-            MEM32(0x3BE0F8u), MEM32(0x3BE0F8u) | 0x40u);
-        MEM32(0x3BE0F8u) |= 0x40u;
-    }
-}
 static int fight_was_paused(void)
 {
     uint32_t state = MEM32(MATCH + 0x2D820);
@@ -214,7 +204,7 @@ static int begin(uint32_t screen, int slot, const InputRaw *raw)
                            entry_camera[8]*up[0] + entry_camera[9]*up[1] + entry_camera[10]*up[2]);
     }
     roll = entry_roll; fov = entry_fov; pad = slot; previous = *raw;
-    panel = 1; settings = 0; row = 0; exit_after_capture = test_photo_done = 0;
+    panel = 1; settings = 0; row = 0; exit_after_capture = 0;
     owner_screen = screen; entered = GetTickCount64(); draw_count = 0;
     force_only = fight_was_paused();
     frozen_hash = scene_hash();
@@ -240,7 +230,7 @@ int photo_mode_tick(uint32_t screen)
         const char *opt = getenv("RECOMP_PHOTO_MODE");
         configured = 1;
         test_kind = !test ? 0 : !strcmp(test,"live") ? 1 : !strcmp(test,"paused") ? 2 :
-                    !strcmp(test,"entrance") ? 3 : !strcmp(test,"victory") ? 4 : 0;
+                    !strcmp(test,"entrance") ? 3 : 0;
         enabled = test_kind || !opt || strcmp(opt, "0");
     }
     if (!enabled) return 0;
@@ -275,9 +265,6 @@ int photo_mode_tick(uint32_t screen)
             else { photo_mode_cancel(); previous = raw; return 1; }
         }
         if (test_kind && now - entered >= 6000) { photo_mode_cancel(); return 1; }
-        if (test_kind == 4 && !test_photo_done && now - entered >= 2500) {
-            photo_capture_request(); test_photo_done = 1;
-        }
         if (pressed(&raw, INPUT_SRC_WEST)) panel = !panel;
         if (pressed(&raw, INPUT_SRC_NORTH)) { settings = !settings; panel = 1; }
         if (settings) {
@@ -314,22 +301,20 @@ int photo_mode_tick(uint32_t screen)
         status_publish();
         return 1;
     }
-    /* Loaded fight callbacks only: entrance, lead-in/combat, match decided,
-     * and IntroExtro victory (8BE60 -> 89F20 -> A2EA0). Exclude loading,
-     * teardown and unclassified states as well as nonzero screen phases. */
+    /* Qualified loaded fight callbacks: entrance and lead-in/combat. Victory
+     * entry remains disabled until a natural extro route can be qualified.
+     * Exclude loading, results and nonzero screen phases. */
     if (MEM32(screen + 0x24) != 0 ||
-        !(state == 3 || state == 4 || state == 5 || state == 8 || state == 9 || state == 10) || pc_ui_overlay_open()) {
+        !(state == 3 || state == 4 || state == 5 || state == 8) || pc_ui_overlay_open()) {
         memset(held_ms, 0, sizeof(held_ms)); return 0;
     }
     test_ticks++;
     if (state == 3) entrance_ticks++;
-    if (state == 10) victory_ticks++;
     if (state == 5 || state == 8) live_ticks++;
     if (test_kind && !test_done &&
         ((test_kind == 1 && (state == 5 || state == 8) && live_ticks > 120) ||
          (test_kind == 2 && fight_was_paused() && live_ticks > 120) ||
-         (test_kind == 3 && state == 3 && entrance_ticks >= 15) ||
-         (test_kind == 4 && state == 10 && victory_ticks >= 15))) {
+         (test_kind == 3 && state == 3 && entrance_ticks >= 15))) {
         test_done = begin(screen, 0, &raw); return test_done;
     }
     for (i = 0; i < 4; i++) {

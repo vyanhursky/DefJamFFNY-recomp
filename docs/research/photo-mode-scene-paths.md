@@ -14,7 +14,7 @@ All guest calls run on the guest thread. The GPU callback only copies completed 
 
 Battle pause leaves the observed time scale at **1.00**, with no simulation heartbeat. Neither `[screen+4]+0x24` nor `0x39C0C0 & 0x40` is a verified pause flag. Paused origin is detected from absence of simulation for over 200 ms in combat; the activation chord lasts 500 ms.
 
-`screen+0x24` is a lifecycle field. Accept only zero phase and identified fight states 3 (entrance), 4/5 (lead-in/combat), 8 (combat), 9 (decided), 10 (victory). `8BE60` dispatches state 10 through `89F20` to IntroExtro updater `A2EA0`.
+`screen+0x24` is a lifecycle field. Accept only zero phase and qualified fight states 3 (entrance), 4/5 (lead-in/combat), 8 (combat). Victory/result states are excluded. Static code dispatches state 10 through `89F20` to IntroExtro updater `A2EA0`, but its natural entry has not been qualified.
 
 | Callback | Visibility handling |
 | --- | --- |
@@ -48,7 +48,7 @@ Initial probes incorrectly assumed only state 8 was combat, selected an unused r
 
 The first victory route (`run-20261122-114942.log.err`) went from combat directly to state 11 and results; no victory scene was rendered and the probe correctly failed. `8AB00` branches to state 11 when the transient word at `3BE0F8` omits bit `0x40`. A second attempt (`run-20261122-115801.log.err`) set that word from the render callback, but normal updates rewrote it before the result decision. The controlled fixture must select the engine's extro branch at the result boundary. This is a test setup, not evidence of ordinary Battle automatically playing a victory scene. Production Photo Mode does not alter this word or force scenes to play.
 
-The final fixture uses the `8AB00` entry boundary, after a natural result, and also requests one clean PNG during the frozen victory. Source-specific victory and regression results are recorded in [PR #303](https://github.com/vyanhursky/DefJamFFNY-recomp/pull/303), including any failed or unqualified cases.
+The result-boundary attempt (`run-20261122-120504.log.err`) reached state 9 but never entered Photo Mode. It encountered three non-code indirect calls while preparing the forced sequence (first at guest `0xE61FF`, log line 36242). The save guard restored the data. This was a failed synthetic scene setup, not a passing freeze test. All forcing hooks and writes were removed; victory entry is disabled pending a natural reproducer. Source-specific regression results are recorded in [PR #303](https://github.com/vyanhursky/DefJamFFNY-recomp/pull/303).
 
 ## Remaining qualification
 

@@ -29,7 +29,7 @@ Capture uses the current internal render resolution and aspect ratio, including 
 
 ## Availability and limits
 
-Photo Mode is intended for loaded fights, including entry from the game's pause menu. Fight entrances and victory scenes are attempted through the same fight screen. Ordinary menus, result screens and authored Story cinematic camera paths are excluded. Availability and native qualification are recorded in the [scene investigation](research/photo-mode-scene-paths.md).
+Photo Mode works in loaded fights, including entry from the game's pause menu, and fight entrances. Victory entry remains disabled pending qualification of a natural victory-scene route. Ordinary menus, result screens and authored Story cinematic camera paths are excluded. Availability and native qualification are recorded in the [scene investigation](research/photo-mode-scene-paths.md).
 
 The free camera has no wall collision. Moving outside the arena can reveal missing geometry or scenery designed to be seen from one direction. The first version contains features 1–8 from the [complete 18-feature plan](photo-mode-plan.md); later features remain proposals.
 

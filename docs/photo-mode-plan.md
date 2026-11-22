@@ -4,6 +4,8 @@ Photo Mode freezes a loaded fight while the player composes and saves a photogra
 
 The implemented controls and capture behavior are in the [Photo Mode guide](photo-mode.md). Native evidence and remaining coverage are in the [scene qualification](research/photo-mode-scene-paths.md). The catalogue below keeps the original feature IDs for later selection.
 
+First-version qualification: entrances, active Battle fights and paused Battle fights passed native probes. Victory entry remains disabled: the stock Battle route skipped the scene, and forcing the engine's extro branch reached uninitialized objects. A natural victory-scene route is needed before enabling that context. Story fights and wider platform/controller coverage remain release play-test work.
+
 ## Entry and return behavior
 
 Hold R3 + D-pad Down on one controller for 0.5 seconds. A completed hold fires once and must be released before reuse. The initiating controller owns the camera. Other controllers cannot complete the chord or operate gameplay while Photo Mode is active.

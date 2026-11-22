@@ -76,7 +76,7 @@ def analyse_photo(stream, context):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument('context', choices=['live', 'paused', 'entrance', 'victory', 'controller', 'controller-paused',
+    ap.add_argument('context', choices=['live', 'paused', 'entrance', 'controller', 'controller-paused',
                                        'reject-menu', 'reject-cutscene'])
     ap.add_argument('--expect-save-failure', action='store_true')
     args = ap.parse_args()
@@ -88,10 +88,6 @@ def main():
         'getscreeninfo(battle/choosef2=right@5;a@8;left@12;a@15;a@20+3x8',
         'getscreeninfo(battle/chsvenue=a@5+3x8']
     tail = harness.FIGHT_TAIL
-    if args.context == 'victory':
-        # Repeated attack/confirm buttons can skip the extro before a frame is
-        # rendered. Let the CPU finish an idle opponent, then observe its scene.
-        tail = '@game.startgame(,back:9999:10000'
     expected_pause = args.context in ('paused', 'controller-paused')
     negative = args.context.startswith('reject-')
     virtual = args.context.startswith('controller') or negative
@@ -131,7 +127,7 @@ def main():
     run = harness.run_game('photo-' + args.context, stages=stages, tail=tail,
         shots=('@' + anchor + ',6,12' if negative else '@game.startgame(,10,12,14,16,19,21,23,25,28,33,36,39'),
         secs=150 if negative else 420, until=None if negative else 'game.startgame(',
-        after=180 if args.context == 'victory' else 40, env=env,
+        after=40, env=env,
         until_file=str(Path(harness.REPO) / 'logs/shots' / ('photo-' + args.context) /
                        ('photo-' + args.context + '-12s.bmp')) if negative else None)
     # Read the bounded PHOTO records; leave the large raw log to triage.py.
@@ -162,9 +158,6 @@ def main():
         receipt['rejection_passed'] = not receipt['entered'] and '[PAD] script: rs sampled' in run.text \
             and ('[SCENE] playing sc05 ' in run.text if args.context == 'reject-cutscene' else 'getscreeninfo(intmain/mainmenu' in run.text.lower())
         receipt['passed'] = receipt['rejection_passed'] and receipt['save_restored'] and receipt['runtime_clean'] and not photos
-    elif args.context == 'victory':
-        receipt['capture_passed'] = len(photos) == 1 and photos[0]['valid']
-        receipt['passed'] = receipt['passed'] and receipt['capture_passed']
     elif virtual:
         if args.expect_save_failure:
             receipt['capture_passed'] = '[PHOTO] save failed:' in run.text and not photos
