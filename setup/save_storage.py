@@ -246,7 +246,7 @@ def restore_times(stream, before):
         raise ctypes.WinError(ctypes.get_last_error())
 
 
-def compact_image(path, report=print):
+def compact_image(path, report=print, cancelled=None):
     """Preverified zero ranges only; no rename, truncation or discarded image bytes.
 
     Caller holds setup/data/play locks. The image handle excludes every writer
@@ -258,6 +258,8 @@ def compact_image(path, report=print):
     if path.stat().st_nlink > 1:
         raise ValueError('Image has multiple hard links; original kept: ' + path.name)
     with exclusive_image(path) as stream:
+        if cancelled:
+            cancelled()
         before = os.fstat(stream.fileno())
         if before.st_nlink > 1:
             raise ValueError('Image has multiple hard links; original kept: ' + path.name)
@@ -268,6 +270,8 @@ def compact_image(path, report=print):
         ranges = []
         offset, start = 0, None
         while block := stream.read(BLOCK):
+            if cancelled:
+                cancelled()
             if block == ZERO[:len(block)]:
                 if start is None:
                     start = offset
@@ -284,6 +288,8 @@ def compact_image(path, report=print):
             raise ValueError('This volume cannot create sparse images; bytes unchanged')
         try:
             for first, end in ranges:
+                if cancelled:
+                    cancelled()
                 zero_range(stream, first, end)
             os.fsync(stream.fileno())
             stream.seek(0)

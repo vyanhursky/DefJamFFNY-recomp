@@ -1,7 +1,7 @@
 # Experimental partition-image compaction (#180)
 
 Target: v1.3.0, draft dependent on sparse-backup PR #300. Toolkit unchanged (`d108a64`).
-Report-only allocation inspection works on all supported hosts; **apply is Windows-only**
+The Maintenance/post-update screen and allocation inspection work on all supported hosts; **apply is Windows-only**
 until equivalent OS writer exclusion and deallocation are implemented and qualified elsewhere.
 No HD texture changes or raw-image format/size changes are included.
 
@@ -67,8 +67,14 @@ python setup/engine.py --payload <payload> --install-dir <install> --compact-sav
 python setup/engine.py --payload <payload> --install-dir <install> --compact-save-images --apply-compaction
 ```
 
-No automatic run and no app Maintenance button are included. The payload's bundled Python
-and engine can run the same arguments. There is no prerequisite to supply the original dump.
+The app's Maintenance screen now offers **Optimize disk usage**. It performs inspection first,
+then offers **Optimize now** only when the backend reports apply support. A successful update
+also offers this once when data/disk-optimization.json has no verified-success marker. A successful
+explicit apply writes that marker and suppresses later update offers; Maintenance stays available.
+Failure/cancellation never publishes a completion marker. No automatic compaction is performed.
+The payload's bundled Python and engine can run the same CLI arguments; the shared UI uses
+--optimization-result for its atomic JSON summary and --cancel-file for safe interruption.
+There is no prerequisite to supply the original dump.
 
 ## Validation and remaining draft gates
 
@@ -89,10 +95,23 @@ and engine can run the same arguments. There is no prerequisite to supply the or
   The apply rerun reports no further allocation reclaimed, with hashes rechecked afterwards.
   Existing PR #300 native C++ build is reused because this draft changes only Python setup
   behavior, tests and docs; no native game/runtime recompilation was repeated.
+- Latest shared UI/backend suite: **2,027 passed, 845 skipped, one slow test deselected**
+  (`optimize-ui-units.log`). Windows setup/app build and game-free asset inspection passed.
+- Native game-free Windows SDL/software UI: Maintenance -> inspect -> Optimize now succeeded,
+  original synthetic-image hash unchanged, success marker verified (`optimize-ui-native-final.log`).
+  Native finished-page captures show the offer without a marker and suppress it with one
+  (`optimize-post-update-native.log`); only that test's child update exit was simulated, not a
+  real game update. Screenshots remain local. Initial UI trials exercised temporary/cache access
+  failures; isolated LOCALAPPDATA/TEMP and app-owned log scratch resolved the test setup.
 - Before ready/merge: owner-approved native save/load/play qualification from a compacted
-  disposable data root, native Mac/Deck report-only checks, and a decision on non-Windows
-  apply plus app UI. No original player images have been compacted by this work.
+  disposable data root, native Mac/Deck inspection/UI checks and POSIX apply implementation.
+  See [the platform hand-off](disk-space-platform-handoff.md) for exact runtime locking, API,
+  tests and migration work. No original player images have been compacted by this work.
 
 D-new: experimental compaction is report-only by default and explicitly applied only on
 Windows. Use OS writer exclusion across install roots and deallocate proved-zero ranges in
 place, preserving the file and all nonzero data. Keep the PR draft until native acceptance.
+
+D-new: expose one shared Maintenance/post-update screen on all operating systems; inspect
+first and require an explicit apply. Persist only verified success to suppress the one-time
+update offer; unsupported platforms report availability honestly and do not mark completion.
