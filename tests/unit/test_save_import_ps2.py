@@ -103,6 +103,21 @@ def test_corrupt_source_is_rejected(offset):
         ps2.parse_profile(raw)
 
 
+@pytest.mark.parametrize('options', [False, True])
+def test_database_reference_checks_the_entire_row_index(options):
+    # The table tag is the high byte; do not accidentally accept a large row
+    # whose low 16 bits happen to fit the table.
+    if options:
+        payload = bytearray(ps2.PS2_OPTIONS)
+        struct.pack_into('<II', payload, 0x1214, 1, 0)
+        struct.pack_into('<I', payload, 0x121C, 0x17010001)
+    else:
+        payload = bytearray(ps2.convert_story(story())[xbox.IDENTITY_END:])
+        struct.pack_into('<II', payload, 0x51A0, 1, 0x15010001)
+    with pytest.raises(ValueError, match='database reference'):
+        ps2.check_unlock_lists(payload, options)
+
+
 def test_unknown_revision_and_nonzero_padding_refused():
     with pytest.raises(ValueError):
         ps2.convert_story(story()[:0x17E]+b'\1'+story()[0x17F:])

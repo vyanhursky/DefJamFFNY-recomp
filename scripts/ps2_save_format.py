@@ -117,5 +117,5 @@ def check_unlock_lists(payload, options=False):
             lists.append((values_at, count, table, rows))
     for offset, count, table, rows in lists:
         values = struct.unpack_from('<%dI' % count, payload, offset)
-        require(all(v >> 24 == table and (v & 0xFFFF) < rows for v in values),
+        require(all(v >> 24 == table and (v & 0xFFFFFF) < rows for v in values),
                 'unsupported saved database reference')
