@@ -29,7 +29,7 @@ Play starts the game that setup built on this computer, with `--no-launcher`.
   (nothing is deleted unless the copy matches), runs setup's own uninstall (`engine.py
   --uninstall`: the build, its receipt, the launcher and an older setup's shortcuts), then deletes
   the data folder (only one setup made, with `extraction-state.json`) and the app's records. On
-  Windows a script removes the installed app's folder and its logs once the window has closed;
+  Windows a script removes the app's own files and its logs once the app has exited;
   elsewhere the player deletes the app.
 - **Like the play wrapper.** It holds the install's `play.lock` (letting it go while setup works,
   since setup takes it), reads `installed.json`, sets `DEFJAM_DATA`, `DEFJAM_INSTALL_DIR` and the
@@ -76,8 +76,10 @@ Play starts the game that setup built on this computer, with `--no-launcher`.
   made (without `.defjam-portable`) keeps its game and data where its first run put them. The
   installed copy unpacks its payload again when `payload\` is missing or from another build
   (`payload.sha256`). Uninstall on Windows removes the desktop shortcut when it points at this
-  program; in a portable folder it deletes only the app's own files and then the folder if it is
-  empty, so a kept `data\` stays (the script switches cmd to UTF-8 first, for folders named with accents).
+  program; in a portable folder and in an older home alike it deletes only the app's own files and then
+  the folder if it is empty, so a kept `data\` and any other file stay (`remove_after_exit` in
+  `app_os.cpp`: the script is constant text and gets the paths in the environment, because cmd would
+  expand a `%` or `!` in a path written into it).
 - **Installs itself on Linux** (`app_install_linux.cpp`; design §3.3, §6). The released app is one
   AppImage, `DefJamRecompiled-<version>-linux-x86_64.AppImage`: the AppImage runtime and a read-only image
   holding the program with the setup payload beside it. The runtime mounts it at a new

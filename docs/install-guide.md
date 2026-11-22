@@ -192,8 +192,8 @@ Open **Help** on Home.
 - **Uninstall...** removes the game build, and its Steam shortcut if the app added one. Your data folder stays
   unless you tick **Also delete the data folder**. If you do, your saves and settings are first copied to a
   `Def Jam Recompiled saves <date>` folder in Documents. On Windows, closing the app afterwards removes the app and
-  its desktop shortcut; in an install folder that also holds your data, only the app's own files go, and the folder
-  stays with `data\` in it unless you deleted that too. On macOS and Linux, you then delete the app file yourself.
+  its desktop shortcut. Only the app's own files go: a folder that still holds your data or any other file
+  stays. On macOS and Linux, you then delete the app file yourself.
 
 ## If something goes wrong
 

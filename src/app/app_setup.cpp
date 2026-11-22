@@ -912,46 +912,24 @@ void start_removal()
     std::thread(removal_work, in.root, in.data, g_removal.data, g_removal.backup).detach();
 }
 
-// Windows: once the window has closed, remove the app's own folder (only an installed app: the
-// program with payload\ and payload.sha256 beside it) and its logs, then its per-user folder if
-// nothing is left in it.
+// Windows: once the window has closed, remove an installed app (the program with payload\ and
+// payload.sha256 beside it) and its logs. Only the app's own files go, in a one-folder install as in
+// an older home: a folder that holds anything else (the kept data\, the player's files) stays.
 void removal_cleanup()
 {
 #if defined(_WIN32)
     std::error_code ec;
-    fs::path folder = app::program().parent_path();
-    bool installed_app = fs::is_regular_file(folder / "payload.sha256", ec) && fs::is_directory(folder / "payload", ec) &&
-                         folder != folder.root_path();
-    bool portable = installed_app && fs::is_regular_file(folder / app::k_portable_marker, ec);
-    fs::path base = app::os::user_base() / "DefJamRecompiled";
-    fs::path script = fs::temp_directory_path(ec) /
-                      ("DefJamRecompiled-uninstall-" + std::to_string(app::os::process_id()) + ".cmd");
-    {
-        std::ofstream out(script, std::ios::binary | std::ios::trunc);
-        // The paths are written in UTF-8, and cmd reads a script in the console's code page: switch
-        // it first, or a folder named with accents ("Café") is not found and nothing is removed.
-        out << "@echo off\r\nchcp 65001 >nul\r\nping -n 4 127.0.0.1 >nul\r\n";
-        if (portable) {
-            // One folder holds the data too, kept unless the player chose to delete it: only the app's
-            // own files go, then the folder when nothing is left in it.
-            fs::path link = app::os::desktop_folder() / app::k_shortcut_name;
-            fs::path points_at = app::os::shortcut_target(link);
-            if (!points_at.empty() && fs::equivalent(points_at, app::program(), ec))
-                out << "del /f /q \"" << link.string() << "\" 2>nul\r\n";
-            for (const char *name : {"DefJamRecompiled.exe", "payload.sha256", app::k_portable_marker})
-                out << "del /f /q \"" << (folder / name).string() << "\" 2>nul\r\n";
-            out << "rmdir /s /q \"" << (folder / "payload").string() << "\" 2>nul\r\n";
-            out << "rmdir \"" << (folder / "game").string() << "\" 2>nul\r\n";
-            out << "rmdir \"" << folder.string() << "\" 2>nul\r\n";
-        } else if (installed_app) out << "rmdir /s /q \"" << folder.string() << "\"\r\n";
-        out << "rmdir /s /q \"" << (base / "logs").string() << "\"\r\n";
-        out << "rmdir \"" << base.string() << "\" 2>nul\r\n";
-        out << "del \"%~f0\"\r\n";
+    fs::path program = app::program(), folder = program.parent_path(), shortcut;
+    if (!fs::is_regular_file(folder / "payload.sha256", ec) || !fs::is_directory(folder / "payload", ec) ||
+        folder == folder.root_path())
+        return;
+    if (fs::is_regular_file(folder / app::k_portable_marker, ec)) {
+        fs::path link = app::os::desktop_folder() / app::k_shortcut_name;
+        fs::path points_at = app::os::shortcut_target(link);
+        if (!points_at.empty() && fs::equivalent(points_at, program, ec)) shortcut = link;
     }
-    const char *shell = getenv("ComSpec");
-    os::Process process;
     std::string error;
-    if (!os::start({shell && *shell ? shell : "cmd.exe", "/c", script.string()}, nullptr, &process, &error))
+    if (!app::os::remove_after_exit(program, shortcut, app::os::user_base() / "DefJamRecompiled", &error))
         fprintf(stderr, "[APP] uninstall: the app could not remove itself: %s\n", error.c_str());
 #endif
 }

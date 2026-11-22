@@ -91,5 +91,13 @@ std::filesystem::path desktop_folder();
 bool make_shortcut(const std::filesystem::path &link, const std::filesystem::path &target, std::string *error);
 std::filesystem::path shortcut_target(const std::filesystem::path &link);
 
+#if defined(_WIN32)
+// Uninstall's last step, which outlives this process: once `program` can be deleted (it has ended),
+// delete it and what the app itself put beside it, `shortcut` (empty: none) and `user_folder`\logs,
+// then each of those folders if nothing else is left in it. Any other file stays.
+bool remove_after_exit(const std::filesystem::path &program, const std::filesystem::path &shortcut,
+                       const std::filesystem::path &user_folder, std::string *error);
+#endif
+
 } // namespace os
 } // namespace app

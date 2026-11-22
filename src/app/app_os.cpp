@@ -493,6 +493,96 @@ fs::path shortcut_target(const fs::path &link)
     return ec ? fs::path(path) : out;
 }
 
+bool remove_after_exit(const fs::path &program, const fs::path &shortcut, const fs::path &user_folder,
+                       std::string *error)
+{
+    // cmd expands %NAME% in a script's text, and a path may hold % (or ! under delayed expansion). So no
+    // path is written into the script: it is constant ASCII, and the paths reach it in environment
+    // variables, whose values cmd does not expand again (/v:off), in Unicode whatever the code page.
+    // Keep the script free of CALL and of FOR: both would substitute inside the values (%i, %%).
+    static const char script_text[] =
+        "@echo off\r\n"
+        "if not defined DEFJAM_REMOVE_PROGRAM exit /b 1\r\n"
+        "if not defined DEFJAM_REMOVE_FOLDER exit /b 1\r\n"
+        "if not defined DEFJAM_REMOVE_USER exit /b 1\r\n"
+        // Windows does not delete a running program: wait for it, and if it never ends remove nothing.
+        "set DEFJAM_REMOVE_TRIES=0\r\n"
+        ":again\r\n"
+        "del /f /q \"%DEFJAM_REMOVE_PROGRAM%\" >nul 2>&1\r\n"
+        "if not exist \"%DEFJAM_REMOVE_PROGRAM%\" goto ended\r\n"
+        "set /a DEFJAM_REMOVE_TRIES+=1\r\n"
+        "if %DEFJAM_REMOVE_TRIES% geq 60 goto done\r\n"
+        "ping -n 2 127.0.0.1 >nul\r\n"
+        "goto again\r\n"
+        ":ended\r\n"
+        "del /f /q \"%DEFJAM_REMOVE_PROGRAM%.old\" 2>nul\r\n"
+        "del /f /q \"%DEFJAM_REMOVE_FOLDER%\\payload.sha256\" 2>nul\r\n"
+        "del /f /q \"%DEFJAM_REMOVE_FOLDER%\\.defjam-portable\" 2>nul\r\n"
+        "rmdir /s /q \"%DEFJAM_REMOVE_FOLDER%\\payload\" 2>nul\r\n"
+        "rmdir /s /q \"%DEFJAM_REMOVE_FOLDER%\\payload.old\" 2>nul\r\n"
+        "rmdir /s /q \"%DEFJAM_REMOVE_FOLDER%\\payload.new\" 2>nul\r\n"
+        "rmdir \"%DEFJAM_REMOVE_FOLDER%\\game\" 2>nul\r\n"
+        "rmdir \"%DEFJAM_REMOVE_FOLDER%\" 2>nul\r\n"
+        "if defined DEFJAM_REMOVE_LINK del /f /q \"%DEFJAM_REMOVE_LINK%\" 2>nul\r\n"
+        "rmdir /s /q \"%DEFJAM_REMOVE_USER%\\logs\" 2>nul\r\n"
+        "rmdir \"%DEFJAM_REMOVE_USER%\" 2>nul\r\n"
+        ":done\r\n"
+        "del \"%~f0\"\r\n";
+    // An empty or relative path would make the script delete relative to wherever it runs.
+    if (!program.is_absolute() || !user_folder.is_absolute() || program.parent_path() == program.root_path()) {
+        *error = "its folders are not known";
+        return false;
+    }
+    std::error_code ec;
+    fs::path script = fs::temp_directory_path(ec) /
+                      (L"DefJamRecompiled-uninstall-" + std::to_wstring(GetCurrentProcessId()) + L".cmd");
+    {
+        std::ofstream out(script, std::ios::binary | std::ios::trunc);
+        out << script_text;
+        out.close();
+        if (!out) {
+            *error = "its clean-up script could not be written";
+            return false;
+        }
+    }
+    // Every variable is set or cleared here, so none can come from the environment the app started in.
+    const std::pair<const wchar_t *, std::wstring> values[] = {
+        {L"DEFJAM_REMOVE_PROGRAM", program.wstring()},
+        {L"DEFJAM_REMOVE_FOLDER", program.parent_path().wstring()},
+        {L"DEFJAM_REMOVE_LINK", shortcut.wstring()},
+        {L"DEFJAM_REMOVE_USER", user_folder.wstring()},
+        {L"DEFJAM_REMOVE_SCRIPT", L"\"" + script.wstring() + L"\""},
+    };
+    for (const auto &value : values)
+        if (!SetEnvironmentVariableW(value.first, value.second.empty() ? nullptr : value.second.c_str()) &&
+            !value.second.empty()) {
+            *error = windows_error(GetLastError());
+            return false;
+        }
+    // The script's own path is expanded from the environment too, so this command line is written out
+    // here: start() quotes every argument, and cmd does not read its switches as a C program does. /d: no
+    // AutoRun commands. /s: cmd takes off exactly the outer quotes, and the value brings its own.
+    wchar_t system[MAX_PATH];
+    if (!GetSystemDirectoryW(system, MAX_PATH)) {
+        *error = windows_error(GetLastError());
+        return false;
+    }
+    std::wstring cmd = (fs::path(system) / L"cmd.exe").wstring();
+    std::wstring command = L"\"" + cmd + L"\" /d /v:off /s /c \"%DEFJAM_REMOVE_SCRIPT%\"";
+    STARTUPINFOW si{};
+    si.cb = sizeof si;
+    PROCESS_INFORMATION pi{};
+    // Not in the folder it removes, which Windows keeps while a process works in it.
+    if (!CreateProcessW(cmd.c_str(), command.data(), nullptr, nullptr, FALSE, CREATE_NO_WINDOW, nullptr, system,
+                        &si, &pi)) {
+        *error = windows_error(GetLastError());
+        return false;
+    }
+    CloseHandle(pi.hThread);
+    CloseHandle(pi.hProcess);
+    return true;
+}
+
 #endif
 
 } // namespace os
