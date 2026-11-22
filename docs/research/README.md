@@ -65,6 +65,7 @@ confidence labels and disproved hypotheses remain distinct from measured facts.
 
 ## Rendering and front-end repairs
 
+- [Learn Moves row backgrounds (#181)](learn-moves-row-backgrounds.md) — historical Xbox reference and review of baselines predating the thin-DXT repair.
 - [Story map Shops widescreen border and heading: shared map replays and foreground clipping (#162)](story-map-shops-widescreen.md)
 - [D3D8 push-buffer: space reservation and ring wrap](d3d-pushbuffer-wrap.md)
 - [M2 â€” render path: NV2A pushbuffer executor vs D3D8 intercept, and why the main thread parks](m2-render-path.md)

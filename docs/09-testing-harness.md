@@ -298,6 +298,32 @@ that does not exist. What two healthy runs of those screens differed by:
   comparison of everything else, plus a loose unmasked comparison that a blank
   preview screen fails.
 
+### Learn Moves row backgrounds (#181)
+
+The grey LOCKED rows and light available/owned rows are expected. The historical
+Xbox screenshot in the [reference review](research/learn-moves-row-backgrounds.md)
+shows them too. Baselines captured before the thin-DXT upload repair in #151
+omit those textures and must be reviewed again; hiding the bars would restore
+the earlier rendering defect.
+
+Keep the old manifest, images and failed report. With the same save fixture,
+stock textures, aspect ratio and build preset, run `story-tour` and use
+`baseline-candidates` above to make a **separate** review folder. Inspect the
+13 s and 23 s Learn Moves captures: grey locked rows, light other rows, orange
+selection, readable labels and a visible movie after X. Approve only the
+reviewed image hashes. Carry the original manifest's masks and tolerances into
+the candidates: the generated candidate defaults are not the old acceptance
+policy. Keep the strict movie mask and the loose unmasked movie comparison;
+do not mask the move rows or raise their tolerances.
+
+Run `python scripts/scenario_suite.py run story-tour --fixture <same-fixture> --baselines
+<review-folder>/manifest.json` on a second launch before installing the reviewed
+manifest and images in `<data>/test-baselines/story-tour-v1/`. Preserve any crib
+or movie failure separately. Then run `python scripts/regress.py --only visual --fixture
+<same-fixture>`. Baselines remain local and platform-specific; a macOS review
+does not approve Windows or Linux images. Existing release failure records
+remain historical evidence.
+
 **Fights are a different matter.** `--step-shots` captures the frame at a fight
 step, and in a repeatable fight (above) the fighters, the health bars, the clock,
 the arena and the camera came out pixel-identical between two runs. The crowd did
