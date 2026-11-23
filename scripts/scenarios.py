@@ -166,7 +166,7 @@ def fixture_path(harness, name_or_path):
     raise SystemExit('no fixture %r (a folder with fixture.json, or a name in %s)' % (name_or_path, library_root(harness)))
 
 
-def fixture_add(harness, suite, name, source, story, note):
+def fixture_add(harness, suite, name, source, story, note, story_profile=None, story_ready=()):
     if not re.match(r'^[A-Za-z0-9][A-Za-z0-9_.-]*$', name):
         raise SystemExit('a fixture name is letters, digits, dot, dash and underscore')
     lib = library(harness)
@@ -182,7 +182,8 @@ def fixture_add(harness, suite, name, source, story, note):
     library_root(harness).mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='fixture-source-', dir=library_root(harness)) as staging:
         shutil.copytree(profiles, Path(staging) / 'UserData')
-        identity = suite.create_fixture(staging, out, '%s: %s' % (story or 'unlabelled', note or ''))
+        identity = suite.create_fixture(staging, out, '%s: %s' % (story or 'unlabelled', note or ''),
+                                        story_profile, story_ready)
     lib['fixtures'][name] = {'story': story, 'note': note, 'created': time.strftime('%Y-%m-%d %H:%M'),
                              'manifest_sha256': identity['manifest_sha256']}
     save_library(harness, lib)
@@ -240,6 +241,8 @@ def run_suite(suite, name, route, fixture, a, extra=()):
         argv += ['--require-combat']
     for item in getattr(a, 'test_env', None) or []:
         argv += ['--test-env', item]
+    for item in getattr(a, 'expect_character', None) or []:
+        argv += ['--expect-character', item]
     argv += list(extra)
     started = time.time()
     code = suite.main(argv)
@@ -355,6 +358,9 @@ def main(argv=None):
     add.add_argument('--from', dest='source', help='a save folder (holding UserData); default: <data>/save')
     add.add_argument('--story', help='which Story point this is (an id from the catalog, or your own)')
     add.add_argument('--note', help='anything else worth knowing: the profile, what was just done')
+    add.add_argument('--story-profile', help='retain only this named user in the copied fixture')
+    add.add_argument('--story-ready', action='append', default=[], metavar='CHECKPOINT',
+                     help='declare prepared progression (repeatable): crib, gym, map-shops, unlock')
     fxs.add_parser('list')
     fxs.add_parser('verify', help='check every library fixture still matches its hashes')
 
@@ -415,7 +421,8 @@ def main(argv=None):
     if a.action == 'fixture':
         suite = load('scenario_suite')
         if a.fixture_action == 'add':
-            out, entry = fixture_add(harness, suite, a.name, a.source, a.story, a.note)
+            out, entry = fixture_add(harness, suite, a.name, a.source, a.story, a.note,
+                                    a.story_profile, a.story_ready)
             print('added %s at %s (%s)' % (a.name, out, entry['manifest_sha256'][:12]))
         elif a.fixture_action == 'list':
             for name, f in sorted(library(harness)['fixtures'].items()):
@@ -442,13 +449,7 @@ def main(argv=None):
                 print('(no --fixture: printed only)', file=sys.stderr)
             return 0
         suite = load('scenario_suite')
-        expected = parse_expect(a.expect_character)
         code, report = run_suite(suite, name, route, fixture_path(harness, a.fixture), a)
-        if expected and report:
-            log = (report.parent / 'game.log.err').read_text(encoding='utf-8', errors='replace')
-            ok, message = check_expectations(log, expected)
-            print(('EXPECTED FIGHTERS: ' if ok else 'WRONG FIGHTERS: ') + message)
-            code = code or (0 if ok else 1)
         return code
 
     if a.action in ('scene', 'scenes'):

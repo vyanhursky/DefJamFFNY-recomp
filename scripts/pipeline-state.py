@@ -11,6 +11,7 @@ import hashlib
 import importlib.metadata
 import json
 import os
+import re
 from pathlib import Path
 import subprocess
 import sys
@@ -243,6 +244,50 @@ def verify_game_configuration(folder):
         raise ValueError('Game build was disabled in CMake; rebuild with scripts/build.ps1')
 
 
+def build_toolchain(folder):
+    """CMake's configured compiler, never a compiler found on the current PATH.
+
+    Stored alongside the executable hash when record-build completes. Missing
+    provenance is informational and does not change build certification.
+    """
+    folder = Path(folder)
+    try:
+        cache = (folder / 'CMakeCache.txt').read_text(encoding='utf-8')
+        values = dict(re.findall(r'^([^#/:\n][^:\n]*):[^=\n]+=(.*)$', cache, re.M))
+        # CMake's cache version identifies its compiler-info directory, including
+        # vendor suffixes such as VS 2019's 3.20.21032501-MSVC_2. Never pick an
+        # unrelated stale directory left by another CMake installation.
+        version = '.'.join(values['CMAKE_CACHE_' + part + '_VERSION']
+                           for part in ('MAJOR', 'MINOR', 'PATCH'))
+        folders = [p for p in (folder / 'CMakeFiles').iterdir() if p.is_dir() and
+                   (p.name == version or p.name.startswith(version + '-'))]
+        if len(folders) != 1:
+            raise ValueError('configured CMake compiler directory is missing or ambiguous')
+        info_folder = folders[0]
+        compilers = {}
+        for lang in ('C', 'CXX'):
+            info = info_folder / ('CMake%sCompiler.cmake' % lang)
+            if not info.is_file():
+                if lang == 'C':
+                    raise ValueError('configured C compiler information is missing')
+                continue
+            text = info.read_text(encoding='utf-8')
+            fields = dict(re.findall(r'set\(CMAKE_' + lang + r'_([A-Z_]+) "([^"\n]*)"\)', text))
+            if not all(fields.get(k) for k in ('COMPILER', 'COMPILER_ID', 'COMPILER_VERSION')):
+                raise ValueError('configured %s compiler identity is incomplete' % lang)
+            cached_compiler = values.get('CMAKE_' + lang + '_COMPILER')
+            if cached_compiler and cached_compiler != fields['COMPILER']:
+                raise ValueError('configured %s compiler disagrees with CMake cache' % lang)
+            compilers[lang] = {k.lower(): fields[k] for k in
+                              ('COMPILER', 'COMPILER_ID', 'COMPILER_VERSION')}
+        return {'status': 'available', 'source': 'CMake configured compiler information',
+                'cmake_version': info_folder.name, 'generator': values.get('CMAKE_GENERATOR'),
+                'build_type': values.get('CMAKE_BUILD_TYPE'),
+                'toolchain_file': values.get('CMAKE_TOOLCHAIN_FILE'), 'compilers': compilers}
+    except (OSError, KeyError, ValueError) as ex:
+        return {'status': 'unavailable', 'reason': str(ex)}
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split('\n\n')[0])
     ap.add_argument('action', choices=['analyze', 'verify-analysis', 'interpreter', 'verify-lift', 'lift',
@@ -274,7 +319,8 @@ def main(argv=None):
             verify_game_configuration(folder)
             inputs = finish_stage_inputs(folder / 'build-state.json', build_inputs(repo, toolkit))
             write_state(folder / 'build-state.json', {'toolkit': str(toolkit),
-                        'inputs': inputs, 'exe': digest(folder / EXE_NAME)})
+                        'inputs': inputs, 'exe': digest(folder / EXE_NAME),
+                        'toolchain': build_toolchain(folder)})
         else:
             verify_build(repo, args.preset)
     except (OSError, ValueError, KeyError, subprocess.CalledProcessError) as ex:
