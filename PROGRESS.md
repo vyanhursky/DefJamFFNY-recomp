@@ -709,6 +709,9 @@ authenticated listing found release455842838; ID-based audit preceded publicatio
 Published2026-11-23T18:51:16Z; Latest confirmed, milestone17 closed; v1.3.0 (18)
 remains open. Toolkitd108a64c0f272da2ab29016914f473018c3e2347 unchanged on both
 release/integration branches. Workshop remains0.3.1.
+Pages45243130640 passes2/2; live releases.json contains stablev1.2.2 and nine assets.
+Automatic tag deployment45242765221 was rejected by existing environment branch
+protection; dispatch from main succeeded without changing protection rules.
 
 Train #259/#275/#294/#297/#298 merged preserving ancestry. #302 closed-unmerged
 excluded; #295/#299/#300/#301/#303 deferred. #172/#173/#175/#293/#296 closed
