@@ -21,7 +21,7 @@ $build189 = Join-Path $repo189 "build/llvm-mingw-$Mode"
 $logs189 = Join-Path $repo189 "logs/windows-toolchain-spike/$Mode"
 New-Item -ItemType Directory -Force $logs189,(Join-Path $logs189 'tmp') | Out-Null
 $saved189 = @{}
-foreach ($name189 in 'PATH','TMP','TEMP','LLVM_MINGW_ROOT','INCLUDE','LIB','LIBPATH','CL','_CL_') {
+foreach ($name189 in 'PATH','TMP','TEMP','LLVM_MINGW_ROOT','LLVM_MINGW_PYTHON','INCLUDE','LIB','LIBPATH','CL','_CL_') {
     $saved189[$name189] = [Environment]::GetEnvironmentVariable($name189, 'Process')
 }
 function Invoke-Spike189([string]$program189, [string[]]$arguments189, [string]$step189) {
@@ -34,6 +34,8 @@ function Invoke-Spike189([string]$program189, [string[]]$arguments189, [string]$
 Push-Location $repo189
 try {
     $env:LLVM_MINGW_ROOT = $root189
+    $python189 = (Get-Command python -ErrorAction Stop).Source
+    $env:LLVM_MINGW_PYTHON = $python189
     $env:PATH = "$root189/bin;$(Split-Path $cmake189);$(Split-Path $ninja189);$env:PATH"
     $env:TMP = Join-Path $logs189 'tmp'
     $env:TEMP = $env:TMP
@@ -46,7 +48,6 @@ try {
     $args189 = @("-DCMAKE_TOOLCHAIN_FILE=$repo189/cmake/llvm-mingw-x64.cmake",
         "-DCMAKE_MAKE_PROGRAM=$ninja189", "-DCMAKE_BUILD_TYPE=$type189", "-DXBOXRECOMP_DIR=$toolkit189")
     if ($Mode -eq 'game-sources') {
-        $python189 = (Get-Command python -ErrorAction Stop).Source
         $compile189 = @('scripts/compile-game-sources.py', '--build', $build189)
         foreach ($arg189 in $args189) { $compile189 += "--cmake-arg=$arg189" }
         Invoke-Spike189 $python189 $compile189 'game-sources'
@@ -57,7 +58,6 @@ try {
             throw 'Full game mode needs a fresh lift; no stand-in game will be certified.'
         }
         if ($Mode -eq 'game') {
-            $python189 = (Get-Command python -ErrorAction Stop).Source
             $state189 = @('scripts/pipeline-state.py')
             $identity189 = @('--preset','llvm-mingw-game','--toolkit',$toolkit189)
             Invoke-Spike189 $python189 ($state189 + @('verify-lift') + $identity189) 'verify-lift'

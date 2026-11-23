@@ -16,9 +16,14 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   llvm-mingw:
-    runs-on: windows-latest
+    # GitHub-hosted disposable VM; never a self-hosted runner on the owner's PC.
+    runs-on: windows-2025
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
@@ -26,6 +31,7 @@ jobs:
       - uses: actions/setup-python@v5
         with: { python-version: '3.13' }
       - name: Download and verify the tested compiler, CMake and Ninja
+        timeout-minutes: 5
         shell: pwsh
         run: |
           $archives = @(
@@ -41,6 +47,7 @@ jobs:
           }
       # No msvc-dev-cmd, Windows SDK discovery or prerequisite installation.
       - name: Build runtime, compile game-side sources, link game-free app
+        timeout-minutes: 15
         shell: pwsh
         run: |
           $tools = Join-Path $env:RUNNER_TEMP llvm-mingw-20261117-ucrt-x86_64
@@ -50,6 +57,7 @@ jobs:
             ./scripts/windows-toolchain-spike.ps1 -Mode $mode -ToolchainRoot $tools -CMakePath $cmake -NinjaPath $ninja
           }
       - name: Host TLS is independent across real Windows threads
+        timeout-minutes: 3
         shell: pwsh
         run: |
           $env:LLVM_MINGW_ROOT = Join-Path $env:RUNNER_TEMP llvm-mingw-20261117-ucrt-x86_64
@@ -61,6 +69,7 @@ jobs:
           ctest --test-dir build/llvm-host-tls --output-on-failure --no-tests=error
           if ($LASTEXITCODE) { throw 'TLS isolation failed' }
       - name: Parallel build through Unicode and junction paths
+        timeout-minutes: 3
         shell: pwsh
         run: |
           $tools = Join-Path $env:RUNNER_TEMP llvm-mingw-20261117-ucrt-x86_64
@@ -70,6 +79,7 @@ jobs:
           New-Item -ItemType Junction -Path $alias -Target $tools | Out-Null
           New-Item -ItemType Junction -Path $source -Target $pwd.Path | Out-Null
           $env:LLVM_MINGW_ROOT = $alias
+          $env:LLVM_MINGW_PYTHON = Join-Path $env:pythonLocation python.exe
           $cmake = Join-Path $env:RUNNER_TEMP cmake-3.31.6-windows-x86_64/bin/cmake.exe
           $ninja = Join-Path $env:RUNNER_TEMP ninja/ninja.exe
           $logs = Join-Path $pwd 'logs/windows-toolchain-spike/paths'
@@ -95,4 +105,5 @@ jobs:
         with:
           name: windows-toolchain-spike-logs
           path: logs/windows-toolchain-spike
+          retention-days: 7
           # Logs only: never upload executables or lifted code.

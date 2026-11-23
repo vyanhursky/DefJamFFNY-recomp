@@ -43,6 +43,12 @@ v1.2.1 source base, not subsequent v1.2.2 runtime changes on main.
 | Standalone Ninja | `ninja-win.zip`, release v1.11.1 |
 | Ninja archive | `524b344a1a9a55005eaf868d991e090ab8ce07fa109f1820d40e74642e289abc` |
 
+The existing project Python 3 interpreter also resolves Windows tool paths.
+The PowerShell build command selects it explicitly and restores its environment
+afterwards. Direct CMake users can set `LLVM_MINGW_PYTHON` to that interpreter;
+the toolchain also checks PATH and the standard Python root hints. Python's
+UTF-8 output is explicit when returning Unicode paths to CMake.
+
 Compiler download: <https://github.com/mstorsjo/llvm-mingw/releases/tag/20261117>.
 Compiler SHA-256 was checked against GitHub's asset digest. CMake/Ninja hashes
 above identify the actual official release archives used in this local trial.
@@ -335,12 +341,17 @@ Controlled isolation retained the Unicode source alias and output paths:
 | Physical Unicode tool directory, complete pruned copy | pass |
 | Original aliased compiler/CMake/Ninja paths, compiler root normalized | pass |
 
-`file(REAL_PATH ...)` in the toolchain now resolves the compiler directory
-before selecting the compiler, resource and archive programs. This avoids
-launching them through a junction prefix. The exact previously failing layout
-passes after that change; ordinary Unicode directories are supported by the
-measured test. This is a tested workaround for the observed layout, not a claim
-that all Windows loader causes are understood.
+The initial CMake `REAL_PATH` workaround was insufficient: the first remote
+Windows run stopped at its physical-path assertion because a leaf junction
+remained in the compiler path. A bounded local leaf-junction attempt confirmed
+that failure and was cleaned up. Python's native Windows resolver returns the
+physical root correctly, so the toolchain now uses the existing project Python
+interpreter before selecting compiler, resource and archive programs. A bounded
+local leaf-junction parallel build passed with the corrected physical compiler
+path before local experiments were stopped. This is a workaround for the
+observed build layout, not a diagnosis of the broader PC freezing or proof that
+all Windows startup causes are understood. Further compiler experiments are
+restricted to remote disposable runners.
 
 The new game-free `tests/windows_toolchain_paths` project also passes locally:
 parallel C/C++/resource compilation, static archive, Windows API imports,
@@ -351,7 +362,8 @@ source and tool paths and asserts the generated compiler path is physical.
 No screenshot, device playback or game data is involved.
 
 Evidence: `logs/toolchain/path-canonical-ascii/`, `path-physical-unicode/`,
-`path-original-alias-normalized/`, `path-ci-fixture-normalized/`; each retains
+`path-original-alias-normalized/`, `path-ci-fixture-normalized/`, and
+`path-native-resolved-leaf/`; each retains
 commands, timings, exit status and logs. Original failed probe logs remain in
 `unicode-tools-*`. Both qualified full-game build identities still verify;
 the path normalization does not change their already physical compiler paths,
@@ -367,6 +379,20 @@ passes for 1,018 tracked files, with no build output, game data, save snapshots
 or screenshots staged. The baseline fixture selection and agent-instruction
 tests pass 86/86. These focused checks cover the final build-script/CI changes;
 no new gameplay or visual run was made.
+
+## Remote disposable Windows runner
+
+`.github/workflows/windows-toolchain-spike.yml` uses GitHub's standard hosted
+`windows-2025` image, not a self-hosted runner on the owner's computer. Each job
+gets a disposable VM. The whole job is limited to 30 minutes; download is limited
+to five, build targets to 15, and each TLS/path test step to three. Newer runs
+cancel stale runs of this workflow for the same PR. Uploaded artifacts are logs
+only, retained seven days. No game dump, save or locally built game is uploaded.
+
+The runner validates the corrected path resolver and game-free builds remotely.
+GitHub's image has developer software preinstalled, so this does not replace
+clean-Windows-without-VS or real installer/update/rollback qualification.
+Remote results and retained failed attempts are linked from the PR checks.
 
 ## Controlled performance comparison
 
