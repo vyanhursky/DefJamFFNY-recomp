@@ -66,6 +66,7 @@ extern "C" {
 #include "scene_launcher.h"
 #include "dev_module.h"
 #include "patches/song_cursor.h"
+#include "patches/photo_mode.h"
 #endif
 #include "patches/cheats.h"
 #include "input_host.h"
@@ -2679,6 +2680,7 @@ void song_pad_poll()
 // [songs] skip_key / restart_key: which request a key-down is, if any.
 int song_key_request(int vk)
 {
+    if (photo_mode_active()) return 0;
     if (vk <= 0 || vk == g_overlay_vk) return 0;
     if (vk == g_song_vk[0]) return SONG_REQUEST_SKIP;
     if (vk == g_song_vk[1]) return SONG_REQUEST_RESTART;
@@ -2687,6 +2689,7 @@ int song_key_request(int vk)
 
 void set_open(bool open)
 {
+    if (open && photo_mode_active()) return;
     if (g_open.load() == open) return;
     g_open = open;
     g_just_opened = open;
@@ -2805,13 +2808,13 @@ extern "C" void pc_ui_overlay(void *device, void *context, void *window_rtv, uns
     ui_lock();
     bool toggled = g_toggle.exchange(false);
     pad_mark_poll();
-    if (!ui_capturing() && !g_open.load()) song_pad_poll();
+    if (!ui_capturing() && !g_open.load() && !photo_mode_active()) song_pad_poll();
     if (!ui_capturing() && !g_chords.empty() && pad_toggle_pressed()) toggled = true;
     if (toggled) set_open(!g_open.load());
     bool open = g_open.load();
     char sub_text[256] = "";
-    bool has_sub = pc_speech_subs_current(sub_text, sizeof(sub_text)) != 0;
-    if (!open && !has_sub) { ui_unlock(); return; }
+    bool has_sub = !photo_mode_active() && pc_speech_subs_current(sub_text, sizeof(sub_text)) != 0;
+    if (!open && !has_sub && !photo_mode_active()) { ui_unlock(); return; }
 
     ID3D11Device *dev = (ID3D11Device *)device;
     ID3D11DeviceContext *ctx = (ID3D11DeviceContext *)context;
@@ -2836,6 +2839,7 @@ extern "C" void pc_ui_overlay(void *device, void *context, void *window_rtv, uns
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
 
+    photo_mode_ui();
     if (has_sub)
         draw_speech_subtitle(sub_text);
 
@@ -3001,14 +3005,14 @@ int overlay_active(void *)
     ui_lock();
     bool toggled = g_toggle.exchange(false);
     pad_mark_poll();
-    if (!ui_capturing() && !g_open.load()) song_pad_poll();
+    if (!ui_capturing() && !g_open.load() && !photo_mode_active()) song_pad_poll();
     if (!ui_capturing() && !g_chords.empty() && pad_toggle_pressed()) toggled = true;
     if (toggled) set_open(!g_open.load());
     bool open = g_open.load();
     char sub_text[256] = "";
-    bool has_sub = pc_speech_subs_current(sub_text, sizeof(sub_text)) != 0;
+    bool has_sub = !photo_mode_active() && pc_speech_subs_current(sub_text, sizeof(sub_text)) != 0;
     ui_unlock();
-    return (open || has_sub) ? 1 : 0;
+    return (open || has_sub || photo_mode_active()) ? 1 : 0;
 }
 
 void overlay_init_backend(const D3D8VkOverlayFrame *f)
@@ -3033,8 +3037,8 @@ void overlay_draw(const D3D8VkOverlayFrame *f, void *)
     ui_lock();
     bool open = g_open.load();
     char sub_text[256] = "";
-    bool has_sub = pc_speech_subs_current(sub_text, sizeof(sub_text)) != 0;
-    if (!open && !has_sub) { ui_unlock(); return; }
+    bool has_sub = !photo_mode_active() && pc_speech_subs_current(sub_text, sizeof(sub_text)) != 0;
+    if (!open && !has_sub && !photo_mode_active()) { ui_unlock(); return; }
     if (g_ready && f->generation != g_vk_generation) {
         // The window's image has another format: the pipelines were built for the old pass.
         ImGui_ImplVulkan_Shutdown();
@@ -3061,6 +3065,7 @@ void overlay_draw(const D3D8VkOverlayFrame *f, void *)
     ui_sdl_frame((float)f->width, (float)f->height, 1.0f);
     ImGui::NewFrame();
 
+    photo_mode_ui();
     if (has_sub)
         draw_speech_subtitle(sub_text);
 

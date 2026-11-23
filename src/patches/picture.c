@@ -52,6 +52,8 @@ static volatile int s_vignette_alpha = 255;     /* 0: not drawn */
 static volatile int s_tint = 100;               /* percent of the venue's colour tint */
 static volatile int s_scratches = 1;
 static uint32_t s_fade_quad;                    /* the vignette quad of the draw in progress */
+static PictureOptions s_options = {100, 100, 1, 100, 1}, s_photo_entry;
+static int s_photo;
 
 static void compose(void)
 {
@@ -89,23 +91,23 @@ void picture_title_ramp(const uint8_t *ramp)
     compose();
 }
 
-void picture_apply_settings(void)
+static void apply_options(PictureOptions options)
 {
-    int b = recomp_settings_get("display", "brightness", 100);
-    int strength = recomp_settings_get("display", "vignette_strength", 100);
     static int logged = -1;
-
-    if (b < 50) b = 50;
-    if (b > 200) b = 200;
-    if (strength < 0) strength = 0;
-    if (strength > 100) strength = 100;
-    s_vignette_alpha = recomp_settings_get("display", "vignette", 1) ? (strength * 255 + 50) / 100 : 0;
-    s_tint = recomp_settings_get("display", "color_tint", 100);
-    if (s_tint < 0) s_tint = 0;
-    if (s_tint > 100) s_tint = 100;
-    s_scratches = recomp_settings_get("display", "scratches", 1) != 0;
-    if (b != s_brightness) {
-        s_brightness = b;
+    if (options.brightness < 50) options.brightness = 50;
+    if (options.brightness > 200) options.brightness = 200;
+    if (options.vignette_strength < 0) options.vignette_strength = 0;
+    if (options.vignette_strength > 100) options.vignette_strength = 100;
+    if (options.color_tint < 0) options.color_tint = 0;
+    if (options.color_tint > 100) options.color_tint = 100;
+    options.vignette = options.vignette != 0;
+    options.scratches = options.scratches != 0;
+    s_options = options;
+    s_vignette_alpha = options.vignette ? (options.vignette_strength * 255 + 50) / 100 : 0;
+    s_tint = options.color_tint;
+    s_scratches = options.scratches;
+    if (options.brightness != s_brightness) {
+        s_brightness = options.brightness;
         compose();
     }
     if (logged != ((s_brightness * 1000 + s_vignette_alpha) * 101 + s_tint) * 2 + s_scratches) {
@@ -114,6 +116,35 @@ void picture_apply_settings(void)
                 s_brightness, s_vignette_alpha ? "on" : "off", s_vignette_alpha, s_tint,
                 s_scratches ? "on" : "off");
     }
+}
+
+void picture_apply_settings(void)
+{
+    PictureOptions options;
+    if (s_photo) return;
+    options.brightness = recomp_settings_get("display", "brightness", 100);
+    options.color_tint = recomp_settings_get("display", "color_tint", 100);
+    options.vignette = recomp_settings_get("display", "vignette", 1);
+    options.vignette_strength = recomp_settings_get("display", "vignette_strength", 100);
+    options.scratches = recomp_settings_get("display", "scratches", 1);
+    apply_options(options);
+}
+
+void picture_photo_current(PictureOptions *options) { *options = s_options; }
+void picture_photo_begin(PictureOptions *entry)
+{
+    if (!s_photo) { s_photo_entry = s_options; s_photo = 1; }
+    *entry = s_options;
+}
+void picture_photo_set(const PictureOptions *options)
+{
+    if (s_photo) apply_options(*options);
+}
+void picture_photo_end(void)
+{
+    if (!s_photo) return;
+    s_photo = 0;
+    apply_options(s_photo_entry);
 }
 
 /* sub_000D9AF0_enter: the arguments are above the return address at g_esp. */

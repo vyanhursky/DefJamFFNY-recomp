@@ -16,6 +16,16 @@ void picture_title_ramp(const uint8_t *ramp);
  * start-up and on a change. */
 void picture_apply_settings(void);
 
+typedef struct PictureOptions {
+    int brightness, color_tint, vignette, vignette_strength, scratches;
+} PictureOptions;
+/* Temporary runtime-only look. End restores the exact entry options; no INI
+ * values are changed, and ordinary settings application cannot replace it. */
+void picture_photo_begin(PictureOptions *entry);
+void picture_photo_set(const PictureOptions *options);
+void picture_photo_current(PictureOptions *options);
+void picture_photo_end(void);
+
 /* Guest hooks (src/recomp_manual.c). */
 void picture_tint_draw_enter(void);
 void picture_quad_color_enter(void);
