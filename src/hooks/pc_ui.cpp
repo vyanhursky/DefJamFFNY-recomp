@@ -2234,6 +2234,13 @@ UiResult ui_draw(UiMode mode, float x, float y, float width, float height)
         recovery_attempted = true; pcui::mod_start("recover");
     }
     if (!pcui::mod_recovery_needed()) recovery_attempted = false;
+    // Once per launcher session, look for newer versions of the installed mods so Home can say so
+    // ("Mods (Updates Available)"). The same switch as the app's own update check turns it off.
+    static bool update_check_started = false;
+    if (mode == UI_LAUNCHER && !update_check_started && !pcui::mod_busy() && !pcui::mod_recovery_needed()) {
+        update_check_started = true;
+        if (recomp_settings_get("launcher", "check_updates", 1)) pcui::mod_start("check-updates");
+    }
     float scale = ImGui::GetStyle().FontScaleMain;
     ImGui::SetNextWindowPos(ImVec2(x, y));
     ImGui::SetNextWindowSize(ImVec2(width, height));

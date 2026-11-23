@@ -55,6 +55,9 @@ namespace pcui {
 static ModView view;
 static std::string status;
 static bool running = false;
+// The start-up "check-updates" job (see mod_start). It is invisible: mod_busy() is false while it runs, it never
+// writes the status line, and any other mod command, or the game starting, ends it first.
+static bool background = false;
 static float job_fraction = -1.0f; // 0..1 while the helper reports bytes, -1 when it only reports steps
 static bool job_failed = false;     // the last job ended badly (shown in red beside the button that started it)
 static std::string job_command;
@@ -138,7 +141,23 @@ static void read_view() {
     }
     view = std::move(next);
 }
-bool mod_busy() { return running; }
+bool mod_busy() { return running && !background; }
+int mod_updates_available() {
+    int count = 0;
+    for (const auto &mod : mod_view().catalogue_mods) if (mod.update && mod.compatible) count++;
+    return count;
+}
+// Ends the start-up check at once. Safe by design: the helper only replaces its files atomically and its
+// locks die with it, so nothing is left half-written.
+static void stop_background() {
+    if (!running || !background) return;
+#if defined(_WIN32)
+    if (process) { TerminateProcess(process, 1); WaitForSingleObject(process, 5000); CloseHandle(process); process = nullptr; }
+#else
+    if (process > 0) { kill(process, SIGKILL); waitpid(process, nullptr, 0); process = -1; }
+#endif
+    running = false; background = false;
+}
 bool mod_prerelease() { return testing_versions; }
 void mod_set_prerelease(bool enabled) { if (!running) testing_versions = enabled; }
 void mod_set_language(const std::string &pack) {
@@ -166,18 +185,29 @@ bool mod_failed() { return !running && job_failed; }
 const std::string &mod_command() { return job_command; }
 bool mod_recovery_needed() { std::error_code error; return fs::exists(root() / "journal.json", error); }
 void mod_cancel() {
-    if (!running) return;
+    if (!running || background) return;
     std::ofstream cancel(job_root / "cancel"); cancel << "cancel\n";
     status = "Cancelling; the previous installation will be kept.";
 }
+static bool start_job(const std::string &requested, const std::string &id);
 bool mod_start(const std::string &requested, const std::string &id) {
+    // A start-up check says nothing in the status line, even when it cannot start (no helper, no Python).
+    if (requested != "check-updates") return start_job(requested, id);
+    std::string saved = status;
+    bool started = start_job(requested, id);
+    status = saved;
+    return started;
+}
+static bool start_job(const std::string &requested, const std::string &id) {
     std::string command = requested == "install-enable" ? "install" : requested;
-    if (running) return false;
-    if (command != "status" && command != "refresh" && command != "install" && command != "remove" && command != "rollback" && command != "recover"
+    if (running && !background) return false;
+    if (command == "check-updates" && running) return false;
+    stop_background();
+    if (command != "status" && command != "refresh" && command != "check-updates" && command != "install" && command != "remove" && command != "rollback" && command != "recover"
         && command != "install-local" && command != "fighter-enable" && command != "fighter-disable" && command != "fighter-prepare") return false;
     if (!id.empty() && command != "install-local" && !pack_name(id)) return false;
     const char *override_root = getenv("RECOMP_TEXTURE_ROOT");
-    if (override_root && *override_root && command != "status" && command != "refresh" && command != "fighter-prepare") {
+    if (override_root && *override_root && command != "status" && command != "refresh" && command != "check-updates" && command != "fighter-prepare") {
         status = "Managed installs use the data folder's mods directory; unset RECOMP_TEXTURE_ROOT first."; return false;
     }
     std::error_code error;
@@ -232,7 +262,7 @@ bool mod_start(const std::string &requested, const std::string &id) {
     // Fighter builds are composed for the chosen language: set by the launcher before a Mods
     // command (mod_set_language) and by pc_fighters_prepare before Play. A status or refresh
     // never builds, so it needs none.
-    if (command != "status" && command != "refresh" && !fighter_language.empty())
+    if (command != "status" && command != "refresh" && command != "check-updates" && !fighter_language.empty())
         args.insert(args.end(), {"--language-pack", fighter_language});
 #if defined(_WIN32)
     std::wstring cmd;
@@ -262,12 +292,13 @@ bool mod_start(const std::string &requested, const std::string &id) {
 #endif
     enable_after_install = requested == "install-enable" ? id : "";
     job_command = command; job_fraction = -1.0f; job_failed = false; job_started = std::chrono::steady_clock::now();
+    background = command == "check-updates";
     running = true; status = command == "install-local" ? "Starting the install..." : "Working on mods..."; return true;
 }
 bool mod_poll() {
     if (!running) return false;
     auto progress = projection(job_root / "progress.ini");
-    if (!progress["progress"]["message"].empty()) {
+    if (!background && !progress["progress"]["message"].empty()) {
         status = progress["progress"]["message"];
         auto done = progress["progress"]["done"], total = progress["progress"]["total"];
         job_fraction = -1.0f;
@@ -289,6 +320,7 @@ bool mod_poll() {
     if (result == process || (result < 0 && errno != EINTR)) { complete = true; ok = result == process && WIFEXITED(code) && WEXITSTATUS(code) == 0; process = -1; }
 #endif
     if (!complete) return false;
+    if (background) { running = false; background = false; job_failed = false; read_view(); return true; }
     running = false; job_fraction = -1.0f; job_failed = !ok; read_view();
     if (ok) status = view.message.empty() ? "Mod inventory refreshed." : view.message;
     else if (progress["progress"]["message"].empty()) status = "Mod helper failed. Local packs are unchanged; see the launcher log.";
@@ -630,6 +662,7 @@ extern "C" void pc_fighters_restart_without_packs(const char *const *argv) {
 extern "C" int pc_mods_needs_recovery(void) { return pcui::mod_recovery_needed() ? 1 : 0; }
 
 extern "C" int pc_mods_game_lock(void) {
+    pcui::stop_background(); // a start-up catalogue check must not outlive the launcher into the game
     // No manager state means no managed packs/transactions yet. Create the shared
     // lock anyway so a later CLI installer cannot race a game launched manually.
     auto root = std::filesystem::u8path(pcui::folder_path(pcui::Folder::Data)) / "mod-manager";

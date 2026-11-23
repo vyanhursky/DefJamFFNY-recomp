@@ -254,6 +254,81 @@ def test_bad_range_hash_and_size_rejected(manager,tmp_path):
         with pytest.raises(ValueError,match='SHA-256'):manager.download(descriptor)
 
 
+def stamp_fetched(manager, when):
+    saved = mods.read_json(manager.root/'catalogue.json')
+    saved['fetched'] = when.isoformat()
+    mods.atomic_json(manager.root/'catalogue.json', saved)
+
+
+def test_check_updates_asks_the_network_only_when_the_cached_catalogue_is_old(manager, tmp_path):
+    manager, key = manager
+    _, row = package(tmp_path)
+    raw, signature = signed(manager, key, [row])
+    assert manager.catalogue_age() is None  # no timestamp: ask
+    with patch.object(mods, 'fetch_small', side_effect=[raw, signature]) as fetch:
+        manager.check_updates()
+    assert fetch.call_count == 2
+    assert [call.args[2] for call in fetch.call_args_list] == [mods.CHECK_TIMEOUT] * 2  # a short timeout, never 20 s
+    assert manager.catalogue_age() < 60
+    with patch.object(mods, 'fetch_small', side_effect=AssertionError('a recent catalogue needs no request')):
+        manager.check_updates()
+    stamp_fetched(manager, dt.datetime.now(dt.timezone.utc) - dt.timedelta(seconds=mods.CHECK_INTERVAL + 60))
+    with patch.object(mods, 'fetch_small', side_effect=[raw, signature]) as fetch:
+        manager.check_updates()
+    assert fetch.call_count == 2
+
+
+@pytest.mark.parametrize('failure', ['offline', 'timeout', 'dns', 'bad-signature'])
+def test_check_updates_says_nothing_when_it_cannot_reach_or_trust_the_catalogue(manager, tmp_path, failure):
+    manager, key = manager
+    _, row = package(tmp_path)
+    raw, signature = signed(manager, key, [row])
+    before = (manager.root/'catalogue.json').read_bytes()
+    if failure == 'bad-signature':
+        patched = patch.object(mods, 'fetch_small', side_effect=[raw, bytes(64)])
+    else:
+        error = {'offline': OSError('network is down'), 'timeout': TimeoutError('timed out'),
+                 'dns': mods.urllib.error.URLError('no such host')}[failure]
+        patched = patch.object(mods, 'fetch_small', side_effect=error)
+    with patched:
+        manager.check_updates()  # must not raise
+    assert (manager.root/'catalogue.json').read_bytes() == before  # the last verified catalogue stays
+
+
+def test_check_updates_without_a_provisioned_key_does_nothing(tmp_path):
+    manager = mods.Manager(tmp_path, keys=[])
+    with patch.object(mods, 'fetch_small', side_effect=AssertionError('no key, no request')):
+        manager.check_updates()
+
+
+def test_an_installed_mod_with_a_newer_catalogue_version_is_projected_as_an_update(manager, tmp_path):
+    manager, key = manager
+    first, row = package(tmp_path)
+    signed(manager, key, [row]); manager.install('paper', archive_path=first)
+    manager.view()
+    assert 'update=0' in (manager.root/'view.ini').read_text().splitlines()
+    _, newer = package(tmp_path, version='1.1.0', color='blue')
+    row['versions'] += newer['versions']
+    raw, signature = signed(manager, key, [row], revision=2)
+    with patch.object(mods, 'fetch_small', side_effect=[raw, signature]):
+        manager.check_updates(); manager.view()
+    view = (manager.root/'view.ini').read_text().splitlines()
+    assert 'installed=1.0.0' in view and 'latest=1.1.0' in view and 'update=1' in view
+
+
+def test_check_updates_command_is_silent_and_leaves_an_interrupted_install_alone(tmp_path, capsys):
+    data = tmp_path/'data'
+    argv = ['mods.py', 'check-updates', '--data-dir', str(data)]
+    with patch.object(mods.Manager, 'check_updates') as check, patch.object(sys, 'argv', argv):
+        assert mods.main() == 0
+        check.assert_called_once()
+        (data/'mod-manager/journal.json').write_text('{}')
+        assert mods.main() == 0
+        check.assert_called_once()  # not asked again: recovery is the launcher's job
+    assert capsys.readouterr().out == ''
+    assert (data/'mod-manager/journal.json').exists()
+
+
 def test_empty_trust_offline_status_never_changes_packs(tmp_path):
     manager=mods.Manager(tmp_path,keys=[])
     manager.view()

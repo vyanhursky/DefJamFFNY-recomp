@@ -33,7 +33,7 @@ remains in Interface. Display DPI and the existing text/control size setting sti
 |---|---|
 | Display | Fullscreen, window dimensions, picture shape, filter, VSync, render scale, anti-aliasing (MSAA), game texture levels, anisotropic filtering; widescreen HUD/cutscene/side-fill/FOV options; brightness, game brightness curve, vignette, colour tint and film scratches |
 | Controls | Players/devices and live stick/button feedback, rumble test, keyboard player, startup controller count/backend, dead zones, thresholds, rumble and pointer behavior; expand Gamepad button mapping or Keyboard and mouse bindings for Detect/Add/Clear/Default |
-| Mods | Installed local/project packs, enablement and overlap winners; shared Load Order window; verified project catalogue downloads/updates, rollback and removal; Refresh local mods, Open Mods Folder, Memory and manual pack list |
+| Mods | Installed local/project packs, enablement and overlap winners; shared Load Order window; verified project catalogue downloads/updates, rollback and removal; Refresh local mods, Open Mods Folder, Memory and manual pack list. Home reads "Mods (Updates Available)" when an installed catalogue mod has a newer version (a background check at launch; [mod-manager.md](mod-manager.md)) |
 | Interface | Launcher skip, startup movies, overlay key/pad chord, text/control size |
 | Cheats | Fight cheats (infinite health, max Blazin', no health regeneration, giant/tiny fighters), the Story fighter swap and, in-game, the Story profile one-shots (cash, development points, fighting styles) |
 | Diagnostics | Recorder/capture/retention settings, texture authoring, save-affecting unlock tools and, in-game, Story scenes and EA's developer menu |

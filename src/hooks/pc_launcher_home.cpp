@@ -73,7 +73,9 @@ UiHomeResult ui_launcher_home(float width, float height, const char *focus)
             ui_target("Dismiss error");
         }
     }
-    const char *labels[] = {"Settings", "Controls", "Mods", "Songs", "Help"};
+    // The Mods label says when a mod has an update. "##Mods" keeps the widget's identity (focus, navigation,
+    // automation) the same either way.
+    const char *labels[] = {"Settings", "Controls", pcui::mod_updates_available() > 0 ? "Mods (Updates Available)##Mods" : "Mods##Mods", "Songs", "Help"};
     const char *targets[] = {"Settings", "Configure", "Mods", "Songs", "Help"};
     int routes[] = {1, 2, 3, 5, 4};
     if (ImGui::BeginTable("destinations", 2, ImGuiTableFlags_SizingStretchSame)) {
