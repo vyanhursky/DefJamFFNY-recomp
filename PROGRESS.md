@@ -8,7 +8,7 @@
 
 ## 0. Status at a glance
 
-- v1.2.2 candidate: preparing `release/v1.2.2` from main `f80a792` with PRs #259/#275/#294/#297/#298 (D448-D455). Toolkit `d108a64` unchanged. Draft release PR #305 is open. Candidate CI 35/35 and fresh Windows analysis/lift/release build pass; local units pass 2826/59 skipped. Full native regression remains on hold. Owner will instruct the overnight full regression later; do not run it or publish before that instruction and successful qualification. Latest remains v1.2.1.
+- v1.2.2 candidate: preparing `release/v1.2.2` from main `f80a792` with PRs #259/#275/#294/#297/#298 (D448-D455). Toolkit `d108a64` unchanged. Draft release PR #305 is open. Candidate CI 35/35 and fresh Windows analysis/lift/release build pass; local units pass 2826/59 skipped. Windows candidate default regression coverage complete on 0efe068: 17 applicable passed, 4 platform skips across retained + resumed checks; 13/13 resumed aggregate. Extra result-menu smoke passes29/29 with final menu20.063s after result; CI-payload installs and Clean Update pass (355.90/360.98/213.49s), ten protected files unchanged. Final source CI and publication pending. Original interruptions retained. Owner will instruct the overnight full regression later; do not run it or publish before that instruction and successful qualification. Latest remains v1.2.1.
 
 - v1.2.1 / Workshop 0.3.1: published stable/Latest on 2026-11-20 (D447), game merge `2496bd3` / Workshop `2f0a317`; PRs #288/#289 and Workshop #40/#41 merged. Tagged game CI 37/37; Workshop four native packages audited. All nine game and ten Workshop asset digests match checksums/provenance. Toolkit `d108a64` unchanged; native qualification limits below still apply.
 
@@ -607,6 +607,8 @@ Run-log citations from retired status/planning prose remain protected by
 | D453 | 2026-11-22 | Require a reviewed single-career copied Story fixture with exact file identity and declared progression. | PR #298: platform profile enumeration differs; reject incompatible fixtures before launch. |
 | D454 | 2026-11-22 | Store compiler provenance at completed build time and bind it to the executable hash. | PR #298: current PATH cannot establish who built an older executable. |
 | D455 | 2026-11-22 | Keep final main-menu timing assertions in an opt-in result route. | PR #298: preserve short result routes; native timing smoke remains required before #173 closes. |
+| D456 | 2026-11-22 | Monitor the toolchain-189 Codex session for the next few hours and start the prepared v1.2.2 regression only after its testing is finished. | Explicit overnight owner instruction; do not contend for game timing, input, audio or GPU, and do not terminate another lane. |
+| D457 | 2026-11-23 | Proceed with the Windows-qualified 1.2.2 patch under the owner’s conditional release instruction after successful local full-regression coverage; retain native macOS/Deck and hands-on limits explicitly. | Toolkit and default compiler output are unchanged; previous stock qualifications remain bounded to unchanged paths. New custom Team/subtitle configurations are not inferred qualified on other platforms from CI. |
 
 ## 2. Historical environment inventory (2026-09-17)
 
@@ -656,7 +658,7 @@ defjam-recomp/
 
 ## 5. Open questions for Vlad
 
-- v1.2.2 candidate preparation is authorized; the owner will give the overnight full-regression instruction later. No full run, release merge, version tag or publication is authorized in this preparation turn.
+- v1.2.2 overnight start is authorized (2026-11-22 22:17 local): wait until the other Codex agent finishes its tests, then run the candidate serially. Monitor for the next few hours. Keep release publication on hold while qualification gates remain pending.
 
 - v1.2.1 and Workshop 0.3.1 are published stable/Latest under D447 on the owner's explicit instruction; no release approval is pending. Milestone 16 is closed; the next train is v1.2.2 (17). Existing issues and unqualified native cases remain open.
 - v1.2.0 is published under D440-D443 (2026-11-19, Latest) with Fighter Workshop 0.3.0; no release approval remains pending. #283 stays open by choice; #285 is unreproduced; #259's later commit `97b47da` (subtitle locking) is not in 1.2.0; the owner play-test is not recorded.
@@ -683,14 +685,14 @@ Upstream PR submissions still need the owner's separate approval.
 
 > Recent entries only; older entries remain unchanged in the local `docs/worklog/` archive.
 
-- 2026-11-20 18:18 — Published v1.2.1 Latest (2496bd3, PR #289/#288, unchanged toolkit d108a64) and Workshop 0.3.1 Latest (2f0a317, #41/#40). Tagged game CI 37/37, Workshop native four-target CI and staged archive/startup audit pass; all nine/ten release assets verified against GitHub digests, source and provenance. Existing gameplay/install qualifications and focused macOS CAF limits retained; no new game run. Milestone 16 closed, v1.2.2 opened as 17.
-- 2026-11-22 18:35 — #259 subtitle follow-up merged26a9c1d: 2files,97insertions/7deletions; no new subtitle/rematch feature claim; queued CI35/35.
-- 2026-11-22 18:35 — #275 fork seams merged69f275c: default/moved key ranges, schema3, resolver and native formatter; queued CI35/35, retained targeted21/21 and prior unit2805/59skip evidence; contended/interrupted runtime failures preserved.
-- 2026-11-22 18:35 — #294 Team Match fix mergeda4a76f2: controller selection and native summary ownership; queued CI35/35, retained native before/after evidence; no broad multiplayer qualification claimed.
-- 2026-11-22 18:35 — #297 Game logs shortcut merged79cf115: Windows app passes installed source/logs to Help; queued CI35/35, focused author tests14/14; native Help visual gate pending.
-- 2026-11-22 18:35 — #298 harness evidence merged028b551: single-career fixtures, structured identity assertions and compiler receipt; queued CI35/35, retained187focused/1skip; opt-in result-menu native smoke pending.
 - 2026-11-22 18:35 — v1.2.2 preparation D448-D455: owner requested candidate PR and will instruct overnight regression later. Five clean merge commits fromf80a792; toolkitd108a64 published asdefjam/release-1.2.2. Local unit/analysis/lift/build in progress; no full regression/tag/release.
 - 2026-11-22 18:45 — v1.2.2 draft release PR #305 ready for later native qualification: candidate34ea7b6 CI45095489325 passes35/35; fresh analysis/lift21C/67MiB and MSVC19.29 release build/verify-build pass, executable9954806c. Initial unit1failed/2825pass/59skip while version metadata changed; frozen-source cache21pass/1skip and final full units2826pass/59skip (288.93s, logs/unit-rc-final.txt). Source1018/0 and whitespace pass. Full native regression/install/update/playtest remain pending; no release merge/tag/publication. Build/fixture identities recorded in PR and handoff.
+- 2026-11-22 22:19 — D456: owner authorized monitoring for the next few hours and deferred candidate regression start after the other Codex agent finishes testing. Toolchain-189 session active, game PID39960 plus run-serial driver23492 observed; queued visual/Unicode tests mean a game-process gap is insufficient. Verified RC executable9954806c and build state unchanged. Candidate waits; no foreign process terminated.
+- 2026-11-23 16:40 UTC — v1.2.2 Windows regression started from0efe068/executable9954806c after session resumed this morning. No regression ran during the overnight interruption. Other agent last reported game tests finished; no game/test driver present. Runner logs/run-overnight.ps1 uses own copied fixture and serial game-ownership guard; full console logs/overnight-20261123-093924-console.txt. Unit phase active; separate result-menu smoke follows. No release action.
+- 2026-11-23 16:56 UTC — Tool/session interruption stopped the first v1.2.2 aggregate during fight; retain logs/overnight-20261123-093924-console.txt (unit2022pass/862skip/1deselected, m2/m3/m4a pass,4WindowsUI skips). Triage original fight log ends mid-presentation with median120 and no terminal crash; not a completed passing check. Own-lane guard20261123-094411-ko8hvwdj restored, no unresolved guard remains. Detached hidden driver27200 resumes only remaining13 checks, then result-menu smoke; logs/resumed-20261123-095637-console.txt.
+- 2026-11-23 17:38 UTC — v1.2.2 Windows default coverage complete on0efe068: 17applicable passes/4platform skips, combining retained pre-interruption checks with resumed13/13 in41min (logs/regress-20261123-103744.txt; logs/overnight/combined-coverage.json). Combat28/28,versus27/27,replay80records/1800steps matchgolden, Story/soak3boots/French/subtitles/input modes pass; captures reviewed. No game overlap recorded. Extra result-menu smoke running; no release yet.
+- 2026-11-23 17:54 UTC — All Windows native checks complete: default17pass/4platformskip plus result-menu29/29 (finalmenu20.063s afterresult, fixtureunchanged), bothdriverexits0; no unresolvedsaveguard. InstallQA root code/rc122-qa-20261123: preserve first cache-lock denial and second system-Temp compiler denial. Isolated appdata/temp retry active after successful independent MSVC compile/link probe; no source/security changes.
+- 2026-11-23 18:20 UTC — D457 conditional release qualification: Windows17pass/4skip plus final-menu29/29; packaged engine fresh122355.90s,baseline121360.98s,update122213.49s all exit0, ten protected files identical. First cache/Temp denials retained, isolated paths probe/installs pass. Hosted app shell launch pending; local identical-code app Help layout/Copy path verified, Open returns OS-shell error under automation context; desktop-context check pending. Final notes preserve Windows-only new native scope and original platform/custom-mode limits; source-record CI next.
 
 ## 7. Hand-off
 
@@ -705,8 +707,44 @@ Draft release PR: https://github.com/vyanhursky/DefJamFFNY-recomp/pull/305
 Version/notes/README and D448-D455 record the candidate. v1.2.1 remains Latest.
 PR #259 contributes subtitle follow-up only; its original feature shipped before.
 
-The owner will instruct the overnight regression later. Do not start it during
-preparation; do not merge the release PR, create/push a version tag or publish.
+Owner instruction on 2026-11-22 at 22:17 local: monitor for the next few hours
+and start the candidate regression when the other Codex agent finishes testing.
+The toolchain-189 session owned the PC first; its last report said game tests
+finished. This session resumed after an overnight interruption at 2026-11-23
+16:38 UTC. No regression ran during that gap. With no game or test driver
+remaining, started `logs/run-overnight.ps1` at 16:39 UTC. Full regression is
+running before the separate result-menu smoke; local serial wrapper guards
+against foreign game overlap and terminates only its own game children if
+interference invalidates a run. Driver output: `logs/overnight-driver-console.txt`;
+full console: `logs/overnight-20261123-093924-console.txt` (host-local filename).
+That execution was interrupted at the tool/session level during `fight` (no
+terminal runtime fault; log ends while presenting). Retain its partial console:
+unit passes 2022/862 skips/1 deselected; m2/m3/m4a pass; four Windows-inapplicable
+SDL/Vulkan UI checks skip. Restored unresolved own-lane save guard
+`20261123-094411-ko8hvwdj`; recovery reports no unresolved guard. Resumed only
+the remaining 13 checks at 16:56 UTC in detached hidden driver PID27200
+(`logs/resume-regression.ps1`, `logs/resumed-20261123-095637-console.txt`).
+No completed check or whole full suite is repeated, and no interrupted fight is
+counted as passing. Remaining aggregate completed 13/13 in 41 minutes
+(`logs/regress-20261123-103744.txt`): combined default coverage 17 applicable
+passes, four platform skips, no failed/missing check
+(`logs/overnight/combined-coverage.json`). Combat28/28, versus27/27, replay
+80/1800 golden; all Story/soak/language/rapid-input checks pass. French and
+English captures reviewed (`logs/overnight/visual-review.json`). Extra
+result-menu smoke passes29/29 (`logs/scenarios/fight-result-menu-20261123-103744`),
+ordered final menu20.063s after result with final dwell and fixture unchanged.
+Both driver exits0; no unresolved save guard remains. Real install/update tests
+run under `code/rc122-qa-20261123`. Two initial attempts are retained: default
+app-cache lock access denied, then MSVC system-Temp intermediate access denied.
+Retry isolates LOCALAPPDATA/APPDATA/TEMP/TMP into the QA root; an independent
+MSVC compile/link probe succeeds. No source or OS-security change was made. Successful fresh122/baseline121/update122
+steps: 355.90/360.98/213.49s; ten protected files identical,
+`code/rc122-qa-20261123/results.json`. Local app of identical code recognizes
+installed1.2.2, renders separate Play/Game logs, and copies the exact source/logs
+path. The hosted app’s shell launch did not expose a window; local app Open
+returned a shell error in this automation context. Desktop-context inspection
+continues; do not claim those operations passed until recorded on PR #305. Do not
+merge/tag/publish while qualification gates remain pending.
 Hosted CI 45095489325 passes 35/35 on source `34ea7b6`. Fresh analysis/lift
 produced 21 C files (67 MiB); Windows release build and verify-build pass
 (`logs/analyze-rc.txt`, `logs/recomp-rc.txt`, `logs/build-rc.txt`). Compiler receipt

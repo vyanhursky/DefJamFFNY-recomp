@@ -117,7 +117,7 @@ the older [setup installers](docs/setup-installer.md) remain available on earlie
 [Build and play](docs/build-and-play.md) for Windows or
 [Build on macOS and Linux](docs/build-macos-linux.md).
 
-[v1.2.2 candidate](docs/releases/v1.2.2.md) fixes custom fighters in Team Match, improves voice subtitle state handling and adds a Windows Game logs shortcut. Qualification is pending; the latest published release remains v1.2.1.
+[v1.2.2](docs/releases/v1.2.2.md) fixes custom fighters in Team Match, improves voice subtitle state handling and adds a Windows Game logs shortcut.
 
 [v1.2.1](docs/releases/v1.2.1.md) adds reviewed custom-fighter victory lip sync and left-finger poses, paired with [Fighter Workshop 0.3.1](https://github.com/vyanhursky/defjam-ffny-fighter-workshop/releases/tag/v0.3.1).
 
