@@ -97,13 +97,16 @@ def main():
            'RECOMP_TRANS_SHOT_NATIVE': '1', 'RECOMP_ASPECT': '16:9', 'RECOMP_PHOTO_TRACE': '1'}
     if virtual:
         tail = '@game.startgame(,' + ('start:18:18.3,' if expected_pause else '') + \
-            'rs:20:20.8,down:20:20.8,lright:21:21.8,rright:22:22.25,rt:23:23.2,' \
+            'rs:20:20.08,down:20:20.08,a:20.35:20.5,lright:21:21.8,rright:22:22.25,rt:23:23.2,' \
             'white:23.3:23.6,a:24:24.15,x:25:25.15,a:26:26.15,y:27:27.15,' \
             'down:27.3:27.45,right:27.7:27.85,down:28.1:28.25,right:28.5:28.65,' \
             'down:28.9:29.05,right:29.3:29.45,down:29.7:29.85,right:30.1:30.25,' \
             'down:30.5:30.65,right:30.9:31.05,down:31.3:31.45,right:31.7:31.85,' \
-            'down:32.1:32.25,right:32.5:32.65,down:32.9:33.05,a:33.3:33.45,' \
-            'b:34:34.15,a:35:35.15,b:37:37.2'
+            'down:32.1:32.25,right:32.5:32.65,down:32.9:33.05,right:33.3:33.45,' \
+            'down:33.7:33.85,left:34.1:34.25,down:34.5:34.65,right:34.9:35.05,' \
+            'down:35.3:35.45,left:35.7:35.85,down:36.1:36.25,right:36.5:36.65,' \
+            'down:36.9:37.05,a:37.3:37.45,b:38:38.15,a:39:39.15,' \
+            'y:41:41.15,down:41.3:41.45,a:41.7:41.85,b:42.3:42.45,a:43:43.15,b:45:45.2'
         env.update(RECOMP_PHOTO_MODE='1', RECOMP_INPUT_HOST='1', RECOMP_INPUT_IGNORE_FOCUS='1',
             RECOMP_PAD_HOST='1', RECOMP_INPUT_NO_PADS='1', RECOMP_INPUT_VIRTUAL_PADS='1',
             RECOMP_PAD_SCRIPT_VIRTUAL='1')
@@ -125,9 +128,9 @@ def main():
     live_file.write_text('', encoding='utf-8')
     env['RECOMP_PAD_LIVE'] = str(live_file)
     run = harness.run_game('photo-' + args.context, stages=stages, tail=tail,
-        shots=('@' + anchor + ',6,12' if negative else '@game.startgame(,10,12,14,16,19,21,23,25,28,33,36,39'),
+        shots=('@' + anchor + ',6,12' if negative else '@game.startgame(,10,12,14,16,19,21,23,25,28,33,36,40,44,47'),
         secs=150 if negative else 420, until=None if negative else 'game.startgame(',
-        after=40, env=env,
+        after=48 if virtual and not negative else 40, env=env,
         until_file=str(Path(harness.REPO) / 'logs/shots' / ('photo-' + args.context) /
                        ('photo-' + args.context + '-12s.bmp')) if negative else None)
     # Read the bounded PHOTO records; leave the large raw log to triage.py.
@@ -162,13 +165,16 @@ def main():
         if args.expect_save_failure:
             receipt['capture_passed'] = '[PHOTO] save failed:' in run.text and not photos
         else:
-            # First two photos use the same pose with the help panel shown/hidden.
-            # The third follows reset, with HUD/guides enabled in the preview.
-            receipt['capture_passed'] = len(photos) == 3 and all(p['valid'] and p['width'] > p['height'] > 0 for p in photos) \
-                and photos[0]['sha256'] == photos[1]['sha256'] != photos[2]['sha256']
+            # Entry and final photos match after camera + picture reset. The moved
+            # pair matches with help shown/hidden; the modified entry look differs.
+            receipt['capture_passed'] = len(photos) == 5 and all(p['valid'] and p['width'] > p['height'] > 0 for p in photos) \
+                and photos[0]['sha256'] == photos[4]['sha256'] \
+                and photos[1]['sha256'] == photos[2]['sha256'] != photos[0]['sha256'] \
+                and photos[3]['sha256'] not in (photos[0]['sha256'], photos[1]['sha256'])
         receipt['controls_passed'] = all(any('[PHOTO] setting row=' + str(row) + ' ' in r for r in receipt['records'])
-                                         for row in range(1, 8)) \
-            and any('[PHOTO] reset ' in r for r in receipt['records'])
+                                         for row in range(1, 13)) \
+            and any('[PHOTO] reset camera' in r for r in receipt['records']) \
+            and any('[PHOTO] reset picture' in r for r in receipt['records'])
         receipt['passed'] = receipt['passed'] and receipt['capture_passed'] and receipt['controls_passed']
     out = Path(harness.REPO) / ('logs/photo-' + args.context + '.json')
     out.write_text(json.dumps(receipt, indent=2) + '\n', encoding='utf-8')

@@ -1,6 +1,6 @@
 /* Photo Mode: freeze the fight screen tick, retain its world draw,
  * and publish a new camera through the game's own camera setter before culling.
- * All guest state is owned by the guest thread. Host UI only queries active. */
+ * All guest state is owned by the guest thread. Host UI reads a status snapshot. */
 #define _CRT_SECURE_NO_WARNINGS
 #include "photo_mode.h"
 #include "host.h"
@@ -24,7 +24,7 @@ extern void sub_001ECF10(void);
 static volatile LONG active;
 static uint32_t owner_screen, view, projection;
 static int pad, test_done, test_kind, test_ticks, live_ticks, entrance_ticks, enabled, draining;
-static unsigned held_ms[4];
+static unsigned chord_latched;
 static ULONGLONG last_tick, entered;
 static float entry_camera[12], pos[3], yaw, pitch, roll, fov, entry_fov;
 static unsigned draw_count, frozen_hash;
@@ -39,6 +39,7 @@ static const float speeds[4] = {12, 35, 80, 160};
 static CRITICAL_SECTION status_lock;
 static volatile LONG status_ready;
 static PhotoModeStatus status;
+static PictureOptions picture, entry_picture;
 
 static void status_enter(void)
 {
@@ -55,6 +56,7 @@ static void status_publish(void)
     status.panel=panel; status.settings=settings; status.row=row; status.speed=speed;
     status.hud_hidden=hud_hidden; status.thirds=thirds; status.centre=centre; status.invert_y=invert_y;
     status.fov=fov; status.roll=roll*180.0f/3.14159265358979323846f; status.look_speed=look_speed;
+    status.picture=picture;
     LeaveCriticalSection(&status_lock);
 }
 void photo_mode_status(PhotoModeStatus *out)
@@ -86,7 +88,7 @@ static void reset_camera(void)
 {
     memcpy(pos, entry_camera, sizeof(pos));
     yaw=entry_yaw; pitch=entry_pitch; roll=entry_roll; fov=entry_fov;
-    fprintf(stderr,"[PHOTO] reset fov=%.2f roll=%.2f pos=%.2f,%.2f,%.2f\n",fov,roll,pos[0],pos[1],pos[2]);
+    fprintf(stderr,"[PHOTO] reset camera fov=%.2f roll=%.2f pos=%.2f,%.2f,%.2f\n",fov,roll,pos[0],pos[1],pos[2]);
 }
 static int pressed(const InputRaw *raw, int control)
 {
@@ -103,14 +105,24 @@ static void setting_change(int direction)
     case 5: hud_hidden = !hud_hidden; break;
     case 6: thirds = !thirds; break;
     case 7: centre = !centre; break;
+    case 8: picture.brightness += direction * 5; break;
+    case 9: picture.color_tint += direction * 5; break;
+    case 10: picture.vignette = !picture.vignette; break;
+    case 11: picture.vignette_strength += direction * 5; break;
+    case 12: picture.scratches = !picture.scratches; break;
+    }
+    if (row >= 8 && row <= 12) {
+        picture_photo_set(&picture);
+        picture_photo_current(&picture);
     }
     if (look_speed < 0.25f) look_speed=0.25f;
     if (look_speed > 3) look_speed=3;
     if (roll < -3.14159265358979323846f) roll=-3.14159265358979323846f;
     if (roll > 3.14159265358979323846f) roll=3.14159265358979323846f;
     if (getenv("RECOMP_PHOTO_TRACE"))
-        fprintf(stderr,"[PHOTO] setting row=%d fov=%.2f roll=%.2f speed=%d look=%.2f invert=%d hud_hidden=%d thirds=%d centre=%d\n",
-            row,fov,roll,speed,look_speed,invert_y,hud_hidden,thirds,centre);
+        fprintf(stderr,"[PHOTO] setting row=%d fov=%.2f roll=%.2f speed=%d look=%.2f invert=%d hud_hidden=%d thirds=%d centre=%d brightness=%d tint=%d vignette=%d strength=%d scratches=%d\n",
+            row,fov,roll,speed,look_speed,invert_y,hud_hidden,thirds,centre,
+            picture.brightness,picture.color_tint,picture.vignette,picture.vignette_strength,picture.scratches);
 }
 
 void photo_mode_simulation_step(void) { last_simulation = GetTickCount64(); }
@@ -169,6 +181,7 @@ void photo_mode_cancel(void)
     photo_capture_cancel_pending();
     /* Scene teardown calls this before the view is destroyed. */
     if (view && projection) publish(entry_camera, entry_fov);
+    picture_photo_end();
     InterlockedExchange(&active, 0);
     xbox_HostInputSetUiActive(pc_ui_overlay_open());
     fprintf(stderr, "[PHOTO] exit draws=%u frozen=%s module=%u flags=%08X scale=%.2f\n", draw_count,
@@ -207,6 +220,7 @@ static int begin(uint32_t screen, int slot, const InputRaw *raw)
     panel = 1; settings = 0; row = 0; exit_after_capture = 0;
     owner_screen = screen; entered = GetTickCount64(); draw_count = 0;
     force_only = fight_was_paused();
+    picture_photo_begin(&picture); entry_picture=picture;
     frozen_hash = scene_hash();
     xbox_HostInputSetUiActive(1);
     InterlockedExchange(&active, 1);
@@ -268,11 +282,15 @@ int photo_mode_tick(uint32_t screen)
         if (pressed(&raw, INPUT_SRC_WEST)) panel = !panel;
         if (pressed(&raw, INPUT_SRC_NORTH)) { settings = !settings; panel = 1; }
         if (settings) {
-            if (pressed(&raw, INPUT_SRC_DPAD_UP)) row = (row + 8) % 9;
-            if (pressed(&raw, INPUT_SRC_DPAD_DOWN)) row = (row + 1) % 9;
+            if (pressed(&raw, INPUT_SRC_DPAD_UP)) row = (row + PHOTO_SETTINGS_COUNT - 1) % PHOTO_SETTINGS_COUNT;
+            if (pressed(&raw, INPUT_SRC_DPAD_DOWN)) row = (row + 1) % PHOTO_SETTINGS_COUNT;
             if (pressed(&raw, INPUT_SRC_DPAD_LEFT)) setting_change(-1);
             if (pressed(&raw, INPUT_SRC_DPAD_RIGHT)) setting_change(1);
-            if (row == 8 && pressed(&raw, INPUT_SRC_SOUTH)) reset_camera();
+            if (row == PHOTO_RESET_CAMERA_ROW && pressed(&raw, INPUT_SRC_SOUTH)) reset_camera();
+            if (row == PHOTO_RESET_PICTURE_ROW && pressed(&raw, INPUT_SRC_SOUTH)) {
+                picture=entry_picture; picture_photo_set(&picture);
+                fprintf(stderr,"[PHOTO] reset picture\n");
+            }
         } else if (pressed(&raw, INPUT_SRC_SOUTH)) photo_capture_request();
         if (test_kind && (now - entered < 2000 || now - entered >= 4000)) {
             raw.lx = 14000; raw.rx = 6000;
@@ -308,7 +326,7 @@ int photo_mode_tick(uint32_t screen)
      * Exclude loading, results and nonzero screen phases. */
     if (MEM32(screen + 0x24) != 0 ||
         !(state == 3 || state == 4 || state == 5 || state == 8) || pc_ui_overlay_open()) {
-        memset(held_ms, 0, sizeof(held_ms)); return 0;
+        chord_latched = 0; return 0;
     }
     test_ticks++;
     if (state == 3) entrance_ticks++;
@@ -322,10 +340,10 @@ int photo_mode_tick(uint32_t screen)
     for (i = 0; i < 4; i++) {
         int held = xbox_HostInputRawPad(i, &raw) && raw.src[INPUT_SRC_RIGHT_STICK_CLICK] > 16384 &&
                    raw.src[INPUT_SRC_DPAD_DOWN] > 16384;
-        if (!held) held_ms[i] = 0;
-        else if (!held_ms[i]) held_ms[i] = (unsigned)now;
-        else if ((unsigned)now - held_ms[i] >= 500 && held_ms[i] != ~0u) {
-            held_ms[i] = ~0u;
+        unsigned mask = 1u << i;
+        if (!held) chord_latched &= ~mask;
+        else if (!(chord_latched & mask)) {
+            chord_latched |= mask;
             if (begin(screen, i, &raw)) return 1;
         }
     }
@@ -340,6 +358,7 @@ void photo_mode_render(uint32_t screen)
 void photo_mode_clear(void)
 {
     photo_capture_cancel_pending();
+    picture_photo_end();
     candidate = owner_screen = view = projection = 0;
     draining = 0; missing_draws = 0; force_only = 0; last_simulation = 0;
     InterlockedExchange(&active, 0);

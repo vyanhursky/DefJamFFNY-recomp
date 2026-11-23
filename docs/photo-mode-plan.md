@@ -1,6 +1,6 @@
 # Def Jam Photo Mode Plan
 
-Photo Mode freezes a loaded fight while the player composes and saves a photograph with a controller. The first version targets features 1–8 for milestone v1.3.0. Entrances and victory scenes are also candidates for activation, provided their animation and camera can freeze and resume correctly. Story cutscenes and ordinary menus remain excluded.
+Photo Mode freezes a loaded fight while the player composes and saves a photograph with a controller. The first version targets features 1–9 for milestone v1.3.0. Entrances and victory scenes are also candidates for activation, provided their animation and camera can freeze and resume correctly. Story cutscenes and ordinary menus remain excluded.
 
 The implemented controls and capture behavior are in the [Photo Mode guide](photo-mode.md). Native evidence and remaining coverage are in the [scene qualification](research/photo-mode-scene-paths.md). The catalogue below keeps the original feature IDs for later selection.
 
@@ -8,7 +8,7 @@ First-version qualification: entrances, active Battle fights and paused Battle f
 
 ## Entry and return behavior
 
-Hold R3 + D-pad Down on one controller for 0.5 seconds. A completed hold fires once and must be released before reuse. The initiating controller owns the camera. Other controllers cannot complete the chord or operate gameplay while Photo Mode is active.
+Press R3 + D-pad Down together on one controller. Activation is immediate and fires once; release the chord before reuse. The initiating controller owns the camera. Other controllers cannot complete the chord or operate gameplay while Photo Mode is active.
 
 | Context | Behavior |
 | --- | --- |
@@ -18,11 +18,11 @@ Hold R3 + D-pad Down on one controller for 0.5 seconds. A completed hold fires o
 | Cinematic attack within a fight | Attempt support using the same freeze and restoration checks. |
 | Story cutscene, hub, shop, loading, character preview, result menu, other menu | Reject activation. |
 
-Leaving Photo Mode restores its entry camera, FOV, roll, HUD state, input ownership, and previous pause state. Clear consumed button edges and require release before gameplay input resumes. Scene teardown cancels Photo Mode without writing saved camera data into a new scene. A disconnected controller must not unpause the game accidentally.
+Leaving Photo Mode restores its entry camera, FOV, roll, picture adjustments, HUD state, input ownership, and previous pause state. Picture edits are temporary and never write saved settings. Clear consumed button edges and require release before gameplay input resumes. Scene teardown cancels Photo Mode without writing saved camera data into a new scene. A disconnected controller must not unpause the game accidentally.
 
 ## Feature catalogue
 
-The numbers remain stable so later decisions can reference them. Features 9–18 are future options, not part of the approved first version.
+The numbers remain stable so later decisions can reference them. On 2026-11-22 the owner approved feature 9 after play-testing features 1–8, requested immediate activation, and placed features 10–18 on hold. Entrance audio synchronization and full crowd visibility are also on hold after bounded audits found no straightforward qualified fix; see the [audio](research/photo-mode-audio-audit.md) and [crowd](research/photo-mode-crowd-audit.md) investigations.
 
 | ID | Feature | Scope and implementation considerations |
 | --- | --- | --- |
@@ -49,7 +49,7 @@ The numbers remain stable so later decisions can reference them. Features 9–18
 
 | Control | Action |
 | --- | --- |
-| Hold R3 + D-pad Down | Enter Photo Mode. |
+| R3 + D-pad Down together | Enter Photo Mode immediately. |
 | Left stick | Move forward/back and strafe. |
 | Right stick | Look. |
 | LT / RT | Move down / up. |
@@ -58,7 +58,7 @@ The numbers remain stable so later decisions can reference them. Features 9–18
 | X / Square | Hide/show the control panel. |
 | Y / Triangle | Open/close camera settings. |
 | B / Circle | Exit to the entry fight or pause state. |
-| D-pad in settings | Select/change speed, roll, HUD and guides; reset camera. |
+| D-pad in settings | Select/change camera, HUD, guides and picture settings. |
 
 The first version shows Xbox and PlayStation face-button labels together. Opening the camera settings suspends flight controls that conflict with menu navigation. Photo Mode, PC settings and song shortcuts have explicit priority and must not combine inputs across pads. B / Circle closes settings before exiting Photo Mode.
 
@@ -85,7 +85,7 @@ Reference implementations:
 
 ## Acceptance for the first version
 
-- Features 1–8 operate with a controller; the same frozen scene is rendered from multiple camera poses.
+- Features 1–9 operate with a controller; the same frozen scene is rendered from multiple camera poses. Picture settings revert exactly on reset/exit without changing saved preferences.
 - Active and already-paused fight entry work; exit preserves the prior pause state.
 - Story fights are allowed; Story cutscenes and ordinary menus are rejected.
 - Entrances, victories and special attacks are enabled only where freeze/render/resume evidence passes; record any remaining excluded paths.

@@ -1,6 +1,10 @@
 #ifndef DEFJAM_PHOTO_MODE_H
 #define DEFJAM_PHOTO_MODE_H
 #include <stdint.h>
+#include "picture.h"
+#define PHOTO_SETTINGS_COUNT 15
+#define PHOTO_RESET_CAMERA_ROW 13
+#define PHOTO_RESET_PICTURE_ROW 14
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -18,6 +22,7 @@ int photo_mode_frame(void);
 typedef struct PhotoModeStatus {
     int active, panel, settings, row, speed, hud_hidden, thirds, centre, invert_y;
     float fov, roll, look_speed;
+    PictureOptions picture;
     char message[512];
 } PhotoModeStatus;
 void photo_mode_status(PhotoModeStatus *out);

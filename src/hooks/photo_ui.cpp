@@ -44,9 +44,10 @@ extern "C" void photo_mode_ui(void)
     ImGui::TextDisabled("Fight frozen");
     if (s.settings) {
         static const char *labels[]={"Field of view","Roll","Travel speed","Look speed","Invert look Y",
-            "Game HUD","Rule of thirds","Centre guide","Reset camera"};
+            "Game HUD","Rule of thirds","Centre guide","Brightness","Venue colour tint",
+            "Vignette","Vignette strength","Film scratches","Reset camera","Reset picture"};
         static const char *speeds[]={"Slow","Normal","Fast","Very fast"};
-        char values[9][48]{};
+        char values[PHOTO_SETTINGS_COUNT][48]{};
         std::snprintf(values[0],sizeof(values[0]),"%.0f deg",s.fov);
         std::snprintf(values[1],sizeof(values[1]),"%.0f deg",s.roll);
         std::snprintf(values[2],sizeof(values[2]),"%s",speeds[s.speed%4]);
@@ -55,12 +56,18 @@ extern "C" void photo_mode_ui(void)
         std::snprintf(values[5],sizeof(values[5]),"%s",s.hud_hidden ? "Hidden" : "Shown");
         std::snprintf(values[6],sizeof(values[6]),"%s",s.thirds ? "On" : "Off");
         std::snprintf(values[7],sizeof(values[7]),"%s",s.centre ? "On" : "Off");
-        std::snprintf(values[8],sizeof(values[8]),"A / Cross");
+        std::snprintf(values[8],sizeof(values[8]),"%d%%",s.picture.brightness);
+        std::snprintf(values[9],sizeof(values[9]),"%d%%",s.picture.color_tint);
+        std::snprintf(values[10],sizeof(values[10]),"%s",s.picture.vignette ? "On" : "Off");
+        std::snprintf(values[11],sizeof(values[11]),"%d%%",s.picture.vignette_strength);
+        std::snprintf(values[12],sizeof(values[12]),"%s",s.picture.scratches ? "On" : "Off");
+        std::snprintf(values[PHOTO_RESET_CAMERA_ROW],sizeof(values[0]),"A / Cross");
+        std::snprintf(values[PHOTO_RESET_PICTURE_ROW],sizeof(values[0]),"A / Cross");
         ImGui::Separator();
         if (ImGui::BeginTable("photo settings",2,ImGuiTableFlags_SizingStretchProp)) {
             ImGui::TableSetupColumn("Setting",ImGuiTableColumnFlags_WidthStretch,1.5f);
             ImGui::TableSetupColumn("Value",ImGuiTableColumnFlags_WidthStretch,1.0f);
-            for (int i=0;i<9;++i) {
+            for (int i=0;i<PHOTO_SETTINGS_COUNT;++i) {
                 ImGui::TableNextRow();
                 if (i==s.row) ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,IM_COL32(145,105,30,160));
                 ImGui::TableNextColumn(); ImGui::TextUnformatted(labels[i]);
