@@ -29,15 +29,59 @@
 #endif
 #endif
 
+/* One lock guards the clip state and the row table: the kernel I/O wrappers write
+ * it on the game thread and the overlay reads it on the render thread. It is
+ * independent of the clock so the unit-test clock build is locked too. */
+#if defined(_WIN32)
+#include <windows.h>
+static INIT_ONCE s_subs_lock_once = INIT_ONCE_STATIC_INIT;
+static CRITICAL_SECTION s_subs_lock;
+static BOOL CALLBACK init_subs_lock(PINIT_ONCE once, PVOID param, PVOID *ctx)
+{
+    (void)once; (void)param; (void)ctx;
+    InitializeCriticalSection(&s_subs_lock);
+    return TRUE;
+}
+static void subs_lock(void)
+{
+    InitOnceExecuteOnce(&s_subs_lock_once, init_subs_lock, NULL, NULL);
+    EnterCriticalSection(&s_subs_lock);
+}
+static void subs_unlock(void)
+{
+    LeaveCriticalSection(&s_subs_lock);
+}
+#else
+#include <pthread.h>
+#include <time.h>
+static pthread_once_t s_subs_lock_once = PTHREAD_ONCE_INIT;
+static pthread_mutex_t s_subs_lock;
+static void init_subs_lock(void)
+{
+    pthread_mutexattr_t attr;
+    pthread_mutexattr_init(&attr);
+    pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+    pthread_mutex_init(&s_subs_lock, &attr);
+    pthread_mutexattr_destroy(&attr);
+}
+static void subs_lock(void)
+{
+    pthread_once(&s_subs_lock_once, init_subs_lock);
+    pthread_mutex_lock(&s_subs_lock);
+}
+static void subs_unlock(void)
+{
+    pthread_mutex_unlock(&s_subs_lock);
+}
+#endif
+
 #if defined(PC_SPEECH_SUBS_TEST_CLOCK)
 /* tests/unit/test_speech_subs_native.py drives the clock. */
 uint64_t pc_speech_subs_test_now_ms(void);
 static uint64_t now_ms(void) { return pc_speech_subs_test_now_ms(); }
 #elif defined(_WIN32)
-#include <windows.h>
 static uint64_t now_ms(void) { return (uint64_t)GetTickCount64(); }
 #else
-#include <time.h>
 static uint64_t now_ms(void)
 {
     struct timespec ts;
@@ -84,18 +128,26 @@ static int  g_extro_count = 0;
 
 void pc_speech_subs_clear_match(void)
 {
+    subs_lock();
     memset(g_intro_keys, 0, sizeof g_intro_keys);
     g_intro_count = 0;
     memset(g_extro_keys, 0, sizeof g_extro_keys);
     g_extro_count = 0;
-}
-
-void pc_speech_subs_reset(void)
-{
     g_active_viv = 0;
     g_active_off = 0;
     g_active_key[0] = 0;
     g_active_start_ms = 0;
+    subs_unlock();
+}
+
+void pc_speech_subs_reset(void)
+{
+    subs_lock();
+    g_active_viv = 0;
+    g_active_off = 0;
+    g_active_key[0] = 0;
+    g_active_start_ms = 0;
+    subs_unlock();
 }
 
 void pc_speech_subs_register_intro(const char *key)
@@ -262,24 +314,31 @@ static void trigger_by_offset(int viv_id, uint32_t offset)
     if (!g_loaded || !viv_id || !offset)
         return;
     uint64_t t = now_ms();
+    subs_lock();
     /* Debounce identical re-reads within 250 ms */
-    if (g_active_viv == viv_id && g_active_off == offset && t - g_active_start_ms < 250)
+    if (g_active_viv == viv_id && g_active_off == offset && t - g_active_start_ms < 250) {
+        subs_unlock();
         return;
+    }
     for (size_t i = 0; i < g_row_count; i++) {
         if (g_rows[i].viv_id == viv_id && g_rows[i].offset == offset) {
             /* Intro and extro clips are preloaded at match setup; skip SCHl read triggers
              * so they only display at the exact moment the fighter speaks in the cutscene. */
-            if (!_strnicmp(g_rows[i].clip_key, "intro/", 6) || !_strnicmp(g_rows[i].clip_key, "extro/", 6))
+            if (!_strnicmp(g_rows[i].clip_key, "intro/", 6) || !_strnicmp(g_rows[i].clip_key, "extro/", 6)) {
+                subs_unlock();
                 return;
+            }
             g_active_viv = viv_id;
             g_active_off = offset;
             snprintf(g_active_key, sizeof g_active_key, "%s", g_rows[i].clip_key);
             g_active_start_ms = t;
+            subs_unlock();
             fprintf(stderr, "[SUBS] voice clip triggered: %s (viv=%d off=%u)\n",
                     g_rows[i].clip_key, viv_id, offset);
             return;
         }
     }
+    subs_unlock();
 }
 
 static void trigger_by_key(const char *clip_key)
@@ -287,18 +346,23 @@ static void trigger_by_key(const char *clip_key)
     if (!g_loaded || !clip_key || !*clip_key)
         return;
     uint64_t t = now_ms();
-    if (!_stricmp(g_active_key, clip_key) && t - g_active_start_ms < 250)
+    subs_lock();
+    if (!_stricmp(g_active_key, clip_key) && t - g_active_start_ms < 250) {
+        subs_unlock();
         return;
+    }
     for (size_t i = 0; i < g_row_count; i++) {
         if (!_stricmp(g_rows[i].clip_key, clip_key)) {
             g_active_viv = g_rows[i].viv_id;
             g_active_off = g_rows[i].offset;
             snprintf(g_active_key, sizeof g_active_key, "%s", g_rows[i].clip_key);
             g_active_start_ms = t;
+            subs_unlock();
             fprintf(stderr, "[SUBS] voice clip triggered by path: %s\n", g_rows[i].clip_key);
             return;
         }
     }
+    subs_unlock();
 }
 
 /* Detect if an Xbox path is AUDIO\SPEECH1.VIV, SPEECH2.VIV, or SPEECH3.VIV */
@@ -317,8 +381,10 @@ static int match_speech_viv(const char *xbox_path)
 
 void xbox_speech_notify_open(const char *xbox_path, void *handle)
 {
+    if (!g_loaded || !handle)
+        return;
     int viv_id = match_speech_viv(xbox_path);
-    if (!viv_id || !handle)
+    if (!viv_id)
         return;
     for (int i = 0; i < MAX_VIV_HANDLES; i++) {
         if (g_viv_handles[i].handle == handle || !g_viv_handles[i].handle) {
@@ -328,6 +394,8 @@ void xbox_speech_notify_open(const char *xbox_path, void *handle)
             return;
         }
     }
+    fprintf(stderr, "[SUBS] warning: handle pool full (%d slots), recycling slot 0 for speech%d.viv handle=%p\n",
+            MAX_VIV_HANDLES, viv_id, handle);
     g_viv_handles[0].handle = handle;
     g_viv_handles[0].viv_id = viv_id;
 }
@@ -405,14 +473,19 @@ int pc_speech_subs_current(char *out, size_t cap)
     out[0] = 0;
     if (!pc_speech_subs_enabled())
         return 0;
-    if (!g_active_viv && !g_active_key[0])
+
+    subs_lock();
+    if (!g_active_viv && !g_active_key[0]) {
+        subs_unlock();
         return 0;
+    }
 
     uint64_t elapsed = now_ms() - g_active_start_ms;
     if (elapsed > 20000ull) {
         g_active_viv = 0;
         g_active_off = 0;
         g_active_key[0] = 0;
+        subs_unlock();
         return 0;
     }
 
@@ -427,6 +500,7 @@ int pc_speech_subs_current(char *out, size_t cap)
             any_future = 1;
         if (elapsed >= (uint64_t)r->start_ms && elapsed <= (uint64_t)r->end_ms + 250ull) {
             snprintf(out, cap, "%s", r->text);
+            subs_unlock();
             return 1;
         }
     }
@@ -435,5 +509,6 @@ int pc_speech_subs_current(char *out, size_t cap)
         g_active_off = 0;
         g_active_key[0] = 0;
     }
+    subs_unlock();
     return 0;
 }

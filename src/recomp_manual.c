@@ -617,6 +617,9 @@ void sub_0008BE60_enter(void)
 void sub_00079B60_enter(void) { if (s_ws_hud_live) ws_hud_heartbeat(); }
 void sub_0007A8F0_enter(void) { if (s_ws_hud_live) ws_hud_heartbeat(); }
 void sub_001A4D90_enter(void) { defjam_test_match_start(); defjam_crowd_match_start(); cheats_match_start(); song_cursor_match_start(); pc_speech_subs_clear_match(); }
+/* sub_0001D2C0 is the engine's internal sound/speech channel halt/reset function.
+ * When called with argument 0 (channel 0), active speech audio is halted, so we
+ * reset the active voice subtitle state to match. */
 void sub_0001D2C0_enter(void)
 {
     if (MEM32(g_esp + 4) == 0u)
@@ -1639,6 +1642,18 @@ extern void sub_00034DE0(void);
 extern void sub_00034E10(void);
 extern void sub_00034FA0(void);
 
+/*
+ * Fighter intro/extro wrappers and speech tracking:
+ *
+ * The engine stores match fighter state in a static array at 0x3403A4 (stride 0x64 bytes, up to 4 fighters):
+ *   - Base + slot * 0x64 + 0x00 (0x3403A4): Character/fighter ID (0xFFFFFFFF = empty/inactive)
+ *   - Base + slot * 0x64 + 0x10 (0x3403B4): Selected voice profile ID
+ *   - Base + slot * 0x64 + 0x18 (0x3403BC): Intro speech played flag (byte, set to 1 by sub_00034CF0)
+ *   - Base + slot * 0x64 + 0x19 (0x3403BD): Victory extro speech played flag (byte, set to 1 by sub_00034E10)
+ *
+ * sub_00034CF0 / sub_00034E10: Engine functions that trigger the fighter intro/extro voice line.
+ * sub_00034DE0 / sub_00034FA0: Engine functions that stop the intro/extro voice line.
+ */
 static void speech_wrap_play_intro(void)
 {
     /* In sub_00034CF0, esp+8 points to a pointer to the fighter index (0..3) */
