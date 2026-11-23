@@ -106,6 +106,26 @@ and any image differences. The report records the source and build identity, the
 machine and GPU driver, the fixture's hashes, the settings, the input schedule and
 which gates were selected. A gate that could not be evaluated is an error.
 
+The build identity includes the compiler path, ID and version, CMake version,
+generator, build type and configured toolchain file from the completed build's
+`build-state.json`. The receipt is tied to the verified executable hash. Older
+builds explicitly report unavailable compiler provenance; this does not change
+their test verdicts. A compiler currently on PATH is never used as a substitute.
+
+`--expect-character SLOT:INDEX` uses the existing `match_start` fighter check and
+writes its original verdict and observed identities into JSON, JUnit and HTML.
+Routes with an explicit `expected_venue` or generated `venue_index` also require the venue observed at
+StartGame, separately from the front-end selection request.
+
+`fight-result-menu` extends `fight-result` through rewards/save, backs out of
+Battle, and holds the final main menu. Its structured assertion requires match
+start, result, Battle menu and final main menu in that order, with a 90-second
+limit after the result. The opening main menu cannot satisfy this assertion.
+The dedicated variant's button timing still needs a native smoke run; the
+shared result/save path and direct Battle-to-main-menu transition have retained
+native evidence. Unit controls cover missing, wrong-order, late and departed
+final-menu evidence.
+
 Routes: `fight`, `fight-result`, `ffa`, `ffa-result`, `versus` (two pads),
 `two-matches` (a One on One and a Free For All in one launch), `fight-cycles` (five One on
 Ones in one launch, then a held menu), `fight-terrordome`,
@@ -187,7 +207,34 @@ source is only read). Menu navigation depends on the profiles: how many there ar
 their progression and unread messages. A route calibrated for one profile list is
 not guaranteed on another.
 
-The other regression checks still use the whole save folder with the copy-aside
+Existing-career routes (`crib`, `gym`, `story-tour`, `story-map-shops` and
+`unlock`, including derived cutscene routes) require a prepared single-user
+fixture. Create it by naming the career and the checkpoints its current save is
+ready to reach:
+
+```powershell
+python scripts/scenario_suite.py fixture --source C:/LOCAL/prepared-save --output logs/fixtures/story --profile "reviewed career at crib, gym available" --story-profile VY2 --story-ready crib --story-ready gym
+python scripts/scenario_suite.py run story-tour --fixture logs/fixtures/story
+```
+
+Only the copy is filtered to the named career; global Options are retained.
+The fixture records its exact identity, file hashes and progression declaration.
+Readiness is the preparer's declaration about those bytes, not a decoded proof
+of career progression. `map-shops` and `unlock` have their own readiness labels.
+Legacy or automatically copied multi-profile fixtures must be recreated with
+these options for existing-career routes. `intro` creates a new ID and does not
+use this contract. The library command `scenarios.py fixture add` accepts the
+same `--story-profile` and repeatable `--story-ready` options.
+
+Preflight rejects extra, changed or incompatible profiles before launch. With
+one saved career the picker uses one Down past Create User ID; it also requires
+observed backend index zero before Story/rewards entry. Reports retain the
+selected identity and fixture hashes. The complete save-root guard still applies.
+For direct harness/regression runs, set `DEFJAM_DATA` to the prepared fixture
+folder (holding `fixture.json` and `save/`), or point `RECOMP_STORY_FIXTURE` at
+the fixture and supply an identical copy of its save tree as the run's data.
+
+The other regression checks use the whole save folder with the copy-aside
 guard, which is why they are slower. Do not stop one mid-run: the guard restores
 the saves when the run ends.
 

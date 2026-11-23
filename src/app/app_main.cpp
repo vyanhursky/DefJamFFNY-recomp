@@ -523,6 +523,11 @@ bool load_install(std::string *why)
     if (!why->empty()) return false;
     os::set_env("DEFJAM_DATA", in.data.string());
     os::set_env("DEFJAM_INSTALL_DIR", in.root.string());
+#if defined(_WIN32)
+    // The game's run logs are in the logs folder under its folder (see where the game is started); the launcher's
+    // Help page opens them next to the app's own play logs.
+    os::set_env("DEFJAM_GAME_LOG_DIR", (in.source / "logs").string());
+#endif
     // The same settings file as the game, with the same catalogue.
     const char *env = getenv("RECOMP_SETTINGS");
     std::string settings = env && !strcasecmp(env, "none") ? "" : env && *env ? env : (in.data / "settings.ini").string();

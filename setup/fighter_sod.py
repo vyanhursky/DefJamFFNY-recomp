@@ -8,6 +8,7 @@ names, save handles and unvalidated writes are deliberately not synthesized.
 from dataclasses import dataclass
 import hashlib
 import struct
+from fighter_keys import BANK_FIRST, BANKS, LOGICAL_FIRST
 
 
 MAX_IMAGE = 32 * 1024**2
@@ -341,7 +342,9 @@ class Database:
             if selection_keys is not None:
                 next_id = selection_keys[key]
                 allocated = deferred_identifiers if key in deferred_keys else identifiers
-                check(type(next_id) is int and next_id >= 100 and next_id not in allocated,
+                # A bank row (four native slots) or a custom fighter's logical key (fighter_keys).
+                check(type(next_id) is int and (BANK_FIRST <= next_id < BANK_FIRST + BANKS or next_id >= LOGICAL_FIRST)
+                      and next_id not in allocated,
                       'Invalid/colliding allocated selection key')
             else:
                 while next_id in identifiers or next_id in (98, 99):

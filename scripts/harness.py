@@ -58,6 +58,9 @@ _state_spec = importlib.util.spec_from_file_location(
     'pipeline_state', os.path.join(REPO, 'scripts', 'pipeline-state.py'))
 pipeline_state = importlib.util.module_from_spec(_state_spec)
 _state_spec.loader.exec_module(pipeline_state)
+_evidence_spec = importlib.util.spec_from_file_location('test_evidence', os.path.join(REPO, 'scripts/test_evidence.py'))
+test_evidence = importlib.util.module_from_spec(_evidence_spec)
+_evidence_spec.loader.exec_module(test_evidence)
 
 # What every run needs: without these the title boots into a black window and a
 # smoke test reports the wrong stage.
@@ -476,10 +479,10 @@ ROUTES = {
         "env": {"RECOMP_FE_INJECT": "game.choosevenue#1=>Game.ChooseVenue(6)",
                 "RECOMP_START_LOG": "1"}, "expected_venue": 6,
     },
-    # The Story routes pick the THIRD user ID (down twice): the save area has four profiles since 2026-10-06 and the
-    # second one no longer has a Story save. If profiles are added or removed, this is the number to revisit.
+    # Legacy cursor schedule, replaced at preflight for a verified single-user
+    # fixture. Never infer a career identity from an ordinal in the owner's saves.
     "crib": {
-        "help": "Story with the first profile in the list, into the crib (NO to the messages prompt)",
+        "help": "Prepared Story profile into the crib (NO to the messages prompt)",
         "stages": [
             "getscreeninfo(intmain/mainmenu=a@6",
             "getscreeninfo(options/userid=down@4;down@6;a@9",
@@ -542,6 +545,21 @@ ROUTES = {
 # evaluate both rather than rebooting once per checkpoint.
 ROUTES['story-tour'] = dict(ROUTES['gym'], help='Story profile -> crib -> gym in one launch',
                            shots='@getscreeninfo(story/crib,9,@getscreeninfo(story/gym,13,23')
+for _name, _required in {'crib': ('crib',), 'gym': ('crib', 'gym'),
+                         'story-tour': ('crib', 'gym'), 'story-map-shops': ('crib', 'map-shops'),
+                         'unlock': ('unlock',)}.items():
+    ROUTES[_name]['story_requirements'] = _required
+
+# Preserve the short result route; this variant also drives the calibrated
+# summary/rewards/save path used by two-matches, then backs out of Battle.
+ROUTES['fight-result-menu'] = dict(ROUTES['fight-result'],
+    help='One on One through results/rewards/save, then back to the main menu',
+    tail=FIGHT_TAIL + ',' + raw_stages([
+        'game.getmatchsummary(=a@4+3x12',
+        'getscreeninfo(battle/cmtype#2=b@5;b@9',
+        'getscreeninfo(intmain/mainmenu#2=back@9999',
+    ]), until='getscreeninfo(intmain/mainmenu#2', after=3, secs=990,
+    final_menu_timeout=90)
 
 # The four-human combat route deliberately requires StartGame. A visual browse
 # probe has its own completion anchor, so menu-only evidence cannot count as a
@@ -1027,7 +1045,8 @@ def supervisor_fault(path, now=None, cache=None):
 
 def run_game(name, stages=(), tail="", shots="", secs=240, preset=RELEASE_PRESET, env=None,
              until=None, after=0, story=False, scripted=True, stall_secs=0, on_stall=None, quiet=False,
-             until_file=None, controller=None, inherit_recomp=True, supervisor=None):
+             until_file=None, controller=None, inherit_recomp=True, supervisor=None,
+             story_requirements=()):
     """Run the game once. Returns a Run.
 
     until/after: stop `after` seconds after the first `[FUNCCALL]` containing
@@ -1075,9 +1094,18 @@ def run_game(name, stages=(), tail="", shots="", secs=240, preset=RELEASE_PRESET
     unlock_default(e)
     startup_default(e)
     e['DEFJAM_DATA'] = guarded_data_root(e['DEFJAM_DATA'])
+    story_selection = None
+    story_requirements = story_requirements or ROUTES.get(name, {}).get('story_requirements', ())
+    if story_requirements:
+        fixture_root = e.get('RECOMP_STORY_FIXTURE', e['DEFJAM_DATA'])
+        story_selection = test_evidence.story_fixture(fixture_root, story_requirements,
+                                                     Path(e['DEFJAM_DATA']) / 'save')
+        stages = story_stages(stages)
+        e['RECOMP_PAD_SCRIPT'] = build_pad_script(stages, tail)
 
     run = Run(name, log + ".err", shots_dir)
     run.identity = {'preset': preset, 'executable': exe, 'build_state': build_state,
+                    'story_selection': story_selection,
                     'regression_profile': profile,
                     'environment': {k: v for k, v in e.items() if k.startswith('RECOMP_')},
                     'data_root': e['DEFJAM_DATA'], 'started_utc': datetime.now(timezone.utc).isoformat(),
@@ -1200,6 +1228,21 @@ def omit_tail_anchors(tail, replacements):
     return ','.join(result)
 
 
+def story_stages(stages):
+    out = []
+    selected = False
+    for stage in stages:
+        if stage.lower().startswith('getscreeninfo(options/userid='):
+            if stage.split('=', 1)[1] != 'down@4;down@6;a@9':
+                raise ValueError('Story fixture refuses an uncalibrated profile-selection stage')
+            stage = stage.split('=', 1)[0] + '=down@4;a@9'
+            selected = True
+        out.append(stage)
+    if not selected:
+        raise ValueError('Story fixture needs the calibrated user ID selection stage')
+    return out
+
+
 def run_route(route, preset=RELEASE_PRESET, secs=None, shots=None, env=None, extra_stages=(),
               to_end=False, **kw):
     r = ROUTES[route]
@@ -1216,7 +1259,7 @@ def run_route(route, preset=RELEASE_PRESET, secs=None, shots=None, env=None, ext
                     shots=r.get("shots", "") if shots is None else shots,
                     secs=secs or r["secs"], preset=preset, env=env,
                     until=None if to_end else r.get("until"), after=r.get("after", 0),
-                    story=r.get("story", False), **kw)
+                    story=r.get("story", False), story_requirements=r.get('story_requirements', ()), **kw)
     if r.get('until') and not reached(run.summary, r['until']):
         run.missing_anchor = r['until']
     return run
@@ -1315,6 +1358,10 @@ def run_faults(run):
         out.append(run.supervisor_failure)
     if run.save_ok is not True:
         out.append("save root not restored identical")
+    if run.identity.get('story_selection'):
+        check = test_evidence.story_selection_check(run.text)
+        if check['status'] != 'pass':
+            out.append(check['detail'])
     wrong = [m for m in DIR_RE.findall(run.text) if m[0].lower() != m[1].lower()]
     if wrong:
         out.append('directory search for "%s" answered "%s"' % wrong[0])

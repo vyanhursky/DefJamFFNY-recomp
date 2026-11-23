@@ -525,9 +525,31 @@ void sub_000558E0(void) {
     MEM32(g_esp + 4) = g_esp + 16; MEM32(g_esp + 8) = MEM32(stack + 8);
     for (uint32_t i = 0; i < 4; ++i) MEM32(g_esp + 16 + i * 4) = MEM32(arguments + i * 4);
     MEM32(g_esp + 24) = g_esp + 32;
-    MEM8(g_esp + 32) = '1'; MEM8(g_esp + 33) = '0'; MEM8(g_esp + 34) = (uint8_t)('0' + selection - 100);
+    /* Native bank keys are three digits, including a fork's moved banks (up to 127). */
+    MEM8(g_esp + 32) = (uint8_t)('0' + selection / 100 % 10);
+    MEM8(g_esp + 33) = (uint8_t)('0' + selection / 10 % 10);
+    MEM8(g_esp + 34) = (uint8_t)('0' + selection % 10);
     MEM8(g_esp + 35) = 0;
     sub_000558E0_gen();
+    g_esp = stack + 12; /* Native thiscall ret 8. */
+}
+
+/* Controller.ControllerSelect (Choose Teams) is reached through the script table, so
+ * this wrapper sees every call. A custom fighter's logical id (+1) becomes its
+ * participant bank's (+1), as ControllerSetup does above. */
+extern void sub_00055A20(void);
+static void team_select_wrap(void) {
+    uint32_t stack = g_esp, arguments = MEM32(stack + 4);
+    uint32_t value = defjam_fighter_team_selection(arguments);
+    if (value == UINT32_MAX) { sub_00055A20(); return; }
+    g_esp -= 64;
+    MEM32(g_esp) = MEM32(stack);
+    MEM32(g_esp + 4) = g_esp + 16; MEM32(g_esp + 8) = MEM32(stack + 8);
+    for (uint32_t i = 0; i < 4; ++i) MEM32(g_esp + 16 + i * 4) = MEM32(arguments + i * 4);
+    MEM32(g_esp + 24) = g_esp + 32;
+    MEM8(g_esp + 32) = (uint8_t)('0' + value / 100 % 10); MEM8(g_esp + 33) = (uint8_t)('0' + value / 10 % 10);
+    MEM8(g_esp + 34) = (uint8_t)('0' + value % 10); MEM8(g_esp + 35) = 0;
+    sub_00055A20();
     g_esp = stack + 12; /* Native thiscall ret 8. */
 }
 
@@ -617,6 +639,9 @@ void sub_0008BE60_enter(void)
 void sub_00079B60_enter(void) { if (s_ws_hud_live) ws_hud_heartbeat(); }
 void sub_0007A8F0_enter(void) { if (s_ws_hud_live) ws_hud_heartbeat(); }
 void sub_001A4D90_enter(void) { defjam_test_match_start(); defjam_crowd_match_start(); cheats_match_start(); song_cursor_match_start(); pc_speech_subs_clear_match(); }
+/* sub_0001D2C0 is the engine's internal sound/speech channel halt/reset function.
+ * When called with argument 0 (channel 0), active speech audio is halted, so we
+ * reset the active voice subtitle state to match. */
 void sub_0001D2C0_enter(void)
 {
     if (MEM32(g_esp + 4) == 0u)
@@ -1639,6 +1664,18 @@ extern void sub_00034DE0(void);
 extern void sub_00034E10(void);
 extern void sub_00034FA0(void);
 
+/*
+ * Fighter intro/extro wrappers and speech tracking:
+ *
+ * The engine stores match fighter state in a static array at 0x3403A4 (stride 0x64 bytes, up to 4 fighters):
+ *   - Base + slot * 0x64 + 0x00 (0x3403A4): Character/fighter ID (0xFFFFFFFF = empty/inactive)
+ *   - Base + slot * 0x64 + 0x10 (0x3403B4): Selected voice profile ID
+ *   - Base + slot * 0x64 + 0x18 (0x3403BC): Intro speech played flag (byte, set to 1 by sub_00034CF0)
+ *   - Base + slot * 0x64 + 0x19 (0x3403BD): Victory extro speech played flag (byte, set to 1 by sub_00034E10)
+ *
+ * sub_00034CF0 / sub_00034E10: Engine functions that trigger the fighter intro/extro voice line.
+ * sub_00034DE0 / sub_00034FA0: Engine functions that stop the intro/extro voice line.
+ */
 static void speech_wrap_play_intro(void)
 {
     /* In sub_00034CF0, esp+8 points to a pointer to the fighter index (0..3) */
@@ -1720,6 +1757,7 @@ recomp_func_t recomp_lookup_manual(uint32_t xbox_va)
         return trace_sleep_caller;
     if (xbox_va == 0x00068BA0u)
         return funccall_hook;
+    if (xbox_va == 0x00055A20u) return team_select_wrap;
     if (xbox_va == 0x00046E40u) {   /* Game.StartGame, src/patches/dev_unlock.c */
         extern recomp_func_t defjam_start_game_hook(void);
         recomp_func_t w = defjam_start_game_hook();

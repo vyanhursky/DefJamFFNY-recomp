@@ -17,6 +17,7 @@ import sys
 from fighter_build import MAX_REPORT, non_finite, unique, write_preview
 from fighter_registry import fingerprint
 from mods import atomic_bytes, check, ordinary_path, safe_dir, safe_relative, sync_directory, MAX_FILES
+import fighter_base
 
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA = 'fighter-verified-cache-1'
@@ -86,7 +87,7 @@ def compiler_identity():
 def request(game, sources, packs, ledger, language, composed):
     originals = {}
     for name in ORIGINALS:
-        path = ordinary_path(game / name)
+        path = ordinary_path(fighter_base.path(game, name))
         originals[name] = file_hash(path) if path.exists() else None
     return fingerprint({'schema': SCHEMA, 'compiler': compiler_identity(),
                         'originals': originals, 'packs': packs, 'sources': sources,

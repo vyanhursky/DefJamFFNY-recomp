@@ -473,7 +473,7 @@ def test_scenario_runner_requires_audio_and_retains_browsable_evidence(tmp_path,
         received.update(kwargs)
         text = ('[FUNCCALL] Game.ResetMatchData()\n[FUNCCALL] Controller.ControllerSetup(0,0,1,0)\n'
                 '[FUNCCALL] Controller.ControllerSetup(1,-1,2,1)\n[FUNCCALL] Game.ChooseVenue(6)\n'
-                '[FUNCCALL] Game.StartGame()\n')
+                '[FUNCCALL] Game.StartGame()\n[START] venue(script)=6 fighters(gd+1aaa step 5): 1 2\n')
         text += ('[D3D] 2.0s: 120 present\n[APU] output peak 200 over the last second; buffers dropped 0, device ran dry 0\n'
                  '[PACING] 120 presents, interval 16.40 / 16.67 / 17.02 ms (min/mean/max), median 16.67, 0 late, sync interval 2\n') * 30
         log = tmp_path / 'game.log.err'

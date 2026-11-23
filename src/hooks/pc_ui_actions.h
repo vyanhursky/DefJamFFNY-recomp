@@ -9,7 +9,8 @@ enum class Folder
     Mods,
     Install,
     Settings,
-    Logs
+    Logs,
+    GameLogs // the game's own run logs; the same folder as Logs when they are kept together
 };
 std::string folder_path(Folder which);
 bool copy_text(const std::string &text);

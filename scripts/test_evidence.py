@@ -59,6 +59,64 @@ def fixture_identity(root):
         json.dumps(actual, sort_keys=True).encode()).hexdigest())
 
 
+def saved_profiles(save):
+    """Named title profiles; Options is a global settings container, not a user."""
+    out = []
+    title = Path(save) / 'UserData' / '45410049'
+    for folder in sorted(title.iterdir()) if title.is_dir() else []:
+        if not folder.is_dir():
+            continue
+        meta = folder / 'SaveMeta.xbx'
+        if not meta.is_file():
+            raise ValueError('unusable saved profile directory: ' + str(folder))
+        raw = meta.read_bytes()
+        text = raw.decode('utf-16') if raw.startswith((b'\xff\xfe', b'\xfe\xff')) else raw.decode('utf-8')
+        name = next((line[5:] for line in text.splitlines() if line.startswith('Name=')), None)
+        if name == 'Options':
+            continue
+        if not name or Path(name).name != name or '/' in name or '\\' in name or not (meta.parent / name).is_file():
+            raise ValueError('unusable saved profile: ' + str(meta))
+        out.append({'name': name, 'path': meta.parent.relative_to(save).as_posix()})
+    return out
+
+
+def story_fixture(root, required, save=None):
+    """Prepared single-user fixtures remove platform-dependent profile ordering.
+
+    Progression is an explicit preparer's declaration bound to the exact files,
+    not an assertion that we can decode the career's internal state.
+    """
+    identity = fixture_identity(root)
+    selection = identity.get('story_selection', {})
+    profiles = saved_profiles(Path(root) / 'save')
+    if len(profiles) != 1 or selection.get('profile') != profiles[0]:
+        raise ValueError('Story route needs a prepared single-profile fixture; create with --story-profile and --story-ready')
+    if not set(required) <= set(selection.get('ready_for', [])):
+        raise ValueError('Story fixture progression is not declared ready for: ' + ', '.join(required))
+    if save is not None:
+        if saved_profiles(save) != profiles or tree_manifest(save) != identity['files']:
+            raise ValueError('Story run save differs from the prepared fixture; refusing incompatible profile data')
+    return dict(selection, fixture_manifest_sha256=identity['manifest_sha256'],
+                fixture_json_sha256=identity['fixture_json_sha256'],
+                selection='only saved user; one Down past Create User ID')
+
+
+def story_selection_check(log):
+    """Observe backend slot zero being selected after the guarded user picker."""
+    calls = [line[11:].strip().lower() for line in log.splitlines() if line.startswith('[FUNCCALL] ')]
+    picker = next((i for i, call in enumerate(calls) if 'getscreeninfo(options/userid' in call), None)
+    end = next((i for i, call in enumerate(calls) if picker is not None and i > picker and
+                ('game.startstorymode(' in call or 'getscreeninfo(battle/buyrewards' in call)), None)
+    window = '\n'.join(calls[picker + 1:end]) if picker is not None and end is not None else ''
+    users = [int(n) for n in re.findall(r'memcard\.getuserdata\(\s*(\d+)\s*\)', window)]
+    selected = [tuple(map(int, pair)) for pair in
+                re.findall(r'memcard\.setcurrentuserindex\(\s*(\d+)\s*,\s*(\d+)\s*\)', window)]
+    return assertion('identity.story_profile', bool(users) and set(users) == {0} and
+                     bool(selected) and set(selected) == {(0, 0)},
+                     'guarded single-user picker must observe GetUserData(0) and SetCurrentUserIndex(0,0) before Story/rewards',
+                     requested_indices=users, selected_indices=selected, target_observed=end is not None)
+
+
 LEVEL = re.compile(r'\[APU\] output peak (\d+) .*?buffers dropped (\d+), device ran dry (\d+)')
 
 
@@ -93,6 +151,38 @@ def fight_contexts(log):
                              'slots': {str(k): v for k, v in sorted(fighters.items())},
                              'evidence': 'front-end setup requests; guest identity is not independently verified'})
     return contexts
+
+
+def venue_check(log, expected):
+    """Reuse the StartGame observation, independently of the menu's request."""
+    match = re.search(r'^\[START\] venue\(script\)=(-?\d+)\b', log, re.M)
+    observed = int(match[1]) if match else None
+    return assertion('identity.venue', observed == expected,
+                     'venue read from game state at StartGame; missing evidence fails',
+                     expected=expected, observed=observed)
+
+
+def final_menu_check(timeline, timeout=90):
+    """The launch's opening menu cannot satisfy a post-result transition."""
+    wanted = ('game.startgame(', 'game.getmatchsummary(',
+              'getscreeninfo(battle/cmtype', 'getscreeninfo(intmain/mainmenu')
+    found = []
+    left_menu = False
+    for event in timeline:
+        if len(found) < len(wanted) and wanted[len(found)] in event['call'].lower():
+            found.append(event)
+        elif len(found) == len(wanted) and 'getscreeninfo(' in event['call'].lower() and wanted[-1] not in event['call'].lower():
+            left_menu = True
+    elapsed = found[-1]['observed_seconds'] - found[1]['observed_seconds'] if len(found) == 4 else None
+    return assertion('route.final_main_menu', elapsed is not None and 0 <= elapsed <= timeout and not left_menu,
+                     'ordered match start -> result -> battle menu -> main menu after result',
+                     transitions=found, elapsed_after_result=elapsed, timeout_seconds=timeout,
+                     left_final_menu=left_menu)
+
+
+def toolchain_identity(build_state):
+    return build_state.get('toolchain') or {
+        'status': 'unavailable', 'reason': 'older build-state has no compiler receipt; rebuild to record it'}
 
 
 def pcm_window(boundaries, anchor, end_anchor=None):
@@ -627,6 +717,8 @@ def write_report(folder, report):
            '<style>body{font:15px system-ui;margin:30px}td{padding:8px;border:1px solid #ccc}pre{white-space:pre-wrap}</style>' + \
            '<h1>' + escape(report['name']) + '</h1><p>Selected evidence gates; complete gameplay acceptance is not established.</p>' + \
            '<p><a href="report.json">JSON</a> · <a href="junit.xml">JUnit</a></p>' + \
+           '<h2>Build toolchain</h2><pre>' + escape(json.dumps(report.get('identity', {}).get('toolchain',
+               {'status': 'unavailable', 'reason': 'report did not supply a tested build compiler receipt'}), indent=2)) + '</pre>' + \
            '<h2>Scope</h2><pre>' + escape(json.dumps(report.get('scope', {}), indent=2)) + '</pre><table>' + rows + '</table>' + images + audios + \
            '<h2>Observations</h2><pre>' + escape(json.dumps(report.get('observations', {}), indent=2)) + '</pre>' + \
            '<h2>Identity</h2><pre>' + escape(json.dumps(report.get('identity', {}), indent=2)) + '</pre>'

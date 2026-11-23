@@ -20,7 +20,7 @@ int main(int argc,char**argv) {
         std::cout<<pcui::setup_path()<<"\n"<<pcui::setup_ready()<<"\n";return 0;
     }
     for(auto f:{pcui::Folder::Data,pcui::Folder::Saves,pcui::Folder::Mods,pcui::Folder::Install,
-                pcui::Folder::Settings,pcui::Folder::Logs})std::cout<<pcui::folder_path(f)<<"\n";
+                pcui::Folder::Settings,pcui::Folder::Logs,pcui::Folder::GameLogs})std::cout<<pcui::folder_path(f)<<"\n";
 }
 '''
 
@@ -67,14 +67,20 @@ def test_installed_paths_respect_unicode_and_separate_data_from_settings(action_
     settings = tmp_path / 'custom.ini'
     out = run(action_tool, tmp_path, DEFJAM_DATA=data, DEFJAM_INSTALL_DIR=install,
               DEFJAM_LOG_DIR=logs, TEST_SETTINGS_PATH=settings)
-    assert [Path(x) for x in out] == [data, data / 'save', data / 'mods', install, settings, logs]
+    assert [Path(x) for x in out] == [data, data / 'save', data / 'mods', install, settings, logs, logs]
+
+
+def test_game_logs_are_their_own_folder_when_the_app_names_one(action_tool, tmp_path):
+    play, game = tmp_path / 'Play logs', tmp_path / 'Game folder' / 'logs'
+    out = run(action_tool, tmp_path, DEFJAM_LOG_DIR=play, DEFJAM_GAME_LOG_DIR=game)
+    assert [Path(x) for x in out[5:]] == [play, game]
 
 
 def test_checkout_paths_fall_back_to_settings_parent_and_working_directory(action_tool, tmp_path):
     settings = tmp_path / 'Preferences' / 'settings.ini'
     out = [Path(x) for x in run(action_tool, tmp_path, TEST_SETTINGS_PATH=settings)]
     assert out == [settings.parent, settings.parent / 'save', settings.parent / 'mods', tmp_path,
-                   settings, tmp_path / 'logs']
+                   settings, tmp_path / 'logs', tmp_path / 'logs']
 
 
 def test_texture_root_override_is_the_inventory_folder(action_tool, tmp_path):
