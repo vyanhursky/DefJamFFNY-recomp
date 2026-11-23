@@ -11,14 +11,14 @@
   },
   "compiler": "MSVC 19.29.30133",
   "preset": "win-x64-release (RelWithDebInfo)",
-  "clean_series_binary_sha256": "5add232bde102cacc00f43cbf7f74ed23377f7d508406f7b7beb7589621e3d7b",
   "notes": [
     "CPU percent uses one logical CPU as 100%; no GPU utilization is inferred.",
     "Capped at 60 fps. CPU savings are not FPS gains.",
     "Initial control-1/states-1 timings quarantined due concurrent external builds; fence-1 interrupted and omitted.",
     "Two early clean trials used harness wall-clock CPU intervals and post-hoc validity audits; later trials use monotonic CPU intervals and explicit validity.",
     "Runtime counters are latest periodic/sparse observations, not exact exit totals.",
-    "The 313195a to 0080b5b fixture-only pin change did not change the executable bytes."
+    "The 313195a to 0080b5b fixture-only pin change did not change the executable bytes.",
+    "Historical series precedes the final compiler-DLL identity correction. Final-build scene confirmation is recorded in PR #306; do not apply this binary hash to the final build."
   ],
   "trials": [
     {
@@ -4536,5 +4536,6 @@
         }
       ]
     }
-  ]
+  ],
+  "historical_clean_series_binary_sha256": "5add232bde102cacc00f43cbf7f74ed23377f7d508406f7b7beb7589621e3d7b"
 }

@@ -13,6 +13,11 @@ DirectXbox-Recomp ([XboxXBERecomp](https://github.com/TGP482/XboxXBERecomp),
 attribution and adoption remain owner decisions;
 no author was contacted and no upstream PR was opened.
 
+Draft: [PR #306](https://github.com/vyanhursky/DefJamFFNY-recomp/pull/306).
+Final fork pin: `2795b85a012b2626a1aa951c5b6149f335d2c976` on
+`vyanhursky/xboxrecomp:perf/runtime-stream2-toolkit`. All runtime features remain
+default-off; owner other-machine acceptance is pending.
+
 ## Controls and implementation
 
 All three changes are opt-in, per process. Set a switch to `0` for its control.
@@ -91,10 +96,36 @@ work. Cold and warm cache directories must be explicit.
   and candidate `905cf95` with all switches off produce these same counts. They
   remain failures, not passes. Stock logs: review workspace toolkit
   `build/stock-a8.txt`, `build/stock-gamma.txt`.
+- After CI exposed an event-API spelling and a missing standalone callback stub,
+  those fixture-only fixes passed the complete CI run `45104436798` (36 jobs),
+  including Linux/macOS runtime/fixtures and Windows conformance. All five users
+  of the shared executor test shim also pass locally (small capture, left tag,
+  FFP backend, raster batch, host clip).
+- The final compiler-key regression fails the pre-fix implementation with exactly
+  one expected failure and passes the corrected six-test suite. This checks that
+  the stored identity is the compiler DLL, not an executable import thunk.
+
+### Game gates and visual qualification
+
+With all three features explicitly enabled, loading/title/menu goldens, One on
+One, FFA, replay and repeatability pass. The fight ran 120 s at median 120 presents
+per two seconds (minimum 114); FFA ran 150 s at median 120 (minimum 107). Replay
+matches the existing golden's 80 records over 1,800 steps; both repeat runs match
+each other and the golden. Effective flags, shared faults and save restoration
+are recorded in the validation audits. Interrupted menu/FFA attempts and initial
+missing-fixture rows are retained; passing focused reruns use a private copy of
+the established VY2 fixture without changing its source.
+
+The approved visual-baseline gate is **not green**: two of four comparisons fail
+at the 13 s / 23 s captures with all three features enabled, and the same two fail
+with all three disabled. Direct enabled/disabled comparison of the three unique
+captured images is **pixel-identical (MAE 0)**. This establishes feature-mode
+parity, not renewed approval of the old references. The mismatch remains a release
+qualification; no baselines or thresholds were changed.
 
 ## Measurements on this machine
 
-The numbers-only [trial results](runtime-stream2-results.json) retain controls,
+The historical numbers-only [trial results](runtime-stream2-results.json) retain controls,
 individual features, cold/warm cache trials and repeats. All measured clean-series
 runs use the same executable. CPU values below are percent of **one logical CPU**.
 
@@ -146,7 +177,21 @@ byte-identical (SHA-256 `5add232bde102cacc00f43cbf7f74ed23377f7d508406f7b7beb758
 recorded in `logs/stream2/fixture-only-pin-identity.json`. The game source base is
 `f80a792` plus this branch's manual fence hook; each trial records the worktree
 HEAD, manual-source hash and toolkit pin. Early measurements precede the parent
-source commit but use the same runtime source/binary.
+source commit but use the same runtime source/binary within that historical series.
+
+### Final compiler identity correction
+
+The historical series above precedes the final compiler-key correction. On MSVC,
+`&D3DCompile` can identify an import thunk in the executable. The final pin resolves
+the compiler DLL export first, then hashes the implementing DLL image. This avoids
+unnecessary invalidation on unrelated game rebuilds and correctly follows compiler
+updates. Source, flags and bytecode semantics are unchanged. The native regression
+was demonstrated failing before the fix and passing afterward.
+
+The earlier binary's gameplay/visual parity evidence is carried across this
+cache-identity-only change. Final-build control and cold/warm scene confirmation
+is reported in the PR's Testing/Measurements sections, with its separate binary
+identity; do not treat the historical binary hash as the final executable hash.
 
 Project unit check: **1,996 passed / 845 skipped / 1 slow test deselected** in
 97.47 s, `logs/stream2-unit.txt`, plus **4/4** new runner regression tests in
