@@ -65,6 +65,12 @@ std::string folder_path(Folder which)
         auto logs = env("DEFJAM_LOG_DIR");
         return logs.empty() ? path_utf8(fs::current_path() / "logs") : logs;
     }
+    case Folder::GameLogs: {
+        // The app keeps its own play logs apart from the game's run logs on Windows and says where
+        // the game's are; everywhere else, and inside the game, the two are one folder.
+        auto logs = env("DEFJAM_GAME_LOG_DIR");
+        return logs.empty() ? folder_path(Folder::Logs) : logs;
+    }
     }
     return "";
 }
