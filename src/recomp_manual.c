@@ -43,6 +43,7 @@
 #include "patches/picture.h"
 #include "patches/cheats.h"
 #include "patches/song_store.h"
+#include "patches/clothing.h"
 #include "patches/song_cursor.h"
 #include "patches/options_volume.h"
 #include "patches/menu_geometry.h"
@@ -377,6 +378,7 @@ void sub_00045180(void)
     uint32_t key = MEM32(g_esp + 4), self = g_ecx;
     sub_00045180_gen();
     g_eax = defjam_fighter_localized(key, g_eax, self);
+    g_eax = clothing_localized(key, g_eax);   /* custom clothing names, src/patches/clothing.c */
 }
 
 /* Packed Character handles cross a stable identity boundary here. Other SOD
@@ -470,6 +472,58 @@ void sub_000144B0(void) {
     sub_000144B0_gen();
     defjam_fighter_settings_bound(self);
 }
+/* Custom Story clothing (src/patches/clothing.c). The clothing state set is filled from the
+ * database: added rows stay out of it. Its methods answer for the added rows' keys here (the
+ * game's own methods would read and write past the save's fixed state block). */
+extern void sub_000151C0_gen(void);
+void sub_000151C0(void) { uint32_t set = g_ecx; sub_000151C0_gen(); clothing_after_build(set); }
+extern void sub_00017260_gen(void);
+void sub_00017260(void) {
+    uint32_t r;
+    if (clothing_set_call(CLOTHING_GET, g_ecx, MEM32(g_esp + 4), 0, 0, &r)) { g_eax = r; g_esp += 8; return; }
+    sub_00017260_gen();
+}
+extern void sub_000173A0_gen(void);
+void sub_000173A0(void) {
+    uint32_t r;
+    if (clothing_set_call(CLOTHING_SET, g_ecx, MEM32(g_esp + 4), MEM8(g_esp + 8), 0, &r)) { g_esp += 12; return; }
+    sub_000173A0_gen();
+}
+extern void sub_00017410_gen(void);
+void sub_00017410(void) {
+    uint32_t r;
+    if (clothing_set_call(CLOTHING_OR_ALL, g_ecx, MEM32(g_esp + 4), MEM32(g_esp + 8), MEM8(g_esp + 12), &r)) { g_esp += 16; return; }
+    sub_00017410_gen();
+}
+extern void sub_00017310_gen(void);
+void sub_00017310(void) {
+    uint32_t r;
+    if (clothing_set_call(CLOTHING_ANY, g_ecx, MEM32(g_esp + 4), 0, 0, &r)) { g_eax = r; g_esp += 8; return; }
+    sub_00017310_gen();
+}
+extern void sub_00017480_gen(void);
+void sub_00017480(void) {
+    uint32_t r;
+    if (clothing_set_call(CLOTHING_OR, g_ecx, MEM32(g_esp + 4), MEM8(g_esp + 8), 0, &r)) { g_esp += 12; return; }
+    sub_00017480_gen();
+}
+extern void sub_000174D0_gen(void);
+void sub_000174D0(void) {
+    uint32_t r;
+    if (clothing_set_call(CLOTHING_CLEAR, g_ecx, MEM32(g_esp + 4), MEM8(g_esp + 8), 0, &r)) { g_esp += 12; return; }
+    sub_000174D0_gen();
+}
+extern void sub_000168E0_gen(void);
+void sub_000168E0(void) { uint32_t set = g_ecx, state = MEM8(g_esp + 4); sub_000168E0_gen(); clothing_set_all(set, state); }
+/* A profile row is copied into a save (cdecl (name, row); the copy is made before it returns)
+ * and copied in from one: saves keep only retail clothing (src/patches/clothing.c). */
+extern void sub_000D23B0_gen(void);
+void sub_000D23B0(void) { clothing_before_save(MEM32(g_esp + 8)); sub_000D23B0_gen(); clothing_after_save(); }
+extern void sub_000156D0_gen(void);
+void sub_000156D0(void) { clothing_before_row_load(); sub_000156D0_gen(); clothing_after_row_load(); }
+/* Sets up a profile slot (this = slot + 0x177C), for a load and for a new hero (sub_00016240). */
+extern void sub_000148B0_gen(void);
+void sub_000148B0(void) { clothing_slot_init(g_ecx); sub_000148B0_gen(); }
 extern void sub_00016810_gen(void);
 void sub_00016810(void) {
     defjam_fighter_unlock_inserting(g_ecx);
@@ -786,6 +840,7 @@ void sub_00014540(void)
     song_store_before_load(manager);
     sub_00014540_gen();
     song_store_after_load(manager);
+    clothing_after_load(manager);          /* src/patches/clothing.c: custom Story clothing */
     options_volume_after_load(manager);    /* src/patches/options_volume.c: saved volumes to the mixer */
 }
 extern void sub_00020C40_gen(void);
@@ -1457,6 +1512,7 @@ static void funccall_hook(void)
     defjam_fighter_menu_event(text);
     cheats_on_funccall(text);              /* Story tracking and Story cheats, src/patches/cheats.c */
     song_store_on_funccall(text);          /* songs: the save's copy before MemCard.*, src/patches/song_store.c */
+    clothing_on_funccall(text);            /* custom clothing: the save's copy before MemCard.*, src/patches/clothing.c */
     sub_00068BA0();
     /* RECOMP_FE_INJECT: commands of a test's own, after a chosen call (src/hooks/fe_inject.c). */
     fe_inject_after_call(text);

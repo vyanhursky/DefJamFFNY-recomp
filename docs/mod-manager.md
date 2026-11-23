@@ -50,6 +50,15 @@ beneath every texture mod. Other game data/code/recipe mods are outside this
 installer. General schema-2 overrides are future work. Full storefront/Quiver adapters are also future work; see the
 [storefront assessment](research/mod-storefront-integration-2026-10-21.md).
 
+### Clothing packs
+
+A pack folder with `clothing.json` is a [Clothing pack](custom-clothing.md): new clothes for the Story
+fighter. It installs from a ZIP on the **Clothing** tab (the same local install as Fighter ZIPs; it needs
+the `clothing-v1` capability, which the launcher passes) and is ticked there. Ticking, unticking,
+updating or removing an enabled pack compiles the enabled packs into `<data>/cache/clothing`
+(`mods.py clothing-enable` / `clothing-disable --id <pack>`; `clothing-prepare` rebuilds it). With none
+enabled the cache is removed and the game has its own clothes only.
+
 ### Thunderstore packages
 
 A [Thunderstore](https://thunderstore.io/c/def-jam-fight-for-ny-recompiled/) upload is the
