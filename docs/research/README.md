@@ -12,6 +12,10 @@ corresponding topic references below; their original versions remain in Git
 history. A later successful retry does not erase a failed aggregate. Research
 confidence labels and disproved hypotheses remain distinct from measured facts.
 
+## Runtime performance
+
+- [Stream 2 runtime overhead experiments](runtime-stream2.md) — opt-in D3D11 shader persistence, immutable state reuse and fence notifications; measurements, retained failures and cross-machine retest commands.
+
 ## Fighter Mod Support
 
 - [Approved pending-PR integration](pending-pr-integration-2026-11-10.md) — owner-authorized source merges, combined validation and retained gameplay/art qualification limits.

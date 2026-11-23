@@ -1,0 +1,4540 @@
+{
+  "schema": "defjam-stream2-results/1",
+  "date": "2026-11-22",
+  "hardware": {
+    "cpu": "Intel Core i7-13700K",
+    "physical_cores": 16,
+    "logical_cpus": 24,
+    "ram_gb": 32,
+    "gpu": "NVIDIA GeForce RTX 4070 Ti SUPER",
+    "power_plan": "High performance"
+  },
+  "compiler": "MSVC 19.29.30133",
+  "preset": "win-x64-release (RelWithDebInfo)",
+  "clean_series_binary_sha256": "5add232bde102cacc00f43cbf7f74ed23377f7d508406f7b7beb7589621e3d7b",
+  "notes": [
+    "CPU percent uses one logical CPU as 100%; no GPU utilization is inferred.",
+    "Capped at 60 fps. CPU savings are not FPS gains.",
+    "Initial control-1/states-1 timings quarantined due concurrent external builds; fence-1 interrupted and omitted.",
+    "Two early clean trials used harness wall-clock CPU intervals and post-hoc validity audits; later trials use monotonic CPU intervals and explicit validity.",
+    "Runtime counters are latest periodic/sparse observations, not exact exit totals.",
+    "The 313195a to 0080b5b fixture-only pin change did not change the executable bytes."
+  ],
+  "trials": [
+    {
+      "label": "baseline-stock",
+      "scope": "stock-reference",
+      "host": {
+        "build": "1.2.1 windows-x64",
+        "platform": "windows",
+        "aspect": "16:9",
+        "render_scale": "3",
+        "vsync": "true",
+        "window": "1920x1080",
+        "record_fps": 0,
+        "refresh": "[DISPLAY] refresh 144 Hz, windowed, vsync on: the game's 60 fps timer paces frames (refresh is not a multiple of 60 Hz; motion can judder)"
+      },
+      "features": {},
+      "game_worktree_head": "f80a792b434379cbf580a23240097c2fee4597b2",
+      "toolkit": "d108a64c0f272da2ab29016914f473018c3e2347",
+      "manual_sha256": null,
+      "benchmark_sha256": null,
+      "scenes": [
+        {
+          "scene": "sc00",
+          "played": true,
+          "ended": true,
+          "seconds": 87.1,
+          "frames": 5216,
+          "load_ms": 2500.8,
+          "open_to_play_ms": 2528.3,
+          "median_ms": 16.67,
+          "p95_ms": 16.73,
+          "p99_ms": 16.81,
+          "worst_ms": 171.54,
+          "one_percent_low_fps": 47.53,
+          "mean_fps": 59.88,
+          "late_frames": 5,
+          "missed_vblanks": 13,
+          "late_pct": 0.1,
+          "work_p50_ms": 16.53,
+          "work_p99_ms": 16.59,
+          "present_p99_ms": 0.25,
+          "hitches": 1,
+          "hitch_sides": {
+            "game": 1
+          },
+          "tex_upload_mb": 43.1,
+          "tex_evictions": 76,
+          "audio_dry": 0,
+          "audio_dropped": 0,
+          "memory_mb_start": 328.8,
+          "memory_mb_max": 411.5,
+          "memory_mb_end": 377.5,
+          "log_faults": {},
+          "cpu": {
+            "window_s": 86.59264278411865,
+            "cpu_s": 126.9375,
+            "percent_one_core": 146.5915531836392
+          },
+          "runtime_counters": {},
+          "validity": {}
+        },
+        {
+          "scene": "sc07b",
+          "played": true,
+          "ended": true,
+          "seconds": 66.1,
+          "frames": 3922,
+          "load_ms": 188.6,
+          "open_to_play_ms": 58.2,
+          "median_ms": 16.67,
+          "p95_ms": 16.75,
+          "p99_ms": 22.93,
+          "worst_ms": 75.29,
+          "one_percent_low_fps": 36.35,
+          "mean_fps": 59.51,
+          "late_frames": 24,
+          "missed_vblanks": 27,
+          "late_pct": 0.61,
+          "work_p50_ms": 16.55,
+          "work_p99_ms": 22.75,
+          "present_p99_ms": 0.22,
+          "hitches": 1,
+          "hitch_sides": {
+            "game": 1
+          },
+          "tex_upload_mb": 452.6,
+          "tex_evictions": 9,
+          "audio_dry": 0,
+          "audio_dropped": 0,
+          "memory_mb_start": 338.0,
+          "memory_mb_max": 388.0,
+          "memory_mb_end": 363.2,
+          "log_faults": {},
+          "cpu": {
+            "window_s": 65.52597260475159,
+            "cpu_s": 97.984375,
+            "percent_one_core": 149.53517071930452
+          },
+          "runtime_counters": {},
+          "validity": {}
+        }
+      ]
+    },
+    {
+      "label": "control-1",
+      "scope": "quarantined-timing",
+      "host": {
+        "build": "1.2.1 windows-x64",
+        "platform": "windows",
+        "aspect": "16:9",
+        "render_scale": "3",
+        "vsync": "true",
+        "window": "1920x1080",
+        "record_fps": 0,
+        "refresh": "[DISPLAY] refresh 144 Hz, windowed, vsync on: the game's 60 fps timer paces frames (refresh is not a multiple of 60 Hz; motion can judder)"
+      },
+      "features": {
+        "RECOMP_D3D11_SHADER_CACHE": "0",
+        "RECOMP_D3D11_STATE_CACHE": "0",
+        "RECOMP_FENCE_WAIT": "0",
+        "RECOMP_STREAM2_STATS": "1"
+      },
+      "game_worktree_head": "f80a792b434379cbf580a23240097c2fee4597b2",
+      "toolkit": "905cf951386667a3ddc7c38e2220bfeb70afdf48",
+      "manual_sha256": "881d5bfa497fb91c40fe456657f478aca866317429e6ed5889fef3f975e77a95",
+      "benchmark_sha256": "895798b5663d8becffc855489b65f3fca63a420d892e57f952b52f6e0f3c57f8",
+      "scenes": [
+        {
+          "scene": "sc00",
+          "played": true,
+          "ended": true,
+          "seconds": 87.1,
+          "frames": 5200,
+          "load_ms": 1640.5,
+          "open_to_play_ms": 1669.3,
+          "median_ms": 16.67,
+          "p95_ms": 16.8,
+          "p99_ms": 19.2,
+          "worst_ms": 130.82,
+          "one_percent_low_fps": 39.7,
+          "mean_fps": 59.69,
+          "late_frames": 8,
+          "missed_vblanks": 18,
+          "late_pct": 0.15,
+          "work_p50_ms": 16.5,
+          "work_p99_ms": 19.03,
+          "present_p99_ms": 0.31,
+          "hitches": 3,
+          "hitch_sides": {
+            "game": 3
+          },
+          "tex_upload_mb": 43.1,
+          "tex_evictions": 77,
+          "audio_dry": 0,
+          "audio_dropped": 0,
+          "memory_mb_start": 313.0,
+          "memory_mb_max": 395.1,
+          "memory_mb_end": 377.0,
+          "log_faults": {},
+          "cpu": {
+            "window_s": 86.70467734336853,
+            "cpu_s": 132.640625,
+            "percent_one_core": 152.9797804041362
+          },
+          "runtime_counters": {
+            "start": {
+              "S2SHADER": {
+                "enabled": 0,
+                "calls": 17,
+                "hits": 0,
+                "compiles": 17,
+                "compile_ms": 841.686,
+                "compile_cpu_ms": 828.125,
+                "io_ms": 0.0,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 0,
+                "holds": 64,
+                "checks": 6453296,
+                "waits": 0,
+                "signals": 0,
+                "timeouts": 0,
+                "wall_ms": 554.718
+              },
+              "S2STATE": {
+                "enabled": 0,
+                "draws": 728,
+                "creates": [
+                  244,
+                  244,
+                  1,
+                  2908
+                ],
+                "hits": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "fast": [
+                  0,
+                  483,
+                  0,
+                  0
+                ]
+              }
+            },
+            "end": {
+              "S2SHADER": {
+                "enabled": 0,
+                "calls": 31,
+                "hits": 0,
+                "compiles": 31,
+                "compile_ms": 1045.914,
+                "compile_cpu_ms": 1046.875,
+                "io_ms": 0.0,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 0,
+                "holds": 46592,
+                "checks": 593005832,
+                "waits": 0,
+                "signals": 0,
+                "timeouts": 1,
+                "wall_ms": 53859.555
+              },
+              "S2STATE": {
+                "enabled": 0,
+                "draws": 2117221,
+                "creates": [
+                  72238,
+                  33418,
+                  1,
+                  8468880
+                ],
+                "hits": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "fast": [
+                  0,
+                  2083802,
+                  0,
+                  0
+                ]
+              }
+            },
+            "final": {
+              "S2SHADER": {
+                "enabled": 0,
+                "calls": 31,
+                "hits": 0,
+                "compiles": 31,
+                "compile_ms": 1045.914,
+                "compile_cpu_ms": 1046.875,
+                "io_ms": 0.0,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 0,
+                "holds": 46592,
+                "checks": 593005832,
+                "waits": 0,
+                "signals": 0,
+                "timeouts": 1,
+                "wall_ms": 53859.555
+              },
+              "S2STATE": {
+                "enabled": 0,
+                "draws": 2138219,
+                "creates": [
+                  74116,
+                  35056,
+                  1,
+                  8552872
+                ],
+                "hits": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "fast": [
+                  0,
+                  2103162,
+                  0,
+                  0
+                ]
+              }
+            }
+          },
+          "validity": {}
+        },
+        {
+          "scene": "sc07b",
+          "played": true,
+          "ended": true,
+          "seconds": 66.1,
+          "frames": 3950,
+          "load_ms": 235.2,
+          "open_to_play_ms": 98.5,
+          "median_ms": 16.67,
+          "p95_ms": 16.77,
+          "p99_ms": 16.85,
+          "worst_ms": 74.37,
+          "one_percent_low_fps": 51.21,
+          "mean_fps": 59.93,
+          "late_frames": 2,
+          "missed_vblanks": 4,
+          "late_pct": 0.05,
+          "work_p50_ms": 16.51,
+          "work_p99_ms": 16.59,
+          "present_p99_ms": 0.28,
+          "hitches": 1,
+          "hitch_sides": {
+            "game": 1
+          },
+          "tex_upload_mb": 462.1,
+          "tex_evictions": 9,
+          "audio_dry": 0,
+          "audio_dropped": 0,
+          "memory_mb_start": 337.5,
+          "memory_mb_max": 371.9,
+          "memory_mb_end": 359.5,
+          "log_faults": {},
+          "cpu": {
+            "window_s": 65.88575458526611,
+            "cpu_s": 98.6875,
+            "percent_one_core": 149.78579303100108
+          },
+          "runtime_counters": {
+            "start": {
+              "S2SHADER": {
+                "enabled": 0,
+                "calls": 17,
+                "hits": 0,
+                "compiles": 17,
+                "compile_ms": 864.563,
+                "compile_cpu_ms": 812.5,
+                "io_ms": 0.0,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 0,
+                "holds": 64,
+                "checks": 5001171,
+                "waits": 0,
+                "signals": 0,
+                "timeouts": 0,
+                "wall_ms": 405.857
+              },
+              "S2STATE": {
+                "enabled": 0,
+                "draws": 612,
+                "creates": [
+                  208,
+                  208,
+                  1,
+                  2444
+                ],
+                "hits": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "fast": [
+                  0,
+                  403,
+                  0,
+                  0
+                ]
+              }
+            },
+            "end": {
+              "S2SHADER": {
+                "enabled": 0,
+                "calls": 32,
+                "hits": 0,
+                "compiles": 32,
+                "compile_ms": 1107.158,
+                "compile_cpu_ms": 1078.125,
+                "io_ms": 0.0,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 0,
+                "holds": 34304,
+                "checks": 660157786,
+                "waits": 0,
+                "signals": 0,
+                "timeouts": 1,
+                "wall_ms": 55109.779
+              },
+              "S2STATE": {
+                "enabled": 0,
+                "draws": 1894513,
+                "creates": [
+                  42997,
+                  25299,
+                  1,
+                  7578048
+                ],
+                "hits": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "fast": [
+                  0,
+                  1869213,
+                  0,
+                  0
+                ]
+              }
+            },
+            "final": {
+              "S2SHADER": {
+                "enabled": 0,
+                "calls": 32,
+                "hits": 0,
+                "compiles": 32,
+                "compile_ms": 1107.158,
+                "compile_cpu_ms": 1078.125,
+                "io_ms": 0.0,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 0,
+                "holds": 34304,
+                "checks": 660157786,
+                "waits": 0,
+                "signals": 0,
+                "timeouts": 1,
+                "wall_ms": 55109.779
+              },
+              "S2STATE": {
+                "enabled": 0,
+                "draws": 1904096,
+                "creates": [
+                  44612,
+                  26914,
+                  1,
+                  7616380
+                ],
+                "hits": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "fast": [
+                  0,
+                  1877181,
+                  0,
+                  0
+                ]
+              }
+            }
+          },
+          "validity": {}
+        }
+      ]
+    },
+    {
+      "label": "states-1",
+      "scope": "quarantined-timing",
+      "host": {
+        "build": "1.2.1 windows-x64",
+        "platform": "windows",
+        "aspect": "16:9",
+        "render_scale": "3",
+        "vsync": "true",
+        "window": "1920x1080",
+        "record_fps": 0,
+        "refresh": "[DISPLAY] refresh 144 Hz, windowed, vsync on: the game's 60 fps timer paces frames (refresh is not a multiple of 60 Hz; motion can judder)"
+      },
+      "features": {
+        "RECOMP_D3D11_SHADER_CACHE": "0",
+        "RECOMP_D3D11_STATE_CACHE": "1",
+        "RECOMP_FENCE_WAIT": "0",
+        "RECOMP_STREAM2_STATS": "1"
+      },
+      "game_worktree_head": "f80a792b434379cbf580a23240097c2fee4597b2",
+      "toolkit": "905cf951386667a3ddc7c38e2220bfeb70afdf48",
+      "manual_sha256": "881d5bfa497fb91c40fe456657f478aca866317429e6ed5889fef3f975e77a95",
+      "benchmark_sha256": "895798b5663d8becffc855489b65f3fca63a420d892e57f952b52f6e0f3c57f8",
+      "scenes": [
+        {
+          "scene": "sc00",
+          "played": true,
+          "ended": true,
+          "seconds": 87.1,
+          "frames": 5134,
+          "load_ms": 1599.7,
+          "open_to_play_ms": 1629.3,
+          "median_ms": 16.67,
+          "p95_ms": 17.42,
+          "p99_ms": 27.55,
+          "worst_ms": 125.51,
+          "one_percent_low_fps": 29.1,
+          "mean_fps": 58.94,
+          "late_frames": 74,
+          "missed_vblanks": 84,
+          "late_pct": 1.44,
+          "work_p50_ms": 16.51,
+          "work_p99_ms": 27.38,
+          "present_p99_ms": 0.29,
+          "hitches": 3,
+          "hitch_sides": {
+            "game": 3
+          },
+          "tex_upload_mb": 43.1,
+          "tex_evictions": 76,
+          "audio_dry": 0,
+          "audio_dropped": 0,
+          "memory_mb_start": 313.4,
+          "memory_mb_max": 412.0,
+          "memory_mb_end": 377.6,
+          "log_faults": {},
+          "cpu": {
+            "window_s": 86.36194133758545,
+            "cpu_s": 138.296875,
+            "percent_one_core": 160.13636661941507
+          },
+          "runtime_counters": {
+            "start": {
+              "S2SHADER": {
+                "enabled": 0,
+                "calls": 17,
+                "hits": 0,
+                "compiles": 17,
+                "compile_ms": 1204.149,
+                "compile_cpu_ms": 1203.125,
+                "io_ms": 0.0,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 0,
+                "holds": 64,
+                "checks": 5809713,
+                "waits": 0,
+                "signals": 0,
+                "timeouts": 0,
+                "wall_ms": 442.983
+              },
+              "S2STATE": {
+                "enabled": 1,
+                "draws": 695,
+                "creates": [
+                  4,
+                  7,
+                  1,
+                  2
+                ],
+                "hits": [
+                  226,
+                  223,
+                  0,
+                  2
+                ],
+                "fast": [
+                  464,
+                  464,
+                  693,
+                  2772
+                ]
+              }
+            },
+            "end": {
+              "S2SHADER": {
+                "enabled": 0,
+                "calls": 31,
+                "hits": 0,
+                "compiles": 31,
+                "compile_ms": 1411.0,
+                "compile_cpu_ms": 1390.625,
+                "io_ms": 0.0,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 0,
+                "holds": 45568,
+                "checks": 533608738,
+                "waits": 0,
+                "signals": 0,
+                "timeouts": 1,
+                "wall_ms": 52875.217
+              },
+              "S2STATE": {
+                "enabled": 1,
+                "draws": 2060827,
+                "creates": [
+                  9,
+                  22,
+                  1,
+                  4
+                ],
+                "hits": [
+                  70185,
+                  32600,
+                  0,
+                  150916
+                ],
+                "fast": [
+                  1990632,
+                  2028204,
+                  2060825,
+                  8092384
+                ]
+              }
+            },
+            "final": {
+              "S2SHADER": {
+                "enabled": 0,
+                "calls": 31,
+                "hits": 0,
+                "compiles": 31,
+                "compile_ms": 1411.0,
+                "compile_cpu_ms": 1390.625,
+                "io_ms": 0.0,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 0,
+                "holds": 46080,
+                "checks": 554462618,
+                "waits": 0,
+                "signals": 0,
+                "timeouts": 1,
+                "wall_ms": 54569.612
+              },
+              "S2STATE": {
+                "enabled": 1,
+                "draws": 2082071,
+                "creates": [
+                  9,
+                  23,
+                  1,
+                  4
+                ],
+                "hits": [
+                  72073,
+                  34243,
+                  0,
+                  152564
+                ],
+                "fast": [
+                  2009988,
+                  2047804,
+                  2082069,
+                  8175712
+                ]
+              }
+            }
+          },
+          "validity": {}
+        },
+        {
+          "scene": "sc07b",
+          "played": true,
+          "ended": true,
+          "seconds": 66.4,
+          "frames": 3731,
+          "load_ms": 485.9,
+          "open_to_play_ms": 103.3,
+          "median_ms": 16.68,
+          "p95_ms": 23.59,
+          "p99_ms": 30.32,
+          "worst_ms": 272.77,
+          "one_percent_low_fps": 23.97,
+          "mean_fps": 56.51,
+          "late_frames": 141,
+          "missed_vblanks": 162,
+          "late_pct": 3.78,
+          "work_p50_ms": 16.49,
+          "work_p99_ms": 30.16,
+          "present_p99_ms": 0.32,
+          "hitches": 4,
+          "hitch_sides": {
+            "game": 4
+          },
+          "tex_upload_mb": 407.4,
+          "tex_evictions": 9,
+          "audio_dry": 0,
+          "audio_dropped": 0,
+          "memory_mb_start": 335.4,
+          "memory_mb_max": 372.5,
+          "memory_mb_end": 359.4,
+          "log_faults": {},
+          "cpu": {
+            "window_s": 65.880859375,
+            "cpu_s": 120.421875,
+            "percent_one_core": 182.78734695087604
+          },
+          "runtime_counters": {
+            "start": {
+              "S2SHADER": {
+                "enabled": 0,
+                "calls": 17,
+                "hits": 0,
+                "compiles": 17,
+                "compile_ms": 964.908,
+                "compile_cpu_ms": 968.75,
+                "io_ms": 0.0,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2STATE": {
+                "enabled": 1,
+                "draws": 362,
+                "creates": [
+                  4,
+                  5,
+                  1,
+                  2
+                ],
+                "hits": [
+                  183,
+                  182,
+                  0,
+                  2
+                ],
+                "fast": [
+                  174,
+                  174,
+                  360,
+                  1440
+                ]
+              },
+              "S2FENCE": {
+                "wait": 0,
+                "holds": 64,
+                "checks": 2408011,
+                "waits": 0,
+                "signals": 0,
+                "timeouts": 0,
+                "wall_ms": 342.324
+              }
+            },
+            "end": {
+              "S2SHADER": {
+                "enabled": 0,
+                "calls": 32,
+                "hits": 0,
+                "compiles": 32,
+                "compile_ms": 1684.359,
+                "compile_cpu_ms": 1703.125,
+                "io_ms": 0.0,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2STATE": {
+                "enabled": 1,
+                "draws": 1712387,
+                "creates": [
+                  8,
+                  19,
+                  1,
+                  4
+                ],
+                "hits": [
+                  39891,
+                  23756,
+                  0,
+                  172398
+                ],
+                "fast": [
+                  1672487,
+                  1688611,
+                  1712385,
+                  6677142
+                ]
+              },
+              "S2FENCE": {
+                "wait": 0,
+                "holds": 32256,
+                "checks": 388145712,
+                "waits": 0,
+                "signals": 0,
+                "timeouts": 4,
+                "wall_ms": 54976.662
+              }
+            },
+            "final": {
+              "S2SHADER": {
+                "enabled": 0,
+                "calls": 32,
+                "hits": 0,
+                "compiles": 32,
+                "compile_ms": 1684.359,
+                "compile_cpu_ms": 1703.125,
+                "io_ms": 0.0,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2STATE": {
+                "enabled": 1,
+                "draws": 1720923,
+                "creates": [
+                  8,
+                  26,
+                  1,
+                  4
+                ],
+                "hits": [
+                  41314,
+                  25169,
+                  0,
+                  172462
+                ],
+                "fast": [
+                  1679600,
+                  1695727,
+                  1720921,
+                  6711222
+                ]
+              },
+              "S2FENCE": {
+                "wait": 0,
+                "holds": 32256,
+                "checks": 388145712,
+                "waits": 0,
+                "signals": 0,
+                "timeouts": 4,
+                "wall_ms": 54976.662
+              }
+            }
+          },
+          "validity": {}
+        }
+      ]
+    },
+    {
+      "label": "quiet-control-1",
+      "scope": "clean-series",
+      "host": {
+        "build": "1.2.1 windows-x64",
+        "platform": "windows",
+        "aspect": "16:9",
+        "render_scale": "3",
+        "vsync": "true",
+        "window": "1920x1080",
+        "record_fps": 0,
+        "refresh": "[DISPLAY] refresh 144 Hz, windowed, vsync on: the game's 60 fps timer paces frames (refresh is not a multiple of 60 Hz; motion can judder)"
+      },
+      "features": {
+        "RECOMP_D3D11_SHADER_CACHE": "0",
+        "RECOMP_D3D11_STATE_CACHE": "0",
+        "RECOMP_FENCE_WAIT": "0",
+        "RECOMP_STREAM2_STATS": "1"
+      },
+      "game_worktree_head": "f80a792b434379cbf580a23240097c2fee4597b2",
+      "toolkit": "313195a0d65a85e56f0d552ab9129443faa3f00d",
+      "manual_sha256": "881d5bfa497fb91c40fe456657f478aca866317429e6ed5889fef3f975e77a95",
+      "benchmark_sha256": "fa49de6d2a6b3984ecb7f9c60d53d9c554269ae5d0fa4bdffb1fdf286a95f4df",
+      "scenes": [
+        {
+          "scene": "sc00",
+          "played": true,
+          "ended": true,
+          "seconds": 87.2,
+          "frames": 5223,
+          "load_ms": 1490.2,
+          "open_to_play_ms": 1520.1,
+          "median_ms": 16.67,
+          "p95_ms": 16.73,
+          "p99_ms": 16.77,
+          "worst_ms": 123.5,
+          "one_percent_low_fps": 51.22,
+          "mean_fps": 59.93,
+          "late_frames": 4,
+          "missed_vblanks": 9,
+          "late_pct": 0.08,
+          "work_p50_ms": 16.55,
+          "work_p99_ms": 16.63,
+          "present_p99_ms": 0.17,
+          "hitches": 1,
+          "hitch_sides": {
+            "game": 1
+          },
+          "tex_upload_mb": 43.1,
+          "tex_evictions": 76,
+          "audio_dry": 0,
+          "audio_dropped": 0,
+          "memory_mb_start": 293.4,
+          "memory_mb_max": 413.4,
+          "memory_mb_end": 378.4,
+          "log_faults": {},
+          "cpu": {
+            "window_s": 86.30463123321533,
+            "cpu_s": 124.421875,
+            "percent_one_core": 144.16593086851034
+          },
+          "runtime_counters": {
+            "start": {
+              "S2SHADER": {
+                "enabled": 0,
+                "calls": 17,
+                "hits": 0,
+                "compiles": 17,
+                "compile_ms": 765.119,
+                "compile_cpu_ms": 765.625,
+                "io_ms": 0.0,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 0,
+                "holds": 64,
+                "checks": 5516645,
+                "waits": 0,
+                "signals": 0,
+                "timeouts": 0,
+                "wall_ms": 407.727
+              },
+              "S2STATE": {
+                "enabled": 0,
+                "draws": 689,
+                "creates": [
+                  218,
+                  218,
+                  1,
+                  2752
+                ],
+                "hits": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "fast": [
+                  0,
+                  470,
+                  0,
+                  0
+                ]
+              }
+            },
+            "end": {
+              "S2SHADER": {
+                "enabled": 0,
+                "calls": 31,
+                "hits": 0,
+                "compiles": 31,
+                "compile_ms": 918.11,
+                "compile_cpu_ms": 906.25,
+                "io_ms": 0.0,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 0,
+                "holds": 47104,
+                "checks": 740132692,
+                "waits": 0,
+                "signals": 0,
+                "timeouts": 1,
+                "wall_ms": 55715.934
+              },
+              "S2STATE": {
+                "enabled": 0,
+                "draws": 2131668,
+                "creates": [
+                  72466,
+                  33534,
+                  1,
+                  8526668
+                ],
+                "hits": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "fast": [
+                  0,
+                  2098133,
+                  0,
+                  0
+                ]
+              }
+            },
+            "final": {
+              "S2SHADER": {
+                "enabled": 0,
+                "calls": 31,
+                "hits": 0,
+                "compiles": 31,
+                "compile_ms": 918.11,
+                "compile_cpu_ms": 906.25,
+                "io_ms": 0.0,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 0,
+                "holds": 47104,
+                "checks": 740132692,
+                "waits": 0,
+                "signals": 0,
+                "timeouts": 1,
+                "wall_ms": 55715.934
+              },
+              "S2STATE": {
+                "enabled": 0,
+                "draws": 2151467,
+                "creates": [
+                  74332,
+                  35188,
+                  1,
+                  8605864
+                ],
+                "hits": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "fast": [
+                  0,
+                  2116278,
+                  0,
+                  0
+                ]
+              }
+            }
+          },
+          "validity": {
+            "interference": []
+          }
+        },
+        {
+          "scene": "sc07b",
+          "played": true,
+          "ended": true,
+          "seconds": 66.0,
+          "frames": 3951,
+          "load_ms": 153.7,
+          "open_to_play_ms": 52.6,
+          "median_ms": 16.67,
+          "p95_ms": 16.71,
+          "p99_ms": 16.77,
+          "worst_ms": 61.67,
+          "one_percent_low_fps": 54.16,
+          "mean_fps": 59.96,
+          "late_frames": 2,
+          "missed_vblanks": 4,
+          "late_pct": 0.05,
+          "work_p50_ms": 16.55,
+          "work_p99_ms": 16.64,
+          "present_p99_ms": 0.16,
+          "hitches": 1,
+          "hitch_sides": {
+            "game": 1
+          },
+          "tex_upload_mb": 462.4,
+          "tex_evictions": 9,
+          "audio_dry": 0,
+          "audio_dropped": 0,
+          "memory_mb_start": 339.2,
+          "memory_mb_max": 389.7,
+          "memory_mb_end": 364.9,
+          "log_faults": {},
+          "cpu": {
+            "window_s": 65.49448847770691,
+            "cpu_s": 95.109375,
+            "percent_one_core": 145.217372042494
+          },
+          "runtime_counters": {
+            "start": {
+              "S2SHADER": {
+                "enabled": 0,
+                "calls": 17,
+                "hits": 0,
+                "compiles": 17,
+                "compile_ms": 695.283,
+                "compile_cpu_ms": 703.125,
+                "io_ms": 0.0,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 0,
+                "holds": 64,
+                "checks": 5503014,
+                "waits": 0,
+                "signals": 0,
+                "timeouts": 0,
+                "wall_ms": 407.37
+              },
+              "S2STATE": {
+                "enabled": 0,
+                "draws": 634,
+                "creates": [
+                  204,
+                  204,
+                  1,
+                  2532
+                ],
+                "hits": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "fast": [
+                  0,
+                  429,
+                  0,
+                  0
+                ]
+              }
+            },
+            "end": {
+              "S2SHADER": {
+                "enabled": 0,
+                "calls": 32,
+                "hits": 0,
+                "compiles": 32,
+                "compile_ms": 893.926,
+                "compile_cpu_ms": 906.25,
+                "io_ms": 0.0,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 0,
+                "holds": 35840,
+                "checks": 786122493,
+                "waits": 0,
+                "signals": 0,
+                "timeouts": 0,
+                "wall_ms": 59287.407
+              },
+              "S2STATE": {
+                "enabled": 0,
+                "draws": 1895463,
+                "creates": [
+                  42899,
+                  25196,
+                  1,
+                  7581848
+                ],
+                "hits": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "fast": [
+                  0,
+                  1870266,
+                  0,
+                  0
+                ]
+              }
+            },
+            "final": {
+              "S2SHADER": {
+                "enabled": 0,
+                "calls": 32,
+                "hits": 0,
+                "compiles": 32,
+                "compile_ms": 893.926,
+                "compile_cpu_ms": 906.25,
+                "io_ms": 0.0,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 0,
+                "holds": 35840,
+                "checks": 786122493,
+                "waits": 0,
+                "signals": 0,
+                "timeouts": 0,
+                "wall_ms": 59287.407
+              },
+              "S2STATE": {
+                "enabled": 0,
+                "draws": 1905416,
+                "creates": [
+                  44574,
+                  26871,
+                  1,
+                  7621660
+                ],
+                "hits": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "fast": [
+                  0,
+                  1878544,
+                  0,
+                  0
+                ]
+              }
+            }
+          },
+          "validity": {
+            "interference": []
+          }
+        }
+      ]
+    },
+    {
+      "label": "quiet-states-1",
+      "scope": "clean-series",
+      "host": {
+        "build": "1.2.1 windows-x64",
+        "platform": "windows",
+        "aspect": "16:9",
+        "render_scale": "3",
+        "vsync": "true",
+        "window": "1920x1080",
+        "record_fps": 0,
+        "refresh": "[DISPLAY] refresh 144 Hz, windowed, vsync on: the game's 60 fps timer paces frames (refresh is not a multiple of 60 Hz; motion can judder)"
+      },
+      "features": {
+        "RECOMP_D3D11_SHADER_CACHE": "0",
+        "RECOMP_D3D11_STATE_CACHE": "1",
+        "RECOMP_FENCE_WAIT": "0",
+        "RECOMP_STREAM2_STATS": "1"
+      },
+      "game_worktree_head": "f80a792b434379cbf580a23240097c2fee4597b2",
+      "toolkit": "313195a0d65a85e56f0d552ab9129443faa3f00d",
+      "manual_sha256": "881d5bfa497fb91c40fe456657f478aca866317429e6ed5889fef3f975e77a95",
+      "benchmark_sha256": "fa49de6d2a6b3984ecb7f9c60d53d9c554269ae5d0fa4bdffb1fdf286a95f4df",
+      "scenes": [
+        {
+          "scene": "sc00",
+          "played": true,
+          "ended": true,
+          "seconds": 87.3,
+          "frames": 5202,
+          "load_ms": 1499.7,
+          "open_to_play_ms": 1529.4,
+          "median_ms": 16.66,
+          "p95_ms": 16.72,
+          "p99_ms": 16.81,
+          "worst_ms": 290.37,
+          "one_percent_low_fps": 33.86,
+          "mean_fps": 59.6,
+          "late_frames": 7,
+          "missed_vblanks": 37,
+          "late_pct": 0.13,
+          "work_p50_ms": 16.57,
+          "work_p99_ms": 16.66,
+          "present_p99_ms": 0.18,
+          "hitches": 4,
+          "hitch_sides": {
+            "game": 3,
+            "present": 1
+          },
+          "tex_upload_mb": 43.1,
+          "tex_evictions": 76,
+          "audio_dry": 0,
+          "audio_dropped": 0,
+          "memory_mb_start": 286.4,
+          "memory_mb_max": 398.2,
+          "memory_mb_end": 378.7,
+          "log_faults": {},
+          "cpu": {
+            "window_s": 86.83572459220886,
+            "cpu_s": 119.6875,
+            "percent_one_core": 137.832096826585
+          },
+          "runtime_counters": {
+            "start": {
+              "S2SHADER": {
+                "enabled": 0,
+                "calls": 17,
+                "hits": 0,
+                "compiles": 17,
+                "compile_ms": 756.7,
+                "compile_cpu_ms": 734.375,
+                "io_ms": 0.0,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 0,
+                "holds": 64,
+                "checks": 5983421,
+                "waits": 0,
+                "signals": 0,
+                "timeouts": 0,
+                "wall_ms": 443.757
+              },
+              "S2STATE": {
+                "enabled": 1,
+                "draws": 668,
+                "creates": [
+                  4,
+                  7,
+                  1,
+                  2
+                ],
+                "hits": [
+                  220,
+                  217,
+                  0,
+                  2
+                ],
+                "fast": [
+                  443,
+                  443,
+                  666,
+                  2664
+                ]
+              }
+            },
+            "end": {
+              "S2SHADER": {
+                "enabled": 0,
+                "calls": 31,
+                "hits": 0,
+                "compiles": 31,
+                "compile_ms": 901.196,
+                "compile_cpu_ms": 890.625,
+                "io_ms": 0.0,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 0,
+                "holds": 46592,
+                "checks": 737146117,
+                "waits": 0,
+                "signals": 0,
+                "timeouts": 3,
+                "wall_ms": 56545.0
+              },
+              "S2STATE": {
+                "enabled": 1,
+                "draws": 2126542,
+                "creates": [
+                  9,
+                  22,
+                  1,
+                  4
+                ],
+                "hits": [
+                  72279,
+                  33421,
+                  0,
+                  154391
+                ],
+                "fast": [
+                  2054253,
+                  2093098,
+                  2126540,
+                  8351769
+                ]
+              }
+            },
+            "final": {
+              "S2SHADER": {
+                "enabled": 0,
+                "calls": 31,
+                "hits": 0,
+                "compiles": 31,
+                "compile_ms": 901.196,
+                "compile_cpu_ms": 890.625,
+                "io_ms": 0.0,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 0,
+                "holds": 46592,
+                "checks": 737146117,
+                "waits": 0,
+                "signals": 0,
+                "timeouts": 3,
+                "wall_ms": 56545.0
+              },
+              "S2STATE": {
+                "enabled": 1,
+                "draws": 2146461,
+                "creates": [
+                  9,
+                  23,
+                  1,
+                  4
+                ],
+                "hits": [
+                  74151,
+                  35076,
+                  0,
+                  155828
+                ],
+                "fast": [
+                  2072300,
+                  2111361,
+                  2146459,
+                  8430008
+                ]
+              }
+            }
+          },
+          "validity": {
+            "interference": []
+          }
+        },
+        {
+          "scene": "sc07b",
+          "played": true,
+          "ended": true,
+          "seconds": 66.1,
+          "frames": 3954,
+          "load_ms": 169.1,
+          "open_to_play_ms": 56.9,
+          "median_ms": 16.67,
+          "p95_ms": 16.73,
+          "p99_ms": 16.87,
+          "worst_ms": 63.8,
+          "one_percent_low_fps": 53.28,
+          "mean_fps": 59.96,
+          "late_frames": 2,
+          "missed_vblanks": 4,
+          "late_pct": 0.05,
+          "work_p50_ms": 16.56,
+          "work_p99_ms": 16.68,
+          "present_p99_ms": 0.22,
+          "hitches": 1,
+          "hitch_sides": {
+            "game": 1
+          },
+          "tex_upload_mb": 463.4,
+          "tex_evictions": 9,
+          "audio_dry": 0,
+          "audio_dropped": 0,
+          "memory_mb_start": 340.1,
+          "memory_mb_max": 375.5,
+          "memory_mb_end": 366.1,
+          "log_faults": {},
+          "cpu": {
+            "window_s": 65.6672613620758,
+            "cpu_s": 87.734375,
+            "percent_one_core": 133.60443724956133
+          },
+          "runtime_counters": {
+            "start": {
+              "S2SHADER": {
+                "enabled": 0,
+                "calls": 17,
+                "hits": 0,
+                "compiles": 17,
+                "compile_ms": 694.357,
+                "compile_cpu_ms": 703.125,
+                "io_ms": 0.0,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 0,
+                "holds": 64,
+                "checks": 5515478,
+                "waits": 0,
+                "signals": 0,
+                "timeouts": 0,
+                "wall_ms": 454.754
+              },
+              "S2STATE": {
+                "enabled": 1,
+                "draws": 694,
+                "creates": [
+                  4,
+                  7,
+                  1,
+                  2
+                ],
+                "hits": [
+                  224,
+                  221,
+                  0,
+                  2
+                ],
+                "fast": [
+                  465,
+                  465,
+                  692,
+                  2768
+                ]
+              }
+            },
+            "end": {
+              "S2SHADER": {
+                "enabled": 0,
+                "calls": 32,
+                "hits": 0,
+                "compiles": 32,
+                "compile_ms": 905.407,
+                "compile_cpu_ms": 921.875,
+                "io_ms": 0.0,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 0,
+                "holds": 33792,
+                "checks": 712528700,
+                "waits": 0,
+                "signals": 0,
+                "timeouts": 0,
+                "wall_ms": 58142.065
+              },
+              "S2STATE": {
+                "enabled": 1,
+                "draws": 1896944,
+                "creates": [
+                  8,
+                  19,
+                  1,
+                  4
+                ],
+                "hits": [
+                  42956,
+                  25228,
+                  0,
+                  188654
+                ],
+                "fast": [
+                  1853979,
+                  1871696,
+                  1896942,
+                  7399114
+                ]
+              }
+            },
+            "final": {
+              "S2SHADER": {
+                "enabled": 0,
+                "calls": 32,
+                "hits": 0,
+                "compiles": 32,
+                "compile_ms": 905.407,
+                "compile_cpu_ms": 921.875,
+                "io_ms": 0.0,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 0,
+                "holds": 33792,
+                "checks": 712528700,
+                "waits": 0,
+                "signals": 0,
+                "timeouts": 0,
+                "wall_ms": 58142.065
+              },
+              "S2STATE": {
+                "enabled": 1,
+                "draws": 1906453,
+                "creates": [
+                  8,
+                  26,
+                  1,
+                  4
+                ],
+                "hits": [
+                  44559,
+                  26824,
+                  0,
+                  188654
+                ],
+                "fast": [
+                  1861885,
+                  1879602,
+                  1906451,
+                  7437150
+                ]
+              }
+            }
+          },
+          "validity": {
+            "interference": []
+          }
+        }
+      ]
+    },
+    {
+      "label": "quiet-fence-1",
+      "scope": "clean-series",
+      "host": {
+        "build": "1.2.1 windows-x64",
+        "platform": "windows",
+        "aspect": "16:9",
+        "render_scale": "3",
+        "vsync": "true",
+        "window": "1920x1080",
+        "record_fps": 0,
+        "refresh": "[DISPLAY] refresh 144 Hz, windowed, vsync on: the game's 60 fps timer paces frames (refresh is not a multiple of 60 Hz; motion can judder)"
+      },
+      "features": {
+        "RECOMP_D3D11_SHADER_CACHE": "0",
+        "RECOMP_D3D11_STATE_CACHE": "0",
+        "RECOMP_FENCE_WAIT": "1",
+        "RECOMP_FENCE_HOLD": "1",
+        "RECOMP_STREAM2_STATS": "1"
+      },
+      "game_worktree_head": "f80a792b434379cbf580a23240097c2fee4597b2",
+      "toolkit": "0080b5b19ea11bceda26c7167d64fcd61c383dd7",
+      "manual_sha256": "881d5bfa497fb91c40fe456657f478aca866317429e6ed5889fef3f975e77a95",
+      "benchmark_sha256": "0e2452a83e849de87bee6c3cce9d1aa393438ff09705b2285b1be70b84c8d250",
+      "scenes": [
+        {
+          "scene": "sc00",
+          "played": true,
+          "ended": true,
+          "seconds": 87.1,
+          "frames": 5220,
+          "load_ms": 1662.4,
+          "open_to_play_ms": 1692.1,
+          "median_ms": 16.67,
+          "p95_ms": 16.73,
+          "p99_ms": 16.86,
+          "worst_ms": 119.84,
+          "one_percent_low_fps": 49.83,
+          "mean_fps": 59.93,
+          "late_frames": 6,
+          "missed_vblanks": 11,
+          "late_pct": 0.11,
+          "work_p50_ms": 16.56,
+          "work_p99_ms": 16.68,
+          "present_p99_ms": 0.21,
+          "hitches": 1,
+          "hitch_sides": {
+            "game": 1
+          },
+          "tex_upload_mb": 43.1,
+          "tex_evictions": 77,
+          "audio_dry": 0,
+          "audio_dropped": 0,
+          "memory_mb_start": 332.7,
+          "memory_mb_max": 415.4,
+          "memory_mb_end": 379.4,
+          "log_faults": {},
+          "cpu": {
+            "window_s": 86.22779049999372,
+            "cpu_s": 66.53125,
+            "percent_one_core": 77.15754934020354
+          },
+          "runtime_counters": {
+            "start": {
+              "S2SHADER": {
+                "enabled": 0,
+                "calls": 17,
+                "hits": 0,
+                "compiles": 17,
+                "compile_ms": 720.341,
+                "compile_cpu_ms": 671.875,
+                "io_ms": 0.0,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2STATE": {
+                "enabled": 0,
+                "draws": 326,
+                "creates": [
+                  216,
+                  216,
+                  1,
+                  1300
+                ],
+                "hits": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "fast": [
+                  0,
+                  109,
+                  0,
+                  0
+                ]
+              },
+              "S2FENCE": {
+                "wait": 1,
+                "holds": 64,
+                "checks": 247,
+                "waits": 247,
+                "signals": 64,
+                "timeouts": 0,
+                "wall_ms": 535.057
+              }
+            },
+            "end": {
+              "S2SHADER": {
+                "enabled": 0,
+                "calls": 31,
+                "hits": 0,
+                "compiles": 31,
+                "compile_ms": 869.828,
+                "compile_cpu_ms": 828.125,
+                "io_ms": 0.0,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2STATE": {
+                "enabled": 0,
+                "draws": 2131230,
+                "creates": [
+                  72615,
+                  33712,
+                  1,
+                  8524916
+                ],
+                "hits": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "fast": [
+                  0,
+                  2097517,
+                  0,
+                  0
+                ]
+              },
+              "S2FENCE": {
+                "wait": 1,
+                "holds": 47104,
+                "checks": 62517,
+                "waits": 62517,
+                "signals": 47105,
+                "timeouts": 1,
+                "wall_ms": 55586.729
+              }
+            },
+            "latest": {
+              "S2SHADER": {
+                "enabled": 0,
+                "calls": 31,
+                "hits": 0,
+                "compiles": 31,
+                "compile_ms": 869.828,
+                "compile_cpu_ms": 828.125,
+                "io_ms": 0.0,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2STATE": {
+                "enabled": 0,
+                "draws": 2151981,
+                "creates": [
+                  74463,
+                  35320,
+                  1,
+                  8607920
+                ],
+                "hits": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "fast": [
+                  0,
+                  2116660,
+                  0,
+                  0
+                ]
+              },
+              "S2FENCE": {
+                "wait": 1,
+                "holds": 47104,
+                "checks": 62517,
+                "waits": 62517,
+                "signals": 47105,
+                "timeouts": 1,
+                "wall_ms": 55586.729
+              }
+            }
+          },
+          "validity": {
+            "save_ok": true,
+            "unexpected_exit": false,
+            "faults": [],
+            "interference": []
+          }
+        },
+        {
+          "scene": "sc07b",
+          "played": true,
+          "ended": true,
+          "seconds": 66.0,
+          "frames": 3952,
+          "load_ms": 180.1,
+          "open_to_play_ms": 79.3,
+          "median_ms": 16.66,
+          "p95_ms": 16.75,
+          "p99_ms": 16.93,
+          "worst_ms": 62.09,
+          "one_percent_low_fps": 52.7,
+          "mean_fps": 59.96,
+          "late_frames": 3,
+          "missed_vblanks": 5,
+          "late_pct": 0.08,
+          "work_p50_ms": 16.56,
+          "work_p99_ms": 16.79,
+          "present_p99_ms": 0.2,
+          "hitches": 1,
+          "hitch_sides": {
+            "game": 1
+          },
+          "tex_upload_mb": 461.6,
+          "tex_evictions": 9,
+          "audio_dry": 0,
+          "audio_dropped": 0,
+          "memory_mb_start": 337.9,
+          "memory_mb_max": 389.4,
+          "memory_mb_end": 364.1,
+          "log_faults": {},
+          "cpu": {
+            "window_s": 65.21061389999522,
+            "cpu_s": 38.671875,
+            "percent_one_core": 59.30303778355142
+          },
+          "runtime_counters": {
+            "start": {
+              "S2SHADER": {
+                "enabled": 0,
+                "calls": 17,
+                "hits": 0,
+                "compiles": 17,
+                "compile_ms": 699.714,
+                "compile_cpu_ms": 718.75,
+                "io_ms": 0.0,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 1,
+                "holds": 64,
+                "checks": 216,
+                "waits": 216,
+                "signals": 64,
+                "timeouts": 0,
+                "wall_ms": 423.27
+              },
+              "S2STATE": {
+                "enabled": 0,
+                "draws": 631,
+                "creates": [
+                  202,
+                  202,
+                  1,
+                  2520
+                ],
+                "hits": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "fast": [
+                  0,
+                  428,
+                  0,
+                  0
+                ]
+              }
+            },
+            "end": {
+              "S2SHADER": {
+                "enabled": 0,
+                "calls": 32,
+                "hits": 0,
+                "compiles": 32,
+                "compile_ms": 898.898,
+                "compile_cpu_ms": 937.5,
+                "io_ms": 0.0,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 1,
+                "holds": 34816,
+                "checks": 51100,
+                "waits": 51100,
+                "signals": 34813,
+                "timeouts": 0,
+                "wall_ms": 55787.635
+              },
+              "S2STATE": {
+                "enabled": 0,
+                "draws": 1895931,
+                "creates": [
+                  43017,
+                  25309,
+                  1,
+                  7583720
+                ],
+                "hits": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "fast": [
+                  0,
+                  1870621,
+                  0,
+                  0
+                ]
+              }
+            },
+            "latest": {
+              "S2SHADER": {
+                "enabled": 0,
+                "calls": 32,
+                "hits": 0,
+                "compiles": 32,
+                "compile_ms": 898.898,
+                "compile_cpu_ms": 937.5,
+                "io_ms": 0.0,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 1,
+                "holds": 34816,
+                "checks": 51100,
+                "waits": 51100,
+                "signals": 34813,
+                "timeouts": 0,
+                "wall_ms": 55787.635
+              },
+              "S2STATE": {
+                "enabled": 0,
+                "draws": 1905810,
+                "creates": [
+                  44680,
+                  26972,
+                  1,
+                  7623236
+                ],
+                "hits": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "fast": [
+                  0,
+                  1878837,
+                  0,
+                  0
+                ]
+              }
+            }
+          },
+          "validity": {
+            "save_ok": true,
+            "unexpected_exit": false,
+            "faults": [],
+            "interference": []
+          }
+        }
+      ]
+    },
+    {
+      "label": "quiet-shaders-cold",
+      "scope": "clean-series",
+      "host": {
+        "build": "1.2.1 windows-x64",
+        "platform": "windows",
+        "aspect": "16:9",
+        "render_scale": "3",
+        "vsync": "true",
+        "window": "1920x1080",
+        "record_fps": 0,
+        "refresh": "[DISPLAY] refresh 144 Hz, windowed, vsync on: the game's 60 fps timer paces frames (refresh is not a multiple of 60 Hz; motion can judder)"
+      },
+      "features": {
+        "RECOMP_D3D11_SHADER_CACHE": "1",
+        "RECOMP_D3D11_STATE_CACHE": "0",
+        "RECOMP_FENCE_WAIT": "0",
+        "RECOMP_FENCE_HOLD": "1",
+        "RECOMP_STREAM2_STATS": "1"
+      },
+      "game_worktree_head": "f80a792b434379cbf580a23240097c2fee4597b2",
+      "toolkit": "0080b5b19ea11bceda26c7167d64fcd61c383dd7",
+      "manual_sha256": "881d5bfa497fb91c40fe456657f478aca866317429e6ed5889fef3f975e77a95",
+      "benchmark_sha256": "0e2452a83e849de87bee6c3cce9d1aa393438ff09705b2285b1be70b84c8d250",
+      "scenes": [
+        {
+          "scene": "sc00",
+          "played": true,
+          "ended": true,
+          "seconds": 87.1,
+          "frames": 5217,
+          "load_ms": 1543.3,
+          "open_to_play_ms": 1570.5,
+          "median_ms": 16.66,
+          "p95_ms": 16.73,
+          "p99_ms": 16.86,
+          "worst_ms": 134.97,
+          "one_percent_low_fps": 48.77,
+          "mean_fps": 59.9,
+          "late_frames": 5,
+          "missed_vblanks": 11,
+          "late_pct": 0.1,
+          "work_p50_ms": 16.56,
+          "work_p99_ms": 16.68,
+          "present_p99_ms": 0.18,
+          "hitches": 1,
+          "hitch_sides": {
+            "game": 1
+          },
+          "tex_upload_mb": 43.1,
+          "tex_evictions": 76,
+          "audio_dry": 0,
+          "audio_dropped": 0,
+          "memory_mb_start": 297.3,
+          "memory_mb_max": 414.6,
+          "memory_mb_end": 379.4,
+          "log_faults": {},
+          "cpu": {
+            "window_s": 86.4493661000015,
+            "cpu_s": 116.65625,
+            "percent_one_core": 134.94170664601089
+          },
+          "runtime_counters": {
+            "start": {
+              "S2SHADER": {
+                "enabled": 1,
+                "calls": 17,
+                "hits": 0,
+                "compiles": 17,
+                "compile_ms": 699.56,
+                "compile_cpu_ms": 734.375,
+                "io_ms": 13.933,
+                "bad": 0,
+                "writes": 17
+              },
+              "S2FENCE": {
+                "wait": 0,
+                "holds": 64,
+                "checks": 5301251,
+                "waits": 0,
+                "signals": 0,
+                "timeouts": 0,
+                "wall_ms": 437.308
+              },
+              "S2STATE": {
+                "enabled": 0,
+                "draws": 687,
+                "creates": [
+                  214,
+                  214,
+                  1,
+                  2744
+                ],
+                "hits": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "fast": [
+                  0,
+                  472,
+                  0,
+                  0
+                ]
+              }
+            },
+            "end": {
+              "S2SHADER": {
+                "enabled": 1,
+                "calls": 31,
+                "hits": 0,
+                "compiles": 31,
+                "compile_ms": 855.792,
+                "compile_cpu_ms": 906.25,
+                "io_ms": 25.155,
+                "bad": 0,
+                "writes": 31
+              },
+              "S2FENCE": {
+                "wait": 0,
+                "holds": 45056,
+                "checks": 667085735,
+                "waits": 0,
+                "signals": 0,
+                "timeouts": 1,
+                "wall_ms": 55810.789
+              },
+              "S2STATE": {
+                "enabled": 0,
+                "draws": 2131864,
+                "creates": [
+                  72458,
+                  33524,
+                  1,
+                  8527452
+                ],
+                "hits": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "fast": [
+                  0,
+                  2098339,
+                  0,
+                  0
+                ]
+              }
+            },
+            "latest": {
+              "S2SHADER": {
+                "enabled": 1,
+                "calls": 31,
+                "hits": 0,
+                "compiles": 31,
+                "compile_ms": 855.792,
+                "compile_cpu_ms": 906.25,
+                "io_ms": 25.155,
+                "bad": 0,
+                "writes": 31
+              },
+              "S2FENCE": {
+                "wait": 0,
+                "holds": 45056,
+                "checks": 667085735,
+                "waits": 0,
+                "signals": 0,
+                "timeouts": 1,
+                "wall_ms": 55810.789
+              },
+              "S2STATE": {
+                "enabled": 0,
+                "draws": 2151209,
+                "creates": [
+                  74324,
+                  35186,
+                  1,
+                  8604832
+                ],
+                "hits": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "fast": [
+                  0,
+                  2116022,
+                  0,
+                  0
+                ]
+              }
+            }
+          },
+          "validity": {
+            "save_ok": true,
+            "unexpected_exit": false,
+            "faults": [],
+            "interference": []
+          }
+        },
+        {
+          "scene": "sc07b",
+          "played": true,
+          "ended": true,
+          "seconds": 66.1,
+          "frames": 3959,
+          "load_ms": 50.5,
+          "open_to_play_ms": 55.3,
+          "median_ms": 16.67,
+          "p95_ms": 16.72,
+          "p99_ms": 16.79,
+          "worst_ms": 63.54,
+          "one_percent_low_fps": 53.69,
+          "mean_fps": 59.96,
+          "late_frames": 2,
+          "missed_vblanks": 4,
+          "late_pct": 0.05,
+          "work_p50_ms": 16.55,
+          "work_p99_ms": 16.61,
+          "present_p99_ms": 0.2,
+          "hitches": 1,
+          "hitch_sides": {
+            "game": 1
+          },
+          "tex_upload_mb": 462.6,
+          "tex_evictions": 9,
+          "audio_dry": 0,
+          "audio_dropped": 0,
+          "memory_mb_start": 340.4,
+          "memory_mb_max": 391.7,
+          "memory_mb_end": 381.8,
+          "log_faults": {},
+          "cpu": {
+            "window_s": 65.52189170000202,
+            "cpu_s": 89.046875,
+            "percent_one_core": 135.9040050426341
+          },
+          "runtime_counters": {
+            "start": {
+              "S2SHADER": {
+                "enabled": 1,
+                "calls": 17,
+                "hits": 17,
+                "compiles": 0,
+                "compile_ms": 0.0,
+                "compile_cpu_ms": 0.0,
+                "io_ms": 2.09,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 0,
+                "holds": 64,
+                "checks": 6154449,
+                "waits": 0,
+                "signals": 0,
+                "timeouts": 0,
+                "wall_ms": 487.525
+              },
+              "S2STATE": {
+                "enabled": 0,
+                "draws": 688,
+                "creates": [
+                  216,
+                  216,
+                  1,
+                  2748
+                ],
+                "hits": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "fast": [
+                  0,
+                  471,
+                  0,
+                  0
+                ]
+              }
+            },
+            "end": {
+              "S2SHADER": {
+                "enabled": 1,
+                "calls": 32,
+                "hits": 30,
+                "compiles": 2,
+                "compile_ms": 65.32,
+                "compile_cpu_ms": 78.125,
+                "io_ms": 5.466,
+                "bad": 0,
+                "writes": 2
+              },
+              "S2FENCE": {
+                "wait": 0,
+                "holds": 34304,
+                "checks": 680306686,
+                "waits": 0,
+                "signals": 0,
+                "timeouts": 0,
+                "wall_ms": 57954.122
+              },
+              "S2STATE": {
+                "enabled": 0,
+                "draws": 1899032,
+                "creates": [
+                  43088,
+                  25346,
+                  1,
+                  7596124
+                ],
+                "hits": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "fast": [
+                  0,
+                  1873685,
+                  0,
+                  0
+                ]
+              }
+            },
+            "latest": {
+              "S2SHADER": {
+                "enabled": 1,
+                "calls": 32,
+                "hits": 30,
+                "compiles": 2,
+                "compile_ms": 65.32,
+                "compile_cpu_ms": 78.125,
+                "io_ms": 5.466,
+                "bad": 0,
+                "writes": 2
+              },
+              "S2FENCE": {
+                "wait": 0,
+                "holds": 34304,
+                "checks": 680306686,
+                "waits": 0,
+                "signals": 0,
+                "timeouts": 0,
+                "wall_ms": 57954.122
+              },
+              "S2STATE": {
+                "enabled": 0,
+                "draws": 1908887,
+                "creates": [
+                  44749,
+                  27007,
+                  1,
+                  7635544
+                ],
+                "hits": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "fast": [
+                  0,
+                  1881879,
+                  0,
+                  0
+                ]
+              }
+            }
+          },
+          "validity": {
+            "save_ok": true,
+            "unexpected_exit": false,
+            "faults": [],
+            "interference": []
+          }
+        }
+      ]
+    },
+    {
+      "label": "quiet-shaders-warm",
+      "scope": "clean-series",
+      "host": {
+        "build": "1.2.1 windows-x64",
+        "platform": "windows",
+        "aspect": "16:9",
+        "render_scale": "3",
+        "vsync": "true",
+        "window": "1920x1080",
+        "record_fps": 0,
+        "refresh": "[DISPLAY] refresh 144 Hz, windowed, vsync on: the game's 60 fps timer paces frames (refresh is not a multiple of 60 Hz; motion can judder)"
+      },
+      "features": {
+        "RECOMP_D3D11_SHADER_CACHE": "1",
+        "RECOMP_D3D11_STATE_CACHE": "0",
+        "RECOMP_FENCE_WAIT": "0",
+        "RECOMP_FENCE_HOLD": "1",
+        "RECOMP_STREAM2_STATS": "1"
+      },
+      "game_worktree_head": "f80a792b434379cbf580a23240097c2fee4597b2",
+      "toolkit": "0080b5b19ea11bceda26c7167d64fcd61c383dd7",
+      "manual_sha256": "881d5bfa497fb91c40fe456657f478aca866317429e6ed5889fef3f975e77a95",
+      "benchmark_sha256": "0e2452a83e849de87bee6c3cce9d1aa393438ff09705b2285b1be70b84c8d250",
+      "scenes": [
+        {
+          "scene": "sc00",
+          "played": true,
+          "ended": true,
+          "seconds": 87.1,
+          "frames": 5225,
+          "load_ms": 1566.0,
+          "open_to_play_ms": 1595.1,
+          "median_ms": 16.67,
+          "p95_ms": 16.72,
+          "p99_ms": 16.81,
+          "worst_ms": 28.13,
+          "one_percent_low_fps": 56.14,
+          "mean_fps": 59.97,
+          "late_frames": 3,
+          "missed_vblanks": 3,
+          "late_pct": 0.06,
+          "work_p50_ms": 16.55,
+          "work_p99_ms": 16.61,
+          "present_p99_ms": 0.2,
+          "hitches": 0,
+          "hitch_sides": {},
+          "tex_upload_mb": 43.1,
+          "tex_evictions": 76,
+          "audio_dry": 0,
+          "audio_dropped": 0,
+          "memory_mb_start": 318.0,
+          "memory_mb_max": 414.0,
+          "memory_mb_end": 381.4,
+          "log_faults": {},
+          "cpu": {
+            "window_s": 86.64231950000976,
+            "cpu_s": 115.859375,
+            "percent_one_core": 133.72146044634337
+          },
+          "runtime_counters": {
+            "start": {
+              "S2SHADER": {
+                "enabled": 1,
+                "calls": 17,
+                "hits": 17,
+                "compiles": 0,
+                "compile_ms": 0.0,
+                "compile_cpu_ms": 0.0,
+                "io_ms": 1.843,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2STATE": {
+                "enabled": 0,
+                "draws": 567,
+                "creates": [
+                  230,
+                  230,
+                  1,
+                  2264
+                ],
+                "hits": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "fast": [
+                  0,
+                  336,
+                  0,
+                  0
+                ]
+              },
+              "S2FENCE": {
+                "wait": 0,
+                "holds": 64,
+                "checks": 5687657,
+                "waits": 0,
+                "signals": 0,
+                "timeouts": 0,
+                "wall_ms": 462.234
+              }
+            },
+            "end": {
+              "S2SHADER": {
+                "enabled": 1,
+                "calls": 31,
+                "hits": 31,
+                "compiles": 0,
+                "compile_ms": 0.0,
+                "compile_cpu_ms": 0.0,
+                "io_ms": 3.017,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2STATE": {
+                "enabled": 0,
+                "draws": 2129452,
+                "creates": [
+                  72437,
+                  33574,
+                  1,
+                  8517804
+                ],
+                "hits": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "fast": [
+                  0,
+                  2095877,
+                  0,
+                  0
+                ]
+              },
+              "S2FENCE": {
+                "wait": 0,
+                "holds": 45056,
+                "checks": 649448221,
+                "waits": 0,
+                "signals": 0,
+                "timeouts": 0,
+                "wall_ms": 55040.907
+              }
+            },
+            "latest": {
+              "S2SHADER": {
+                "enabled": 1,
+                "calls": 31,
+                "hits": 31,
+                "compiles": 0,
+                "compile_ms": 0.0,
+                "compile_cpu_ms": 0.0,
+                "io_ms": 3.017,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2STATE": {
+                "enabled": 0,
+                "draws": 2150659,
+                "creates": [
+                  74319,
+                  35212,
+                  1,
+                  8602632
+                ],
+                "hits": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "fast": [
+                  0,
+                  2115446,
+                  0,
+                  0
+                ]
+              },
+              "S2FENCE": {
+                "wait": 0,
+                "holds": 45056,
+                "checks": 649448221,
+                "waits": 0,
+                "signals": 0,
+                "timeouts": 0,
+                "wall_ms": 55040.907
+              }
+            }
+          },
+          "validity": {
+            "save_ok": true,
+            "unexpected_exit": false,
+            "faults": [],
+            "interference": []
+          }
+        },
+        {
+          "scene": "sc07b",
+          "played": true,
+          "ended": true,
+          "seconds": 66.0,
+          "frames": 3960,
+          "load_ms": 48.0,
+          "open_to_play_ms": 56.1,
+          "median_ms": 16.67,
+          "p95_ms": 16.72,
+          "p99_ms": 16.79,
+          "worst_ms": 20.25,
+          "one_percent_low_fps": 58.97,
+          "mean_fps": 60.0,
+          "late_frames": 0,
+          "missed_vblanks": 0,
+          "late_pct": 0.0,
+          "work_p50_ms": 16.55,
+          "work_p99_ms": 16.6,
+          "present_p99_ms": 0.21,
+          "hitches": 0,
+          "hitch_sides": {},
+          "tex_upload_mb": 461.6,
+          "tex_evictions": 9,
+          "audio_dry": 0,
+          "audio_dropped": 0,
+          "memory_mb_start": 337.7,
+          "memory_mb_max": 373.2,
+          "memory_mb_end": 364.1,
+          "log_faults": {},
+          "cpu": {
+            "window_s": 65.37811470001179,
+            "cpu_s": 88.75,
+            "percent_one_core": 135.7487905658191
+          },
+          "runtime_counters": {
+            "start": {
+              "S2SHADER": {
+                "enabled": 1,
+                "calls": 17,
+                "hits": 17,
+                "compiles": 0,
+                "compile_ms": 0.0,
+                "compile_cpu_ms": 0.0,
+                "io_ms": 1.651,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 0,
+                "holds": 64,
+                "checks": 5306420,
+                "waits": 0,
+                "signals": 0,
+                "timeouts": 0,
+                "wall_ms": 437.445
+              },
+              "S2STATE": {
+                "enabled": 0,
+                "draws": 691,
+                "creates": [
+                  222,
+                  222,
+                  1,
+                  2760
+                ],
+                "hits": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "fast": [
+                  0,
+                  468,
+                  0,
+                  0
+                ]
+              }
+            },
+            "end": {
+              "S2SHADER": {
+                "enabled": 1,
+                "calls": 32,
+                "hits": 32,
+                "compiles": 0,
+                "compile_ms": 0.0,
+                "compile_cpu_ms": 0.0,
+                "io_ms": 3.06,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 0,
+                "holds": 33792,
+                "checks": 635570743,
+                "waits": 0,
+                "signals": 0,
+                "timeouts": 0,
+                "wall_ms": 54480.645
+              },
+              "S2STATE": {
+                "enabled": 0,
+                "draws": 1900677,
+                "creates": [
+                  43032,
+                  25272,
+                  1,
+                  7602704
+                ],
+                "hits": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "fast": [
+                  0,
+                  1875404,
+                  0,
+                  0
+                ]
+              }
+            },
+            "latest": {
+              "S2SHADER": {
+                "enabled": 1,
+                "calls": 32,
+                "hits": 32,
+                "compiles": 0,
+                "compile_ms": 0.0,
+                "compile_cpu_ms": 0.0,
+                "io_ms": 3.06,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 0,
+                "holds": 33792,
+                "checks": 635570743,
+                "waits": 0,
+                "signals": 0,
+                "timeouts": 0,
+                "wall_ms": 54480.645
+              },
+              "S2STATE": {
+                "enabled": 0,
+                "draws": 1910552,
+                "creates": [
+                  44691,
+                  26931,
+                  1,
+                  7642204
+                ],
+                "hits": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "fast": [
+                  0,
+                  1883620,
+                  0,
+                  0
+                ]
+              }
+            }
+          },
+          "validity": {
+            "save_ok": true,
+            "unexpected_exit": false,
+            "faults": [],
+            "interference": []
+          }
+        }
+      ]
+    },
+    {
+      "label": "quiet-combined-1",
+      "scope": "clean-series",
+      "host": {
+        "build": "1.2.1 windows-x64",
+        "platform": "windows",
+        "aspect": "16:9",
+        "render_scale": "3",
+        "vsync": "true",
+        "window": "1920x1080",
+        "record_fps": 0,
+        "refresh": "[DISPLAY] refresh 144 Hz, windowed, vsync on: the game's 60 fps timer paces frames (refresh is not a multiple of 60 Hz; motion can judder)"
+      },
+      "features": {
+        "RECOMP_D3D11_SHADER_CACHE": "1",
+        "RECOMP_D3D11_STATE_CACHE": "1",
+        "RECOMP_FENCE_WAIT": "1",
+        "RECOMP_FENCE_HOLD": "1",
+        "RECOMP_STREAM2_STATS": "1"
+      },
+      "game_worktree_head": "f80a792b434379cbf580a23240097c2fee4597b2",
+      "toolkit": "0080b5b19ea11bceda26c7167d64fcd61c383dd7",
+      "manual_sha256": "881d5bfa497fb91c40fe456657f478aca866317429e6ed5889fef3f975e77a95",
+      "benchmark_sha256": "0e2452a83e849de87bee6c3cce9d1aa393438ff09705b2285b1be70b84c8d250",
+      "scenes": [
+        {
+          "scene": "sc00",
+          "played": true,
+          "ended": true,
+          "seconds": 87.1,
+          "frames": 5224,
+          "load_ms": 1612.6,
+          "open_to_play_ms": 1642.1,
+          "median_ms": 16.67,
+          "p95_ms": 16.75,
+          "p99_ms": 16.94,
+          "worst_ms": 27.56,
+          "one_percent_low_fps": 55.73,
+          "mean_fps": 59.99,
+          "late_frames": 2,
+          "missed_vblanks": 2,
+          "late_pct": 0.04,
+          "work_p50_ms": 16.55,
+          "work_p99_ms": 16.79,
+          "present_p99_ms": 0.22,
+          "hitches": 0,
+          "hitch_sides": {},
+          "tex_upload_mb": 43.1,
+          "tex_evictions": 76,
+          "audio_dry": 0,
+          "audio_dropped": 0,
+          "memory_mb_start": 318.2,
+          "memory_mb_max": 396.0,
+          "memory_mb_end": 364.0,
+          "log_faults": {},
+          "cpu": {
+            "window_s": 86.61301359999925,
+            "cpu_s": 68.5625,
+            "percent_one_core": 79.15958255030696
+          },
+          "runtime_counters": {
+            "start": {
+              "S2SHADER": {
+                "enabled": 1,
+                "calls": 17,
+                "hits": 17,
+                "compiles": 0,
+                "compile_ms": 0.0,
+                "compile_cpu_ms": 0.0,
+                "io_ms": 1.711,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 1,
+                "holds": 64,
+                "checks": 239,
+                "waits": 239,
+                "signals": 64,
+                "timeouts": 0,
+                "wall_ms": 487.394
+              },
+              "S2STATE": {
+                "enabled": 1,
+                "draws": 688,
+                "creates": [
+                  4,
+                  7,
+                  1,
+                  2
+                ],
+                "hits": [
+                  212,
+                  209,
+                  0,
+                  2
+                ],
+                "fast": [
+                  471,
+                  471,
+                  686,
+                  2744
+                ]
+              }
+            },
+            "end": {
+              "S2SHADER": {
+                "enabled": 1,
+                "calls": 31,
+                "hits": 31,
+                "compiles": 0,
+                "compile_ms": 0.0,
+                "compile_cpu_ms": 0.0,
+                "io_ms": 2.898,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 1,
+                "holds": 47104,
+                "checks": 63357,
+                "waits": 63357,
+                "signals": 47097,
+                "timeouts": 0,
+                "wall_ms": 55834.284
+              },
+              "S2STATE": {
+                "enabled": 1,
+                "draws": 2131066,
+                "creates": [
+                  9,
+                  22,
+                  1,
+                  4
+                ],
+                "hits": [
+                  72424,
+                  33515,
+                  0,
+                  154848
+                ],
+                "fast": [
+                  2058632,
+                  2097528,
+                  2131064,
+                  8369408
+                ]
+              }
+            },
+            "latest": {
+              "S2SHADER": {
+                "enabled": 1,
+                "calls": 31,
+                "hits": 31,
+                "compiles": 0,
+                "compile_ms": 0.0,
+                "compile_cpu_ms": 0.0,
+                "io_ms": 2.898,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 1,
+                "holds": 47104,
+                "checks": 63357,
+                "waits": 63357,
+                "signals": 47097,
+                "timeouts": 0,
+                "wall_ms": 55834.284
+              },
+              "S2STATE": {
+                "enabled": 1,
+                "draws": 2151535,
+                "creates": [
+                  9,
+                  23,
+                  1,
+                  4
+                ],
+                "hits": [
+                  74314,
+                  35180,
+                  0,
+                  156361
+                ],
+                "fast": [
+                  2077211,
+                  2116331,
+                  2151533,
+                  8449771
+                ]
+              }
+            }
+          },
+          "validity": {
+            "save_ok": true,
+            "unexpected_exit": false,
+            "faults": [],
+            "interference": []
+          }
+        },
+        {
+          "scene": "sc07b",
+          "played": true,
+          "ended": true,
+          "seconds": 66.0,
+          "frames": 3960,
+          "load_ms": 46.5,
+          "open_to_play_ms": 54.5,
+          "median_ms": 16.67,
+          "p95_ms": 16.73,
+          "p99_ms": 16.89,
+          "worst_ms": 27.75,
+          "one_percent_low_fps": 55.39,
+          "mean_fps": 59.98,
+          "late_frames": 3,
+          "missed_vblanks": 3,
+          "late_pct": 0.08,
+          "work_p50_ms": 16.55,
+          "work_p99_ms": 16.72,
+          "present_p99_ms": 0.2,
+          "hitches": 0,
+          "hitch_sides": {},
+          "tex_upload_mb": 462.6,
+          "tex_evictions": 9,
+          "audio_dry": 0,
+          "audio_dropped": 0,
+          "memory_mb_start": 340.2,
+          "memory_mb_max": 390.6,
+          "memory_mb_end": 365.4,
+          "log_faults": {},
+          "cpu": {
+            "window_s": 65.45701769999869,
+            "cpu_s": 36.421875,
+            "percent_one_core": 55.64242961225032
+          },
+          "runtime_counters": {
+            "start": {
+              "S2SHADER": {
+                "enabled": 1,
+                "calls": 17,
+                "hits": 17,
+                "compiles": 0,
+                "compile_ms": 0.0,
+                "compile_cpu_ms": 0.0,
+                "io_ms": 1.6,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 1,
+                "holds": 64,
+                "checks": 228,
+                "waits": 228,
+                "signals": 64,
+                "timeouts": 0,
+                "wall_ms": 451.238
+              },
+              "S2STATE": {
+                "enabled": 1,
+                "draws": 687,
+                "creates": [
+                  4,
+                  7,
+                  1,
+                  2
+                ],
+                "hits": [
+                  210,
+                  207,
+                  0,
+                  2
+                ],
+                "fast": [
+                  472,
+                  472,
+                  685,
+                  2740
+                ]
+              }
+            },
+            "end": {
+              "S2SHADER": {
+                "enabled": 1,
+                "calls": 32,
+                "hits": 32,
+                "compiles": 0,
+                "compile_ms": 0.0,
+                "compile_cpu_ms": 0.0,
+                "io_ms": 3.26,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 1,
+                "holds": 35840,
+                "checks": 53470,
+                "waits": 53470,
+                "signals": 35839,
+                "timeouts": 0,
+                "wall_ms": 58519.856
+              },
+              "S2STATE": {
+                "enabled": 1,
+                "draws": 1900077,
+                "creates": [
+                  8,
+                  19,
+                  1,
+                  4
+                ],
+                "hits": [
+                  43120,
+                  25349,
+                  0,
+                  188998
+                ],
+                "fast": [
+                  1856948,
+                  1874708,
+                  1900075,
+                  7411302
+                ]
+              }
+            },
+            "latest": {
+              "S2SHADER": {
+                "enabled": 1,
+                "calls": 32,
+                "hits": 32,
+                "compiles": 0,
+                "compile_ms": 0.0,
+                "compile_cpu_ms": 0.0,
+                "io_ms": 3.26,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 1,
+                "holds": 35840,
+                "checks": 53470,
+                "waits": 53470,
+                "signals": 35839,
+                "timeouts": 0,
+                "wall_ms": 58519.856
+              },
+              "S2STATE": {
+                "enabled": 1,
+                "draws": 1909812,
+                "creates": [
+                  8,
+                  26,
+                  1,
+                  4
+                ],
+                "hits": [
+                  44763,
+                  26985,
+                  0,
+                  188998
+                ],
+                "fast": [
+                  1865040,
+                  1882800,
+                  1909810,
+                  7450242
+                ]
+              }
+            }
+          },
+          "validity": {
+            "save_ok": true,
+            "unexpected_exit": false,
+            "faults": [],
+            "interference": []
+          }
+        }
+      ]
+    },
+    {
+      "label": "quiet-control-2",
+      "scope": "clean-series",
+      "host": {
+        "build": "1.2.1 windows-x64",
+        "platform": "windows",
+        "aspect": "16:9",
+        "render_scale": "3",
+        "vsync": "true",
+        "window": "1920x1080",
+        "record_fps": 0,
+        "refresh": "[DISPLAY] refresh 144 Hz, windowed, vsync on: the game's 60 fps timer paces frames (refresh is not a multiple of 60 Hz; motion can judder)"
+      },
+      "features": {
+        "RECOMP_D3D11_SHADER_CACHE": "0",
+        "RECOMP_D3D11_STATE_CACHE": "0",
+        "RECOMP_FENCE_WAIT": "0",
+        "RECOMP_FENCE_HOLD": "1",
+        "RECOMP_STREAM2_STATS": "1"
+      },
+      "game_worktree_head": "f80a792b434379cbf580a23240097c2fee4597b2",
+      "toolkit": "0080b5b19ea11bceda26c7167d64fcd61c383dd7",
+      "manual_sha256": "881d5bfa497fb91c40fe456657f478aca866317429e6ed5889fef3f975e77a95",
+      "benchmark_sha256": "0e2452a83e849de87bee6c3cce9d1aa393438ff09705b2285b1be70b84c8d250",
+      "scenes": [
+        {
+          "scene": "sc00",
+          "played": true,
+          "ended": true,
+          "seconds": 87.1,
+          "frames": 5216,
+          "load_ms": 1701.8,
+          "open_to_play_ms": 1731.2,
+          "median_ms": 16.67,
+          "p95_ms": 16.75,
+          "p99_ms": 16.99,
+          "worst_ms": 127.83,
+          "one_percent_low_fps": 47.54,
+          "mean_fps": 59.9,
+          "late_frames": 4,
+          "missed_vblanks": 10,
+          "late_pct": 0.08,
+          "work_p50_ms": 16.54,
+          "work_p99_ms": 16.82,
+          "present_p99_ms": 0.24,
+          "hitches": 1,
+          "hitch_sides": {
+            "game": 1
+          },
+          "tex_upload_mb": 43.1,
+          "tex_evictions": 76,
+          "audio_dry": 0,
+          "audio_dropped": 0,
+          "memory_mb_start": 287.4,
+          "memory_mb_max": 397.6,
+          "memory_mb_end": 379.2,
+          "log_faults": {},
+          "cpu": {
+            "window_s": 86.50405529999989,
+            "cpu_s": 117.796875,
+            "percent_one_core": 136.17497421534196
+          },
+          "runtime_counters": {
+            "start": {
+              "S2SHADER": {
+                "enabled": 0,
+                "calls": 17,
+                "hits": 0,
+                "compiles": 17,
+                "compile_ms": 748.459,
+                "compile_cpu_ms": 718.75,
+                "io_ms": 0.0,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 0,
+                "holds": 32,
+                "checks": 2592948,
+                "waits": 0,
+                "signals": 0,
+                "timeouts": 0,
+                "wall_ms": 224.77
+              },
+              "S2STATE": {
+                "enabled": 0,
+                "draws": 689,
+                "creates": [
+                  218,
+                  218,
+                  1,
+                  2752
+                ],
+                "hits": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "fast": [
+                  0,
+                  470,
+                  0,
+                  0
+                ]
+              }
+            },
+            "end": {
+              "S2SHADER": {
+                "enabled": 0,
+                "calls": 31,
+                "hits": 0,
+                "compiles": 31,
+                "compile_ms": 906.713,
+                "compile_cpu_ms": 828.125,
+                "io_ms": 0.0,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 0,
+                "holds": 44544,
+                "checks": 639087963,
+                "waits": 0,
+                "signals": 0,
+                "timeouts": 1,
+                "wall_ms": 54961.614
+              },
+              "S2STATE": {
+                "enabled": 0,
+                "draws": 2128496,
+                "creates": [
+                  72334,
+                  33483,
+                  1,
+                  8513980
+                ],
+                "hits": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "fast": [
+                  0,
+                  2095012,
+                  0,
+                  0
+                ]
+              }
+            },
+            "latest": {
+              "S2SHADER": {
+                "enabled": 0,
+                "calls": 31,
+                "hits": 0,
+                "compiles": 31,
+                "compile_ms": 906.713,
+                "compile_cpu_ms": 828.125,
+                "io_ms": 0.0,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 0,
+                "holds": 44544,
+                "checks": 639087963,
+                "waits": 0,
+                "signals": 0,
+                "timeouts": 1,
+                "wall_ms": 54961.614
+              },
+              "S2STATE": {
+                "enabled": 0,
+                "draws": 2149564,
+                "creates": [
+                  74220,
+                  35129,
+                  1,
+                  8598252
+                ],
+                "hits": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "fast": [
+                  0,
+                  2114434,
+                  0,
+                  0
+                ]
+              }
+            }
+          },
+          "validity": {
+            "save_ok": true,
+            "unexpected_exit": false,
+            "faults": [],
+            "interference": []
+          }
+        },
+        {
+          "scene": "sc07b",
+          "played": true,
+          "ended": true,
+          "seconds": 66.1,
+          "frames": 3952,
+          "load_ms": 163.1,
+          "open_to_play_ms": 58.2,
+          "median_ms": 16.67,
+          "p95_ms": 16.75,
+          "p99_ms": 16.9,
+          "worst_ms": 64.12,
+          "one_percent_low_fps": 53.03,
+          "mean_fps": 59.96,
+          "late_frames": 2,
+          "missed_vblanks": 4,
+          "late_pct": 0.05,
+          "work_p50_ms": 16.54,
+          "work_p99_ms": 16.74,
+          "present_p99_ms": 0.23,
+          "hitches": 1,
+          "hitch_sides": {
+            "game": 1
+          },
+          "tex_upload_mb": 463.4,
+          "tex_evictions": 9,
+          "audio_dry": 0,
+          "audio_dropped": 0,
+          "memory_mb_start": 339.8,
+          "memory_mb_max": 390.2,
+          "memory_mb_end": 381.4,
+          "log_faults": {},
+          "cpu": {
+            "window_s": 65.25251400000707,
+            "cpu_s": 90.328125,
+            "percent_one_core": 138.42857456800854
+          },
+          "runtime_counters": {
+            "start": {
+              "S2SHADER": {
+                "enabled": 0,
+                "calls": 17,
+                "hits": 0,
+                "compiles": 17,
+                "compile_ms": 776.057,
+                "compile_cpu_ms": 750.0,
+                "io_ms": 0.0,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 0,
+                "holds": 64,
+                "checks": 5535699,
+                "waits": 0,
+                "signals": 0,
+                "timeouts": 0,
+                "wall_ms": 451.024
+              },
+              "S2STATE": {
+                "enabled": 0,
+                "draws": 638,
+                "creates": [
+                  211,
+                  211,
+                  1,
+                  2548
+                ],
+                "hits": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "fast": [
+                  0,
+                  426,
+                  0,
+                  0
+                ]
+              }
+            },
+            "end": {
+              "S2SHADER": {
+                "enabled": 0,
+                "calls": 32,
+                "hits": 0,
+                "compiles": 32,
+                "compile_ms": 982.422,
+                "compile_cpu_ms": 937.5,
+                "io_ms": 0.0,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 0,
+                "holds": 34304,
+                "checks": 660272295,
+                "waits": 0,
+                "signals": 0,
+                "timeouts": 0,
+                "wall_ms": 56731.219
+              },
+              "S2STATE": {
+                "enabled": 0,
+                "draws": 1896351,
+                "creates": [
+                  42928,
+                  25216,
+                  1,
+                  7585400
+                ],
+                "hits": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "fast": [
+                  0,
+                  1871134,
+                  0,
+                  0
+                ]
+              }
+            },
+            "latest": {
+              "S2SHADER": {
+                "enabled": 0,
+                "calls": 32,
+                "hits": 0,
+                "compiles": 32,
+                "compile_ms": 982.422,
+                "compile_cpu_ms": 937.5,
+                "io_ms": 0.0,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 0,
+                "holds": 34304,
+                "checks": 660272295,
+                "waits": 0,
+                "signals": 0,
+                "timeouts": 0,
+                "wall_ms": 56731.219
+              },
+              "S2STATE": {
+                "enabled": 0,
+                "draws": 1906119,
+                "creates": [
+                  44573,
+                  26861,
+                  1,
+                  7624472
+                ],
+                "hits": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "fast": [
+                  0,
+                  1879257,
+                  0,
+                  0
+                ]
+              }
+            }
+          },
+          "validity": {
+            "save_ok": true,
+            "unexpected_exit": false,
+            "faults": [],
+            "interference": []
+          }
+        }
+      ]
+    },
+    {
+      "label": "quiet-combined-2",
+      "scope": "clean-series",
+      "host": {
+        "build": "1.2.1 windows-x64",
+        "platform": "windows",
+        "aspect": "16:9",
+        "render_scale": "3",
+        "vsync": "true",
+        "window": "1920x1080",
+        "record_fps": 0,
+        "refresh": "[DISPLAY] refresh 144 Hz, windowed, vsync on: the game's 60 fps timer paces frames (refresh is not a multiple of 60 Hz; motion can judder)"
+      },
+      "features": {
+        "RECOMP_D3D11_SHADER_CACHE": "1",
+        "RECOMP_D3D11_STATE_CACHE": "1",
+        "RECOMP_FENCE_WAIT": "1",
+        "RECOMP_FENCE_HOLD": "1",
+        "RECOMP_STREAM2_STATS": "1"
+      },
+      "game_worktree_head": "f80a792b434379cbf580a23240097c2fee4597b2",
+      "toolkit": "0080b5b19ea11bceda26c7167d64fcd61c383dd7",
+      "manual_sha256": "881d5bfa497fb91c40fe456657f478aca866317429e6ed5889fef3f975e77a95",
+      "benchmark_sha256": "0e2452a83e849de87bee6c3cce9d1aa393438ff09705b2285b1be70b84c8d250",
+      "scenes": [
+        {
+          "scene": "sc00",
+          "played": true,
+          "ended": true,
+          "seconds": 87.1,
+          "frames": 5224,
+          "load_ms": 1664.7,
+          "open_to_play_ms": 1694.1,
+          "median_ms": 16.67,
+          "p95_ms": 16.73,
+          "p99_ms": 16.86,
+          "worst_ms": 72.92,
+          "one_percent_low_fps": 53.85,
+          "mean_fps": 59.95,
+          "late_frames": 2,
+          "missed_vblanks": 4,
+          "late_pct": 0.04,
+          "work_p50_ms": 16.55,
+          "work_p99_ms": 16.69,
+          "present_p99_ms": 0.2,
+          "hitches": 1,
+          "hitch_sides": {
+            "present": 1
+          },
+          "tex_upload_mb": 43.1,
+          "tex_evictions": 76,
+          "audio_dry": 0,
+          "audio_dropped": 0,
+          "memory_mb_start": 318.7,
+          "memory_mb_max": 411.3,
+          "memory_mb_end": 378.3,
+          "log_faults": {},
+          "cpu": {
+            "window_s": 86.54482779999671,
+            "cpu_s": 69.859375,
+            "percent_one_core": 80.7204506333337
+          },
+          "runtime_counters": {
+            "start": {
+              "S2SHADER": {
+                "enabled": 1,
+                "calls": 17,
+                "hits": 17,
+                "compiles": 0,
+                "compile_ms": 0.0,
+                "compile_cpu_ms": 0.0,
+                "io_ms": 5.807,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 1,
+                "holds": 32,
+                "checks": 121,
+                "waits": 121,
+                "signals": 32,
+                "timeouts": 0,
+                "wall_ms": 256.396
+              },
+              "S2STATE": {
+                "enabled": 1,
+                "draws": 691,
+                "creates": [
+                  4,
+                  7,
+                  1,
+                  2
+                ],
+                "hits": [
+                  218,
+                  215,
+                  0,
+                  2
+                ],
+                "fast": [
+                  468,
+                  468,
+                  689,
+                  2756
+                ]
+              }
+            },
+            "end": {
+              "S2SHADER": {
+                "enabled": 1,
+                "calls": 31,
+                "hits": 31,
+                "compiles": 0,
+                "compile_ms": 0.0,
+                "compile_cpu_ms": 0.0,
+                "io_ms": 11.186,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 1,
+                "holds": 47104,
+                "checks": 62954,
+                "waits": 62954,
+                "signals": 47104,
+                "timeouts": 0,
+                "wall_ms": 55506.961
+              },
+              "S2STATE": {
+                "enabled": 1,
+                "draws": 2128478,
+                "creates": [
+                  9,
+                  22,
+                  1,
+                  4
+                ],
+                "hits": [
+                  72374,
+                  33485,
+                  0,
+                  154614
+                ],
+                "fast": [
+                  2056094,
+                  2094970,
+                  2128476,
+                  8359290
+                ]
+              }
+            },
+            "latest": {
+              "S2SHADER": {
+                "enabled": 1,
+                "calls": 31,
+                "hits": 31,
+                "compiles": 0,
+                "compile_ms": 0.0,
+                "compile_cpu_ms": 0.0,
+                "io_ms": 11.186,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 1,
+                "holds": 47104,
+                "checks": 62954,
+                "waits": 62954,
+                "signals": 47104,
+                "timeouts": 0,
+                "wall_ms": 55506.961
+              },
+              "S2STATE": {
+                "enabled": 1,
+                "draws": 2149861,
+                "creates": [
+                  9,
+                  23,
+                  1,
+                  4
+                ],
+                "hits": [
+                  74258,
+                  35120,
+                  0,
+                  156289
+                ],
+                "fast": [
+                  2075593,
+                  2114717,
+                  2149859,
+                  8443147
+                ]
+              }
+            }
+          },
+          "validity": {
+            "save_ok": true,
+            "unexpected_exit": false,
+            "faults": [],
+            "interference": []
+          }
+        },
+        {
+          "scene": "sc07b",
+          "played": true,
+          "ended": true,
+          "seconds": 66.0,
+          "frames": 3960,
+          "load_ms": 62.4,
+          "open_to_play_ms": 71.9,
+          "median_ms": 16.67,
+          "p95_ms": 16.71,
+          "p99_ms": 16.86,
+          "worst_ms": 17.51,
+          "one_percent_low_fps": 58.82,
+          "mean_fps": 60.0,
+          "late_frames": 0,
+          "missed_vblanks": 0,
+          "late_pct": 0.0,
+          "work_p50_ms": 16.55,
+          "work_p99_ms": 16.73,
+          "present_p99_ms": 0.17,
+          "hitches": 0,
+          "hitch_sides": {},
+          "tex_upload_mb": 464.1,
+          "tex_evictions": 9,
+          "audio_dry": 0,
+          "audio_dropped": 0,
+          "memory_mb_start": 338.4,
+          "memory_mb_max": 389.5,
+          "memory_mb_end": 364.2,
+          "log_faults": {},
+          "cpu": {
+            "window_s": 65.37831109999388,
+            "cpu_s": 37.8125,
+            "percent_one_core": 57.836458855853714
+          },
+          "runtime_counters": {
+            "start": {
+              "S2SHADER": {
+                "enabled": 1,
+                "calls": 17,
+                "hits": 17,
+                "compiles": 0,
+                "compile_ms": 0.0,
+                "compile_cpu_ms": 0.0,
+                "io_ms": 2.382,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 1,
+                "holds": 64,
+                "checks": 249,
+                "waits": 249,
+                "signals": 64,
+                "timeouts": 0,
+                "wall_ms": 508.867
+              },
+              "S2STATE": {
+                "enabled": 1,
+                "draws": 721,
+                "creates": [
+                  4,
+                  7,
+                  1,
+                  2
+                ],
+                "hits": [
+                  230,
+                  227,
+                  0,
+                  2
+                ],
+                "fast": [
+                  486,
+                  486,
+                  719,
+                  2876
+                ]
+              }
+            },
+            "end": {
+              "S2SHADER": {
+                "enabled": 1,
+                "calls": 32,
+                "hits": 32,
+                "compiles": 0,
+                "compile_ms": 0.0,
+                "compile_cpu_ms": 0.0,
+                "io_ms": 4.607,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 1,
+                "holds": 35840,
+                "checks": 52313,
+                "waits": 52313,
+                "signals": 35837,
+                "timeouts": 0,
+                "wall_ms": 55736.835
+              },
+              "S2STATE": {
+                "enabled": 1,
+                "draws": 1900826,
+                "creates": [
+                  8,
+                  19,
+                  1,
+                  4
+                ],
+                "hits": [
+                  43046,
+                  25275,
+                  0,
+                  189030
+                ],
+                "fast": [
+                  1857771,
+                  1875531,
+                  1900824,
+                  7414266
+                ]
+              }
+            },
+            "latest": {
+              "S2SHADER": {
+                "enabled": 1,
+                "calls": 32,
+                "hits": 32,
+                "compiles": 0,
+                "compile_ms": 0.0,
+                "compile_cpu_ms": 0.0,
+                "io_ms": 4.607,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 1,
+                "holds": 35840,
+                "checks": 52313,
+                "waits": 52313,
+                "signals": 35837,
+                "timeouts": 0,
+                "wall_ms": 55736.835
+              },
+              "S2STATE": {
+                "enabled": 1,
+                "draws": 1910409,
+                "creates": [
+                  8,
+                  26,
+                  1,
+                  4
+                ],
+                "hits": [
+                  44661,
+                  26883,
+                  0,
+                  189030
+                ],
+                "fast": [
+                  1865739,
+                  1883499,
+                  1910407,
+                  7452598
+                ]
+              }
+            }
+          },
+          "validity": {
+            "save_ok": true,
+            "unexpected_exit": false,
+            "faults": [],
+            "interference": []
+          }
+        }
+      ]
+    },
+    {
+      "label": "quiet-states-2",
+      "scope": "clean-series",
+      "host": {
+        "build": "1.2.1 windows-x64",
+        "platform": "windows",
+        "aspect": "16:9",
+        "render_scale": "3",
+        "vsync": "true",
+        "window": "1920x1080",
+        "record_fps": 0,
+        "refresh": "[DISPLAY] refresh 144 Hz, windowed, vsync on: the game's 60 fps timer paces frames (refresh is not a multiple of 60 Hz; motion can judder)"
+      },
+      "features": {
+        "RECOMP_D3D11_SHADER_CACHE": "0",
+        "RECOMP_D3D11_STATE_CACHE": "1",
+        "RECOMP_FENCE_WAIT": "0",
+        "RECOMP_FENCE_HOLD": "1",
+        "RECOMP_STREAM2_STATS": "1"
+      },
+      "game_worktree_head": "f80a792b434379cbf580a23240097c2fee4597b2",
+      "toolkit": "0080b5b19ea11bceda26c7167d64fcd61c383dd7",
+      "manual_sha256": "881d5bfa497fb91c40fe456657f478aca866317429e6ed5889fef3f975e77a95",
+      "benchmark_sha256": "0e2452a83e849de87bee6c3cce9d1aa393438ff09705b2285b1be70b84c8d250",
+      "scenes": [
+        {
+          "scene": "sc00",
+          "played": true,
+          "ended": true,
+          "seconds": 87.1,
+          "frames": 5220,
+          "load_ms": 1609.3,
+          "open_to_play_ms": 1639.0,
+          "median_ms": 16.67,
+          "p95_ms": 16.72,
+          "p99_ms": 16.82,
+          "worst_ms": 122.96,
+          "one_percent_low_fps": 51.11,
+          "mean_fps": 59.93,
+          "late_frames": 4,
+          "missed_vblanks": 9,
+          "late_pct": 0.08,
+          "work_p50_ms": 16.55,
+          "work_p99_ms": 16.66,
+          "present_p99_ms": 0.17,
+          "hitches": 1,
+          "hitch_sides": {
+            "game": 1
+          },
+          "tex_upload_mb": 43.1,
+          "tex_evictions": 76,
+          "audio_dry": 0,
+          "audio_dropped": 0,
+          "memory_mb_start": 287.1,
+          "memory_mb_max": 414.6,
+          "memory_mb_end": 395.8,
+          "log_faults": {},
+          "cpu": {
+            "window_s": 86.61054959999456,
+            "cpu_s": 119.921875,
+            "percent_one_core": 138.46104839866706
+          },
+          "runtime_counters": {
+            "start": {
+              "S2SHADER": {
+                "enabled": 0,
+                "calls": 17,
+                "hits": 0,
+                "compiles": 17,
+                "compile_ms": 764.342,
+                "compile_cpu_ms": 750.0,
+                "io_ms": 0.0,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 0,
+                "holds": 32,
+                "checks": 2892480,
+                "waits": 0,
+                "signals": 0,
+                "timeouts": 0,
+                "wall_ms": 240.579
+              },
+              "S2STATE": {
+                "enabled": 1,
+                "draws": 662,
+                "creates": [
+                  4,
+                  7,
+                  1,
+                  2
+                ],
+                "hits": [
+                  208,
+                  205,
+                  0,
+                  2
+                ],
+                "fast": [
+                  449,
+                  449,
+                  660,
+                  2640
+                ]
+              }
+            },
+            "end": {
+              "S2SHADER": {
+                "enabled": 0,
+                "calls": 31,
+                "hits": 0,
+                "compiles": 31,
+                "compile_ms": 916.888,
+                "compile_cpu_ms": 906.25,
+                "io_ms": 0.0,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 0,
+                "holds": 45568,
+                "checks": 671727564,
+                "waits": 0,
+                "signals": 0,
+                "timeouts": 1,
+                "wall_ms": 55453.959
+              },
+              "S2STATE": {
+                "enabled": 1,
+                "draws": 2130906,
+                "creates": [
+                  9,
+                  22,
+                  1,
+                  4
+                ],
+                "hits": [
+                  72416,
+                  33488,
+                  0,
+                  154791
+                ],
+                "fast": [
+                  2058480,
+                  2097395,
+                  2130904,
+                  8368825
+                ]
+              }
+            },
+            "latest": {
+              "S2SHADER": {
+                "enabled": 0,
+                "calls": 31,
+                "hits": 0,
+                "compiles": 31,
+                "compile_ms": 916.888,
+                "compile_cpu_ms": 906.25,
+                "io_ms": 0.0,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 0,
+                "holds": 45568,
+                "checks": 671727564,
+                "waits": 0,
+                "signals": 0,
+                "timeouts": 1,
+                "wall_ms": 55453.959
+              },
+              "S2STATE": {
+                "enabled": 1,
+                "draws": 2151446,
+                "creates": [
+                  9,
+                  23,
+                  1,
+                  4
+                ],
+                "hits": [
+                  74296,
+                  35139,
+                  0,
+                  156331
+                ],
+                "fast": [
+                  2077140,
+                  2116283,
+                  2151444,
+                  8449445
+                ]
+              }
+            }
+          },
+          "validity": {
+            "save_ok": true,
+            "unexpected_exit": false,
+            "faults": [],
+            "interference": []
+          }
+        },
+        {
+          "scene": "sc07b",
+          "played": true,
+          "ended": true,
+          "seconds": 66.0,
+          "frames": 3952,
+          "load_ms": 158.0,
+          "open_to_play_ms": 52.8,
+          "median_ms": 16.67,
+          "p95_ms": 16.71,
+          "p99_ms": 16.8,
+          "worst_ms": 60.18,
+          "one_percent_low_fps": 53.93,
+          "mean_fps": 59.96,
+          "late_frames": 2,
+          "missed_vblanks": 4,
+          "late_pct": 0.05,
+          "work_p50_ms": 16.56,
+          "work_p99_ms": 16.64,
+          "present_p99_ms": 0.16,
+          "hitches": 1,
+          "hitch_sides": {
+            "game": 1
+          },
+          "tex_upload_mb": 461.6,
+          "tex_evictions": 9,
+          "audio_dry": 0,
+          "audio_dropped": 0,
+          "memory_mb_start": 337.0,
+          "memory_mb_max": 387.9,
+          "memory_mb_end": 362.9,
+          "log_faults": {},
+          "cpu": {
+            "window_s": 65.42901049999637,
+            "cpu_s": 91.578125,
+            "percent_one_core": 139.9656273267423
+          },
+          "runtime_counters": {
+            "start": {
+              "S2SHADER": {
+                "enabled": 0,
+                "calls": 17,
+                "hits": 0,
+                "compiles": 17,
+                "compile_ms": 722.762,
+                "compile_cpu_ms": 703.125,
+                "io_ms": 0.0,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 0,
+                "holds": 64,
+                "checks": 5395938,
+                "waits": 0,
+                "signals": 0,
+                "timeouts": 0,
+                "wall_ms": 438.164
+              },
+              "S2STATE": {
+                "enabled": 1,
+                "draws": 634,
+                "creates": [
+                  4,
+                  7,
+                  1,
+                  2
+                ],
+                "hits": [
+                  200,
+                  197,
+                  0,
+                  2
+                ],
+                "fast": [
+                  429,
+                  429,
+                  632,
+                  2528
+                ]
+              }
+            },
+            "end": {
+              "S2SHADER": {
+                "enabled": 0,
+                "calls": 32,
+                "hits": 0,
+                "compiles": 32,
+                "compile_ms": 922.644,
+                "compile_cpu_ms": 875.0,
+                "io_ms": 0.0,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 0,
+                "holds": 34304,
+                "checks": 670662695,
+                "waits": 0,
+                "signals": 0,
+                "timeouts": 0,
+                "wall_ms": 55604.358
+              },
+              "S2STATE": {
+                "enabled": 1,
+                "draws": 1895907,
+                "creates": [
+                  8,
+                  19,
+                  1,
+                  4
+                ],
+                "hits": [
+                  42902,
+                  25183,
+                  0,
+                  188576
+                ],
+                "fast": [
+                  1852996,
+                  1870704,
+                  1895905,
+                  7395044
+                ]
+              }
+            },
+            "latest": {
+              "S2SHADER": {
+                "enabled": 0,
+                "calls": 32,
+                "hits": 0,
+                "compiles": 32,
+                "compile_ms": 922.644,
+                "compile_cpu_ms": 875.0,
+                "io_ms": 0.0,
+                "bad": 0,
+                "writes": 0
+              },
+              "S2FENCE": {
+                "wait": 0,
+                "holds": 34304,
+                "checks": 670662695,
+                "waits": 0,
+                "signals": 0,
+                "timeouts": 0,
+                "wall_ms": 55604.358
+              },
+              "S2STATE": {
+                "enabled": 1,
+                "draws": 1905786,
+                "creates": [
+                  8,
+                  26,
+                  1,
+                  4
+                ],
+                "hits": [
+                  44565,
+                  26839,
+                  0,
+                  188576
+                ],
+                "fast": [
+                  1861212,
+                  1878920,
+                  1905784,
+                  7434560
+                ]
+              }
+            }
+          },
+          "validity": {
+            "save_ok": true,
+            "unexpected_exit": false,
+            "faults": [],
+            "interference": []
+          }
+        }
+      ]
+    },
+    {
+      "label": "quiet-control-nostats",
+      "scope": "clean-series",
+      "host": {
+        "build": "1.2.1 windows-x64",
+        "platform": "windows",
+        "aspect": "16:9",
+        "render_scale": "3",
+        "vsync": "true",
+        "window": "1920x1080",
+        "record_fps": 0,
+        "refresh": "[DISPLAY] refresh 144 Hz, windowed, vsync on: the game's 60 fps timer paces frames (refresh is not a multiple of 60 Hz; motion can judder)"
+      },
+      "features": {
+        "RECOMP_D3D11_SHADER_CACHE": "0",
+        "RECOMP_D3D11_STATE_CACHE": "0",
+        "RECOMP_FENCE_WAIT": "0",
+        "RECOMP_FENCE_HOLD": "1",
+        "RECOMP_STREAM2_STATS": "0"
+      },
+      "game_worktree_head": "f80a792b434379cbf580a23240097c2fee4597b2",
+      "toolkit": "0080b5b19ea11bceda26c7167d64fcd61c383dd7",
+      "manual_sha256": "881d5bfa497fb91c40fe456657f478aca866317429e6ed5889fef3f975e77a95",
+      "benchmark_sha256": "0e2452a83e849de87bee6c3cce9d1aa393438ff09705b2285b1be70b84c8d250",
+      "scenes": [
+        {
+          "scene": "sc00",
+          "played": true,
+          "ended": true,
+          "seconds": 87.1,
+          "frames": 5221,
+          "load_ms": 1566.0,
+          "open_to_play_ms": 1595.6,
+          "median_ms": 16.67,
+          "p95_ms": 16.71,
+          "p99_ms": 16.82,
+          "worst_ms": 117.3,
+          "one_percent_low_fps": 51.33,
+          "mean_fps": 59.93,
+          "late_frames": 2,
+          "missed_vblanks": 7,
+          "late_pct": 0.04,
+          "work_p50_ms": 16.56,
+          "work_p99_ms": 16.67,
+          "present_p99_ms": 0.17,
+          "hitches": 1,
+          "hitch_sides": {
+            "game": 1
+          },
+          "tex_upload_mb": 43.1,
+          "tex_evictions": 76,
+          "audio_dry": 0,
+          "audio_dropped": 0,
+          "memory_mb_start": 287.1,
+          "memory_mb_max": 412.2,
+          "memory_mb_end": 377.0,
+          "log_faults": {},
+          "cpu": {
+            "window_s": 86.77378580000368,
+            "cpu_s": 117.203125,
+            "percent_one_core": 135.0674330034763
+          },
+          "runtime_counters": {
+            "start": {},
+            "end": {},
+            "latest": {}
+          },
+          "validity": {
+            "save_ok": true,
+            "unexpected_exit": false,
+            "faults": [],
+            "interference": []
+          }
+        },
+        {
+          "scene": "sc07b",
+          "played": true,
+          "ended": true,
+          "seconds": 66.0,
+          "frames": 3950,
+          "load_ms": 155.6,
+          "open_to_play_ms": 53.5,
+          "median_ms": 16.67,
+          "p95_ms": 16.72,
+          "p99_ms": 16.89,
+          "worst_ms": 61.63,
+          "one_percent_low_fps": 52.99,
+          "mean_fps": 59.94,
+          "late_frames": 2,
+          "missed_vblanks": 4,
+          "late_pct": 0.05,
+          "work_p50_ms": 16.55,
+          "work_p99_ms": 16.73,
+          "present_p99_ms": 0.18,
+          "hitches": 1,
+          "hitch_sides": {
+            "game": 1
+          },
+          "tex_upload_mb": 461.9,
+          "tex_evictions": 9,
+          "audio_dry": 0,
+          "audio_dropped": 0,
+          "memory_mb_start": 338.4,
+          "memory_mb_max": 389.5,
+          "memory_mb_end": 364.6,
+          "log_faults": {},
+          "cpu": {
+            "window_s": 65.30337639999925,
+            "cpu_s": 86.90625,
+            "percent_one_core": 133.08079121005602
+          },
+          "runtime_counters": {
+            "start": {},
+            "end": {},
+            "latest": {}
+          },
+          "validity": {
+            "save_ok": true,
+            "unexpected_exit": false,
+            "faults": [],
+            "interference": []
+          }
+        }
+      ]
+    },
+    {
+      "label": "quiet-combined-nostats-r2",
+      "scope": "clean-series",
+      "host": {
+        "build": "1.2.1 windows-x64",
+        "platform": "windows",
+        "aspect": "16:9",
+        "render_scale": "3",
+        "vsync": "true",
+        "window": "1920x1080",
+        "record_fps": 0,
+        "refresh": "[DISPLAY] refresh 144 Hz, windowed, vsync on: the game's 60 fps timer paces frames (refresh is not a multiple of 60 Hz; motion can judder)"
+      },
+      "features": {
+        "RECOMP_D3D11_SHADER_CACHE": "1",
+        "RECOMP_D3D11_STATE_CACHE": "1",
+        "RECOMP_FENCE_WAIT": "1",
+        "RECOMP_FENCE_HOLD": "1",
+        "RECOMP_STREAM2_STATS": "0"
+      },
+      "game_worktree_head": "f80a792b434379cbf580a23240097c2fee4597b2",
+      "toolkit": "0080b5b19ea11bceda26c7167d64fcd61c383dd7",
+      "manual_sha256": "881d5bfa497fb91c40fe456657f478aca866317429e6ed5889fef3f975e77a95",
+      "benchmark_sha256": "0e2452a83e849de87bee6c3cce9d1aa393438ff09705b2285b1be70b84c8d250",
+      "scenes": [
+        {
+          "scene": "sc00",
+          "played": true,
+          "ended": true,
+          "seconds": 87.1,
+          "frames": 5226,
+          "load_ms": 1611.5,
+          "open_to_play_ms": 1641.1,
+          "median_ms": 16.67,
+          "p95_ms": 16.72,
+          "p99_ms": 16.82,
+          "worst_ms": 22.33,
+          "one_percent_low_fps": 58.13,
+          "mean_fps": 60.0,
+          "late_frames": 0,
+          "missed_vblanks": 0,
+          "late_pct": 0.0,
+          "work_p50_ms": 16.56,
+          "work_p99_ms": 16.68,
+          "present_p99_ms": 0.18,
+          "hitches": 0,
+          "hitch_sides": {},
+          "tex_upload_mb": 43.1,
+          "tex_evictions": 77,
+          "audio_dry": 0,
+          "audio_dropped": 0,
+          "memory_mb_start": 313.9,
+          "memory_mb_max": 412.8,
+          "memory_mb_end": 379.5,
+          "log_faults": {},
+          "cpu": {
+            "window_s": 86.83851349999895,
+            "cpu_s": 64.5,
+            "percent_one_core": 74.27579929727929
+          },
+          "runtime_counters": {
+            "start": {},
+            "end": {},
+            "latest": {}
+          },
+          "validity": {
+            "save_ok": true,
+            "unexpected_exit": false,
+            "faults": [],
+            "interference": []
+          }
+        },
+        {
+          "scene": "sc07b",
+          "played": true,
+          "ended": true,
+          "seconds": 66.1,
+          "frames": 3962,
+          "load_ms": 63.2,
+          "open_to_play_ms": 75.4,
+          "median_ms": 16.67,
+          "p95_ms": 16.71,
+          "p99_ms": 16.82,
+          "worst_ms": 17.23,
+          "one_percent_low_fps": 59.1,
+          "mean_fps": 60.0,
+          "late_frames": 0,
+          "missed_vblanks": 0,
+          "late_pct": 0.0,
+          "work_p50_ms": 16.56,
+          "work_p99_ms": 16.68,
+          "present_p99_ms": 0.16,
+          "hitches": 0,
+          "hitch_sides": {},
+          "tex_upload_mb": 462.4,
+          "tex_evictions": 9,
+          "audio_dry": 0,
+          "audio_dropped": 0,
+          "memory_mb_start": 338.4,
+          "memory_mb_max": 388.9,
+          "memory_mb_end": 363.4,
+          "log_faults": {},
+          "cpu": {
+            "window_s": 65.64382379999734,
+            "cpu_s": 38.28125,
+            "percent_one_core": 58.316605864757
+          },
+          "runtime_counters": {
+            "start": {},
+            "end": {},
+            "latest": {}
+          },
+          "validity": {
+            "save_ok": true,
+            "unexpected_exit": false,
+            "faults": [],
+            "interference": []
+          }
+        }
+      ]
+    }
+  ]
+}
