@@ -102,9 +102,13 @@ def picture_tool(tmp_path_factory):
         'extern uint32_t g_esp,g_ecx;\n'
         '#define MEM32(a) (*(uint32_t *)(memory+(a)))\n'
         '#define MEM8(a) (*(uint8_t *)(memory+(a)))\n')
+    # Source-only CI intentionally omits the toolkit submodule. The fixture
+    # supplies only the settings function it implements, never a disk writer.
+    (folder / 'recomp_settings.h').write_text(
+        'int recomp_settings_get(const char *, const char *, int);\n')
     (folder / 'driver.c').write_text(DRIVER)
     executable = folder / ('picture.exe' if os.name == 'nt' else 'picture')
-    includes = [folder, ROOT / 'src/patches', ROOT / 'tools/xboxrecomp/src/settings']
+    includes = [folder, ROOT / 'src/patches']
     sources = [folder / 'driver.c', ROOT / 'src/patches/picture.c']
     if os.name == 'nt':
         command = [compiler, '/nologo', '/O2', '/TC', *['/I'+str(p) for p in includes],
