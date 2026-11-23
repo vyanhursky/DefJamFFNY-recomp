@@ -6,6 +6,7 @@ from pathlib import Path
 import re
 import tempfile
 from fighter_archive import MAX_ARCHIVE, portrait_aliases, Archive, store
+import fighter_base
 from fighter_assets import unpack
 from fighter_composition import language_base, MAX_DELTA_BYTES
 from fighter_registry import fingerprint
@@ -16,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def original_screens(screens, *, pin_path=None):
-    pin = json.loads((pin_path or ROOT / 'config/fighter-native-baseline.json').read_text(encoding='utf-8'))
+    pin = fighter_base.pins(pin_path)
     with screens.open('rb') as stream:
         source = stream.read(MAX_ARCHIVE + 1)
     if len(source) > MAX_ARCHIVE or hashlib.sha256(source).hexdigest() != pin['screens_sha256']:

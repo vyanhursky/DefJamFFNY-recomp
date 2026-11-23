@@ -1,10 +1,11 @@
 """Binding keys distinguish owned motion cores from CAF roster identities."""
+from fighter_keys import LOGICAL_FIRST
 CAF_BIT = 0x80000000
 MAX_BINDINGS = 32768
 
 
 def caf_key(selection):
-    if type(selection) is not int or not 100 <= selection <= 0x7ffffffe:
+    if type(selection) is not int or not LOGICAL_FIRST <= selection <= 0x7ffffffe:
         raise ValueError('CAF behavior needs a stable roster identity')
     return CAF_BIT | selection
 

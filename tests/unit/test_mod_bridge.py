@@ -281,8 +281,8 @@ DIGEST = 'ab' * 32
 
 
 def manifest(root, environment, inputs, language='', digest=DIGEST):
-    lines = ['[manifest]', 'schema=2', 'runtime=0.0.0', 'language=' + language, 'packs=synthetic-fighters',
-             'digest_schema=fighter-set-1', 'digest=' + digest, '[environment]']
+    lines = ['[manifest]', 'schema=3', 'runtime=0.0.0', 'language=' + language, 'packs=synthetic-fighters',
+             'digest_schema=fighter-set-1', 'digest=' + digest, 'fighter_keys=100,100', '[environment]']
     lines += [key + '=' + value for key, value in environment.items()]
     lines.append('[inputs]')
     for index, path in enumerate(inputs):
@@ -341,7 +341,7 @@ def test_fresh_manifest_plays_without_python_and_ignores_inherited_switches(brid
     assert 'saves stay in save/' in result.stderr
 
 
-@pytest.mark.parametrize('change', ['size', 'missing', 'runtime', 'none', 'schema-1', 'no-digest'])
+@pytest.mark.parametrize('change', ['size', 'missing', 'runtime', 'none', 'schema-1', 'schema-2', 'no-digest', 'keys'])
 def test_stale_manifest_is_rebuilt_once_before_play(bridge, tmp_path, change):
     root = fighter_data(tmp_path)
     cache = tmp_path / 'names.bin'
@@ -358,7 +358,15 @@ def test_stale_manifest_is_rebuilt_once_before_play(bridge, tmp_path, change):
         (root / 'fighter-manifest.ini').unlink()
     elif change == 'schema-1':
         # Written by a build before v1.2.0-beta.3 with the same version string: history numbers, no digest.
-        text = (root / 'fighter-manifest.ini').read_text().replace('schema=2', 'schema=1')
+        text = (root / 'fighter-manifest.ini').read_text().replace('schema=3', 'schema=1')
+        (root / 'fighter-manifest.ini').write_text(text)
+    elif change == 'schema-2':
+        # Written by v1.2.0-beta.3: no fighter_keys line.
+        text = (root / 'fighter-manifest.ini').read_text().replace('schema=3', 'schema=2')
+        (root / 'fighter-manifest.ini').write_text(text.replace('fighter_keys=100,100\n', ''))
+    elif change == 'keys':
+        # Compiled by a fork's compiler with another key range than this game was built with.
+        text = (root / 'fighter-manifest.ini').read_text().replace('fighter_keys=100,100', 'fighter_keys=124,1000')
         (root / 'fighter-manifest.ini').write_text(text)
     elif change == 'no-digest':
         text = (root / 'fighter-manifest.ini').read_text().replace('digest=' + DIGEST + '\n', '')
@@ -403,6 +411,27 @@ raise SystemExit(1)
                             capture_output=True, text=True, timeout=30)
     assert result.returncode == 5
     assert 'Fighter pack changed or is missing' in result.stderr
+
+
+def test_packs_compiled_for_another_key_range_are_refused_after_one_rebuild(bridge, tmp_path):
+    """A fork's compiler and game that disagree on the fighter key range never load packs together."""
+    root = fighter_data(tmp_path)
+    cache = tmp_path / 'names.bin'
+    cache.write_bytes(b'names')
+    manifest(root, {'RECOMP_FIGHTER_NAMES': 'old'}, [cache])
+    other = (root / 'fighter-manifest.ini').read_text().replace('fighter_keys=100,100', 'fighter_keys=124,1000')
+    (root / 'fighter-manifest.ini').write_text(other)
+    source, env = prepare_helper(tmp_path, f"""
+from test_mod_bridge import manifest
+manifest(root, {{'RECOMP_FIGHTER_NAMES': 'new'}}, [Path({str(cache)!r})])
+text = (root / 'fighter-manifest.ini').read_text().replace('fighter_keys=100,100', 'fighter_keys=124,1000')
+(root / 'fighter-manifest.ini').write_text(text)
+""")
+    result = subprocess.run([str(bridge), str(tmp_path), 'fighter', 'RECOMP_FIGHTER_NAMES'], cwd=source, env=env,
+                            capture_output=True, text=True, timeout=30)
+    assert result.returncode == 5
+    assert 'compiled for another fighter key range' in result.stderr
+    assert commands(root) == ['fighter-prepare']
 
 
 @pytest.mark.parametrize('damage', [None, 'traversal', 'missing', 'redirect', 'root', 'budget'])
@@ -482,7 +511,7 @@ def test_fighter_packs_cannot_change_while_the_game_runs(bridge, tmp_path):
     root.mkdir(parents=True)
     state = {'schema': 1, 'installed': {}, 'fighters': ['alpha']}
     (root / 'state.json').write_text(json.dumps(state))
-    (root / 'fighter-manifest.ini').write_text('[manifest]\nschema=2\n')
+    (root / 'fighter-manifest.ini').write_text('[manifest]\nschema=3\n')
     before = {path.name: path.read_bytes() for path in root.iterdir() if path.is_file()}
     game = subprocess.Popen([str(bridge), str(data), 'hold'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True)
     try:

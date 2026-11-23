@@ -19,6 +19,7 @@ DRIVER = r'''
 #include <string.h>
 #include "recomp/gen/recomp_types.h"
 #include "fighter_window.h"
+#include "fighter_keys.h"
 #include "fighter_bindings.h"
 #include "fighter_unlocks.h"
 unsigned char memory[0x10000];

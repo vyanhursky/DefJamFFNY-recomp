@@ -70,6 +70,9 @@ def test_deferred_selection_domain_still_rejects_duplicate_logical_keys():
 
 PROBE = r'''
 #include "fighter_window.h"
+#include "fighter_keys.h"
+/* Logical keys in the fixture roster, relative to the first one (fighter_keys.h). */
+#define LK(x) (DEFJAM_FIGHTER_LOGICAL_FIRST + (x) - 100u)
 #include <stdio.h>
 #include <stdlib.h>
 int main(int argc,char **argv) {
@@ -89,16 +92,16 @@ int main(int argc,char **argv) {
     if(!fighter_window_decode(&w,bytes,size)) { free(bytes); return 1; }
     if(argc==2) { printf("%u",w.count); free(bytes); return 0; }
     for(uint32_t i=0;i<4;++i) {
-        if(!fighter_window_bind(&w,i,254+i,&row)) return 3;
+        if(!fighter_window_bind(&w,i,LK(254)+i,&row)) return 3;
         if(fighter_window_native(&w,row.stable_handle)!=w.banks[i].native_handle) return 4;
         if(fighter_window_stable(&w,w.banks[i].native_handle)!=row.stable_handle) return 5;
-        if(w.banks[i].selection_key!=100+i) return 6;
+        if(w.banks[i].selection_key!=DEFJAM_FIGHTER_BANK_FIRST+i) return 6;
     }
     w.frozen=1;
     if(fighter_window_command(&w,"Fighters.KeepReady(15)")!=-1)return 17;
-    if(fighter_window_bind(&w,0,255,&row) || !fighter_window_bind(&w,0,254,&row)) return 7;
+    if(fighter_window_bind(&w,0,LK(255),&row) || !fighter_window_bind(&w,0,LK(254),&row)) return 7;
     if(fighter_window_clear(&w,0) || fighter_window_clear(&w,UINT32_MAX)) return 11;
-    if(fighter_window_bind(&w,4,254,&row) || fighter_window_bind(&w,0,99,&row)) return 8;
+    if(fighter_window_bind(&w,4,LK(254),&row) || fighter_window_bind(&w,0,99,&row)) return 8;
     if(fighter_window_native(&w,0x07012345)!=UINT32_MAX) return 9;
     if(!fighter_window_finish(&w) || w.frozen || fighter_window_finish(&w))return 29;
     for(uint32_t i=0;i<4;++i)if(!w.selected[i])return 30;
@@ -109,37 +112,42 @@ int main(int argc,char **argv) {
     }
     if(fighter_window_command(&w,"Game.Quit()") || fighter_window_command(&w,NULL))return 19;
     if(fighter_window_command(&w,"Fighters.KeepReady(15)")!=1)return 20;
-    if(fighter_window_bind(&w,0,255,&row)) return 10;
+    if(fighter_window_bind(&w,0,LK(255),&row)) return 10;
     if(!fighter_window_clear(&w,0) || w.selected[0] || !w.selected[1])return 12;
     if(fighter_window_stable(&w,w.banks[0].native_handle)!=w.banks[0].private_handle)return 13;
-    if(!fighter_window_bind(&w,0,254,&row) || fighter_window_clear(&w,4))return 14;
+    if(!fighter_window_bind(&w,0,LK(254),&row) || fighter_window_clear(&w,4))return 14;
     if(!fighter_window_clear(&w,UINT32_MAX))return 15;
     for(uint32_t i=0;i<4;++i)if(w.selected[i])return 16;
     if(fighter_window_command(&w,"Fighters.KeepReady(1)")!=-1)return 21;
-    if(!fighter_window_bind(&w,0,254,&row) || !fighter_window_bind(&w,1,255,&row))return 22;
+    if(!fighter_window_bind(&w,0,LK(254),&row) || !fighter_window_bind(&w,1,LK(255),&row))return 22;
     if(fighter_window_command(&w,"Fighters.KeepReady(2)")!=1 || w.selected[0] || !w.selected[1])return 23;
-    if(!fighter_window_bind(&w,0,254,&row))return 24;
-    if(fighter_window_command(&w,"Fighters.KeepReady(0)")!=1 || !fighter_window_bind(&w,2,254,&row))return 25;
+    if(!fighter_window_bind(&w,0,LK(254),&row))return 24;
+    if(fighter_window_command(&w,"Fighters.KeepReady(0)")!=1 || !fighter_window_bind(&w,2,LK(254),&row))return 25;
     free(bytes); return 0;
 }
 '''
 
 
-@pytest.fixture(scope='module')
-def window_probe(tmp_path_factory):
+def build_probe(folder, defines=()):
+    """The window decoder compiled with the probe; defines like DEFJAM_FIGHTER_BANK_FIRST=124."""
     compiler = shutil.which('cl') if os.name == 'nt' else shutil.which('cc')
     if not compiler:
         pytest.skip('Native C compiler unavailable')
     root = Path(__file__).resolve().parents[2]
-    folder = tmp_path_factory.mktemp('fighter-window-c')
     path = folder / 'probe.c'; path.write_text(PROBE)
     exe = folder / ('probe.exe' if os.name == 'nt' else 'probe')
     inputs = [str(path), str(root / 'src/hooks/fighter_window.c')]
-    command = ([compiler, '/nologo', '/TC', '/I' + str(root / 'src/hooks'), *inputs, '/Fe' + str(exe)]
-               if os.name == 'nt' else [compiler, '-std=c11', '-I', str(root / 'src/hooks'), *inputs, '-o', str(exe)])
+    flags = [('/D' if os.name == 'nt' else '-D') + define for define in defines]
+    command = ([compiler, '/nologo', '/TC', '/I' + str(root / 'src/hooks'), *flags, *inputs, '/Fe' + str(exe)]
+               if os.name == 'nt' else [compiler, '-std=c11', '-I', str(root / 'src/hooks'), *flags, *inputs, '-o', str(exe)])
     result = subprocess.run(command, cwd=folder, capture_output=True, text=True, timeout=60)
     assert result.returncode == 0, result.stdout + result.stderr
     return exe
+
+
+@pytest.fixture(scope='module')
+def window_probe(tmp_path_factory):
+    return build_probe(tmp_path_factory.mktemp('fighter-window-c'))
 
 
 def test_native_binding_window_roundtrip_and_match_freeze(window_probe, tmp_path):

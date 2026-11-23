@@ -9,11 +9,13 @@ FWR3 also permits a same-pack independent logical parent, checked before use.
 """
 import struct
 
+from fighter_keys import BANK_FIRST
+
 from fighter_bindings import MAX_RANK, native_rows
 from fighter_sod import Database, name_hash
 
 BANKS = 4
-FIRST_SELECTION = 100
+FIRST_SELECTION = BANK_FIRST  # the four native bank rows (fighter_keys)
 MAX_FIGHTERS = 16380
 MAX_FILE = 24 + BANKS * 24 + MAX_FIGHTERS * 24
 

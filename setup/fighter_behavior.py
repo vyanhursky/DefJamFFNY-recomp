@@ -9,6 +9,7 @@ import struct
 
 from fighter_assets import AssetError, unpack
 from fighter_archive import Archive, MAX_ARCHIVE
+import fighter_base
 from fighter_behavior_files import Reader, KINDS
 from fighter_registry import fingerprint
 from fighter_motion_compile import MotionCoreTemplates
@@ -105,7 +106,7 @@ class BehaviorPlan:
 
         def original(relative, pin):
             if relative not in originals:
-                with (game / relative).open('rb') as stream:
+                with fighter_base.path(game, relative).open('rb') as stream:
                     data = stream.read(MAX_ARCHIVE + 1)
                 require(0 < len(data) <= MAX_ARCHIVE and digest(data) == pins[pin],
                         'Behavior original differs from its supported baseline: ' + relative)

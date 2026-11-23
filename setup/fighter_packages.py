@@ -124,7 +124,8 @@ def build(manager, state, *, ids=None, replacements=None, language=None):
         # Replacements have no installed receipt yet and are hashed directly.
         from fighter_cache import inventory as cache_inventory
         sources[identifier] = saved['files'] if identifier not in replacements else cache_inventory(folder)
-    sod = manager.game / 'assets/djv2.sod'
+    import fighter_base
+    sod = fighter_base.path(manager.game, 'assets/djv2.sod')
     catalog = retail_catalog(sod)
     from fighter_registry import resolve
     from fighter_bindings import seed, allocate
@@ -133,7 +134,7 @@ def build(manager, state, *, ids=None, replacements=None, language=None):
     # stable keys are numbered from the retail baseline. Two PCs with the same packs get the same
     # numbers, roster order and compiled files whatever their install history (D409).
     ledger = allocate(seed(catalog.db, catalog.source_sha256, catalog.rows), snapshot['fighters'], None)
-    screens = manager.game / 'screens/screens.viv'
+    screens = fighter_base.path(manager.game, 'screens/screens.viv')
     composed = prepare_language_screens(screens, language) if language else None
     from fighter_cache import VerifiedCache, request
     with file_lock(manager.root / 'fighter-cache.lock'):
@@ -144,7 +145,7 @@ def build(manager, state, *, ids=None, replacements=None, language=None):
             manager.progress('Reusing verified Fighter cache')
             return (*cached, composed)
         manager.progress('Compiling Fighter resources (cache miss)')
-        data, report, resources = compile_inputs(sod, paths, packs, ledger, catalog=catalog, binding_window=True)
+        data, report, resources = compile_inputs(sod, paths, packs, ledger, catalog=catalog, binding_window=True, game=manager.game)
         cache = Path(write_preview(data, report, resources, cache_root=manager.root / 'fighter-cache'))
         presentation = prepare_portraits(screens, report, language=composed, resource_cache=cache,
                                          cache_root=manager.root / 'fighter-ui-cache')

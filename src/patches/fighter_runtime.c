@@ -16,6 +16,7 @@
 #include "hooks/fighter_bindings.h"
 #include "hooks/fighter_unlocks.h"
 #include "hooks/fighter_window.h"
+#include "hooks/fighter_keys.h"
 #include "hooks/guest_call.h"
 #include "hooks/pc_language.h"
 #include "host.h"
@@ -918,7 +919,9 @@ invalid_unlock_storage:
 
 void defjam_fighter_selection_gate(uint32_t selection) {
     FighterBinding binding;
-    if (!s_bindings.bytes || selection < 100 || selection > 0x7fffffffu) return;
+    if (!s_bindings.bytes || selection < DEFJAM_FIGHTER_LOGICAL_FIRST || selection > 0x7fffffffu) return;
+    /* Only without a participant window (research runs): the selection then reaches the game
+     * directly. Normal Play binds every logical key to a bank row instead. */
     if (selection >= 128 || !fighter_bindings_find(&s_bindings, FIGHTER_BINDING_SELECTION, selection, &binding)
         || !(binding.flags & 2))
         fighter_stop("Logical fighter selection has no safe native binding; confirmation is blocked.");
@@ -966,7 +969,7 @@ uint32_t defjam_fighter_controller_submission(uint32_t arguments) {
     for (uint32_t i = 0; i < 4; ++i)
         if (!submission_integer(MEM32(arguments + i * 4), &values[i]))
             fighter_stop("Invalid native controller setup arguments.");
-    if (s_window.bytes && (values[0] < 0 || values[2] < 100)) {
+    if (s_window.bytes && (values[0] < 0 || values[2] < (int32_t)DEFJAM_FIGHTER_LOGICAL_FIRST)) {
         uint32_t participant = values[0] < 0 ? UINT32_MAX : (uint32_t)values[0];
         if (!fighter_window_clear(&s_window, participant))
             fighter_stop("Cannot clear participant ownership before verified match teardown.");
@@ -974,7 +977,7 @@ uint32_t defjam_fighter_controller_submission(uint32_t arguments) {
         prune_participant_unlocks();
         fprintf(stderr, "[FIGHTERS] cleared pre-match participant ownership: %d\n", values[0]);
     }
-    if (values[0] < 0 || values[2] < 100) return UINT32_MAX;
+    if (values[0] < 0 || values[2] < (int32_t)DEFJAM_FIGHTER_LOGICAL_FIRST) return UINT32_MAX;
     if (!s_window.bytes) { defjam_fighter_selection_gate((uint32_t)values[2]); return UINT32_MAX; }
     /* The original selector passes nConID as its fourth argument (0..3),
      * independently of clothing. Keep this native controller/color routing. */
@@ -1054,7 +1057,7 @@ int defjam_fighter_ui_command(uint32_t command) {
     if (STARTS_WITH(text, "Fighters.Outfit")) {
         unsigned participant,selection,outfit;int end=0;char canonical[64];FighterWindowRow row;
         if(sscanf(text,"Fighters.Outfit(%u,%u,%u)%n",&participant,&selection,&outfit,&end)!=3 || !end || text[end]
-            || participant>=4 || selection<100 || selection>0x7FFFFFFEu || outfit>2 || s_window.frozen)
+            || participant>=4 || selection<DEFJAM_FIGHTER_LOGICAL_FIRST || selection>0x7FFFFFFEu || outfit>2 || s_window.frozen)
             fighter_stop("Invalid native outfit confirmation.");
         snprintf(canonical,sizeof canonical,"Fighters.Outfit(%u,%u,%u)",participant,selection,outfit);
         if(strcmp(canonical,text)) fighter_stop("Noncanonical native outfit confirmation.");
@@ -1095,9 +1098,9 @@ uint32_t defjam_fighter_result_identity(uint32_t participant, uint32_t native) {
 
 uint32_t defjam_fighter_loading_identity(uint32_t native) {
     FighterWindowRow row;
-    /* FWR1 reserves100..103 for participant0..3. Derive ownership from that
+    /* FWR1 reserves DEFJAM_FIGHTER_BANK_FIRST..+3 (100..103) for participant0..3. Derive ownership from that
      * verified bank domain, not a caller's locally lifted EBP loop counter. */
-    uint32_t participant = native - 100u;
+    uint32_t participant = native - DEFJAM_FIGHTER_BANK_FIRST;
     if (!s_window.bytes || participant >= FIGHTER_WINDOW_BANKS || !s_window.selected[participant]) return native;
     /* GetMatchInfo is also queried before StartGame freezes the selection.
      * Only its presentation response changes; native participants keep banks. */
