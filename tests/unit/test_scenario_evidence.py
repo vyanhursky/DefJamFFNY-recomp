@@ -419,6 +419,42 @@ def test_visual_manifest_requires_hash_locked_approval(tmp_path):
     assert suite.visual_assertions(p, 'fight', run, tmp_path)[0]['status'] == 'fail'
 
 
+def test_visual_uses_approved_profile_snapshot_and_rejects_changes(tmp_path, monkeypatch):
+    source = tmp_path / 'profiles'
+    source.mkdir()
+    (source / 'profile').write_bytes(b'approved progression')
+    baselines = tmp_path / 'baselines'
+    baselines.mkdir()
+    fixture = baselines / 'fixture'
+    identity = suite.create_fixture(source, fixture, 'fixed visual profile')
+    manifest = baselines / 'manifest.json'
+    spec = {'fixture': {'path': 'fixture', 'manifest_sha256': identity['manifest_sha256']}}
+    manifest.write_text(json.dumps(spec))
+    monkeypatch.setattr(suite, 'default_fixture', lambda: pytest.fail('live saves must not be selected'))
+    assert regress.visual_fixture(manifest, None, suite) == str(fixture.resolve())
+    # A different but internally valid profile snapshot must not replace approval.
+    spec['fixture']['manifest_sha256'] = '0' * 64
+    manifest.write_text(json.dumps(spec))
+    with pytest.raises(ValueError, match='approved profile snapshot'):
+        regress.visual_fixture(manifest, None, suite)
+    spec['fixture']['manifest_sha256'] = identity['manifest_sha256']
+    manifest.write_text(json.dumps(spec))
+    (fixture / 'save/profile').write_bytes(b'new progression')
+    with pytest.raises(ValueError, match='fixture contents differ'):
+        regress.visual_fixture(manifest, None, suite)
+
+
+def test_visual_fixture_override_legacy_fallback_and_path_boundary(tmp_path, monkeypatch):
+    manifest = tmp_path / 'manifest.json'
+    manifest.write_text('{}')
+    monkeypatch.setattr(suite, 'default_fixture', lambda: tmp_path / 'legacy')
+    assert regress.visual_fixture(manifest, None, suite) == str(tmp_path / 'legacy')
+    assert regress.visual_fixture(manifest, 'explicit-fixture', suite) == 'explicit-fixture'
+    manifest.write_text(json.dumps({'fixture': {'path': '../outside'}}))
+    with pytest.raises(ValueError, match='inside its baseline folder'):
+        regress.visual_fixture(manifest, None, suite)
+
+
 def test_baseline_candidates_preserve_failed_source_without_approving(tmp_path):
     report_dir = tmp_path / 'report'
     (report_dir / 'captures').mkdir(parents=True)
