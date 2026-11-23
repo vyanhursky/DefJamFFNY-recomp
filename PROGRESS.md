@@ -8,7 +8,7 @@
 
 ## 0. Status at a glance
 
-- v1.2.2 candidate: preparing `release/v1.2.2` from main `f80a792` with PRs #259/#275/#294/#297/#298 (D448-D455). Toolkit `d108a64` unchanged. Unit/build/CI qualification is in progress. Owner will instruct the overnight full regression later; do not run it or publish before that instruction and successful qualification. Latest remains v1.2.1.
+- v1.2.2 candidate: preparing `release/v1.2.2` from main `f80a792` with PRs #259/#275/#294/#297/#298 (D448-D455). Toolkit `d108a64` unchanged. Draft release PR #305 is open. Candidate CI 35/35 and fresh Windows analysis/lift/release build pass; local units pass 2826/59 skipped. Full native regression remains on hold. Owner will instruct the overnight full regression later; do not run it or publish before that instruction and successful qualification. Latest remains v1.2.1.
 
 - v1.2.1 / Workshop 0.3.1: published stable/Latest on 2026-11-20 (D447), game merge `2496bd3` / Workshop `2f0a317`; PRs #288/#289 and Workshop #40/#41 merged. Tagged game CI 37/37; Workshop four native packages audited. All nine game and ten Workshop asset digests match checksums/provenance. Toolkit `d108a64` unchanged; native qualification limits below still apply.
 
@@ -29,8 +29,8 @@
 - v1.0.0: ✅ stable, release PR #197 = main after beta 2 + #190 (Shops border #162, venue pins) + #198 (combo call-out #196), toolkit `6c0bd55`. Windows results below are on `4b73e78` (before #198, toolkit `351e28a`); no full regression after #198 (owner). Qualified on Windows only (D340): stock full regression 17/17, 16:9 HD lane 16/17 (combat memory-growth check fails, post-fight transition sample, #166), Clean Update from v0.13.0 and a fresh install pass. macOS/Deck not rerun on this head. Notes: docs/releases/v1.0.0.md; results: docs/regression-v1.0.0.md.
 
 Current published baseline: **v1.2.1** (`2496bd3`); v1.2.2 is a pending candidate. Historical rows below
-describe their original builds. Toolkit pin: `d108a64` on the current integration branch.
 describe their original builds; they do not override this baseline or the current source.
+Toolkit pin: `d108a64` on the current integration branch.
 
 | Area | State | Notes |
 |---|---|---|
@@ -683,7 +683,6 @@ Upstream PR submissions still need the owner's separate approval.
 
 > Recent entries only; older entries remain unchanged in the local `docs/worklog/` archive.
 
-- 2026-11-20 17:49 — Prepared owner-authorizedv1.2.1 train withPR288 (64667dc), unchangedtoolkitd108a64, D444-D447; featureCI35/35, approved focusedCAF macOS204intro/201victory poses<1.2e-7/savesexact, existing1.2.0platform/install qualifications carriedforward with newprofilelimits. Workshop0.3.1 integratesPR40(c1812aa,CI5/5). Releaseversion/notes/records prepared; releaseCI/assets pending.
 - 2026-11-20 18:18 — Published v1.2.1 Latest (2496bd3, PR #289/#288, unchanged toolkit d108a64) and Workshop 0.3.1 Latest (2f0a317, #41/#40). Tagged game CI 37/37, Workshop native four-target CI and staged archive/startup audit pass; all nine/ten release assets verified against GitHub digests, source and provenance. Existing gameplay/install qualifications and focused macOS CAF limits retained; no new game run. Milestone 16 closed, v1.2.2 opened as 17.
 - 2026-11-22 18:35 — #259 subtitle follow-up merged26a9c1d: 2files,97insertions/7deletions; no new subtitle/rematch feature claim; queued CI35/35.
 - 2026-11-22 18:35 — #275 fork seams merged69f275c: default/moved key ranges, schema3, resolver and native formatter; queued CI35/35, retained targeted21/21 and prior unit2805/59skip evidence; contended/interrupted runtime failures preserved.
@@ -691,6 +690,7 @@ Upstream PR submissions still need the owner's separate approval.
 - 2026-11-22 18:35 — #297 Game logs shortcut merged79cf115: Windows app passes installed source/logs to Help; queued CI35/35, focused author tests14/14; native Help visual gate pending.
 - 2026-11-22 18:35 — #298 harness evidence merged028b551: single-career fixtures, structured identity assertions and compiler receipt; queued CI35/35, retained187focused/1skip; opt-in result-menu native smoke pending.
 - 2026-11-22 18:35 — v1.2.2 preparation D448-D455: owner requested candidate PR and will instruct overnight regression later. Five clean merge commits fromf80a792; toolkitd108a64 published asdefjam/release-1.2.2. Local unit/analysis/lift/build in progress; no full regression/tag/release.
+- 2026-11-22 18:45 — v1.2.2 draft release PR #305 ready for later native qualification: candidate34ea7b6 CI45095489325 passes35/35; fresh analysis/lift21C/67MiB and MSVC19.29 release build/verify-build pass, executable9954806c. Initial unit1failed/2825pass/59skip while version metadata changed; frozen-source cache21pass/1skip and final full units2826pass/59skip (288.93s, logs/unit-rc-final.txt). Source1018/0 and whitespace pass. Full native regression/install/update/playtest remain pending; no release merge/tag/publication. Build/fixture identities recorded in PR and handoff.
 
 ## 7. Hand-off
 
@@ -701,14 +701,26 @@ at public main `f80a792` and merges the five queued heads with merge commits:
 #259 `26a9c1d`, #275 `69f275c`, #294 `a4a76f2`, #297 `79cf115`, #298 `028b551`.
 No merge conflicts. Toolkit stays `d108a64c0f272da2ab29016914f473018c3e2347`,
 published on fork `defjam/release-1.2.2`; no cherry-picks or pin migration.
+Draft release PR: https://github.com/vyanhursky/DefJamFFNY-recomp/pull/305
 Version/notes/README and D448-D455 record the candidate. v1.2.1 remains Latest.
 PR #259 contributes subtitle follow-up only; its original feature shipped before.
 
 The owner will instruct the overnight regression later. Do not start it during
 preparation; do not merge the release PR, create/push a version tag or publish.
-First retain local unit/source/build and integrated hosted CI results on the PR.
+Hosted CI 45095489325 passes 35/35 on source `34ea7b6`. Fresh analysis/lift
+produced 21 C files (67 MiB); Windows release build and verify-build pass
+(`logs/analyze-rc.txt`, `logs/recomp-rc.txt`, `logs/build-rc.txt`). Compiler receipt
+records MSVC 19.29.30159.0, CMake 3.20.21032501-MSVC_2 and Ninja/RelWithDebInfo.
+Executable SHA-256: `9954806cdfdf6fe06d9846b0a75e244a8ffdf29cb7b63594dabb6fc1f4d9da69`.
+The first unit aggregate was 1 failed/2825 passed/59 skipped while version
+metadata changed during cache tests. Frozen-source cache retry: 21 passed,
+1 skipped (`logs/unit-cache-retry.txt`); retain `logs/unit-rc.txt` as failed.
+Final frozen-source full-unit retry passes **2826 passed, 59 skipped** in 288.93 s
+(`logs/unit-rc-final.txt`). Source policy: 1018 tracked files, zero failures.
+The later records-only changes preserve tested code, compiler inputs and packages.
 The lane uses its own `logs/rc-data` and copied single-VY2 Story fixture; the
 original dump is read through a junction, and owner saves must not be changed.
+Fixture manifest SHA-256: `607fefd546119be9750ed0b071bbd4ee8f21d69a11593569640216c6c55a090a`.
 Use `win-x64-release` with `DEFJAM_DATA` pointing to the lane's `logs/rc-data`.
 Record the executable/build receipt and exact fixture/settings for qualification.
 
@@ -727,6 +739,7 @@ Closed-unmerged #302 is excluded; #295/#299/#300/#301/#303 belong to v1.3.0.
 
 After successful qualification and the owner's release instruction, merge this
 PR with a merge commit, create the annotated v1.2.2 tag, wait for Source release,
+remove candidate/pending wording from release notes using the recorded results,
 verify all nine game-free app assets/digests/provenance, publish and deploy Pages.
 Never repeat the full native regression merely for merge/tag/publication metadata.
 
