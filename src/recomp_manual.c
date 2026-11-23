@@ -534,6 +534,25 @@ void sub_000558E0(void) {
     g_esp = stack + 12; /* Native thiscall ret 8. */
 }
 
+/* Controller.ControllerSelect (Choose Teams) is reached through the script table, so
+ * this wrapper sees every call. A custom fighter's logical id (+1) becomes its
+ * participant bank's (+1), as ControllerSetup does above. */
+extern void sub_00055A20(void);
+static void team_select_wrap(void) {
+    uint32_t stack = g_esp, arguments = MEM32(stack + 4);
+    uint32_t value = defjam_fighter_team_selection(arguments);
+    if (value == UINT32_MAX) { sub_00055A20(); return; }
+    g_esp -= 64;
+    MEM32(g_esp) = MEM32(stack);
+    MEM32(g_esp + 4) = g_esp + 16; MEM32(g_esp + 8) = MEM32(stack + 8);
+    for (uint32_t i = 0; i < 4; ++i) MEM32(g_esp + 16 + i * 4) = MEM32(arguments + i * 4);
+    MEM32(g_esp + 24) = g_esp + 32;
+    MEM8(g_esp + 32) = (uint8_t)('0' + value / 100 % 10); MEM8(g_esp + 33) = (uint8_t)('0' + value / 10 % 10);
+    MEM8(g_esp + 34) = (uint8_t)('0' + value % 10); MEM8(g_esp + 35) = 0;
+    sub_00055A20();
+    g_esp = stack + 12; /* Native thiscall ret 8. */
+}
+
 /* Match-summary fid and GetMatchInfo participant fields are UI identities.
  * Adapt only these verified formatter callsites after their native byte reads.
  * Venue, mode, other fields, gameplay and the created sentinel stay native. */
@@ -1738,6 +1757,7 @@ recomp_func_t recomp_lookup_manual(uint32_t xbox_va)
         return trace_sleep_caller;
     if (xbox_va == 0x00068BA0u)
         return funccall_hook;
+    if (xbox_va == 0x00055A20u) return team_select_wrap;
     if (xbox_va == 0x00046E40u) {   /* Game.StartGame, src/patches/dev_unlock.c */
         extern recomp_func_t defjam_start_game_hook(void);
         recomp_func_t w = defjam_start_game_hook();
