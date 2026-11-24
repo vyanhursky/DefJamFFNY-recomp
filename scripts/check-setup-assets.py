@@ -86,7 +86,8 @@ def inspect_payload(archive):
                         and not name.startswith('launcher/Def Jam Recompiled.app/') and name != 'dependencies.json':
                     raise ValueError('Unexpected setup component: ' + name)
             elif not name.startswith(('python/', 'engine/')) and name not in {'DefJamLauncher.exe', 'dependencies.json'}:
-                raise ValueError('Unexpected setup component: ' + name)
+                if not manifest.get('windows_toolchain') or not engine.windows_contract().allowed(name):
+                    raise ValueError('Unexpected setup component: ' + name)
         # Probe the actual embedded runtime without generating new payload files.
         if manifest['platform'] == 'linux-x64':
             if sys.platform.startswith('linux'):
