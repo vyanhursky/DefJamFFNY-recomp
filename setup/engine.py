@@ -12,7 +12,7 @@ import hashlib
 import importlib.util
 import json
 import os
-from pathlib import Path, PurePosixPath
+from pathlib import Path, PurePosixPath, PureWindowsPath
 import platform
 import re
 import shlex
@@ -37,7 +37,7 @@ PRESET = 'win-x64-release' if IS_WINDOWS else 'posix-release'
 HD_SUPPORTED = IS_WINDOWS or IS_MACOS or IS_LINUX  # Direct3D 11 on Windows; Vulkan on macOS (v0.6.1) and Linux (v0.7.2)
 LAUNCHER_BUNDLE = 'Def Jam Recompiled.app'
 # Linux and macOS: the payload's build tools (tools/) and the libraries the game links (deps/) too.
-RUNTIME_FOLDERS = ('source/', 'python/') if IS_WINDOWS else ('source/', 'python/', 'tools/', 'deps/')
+RUNTIME_FOLDERS = ('source/', 'python/', 'tools/') if IS_WINDOWS else ('source/', 'python/', 'tools/', 'deps/')
 # Linux: the launcher script setup writes into the install folder, and the
 # desktop entries and Steam shortcut that point at it.
 LINUX_LAUNCHER = 'Def Jam Recompiled'
@@ -127,6 +127,11 @@ def verify_payload(payload, platform=None):
     if extra:
         shown = ', '.join(extra[:5]) + (' and %d more' % (len(extra) - 5) if len(extra) > 5 else '')
         raise SetupError('Unexpected files in setup payload: ' + shown, 2)
+    if 'windows_toolchain' in manifest:
+        try:
+            windows_contract().validate(manifest)
+        except ValueError as ex:
+            raise SetupError(str(ex), 2) from ex
     return manifest
 
 
@@ -158,6 +163,38 @@ def load_module(name, path):
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+def windows_long_paths_enabled():
+    if os.name != 'nt':
+        return True
+    import winreg
+    try:
+        with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r'SYSTEM\CurrentControlSet\Control\FileSystem') as key:
+            return winreg.QueryValueEx(key, 'LongPathsEnabled')[0] == 1
+    except OSError:
+        return False
+
+
+def validate_windows_copy_paths(version_root, files):
+    """Reject unsupported destinations before copying or touching an active install.
+
+    Windows without long-path opt-in limits both files and CreateDirectory.
+    Count UTF-16 code units, including supplementary characters in folder names.
+    """
+    def units(path):
+        return len(str(path).encode('utf-16-le', errors='surrogatepass')) // 2
+    for name in files:
+        if not name.startswith(('source/', 'python/', 'tools/')):
+            continue
+        target = PureWindowsPath(version_root) / PureWindowsPath(name)
+        if units(target) > 259 or units(target.parent) > 247:
+            raise SetupError('Choose a shorter writable install folder: this payload exceeds Windows path '
+                             'limits while long paths are disabled on this computer.', 2)
+
+
+def windows_contract():
+    return load_module('setup_windows_toolchain', Path(__file__).with_name('windows_toolchain.py'))
 
 
 def validate_dump(folder, source):
@@ -285,6 +322,8 @@ class Engine:
         suffix = ('-attempt-' + uuid.uuid4().hex[:8]) if hasattr(args, 'operation') else ''
         self.version_root = self.install / 'versions' / (self.manifest['version'] + '-' + identity + suffix)
         self.source = self.version_root / 'source'
+        if IS_WINDOWS and not windows_long_paths_enabled():
+            validate_windows_copy_paths(self.version_root, self.manifest['files'])
         self.env = os.environ.copy()
         # Do not inherit the developer's test switches or another installation's data.
         for key in list(self.env):
@@ -313,6 +352,7 @@ class Engine:
             self.python = self.version_root / 'python/bin/python3'
         self.container_image = None     # Linux: the build container, when setup is asked to use it
         self.bundled = False            # Linux: the payload's own Zig toolchain (the default)
+        self.windows_bundled = False
         self.log = None
 
     def event(self, message):
@@ -811,6 +851,11 @@ class Engine:
             return self.toolchain_linux()
         if not IS_WINDOWS:
             return self.toolchain_macos()
+        choice = getattr(self.args, 'toolchain', 'auto')
+        if choice == 'container':
+            raise SetupError('The build container is supported on Linux only', 2)
+        if choice == 'bundled' or (choice == 'auto' and 'windows_toolchain' in self.manifest):
+            return self.toolchain_windows_bundled()
         self.event('Checking C++ compiler, Windows SDK, CMake and Ninja')
         vswhere = Path(os.environ.get('ProgramFiles(x86)', 'C:/Program Files (x86)')) / 'Microsoft Visual Studio/Installer/vswhere.exe'
         if not vswhere.is_file():
@@ -853,6 +898,43 @@ class Engine:
                 raise SetupError('Missing toolchain component: ' + executable, 3)
         self.run(['cmake', '--version'])
         self.run(['ninja', '--version'])
+        self.record_toolchain('msvc:' + str(vs.resolve()))
+
+    def toolchain_windows_bundled(self):
+        declared = windows_contract().validate(self.manifest)
+        if declared is None:
+            raise SetupError('This historical payload has no bundled Windows compiler; use its host MSVC tools', 3)
+        # Recheck the installed copy before executing any tools; prepare_source
+        # repairs missing/corrupt files from the already verified payload.
+        for name, sha in self.manifest['files'].items():
+            if name.startswith('tools/'):
+                path = self.version_root / safe_relative(name)
+                if path.is_symlink() or not path.is_file() or digest(path) != sha:
+                    raise SetupError('Installed bundled toolchain verification failed: ' + name, 2)
+        for key in list(self.env):
+            if key.upper().startswith(('CMAKE_', 'LLVM_', 'VSCMD_', 'VSINSTALL', 'VCINSTALL')) or key.upper() in {
+                    'CC', 'CXX', 'CFLAGS', 'CXXFLAGS', 'LDFLAGS', 'CPPFLAGS', 'CPATH', 'LIBRARY_PATH',
+                    'INCLUDE', 'LIB', 'LIBPATH', 'CL', '_CL_', 'RC', 'RCFLAGS'}:
+                self.env.pop(key)
+        tools = (self.version_root / 'tools').resolve()
+        windows = Path(os.environ.get('SystemRoot', 'C:/Windows'))
+        self.env['PATH'] = os.pathsep.join(map(str, (
+            tools / 'cmake/bin', tools / 'ninja', tools / 'llvm-mingw/bin',
+            self.python.parent, windows / 'System32', windows)))
+        self.env['LLVM_MINGW_ROOT'] = str((tools / 'llvm-mingw').resolve())
+        self.env['LLVM_MINGW_PYTHON'] = str(self.python.resolve())
+        self.windows_bundled = True
+        self.record_toolchain(declared['backend'] + ':' + declared['fingerprint'])
+        self.event('Checking the bundled Windows compiler, CMake and Ninja')
+        self.run([tools / 'llvm-mingw/bin/clang.exe', '--version'])
+        self.run([tools / 'cmake/bin/cmake.exe', '--version'])
+        self.run([tools / 'ninja/ninja.exe', '--version'])
+
+    def windows_bundled_overrides(self):
+        tools = (self.version_root / 'tools').resolve()
+        return [f'-DCMAKE_TOOLCHAIN_FILE={self.source / "cmake/llvm-mingw-x64.cmake"}',
+                f'-DCMAKE_MAKE_PROGRAM={tools / "ninja/ninja.exe"}',
+                f'-DPython3_EXECUTABLE={self.python}', '-DFETCHCONTENT_FULLY_DISCONNECTED=ON']
 
     def install_prerequisites(self):
         self.event('Installing Microsoft Build Tools; Windows may request administrator consent')
@@ -921,6 +1003,8 @@ class Engine:
                     deps = json.loads((self.payload / 'dependencies.json').read_text())
                     overrides = [f'-DFETCHCONTENT_SOURCE_DIR_{name.upper()}={self.source / item["source_dir"]}'
                                  for name, item in zip(('sdl3', 'imgui'), [d for d in deps if 'source_dir' in d])]
+                    if getattr(self, 'windows_bundled', False):
+                        overrides += self.windows_bundled_overrides()
                 else:
                     # SDL3, MoltenVK and shaderc come prebuilt with the setup; nothing is
                     # looked for in /opt/homebrew, /usr/local or any other prefix.
@@ -1088,6 +1172,11 @@ class Engine:
         previous = self.install / 'installed.json'
         old = json.loads(previous.read_text()) if previous.exists() else {}
         receipt = {key: self.manifest[key] for key in ('version', 'source_commit', 'toolkit_commit')}
+        toolchain_note = self.source.parent / 'toolchain.txt'
+        if toolchain_note.is_file():
+            receipt['build_toolchain'] = toolchain_note.read_text(encoding='utf-8')
+        if getattr(self, 'windows_bundled', False):
+            receipt['windows_toolchain'] = self.manifest['windows_toolchain']
         receipt['hd_packs'] = getattr(self, 'hd_packs', old.get('hd_packs', []))
         receipt['shortcuts'] = old.get('shortcuts', [])
         receipt['shortcut_hashes'] = old.get('shortcut_hashes', {})
@@ -1555,7 +1644,7 @@ def main(argv=None):
     parser.add_argument('--no-desktop-shortcut', action='store_true', help='Create only the Start-menu shortcut')
     parser.add_argument('--install-prerequisites', action='store_true')
     parser.add_argument('--check-toolchain', action='store_true',
-                        help='Windows: exit 0 when the C++ Build Tools are installed, 3 when they are not')
+                        help='Windows: exit 0 when this payload has verified bundled tools or host MSVC, 3 if missing')
     parser.add_argument('--hd-textures', action='store_true', help='Generate and enable Lanczos 4x HD textures locally (extra time/space)')
     parser.add_argument('--toolchain', choices=['auto', 'bundled', 'host', 'container'], default='auto',
                         help='Linux: build with the compiler and libraries that came with setup (bundled; what '
@@ -1576,7 +1665,17 @@ def main(argv=None):
     parser.add_argument('--cancel-file')
     args = parser.parse_args(argv)
     if args.check_toolchain:
-        # Needs nothing from the payload or the network, so it answers in a moment.
+        if IS_WINDOWS and (Path(args.payload) / 'manifest.json').is_file():
+            try:
+                manifest = json.loads((Path(args.payload) / 'manifest.json').read_text(encoding='utf-8'))
+                if 'windows_toolchain' in manifest and args.toolchain != 'host':
+                    verify_payload(Path(args.payload))
+                    return 0
+                if args.toolchain == 'bundled':
+                    return 3
+            except (SetupError, OSError, ValueError, KeyError) as ex:
+                print('Setup stopped: ' + str(ex), file=sys.stderr)
+                return 2
         return 0 if not IS_WINDOWS or windows_toolchain_present() else 3
     if args.steam:
         # The shortcut and artwork only: nothing from the network, the dump or the install's lock.

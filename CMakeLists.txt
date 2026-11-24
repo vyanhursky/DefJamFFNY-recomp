@@ -157,7 +157,8 @@ if(DEFJAM_BUILD_GAME)
         enable_language(RC)
         include(windows_resource)
         defjam_windows_resource(DEFJAM_RC NAME defjam_recomp VERSION ${PROJECT_VERSION}
-                                DESCRIPTION "Def Jam: Fight for NY - Recompiled")
+                                DESCRIPTION "Def Jam: Fight for NY - Recompiled"
+                                MANIFEST "${CMAKE_CURRENT_SOURCE_DIR}/src/game.manifest")
         set(HOST_SOURCES ${DEFJAM_RC})
     else()
         # The Win32 window and the debug-register watchpoints have no place
@@ -188,7 +189,8 @@ if(DEFJAM_BUILD_GAME)
     if(WIN32)
         # UTF-8 process code page (P10 of the 2026-11-12 review): one path encoding in the whole game.
         target_sources(${PROJECT_NAME} PRIVATE src/game.manifest)
-        target_link_libraries(${PROJECT_NAME} PRIVATE xboxrecomp recomp_settings defjam_imgui d3d11 dxgi dxguid xinput winmm dbghelp shell32 comdlg32)
+        target_link_libraries(${PROJECT_NAME} PRIVATE xboxrecomp recomp_settings defjam_imgui d3d11 dxgi dxguid
+                              $<IF:$<BOOL:${MINGW}>,xinput1_4,xinput> winmm dbghelp shell32 comdlg32)
     else()
         # One SDL for the window, the sound and the pads: SDL3, the system's.
         defjam_app_icon(${PROJECT_NAME})
@@ -255,6 +257,17 @@ if(DEFJAM_BUILD_GAME)
         # violation). The setup builds from scratch, so an incremental link has nothing to reuse.
         target_link_options(${PROJECT_NAME} PRIVATE /DEBUG /INCREMENTAL:NO /MAP:${CMAKE_BINARY_DIR}/defjam_recomp.map
                             /DYNAMICBASE:NO /OPT:NOICF)
+    elseif(MINGW)
+        # The GNU-style Clang frontend needs the same lifted-code arithmetic
+        # contract as POSIX. Keep CodeView/PDB for DbgHelp on Windows.
+        target_compile_options(${PROJECT_NAME} PRIVATE
+            -fno-strict-aliasing -fwrapv -ffp-contract=off -g -gcodeview)
+        target_link_options(${PROJECT_NAME} PRIVATE
+            -Wl,--pdb=${CMAKE_BINARY_DIR}/defjam_recomp.pdb
+            # LLD's native MS-style map preserves all existing diagnostic parsers.
+            -Wl,--Xlink=/map:${CMAKE_BINARY_DIR}/defjam_recomp.map
+            -Wl,-Map,${CMAKE_BINARY_DIR}/defjam_recomp.lld.map
+            -Wl,--disable-dynamicbase)
     endif()
     # Debug-only diagnostics (toggle from the preset or command line)
     option(DEFJAM_ICALL_TRACE "Trace indirect calls (slow, verbose)" OFF)
@@ -278,7 +291,8 @@ if(DEFJAM_BUILD_APP AND DEFJAM_SDL3)
         # console); SDL_main.h supplies WinMain and hands main its arguments in UTF-8.
         include(windows_resource)
         defjam_windows_resource(DEFJAM_APP_RC NAME DefJamRecompiled VERSION ${PROJECT_VERSION}
-                                DESCRIPTION "Def Jam: Fight for NY - Recompiled")
+                                DESCRIPTION "Def Jam: Fight for NY - Recompiled"
+                                MANIFEST "${CMAKE_CURRENT_SOURCE_DIR}/src/app/app.manifest")
         set(DEFJAM_APP_PLATFORM_SOURCES WIN32 src/app/app.manifest "${DEFJAM_APP_RC}" src/app/app_install.cpp
             src/app/app_steam.cpp)
         # The released program carries the setup payload ZIP as resource 101, as DefJamSetup.exe
@@ -337,7 +351,9 @@ if(DEFJAM_BUILD_APP AND DEFJAM_SDL3)
         if(DEFJAM_APP_PAYLOAD)
             target_compile_definitions(defjam_app PRIVATE DEFJAM_APP_PAYLOAD_SHA256="${DEFJAM_APP_PAYLOAD_SHA256}")
         endif()
-        target_compile_options(defjam_app PRIVATE /utf-8)
+        if(MSVC)
+            target_compile_options(defjam_app PRIVATE /utf-8)
+        endif()
         target_link_libraries(defjam_app PRIVATE shell32 ole32 shlwapi bcrypt)
     elseif(APPLE)
         # Shift held at start-up is read from the window server, as the game does.
