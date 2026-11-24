@@ -12,7 +12,7 @@ import hashlib
 import importlib.util
 import json
 import os
-from pathlib import Path, PurePosixPath
+from pathlib import Path, PurePosixPath, PureWindowsPath
 import platform
 import re
 import shlex
@@ -165,6 +165,34 @@ def load_module(name, path):
     return module
 
 
+def windows_long_paths_enabled():
+    if os.name != 'nt':
+        return True
+    import winreg
+    try:
+        with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r'SYSTEM\CurrentControlSet\Control\FileSystem') as key:
+            return winreg.QueryValueEx(key, 'LongPathsEnabled')[0] == 1
+    except OSError:
+        return False
+
+
+def validate_windows_copy_paths(version_root, files):
+    """Reject unsupported destinations before copying or touching an active install.
+
+    Windows without long-path opt-in limits both files and CreateDirectory.
+    Count UTF-16 code units, including supplementary characters in folder names.
+    """
+    def units(path):
+        return len(str(path).encode('utf-16-le', errors='surrogatepass')) // 2
+    for name in files:
+        if not name.startswith(('source/', 'python/', 'tools/')):
+            continue
+        target = PureWindowsPath(version_root) / PureWindowsPath(name)
+        if units(target) > 259 or units(target.parent) > 247:
+            raise SetupError('Choose a shorter writable install folder: this payload exceeds Windows path '
+                             'limits while long paths are disabled on this computer.', 2)
+
+
 def windows_contract():
     return load_module('setup_windows_toolchain', Path(__file__).with_name('windows_toolchain.py'))
 
@@ -294,6 +322,8 @@ class Engine:
         suffix = ('-attempt-' + uuid.uuid4().hex[:8]) if hasattr(args, 'operation') else ''
         self.version_root = self.install / 'versions' / (self.manifest['version'] + '-' + identity + suffix)
         self.source = self.version_root / 'source'
+        if IS_WINDOWS and not windows_long_paths_enabled():
+            validate_windows_copy_paths(self.version_root, self.manifest['files'])
         self.env = os.environ.copy()
         # Do not inherit the developer's test switches or another installation's data.
         for key in list(self.env):

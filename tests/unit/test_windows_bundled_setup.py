@@ -24,6 +24,7 @@ def fixture(tmp_path, monkeypatch):
     monkeypatch.setattr(engine, 'IS_WINDOWS', True)
     monkeypatch.setattr(engine, 'IS_LINUX', False)
     monkeypatch.setattr(engine, 'HOST_PLATFORM', 'windows-x64')
+    monkeypatch.setattr(engine, 'windows_long_paths_enabled', lambda: True)
     payload = tmp_path / 'payload'
     for name in (*contract.REQUIRED, 'python/python.exe', 'source/src/example.c'):
         target = payload / name
@@ -181,3 +182,19 @@ def test_tool_import_audit_accepts_the_included_dll_with_original_filename_case(
     (folder / 'libLLVM-23.dll').write_bytes(b'synthetic PE input')
     monkeypatch.setattr(assets, 'pe_imports', lambda data: ['libllvm-23.dll'])
     assets.check_windows_tool_imports(tmp_path)
+
+
+def test_windows_path_budget_accepts_near_limit_and_rejects_oversized_before_staging():
+    suffix = '/versions/1.2.2-aaaaaaaaaaaa-bbbbbbbbbbbb-attempt-cccccccc'
+    relative = 'source/setup-deps/' + 'a'*100 + '/file.h'
+    short = 'C:/' + 'x'*50 + suffix
+    engine.validate_windows_copy_paths(short, {relative: '0'*64})
+    with pytest.raises(engine.SetupError, match='shorter writable') as error:
+        engine.validate_windows_copy_paths('C:/' + 'x'*136 + suffix, {relative: '0'*64})
+    assert error.value.code == 2
+
+
+def test_windows_path_budget_counts_utf16_units_for_supplementary_characters():
+    root = 'C:/' + '\U0001f600'*100
+    with pytest.raises(engine.SetupError):
+        engine.validate_windows_copy_paths(root, {'tools/' + 'x'*60 + '.h': '0'*64})
