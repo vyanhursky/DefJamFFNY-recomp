@@ -152,7 +152,7 @@ def main():
         assert identity.read_text().startswith(contract.BACKEND + ':')
         compiler_notes = list((Path(receipt['source']) / 'build/win-x64-release/CMakeFiles').glob('*/CMakeCCompiler.cmake'))
         assert len(compiler_notes) == 1
-        assert str((Path(receipt['source']).parent / 'tools/llvm-mingw/bin/clang.exe').resolve()).replace('\\', '/') in compiler_notes[0].read_text()
+        assert str((Path(receipt['source']).parent / 'tools/llvm-mingw/bin/clang.exe').resolve()).replace('\\', '/') in compiler_notes[0].read_text(encoding='utf-8')
         env = os.environ.copy()
         env['DEFJAM_DATA'] = str(data)
         subprocess.run([receipt['executable']], check=True, env=env, timeout=30)

@@ -28,7 +28,7 @@ or game-free probe does not count as a real clean-client installation.
 |---|---|---|
 | GitHub hosted Windows Server 2025 | Packaging, compiler, unit and failure-path tests using game-free fixtures | Available; developer tools preinstalled, so not a clean-client gate |
 | Local clean Windows 11 guest | First install without VS/SDK, standard account, private real-game checks | Owned Gen2 VM created/off; 26H2 evaluation ISO matches Microsoft's published SHA-256; OS installation pending Windows elevation |
-| Local clean Windows 10 guest | Supported older-client compatibility and installation | LTSC 2021 evaluation ISO downloaded and matches Microsoft's published SHA-256; guest created/off, OS installation pending Windows elevation |
+| Local clean Windows 10 guest | Supported older-client compatibility and installation | LTSC 2021 evaluation installed, build 19044, 2 CPUs/6 GB; initial inventory finds no VS/SDK and a non-admin standard account. Waiting for first-login desktop before limited-user execution |
 
 The owner explicitly authorized local VMs and, if necessary, uninstalling host
 MSVC on 2026-11-23. Prefer clean guests and preserve the host tools. Start only
@@ -74,11 +74,11 @@ or game qualification.
 | ID | Scenario | Acceptance | Environment | Status and evidence |
 |---|---|---|---|---|
 | W01 | Clean Windows 11 first install | Verify absence of VS/SDK; standard account completes extraction, lift, build and launch using the payload; no Microsoft installer, elevation or restart | Clean Win11 guest | Blocked on guest provisioning and installer integration |
-| W02 | Clean Windows 10 first install | Same as W01; record exact Windows edition/build and supported API/runtime compatibility | Clean Win10 guest | Blocked on guest provisioning and installer integration |
+| W02 | Clean Windows 10 first install | Same as W01; record exact Windows edition/build and supported API/runtime compatibility | Clean Win10 guest | In progress: clean OS provisioned and initial absence-of-VS/SDK/standard-account inventory passes; packaged build/launch pending |
 | W03 | Upgrade an existing MSVC-built install | Switch to LLVM with a fresh compatible build tree; preserve profile/settings/mod hashes and previous working version until activation succeeds | Guest with controlled legacy install | Planned |
 | W04 | Repair missing output | Remove only disposable installed build output; rebuild with the recorded bundled compiler, without VS bootstrap or data loss | Guest | Planned |
 | W05 | Rollback and historical release | Restore a working version with its matching metadata; unported historical source must not silently rebuild with an incompatible compiler | Guest | Planned |
-| W06 | Spaces, Unicode, long paths and junctions | Actual packaged tools build under normal parallelism and serial mode; assert physical executable paths; no startup hang | Hosted fixture, then guest full build | Planned; spike's corrected small probe already passed remotely |
+| W06 | Spaces, Unicode, long paths and junctions | Actual packaged tools build under normal parallelism and serial mode; assert physical executable paths; no startup hang | Hosted fixture, then guest full build | Failed on fresh Win10 at Unicode configure: the Python resolver emits UTF-8 but CMake's old policy decodes it using the Windows code page. Explicit `ENCODING UTF-8` implemented; corrected guest and hosted regression pending |
 | W07 | Offline repeat and retry | After payload/dependencies are available, a fresh build/repair needs no network; interrupted downloads resume or retry safely | Hosted fixtures and guest | Planned |
 | W08 | Corrupt or missing package/cache file | Checksum/inventory failure precedes executing affected tools; clear repair/retry result, preserved active install | Hosted fixtures and guest | Planned |
 | W09 | Low disk space | Preflight or bounded stage failure preserves data and working install; include temporary/cache/retained-version space | Hosted fixtures and guest | Planned |
@@ -114,6 +114,18 @@ it must be identified before scheduling additional qualification.
 | 2026-11-23 | Windows elevation handoff pending | The refreshed worker's UAC request ended with Windows reporting cancellation. Both guests remain off; host MSVC is unchanged. Wait for the owner's Windows elevation handoff before relaunching the reviewed bounded worker and booting a guest |
 | 2026-11-23 | Both guest media ready | Win11 evaluation ISO matches Microsoft's published SHA-256 `bc3f24086ebadc94489066b5ad78089e2cf5c3491e90e790bb81a2b199c10e38`; Win10 was already matched. Private receipts retain sources and measured hashes. No OS installed or guest started |
 | 2026-11-23 | Payload size and provenance verified | Candidate app and embedded payload hashes plus the complete file inventory match CI provenance. Complete payload expands to 521,487,287 bytes. Existing published v1.2.2 Windows app: 66,935,808 bytes; candidate: 155,290,112 bytes (+88,354,304 bytes, approximately 84.3 MiB). Client peak build disk usage still requires actual guest measurement |
+| 2026-11-24 | Owner approved Windows elevation; Win10 installation started | Scoped worker ready at 18:08:54 UTC for four hours. Verified ISO attached, fresh guest started with 2 CPUs/6 GB; Win11 remains off. Host MSVC retained |
+| 2026-11-24 | Initial clean Win10 inventory | LTSC Evaluation 64-bit 10.0.19044, no VS/SDK paths, `DJQualUser` outside Administrators; 49,465,958,400 free disk bytes. Standard desktop not present yet during first-login provisioning. Receipt `007-inventory-win10.json`; candidate transfer begun. No compiler executed on host |
+| 2026-11-24 | Standard-user desktop established | First boot selected the temporary setup account despite unattended standard-user settings. Configured the intended disposable account from its private answer media and rebooted only the guest; inventory `013` confirms the standard desktop and no admin membership. Checkpoint `clean-payload-ready-win10` retained |
+| 2026-11-24 | First clean-client native failure retained | `native-win10-unicode`: standard account, elevated=false, packaged engine exits 4 at configure. Compiler/CMake/Ninja version checks pass without VS/SDK. Log `setup-20261124-182004.log` shows the resolved compiler path corrupted into console-codepage characters. The VM request reader also misdecoded a UTF-8 JSON folder name; current requests now use ASCII escapes, with explicit UTF-8 added to the worker source |
+| 2026-11-24 | Unicode resolver correction | Added `ENCODING UTF-8` to the Python path resolver and UTF-8 reading of native-fixture compiler notes. A hidden-console CP437 regression uses a physical accented directory and no compiler execution; it explicitly selects shipped Ninja because a clean Windows default otherwise selects unavailable NMake. Initial NMake probe attempts are retained and do not count as resolver evidence. Focused Python tests: 146 passed / 9 skipped |
+| 2026-11-24 | CP437 resolver control passes | Corrected probe v2: old resolver fails at the intended bad-path assertion and fixed resolver succeeds; both test drivers exit 0 as standard `DJQualUser`, elevated=false. Receipts `029`/`030`; physical accented root, measured code page 437, no compiler execution. Full native installer retry and hosted validation still pending |
+
+The decoder failure follows [CMake CMP0176](https://cmake.org/cmake/help/v3.31/policy/CMP0176.html):
+the project's older minimum version retains automatic Windows-codepage decoding
+unless the call explicitly requests UTF-8. The Python resolver already emits
+UTF-8. The correction changes path interpretation, with no compiler/ABI flag
+change; the compiler fingerprint changes because it includes this CMake file.
 
 ## Qualification tools and evidence
 

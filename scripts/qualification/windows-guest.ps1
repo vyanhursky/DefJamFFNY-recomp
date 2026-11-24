@@ -22,14 +22,29 @@ if ($Settings.mode -eq 'inventory') {
     if ($present.Count -or $result.standard_is_administrator) { throw 'Guest is not the required clean standard-account environment' }
     return $result
 }
-if ($Settings.mode -ne 'run-standard') { throw 'Unsupported guest operation' }
 $id = [string]$Settings.id
 if ($id -notmatch '^[A-Za-z0-9_-]{1,60}$') { throw 'Invalid guest job ID' }
-if (-not ([string]$Settings.program).StartsWith($root+'\',[StringComparison]::OrdinalIgnoreCase)) { throw 'Program outside qualification workspace' }
 $taskName = 'DefJamQualification-' + $id
-if (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue) { throw 'Guest task already exists' }
 $request = "$root\jobs\$id.json"
 $done = "$root\evidence\$id-result.json"
+if ($Settings.mode -eq 'standard-status') {
+    if (Test-Path -LiteralPath $done) {
+        $result = Get-Content -Raw -LiteralPath $done | ConvertFrom-Json
+        Unregister-ScheduledTask -TaskName $taskName -Confirm:$false -ErrorAction SilentlyContinue
+        return @{done=$true;result=$result}
+    }
+    $task = Get-ScheduledTask -TaskName $taskName -ErrorAction Stop
+    $info = Get-ScheduledTaskInfo -TaskName $taskName
+    $progress = "$root\evidence\$id-progress.json"
+    $value = @{done=$false;state=[string]$task.State;last_exit=$info.LastTaskResult;last_run_utc=$info.LastRunTime.ToUniversalTime().ToString('o')}
+    if ((Test-Path -LiteralPath $progress) -and (Get-Item -LiteralPath $progress).Length -le 65536) {
+        $value.progress=Get-Content -Raw -LiteralPath $progress | ConvertFrom-Json
+    }
+    return $value
+}
+if ($Settings.mode -notin 'run-standard','run-standard-async') { throw 'Unsupported guest operation' }
+if (-not ([string]$Settings.program).StartsWith($root+'\',[StringComparison]::OrdinalIgnoreCase)) { throw 'Program outside qualification workspace' }
+if (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue) { throw 'Guest task already exists' }
 if (Test-Path -LiteralPath $done) { throw 'Guest evidence ID already exists' }
 $Settings | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $request -Encoding UTF8
 # Allow the standard test user to write only this disposable qualification tree.
@@ -61,20 +76,37 @@ try {
     $ErrorActionPreference = 'Stop'
 } catch { $result.error=$_.Exception.Message; $result.exit_code=-1 }
 $result.finished_utc=(Get-Date).ToUniversalTime().ToString('o')
-$result | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath "$root\evidence\$id-result.json" -Encoding UTF8
+$result | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath "$root\evidence\$id-result.pending" -Encoding UTF8
+Move-Item -LiteralPath "$root\evidence\$id-result.pending" -Destination "$root\evidence\$id-result.json"
 '@
 [IO.File]::WriteAllText($wrapper,$body,[Text.UTF8Encoding]::new($true))
-$action = New-ScheduledTaskAction -Execute "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe" -Argument "-NoProfile -File `"$wrapper`" -Request `"$request`"" -WorkingDirectory $root
+$action = New-ScheduledTaskAction -Execute "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$wrapper`" -Request `"$request`"" -WorkingDirectory $root
 $principal = New-ScheduledTaskPrincipal -UserId "$env:COMPUTERNAME\DJQualUser" -LogonType Interactive -RunLevel Limited
 $options = New-ScheduledTaskSettingsSet -ExecutionTimeLimit (New-TimeSpan -Minutes 50) -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
+$leaveRegistered = $false
 try {
     Register-ScheduledTask -TaskName $taskName -Action $action -Principal $principal -Settings $options | Out-Null
     Start-ScheduledTask -TaskName $taskName
+    if ($Settings.mode -eq 'run-standard-async') {
+        $leaveRegistered=$true
+        return @{started=$true;id=$id;task=$taskName;result=$done}
+    }
+    $submitted = Get-Date
     $deadline = (Get-Date).AddSeconds([Math]::Min(3000,[Math]::Max(30,[int]$Settings.timeout_seconds)))
-    while (-not (Test-Path -LiteralPath $done) -and (Get-Date) -lt $deadline) { Start-Sleep -Seconds 2 }
+    while (-not (Test-Path -LiteralPath $done) -and (Get-Date) -lt $deadline) {
+        Start-Sleep -Seconds 2
+        $task = Get-ScheduledTask -TaskName $taskName
+        $info = Get-ScheduledTaskInfo -TaskName $taskName
+        if ($task.State -eq 'Ready' -and $info.LastRunTime -ge $submitted.AddSeconds(-1) -and
+            -not (Test-Path -LiteralPath $done)) {
+            throw "Standard-user wrapper exited without a result (task exit $($info.LastTaskResult))"
+        }
+    }
     if (-not (Test-Path -LiteralPath $done)) {
         Stop-ScheduledTask -TaskName $taskName
         throw 'Standard-user task timed out; power off the disposable guest before retrying'
     }
     return (Get-Content -Raw -LiteralPath $done | ConvertFrom-Json)
-} finally { Unregister-ScheduledTask -TaskName $taskName -Confirm:$false -ErrorAction SilentlyContinue }
+} finally {
+    if (-not $leaveRegistered) { Unregister-ScheduledTask -TaskName $taskName -Confirm:$false -ErrorAction SilentlyContinue }
+}

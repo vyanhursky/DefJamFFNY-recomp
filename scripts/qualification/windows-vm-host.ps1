@@ -26,7 +26,7 @@ function Owned-VM([string]$name) {
     return $vm
 }
 function Guest-Credential {
-    $secret = Get-Content -Raw -LiteralPath "$vmRoot/secrets/guests.json" | ConvertFrom-Json
+    $secret = Get-Content -Raw -Encoding UTF8 -LiteralPath "$vmRoot/secrets/guests.json" | ConvertFrom-Json
     Add-Type -AssemblyName System.Security
     $bytes = [Security.Cryptography.ProtectedData]::Unprotect(
         [Convert]::FromBase64String($secret.admin_dpapi), $null, [Security.Cryptography.DataProtectionScope]::CurrentUser)
@@ -154,7 +154,7 @@ while ((Get-Date) -lt $deadline -and -not (Test-Path -LiteralPath "$vmRoot/contr
         if ($file.BaseName -notmatch '^[A-Za-z0-9_-]+$') { continue }
         $id = $file.BaseName
         if (Test-Path -LiteralPath "$vmRoot/control/results/$id.json") { continue }
-        try { $request=Get-Content -Raw -LiteralPath $file.FullName | ConvertFrom-Json; $data=Execute-Request $request; Save-Result $id @{success=$true;data=$data;utc=(Get-Date).ToUniversalTime().ToString('o')} }
+        try { $request=Get-Content -Raw -Encoding UTF8 -LiteralPath $file.FullName | ConvertFrom-Json; $data=Execute-Request $request; Save-Result $id @{success=$true;data=$data;utc=(Get-Date).ToUniversalTime().ToString('o')} }
         catch { Save-Result $id @{success=$false;error=$_.Exception.Message;utc=(Get-Date).ToUniversalTime().ToString('o')} }
     }
     Start-Sleep -Seconds 2

@@ -6,6 +6,7 @@ on:
       - '.github/workflows/windows-toolchain-spike.yml'
       - 'cmake/llvm-mingw-x64.cmake'
       - 'scripts/windows-toolchain-spike.ps1'
+      - 'scripts/qualification/windows-path-encoding.py'
       - 'tests/host_tls/**'
       - 'tests/windows_toolchain_paths/**'
       - 'cmake/windows_resource.cmake'
@@ -44,6 +45,19 @@ jobs:
             Invoke-WebRequest $archive.url -OutFile $zip
             if ((Get-FileHash $zip -Algorithm SHA256).Hash -ne $archive.sha) { throw "SHA-256 mismatch: $($archive.name)" }
             Expand-Archive -LiteralPath $zip -DestinationPath (Join-Path $env:RUNNER_TEMP $archive.folder)
+          }
+      - name: Unicode resolver uses UTF-8 under a legacy Windows code page
+        timeout-minutes: 2
+        shell: pwsh
+        run: |
+          $work = Join-Path $env:RUNNER_TEMP 'encoding-probe'
+          $logs = 'logs/windows-toolchain-spike/encoding'
+          try {
+            python -B scripts/qualification/windows-path-encoding.py --cmake "$env:RUNNER_TEMP/cmake-3.31.6-windows-x86_64/bin/cmake.exe" --toolchain cmake/llvm-mingw-x64.cmake --work $work
+            if ($LASTEXITCODE) { throw 'Legacy-codepage Unicode resolver failed' }
+          } finally {
+            New-Item -ItemType Directory -Force -Path $logs | Out-Null
+            Copy-Item -Path "$work/*.log","$work/*.json","$work/codepage.txt" -Destination $logs -ErrorAction SilentlyContinue
           }
       # No msvc-dev-cmd, Windows SDK discovery or prerequisite installation.
       - name: Build runtime, compile game-side sources, link game-free app

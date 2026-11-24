@@ -22,6 +22,9 @@ endif()
 execute_process(COMMAND "${_llvm_mingw_python}" -I -X utf8 -c
     "import pathlib,sys; print(pathlib.Path(sys.argv[1]).resolve(strict=True))"
     "${_llvm_mingw_root}"
+    # Python explicitly emits UTF-8; CMake's older policy otherwise decodes
+    # it using the console/ANSI code page on a clean Windows installation.
+    ENCODING UTF-8
     RESULT_VARIABLE _llvm_resolve_status OUTPUT_VARIABLE _llvm_physical_root
     OUTPUT_STRIP_TRAILING_WHITESPACE)
 if(NOT _llvm_resolve_status STREQUAL "0")
