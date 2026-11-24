@@ -9,8 +9,7 @@ Play starts the game that setup built on this computer, with `--no-launcher`.
 
 - **Setup inside the app** (`app_setup.cpp`). With nothing installed it opens on the first run:
   the dump (an image or an extracted folder), the install and data folders, and optional Upscaled Original Textures generated locally.
-  Setup makes no shortcuts: the app the player downloaded is the only copy, and they move it
-  wherever they like. Home → Help → Repair game opens recovery:
+  Setup makes no shortcuts (on Windows the install page adds the one desktop shortcut). Home → Help → Repair game opens recovery:
   Repair and Clean Rebuild. Each runs `setup/engine.py` from the app's setup payload with that payload's Python, as
   the setup wizards do: the choices on its command line, its progress read from `--status-file`
   every frame and shown as a list of stages, Cancel through `--cancel-file`, and its exit code and
@@ -30,7 +29,7 @@ Play starts the game that setup built on this computer, with `--no-launcher`.
   (nothing is deleted unless the copy matches), runs setup's own uninstall (`engine.py
   --uninstall`: the build, its receipt, the launcher and an older setup's shortcuts), then deletes
   the data folder (only one setup made, with `extraction-state.json`) and the app's records. On
-  Windows a script removes the installed app's folder and its logs once the window has closed;
+  Windows a script removes the app's own files and its logs once the app has exited;
   elsewhere the player deletes the app.
 - **Like the play wrapper.** It holds the install's `play.lock` (letting it go while setup works,
   since setup takes it), reads `installed.json`, sets `DEFJAM_DATA`, `DEFJAM_INSTALL_DIR` and the
@@ -59,14 +58,31 @@ Play starts the game that setup built on this computer, with `--no-launcher`.
   the release's provenance.
 - **Installs itself on Windows** (`app_install.cpp`). The released program,
   `DefJamRecompiled-<version>-windows-x64.exe`, carries the setup payload ZIP as resource 101 with
-  its SHA-256 built in, as `DefJamSetup.exe` does. Opened from wherever it was downloaded, it asks
-  where to install itself (`%LOCALAPPDATA%\Programs\DefJamRecompiled` unless the player chooses
-  another folder; not Program Files, OneDrive, a network or FAT drive), copies itself there, unpacks
-  its payload beside it, records the folder in `%LOCALAPPDATA%\DefJamRecompiled\location.json` and
-  starts the installed copy. Opened again, the download hands over to the installed copy, first
-  replacing it when the download is a newer release. No Start-menu or desktop shortcut is made
-  (owner's choice, 2026-10-27). The installed copy unpacks its payload again when `payload\` is
-  missing or from another build (`payload.sha256`).
+  its SHA-256 built in, as `DefJamSetup.exe` does. Opened from wherever it was downloaded, it opens on
+  one page, as a portable install: an empty install folder (**CHOOSE FOLDER...**; a chosen folder
+  that holds other files gets a `DefJamRecompiled` folder inside it; not Program Files, OneDrive, a
+  network or FAT drive, at most 70 characters: the C++ build tools stop at 260 inside it), the game copy (**SELECT ISO...** or **SELECT
+  FOLDER...**, outside that folder; `--dump` fills it in), Modern or Original and, with Modern, Upscaled Original Textures. **INSTALL** copies
+  the program there, unpacks its payload beside it, writes `.defjam-portable`, records the folder in
+  `%LOCALAPPDATA%\DefJamRecompiled\location.json`, adds a `Def Jam Recompiled` desktop shortcut and
+  starts the installed copy with `--first-setup <experience> <hd> <dump>`, which starts setup by itself
+  once the Build Tools check has answered (installing them first when missing). Beside
+  `.defjam-portable` the first run's locations are `game\` and `data\` in that folder, so everything
+  is in one folder that can be moved or copied whole: opened from a moved or copied folder, the app
+  records it as its home, repoints a desktop shortcut whose target is gone, rewrites setup's receipt
+  (`installed.json`, `installed.ini`), removes the build's `CMakeCache.txt` and makes `source\game`, setup's
+  junction to `data\extracted`, point at the new folder whenever it leads elsewhere
+  (a copy's still reaches the original's dump). Opened again, the download hands over to the
+  installed copy, first replacing it when the download is a newer release. A home an older release
+  made (without `.defjam-portable`) keeps its game and data where its first run put them. The
+  installed copy unpacks its payload again when `payload\` is missing or from another build
+  (`payload.sha256`). Setup builds in folders named with accents (`engine.py`: no precompiled headers
+  outside ASCII, the toolchain's environment read as UTF-8, the icon named relative to its `.rc`) and
+  refuses, before analysis, a name outside the ANSI code page when Ninja is older than 1.11. Uninstall on Windows removes the desktop shortcut when it points at this
+  program; in a portable folder and in an older home alike it deletes only the app's own files and then
+  the folder if it is empty, so a kept `data\` and any other file stay (`remove_after_exit` in
+  `app_os.cpp`: the script is constant text and gets the paths in the environment, because cmd would
+  expand a `%` or `!` in a path written into it).
 - **Installs itself on Linux** (`app_install_linux.cpp`; design §3.3, §6). The released app is one
   AppImage, `DefJamRecompiled-<version>-linux-x86_64.AppImage`: the AppImage runtime and a read-only image
   holding the program with the setup payload beside it. The runtime mounts it at a new

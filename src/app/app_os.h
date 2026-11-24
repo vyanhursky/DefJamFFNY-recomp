@@ -84,5 +84,27 @@ std::string replace_with(const std::vector<std::string> &argv);
 // Whether files can be created in `dir` (a probe file is made and removed).
 bool writable(const std::filesystem::path &dir);
 
+// Windows: the player's desktop folder (where Explorer has it, OneDrive's included; under
+// DEFJAM_APP_USER_BASE when that test hook is set), a shortcut there to `target`, and what an
+// existing shortcut points at. Empty, false and empty elsewhere.
+std::filesystem::path desktop_folder();
+bool make_shortcut(const std::filesystem::path &link, const std::filesystem::path &target, std::string *error);
+std::filesystem::path shortcut_target(const std::filesystem::path &link);
+
+#if defined(_WIN32)
+// Uninstall's last step, which outlives this process: once `program` can be deleted (it has ended),
+// delete it and what the app itself put beside it, `shortcut` (empty: none) and `user_folder`\logs,
+// then each of those folders if nothing else is left in it. Any other file stays.
+bool remove_after_exit(const std::filesystem::path &program, const std::filesystem::path &shortcut,
+                       const std::filesystem::path &user_folder, std::string *error);
+
+// A moved or copied one-folder install's link to the dump (`link`, setup's source\game junction) made
+// to lead to `target` (this folder's data\extracted) when it leads anywhere else, whether or not that
+// still exists. Only a link is replaced, never a real folder, and only once `target` holds a dump and
+// its replacement could be made.
+enum class Relink { Unneeded, Done, Failed };
+Relink relink_game(const std::filesystem::path &link, const std::filesystem::path &target);
+#endif
+
 } // namespace os
 } // namespace app
