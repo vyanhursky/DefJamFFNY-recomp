@@ -1,5 +1,8 @@
 # Research and validation evidence
 
+- [Windows bundled toolchain qualification plan](windows-toolchain-setup-plan.md) —
+  tracked installer integration, clean-guest scenarios, failure recovery and evidence.
+
 - [Windows toolchain issue #189 spike](windows-toolchain-189.md) — LLVM-MinGW
   build findings, prototype, retained fixture failures and pending runtime/setup gates.
 
