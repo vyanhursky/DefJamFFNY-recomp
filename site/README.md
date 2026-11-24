@@ -50,6 +50,13 @@ release, cancellation, lost capture, focus loss or a hidden page. Slider mode
 retains native range keyboard controls. Empty draft data hides download links
 and displays preparation text rather than implying a published release.
 
+A crop can optionally select another set of captured images through
+`views[cropName].variants`, such as a rear view. Those images retain the same
+capture dimensions and quality keys. Full-image links follow the selected view.
+Tattoo comparisons use their own atlas dimensions and explicitly identify the
+white-background artwork previews as distinct from native game captures.
+The data request revalidates its cache so updated media selections are visible.
+
 ## Preview
 
 ```sh

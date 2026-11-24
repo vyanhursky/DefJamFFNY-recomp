@@ -21,7 +21,9 @@
     var crop = current.crops[$('crop').value] || current.crops.full;
     $('stage').style.aspectRatio = crop[2] + '/' + crop[3];
     ['a','b'].forEach(function (side) {
-      var key = $('quality-'+side).value, v = current.variants[key], svg = $('image-'+side);
+      var key = $('quality-'+side).value;
+      var view = current.views && current.views[$('crop').value];
+      var v = (view ? view.variants : current.variants)[key], svg = $('image-'+side);
       svg.setAttribute('viewBox',crop.join(' ')); svg.setAttribute('aria-label', current.title+' — '+labels[key]);
       var im = svg.querySelector('image'); im.setAttribute('width',current.width); im.setAttribute('height',current.height); im.setAttribute('href',v);
       $('tag-'+side).textContent = labels[key]; $('full-'+side).href = v;
@@ -31,7 +33,7 @@
   function loadSubject(data) {
     current = data.comparisons[$('subject').selectedIndex]; $('subject-title').textContent = current.title;
     $('capture-note').textContent = current.caption;
-    $('crop').innerHTML = Object.keys(current.crops).map(function (key) { return '<option value="'+key+'">'+({jacket:'Jacket detail',patches:'Patch close-up',full:'Full store screenshot'}[key] || key)+'</option>'; }).join('');
+    $('crop').innerHTML = Object.keys(current.crops).map(function (key) { return '<option value="'+key+'">'+({jacket:'Jacket detail',patches:'Patch close-up',full:'Full store screenshot',detail:'Garment detail',artwork:'Tattoo artwork',front:'Front',back:'Back'}[key] || key)+'</option>'; }).join('');
     images();
   }
   $('quality-a').addEventListener('change',images); $('quality-b').addEventListener('change',images); $('crop').addEventListener('change',images); $('mode').addEventListener('change',mode);
@@ -47,9 +49,10 @@
   $('hold').addEventListener('keyup',function(e){if(e.code==='Space'||e.code==='Enter'){e.preventDefault();releaseHold();}});
   window.addEventListener('blur',releaseHold); document.addEventListener('visibilitychange',function(){if(document.hidden)releaseHold();});
   document.querySelectorAll('.comparison-image image').forEach(function(im){im.addEventListener('error',function(){$('image-error').hidden=false;});});
-  fetch('comparisons.json').then(function(r){if(!r.ok)throw Error('Comparison data unavailable');return r.json();}).then(function(data){
+  fetch('comparisons.json', {cache: 'no-cache'}).then(function(r){if(!r.ok)throw Error('Comparison data unavailable');return r.json();}).then(function(data){
     if(data.comparisons.length){$('empty-comparisons').hidden=true;$('comparison').hidden=false;data.comparisons.forEach(function(c){var o=document.createElement('option');o.textContent=c.title;$('subject').appendChild(o);});$('subject').addEventListener('change',function(){loadSubject(data);});loadSubject(data);}
     if(data.status==='published')$('release-status').textContent='Available now · High is the recommended quality';
+    if(data.status==='review')$('release-status').textContent='Review draft · Native comparisons and references prepared. Downloads pending.';
     Object.keys(data.packages||{}).forEach(function(key){var a=document.querySelector('[data-package="'+key+'"]');if(a){a.href=data.packages[key];a.hidden=false;}});
     (data.references||[]).forEach(function(r){var a=document.createElement('article');a.className='reference-case';var h=document.createElement('h3');h.textContent=r.title;a.appendChild(h);var row=document.createElement('div');row.className='reference-triptych';[['Original',r.original],['Ultra · 4×',r.ultra],['Real-life reference',r.reference]].forEach(function(pair){var f=document.createElement('figure'),im=document.createElement('img'),c=document.createElement('figcaption');im.src=pair[1];im.alt=r.title+' — '+pair[0];im.loading='lazy';c.textContent=pair[0];f.appendChild(im);f.appendChild(c);row.appendChild(f);});a.appendChild(row);var p=document.createElement('p');p.className='capture-note';p.textContent=r.caption;a.appendChild(p);$('reference-cards').appendChild(a);});
     $('empty-references').hidden=Boolean((data.references||[]).length);
