@@ -27,7 +27,7 @@ or game-free probe does not count as a real clean-client installation.
 | Environment | Purpose | Current status |
 |---|---|---|
 | GitHub hosted Windows Server 2025 | Packaging, compiler, unit and failure-path tests using game-free fixtures | Available; developer tools preinstalled, so not a clean-client gate |
-| Local clean Windows 11 guest | First install without VS/SDK, standard account, private real-game checks | Owned Gen2 VM created/off; 26H2 evaluation ISO matches Microsoft's published SHA-256; OS installation pending; elevated worker available until 22:08 UTC November 24 |
+| Local clean Windows 11 guest | First install without VS/SDK, standard account, private real-game checks | Windows 11 Enterprise Evaluation 26H2 26300.9457 installed and activated; standard desktop/no VS/SDK verified. Final `5262ff7` real first install and fight/audio/input/save smoke pass offline, 2 CPUs/6 GB; both guests off with qualified checkpoints; bounded admin worker stopped after completion |
 | Local clean Windows 10 guest | Supported older-client compatibility and installation | LTSC 2021 evaluation installed, build 19044, 2 CPUs/6 GB; initial inventory finds no VS/SDK and a non-admin standard account. Standard desktop established; frozen-payload real install, fight/audio/save smoke, diagnostics and offline repair pass without VS/SDK; expired evaluation licensing is a recorded guest limitation |
 
 The owner explicitly authorized local VMs and, if necessary, uninstalling host
@@ -67,24 +67,24 @@ or game qualification.
 | I04 | Record compiler identity and protect caches | Backend, executable/tool inventory and relevant flags identify build trees; no MSVC object reuse in LLVM builds | Passed: inventory/CMake fingerprint and per-version identity appear in actual clean-client receipts; native compiler-switch fixture discards stale objects; real controlled MSVC-to-LLVM upgrade uses a fresh tree and retains previous version (`144`/`145`) |
 | I05 | Integrate staging, repair, update and rollback | Failed/cancelled attempts preserve the active install and matching toolchain/version metadata | Passed: hosted native 14/14 including activation recovery, plus clean Win10 real missing-output repair, MSVC migration, historical prerequisite refusal, corrupt-tool rejection and actual mid-extraction cancellation; all protected hashes preserved |
 | I06 | Add hosted contract and failure-path coverage | Tests exercise production paths with verified game-free fixtures and retain structured evidence | Passed hosted contract/failure coverage: CI `45469548837` and spike `45469548788` succeed at head `f7b6d97`; frozen packaged merge `5262ff7`. Native marker 14/14, CP437 control, inventories and import audits pass; private client outcomes tracked below |
-| I07 | Prepare private clean guests | Official media, no VS/SDK, administrator and standard accounts, snapshots and bounded resources | In progress: scoped elevated worker verified; Win11 VM created with 2 CPUs, 6 GB static RAM, dynamic 64 GB disk, Secure Boot/vTPM. Private DPAPI credentials and unattended answer ISO generated; OS installation pending |
+| I07 | Prepare private clean guests | Official media, no VS/SDK, administrator and standard accounts, snapshots and bounded resources | Passed: both clean guests provisioned from independently hash-verified Microsoft media, standard non-admin desktops and absence of VS/SDK verified, clean checkpoints retained. One guest at a time, 2 CPUs/6 GB; host tools preserved. Win10 evaluation expiry recorded; Win11 license active |
 
 ## Required scenario matrix
 
 | ID | Scenario | Acceptance | Environment | Status and evidence |
 |---|---|---|---|---|
-| W01 | Clean Windows 11 first install | Verify absence of VS/SDK; standard account completes extraction, lift, build and launch using the payload; no Microsoft installer, elevation or restart | Clean Win11 guest | In progress: verified media and owned VM ready; Windows 11 installation remains pending |
+| W01 | Clean Windows 11 first install | Verify absence of VS/SDK; standard account completes extraction, lift, build and launch using the payload; no Microsoft installer, elevation or restart | Clean Win11 guest | Passed: Windows 11 Enterprise Evaluation 26H2 26300.9457, standard non-admin desktop, active trial, long paths disabled, no VS/SDK. Actual frozen final `5262ff7` installs offline in 520.87 seconds without elevation/restart; fight/input/audio/save smoke passes with zero captures (`182`) |
 | W02 | Clean Windows 10 first install | Same as W01; record exact Windows edition/build and supported API/runtime compatibility | Clean Win10 guest | Passed for LTSC Evaluation 19044.1288: frozen `407413e` real install in 442.57 seconds, fight/audio/save smoke and diagnostics, standard non-admin account, no VS/SDK/elevation/restart. Evaluation-license shutdown recorded separately; no other Win10 edition inferred |
 | W03 | Upgrade an existing MSVC-built install | Switch to LLVM with a fresh compatible build tree; preserve profile/settings/mod hashes and previous working version until activation succeeds | Guest with controlled legacy install | Passed: controlled real v1.2.1 MSVC baseline verified and booted; actual offline update to frozen `407413e` succeeds in 429.19 seconds with fresh LLVM tree, all 11 protected files identical and old MSVC version retained (`144`/`145`). Updated native wrapper launches the exact new EXE and restores save guard |
 | W04 | Repair missing output | Remove only disposable installed build output; rebuild with the recorded bundled compiler, without VS bootstrap or data loss | Guest | Passed Win10 real frozen `407413e`: delete only disposable active EXE; fresh build/activation succeeds offline in 192.23 seconds, same bundled identity, eight protected files identical (`122`) |
 | W05 | Rollback and historical release | Restore a working version with its matching metadata; unported historical source must not silently rebuild with an incompatible compiler | Guest | Passed scoped gates: three hosted native activation failures recover exact previous launcher/INI/receipt bytes; clean Win10 actual historical v1.2.1 downgrade returns expected prerequisite code 3 with no VS/SDK, active LLVM receipt and 11 protected files unchanged. Both working version trees retained; no claim that unported old source builds with LLVM |
-| W06 | Spaces, Unicode, long paths and junctions | Actual packaged tools build under normal parallelism and serial mode; assert physical executable paths; no startup hang | Hosted fixture, then guest full build | Passed: original Unicode failure retained; explicit UTF-8 fix passes CP437 control, clean Win10 native 14/14 and full Unicode-path game build. Packaged C/C++/archive/RC/TLS/UTF-8/import fixture passes serial and parallel=2 through physical accented paths and source/compiler junctions, compiler resolves to physical EXE (`132`). Long-path policy off: 258-character payload path stages; oversized path rejected early with code 2 (`062`) |
+| W06 | Spaces, Unicode, long paths and junctions | Actual packaged tools build under normal parallelism and serial mode; assert physical executable paths; no startup hang | Hosted fixture, then guest full build | Passed: original Unicode failure retained; explicit UTF-8 fix passes CP437 control, clean Win10 native 14/14 and full Unicode-path game build. Packaged C/C++/archive/RC/TLS/UTF-8/import fixture passes serial and parallel=2 through physical accented paths and source/compiler junctions, compiler resolves to physical EXE (`132`). Long-path policy off: 258-character payload path stages; oversized path rejected early with code 2 (`062`). Win11 final frozen engine/tools additionally complete a C/C++/archive/RC/UTF-8 native install and executable run at a 70-character accented destination, build directory length 157, long paths disabled (`182`) |
 | W07 | Offline repeat and retry | After payload/dependencies are available, a fresh build/repair needs no network; interrupted downloads resume or retry safely | Hosted fixtures and guest | Passed: Hyper-V adapter disconnected (`099`); actual missing-output repair completes in 192.23 seconds with eight protected files identical (`122`), no VS/SDK. Download checksum/truncation/cache and offline metadata covered by `test_setup_updates`; no real-game payload exposed to hosted runners |
 | W08 | Corrupt or missing package/cache file | Checksum/inventory failure precedes executing affected tools; clear repair/retry result, preserved active install | Hosted fixtures and guest | Passed: hosted missing/inventory contracts and native corruption case; clean Win10 actual frozen Ninja corruption rejected with code 2 in 24.15 seconds before execution, previous active receipt and 11 protected files identical; original payload bytes restored (`145`) |
 | W09 | Low disk space | Preflight or bounded stage failure preserves data and working install; include temporary/cache/retained-version space | Hosted fixtures and guest | Passed Win10 controlled install on guest-only 1 GiB virtual disk: expected code 2 and 12 GiB headroom message, EXE/PDB/map/receipt hashes unchanged (`101`). Real successful-install peak also sampled; no host disk touched |
 | W10 | Cancel and interrupted build | Cancel during extraction/configure/compile/activation; child processes are bounded, locks recover, active install/data remain intact | Hosted fixtures and guest | Passed: hosted early/configure/compile cancellation returns 6 and three activation hard exits recover exact install files. Clean Win10 real extraction cancellation after five files copied returns 6, preserves existing EXE/PDB/map/launcher/receipts and all six save files, leaves no published extraction or staging (`145`) |
 | W11 | Game running or output locked | Update/repair fails or defers cleanly, preserving the existing executable and data | Hosted native marker, then guest real game | Passed: hosted running marker returns 5 and launcher lock returns 4 with exact recovery; clean Win10 real running game repair returns 5, previous receipt and protected data unchanged (`083`) |
-| W12 | Packaged-build functional smoke | Log/state assertions establish startup, fight entry, input/audio activity and exact guarded save restoration; no visual comparisons | Private guest with owner's dump | Passed on Win10 frozen `407413e`: corrected six-file reviewed fixture; fight entry, movement, 25 attack / 43 damage events, nonzero PCM, no faults, exact save restoration, zero captures (`108`). First empty-fixture attempt retained as failed preparation |
+| W12 | Packaged-build functional smoke | Log/state assertions establish startup, fight entry, input/audio activity and exact guarded save restoration; no visual comparisons | Private guest with owner's dump | Passed on both clean guests: frozen Win10 `407413e` and final Win11 `5262ff7`, reviewed six-file fixture; fight entry/movement/attacks/damage and nonzero PCM, no faults, exact save restoration, zero captures (`108`/`182`). Win11 records 28 attacks / 51 damage events; first empty-fixture attempt retained as failed preparation |
 | W13 | Packaged-build diagnostics | Matching PDB/map, named guest/native stacks, TLS register inspection and controlled disposable-child fault reporting | Private guest | Passed on clean Win10 actual `407413e` EXE/PDB/map: named native guest symbols, TLS registers, thread sampling and intentional owned-child fault in `sub_00021500`; crash names guest function, save restored (`109`). No executable file modification |
 | W14 | Release inventory and provenance | Final app payload passes explicit allowlists, notice inventory, hashes, game-free checks and import audits; measure sizes | Hosted runner | Passed final code payload `5262ff7` / head `f7b6d97`: CI `45469548837` and spike `45469548788` succeed; native 14/14, CP437, package/import/notice audits green. App/payload and all 11,571 file hashes independently match provenance; exact sizes below |
 
@@ -146,6 +146,24 @@ it must be identified before scheduling additional qualification.
 | 2026-11-24 | Real offline migration and historical guards pass | Standard Win10 user updates imported v1.2.1 MSVC to actual frozen `407413e` in 429.19 seconds. All 11 protected files identical; previous MSVC version remains. Actual historical payload downgrade returns 3 in 32.97 seconds without VS/SDK, active receipt/data unchanged. Corrupt frozen Ninja returns 2 in 24.15 seconds before execution, active receipt/data unchanged; original Ninja bytes restored in finally. `144`/`145` |
 | 2026-11-24 | Real mid-extraction cancellation and upgraded launch pass | Cancellation signaled after five real dump files appear in extraction staging: code 6, no published extraction, staging removed, original executable/PDB/map/launcher/receipts and six saves identical. Updated native wrapper launches its receipt's exact LLVM EXE, child remains alive after 12 seconds, guarded saves restored. Both drivers exit 0; `145` |
 
+
+| 2026-11-24 | Win10 completed and handed over | Final inventory `146` confirms all required standard-user drivers exited 0, no game/compiler children, still no VS/SDK. Guest shut down normally; checkpoint `qualified-win10-f4b6f75` retained. Win11 started with verified official media and same bounded resources. Initial boot helper reported a DVD-key error, but the guest disk grew and Windows installation proceeded; readiness probes during setup/reboots are retained as infrastructure failures, not game tests |
+
+
+| 2026-11-24 | Win11 standard desktop and clean inventory ready | Windows 11 Enterprise Evaluation 26H2 26300.9457, active trial license with ~90 days remaining, long paths disabled, standard `DJQualUser` outside Administrators, no VS/SDK; `164`/`165`. First-login temporary account corrected from private unattended account settings with guest-only reboot. Verified final frozen payload `5262ff7` and 120-file owner dump transferred/unpacked; clean checkpoint retained |
+| 2026-11-24 | Final clean Win11 first install started | Actual final `5262ff7` production engine/tools, standard non-admin task `win11-real-install`; network adapter disconnected after all inputs cached. Functional suite waits for installation, then verifies six-file fixture, fight/audio/input/save assertions with zero captures and a complete near-limit game-free native build. Win10 stays off; no host compilation |
+
+
+| 2026-11-24 | Clean Win11 real first install passes offline | Final actual frozen `5262ff7`, standard `DJQualUser`, elevated=false, no VS/SDK; install exits 0 in 520.87 seconds without a Microsoft installer or restart. Receipt records exact bundled identity and new EXE/PDB/map hashes. Guest-drive peak additional disk 3,947,606,016 bytes and peak whole-guest used RAM 3,550,052,352 bytes; cached payload/input excluded. `179`; functional route has entered a fight, final assertions pending |
+
+
+| 2026-11-24 | Final Win11 functional and complete near-limit build pass | Actual frozen `5262ff7` fight smoke: 201.02 seconds including 120-second fight tail, movement, 28 attacks, 51 damage events, nonzero 9,060,352-byte PCM, no faults, exact save restoration, zero captures. Standard assertion driver exits 0. Final engine/tools also install and run a declared game-free C/C++/static archive/RC/UTF-8 marker at a 70-character accented destination (build directory length 157), LongPathsEnabled=0; engine and marker both exit 0. `182`/`183` |
+| 2026-11-24 | All implementation and scenario gates passed | I01–I07 and W01–W14 passed within the recorded OS/input/scope limits. Code candidate remains `f7b6d97` / frozen payload `5262ff7`; later changes are documentation only. Both guests finish with no VS/SDK installation, no host compiler run and no new visual checks. Final documentation-head CI checks are verified separately before readiness |
+
+| 2026-11-24 | Guest qualification finished safely | Final Win11 inventory `184` confirms both required drivers exited 0, no compiler/game children, no unresolved save guards and no VS/SDK. Both guests shut down normally; qualified checkpoints retained (`148`/`186`), host MSVC untouched. Scoped administrative worker stop requested after completion. |
+
+| 2026-11-24 | Documentation-head hosted attempt retained | Head `debccfc`, compiler workflow `45474216153` succeeds. CI `45474216291` aggregate fails solely because macOS runtime job `138730078358` is cancelled after 15 minutes with zero steps; no compiler/test failure is inferred. Code head `f7b6d97` already has both workflows green. Final documentation-head attempt and readiness are tracked in PR #313 without changing qualified runtime code. |
+
 The decoder failure follows [CMake CMP0176](https://cmake.org/cmake/help/v3.31/policy/CMP0176.html):
 the project's older minimum version retains automatic Windows-codepage decoding
 unless the call explicitly requests UTF-8. The Python resolver already emits
@@ -196,8 +214,37 @@ from an independently matched Microsoft-published hash.
 
 ## Completion decision
 
-Keep this section current with the final candidate SHA and scenario results.
-Do not announce that MSVC can be removed from production Setup until I01–I07
-and W01–W14 are passed or explicitly excepted by the owner. Unresolved PC
-freezing is not considered fixed by this work. The integration remains a
-separate review and release decision from spike PR #312.
+**All I01–I07 and W01–W14 feature gates passed on November 24, 2026**, within
+this report's explicit scope. New Windows payloads can compile and run the
+player's dump without installed Visual Studio Build Tools or a Windows SDK.
+The qualified code head is `f7b6d979a268cc1591fe813b69e27521952b14db`, frozen
+CI payload source `5262ff7d5da94fa5b232c7549f6ecaed5c49c9d3`. Later commits
+record evidence and user documentation; they do not change compiled runtime,
+tool inventory, flags or ABI. Win10 `407413e` evidence carries across the path
+preflight-only engine correction; Win11 tests the final frozen payload directly.
+
+The change is worthwhile: it removes the multi-gigabyte compiler/SDK bootstrap,
+its elevation and restart dependency for new client installs. The measured cost
+is approximately 84.3 MiB more app download than published v1.2.2, plus
+347,978,891 bytes (about 332 MiB) of tools per retained installed version.
+Per-version copies intentionally preserve rollback ownership; 12 GiB build
+headroom remains required. VM timings and sampled memory/disk peaks are
+compatibility observations, not physical-PC performance guarantees.
+
+Historical payloads and explicit/manual MSVC builds keep their prerequisites.
+Unported historical source is not silently rebuilt with LLVM. Unsupported long
+folders need a shorter writable destination; no host path-policy change was
+made. Clean-client evidence covers the exact Win10 LTSC/Win11 Enterprise
+Evaluation builds above and a verified extracted-folder input. Existing common
+ISO/update/download tests are retained; this is not a claim of fresh physical
+hardware, every Windows edition, or another full visual regression. Earlier
+applicable spike/release runtime evidence is reused rather than repeated.
+
+Failed preparation, original Unicode/path failures, Win10 evaluation expiry,
+and any cancelled hosted attempts remain recorded. Host MSVC, owner game/data
+and unrelated agents' processes remain untouched; the host freezing issue is
+not diagnosed or declared fixed. No screenshots or visual comparisons were run.
+
+PR #313 remains a separate review/merge/release decision from spike #312.
+Final documentation-head checks and readiness state are recorded in its PR
+body; no merge or release is performed by this qualification.
