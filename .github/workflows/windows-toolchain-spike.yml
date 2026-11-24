@@ -1,0 +1,109 @@
+name: Windows toolchain spike (experimental)
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/windows-toolchain-spike.yml'
+      - 'cmake/llvm-mingw-x64.cmake'
+      - 'scripts/windows-toolchain-spike.ps1'
+      - 'tests/host_tls/**'
+      - 'tests/windows_toolchain_paths/**'
+      - 'cmake/windows_resource.cmake'
+      - 'cmake/app.rc.in'
+      - 'src/host.h'
+      - 'CMakeLists.txt'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  llvm-mingw:
+    # GitHub-hosted disposable VM; never a self-hosted runner on the owner's PC.
+    runs-on: windows-2025
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with: { submodules: recursive }
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.13' }
+      - name: Download and verify the tested compiler, CMake and Ninja
+        timeout-minutes: 5
+        shell: pwsh
+        run: |
+          $archives = @(
+            @{ name='llvm-mingw.zip'; url='https://github.com/mstorsjo/llvm-mingw/releases/download/20261117/llvm-mingw-20261117-ucrt-x86_64.zip'; sha='4d002e330a0f703625aa5ccbc37e96f8f824413e163bfc7336774aabd2c3a412'; folder='.' },
+            @{ name='cmake.zip'; url='https://github.com/Kitware/CMake/releases/download/v3.31.6/cmake-3.31.6-windows-x86_64.zip'; sha='d163cd3ab4959b0a53fa8988f2ddbd2e6c501658201e6a154386bad9dbe4f836'; folder='.' },
+            @{ name='ninja.zip'; url='https://github.com/ninja-build/ninja/releases/download/v1.11.1/ninja-win.zip'; sha='524b344a1a9a55005eaf868d991e090ab8ce07fa109f1820d40e74642e289abc'; folder='ninja' }
+          )
+          foreach ($archive in $archives) {
+            $zip = Join-Path $env:RUNNER_TEMP $archive.name
+            Invoke-WebRequest $archive.url -OutFile $zip
+            if ((Get-FileHash $zip -Algorithm SHA256).Hash -ne $archive.sha) { throw "SHA-256 mismatch: $($archive.name)" }
+            Expand-Archive -LiteralPath $zip -DestinationPath (Join-Path $env:RUNNER_TEMP $archive.folder)
+          }
+      # No msvc-dev-cmd, Windows SDK discovery or prerequisite installation.
+      - name: Build runtime, compile game-side sources, link game-free app
+        timeout-minutes: 15
+        shell: pwsh
+        run: |
+          $tools = Join-Path $env:RUNNER_TEMP llvm-mingw-20261117-ucrt-x86_64
+          $cmake = Join-Path $env:RUNNER_TEMP cmake-3.31.6-windows-x86_64/bin/cmake.exe
+          $ninja = Join-Path $env:RUNNER_TEMP ninja/ninja.exe
+          foreach ($mode in 'runtime','game-sources','app') {
+            ./scripts/windows-toolchain-spike.ps1 -Mode $mode -ToolchainRoot $tools -CMakePath $cmake -NinjaPath $ninja
+          }
+      - name: Host TLS is independent across real Windows threads
+        timeout-minutes: 3
+        shell: pwsh
+        run: |
+          $env:LLVM_MINGW_ROOT = Join-Path $env:RUNNER_TEMP llvm-mingw-20261117-ucrt-x86_64
+          $env:PATH = "$(Join-Path $env:RUNNER_TEMP 'cmake-3.31.6-windows-x86_64/bin');$(Join-Path $env:RUNNER_TEMP 'ninja');$env:PATH"
+          cmake -S tests/host_tls -B build/llvm-host-tls -G Ninja -DCMAKE_BUILD_TYPE=Release "-DCMAKE_TOOLCHAIN_FILE=$pwd/cmake/llvm-mingw-x64.cmake"
+          if ($LASTEXITCODE) { throw 'TLS configure failed' }
+          cmake --build build/llvm-host-tls
+          if ($LASTEXITCODE) { throw 'TLS build failed' }
+          ctest --test-dir build/llvm-host-tls --output-on-failure --no-tests=error
+          if ($LASTEXITCODE) { throw 'TLS isolation failed' }
+      - name: Parallel build through Unicode and junction paths
+        timeout-minutes: 3
+        shell: pwsh
+        run: |
+          $tools = Join-Path $env:RUNNER_TEMP llvm-mingw-20261117-ucrt-x86_64
+          $alias = Join-Path $env:RUNNER_TEMP 'Café LLVM'
+          $source = Join-Path $env:RUNNER_TEMP 'Café source'
+          $build = Join-Path $env:RUNNER_TEMP 'Café build'
+          New-Item -ItemType Junction -Path $alias -Target $tools | Out-Null
+          New-Item -ItemType Junction -Path $source -Target $pwd.Path | Out-Null
+          $env:LLVM_MINGW_ROOT = $alias
+          $env:LLVM_MINGW_PYTHON = Join-Path $env:pythonLocation python.exe
+          $cmake = Join-Path $env:RUNNER_TEMP cmake-3.31.6-windows-x86_64/bin/cmake.exe
+          $ninja = Join-Path $env:RUNNER_TEMP ninja/ninja.exe
+          $logs = Join-Path $pwd 'logs/windows-toolchain-spike/paths'
+          New-Item -ItemType Directory -Force -Path $logs | Out-Null
+          $env:PATH = "$env:SystemRoot/System32;$env:SystemRoot"
+          foreach ($name in 'INCLUDE','LIB','LIBPATH','CL','_CL_') {
+            [Environment]::SetEnvironmentVariable($name, $null, 'Process')
+          }
+          & $cmake -S "$source/tests/windows_toolchain_paths" -B $build -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo "-DCMAKE_TOOLCHAIN_FILE=$source/cmake/llvm-mingw-x64.cmake" "-DCMAKE_MAKE_PROGRAM=$ninja" 2>&1 | Tee-Object "$logs/configure.log"
+          if ($LASTEXITCODE) { throw 'Path configure failed' }
+          $compiler = Get-Content -Raw "$build/CMakeFiles/3.31.6/CMakeCCompiler.cmake"
+          $physicalCompiler = "$tools/bin/clang.exe".Replace('\','/')
+          if ($compiler -notmatch [regex]::Escape($physicalCompiler)) { throw 'Compiler directory was not resolved to its physical path' }
+          & $cmake --build $build --parallel 4 2>&1 | Tee-Object "$logs/build.log"
+          if ($LASTEXITCODE) { throw 'Parallel path build failed' }
+          & $cmake -E env -- "$(Join-Path $env:RUNNER_TEMP 'cmake-3.31.6-windows-x86_64/bin/ctest.exe')" --test-dir $build --output-on-failure --no-tests=error 2>&1 | Tee-Object "$logs/test.log"
+          if ($LASTEXITCODE) { throw 'Path/TLS/UTF-8 smoke failed' }
+          foreach ($file in 'toolchain_paths.pdb','toolchain_paths.map') {
+            if (!(Test-Path (Join-Path $build $file))) { throw "Missing $file" }
+          }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: windows-toolchain-spike-logs
+          path: logs/windows-toolchain-spike
+          retention-days: 7
+          # Logs only: never upload executables or lifted code.
