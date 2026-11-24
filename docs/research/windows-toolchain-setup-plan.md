@@ -27,7 +27,7 @@ or game-free probe does not count as a real clean-client installation.
 | Environment | Purpose | Current status |
 |---|---|---|
 | GitHub hosted Windows Server 2025 | Packaging, compiler, unit and failure-path tests using game-free fixtures | Available; developer tools preinstalled, so not a clean-client gate |
-| Local clean Windows 11 guest | First install without VS/SDK, standard account, private real-game checks | Owned Gen2 VM created, powered off; official evaluation ISO downloading |
+| Local clean Windows 11 guest | First install without VS/SDK, standard account, private real-game checks | Owned Gen2 VM created/off; 26H2 evaluation ISO matches Microsoft's published SHA-256; OS installation pending Windows elevation |
 | Local clean Windows 10 guest | Supported older-client compatibility and installation | LTSC 2021 evaluation ISO downloaded and matches Microsoft's published SHA-256; guest created/off, OS installation pending Windows elevation |
 
 The owner explicitly authorized local VMs and, if necessary, uninstalling host
@@ -112,6 +112,8 @@ it must be identified before scheduling additional qualification.
 | 2026-11-23 | Expanded native acceptance passes | CI `45322740616`, source head `73b7e51` / tested merge `199f19cd11ccda5cb3049c75a99dab6ad0b2e7c3`, all 14 cases pass and 36/36 PR checks green. Configure/compile cancellation: 6; running installed program: 5; locked launcher: 4. Forced exits at prepared/launcher/receipt-json: 91, followed by exact receipt/INI/launcher restoration. Native builds 9.91–10.34 s; same Windows Server 2025 build 26100 and compiler fingerprint |
 | 2026-11-23 | Private artifact prepared | Downloaded and verified the earlier green hosted app: 155,290,112 bytes, app SHA-256 `ed20c92dabadc12b8f62ba0955d91a56b71456377d1486fdc180d585f893fe98`; embedded payload 150,936,695 bytes, SHA-256 `e806430dceb3b3029d86793b37e61675c7190aba828ee78569ea3e22b2ceb758`, source `b123e61`. Engine, toolchain, package builder, game/config/CMake and toolkit have no changes between its head `4520c26` and `73b7e51`; later changes add host qualification and static package import auditing. No native host execution |
 | 2026-11-23 | Windows elevation handoff pending | The refreshed worker's UAC request ended with Windows reporting cancellation. Both guests remain off; host MSVC is unchanged. Wait for the owner's Windows elevation handoff before relaunching the reviewed bounded worker and booting a guest |
+| 2026-11-23 | Both guest media ready | Win11 evaluation ISO matches Microsoft's published SHA-256 `bc3f24086ebadc94489066b5ad78089e2cf5c3491e90e790bb81a2b199c10e38`; Win10 was already matched. Private receipts retain sources and measured hashes. No OS installed or guest started |
+| 2026-11-23 | Payload size and provenance verified | Candidate app and embedded payload hashes plus the complete file inventory match CI provenance. Complete payload expands to 521,487,287 bytes. Existing published v1.2.2 Windows app: 66,935,808 bytes; candidate: 155,290,112 bytes (+88,354,304 bytes, approximately 84.3 MiB). Client peak build disk usage still requires actual guest measurement |
 
 ## Qualification tools and evidence
 
