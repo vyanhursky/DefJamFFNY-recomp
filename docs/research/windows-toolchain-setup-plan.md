@@ -66,7 +66,7 @@ or game qualification.
 | I03 | Select bundled tools in engine and app preflight | New payload builds without VS detection/bootstrap; old payloads retain their compatible path; explicit host choice remains possible | In progress: engine, preflight and explicit asset allowlists implemented; contract tests pass; packaged native and clean-guest execution pending |
 | I04 | Record compiler identity and protect caches | Backend, executable/tool inventory and relevant flags identify build trees; no MSVC object reuse in LLVM builds | In progress: tools/CMake fingerprint, per-version note and receipt metadata implemented; synthetic compiler-switch test discards objects while preserving generated sources; native evidence pending |
 | I05 | Integrate staging, repair, update and rollback | Failed/cancelled attempts preserve the active install and matching toolchain/version metadata | In progress: real-engine hosted native marker install/update/downgrade/repair/rebuild, early cancellation and corruption tests pass; private full-data and mid-stage failure scenarios pending |
-| I06 | Add hosted contract and failure-path coverage | Tests exercise production paths with verified game-free fixtures and retain structured evidence | In progress: CI `45321137083` and spike workflow `45321137038` pass; 36/36 PR checks green at head `4520c26`, tested merge `b123e61`. Native marker fixture passes seven cases. Additional failure/path coverage still pending |
+| I06 | Add hosted contract and failure-path coverage | Tests exercise production paths with verified game-free fixtures and retain structured evidence | In progress: CI `45322740616` and spike workflow `45322740673` pass; 36/36 PR checks green at head `73b7e51`, tested merge `199f19c`. Expanded native marker fixture passes all 14 cases. Offline/disk/path and guest coverage still pending |
 | I07 | Prepare private clean guests | Official media, no VS/SDK, administrator and standard accounts, snapshots and bounded resources | In progress: scoped elevated worker verified; Win11 VM created with 2 CPUs, 6 GB static RAM, dynamic 64 GB disk, Secure Boot/vTPM. Private DPAPI credentials and unattended answer ISO generated; OS installation pending |
 
 ## Required scenario matrix
@@ -82,8 +82,8 @@ or game qualification.
 | W07 | Offline repeat and retry | After payload/dependencies are available, a fresh build/repair needs no network; interrupted downloads resume or retry safely | Hosted fixtures and guest | Planned |
 | W08 | Corrupt or missing package/cache file | Checksum/inventory failure precedes executing affected tools; clear repair/retry result, preserved active install | Hosted fixtures and guest | Planned |
 | W09 | Low disk space | Preflight or bounded stage failure preserves data and working install; include temporary/cache/retained-version space | Hosted fixtures and guest | Planned |
-| W10 | Cancel and interrupted build | Cancel during extraction/configure/compile/activation; child processes are bounded, locks recover, active install/data remain intact | Hosted fixtures and guest | In progress: hosted early cancel passes; real configure/compile cancellation and hard activation exits added to native fixture, execution pending |
-| W11 | Game running or output locked | Update/repair fails or defers cleanly, preserving the existing executable and data | Hosted native marker, then guest real game | In progress: running-program and actual Windows file-lock cases added to hosted fixture; execution pending |
+| W10 | Cancel and interrupted build | Cancel during extraction/configure/compile/activation; child processes are bounded, locks recover, active install/data remain intact | Hosted fixtures and guest | In progress: hosted early/configure/compile cancellation returns 6; three hard activation exits recover byte-exact install files. Extraction cancellation and private full-data guest cases remain pending |
+| W11 | Game running or output locked | Update/repair fails or defers cleanly, preserving the existing executable and data | Hosted native marker, then guest real game | In progress: hosted running installed marker returns 5; actual Windows launcher lock returns 4 and recovers exact install files. Guest real-game case pending |
 | W12 | Packaged-build functional smoke | Log/state assertions establish startup, fight entry, input/audio activity and exact guarded save restoration; no visual comparisons | Private guest with owner's dump | Blocked on guest, payload and real build |
 | W13 | Packaged-build diagnostics | Matching PDB/map, named guest/native stacks, TLS register inspection and controlled disposable-child fault reporting | Private guest | Planned; earlier spike diagnostics are background evidence |
 | W14 | Release inventory and provenance | Final app payload passes explicit allowlists, notice inventory, hashes, game-free checks and import audits; measure sizes | Hosted runner | Planned |
@@ -109,6 +109,9 @@ it must be identified before scheduling additional qualification.
 | 2026-11-23 | Staged tool import and ZIP inventory | Tools-only ZIP: 88,028,091 bytes, SHA-256 `f8d00a627fd292f96e4288d64d283087c352b45980672afa27de1809189b3d7c`. PE imports resolve to four included LLVM DLLs plus candidate Windows system DLLs; clean guest runtime closure remains pending |
 | 2026-11-23 | Corrected hosted candidate passes | CI `45321137083`, spike `45321137038`, 36/36 checks green. Native marker install/update/downgrade/repair/rebuild passed in 12.76/13.01/12.86/12.91/13.01 s; early cancellation returned 6 and corruption returned 2, preserving receipts/protected data. Windows Server 2025 build 26100; compiler fingerprint unchanged; actual packaged source `b123e61f8bf280913da48df510a0ac58ad7c6a7a` is GitHub's merge of main `3b60764` and head `4520c26` |
 | 2026-11-23 | Win10 media verified | LTSC 2021 English x64 ISO SHA-256 `e4ab2e3535be5748252a8d5d57539a6e59be8d6726345ee10e7afd2cb89fefb5` matches Microsoft's published evaluation hash PDF; fresh guest remains off pending manual Windows elevation |
+| 2026-11-23 | Expanded native acceptance passes | CI `45322740616`, source head `73b7e51` / tested merge `199f19cd11ccda5cb3049c75a99dab6ad0b2e7c3`, all 14 cases pass and 36/36 PR checks green. Configure/compile cancellation: 6; running installed program: 5; locked launcher: 4. Forced exits at prepared/launcher/receipt-json: 91, followed by exact receipt/INI/launcher restoration. Native builds 9.91–10.34 s; same Windows Server 2025 build 26100 and compiler fingerprint |
+| 2026-11-23 | Private artifact prepared | Downloaded and verified the earlier green hosted app: 155,290,112 bytes, app SHA-256 `ed20c92dabadc12b8f62ba0955d91a56b71456377d1486fdc180d585f893fe98`; embedded payload 150,936,695 bytes, SHA-256 `e806430dceb3b3029d86793b37e61675c7190aba828ee78569ea3e22b2ceb758`, source `b123e61`. Engine, toolchain, package builder, game/config/CMake and toolkit have no changes between its head `4520c26` and `73b7e51`; later changes add host qualification and static package import auditing. No native host execution |
+| 2026-11-23 | Windows elevation handoff pending | The refreshed worker's UAC request ended with Windows reporting cancellation. Both guests remain off; host MSVC is unchanged. Wait for the owner's Windows elevation handoff before relaunching the reviewed bounded worker and booting a guest |
 
 ## Qualification tools and evidence
 
@@ -141,8 +144,8 @@ The expanded fixture also signals from the actual CMake process before
 cancelling configure/compile, launches the installed marker to test running
 process refusal, holds an actual Windows file handle without write/delete
 sharing, and exits during three activation checkpoints before verifying
-byte-exact recovery. Those additional cases are pending execution until a
-new hosted result is recorded. `windows-guest.ps1` uses PowerShell Direct
+byte-exact recovery. All 14 cases passed in hosted run `45322740616`.
+`windows-guest.ps1` uses PowerShell Direct
 for guest inventory and limited interactive tasks under the standard test
 account; each task records its account, elevation status, times and exit.
 
