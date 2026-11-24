@@ -10,6 +10,7 @@ step of its own. It is served at `https://vyanhursky.github.io/DefJamFFNY-recomp
 | `hd-fighter-portraits/` | Portrait page: 17 before/after sliders for full-body compositions, heads and roster textures. |
 | `hd-menus-ui/` | Menu/UI page: nine before/after sliders, an ultrawide showcase, coverage, installation and credits. |
 | `hd-fighters/` | Dedicated HD Fighters page: eight interactive before/after comparisons, coverage, installation and credits. |
+| `hd-textures/` | Draft customization page: selectable Original/Medium/High/Ultra comparisons, slider or hold controls, reference triptychs and quality guidance. |
 | `app.js` | Live details: the latest release line, the download button for the visitor's OS, the news list and the before/after sliders. The page still works without it. |
 
 ## Images
@@ -25,6 +26,29 @@ A new picture needs the owner's approval and a fingerprint, like any README medi
 `docs/media/` and the allowlist in `scripts/check-source-tree.py`, then add a line to `MEDIA`.
 
 A slider is a pair: a 16:9 after picture and a 4:3 before picture, of the same moment.
+
+## HD Textures draft
+
+`hd-textures/` follows the existing static Pages build. It is intentionally not
+linked from the home page until release media and runtime compatibility are
+finalized. The checked-in `comparisons.json` is an empty draft; private review
+previews supply native captures separately. Do not commit those captures or
+machine-specific review selections.
+
+The data file supplies `packages` (quality keys to released download URLs),
+`comparisons` and `references`. A comparison has a title, caption, full capture
+width/height, four `variants` (`original`, `medium`, `high`, `ultra`) and named
+`crops` as `[x, y, width, height]`. Both SVG layers use the same crop; the control
+changes clipping only. Captures must use matching render settings, and captions
+must disclose pose or framing differences. A reference case supplies title,
+caption and `original`, `ultra`, `reference` image URLs. Host owner-selected media
+externally and record its provenance and fingerprints before publication.
+
+High (3× PNG) is recommended; Medium is 2× and Ultra is 4×. Either side is
+selectable. Hold mode supports pointer, Space and Enter, returning to A on
+release, cancellation, lost capture, focus loss or a hidden page. Slider mode
+retains native range keyboard controls. Empty draft data hides download links
+and displays preparation text rather than implying a published release.
 
 ## Preview
 

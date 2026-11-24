@@ -1,6 +1,7 @@
 """The GitHub Pages site: it builds from site/ plus approved media only, and every media file the
 page refers to is one the build publishes."""
 import importlib.util
+import json
 import re
 from pathlib import Path
 
@@ -63,4 +64,6 @@ def test_refuses_unapproved_or_changed_media(tmp_path, monkeypatch):
 def test_site_folder_is_text_only():
     for path in (ROOT / 'site').rglob('*'):
         if path.is_file():
-            assert path.suffix in {'.html', '.css', '.js', '.md'}, path
+            assert path.suffix in {'.html', '.css', '.js', '.md', '.json'}, path
+            if path.suffix == '.json':
+                json.loads(path.read_text(encoding='utf-8'))
