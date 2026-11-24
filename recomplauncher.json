@@ -1,0 +1,166 @@
+{
+  "$schema": "https://recomplauncher.com/schema/recomplauncher.json",
+  "format": 1,
+  "name": "Def Jam FFNY Recomp",
+  "repo": "vyanhursky/DefJamFFNY-recomp",
+  "system": {
+    "windows": {
+      "graphics": {
+        "d3d11": "11"
+      }
+    },
+    "linux": {
+      "glibc": "2.31"
+    },
+    "macos": {
+      "version": "11"
+    }
+  },
+  "inputs": [
+    {
+      "id": "game",
+      "label": "Your USA Xbox copy of Def Jam: Fight for NY: a disc image (.iso) or the extracted folder. PS2 and GameCube copies can't be used.",
+      "optional": true,
+      "formats": [
+        {
+          "type": "file"
+        },
+        {
+          "type": "folder"
+        }
+      ],
+      "check": {
+        "xdvdfs": "default.xbe",
+        "file": "default.xbe"
+      },
+      "dumps": [
+        {
+          "name": "USA",
+          "size": 7825162240,
+          "crc32": "71d5b621"
+        }
+      ]
+    }
+  ],
+  "config": [
+    {
+      "id": "main",
+      "format": "ini",
+      "file": [
+        {
+          "path": "{local}/DefJamRecompiled/data/settings.ini",
+          "if": "{local}/DefJamRecompiled/data/settings.ini"
+        },
+        {
+          "path": "{home}/Games/DefJamRecompiled/Data/settings.ini",
+          "if": "{home}/Games/DefJamRecompiled/Data/settings.ini"
+        },
+        {
+          "path": "{local}/DefJamRecompiled/data/settings.ini"
+        }
+      ]
+    }
+  ],
+  "settings": [
+    {
+      "id": "experience",
+      "label": "Experience",
+      "group": "Other settings and Mods are found in the game's launcher",
+      "help": "Modern is widescreen at 2x resolution with 16x texture filtering. Original is the console's 4:3 at 480p. Other settings and Mods are found in the game's launcher, which shows before the game starts.",
+      "choices": [
+        {
+          "label": "Modern",
+          "set": {
+            "display/aspect": "widescreen (auto)",
+            "display/render_scale": "2",
+            "display/filter": "smooth (high quality)",
+            "display/anisotropy": "16x",
+            "display/msaa": "2x",
+            "display/texture_mips": "true",
+            "display/vsync": "true",
+            "display/gamma": "true",
+            "display/brightness": "100",
+            "display/vignette": "true",
+            "display/vignette_strength": "100",
+            "display/color_tint": "100",
+            "display/scratches": "true",
+            "display/widescreen_hud": "auto",
+            "display/widescreen_cutscenes": "authored",
+            "display/widescreen_side_fill": "blur",
+            "display/widescreen_fov_cap": "150"
+          }
+        },
+        {
+          "label": "Original",
+          "set": {
+            "display/aspect": "4:3",
+            "display/render_scale": "1",
+            "display/filter": "smooth",
+            "display/anisotropy": "off",
+            "textures/enabled": "false",
+            "display/msaa": "2x",
+            "display/texture_mips": "true",
+            "display/vsync": "true",
+            "display/gamma": "true",
+            "display/brightness": "100",
+            "display/vignette": "true",
+            "display/vignette_strength": "100",
+            "display/color_tint": "100",
+            "display/scratches": "true",
+            "display/widescreen_hud": "auto",
+            "display/widescreen_cutscenes": "authored",
+            "display/widescreen_side_fill": "blur",
+            "display/widescreen_fov_cap": "150"
+          }
+        }
+      ],
+      "defaults": {
+        "display/aspect": "widescreen (auto)",
+        "display/render_scale": "2",
+        "display/filter": "smooth",
+        "display/msaa": "off",
+        "display/texture_mips": "false",
+        "display/anisotropy": "off",
+        "display/vsync": "true",
+        "display/gamma": "true",
+        "display/brightness": "100",
+        "display/vignette": "true",
+        "display/vignette_strength": "100",
+        "display/color_tint": "100",
+        "display/scratches": "true",
+        "display/widescreen_hud": "auto",
+        "display/widescreen_cutscenes": "authored",
+        "display/widescreen_side_fill": "blur",
+        "display/widescreen_fov_cap": "150",
+        "textures/enabled": "false"
+      }
+    },
+    {
+      "id": "skip_intro",
+      "label": "Skip intro",
+      "group": "Other settings and Mods are found in the game's launcher",
+      "help": "Skips the legal screen and the EA, THX and intro movies when the game starts. The Story credits are not skipped.",
+      "choices": [
+        {
+          "label": "Play startup movies",
+          "set": {
+            "debug/skip_intro": "false"
+          }
+        },
+        {
+          "label": "Skip startup movies",
+          "set": {
+            "debug/skip_intro": "true"
+          }
+        }
+      ],
+      "defaults": {
+        "debug/skip_intro": "false"
+      }
+    }
+  ],
+  "looks": {
+    "allowed": false,
+    "reason": "Def Jam Recompiled starts the game from its own installed copy, so a look added next to the launcher's copy would not reach the game yet."
+  }
+}
