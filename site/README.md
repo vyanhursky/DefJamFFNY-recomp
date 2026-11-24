@@ -44,6 +44,11 @@ must disclose pose or framing differences. A reference case supplies title,
 caption and `original`, `ultra`, `reference` image URLs. Host owner-selected media
 externally and record its provenance and fingerprints before publication.
 
+Each comparison renders as its own article in a scrolling gallery, with an
+independent quality pair, view, slider and Hold A/B controls. There is no subject
+selector. SVG image URLs are assigned near the viewport to avoid decoding every
+full-size capture on first load.
+
 High (3× PNG) is recommended; Medium is 2× and Ultra is 4×. Either side is
 selectable. Hold mode supports pointer, Space and Enter, returning to A on
 release, cancellation, lost capture, focus loss or a hidden page. Slider mode
@@ -53,8 +58,7 @@ and displays preparation text rather than implying a published release.
 A crop can optionally select another set of captured images through
 `views[cropName].variants`, such as a rear view. Those images retain the same
 capture dimensions and quality keys. Full-image links follow the selected view.
-Tattoo comparisons use their own atlas dimensions and explicitly identify the
-white-background artwork previews as distinct from native game captures.
+Comparison dimensions come from each capture rather than a fixed canvas.
 The data request revalidates its cache so updated media selections are visible.
 
 ## Preview

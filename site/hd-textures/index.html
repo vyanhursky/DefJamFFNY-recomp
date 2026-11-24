@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>HD Textures — Def Jam Recompiled</title>
-  <meta name="description" content="Restored Create-a-Fighter clothing, shoes and accessories. Compare Original, Medium, High and Ultra with sliders or hold-to-compare controls.">
+  <meta name="description" content="Restored Story Mode customization textures. Explore clothing comparisons at Original, Medium, High and Ultra with sliders or hold-to-compare controls.">
   <meta name="theme-color" content="#0c0b0a">
   <link rel="canonical" href="https://vyanhursky.github.io/DefJamFFNY-recomp/hd-textures/">
   <link rel="icon" href="../media/icon-64.png">
@@ -19,37 +19,44 @@
   <a class="skip" href="#main">Skip to content</a>
   <header class="nav"><div class="nav__inner">
     <a class="nav__brand" href="../"><img src="../media/icon-64.png" alt="" width="32" height="32"><span>Def Jam <b>Recompiled</b></span></a>
-    <nav class="texture-nav" aria-label="Page sections"><a href="#compare">Compare</a><a href="#quality">Choose quality</a><a href="#reference">References</a><a href="#install">Install</a></nav>
+    <nav class="texture-nav" aria-label="Page sections"><a href="#coverage">What's included</a><a href="#compare">Compare</a><a href="#quality">Choose quality</a><a href="#reference">References</a><a href="#install">Install</a></nav>
   </div></header>
   <main id="main">
     <section class="texture-hero section-wrap">
       <div><p class="kicker">Story Mode Customization</p><h1>HD <span>Textures</span></h1><p class="texture-tagline">Your fighter.<br>Restored detail.</p></div>
       <div class="hero-copy"><p>Sharper clothing, shoes and accessories for the fighter you create.</p><p>Restored fabric, stitching, embroidery and logos bring the original customization designs into focus. The same reviewed artwork is available in three PNG quality levels.</p><p>Choose <strong>High · 3×</strong> for the recommended balance of detail and download size. Medium · 2× and Ultra · 4× use the same restorations at different resolutions.</p><a class="btn btn--primary" href="#compare">Compare the detail</a><p class="release-status" id="release-status">Release preparation · final screenshots and downloads are being selected.</p></div>
     </section>
+    <section class="section-wrap texture-section" id="coverage">
+      <p class="kicker">Story Mode Customization</p><h2>What's <span>included</span></h2>
+      <p>This texture pack contains 4961 upscaled customization textures for Story Mode characters - clothes, tattoos, jewelry, and hair. All 5000 textures were meticulously reviewed to stay faithful to the original game while restoring lost detail to the 2000's era fashion.</p>
+      <p>This work was done with AI-assisted restoration - OpenAI Imagegen, source-aligned assembly and repeated manual review. The original geometry, outfit construction and gameplay remain unchanged.</p>
+    </section>
     <section class="section-wrap texture-section" id="compare">
-      <p class="kicker">See the difference</p><h2>Choose both sides.<br><span>Make your own comparison.</span></h2>
-      <p>Select Original, Medium, High or Ultra for either side. Drag the slider, or switch to Hold A/B to reveal the other image while you press.</p>
+      <p class="kicker">See the difference</p><h2>Explore the clothing.<br><span>Compare every detail.</span></h2>
+      <p>Scroll through each clothing item below. Choose Original, Medium, High or Ultra for either side of its comparison, then drag the slider or press and hold to toggle A/B.</p>
       <p id="empty-comparisons">Comparison captures are being prepared for this release.</p>
-      <div id="comparison" hidden>
-        <div class="comparison-toolbar">
-          <label>Subject<select id="subject"></select></label>
-          <label>A<select id="quality-a"><option value="original">Original · 1×</option><option value="medium">Medium · 2×</option><option value="high">High · 3× · Recommended</option><option value="ultra">Ultra · 4×</option></select></label>
-          <label>B<select id="quality-b"><option value="high">High · 3× · Recommended</option><option value="original">Original · 1×</option><option value="medium">Medium · 2×</option><option value="ultra">Ultra · 4×</option></select></label>
-          <label>Compare with<select id="mode"><option value="slider">Image slider</option><option value="hold">Hold A/B</option></select></label>
-          <label>View<select id="crop"><option value="jacket">Jacket detail</option><option value="patches">Patch close-up</option><option value="full">Full store screenshot</option></select></label>
-          <button id="swap" type="button">Swap A / B</button>
-        </div>
-        <h3 id="subject-title"></h3>
-        <div class="comparison-stage" id="stage" style="--split:50%;aspect-ratio:880/830">
-          <svg class="comparison-image" id="image-b" viewBox="930 320 880 830" role="img" aria-label="Comparison B"><image width="1920" height="1440"></image></svg>
-          <svg class="comparison-image comparison-before" id="image-a" viewBox="930 320 880 830" role="img" aria-label="Comparison A"><image width="1920" height="1440"></image></svg>
-          <span class="comparison-tag tag-a" id="tag-a">Original</span><span class="comparison-tag tag-b" id="tag-b">High · 3×</span>
-          <div class="comparison-divider" id="divider" aria-hidden="true"><span>↔</span></div>
-          <input type="range" id="split" min="0" max="100" value="50" aria-label="A and B image split" aria-valuetext="50 percent A, 50 percent B">
-        </div>
-        <div class="comparison-actions"><button id="hold" type="button" aria-pressed="false" hidden>Hold to show B</button><p id="comparison-help">Drag the line. Arrow keys, Home and End work when the slider is focused.</p><a id="full-a" target="_blank" rel="noopener">Open full A</a><a id="full-b" target="_blank" rel="noopener">Open full B</a></div>
-        <p class="capture-note" id="capture-note"></p><p id="image-error" role="status" hidden>One image could not load. Use the full-image links above.</p>
-      </div>
+      <div id="comparison-gallery"></div>
+      <template id="comparison-template">
+        <article class="comparison-case">
+          <h3 data-control="title"></h3>
+          <div class="comparison-toolbar">
+            <label>A<select data-control="quality-a"><option value="original">Original · 1×</option><option value="medium">Medium · 2×</option><option value="high">High · 3× · Recommended</option><option value="ultra">Ultra · 4×</option></select></label>
+            <label>B<select data-control="quality-b"><option value="high">High · 3× · Recommended</option><option value="original">Original · 1×</option><option value="medium">Medium · 2×</option><option value="ultra">Ultra · 4×</option></select></label>
+            <label>Compare with<select data-control="mode"><option value="slider">Image slider</option><option value="hold">Hold A/B</option></select></label>
+            <label>View<select data-control="crop"></select></label>
+            <button data-control="swap" type="button">Swap A / B</button>
+          </div>
+          <div class="comparison-stage" data-control="stage" style="--split:50%;aspect-ratio:1">
+            <svg class="comparison-image" data-control="image-b" role="img" aria-label="Comparison B"><image></image></svg>
+            <svg class="comparison-image comparison-before" data-control="image-a" role="img" aria-label="Comparison A"><image></image></svg>
+            <span class="comparison-tag tag-a" data-control="tag-a">Original</span><span class="comparison-tag tag-b" data-control="tag-b">High · 3×</span>
+            <div class="comparison-divider" data-control="divider" aria-hidden="true"><span>↔</span></div>
+            <input type="range" class="comparison-split" data-control="split" min="0" max="100" value="50" aria-label="A and B image split" aria-valuetext="50 percent A, 50 percent B">
+          </div>
+          <div class="comparison-actions"><button data-control="hold" type="button" aria-pressed="false" hidden>Hold to show B</button><p data-control="help">Drag the line. Arrow keys, Home and End work when the slider is focused.</p><a data-control="full-a" target="_blank" rel="noopener">Open full A</a><a data-control="full-b" target="_blank" rel="noopener">Open full B</a></div>
+          <p class="capture-note" data-control="caption"></p><p class="comparison-error" data-control="error" role="status" hidden>One image could not load. Use the full-image links above.</p>
+        </article>
+      </template>
       <noscript><p>The interactive controls need JavaScript. The release includes static comparison screenshots too.</p></noscript>
     </section>
     <section class="section-wrap texture-section" id="quality">
@@ -63,7 +70,6 @@
     <section class="section-wrap texture-section" id="reference">
       <p class="kicker">Reference-guided restoration</p><h2>From the original.<br><span>With the details restored.</span></h2><p>Real clothing photographs helped identify logos, lettering and patch construction. These are references for the artwork, not replacements for the game's garment shapes.</p><div id="reference-cards"></div><p id="empty-references">Reference showcases are being selected for this release.</p>
     </section>
-    <section class="section-wrap texture-section" id="coverage"><p class="kicker">Create-a-Fighter coverage</p><h2>What's <span>included</span></h2><p>Built from 4,961 approved or accepted customization source maps: clothing and footwear, headwear and gloves, wristbands and eyewear, jewelry, tattoos, hair and facial hair, plus supporting maps.</p><p>Some companion and facial-feature maps retain the accepted Faithful treatment. Twenty-seven defaults and controls remain unchanged. This is a customization pack; fixed-roster fighters, portraits and menu artwork have their own independent packs.</p><p>AI-assisted restoration with OpenAI ImageGen, source-aligned assembly and repeated manual review. The original geometry, outfit construction and gameplay remain unchanged.</p></section>
     <section class="section-wrap texture-section" id="install"><p class="kicker">Get started</p><h2>Install <span>one tier.</span></h2><h3>Def Jam Recompiled launcher</h3><ol><li>Open <strong>Mods → Textures → Browse</strong> and refresh the catalogue.</li><li>Choose <strong>HD Textures - High</strong>, or choose Medium or Ultra instead.</li><li>Install and enable that tier. Disable another copy or quality level of this pack.</li><li>Give it priority over a local Faithful/Recomp HD pack, then restart the game.</li></ol><h3>Manual Thunderstore installation</h3><ol><li>Download one quality level and open its ZIP.</li><li>Extract the included pack folder into <code>mods</code> inside your Def Jam Recompiled data folder. Keep <code>manifest.ini</code> and its texture folders together.</li><li>Refresh local mods, enable that tier and restart. Manual local copies do not receive managed catalogue updates.</li></ol><p>This download targets Def Jam Recompiled with the matching customization texture support. Other ports and emulators need separate format and identifier validation. Installation links and exact supported versions will be finalized with the release.</p></section>
     <section class="section-wrap texture-section"><h2>Credits and <span>licence</span></h2><p>By Vlad Yanhursky / vyanhursky, with AI-assisted texture restoration.</p><p>CC BY-NC 4.0 applies to original, legally protectable contributions by Vlad Yanhursky. Original game artwork, brand marks, reference photos and other third-party rights are excluded. See the bundled licence notices for the exact terms.</p></section>
   </main><footer class="section-wrap texture-footer"><a href="../hd-fighters/">HD Fighters</a><a href="../hd-fighter-portraits/">HD Fighter Portraits</a><a href="../hd-menus-ui/">HD Menus and UI</a><a href="https://github.com/vyanhursky/DefJamFFNY-recomp">Def Jam Recompiled</a></footer>
