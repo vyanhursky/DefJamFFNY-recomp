@@ -1142,7 +1142,7 @@ class Engine:
         previous = self.install / 'installed.json'
         old = json.loads(previous.read_text()) if previous.exists() else {}
         receipt = {key: self.manifest[key] for key in ('version', 'source_commit', 'toolkit_commit')}
-        toolchain_note = self.version_root / 'toolchain.txt'
+        toolchain_note = self.source.parent / 'toolchain.txt'
         if toolchain_note.is_file():
             receipt['build_toolchain'] = toolchain_note.read_text(encoding='utf-8')
         if getattr(self, 'windows_bundled', False):

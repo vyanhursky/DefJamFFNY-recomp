@@ -105,6 +105,8 @@ it must be identified before scheduling additional qualification.
 | 2026-11-23 | First production integration and focused checks | `test_windows_bundled_setup`, engine, app contract and source release: 143 passed / 9 skipped; update/app/handoff/Linux/status: 112 passed / 21 skipped. No native host compilation |
 | 2026-11-23 | Actual archive staging | `staged-tools.json` in private qualification logs records four verified upstream inputs, 6,836 files / 347,978,721 bytes and fingerprint `4c9f16de0918349ba6fc5f6cfa552d37f0af61ae10858fd8d870a66dc4192887`. This is packaging evidence only |
 | 2026-11-23 | Media acquisition | Win11 official download resumed with byte-range support after replacing its insufficient transfer deadline; prior stopped attempt retained. Microsoft-published Win10 LTSC evaluation link also responds (build 19044.1288); OS checks remain pending |
+| 2026-11-23 | First hosted integration run `45320730422`, candidate `d88fd3b` | Setup unit jobs failed because the new activation metadata referenced `version_root`, which the existing activation fixtures omit. Changed it to the equivalent `source.parent`; the complete Windows setup unit list then passed locally: 249 passed / 34 skipped. Hosted rerun pending; first failure retained |
+| 2026-11-23 | Staged tool import and ZIP inventory | Tools-only ZIP: 88,028,091 bytes, SHA-256 `f8d00a627fd292f96e4288d64d283087c352b45980672afa27de1809189b3d7c`. PE imports resolve to four included LLVM DLLs plus candidate Windows system DLLs; clean guest runtime closure remains pending |
 
 ## Qualification tools and evidence
 

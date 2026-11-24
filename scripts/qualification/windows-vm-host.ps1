@@ -65,6 +65,9 @@ function Execute-Request($request) {
             $iso = Private-Path ([string]$request.iso)
             $answer = Private-Path ([string]$request.answer_iso)
             if (-not (Test-Path -LiteralPath $iso) -or -not (Test-Path -LiteralPath $answer)) { throw 'Missing installation media' }
+            if ([IO.Path]::GetExtension($iso) -ne '.iso' -or [IO.Path]::GetExtension($answer) -ne '.iso') { throw 'Expected ISO media' }
+            if ([string]$request.iso_sha256 -notmatch '^[a-fA-F0-9]{64}$' -or
+                (Get-FileHash -LiteralPath $iso -Algorithm SHA256).Hash -ne $request.iso_sha256) { throw 'Windows ISO does not match the expected published SHA256' }
             if (Get-VMDvdDrive -VMName $name) { throw 'Media already attached; inspect before replacing it' }
             $dvd = Add-VMDvdDrive -VMName $name -Path $iso -Passthru
             Add-VMDvdDrive -VMName $name -Path $answer | Out-Null
@@ -72,10 +75,23 @@ function Execute-Request($request) {
             return @{vm=$name;media_attached=$true}
         }
         'start' {
+            if ($vm.State -ne 'Off') { throw 'Guest must be off before starting it' }
             $others = @(Get-VM | Where-Object { $_.Name -like 'DefJam-Toolchain-*' -and $_.Name -ne $name -and $_.State -ne 'Off' })
             if ($others.Count) { throw 'Only one qualification VM may run at a time' }
             if ((Get-CimInstance Win32_OperatingSystem).FreePhysicalMemory -lt 12MB) { throw 'Require at least 12 GiB free host RAM before starting a guest' }
+            if ($request.boot_installer -eq $true -and @(Get-VMDvdDrive -VMName $name).Count -ne 2) { throw 'Installer boot requires both private ISOs' }
             Start-VM -VM $vm | Out-Null
+            if ($request.boot_installer -eq $true) {
+                # Only a space during this fresh DVD boot, never arbitrary text
+                # or keys in a host window. Microsoft Msvm_Keyboard TypeKey API.
+                $keyboard = Get-CimInstance -Namespace root/virtualization/v2 -ClassName Msvm_Keyboard -Filter "SystemName='$($vm.Id)'"
+                if (-not $keyboard) { throw 'Owned guest keyboard was not found' }
+                foreach ($attempt in 1..8) {
+                    Start-Sleep -Seconds 1
+                    $key = Invoke-CimMethod -InputObject $keyboard -MethodName TypeKey -Arguments @{keyCode=[uint32]32}
+                    if ($key.ReturnValue -ne 0) { throw 'Guest DVD boot key failed' }
+                }
+            }
             return @{vm=$name;state=[string](Get-VM -Name $name).State}
         }
         'stop' { Stop-VM -VM $vm -TurnOff -Force; return @{vm=$name;state='Off';forced=$true} }
@@ -110,7 +126,8 @@ function Execute-Request($request) {
         }
         'copy' {
             $source = Private-Path ([string]$request.source)
-            if ([string]$request.destination -notmatch '^C:\\DJQual\\') { throw 'Guest destination must be under C:\DJQual' }
+            if ([string]$request.destination -notmatch '^C:\\DJQual\\' -or
+                ([string]$request.destination).Substring(3) -match '(^|[\\/])\.\.($|[\\/])|:') { throw 'Guest destination must be under C:\DJQual' }
             Copy-VMFile -VMName $name -SourcePath $source -DestinationPath $request.destination -FileSource Host -CreateFullPath
             return @{vm=$name;copied=$true}
         }
