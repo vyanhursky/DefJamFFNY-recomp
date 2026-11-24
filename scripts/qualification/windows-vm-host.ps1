@@ -38,7 +38,7 @@ function Guest-Credential {
 function Execute-Request($request) {
     $name = [string]$request.vm
     if ($request.operation -eq 'inspect') {
-        return @{ switches=@(Get-VMSwitch | Select-Object Name,SwitchType); vms=@(Get-VM | Where-Object Name -like 'DefJam-Toolchain-*' | Select-Object Name,State,ProcessorCount,MemoryStartup) }
+        return @{ switches=@(Get-VMSwitch | Select-Object Name,SwitchType); vms=@(Get-VM | Where-Object Name -like 'DefJam-Toolchain-*' | Select-Object Name,State,ProcessorCount,MemoryStartup,Uptime,Heartbeat) }
     }
     if ($name -notin 'DefJam-Toolchain-Win11','DefJam-Toolchain-Win10') { throw 'Unexpected VM name' }
     if ($request.operation -eq 'create') {
@@ -95,6 +95,14 @@ function Execute-Request($request) {
             return @{vm=$name;state=[string](Get-VM -Name $name).State}
         }
         'stop' { Stop-VM -VM $vm -TurnOff -Force; return @{vm=$name;state='Off';forced=$true} }
+        'network' {
+            if ($request.connected -eq $true) {
+                Connect-VMNetworkAdapter -VMName $name -SwitchName 'Default Switch'
+            } elseif ($request.connected -eq $false) {
+                Disconnect-VMNetworkAdapter -VMName $name
+            } else { throw 'Network request requires a boolean connected field' }
+            return @{vm=$name;network=@(Get-VMNetworkAdapter -VMName $name | Select-Object Name,SwitchName,Connected)}
+        }
         'checkpoint' {
             if ([string]$request.label -notmatch '^[A-Za-z0-9_-]{1,60}$') { throw 'Invalid checkpoint label' }
             $snapshot = Checkpoint-VM -VM $vm -SnapshotName $request.label -Passthru
@@ -114,6 +122,11 @@ function Execute-Request($request) {
             $timeout = [Math]::Min(3600, [Math]::Max(30, [int]$request.timeout_seconds))
             $job = Invoke-Command -VMName $name -Credential (Guest-Credential) -FilePath $script -ArgumentList @($request.arguments) -AsJob
             if (-not (Wait-Job -Job $job -Timeout $timeout)) {
+                if ($request.readiness_probe -eq $true) {
+                    Stop-Job -Job $job
+                    Remove-Job -Job $job -Force
+                    return @{ready=$false;reason='PowerShell Direct is not ready yet'}
+                }
                 Stop-VM -VM $vm -TurnOff -Force
                 Stop-Job -Job $job
                 throw 'Guest command timed out; the disposable guest was powered off'

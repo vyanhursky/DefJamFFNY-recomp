@@ -61,10 +61,20 @@ def make_fixture(base, target, version, contract):
         name=preset, generator='Ninja', binaryDir='${sourceDir}/build/' + preset,
         cacheVariables={'CMAKE_BUILD_TYPE': 'RelWithDebInfo'})], buildPresets=[dict(name=preset, configurePreset=preset)])))
     (source / 'CMakeLists.txt').write_text('cmake_minimum_required(VERSION 3.20)\nproject(setup_marker C)\n'
-        'add_executable(defjam_recomp marker.c)\n')
+        'add_executable(defjam_recomp marker.c)\n'
+        'file(TO_CMAKE_PATH "$ENV{DJQUAL_SIGNAL}" _signal)\n'
+        'if("$ENV{DJQUAL_PHASE}" STREQUAL "configure")\n'
+        ' file(WRITE "${_signal}" "configure")\n'
+        ' execute_process(COMMAND "${CMAKE_COMMAND}" -E sleep 30)\n'
+        'elseif("$ENV{DJQUAL_PHASE}" STREQUAL "compile")\n'
+        ' add_custom_target(qualification_pause COMMAND "${CMAKE_COMMAND}" -E touch "${_signal}"\n'
+        '   COMMAND "${CMAKE_COMMAND}" -E sleep 30)\n'
+        ' add_dependencies(defjam_recomp qualification_pause)\n'
+        'endif()\n')
     (source / 'marker.c').write_text(
         '#include <windows.h>\n#include <stdio.h>\n#include <stdlib.h>\n'
-        'int main(void) { char path[4096]; const char *data=getenv("DEFJAM_DATA"); if(!data)return 2;\n'
+        'int main(void) { if(getenv("DJQUAL_SLEEP")){Sleep(60000);return 0;}\n'
+        ' char path[4096]; const char *data=getenv("DEFJAM_DATA"); if(!data)return 2;\n'
         ' snprintf(path,sizeof(path),"%s/launcher-marker.txt",data); FILE *f=fopen(path,"w"); if(!f)return 3;\n'
         ' fprintf(f,"' + version + '\\n"); fclose(f); return 0; }\n', encoding='utf-8')
     manifest = json.loads((base / 'manifest.json').read_text(encoding='utf-8'))
@@ -163,6 +173,89 @@ def main():
         assert (app / 'installed.json').read_bytes() == before
     finally:
         target.write_bytes(original)
+    # Signal from the real CMake process, then cancel the real engine while
+    # configure/compile is active. The engine must stop its own child tree.
+    for phase in ('configure', 'compile'):
+        signal = work / ('entered-' + phase)
+        cancel = work / ('cancel-' + phase)
+        env = os.environ.copy()
+        env.update(DJQUAL_PHASE=phase, DJQUAL_SIGNAL=str(signal))
+        with (work / ('cancel-' + phase + '.out')).open('w', encoding='utf-8') as out:
+            child = subprocess.Popen(command(a, 'rebuild') + ['--cancel-file', str(cancel)],
+                                     stdout=out, stderr=subprocess.STDOUT, env=env)
+            try:
+                deadline = time.monotonic() + 120
+                while not signal.exists() and child.poll() is None and time.monotonic() < deadline:
+                    time.sleep(0.1)
+                assert signal.exists(), 'Did not reach ' + phase
+                cancel.touch()
+                code = child.wait(timeout=30)
+                assert code == 6, (phase, code)
+            finally:
+                if child.poll() is None:
+                    subprocess.run(['taskkill', '/PID', str(child.pid), '/T', '/F'], capture_output=True)
+                    child.wait(timeout=15)
+        assert (app / 'installed.json').read_bytes() == before
+        unchanged()
+        reports.append(dict(case='cancel-during-' + phase, exit_code=6, preserved_receipt=True))
+        save()
+    # A real running executable at the installed path is caught before staging.
+    receipt = json.loads((app / 'installed.json').read_text())
+    env = os.environ.copy()
+    env['DJQUAL_SLEEP'] = '1'
+    marker = subprocess.Popen([receipt['executable']], env=env)
+    try:
+        assert marker.poll() is None
+        run('running-installed-program', command(a, 'repair'), expected=5)
+        assert (app / 'installed.json').read_bytes() == before
+    finally:
+        if marker.poll() is None:
+            marker.terminate()
+        marker.wait(timeout=15)
+    # Hard exits leave real on-disk journals, then recovery restores exact bytes.
+    protected_install = {name: inventory_file(app / name) for name in
+                         ('installed.json', 'installed.ini', 'DefJamLauncher.exe')}
+    wrapper = work / 'activation-exit.py'
+    wrapper.write_text("import importlib.util,os,sys\n"
+        "spec=importlib.util.spec_from_file_location('fault_engine',sys.argv[1]);e=importlib.util.module_from_spec(spec);spec.loader.exec_module(e)\n"
+        "e.transaction.HOOK=lambda point:os._exit(91) if point==sys.argv[2] else None\n"
+        "sys.exit(e.main(sys.argv[3:]))\n", encoding='utf-8')
+    recover = "import importlib.util,sys;spec=importlib.util.spec_from_file_location('recovery',sys.argv[1]);e=importlib.util.module_from_spec(spec);spec.loader.exec_module(e);e.transaction.Activation(sys.argv[2],sys.argv[3]).recover()"
+    for point in ('prepared', 'launcher', 'receipt-json'):
+        ordinary = command(a, 'rebuild')
+        run('hard-exit-' + point, [ordinary[0], '-B', str(wrapper), str(a / 'engine/engine.py'),
+            point, *ordinary[3:]], expected=91)
+        assert (app / '.setup-transaction').is_dir()
+        subprocess.run([ordinary[0], '-B', '-c', recover, str(a / 'engine/engine.py'), str(app), str(data)],
+                       check=True, timeout=30, stdout=subprocess.DEVNULL)
+        assert {name: inventory_file(app / name) for name in protected_install} == protected_install
+        unchanged()
+        reports[-1]['recovered_exact_install'] = True
+        save()
+    # Hold the old launcher open with read sharing but without delete/write
+    # sharing, the actual Windows file-lock condition an updater must survive.
+    import ctypes
+    from ctypes import wintypes
+    kernel = ctypes.WinDLL('kernel32', use_last_error=True)
+    kernel.CreateFileW.argtypes = [wintypes.LPCWSTR, wintypes.DWORD, wintypes.DWORD, ctypes.c_void_p,
+                                  wintypes.DWORD, wintypes.DWORD, wintypes.HANDLE]
+    kernel.CreateFileW.restype = wintypes.HANDLE
+    kernel.CloseHandle.argtypes = [wintypes.HANDLE]
+    kernel.CloseHandle.restype = wintypes.BOOL
+    handle = kernel.CreateFileW(str(app / 'DefJamLauncher.exe'), 0x80000000, 1, None, 3, 0, None)
+    if handle == ctypes.c_void_p(-1).value:
+        raise ctypes.WinError(ctypes.get_last_error())
+    try:
+        run('locked-launcher', command(a, 'rebuild'), expected=4)
+    finally:
+        kernel.CloseHandle(handle)
+    ordinary = command(a, 'rebuild')
+    subprocess.run([ordinary[0], '-B', '-c', recover, str(a / 'engine/engine.py'), str(app), str(data)],
+                   check=True, timeout=30, stdout=subprocess.DEVNULL)
+    assert {name: inventory_file(app / name) for name in protected_install} == protected_install
+    unchanged()
+    reports[-1]['recovered_exact_install'] = True
+    save()
     print(json.dumps(dict(**metadata, results=reports), indent=2))
 
 

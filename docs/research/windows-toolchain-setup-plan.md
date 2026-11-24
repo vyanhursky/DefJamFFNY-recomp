@@ -28,7 +28,7 @@ or game-free probe does not count as a real clean-client installation.
 |---|---|---|
 | GitHub hosted Windows Server 2025 | Packaging, compiler, unit and failure-path tests using game-free fixtures | Available; developer tools preinstalled, so not a clean-client gate |
 | Local clean Windows 11 guest | First install without VS/SDK, standard account, private real-game checks | Owned Gen2 VM created, powered off; official evaluation ISO downloading |
-| Local clean Windows 10 guest | Supported older-client compatibility and installation | Official Microsoft LTSC 2021 evaluation link responds; media download/install pending |
+| Local clean Windows 10 guest | Supported older-client compatibility and installation | LTSC 2021 evaluation ISO downloaded and matches Microsoft's published SHA-256; guest created/off, OS installation pending Windows elevation |
 
 The owner explicitly authorized local VMs and, if necessary, uninstalling host
 MSVC on 2026-11-23. Prefer clean guests and preserve the host tools. Start only
@@ -65,8 +65,8 @@ or game qualification.
 | I02 | Stage the pinned Windows toolchain and notices | Verified/pruned inventory; static runtime closure; measured ZIP/expanded/peak disk size; no game bytes | In progress: actual pinned archives staged successfully; 6,836 files / 347,978,721 bytes including the toolchain CMake file and Ninja notice; final ZIP/import/peak-disk audit pending |
 | I03 | Select bundled tools in engine and app preflight | New payload builds without VS detection/bootstrap; old payloads retain their compatible path; explicit host choice remains possible | In progress: engine, preflight and explicit asset allowlists implemented; contract tests pass; packaged native and clean-guest execution pending |
 | I04 | Record compiler identity and protect caches | Backend, executable/tool inventory and relevant flags identify build trees; no MSVC object reuse in LLVM builds | In progress: tools/CMake fingerprint, per-version note and receipt metadata implemented; synthetic compiler-switch test discards objects while preserving generated sources; native evidence pending |
-| I05 | Integrate staging, repair, update and rollback | Failed/cancelled attempts preserve the active install and matching toolchain/version metadata | Planned |
-| I06 | Add hosted contract and failure-path coverage | Tests exercise production paths with verified game-free fixtures and retain structured evidence | In progress: 255 focused tests passed / 30 platform skips across two suites; hosted real-engine native fixture added, not yet run |
+| I05 | Integrate staging, repair, update and rollback | Failed/cancelled attempts preserve the active install and matching toolchain/version metadata | In progress: real-engine hosted native marker install/update/downgrade/repair/rebuild, early cancellation and corruption tests pass; private full-data and mid-stage failure scenarios pending |
+| I06 | Add hosted contract and failure-path coverage | Tests exercise production paths with verified game-free fixtures and retain structured evidence | In progress: CI `45321137083` and spike workflow `45321137038` pass; 36/36 PR checks green at head `4520c26`, tested merge `b123e61`. Native marker fixture passes seven cases. Additional failure/path coverage still pending |
 | I07 | Prepare private clean guests | Official media, no VS/SDK, administrator and standard accounts, snapshots and bounded resources | In progress: scoped elevated worker verified; Win11 VM created with 2 CPUs, 6 GB static RAM, dynamic 64 GB disk, Secure Boot/vTPM. Private DPAPI credentials and unattended answer ISO generated; OS installation pending |
 
 ## Required scenario matrix
@@ -82,8 +82,8 @@ or game qualification.
 | W07 | Offline repeat and retry | After payload/dependencies are available, a fresh build/repair needs no network; interrupted downloads resume or retry safely | Hosted fixtures and guest | Planned |
 | W08 | Corrupt or missing package/cache file | Checksum/inventory failure precedes executing affected tools; clear repair/retry result, preserved active install | Hosted fixtures and guest | Planned |
 | W09 | Low disk space | Preflight or bounded stage failure preserves data and working install; include temporary/cache/retained-version space | Hosted fixtures and guest | Planned |
-| W10 | Cancel and interrupted build | Cancel during extraction/configure/compile/activation; child processes are bounded, locks recover, active install/data remain intact | Hosted fixtures and guest | Planned |
-| W11 | Game running or output locked | Update/repair fails or defers cleanly, preserving the existing executable and data | Guest only | Planned |
+| W10 | Cancel and interrupted build | Cancel during extraction/configure/compile/activation; child processes are bounded, locks recover, active install/data remain intact | Hosted fixtures and guest | In progress: hosted early cancel passes; real configure/compile cancellation and hard activation exits added to native fixture, execution pending |
+| W11 | Game running or output locked | Update/repair fails or defers cleanly, preserving the existing executable and data | Hosted native marker, then guest real game | In progress: running-program and actual Windows file-lock cases added to hosted fixture; execution pending |
 | W12 | Packaged-build functional smoke | Log/state assertions establish startup, fight entry, input/audio activity and exact guarded save restoration; no visual comparisons | Private guest with owner's dump | Blocked on guest, payload and real build |
 | W13 | Packaged-build diagnostics | Matching PDB/map, named guest/native stacks, TLS register inspection and controlled disposable-child fault reporting | Private guest | Planned; earlier spike diagnostics are background evidence |
 | W14 | Release inventory and provenance | Final app payload passes explicit allowlists, notice inventory, hashes, game-free checks and import audits; measure sizes | Hosted runner | Planned |
@@ -107,6 +107,8 @@ it must be identified before scheduling additional qualification.
 | 2026-11-23 | Media acquisition | Win11 official download resumed with byte-range support after replacing its insufficient transfer deadline; prior stopped attempt retained. Microsoft-published Win10 LTSC evaluation link also responds (build 19044.1288); OS checks remain pending |
 | 2026-11-23 | First hosted integration run `45320730422`, candidate `d88fd3b` | Setup unit jobs failed because the new activation metadata referenced `version_root`, which the existing activation fixtures omit. Changed it to the equivalent `source.parent`; the complete Windows setup unit list then passed locally: 249 passed / 34 skipped. Hosted rerun pending; first failure retained |
 | 2026-11-23 | Staged tool import and ZIP inventory | Tools-only ZIP: 88,028,091 bytes, SHA-256 `f8d00a627fd292f96e4288d64d283087c352b45980672afa27de1809189b3d7c`. PE imports resolve to four included LLVM DLLs plus candidate Windows system DLLs; clean guest runtime closure remains pending |
+| 2026-11-23 | Corrected hosted candidate passes | CI `45321137083`, spike `45321137038`, 36/36 checks green. Native marker install/update/downgrade/repair/rebuild passed in 12.76/13.01/12.86/12.91/13.01 s; early cancellation returned 6 and corruption returned 2, preserving receipts/protected data. Windows Server 2025 build 26100; compiler fingerprint unchanged; actual packaged source `b123e61f8bf280913da48df510a0ac58ad7c6a7a` is GitHub's merge of main `3b60764` and head `4520c26` |
+| 2026-11-23 | Win10 media verified | LTSC 2021 English x64 ISO SHA-256 `e4ab2e3535be5748252a8d5d57539a6e59be8d6726345ee10e7afd2cb89fefb5` matches Microsoft's published evaluation hash PDF; fresh guest remains off pending manual Windows elevation |
 
 ## Qualification tools and evidence
 
@@ -134,6 +136,15 @@ early cancellation and corrupt-payload rejection, checking protected data,
 compiler identity and receipt preservation. CI retains JSON and text logs
 for seven days. It is excluded from the client payload with the host VM
 helpers. These fixtures do not replace W01/W02 or private real-game gates.
+
+The expanded fixture also signals from the actual CMake process before
+cancelling configure/compile, launches the installed marker to test running
+process refusal, holds an actual Windows file handle without write/delete
+sharing, and exits during three activation checkpoints before verifying
+byte-exact recovery. Those additional cases are pending execution until a
+new hosted result is recorded. `windows-guest.ps1` uses PowerShell Direct
+for guest inventory and limited interactive tasks under the standard test
+account; each task records its account, elevation status, times and exit.
 
 Official guest/media references: [PowerShell Direct](https://learn.microsoft.com/en-us/windows-server/virtualization/hyper-v/powershell-direct),
 [Windows 11 evaluation media](https://www.microsoft.com/en-us/evalcenter/download-windows-11-enterprise),

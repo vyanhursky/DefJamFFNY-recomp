@@ -89,6 +89,8 @@ def inspect_payload(archive):
                 if not manifest.get('windows_toolchain') or not engine.windows_contract().allowed(name):
                     raise ValueError('Unexpected setup component: ' + name)
         # Probe the actual embedded runtime without generating new payload files.
+        if manifest.get('windows_toolchain'):
+            check_windows_tool_imports(folder)
         if manifest['platform'] == 'linux-x64':
             if sys.platform.startswith('linux'):
                 import subprocess
@@ -229,6 +231,27 @@ def pe_imports(data):
         names.append(data[start:data.index(b'\0', start)].decode('ascii').lower())
         at += 20
     return names
+
+
+WINDOWS_TOOL_SYSTEM_DLLS = {
+    'advapi32.dll', 'bcrypt.dll', 'crypt32.dll', 'dbghelp.dll', 'kernel32.dll', 'ntdll.dll',
+    'ole32.dll', 'oleaut32.dll', 'shell32.dll', 'user32.dll', 'version.dll', 'winhttp.dll', 'ws2_32.dll',
+}
+WINDOWS_TOOL_DLLS = {'libllvm-23.dll', 'libclang-cpp.dll', 'libc++.dll', 'libunwind.dll'}
+
+
+def check_windows_tool_imports(folder):
+    """Compiler tools may load their four included DLLs or Windows' libraries;
+    never a developer machine's VC runtime/SDK or an unshipped library."""
+    binaries = [p for p in (folder / 'tools').rglob('*') if p.suffix.lower() in ('.exe', '.dll')]
+    included = {p.name.lower() for p in (folder / 'tools/llvm-mingw/bin').glob('*.dll') if p.is_file()}
+    for path in binaries:
+        for dll in pe_imports(path.read_bytes()):
+            if dll in WINDOWS_TOOL_DLLS:
+                if dll not in included:
+                    raise ValueError('Bundled Windows tool dependency is missing: ' + dll)
+            elif dll not in WINDOWS_TOOL_SYSTEM_DLLS and not dll.startswith(('api-ms-win-', 'ext-ms-win-')):
+                raise ValueError('Bundled Windows tool loads an unapproved library: ' + dll)
 
 
 def inspect_app_windows(program, archive):

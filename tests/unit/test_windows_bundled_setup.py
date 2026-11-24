@@ -158,3 +158,26 @@ def test_client_payload_excludes_host_vm_orchestration():
     package = load('bundled_setup_package', ROOT / 'scripts/package-setup.py')
     assert not package.source_allowed('scripts/qualification/windows-vm-host.ps1')
     assert not package.source_allowed('scripts/qualification/windows-vm-answer.py')
+
+
+@pytest.mark.parametrize('dll,accepted', [('kernel32.dll', True), ('api-ms-win-crt-runtime-l1-1-0.dll', True),
+    ('vcruntime140.dll', False), ('msvcp140.dll', False), ('unshipped.dll', False), ('libllvm-23.dll', False)])
+def test_tool_import_audit_rejects_external_runtimes_and_missing_bundled_dlls(tmp_path, monkeypatch, dll, accepted):
+    assets = load('bundled_setup_assets', ROOT / 'scripts/check-setup-assets.py')
+    (tmp_path / 'tools').mkdir()
+    (tmp_path / 'tools/tool.exe').write_bytes(b'synthetic PE input')
+    monkeypatch.setattr(assets, 'pe_imports', lambda data: [dll])
+    if accepted:
+        assets.check_windows_tool_imports(tmp_path)
+    else:
+        with pytest.raises(ValueError):
+            assets.check_windows_tool_imports(tmp_path)
+
+
+def test_tool_import_audit_accepts_the_included_dll_with_original_filename_case(tmp_path, monkeypatch):
+    assets = load('bundled_setup_assets_case', ROOT / 'scripts/check-setup-assets.py')
+    folder = tmp_path / 'tools/llvm-mingw/bin'
+    folder.mkdir(parents=True)
+    (folder / 'libLLVM-23.dll').write_bytes(b'synthetic PE input')
+    monkeypatch.setattr(assets, 'pe_imports', lambda data: ['libllvm-23.dll'])
+    assets.check_windows_tool_imports(tmp_path)
