@@ -7,6 +7,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Discord](https://img.shields.io/badge/Discord-Join%20the%20community-5865F2?logo=discord&logoColor=white)](https://discord.gg/xNvBs23ZBw)
 
+<a href="https://recomplauncher.com/game/defjamffny-recomp"><picture><source media="(prefers-color-scheme: dark)" srcset="https://recomplauncher.com/assets/press/launcher/badge-light.svg"><img alt="Get it on RecompLauncher" src="https://recomplauncher.com/assets/press/launcher/badge-dark.svg" height="48"></picture></a>
+
 Bring **Def Jam: Fight for NY** to Windows, macOS and Linux, including the Steam Deck.
 This unofficial native port recompiles the original Xbox game for your computer,
 with higher rendering resolution, modern controller support, extensive mod support, and other PC-specific enhancements.
