@@ -17,8 +17,10 @@ preview build.
    Data must not be inside the install folder. Keep 12 GiB build headroom plus
    space for the copied dump and compiler.
 3. Choose **Create a desktop shortcut** if wanted. Clearing it keeps the
-   Start-menu shortcut. Enable **Install missing Microsoft Build Tools** only
-   to permit Microsoft's installer to request consent/UAC for missing tools.
+   Start-menu shortcut. Historical payloads offer **Install missing Microsoft
+   Build Tools** to permit Microsoft's installer to request consent/UAC. New
+   bundled-compiler payloads include LLVM-MinGW, CMake and Ninja and need no
+   Visual Studio or Windows SDK. Manual source builds below still use MSVC.
    To generate faithful 4x textures, select **Apply HD texture upscale during
    install (increases install time)** and allow 15 GiB extra working space.
    See [HD texture usage](hd-textures.md) for sizes, fallback and restart controls.

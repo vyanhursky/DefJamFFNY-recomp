@@ -24,7 +24,7 @@ files: it checks your own copy and builds the game on your computer.
 
 | Platform | What the game is built with |
 |---|---|
-| Windows | Microsoft's C++ Build Tools. If they're missing, the app offers to install them (a few GB from Microsoft, and Windows asks for your permission). |
+| Windows | New Windows payloads include LLVM-MinGW, CMake and Ninja. They build as your normal user without Visual Studio or a Windows SDK. Published releases through v1.2.2 still need Microsoft's C++ Build Tools and may offer their installer. |
 | macOS | Apple's Command Line Tools. If they're missing, the app tells you how to install them. You can also run `xcode-select --install` in Terminal. |
 | Linux and Steam Deck | Nothing to install. The app carries its own toolchain. |
 
@@ -114,7 +114,7 @@ Both keep the same game speed and content, and you can change your choice or any
 
 - **Free space** is checked here. If there isn't enough, free some up or change locations, then choose
   **Recheck space**.
-- **On Windows**, if the Build Tools are missing, a checkbox offers to install them first.
+- **On Windows**, historical payloads can offer to install missing Microsoft Build Tools. Bundled-compiler payloads do not need that step. If a path-length warning appears, choose a shorter writable install folder, such as `C:\Games\DefJam\App`.
 
 Choose **Set up game** when you're ready.
 
