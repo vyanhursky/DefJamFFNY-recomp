@@ -2,8 +2,8 @@
 
 Open the game launcher and select **Help → Saves → Import saves…**. It imports
 Story profiles from Xbox or PS2 into the installation you are using, without a
-terminal, source checkout or separate Python installation. Save import is planned
-for **v1.3.0**; earlier releases do not have this button.
+terminal, source checkout or separate Python installation. Save import is available
+since **v1.2.3**; earlier releases do not have this button.
 
 Your supported USA Xbox dump is still needed to build the game. Importing a PS2
 save does not let a PS2 disc build Recomp. Conversion is one-way; the imported
