@@ -58,9 +58,35 @@ these fixtures on Windows, Linux and macOS.
 
 Fresh Windows verified lift/build succeeded (MSVC 19.29, RelWithDebInfo).
 Executable SHA-256: `6b702cb65331ac29a56cfef7a32cd42e198c0575e3b14904e1b9b7510ee782db`.
-Python checks: 2,007 passed, 845 skipped, one slow test deselected. Game gates
-and new CPU comparisons are in progress; two initial rows were rejected because
-an unrelated game-testing session started during them. Exclude those trials.
+Python checks: **2,007 passed**, 845 skipped, one slow deselected. Native CI:
+**38/38 passed**, including Windows/Linux/macOS runtime and affected fixtures.
+The clean Windows gate passed **7/7**: m2/m3/m4a images, fight, FFA, replay and
+repeat. Fight ran 118 seconds (median 120/minimum 117 presents per two seconds);
+FFA ran 150 seconds (median 120/minimum 106). Replay's 80 records over 1,800
+steps and both fresh repeat runs match the golden hash. Both Stream 2 caches
+were on and fence waits off. No run faults or save restoration failures.
+Report: `logs/regress-20261125-164018.txt` (private local evidence).
+
+Serial ABBA, the same executable, HLE=0, bulk=0/3/3/0, both Stream 2 caches on,
+fence waits off, optional stats/pacing off, 16:9/scale3/1920x1080/60 fps cap:
+
+| Scene | Control CPU (one core = 100%) | Batching CPU | Relative reduction |
+|---|---:|---:|---:|
+| sc00 | 134.62% | 126.41% | **6.1%** |
+| sc07b | 136.53% | 131.69% | **3.5%** |
+
+Each arm contains two complete scene windows. All eight windows held 60 fps,
+p99 16.79–16.93 ms, no recorded hitches or audio underruns, and the same median
+385/443 draws per frame. Candidate sc07b CPU varied 129.33–134.05%; retain that
+spread. CPU savings are measured residency, not an FPS/power guarantee.
+Machine: i7-13700K, 24 logical CPUs, 32 GiB RAM, RTX 4070 Ti SUPER, Windows,
+144 Hz display with the game's timer pacing. Full source-only numbers and flags
+are in [the numeric evidence](runtime-stream3-batching-results.json).
+
+Initial validation attempts were rejected after an unrelated game-testing lane
+started during them. They are excluded; the clean retry waited for an idle
+machine and passed. Reference images and thresholds were not changed.
+
 Historical November 24 prototype measurements used a different executable with
 disabled experimental entry hooks: about 7–12% lower scene CPU with fence waits
 on, and one fence-off pair about 2–7% lower. Isolated-crowd/P-core results were
