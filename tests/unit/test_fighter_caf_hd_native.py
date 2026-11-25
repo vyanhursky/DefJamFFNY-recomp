@@ -95,7 +95,10 @@ def tool(tmp_path_factory):
     exe=folder/('hd.exe' if os.name=='nt' else 'hd')
     extra=[str(ROOT/'src/patches/fighter_fatal.c'), str(ROOT/'src/patches/fighter_config.c'),str(ROOT/'tests/unit/native_stubs/host_fatal.c')]
     if os.name=='nt':command=[cc,'/nologo','/W4','/WX','/wd5105','/D_CRT_SECURE_NO_WARNINGS','/I'+str(folder),'/I'+str(ROOT/'src'),'/I'+str(ROOT/'tools/xboxrecomp/src/nv2a'),str(driver),*extra,'/Fe:'+str(exe)]
-    else:command=[cc,'-std=c11','-D_POSIX_C_SOURCE=200809L','-Wall','-Wextra','-Werror','-I',str(folder),'-I',str(ROOT/'src'),'-I',str(ROOT/'tools/xboxrecomp/src/nv2a'),str(driver),*extra,'-o',str(exe)]
+    # GCC diagnoses stb's unused static image declarations at translation-unit
+    # end, beyond the zlib-only include's diagnostic scope. Keep other warnings
+    # fatal; those third-party declarations do not affect the exercised decoder.
+    else:command=[cc,'-std=c11','-D_POSIX_C_SOURCE=200809L','-Wall','-Wextra','-Werror','-Wno-error=unused-function','-I',str(folder),'-I',str(ROOT/'src'),'-I',str(ROOT/'tools/xboxrecomp/src/nv2a'),str(driver),*extra,'-o',str(exe)]
     result=subprocess.run(command,cwd=folder,capture_output=True,text=True)
     assert result.returncode==0,result.stdout+result.stderr
     return exe
