@@ -119,6 +119,8 @@ the older [setup installers](docs/setup-installer.md) remain available on earlie
 [Build and play](docs/build-and-play.md) for Windows or
 [Build on macOS and Linux](docs/build-macos-linux.md).
 
+[v1.2.4](docs/releases/v1.2.4.md) adds runtime support for Story customization HD source packs and automatically prunes obsolete installation builds after successful updates.
+
 [v1.2.3](docs/releases/v1.2.3.md) adds Xbox and PS2 save import, adjustable subtitle sizes and launcher mod update notices.
 
 [v1.2.1](docs/releases/v1.2.1.md) adds reviewed custom-fighter victory lip sync and left-finger poses, paired with [Fighter Workshop 0.3.1](https://github.com/vyanhursky/defjam-ffny-fighter-workshop/releases/tag/v0.3.1).
