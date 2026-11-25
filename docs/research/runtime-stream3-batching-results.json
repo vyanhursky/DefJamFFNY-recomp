@@ -1,0 +1,378 @@
+{
+  "schema": "defjam-stream3-batching-results/1",
+  "date": "2026-11-25",
+  "host": {
+    "cpu": "Intel Core i7-13700K",
+    "logical_cpus": 24,
+    "ram_gb": 32,
+    "gpu": "NVIDIA GeForce RTX 4070 Ti SUPER",
+    "platform": "Windows",
+    "display_hz": 144
+  },
+  "preset": "win-x64-release (RelWithDebInfo)",
+  "compiler": "MSVC 19.29.30159",
+  "executable_sha256": "6b702cb65331ac29a56cfef7a32cd42e198c0575e3b14904e1b9b7510ee782db",
+  "profile": {
+    "aspect": "16:9",
+    "render_scale": 3,
+    "window": "1920x1080",
+    "fps_cap": 60,
+    "fence_wait": 0
+  },
+  "notes": [
+    "Process CPU summed across threads: 100% is one logical CPU, not the whole 24-thread machine.",
+    "Serial ABBA with identical executable and both Stream 2 caches enabled; optional counters/pacing off.",
+    "Eight complete scene windows, no competing game/build reported; all save guards restored identically.",
+    "Native Linux/macOS builds and fixtures passed CI; native gameplay/performance there remains owner qualification.",
+    "Historical visual-reference qualification remains separate; reference images were not changed.",
+    "Initial overlapping external-lane validation attempts were rejected and excluded; clean retry passed 7/7."
+  ],
+  "validation": {
+    "ci": "38/38 passed on ebd6b1a",
+    "python_passed": 2007,
+    "python_skipped": 845,
+    "python_slow_deselected": 1,
+    "game_gate": "7/7 passed",
+    "game_report": "logs/regress-20261125-164018.txt",
+    "checks": [
+      "m2",
+      "m3",
+      "m4a",
+      "fight",
+      "ffa",
+      "replay",
+      "repeat"
+    ],
+    "replay_records": 80,
+    "replay_steps": 1800,
+    "repeat_fresh_runs": 2
+  },
+  "arms": [
+    {
+      "label": "batching-clean-a1",
+      "game_commit": "ebd6b1a66b8373631fbc674a6c171675315e4dc6",
+      "toolkit_commit": "46981e0e9cd60fba94663c3fda9b3297f5d64592",
+      "manual_sha256": "881d5bfa497fb91c40fe456657f478aca866317429e6ed5889fef3f975e77a95",
+      "runs": [
+        {
+          "scene": "sc00",
+          "flags": {
+            "RECOMP_D3D_HLE": "0",
+            "RECOMP_D3D_HLE_BULK": "0",
+            "RECOMP_D3D11_SHADER_CACHE": "1",
+            "RECOMP_D3D11_STATE_CACHE": "1",
+            "RECOMP_FENCE_WAIT": "0",
+            "RECOMP_FENCE_HOLD": "1",
+            "RECOMP_STREAM2_STATS": "0",
+            "RECOMP_PRESENT_PACING": "0"
+          },
+          "cpu": {
+            "window_s": 86.39790190002532,
+            "cpu_s": 116.5,
+            "percent_one_core": 134.84123738885128
+          },
+          "frames": {
+            "frames": 5228,
+            "mean_fps": 60.0,
+            "median_ms": 16.67,
+            "p95_ms": 16.72,
+            "p99_ms": 16.82,
+            "worst_ms": 20.83,
+            "draws_p50": 385,
+            "draws_max": 907,
+            "vertices_max": 509221,
+            "hitches": 0,
+            "audio_dry": 0,
+            "audio_dropped": 0
+          },
+          "save_ok": true,
+          "faults": [],
+          "interference": []
+        },
+        {
+          "scene": "sc07b",
+          "flags": {
+            "RECOMP_D3D_HLE": "0",
+            "RECOMP_D3D_HLE_BULK": "0",
+            "RECOMP_D3D11_SHADER_CACHE": "1",
+            "RECOMP_D3D11_STATE_CACHE": "1",
+            "RECOMP_FENCE_WAIT": "0",
+            "RECOMP_FENCE_HOLD": "1",
+            "RECOMP_STREAM2_STATS": "0",
+            "RECOMP_PRESENT_PACING": "0"
+          },
+          "cpu": {
+            "window_s": 65.42737300001318,
+            "cpu_s": 89.328125,
+            "percent_one_core": 136.53020273331472
+          },
+          "frames": {
+            "frames": 3961,
+            "mean_fps": 60.0,
+            "median_ms": 16.67,
+            "p95_ms": 16.75,
+            "p99_ms": 16.93,
+            "worst_ms": 20.31,
+            "draws_p50": 443,
+            "draws_max": 1072,
+            "vertices_max": 456879,
+            "hitches": 0,
+            "audio_dry": 0,
+            "audio_dropped": 0
+          },
+          "save_ok": true,
+          "faults": [],
+          "interference": []
+        }
+      ]
+    },
+    {
+      "label": "batching-clean-b1",
+      "game_commit": "ebd6b1a66b8373631fbc674a6c171675315e4dc6",
+      "toolkit_commit": "46981e0e9cd60fba94663c3fda9b3297f5d64592",
+      "manual_sha256": "881d5bfa497fb91c40fe456657f478aca866317429e6ed5889fef3f975e77a95",
+      "runs": [
+        {
+          "scene": "sc00",
+          "flags": {
+            "RECOMP_D3D_HLE": "0",
+            "RECOMP_D3D_HLE_BULK": "3",
+            "RECOMP_D3D11_SHADER_CACHE": "1",
+            "RECOMP_D3D11_STATE_CACHE": "1",
+            "RECOMP_FENCE_WAIT": "0",
+            "RECOMP_FENCE_HOLD": "1",
+            "RECOMP_STREAM2_STATS": "0",
+            "RECOMP_PRESENT_PACING": "0"
+          },
+          "cpu": {
+            "window_s": 86.4106449999963,
+            "cpu_s": 109.578125,
+            "percent_one_core": 126.81090969753171
+          },
+          "frames": {
+            "frames": 5227,
+            "mean_fps": 60.0,
+            "median_ms": 16.67,
+            "p95_ms": 16.72,
+            "p99_ms": 16.8,
+            "worst_ms": 18.12,
+            "draws_p50": 385,
+            "draws_max": 907,
+            "vertices_max": 509221,
+            "hitches": 0,
+            "audio_dry": 0,
+            "audio_dropped": 0
+          },
+          "save_ok": true,
+          "faults": [],
+          "interference": []
+        },
+        {
+          "scene": "sc07b",
+          "flags": {
+            "RECOMP_D3D_HLE": "0",
+            "RECOMP_D3D_HLE_BULK": "3",
+            "RECOMP_D3D11_SHADER_CACHE": "1",
+            "RECOMP_D3D11_STATE_CACHE": "1",
+            "RECOMP_FENCE_WAIT": "0",
+            "RECOMP_FENCE_HOLD": "1",
+            "RECOMP_STREAM2_STATS": "0",
+            "RECOMP_PRESENT_PACING": "0"
+          },
+          "cpu": {
+            "window_s": 65.66069800002151,
+            "cpu_s": 88.015625,
+            "percent_one_core": 134.0461306091677
+          },
+          "frames": {
+            "frames": 3962,
+            "mean_fps": 60.0,
+            "median_ms": 16.67,
+            "p95_ms": 16.71,
+            "p99_ms": 16.83,
+            "worst_ms": 17.05,
+            "draws_p50": 443,
+            "draws_max": 1072,
+            "vertices_max": 456879,
+            "hitches": 0,
+            "audio_dry": 0,
+            "audio_dropped": 0
+          },
+          "save_ok": true,
+          "faults": [],
+          "interference": []
+        }
+      ]
+    },
+    {
+      "label": "batching-clean-b2",
+      "game_commit": "ebd6b1a66b8373631fbc674a6c171675315e4dc6",
+      "toolkit_commit": "46981e0e9cd60fba94663c3fda9b3297f5d64592",
+      "manual_sha256": "881d5bfa497fb91c40fe456657f478aca866317429e6ed5889fef3f975e77a95",
+      "runs": [
+        {
+          "scene": "sc00",
+          "flags": {
+            "RECOMP_D3D_HLE": "0",
+            "RECOMP_D3D_HLE_BULK": "3",
+            "RECOMP_D3D11_SHADER_CACHE": "1",
+            "RECOMP_D3D11_STATE_CACHE": "1",
+            "RECOMP_FENCE_WAIT": "0",
+            "RECOMP_FENCE_HOLD": "1",
+            "RECOMP_STREAM2_STATS": "0",
+            "RECOMP_PRESENT_PACING": "0"
+          },
+          "cpu": {
+            "window_s": 86.57258989999536,
+            "cpu_s": 109.09375,
+            "percent_one_core": 126.01419239740896
+          },
+          "frames": {
+            "frames": 5226,
+            "mean_fps": 60.0,
+            "median_ms": 16.67,
+            "p95_ms": 16.71,
+            "p99_ms": 16.82,
+            "worst_ms": 17.24,
+            "draws_p50": 385,
+            "draws_max": 907,
+            "vertices_max": 509221,
+            "hitches": 0,
+            "audio_dry": 0,
+            "audio_dropped": 0
+          },
+          "save_ok": true,
+          "faults": [],
+          "interference": []
+        },
+        {
+          "scene": "sc07b",
+          "flags": {
+            "RECOMP_D3D_HLE": "0",
+            "RECOMP_D3D_HLE_BULK": "3",
+            "RECOMP_D3D11_SHADER_CACHE": "1",
+            "RECOMP_D3D11_STATE_CACHE": "1",
+            "RECOMP_FENCE_WAIT": "0",
+            "RECOMP_FENCE_HOLD": "1",
+            "RECOMP_STREAM2_STATS": "0",
+            "RECOMP_PRESENT_PACING": "0"
+          },
+          "cpu": {
+            "window_s": 65.06956620002165,
+            "cpu_s": 84.15625,
+            "percent_one_core": 129.33273558533728
+          },
+          "frames": {
+            "frames": 3961,
+            "mean_fps": 60.0,
+            "median_ms": 16.67,
+            "p95_ms": 16.71,
+            "p99_ms": 16.82,
+            "worst_ms": 17.15,
+            "draws_p50": 443,
+            "draws_max": 1072,
+            "vertices_max": 456879,
+            "hitches": 0,
+            "audio_dry": 0,
+            "audio_dropped": 0
+          },
+          "save_ok": true,
+          "faults": [],
+          "interference": []
+        }
+      ]
+    },
+    {
+      "label": "batching-clean-a2",
+      "game_commit": "ebd6b1a66b8373631fbc674a6c171675315e4dc6",
+      "toolkit_commit": "46981e0e9cd60fba94663c3fda9b3297f5d64592",
+      "manual_sha256": "881d5bfa497fb91c40fe456657f478aca866317429e6ed5889fef3f975e77a95",
+      "runs": [
+        {
+          "scene": "sc00",
+          "flags": {
+            "RECOMP_D3D_HLE": "0",
+            "RECOMP_D3D_HLE_BULK": "0",
+            "RECOMP_D3D11_SHADER_CACHE": "1",
+            "RECOMP_D3D11_STATE_CACHE": "1",
+            "RECOMP_FENCE_WAIT": "0",
+            "RECOMP_FENCE_HOLD": "1",
+            "RECOMP_STREAM2_STATS": "0",
+            "RECOMP_PRESENT_PACING": "0"
+          },
+          "cpu": {
+            "window_s": 86.49637850001454,
+            "cpu_s": 116.25,
+            "percent_one_core": 134.3986904607578
+          },
+          "frames": {
+            "frames": 5227,
+            "mean_fps": 60.0,
+            "median_ms": 16.67,
+            "p95_ms": 16.71,
+            "p99_ms": 16.81,
+            "worst_ms": 19.36,
+            "draws_p50": 385,
+            "draws_max": 907,
+            "vertices_max": 509221,
+            "hitches": 0,
+            "audio_dry": 0,
+            "audio_dropped": 0
+          },
+          "save_ok": true,
+          "faults": [],
+          "interference": []
+        },
+        {
+          "scene": "sc07b",
+          "flags": {
+            "RECOMP_D3D_HLE": "0",
+            "RECOMP_D3D_HLE_BULK": "0",
+            "RECOMP_D3D11_SHADER_CACHE": "1",
+            "RECOMP_D3D11_STATE_CACHE": "1",
+            "RECOMP_FENCE_WAIT": "0",
+            "RECOMP_FENCE_HOLD": "1",
+            "RECOMP_STREAM2_STATS": "0",
+            "RECOMP_PRESENT_PACING": "0"
+          },
+          "cpu": {
+            "window_s": 65.5645666999917,
+            "cpu_s": 89.515625,
+            "percent_one_core": 136.530491247815
+          },
+          "frames": {
+            "frames": 3960,
+            "mean_fps": 60.0,
+            "median_ms": 16.67,
+            "p95_ms": 16.71,
+            "p99_ms": 16.79,
+            "worst_ms": 17.1,
+            "draws_p50": 443,
+            "draws_max": 1072,
+            "vertices_max": 456879,
+            "hitches": 0,
+            "audio_dry": 0,
+            "audio_dropped": 0
+          },
+          "save_ok": true,
+          "faults": [],
+          "interference": []
+        }
+      ]
+    }
+  ],
+  "comparisons": [
+    {
+      "scene": "sc00",
+      "control_mean_percent_one_core": 134.61996392480455,
+      "bulk_mean_percent_one_core": 126.41255104747034,
+      "relative_cpu_reduction_percent": 6.096727883479948
+    },
+    {
+      "scene": "sc07b",
+      "control_mean_percent_one_core": 136.53034699056485,
+      "bulk_mean_percent_one_core": 131.6894330972525,
+      "relative_cpu_reduction_percent": 3.5456687835466254
+    }
+  ]
+}
