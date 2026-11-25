@@ -76,6 +76,17 @@ def test_view_projects_all_catalogue_authors(manager,tmp_path):
     manager.view()
     assert 'authors=First Author, Second Author\n' in (manager.root/'view.ini').read_text()
 
+def test_story_compositor_requires_explicit_runtime_capability(tmp_path):
+    folder=tmp_path/'pack';folder.mkdir()
+    Image.new('RGBA',(8,8),'red').save(folder/'test.png')
+    text=f'[pack]\nschema=1\ncompositor=story-caf-v1\n[textures]\n{ID}=test.png\n'
+    (folder/'manifest.ini').write_text(text)
+    result=mods.validate_textures(folder)
+    assert result['capabilities']==['textures-v1','story-caf-v1']
+    (folder/'manifest.ini').write_text(text.replace('story-caf-v1','unknown-v2'))
+    with pytest.raises(ValueError,match='Unsupported texture compositor'):
+        mods.validate_textures(folder)
+
 
 def test_signed_index_trust_and_replay(manager, tmp_path):
     manager, key = manager

@@ -14,6 +14,8 @@ confidence labels and disproved hypotheses remain distinct from measured facts.
 
 ## Fighter Mod Support
 
+- [Retail Story HD compositor](story-caf-hd-compositor.md) — source-layer identity, palette and injury composition, native material alpha, bounded host ownership and fail-closed native replay checks.
+
 - [Approved pending-PR integration](pending-pr-integration-2026-11-10.md) — owner-authorized source merges, combined validation and retained gameplay/art qualification limits.
 
 - [Retail overrides and extra outfits](retail-overrides-outfits.md) — appearance-only retail deployment, hidden clothing datasets and canonical progress identity; private Pockets qualification.

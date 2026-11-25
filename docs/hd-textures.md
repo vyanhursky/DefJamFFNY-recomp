@@ -59,6 +59,14 @@ For manual generation, review galleries and future processing experiments, see
 
 ## Install and enable a pack
 
+Retail Story customization source packs require **v1.2.4 or newer** with the
+`story-caf-v1` capability. They add `compositor=story-caf-v1` under `[pack]` and
+provide source PNGs at a consistent 2x, 3x or 4x scale. The runtime composes the
+selected clothes, skin, hair and tattoos into host textures while retaining the
+game's native bitmap sizes and material alpha. Missing or invalid replacements
+fall back to native layers. See the [compositor contract](research/story-caf-hd-compositor.md)
+for bounds, lifecycle and qualification. Install one quality edition at a time.
+
 Put the pack beneath the data folder, then use the launcher's or overlay's **Mods** page:
 
 ```text

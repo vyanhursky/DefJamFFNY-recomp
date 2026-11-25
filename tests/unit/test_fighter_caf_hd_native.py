@@ -23,8 +23,13 @@ DRIVER=r'''
 unsigned char memory[0xC00000];
 uint32_t g_eax,g_ecx,g_edx,g_esp,g_ebx,g_esi,g_edi,g_ebp;
 int g_fp_top;
-static int fail_rgb_alloc;
-static void *hd_test_malloc(size_t bytes) {return fail_rgb_alloc && bytes==512u*512u*3u?NULL:malloc(bytes);}
+static int fail_rgb_alloc,pressure_mode;
+static unsigned story_evictions;
+static void *hd_test_malloc(size_t bytes) {
+ if(fail_rgb_alloc && bytes==512u*512u*3u)return NULL;
+ if(pressure_mode==2 && !story_evictions && bytes==512u*512u*4u)return NULL;
+ return malloc(bytes);
+}
 #define malloc hd_test_malloc
 #include "@SOURCE@"
 #undef malloc
@@ -33,10 +38,12 @@ static unsigned calls,cleared;
 static int linear;
 static const uint8_t *lookup(uint32_t selection,uint32_t outfit) {return selection==100 && outfit<2?recipe:NULL;}
 uint32_t xbox_PhysRamName(uint32_t address) {return address+0x4000000u;}
+uint32_t story_caf_evict(void) {if(pressure_mode && !story_evictions){story_evictions++;return 1;}return 0;}
 void texture_pack_memory_clear(uint32_t owner) {assert(owner==0x10000);++cleared;}
 int texture_pack_memory_register(uint32_t owner,uint32_t address,uint32_t format,uint32_t nw,uint32_t nh,const uint8_t *bgra,uint32_t w,uint32_t h) {
  assert(owner==0x10000 && address==0x4100010 && format==(linear?0x12u:6u));
  assert(nw==256 && nh==256 && w==h && (w==512 || w==1024 || w==2048));
+ if(pressure_mode==1 && !story_evictions)return 0;
  for(unsigned y=0;y<h;y++)for(unsigned x=0;x<w;x++) {
   unsigned at=(y*w+x)*4,native=(y/(h/256))*256+x/(w/256);
   assert(bgra[at]==11 && bgra[at+1]==22 && bgra[at+2]==33);
@@ -46,6 +53,7 @@ int texture_pack_memory_register(uint32_t owner,uint32_t address,uint32_t format
 }
 int main(int argc,char **argv) {
  assert(argc==4);linear=!strcmp(argv[3],"linear");
+ pressure_mode=!strcmp(argv[3],"registry-pressure")?1:!strcmp(argv[3],"allocation-pressure")?2:0;
  FILE *file=fopen(argv[1],"rb");assert(file);
  static uint8_t section[17u*1024u*1024u]; /* one 2048px block is 16 MiB */
  size_t size=fread(section,1,sizeof section,file);fclose(file);
@@ -64,6 +72,7 @@ int main(int argc,char **argv) {
  defjam_caf_hd_apply(0x10000,100,0);
  if(fail_rgb_alloc || !strcmp(argv[3],"decode-corrupt")) {assert(!calls && cleared==2);defjam_caf_hd_clear();assert(cleared==3);return 0;}
  assert(calls==1 && cleared==1);
+ assert(story_evictions==(pressure_mode?1u:0u));
  defjam_caf_hd_apply(0x10000,100,1);assert(calls==1 && cleared==1);
  defjam_caf_hd_clear();assert(cleared==2 && !s_hd_owners[0]);
  defjam_caf_hd_clear();assert(cleared==2);
@@ -148,3 +157,7 @@ def test_live_decode_failure_clears_partial_hd_without_stopping(tool,tmp_path,mo
     count,payload=encode_section({'a/b':{'extras':{'hd_atlases':{'a':block}}}},
         {'bindings':{'a/b':{'selection_key':100}}},compact=True)
     run(tool,tmp_path,payload,mode,count)
+
+@pytest.mark.parametrize('mode',['registry-pressure','allocation-pressure'])
+def test_authored_hd_retries_after_retiring_optional_story_sources(tool,tmp_path,mode):
+    run(tool,tmp_path,raw()[1],mode)
