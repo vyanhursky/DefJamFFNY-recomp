@@ -1,0 +1,181 @@
+{
+  "schema": 1,
+  "date": "2026-11-22",
+  "game_base": "f80a792b434379cbf580a23240097c2fee4597b2",
+  "machine": "i7-13700K, 24 logical CPUs, nominal 32 GiB RAM, Windows 11",
+  "compiler": "MSVC 14.29.30133, RelWithDebInfo, 12 jobs",
+  "python": "3.13.5",
+  "capstone": "5.0.9",
+  "pyxbe": "1.0.4",
+  "scope": "Exploratory source rebuild measurements; no game FPS or Linux timing claim",
+  "trials": [
+    {
+      "label": "baseline-a",
+      "toolkit": "d108a64c0f272da2ab29016914f473018c3e2347",
+      "workers": 1,
+      "body_line_budget": null,
+      "compiler_jobs": 12,
+      "chunks": 19,
+      "affinity_mask": "unrestricted",
+      "initialization_reported_seconds": 39.4,
+      "body_output_reported_seconds": 32.5,
+      "lift_wall_seconds": 73.0376791000017,
+      "compile_link_seconds": 111.874925600001,
+      "configure_seconds": 13.142111799999839,
+      "no_op_seconds": 0.0874035000015283,
+      "lift_plus_compile_seconds": 184.9126047000027
+    },
+    {
+      "label": "baseline-b",
+      "toolkit": "d108a64c0f272da2ab29016914f473018c3e2347",
+      "workers": 1,
+      "body_line_budget": null,
+      "compiler_jobs": 12,
+      "chunks": 19,
+      "affinity_mask": "unrestricted",
+      "initialization_reported_seconds": 38.2,
+      "body_output_reported_seconds": 31.2,
+      "lift_wall_seconds": 70.32410410000011,
+      "compile_link_seconds": 104.35695580000174,
+      "configure_seconds": 1.1507259999998496,
+      "no_op_seconds": 0.08158269999694312,
+      "lift_plus_compile_seconds": 174.68105990000186
+    },
+    {
+      "label": "candidate-a",
+      "toolkit": "e58a938f29a6c2c7bdf9af486bf8445fc40e72c0",
+      "workers": 4,
+      "body_line_budget": 20000,
+      "compiler_jobs": 12,
+      "chunks": 89,
+      "affinity_mask": "unrestricted",
+      "initialization_reported_seconds": 36.9,
+      "body_output_reported_seconds": 14.5,
+      "lift_wall_seconds": 52.78406800000084,
+      "compile_link_seconds": 108.3076710000023,
+      "configure_seconds": 1.0606761000017286,
+      "no_op_seconds": 0.08844080000562826,
+      "lift_plus_compile_seconds": 161.09173900000314
+    },
+    {
+      "label": "candidate-b-60k",
+      "toolkit": "e58a938f29a6c2c7bdf9af486bf8445fc40e72c0",
+      "workers": 4,
+      "body_line_budget": 60000,
+      "compiler_jobs": 12,
+      "chunks": 30,
+      "affinity_mask": "unrestricted",
+      "initialization_reported_seconds": 47.0,
+      "body_output_reported_seconds": 17.1,
+      "lift_wall_seconds": 65.22494559999905,
+      "compile_link_seconds": 104.0406529000029,
+      "configure_seconds": 1.1768452000032994,
+      "no_op_seconds": 0.09279299999616342,
+      "lift_plus_compile_seconds": 169.26559850000194
+    },
+    {
+      "label": "control-c-serial",
+      "toolkit": "e58a938f29a6c2c7bdf9af486bf8445fc40e72c0",
+      "workers": 1,
+      "body_line_budget": null,
+      "compiler_jobs": 12,
+      "chunks": 19,
+      "affinity_mask": "unrestricted",
+      "initialization_reported_seconds": 60.5,
+      "body_output_reported_seconds": 33.5,
+      "lift_wall_seconds": 95.0818192999941,
+      "compile_link_seconds": 113.8108515999993,
+      "configure_seconds": 1.0172004999985802,
+      "no_op_seconds": 0.08560369999759132,
+      "lift_plus_compile_seconds": 208.8926708999934
+    },
+    {
+      "label": "controlled-serial",
+      "toolkit": "e58a938f29a6c2c7bdf9af486bf8445fc40e72c0",
+      "workers": 1,
+      "body_line_budget": null,
+      "compiler_jobs": 12,
+      "chunks": 19,
+      "affinity_mask": "0xffff",
+      "initialization_reported_seconds": 57.8,
+      "body_output_reported_seconds": 91.8,
+      "lift_wall_seconds": 150.67543250000017,
+      "compile_link_seconds": 124.63785260000441,
+      "configure_seconds": 1.1468756000031135,
+      "no_op_seconds": 0.08172029999695951,
+      "lift_plus_compile_seconds": 275.3132851000046
+    },
+    {
+      "label": "controlled-parallel",
+      "toolkit": "e58a938f29a6c2c7bdf9af486bf8445fc40e72c0",
+      "workers": 4,
+      "body_line_budget": null,
+      "compiler_jobs": 12,
+      "chunks": 19,
+      "affinity_mask": "0xffff",
+      "initialization_reported_seconds": 40.0,
+      "body_output_reported_seconds": 16.7,
+      "lift_wall_seconds": 57.65661530000216,
+      "compile_link_seconds": 123.3993466000029,
+      "configure_seconds": 1.0044599999964703,
+      "no_op_seconds": 0.08372870000312105,
+      "lift_plus_compile_seconds": 181.05596190000506
+    }
+  ],
+  "original_pin_comparison": {
+    "body_output_reported_seconds": {
+      "baseline_median": 31.85,
+      "candidate_median": 15.8,
+      "percent_shorter": 50.39246467817896
+    },
+    "lift_wall_seconds": {
+      "baseline_median": 71.6808916000009,
+      "candidate_median": 59.004506799999945,
+      "percent_shorter": 17.684468645756635
+    },
+    "compile_link_seconds": {
+      "baseline_median": 108.11594070000137,
+      "candidate_median": 106.1741619500026,
+      "percent_shorter": 1.7960152197970476
+    },
+    "lift_plus_compile_seconds": {
+      "baseline_median": 179.79683230000228,
+      "candidate_median": 165.17866875000254,
+      "percent_shorter": 8.130378807568986
+    }
+  },
+  "generated_body_text_sha256": "1394354d8555c3be7ac043c9636cfa4098fb49ada850d75f1e6da56294c2242e",
+  "support_file_sha256": {
+    "recomp_dispatch.c": "12d605b183a1496e8dc5f9ce51dc8dcc7f00a6592463f2820eda25f7a592132a",
+    "recomp_funcs.h": "5fa1da64299525e9a995a914e11412a34db93c73ca40dba0ecd57eddfce46795",
+    "recomp_stubs_unresolved.c": "79aec454e95c187d1584e761363a21060418a5c4915d0d152f10023ac33cbbd1",
+    "recomp_types.h": "e19cfeb18c6d7e5eff61f5f5534d66131d52537065517792cd022b6f18a15144"
+  },
+  "verification": [
+    "All seven generated body-text identities match",
+    "All seven sets of support-file byte hashes match",
+    "Analysis output hashes unchanged across baseline/candidate",
+    "Final parallel legacy layout: all 23 C/header files byte-identical to baseline",
+    "Full-title translated/failed/line/manual/unresolved/unimplemented accounting matches baseline"
+  ],
+  "limits": [
+    "Few repeats on an interactive shared host; background work was not globally controlled",
+    "An installed game started near the end of baseline-b; candidate-a overlapped other game sessions",
+    "Later unrestricted runs had no game at sampled start/phase boundaries; other background processes remained",
+    "Restricted CPU-set pair uses verified group-0 logical CPUs 0..15 and is reported separately",
+    "Initialization and one restricted serial body time varied substantially; restricted pair is not the headline estimate",
+    "Original-pin medians compare two candidate chunk budgets; compilation differences are within run spread",
+    "Dependency/configure/analysis times excluded from lift-plus-compile comparison",
+    "Native game/low-memory Linux acceptance must be read with the PR qualification, not inferred from source hashes"
+  ],
+  "native_game_check": {
+    "scope": "Final four-worker lift with original 19-chunk layout only",
+    "passed": 4,
+    "total": 4,
+    "report": "logs/regress-20261122-112430.txt",
+    "fight_observed_seconds": 122,
+    "median_presents_per_2s": 120,
+    "minimum_presents_per_2s": 109,
+    "qualification": "Scoped smoke/goldens; no separate gameplay run of rechunked builds or full platform/installer acceptance"
+  }
+}

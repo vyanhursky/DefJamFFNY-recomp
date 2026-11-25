@@ -145,6 +145,11 @@ The [implemented design and catalog](../widescreen/README.md) reconcile the orig
 
 ## Performance comparisons and machine-readable controls
 
+- [Toolkit optimization streams](toolkit-optimization-streams.md) and
+  [Stream 1 build-time experiment](build-time-stream1.md): opt-in process
+  lifting, body-line chunk budgets and a Windows/Linux comparison driver;
+  runtime and D3D interception streams remain on hold.
+
 - [Story scene performance on macOS, 2026-10-18](scene-perf-macos-2026-10-18.md)
 - [Story scene performance on the Steam Deck, 2026-10-18](scene-perf-deck-2026-10-18.md)
 - [Def Jam recomp on the Steam Deck: FFA at the Power Plant, 2026-10-24](deck-ffa-powerplant-2026-10-24.md)
