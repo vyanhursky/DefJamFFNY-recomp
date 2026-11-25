@@ -8,7 +8,7 @@
 
 ## 0. Status at a glance
 
-- v1.2.3: ✅ published stable/Latest at 2026-11-25T04:50:16Z under D459-D468. PR316 and #295/#309/#311/#314 merged; immutable annotated tag `v1.2.3` at `d505b7c`. Tagged Source45548147507 passes37/37. All9 app/checksum/provenance assets match GitHub SHA-256, source/toolkit and inspected game-free inventories (windows-x64 4740, macos-arm64 5455, linux-x86_64 10010). Mac21 default checks qualified with original failures/retries retained; native imported cash/save/reload2/2 and speech-size renders3/3 pass. Real CI-payload fresh221.42s/baseline223.61s/Clean Update106.35s, all12 protected files unchanged. Windows/Linux native tests waived; native pickers/physical/audible/external catalogue remain unqualified. Milestone19 closed; v1.3.0(18) remains open.
+- v1.2.3: ✅ published stable/Latest at 2026-11-25T04:50:16Z under D459-D468. PR316 and #295/#309/#311/#314 merged; immutable annotated tag `v1.2.3` at `d505b7c`. Tagged Source45548147507 passes37/37. All9 app/checksum/provenance assets match GitHub SHA-256, source/toolkit and inspected game-free inventories (windows-x64 4740, macos-arm64 5455, linux-x86_64 10010). Mac21 default checks qualified with original failures/retries retained; native imported cash/save/reload2/2 and speech-size renders3/3 pass. Real CI-payload fresh221.42s/baseline223.61s/Clean Update106.35s, all12 protected files unchanged. Windows/Linux native tests waived; native pickers/physical/audible/external catalogue remain unqualified. Milestone19 closed; v1.3.0(18) remains open. Cleanup 2026-11-25: 10.46 GB (9.74 GiB) reclaimed; full evidence is a checksum-verified 103 MB private archive, with small summaries retained locally. Original dump/saves and active worktrees unchanged.
 
 - v1.2.2: published stable/Latest on 2026-11-23T18:51:16Z under D457-D458. PR #305 merged at `98446d2`; annotated tag `v1.2.2` is immutable. Source release 45239088484 passes 37/37. All nine app/checksum/provenance assets match GitHub digests, exact source/toolkit and inspected inventories. Windows default coverage 17 applicable passes/four platform skips plus final-menu29/29; real CI-payload fresh install and Clean Update pass with ten protected files unchanged. Toolkit `d108a64` unchanged. Native macOS/Deck, hands-on and OS shell-launch limits remain explicit in the release notes.
 
@@ -622,6 +622,7 @@ Run-log citations from retired status/planning prose remain protected by
 | D466 | 2026-11-24 | Ship the #314 RecompLauncher manifest as repository/catalogue data, limited to Modern/Original, Skip intro and optional copy check. | Owner preference; no package changes, prepare/start, save sync or folder-pack integration. External catalog application remains untested. |
 | D467 | 2026-11-24 | Carry the Mac candidate's qualified checks across release records, packaging, merge and tag; resolve fixture-only failures with focused retries. | Native runtime03181df/toolkitd108a64 is unchanged. First headless UI attempt suppressed launcher; replay fixture omitted native Options and paused at Weapon tutorial. Its74 records exactly prefix the earlier passing Mac stream; preserved Options80277dd8 restores80/1800 with no golden/threshold change. Retain all original failures. Final focused lifecycle/size checks and CI must finish before merge/tag/publication under D459. |
 | D468 | 2026-11-24 | Publish the verified v1.2.3 draft stable/Latest after the owner-authorized Mac qualification, tagged Source37/37 and exact9 asset audits; close milestone19. | PR316 merge/tagd505b7c preserves runtime03181df and toolkitd108a64; all4 train PRs merged. All GitHub digests, sidecars, provenance and game-free inventories verified before publication. Native cash mutation/save/fresh reload2/2 and three speech-size renders pass; retain original test-driver/fixture failures and all native/manual limits. Windows/Linux native waiver remains D459. No duplicate full game run for records/merge/tag/publication. |
+| D469 | 2026-11-25 | On the owner's request, verify GitHub, archive release evidence and remove completed local release workspaces/generated outputs. | Latest v1.2.3 still has the same nine audited digests; Source37/37, Pages green, PRs316/317 merged and milestone19 closed. Preserve569 evidence files (741,636,249 bytes) in102,705,870-byte private archive SHA-256 `300aab875b64152ce368c00272c7681f990673687848edb4b127bf0fde6c5d30`. Remove disposable rc123 installs/data, current generated build/lift/analysis/cache files, archived heavy logs/downloads, clean merged PR295 worktree/branch and four missing-worktree registrations. Net free increase10,460,114,944 bytes; current source worktree about60MiB. Never touch original dump, owner saves or active worktrees. |
 
 ## 2. Historical environment inventory (2026-09-17)
 
@@ -700,7 +701,6 @@ Upstream PR submissions still need the owner's separate approval.
 
 > Recent entries only; older entries remain unchanged in the local `docs/worklog/` archive.
 
-- 2026-11-23 18:20 UTC — D457 conditional release qualification: Windows17pass/4skip plus final-menu29/29; packaged engine fresh122355.90s,baseline121360.98s,update122213.49s all exit0, ten protected files identical. First cache/Temp denials retained, isolated paths probe/installs pass. Hosted app shell launch pending; local identical-code app Help layout/Copy path verified, Open returns OS-shell error under automation context; desktop-context check pending. Final notes preserve Windows-only new native scope and original platform/custom-mode limits; source-record CI next.
 - 2026-11-23 18:51 UTC — D458: PR305 merged98446d2; immutable annotatedv1.2.2, tagged Source45239088484 passes37/37. All9 asset digests/checksums/provenance and inventories verified before stable/Latest publication18:51:16Z; milestone17 closed. Windows17pass/4skip plus final-menu29/29, install/update pass, ten protected files unchanged; native/OS limits preserved. Audit logs/final-release-assets/audit.json; publication logs/publication-state.json.
 - 2026-11-24 19:55 — v1.2.3 train #295 integrated: launcher Xbox/PS2 import; prior Mac 54 importer/bridge tests, quick5/5 and lifecycle4/4 retained in PR. D460-D463; candidate qualification pending.
 - 2026-11-24 19:55 — #309 integrated: three live subtitle sizes (D464); prior MSVC46/46 and owner live check retained; candidate Mac qualification pending.
@@ -708,6 +708,7 @@ Upstream PR submissions still need the owner's separate approval.
 - 2026-11-24 19:55 — #314 integrated: repository RecompLauncher manifest only (D466), six source tests; external catalogue application untested. Toolkit d108a64 unchanged across all four PRs. D459 authorizes Mac qualification and release, waiving Windows/Linux native checks. Analysis log logs/release-1.2.3/analyze.txt.
 - 2026-11-24 21:27 — D467: runtime03181df Mac21 default checks qualified across first unit/goldens, resumed16/17 (regress-20261124-205015.txt) and prepared-Options replay80/1800 (regress-20261124-205422.txt); original headless/interrupted/tutorial74 failures retained. CI4553642844135/35; units2867/78skip. Real CI-payload fresh221.42s/baseline223.61s/update106.35s all12 protected files identical. Packaged import/backup/preferences/mod-notice UI pass; native pickers unqualified after CUA tool failure. Focused imported lifecycle and rendered sizes pending in logs/release-1.2.3/.
 - 2026-11-24 21:53 — D468: v1.2.3 stable/Latest published2026-11-25T04:50:16Z; PR316/all4 train PRs merged, immutable annotatedtagd505b7c. Source4554814750737/37; all9 asset digests/sidecars/provenance/game-free inventories verified. Mac21 qualified, native imported change/save/reload2/2, speech sizes3/3; preserve original fixture/driver failures and native picker/manual/OS limits. Milestone19 closed. Evidence logs/release-1.2.3/final-asset-audit.json and publication-state.json.
+- 2026-11-25 08:08 — D469: GitHub v1.2.3 Latest/9 unchanged digests, Source37/37, Pages/live site and closed milestone verified. Archived569 evidence files to private103MB v1.2.3-macos-20261125.tar.gz, SHA256300aab875b64152ce368c00272c7681f990673687848edb4b127bf0fde6c5d30, verified every member. Removed rc123 QA/generated outputs/heavy logs/downloads, merged PR295 worktree/branch and4 stale registrations; reclaimed10,460,114,944 bytes. Small summaries remain; dump/saves/active worktrees unchanged. Receipt in /Users/vlad/Code/defjam-release-evidence/v1.2.3-macos-20261125-cleanup.json.
 
 ## 7. Hand-off
 
@@ -732,7 +733,7 @@ Story/Gym preview, soak3/3, French UI/English Story subtitles and both20-pair in
 Complete units2867/78skip; native fast2870/74skip/1slow deselected. CI45546936210 passes35/35.
 
 Real CI-payload fresh123221.42s, baseline122223.61s, Clean Update123106.35s; all12 protected
-save/settings/mod/song files identical. QA /private/tmp/defjam-rc123-20261124. Packaged app
+save/settings/mod/song files identical. Original QA root /private/tmp/defjam-rc123-20261124 (removed after evidence archive). Packaged app
 imports ERICK/PS2 through Unicode path; Xbox keep/force replacement, exact whole-folder backups,
 Options native preferences and controlled mod-notice projection pass. First driver read stdout
 instead of redirected Play log; successful first import/log/captures retained. Idempotent native
@@ -747,13 +748,40 @@ app closed. Pasted-path packaged import is qualified. Windows/Linux native tests
 no physical/audible/manual or external RecompLauncher catalogue qualification. Keep issues
 #98/#166/#247/#283/#285 open; stock Mac success does not close Deck/HD/fighter investigations.
 
-Private evidence is logs/release-1.2.3/ in this task worktree: combined-coverage.json,
-full-attempt-1.json, package-qa-results.json, feature-ui-results.json, import-lifecycle-results.json,
-subtitle-probe-results.json, subtitle-size-metrics.json, visual-review.json, final-asset-audit.json,
-publication-state.json and latest-state.json. Full reports: regress-20261124-205015.txt and
-regress-20261124-205422.txt; combat/versus/replay reports under logs/scenarios/. Preserve source
-exports, original failures and fixture hashes. Never publish captures/saves/logs/built game.
+### Local cleanup — 2026-11-25
 
-Start future work from public main and the correct milestone. No identical full native suite
-for these publication records. Task worktree/private evidence remains available; do not reset
-canonical checkout or touch other worktrees/owner saves. Unlink game before any worktree removal.
+GitHub recheck: stable/Latest v1.2.3, exactly nine unchanged asset digests, Source37/37,
+Pages green and live v1.2.3/9 assets, PRs316/317 merged, milestone19 closed.
+
+Full private evidence is compressed at:
+`/Users/vlad/Code/defjam-release-evidence/v1.2.3-macos-20261125.tar.gz`
+SHA-256 `300aab875b64152ce368c00272c7681f990673687848edb4b127bf0fde6c5d30`.
+The adjacent `v1.2.3-macos-20261125-manifest.json` inventories and hashes569 files;
+`v1.2.3-macos-20261125-cleanup.json` records deleted paths and disk measurements.
+Archive verified entry-by-entry before deletion. It preserves original failures, logs,
+captures, scripts, small save fixtures and QA reports; it is private and must never be published.
+Archive roots: `logs/` for this release, `pr295/` for the merged save-import worktree,
+`qa/` for installer evidence. Restore in scratch space with `tar -xzf ARCHIVE -C SCRATCH logs/`.
+
+Small summaries and fixtures remain under `logs/` (about2.5MiB), with archive instructions in
+`logs/RELEASE-EVIDENCE.md`. Key retained summaries: release-1.2.3/combined-coverage.json,
+package-qa-results.json, feature-ui-results.json, import-lifecycle-results.json,
+subtitle-probe-results.json, subtitle-size-metrics.json, visual-review.json,
+final-asset-audit.json, publication-state-final.json and pages-state.json.
+Full aggregates remain regress-20261124-205015.txt and regress-20261124-205422.txt;
+scenario JSON/JUnit/HTML reports remain under logs/scenarios/. Raw run logs/captures are archived.
+
+Cleanup reclaimed10,460,114,944 bytes (10.46GB /9.74GiB): rc123 disposable install/update/data
+workspace, local build/generated C/toolkit analysis/cache files, large archived logs and downloaded
+app copies; clean merged PR295 worktree3bd3 and its local branch; four stale registrations.
+Current source worktree remains about60MiB. Original dump and owner saves are unchanged;
+other active worktrees and their authoring history were left intact.
+
+There is no local game build or completed pipeline state now. Before another native run,
+recreate `game -> /Users/vlad/Code/defjam-data/extracted`, prepare a disposable DEFJAM_DATA
+root with an extracted link, and run pipeline.py analyze --no-archive, recomp and build.
+The existing `/Users/vlad/Code/defjam-qa/venv/bin/python` remains available. Start future code
+work from public main and the correct milestone; this documentation cleanup requires no
+repeat full native regression. Never reset canonical checkout or touch other worktrees/saves.
+
+Decisions are read by number or keyword: `decision D<n>`, `decisions --grep TEXT`.
