@@ -52,11 +52,13 @@ def test_fresh_copies_are_instrumented_and_loader_is_restored(runner, tmp_path):
 
 
 @pytest.mark.parametrize('arguments,expected', [([], '0'), (['--env', 'RECOMP_FENCE_WAIT=1'], '1')])
-def test_cli_fence_wait_is_explicit_opt_in_in_fresh_copies(runner, monkeypatch, arguments, expected):
+@pytest.mark.parametrize('scenario', [False, True])
+def test_cli_fence_wait_is_explicit_opt_in_in_fresh_copies(runner, monkeypatch, arguments, expected, scenario):
     original_run = runner.harness.run_game
     before = dict(runner.harness.BASE_ENV)
 
     def fake_regression(*args, **kwargs):
+        assert Path(args[0]).name == ('scenario_suite.py' if scenario else 'regress.py')
         # Load as the existing regression/scenario tools do, not `import harness`.
         module = fresh_harness('stream2_cli_fresh')
         assert module.BASE_ENV['RECOMP_FENCE_WAIT'] == expected
@@ -65,7 +67,7 @@ def test_cli_fence_wait_is_explicit_opt_in_in_fresh_copies(runner, monkeypatch, 
         return {}
 
     monkeypatch.setattr(runner.runpy, 'run_path', fake_regression)
-    monkeypatch.setattr(sys, 'argv', ['check-runtime-stream2.py', *arguments, '--help'])
+    monkeypatch.setattr(sys, 'argv', ['check-runtime-stream2.py', *(['--scenario'] if scenario else []), *arguments, '--help'])
     runner.main()
     assert runner.harness.run_game is original_run
     assert runner.harness.BASE_ENV == before

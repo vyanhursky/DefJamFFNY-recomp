@@ -3,6 +3,7 @@
 
 Example: python scripts/check-runtime-stream2.py --quick
          python scripts/check-runtime-stream2.py --env RECOMP_FENCE_WAIT=1 --only ffa,visual,replay,repeat
+         python scripts/check-runtime-stream2.py --scenario --env RECOMP_D3D_HLE_BULK=3 run fight-result --step-input default --rng-seed 20261006 --require-combat
 Use --env RECOMP_NAME=value to override a switch. Startup isolation otherwise
 removes inherited RECOMP variables, so inject these into the harness baseline
 and record each effective environment. Fence waits remain off unless explicitly
@@ -56,6 +57,7 @@ def instrument_harnesses(configure):
 def main():
     ap = argparse.ArgumentParser(description=__doc__, add_help=False)
     ap.add_argument('--env', action='append', default=[])
+    ap.add_argument('--scenario', action='store_true', help='forward remaining arguments to scenario_suite.py instead of regress.py')
     args, forward = ap.parse_known_args()
     flags = dict(RECOMP_D3D11_STATE_CACHE='1', RECOMP_D3D11_SHADER_CACHE='1',
                  RECOMP_FENCE_WAIT='0', RECOMP_FENCE_HOLD='1', RECOMP_STREAM2_STATS='1')
@@ -126,14 +128,14 @@ def main():
 
     configure(harness)
     restore_loader = instrument_harnesses(configure)
-    sys.argv = [str(ROOT / 'scripts/regress.py'), *forward]
+    sys.argv = [str(ROOT / 'scripts' / ('scenario_suite.py' if args.scenario else 'regress.py')), *forward]
     try:
         try:
             runpy.run_path(sys.argv[0], run_name='__main__')
         except SystemExit as result:
             if result.code not in (None, 0):
                 raise
-        unit_only = '--only' in forward and forward[forward.index('--only') + 1:] == ['unit']
+        unit_only = not args.scenario and '--only' in forward and forward[forward.index('--only') + 1:] == ['unit']
         if not records and not unit_only and not {'--help', '-h'}.intersection(forward):
             raise SystemExit('Invalid Stream 2 validation: no game runs were intercepted')
         if any(row['faults'] for row in records):

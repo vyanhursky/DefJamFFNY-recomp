@@ -1,4 +1,4 @@
 [submodule "tools/xboxrecomp"]
 	path = tools/xboxrecomp
 	url = https://github.com/vyanhursky/xboxrecomp.git
-	branch = perf/runtime-stream2-toolkit
+	branch = perf/runtime-stream3-bulk
