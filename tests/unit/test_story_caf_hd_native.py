@@ -149,6 +149,8 @@ int main(int argc,char **argv){
 def tool(tmp_path_factory):
     cc=shutil.which('cc') or shutil.which('clang')
     if not cc:pytest.skip('C compiler unavailable')
+    if not (ROOT/'tools/xboxrecomp/src/nv2a/texture_pack.h').is_file():
+        pytest.skip('native Story compositor fixture needs the initialized toolkit submodule')
     p=tmp_path_factory.mktemp('story-caf-native');(p/'recomp/gen').mkdir(parents=True)
     (p/'recomp/gen/recomp_types.h').write_text(TYPES)
     (p/'kernel').mkdir();(p/'kernel/xbox_memory_layout.h').write_text('#include <stdint.h>\nuint32_t xbox_PhysRamName(uint32_t);\n')
