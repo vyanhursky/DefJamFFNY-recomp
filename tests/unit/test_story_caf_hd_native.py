@@ -29,6 +29,7 @@ static uint32_t word(const uint8_t *p){uint32_t n;memcpy(&n,p,4);return n;}
 static void stop(const char *why){(void)why;abort();}
 static void face_trace(uint32_t visual,uint32_t participant){(void)visual;(void)participant;abort();}
 @OWNERSHIP@
+static int source_alpha_pattern,expect_alpha_pattern;
 static unsigned calls,clears,scale=3,hashes;static int enabled=1,missing=0,indexed;
 int texture_pack_active(void){return enabled;}
 int texture_pack_compositor(const char *kind){assert(!strcmp(kind,"story-caf-v1"));return enabled;}
@@ -36,7 +37,9 @@ int texture_pack_hash(const RecompTextureSource *s,char id[65]){assert(s->bytes 
 uint8_t *texture_pack_source_png(const char *id,uint32_t nw,uint32_t nh,uint32_t *w,uint32_t *h){
  assert(id[0]=='a');if(missing)return NULL;*w=nw*scale;*h=nh*scale;
  uint8_t *p=allocate((size_t)*w**h*4);if(!p)return NULL;
- for(unsigned i=0;i<*w**h;i++){p[i*4]=40;p[i*4+1]=80;p[i*4+2]=120;p[i*4+3]=0;}return p;
+ for(unsigned i=0;i<*w**h;i++){p[i*4]=40;p[i*4+1]=80;p[i*4+2]=120;p[i*4+3]=0;
+  if(source_alpha_pattern){p[i*4]=p[i*4+1]=p[i*4+2]=0;p[i*4+3]=(uint8_t)((i%*w)*255/(*w-1));}
+ }return p;
 }
 uint32_t xbox_PhysRamName(uint32_t p){return p+0x4000000;}
 void texture_pack_memory_clear(uint32_t owner){assert(owner>=0x1A234 && owner<=0x1A248);clears++;}
@@ -44,7 +47,11 @@ int texture_pack_memory_register(uint32_t owner,uint32_t address,uint32_t format
  assert(owner==0x1A234 && address==(indexed?0x4300010u:0x4280000u) && format==(indexed?0x0bu:0x12u) && nw==256 && nh==256 && w==256*scale && h==w);
  for(unsigned y=0;y<h;y++)for(unsigned x=0;x<w;x++){
   size_t i=((size_t)y*w+x)*4,n=(y/scale)*256+x/scale;
-  assert(p[i]==40 && p[i+1]==80 && p[i+2]==120 && p[i+3]==(uint8_t)n);
+  if(expect_alpha_pattern){
+   unsigned a=(x>=scale && x<2*scale && y>=2*scale && y<3*scale)?(x-scale)*255/(scale-1):0;
+   for(unsigned c=0;c<3;c++){unsigned bg=180-c*20;unsigned expected=a==0?bg:a==255?0:(bg*(255-a)+128)>>8;assert(p[i+c]==expected);}
+  }else assert(p[i]==40 && p[i+1]==80 && p[i+2]==120);
+  assert(p[i+3]==(uint8_t)n);
  }
  calls++;return 1;
 }
@@ -88,7 +95,7 @@ int main(int argc,char **argv){
  assert(story_caf_begin(0x10000));story_caf_lookup(raw,0,0);unsigned before=hashes;
  MEM32(pal+16)=0x6e46321e;story_caf_convert(raw,0x200000);Shadow *s=find(0x200000);
  assert(s && !s->failed && hashes==before);
- for(unsigned i=0;i<scale*scale;i++){assert(s->image.pixels[i*4]==50 && s->image.pixels[i*4+1]==90 && s->image.pixels[i*4+2]==130 && s->image.pixels[i*4+3]==110);}
+ for(unsigned i=0;i<scale*scale;i++){assert(s->image.pixels[i*4]==50 && s->image.pixels[i*4+1]==90 && s->image.pixels[i*4+2]==130 && s->image.pixels[i*4+3]==20);}
  story_caf_end();
  /* Reusing a painted borrowed archive across builds must retain the original
   * source hash and original palette baseline. Handle/pointer reuse by another
@@ -117,7 +124,7 @@ int main(int argc,char **argv){
  assert(story_caf_begin(0x10000));story_caf_lookup(0x100000,0,0);story_caf_convert(0x100000,0x200000);
  story_caf_lookup(layer,0,0);story_caf_layer(0x200000,layer,place);
  StoryCafImage coverage={0};assert(materialize(find(layer),&coverage));
- for(unsigned i=0;i<scale*scale;i++)assert(coverage.pixels[i*4+3]==128);
+ for(unsigned i=0;i<scale*scale;i++)assert(coverage.pixels[i*4+3]==0);
  story_caf_image_free(&coverage);
  MEM32(0x200010+(2*256+1)*4)=0x800f0a05;
  story_caf_layer_done(0x200000);assert(s_verified==1 && !find(0x200000)->failed);
@@ -141,6 +148,23 @@ int main(int argc,char **argv){
  assert(story_caf_begin(0x10000));story_caf_lookup(0x100000,0,0);story_caf_convert(0x100000,0x300000);story_caf_end();
  assert(calls==2);old_clears=clears;
  assert(story_caf_evict()==1 && clears==old_clears+1 && !story_caf_evict());
+ /* Tattoo ink can be entirely alpha: a black HD layer with a subtexel edge
+  * must change the composed skin RGB while FINAL native material alpha stays
+  * exact. A loaded PNG alone is not evidence of restored linework. */
+ uint32_t ink=0x600000,inkpal=ink+32,inkpos=ink+64;
+ MEM32(ink)=0x7b|(32u<<8);MEM16(ink+4)=MEM16(ink+6)=1;
+ MEM32(inkpal)=0x2a|(32u<<8);MEM16(inkpal+4)=1;MEM32(inkpal+16)=0x80000000;
+ MEM8(inkpos)=0x7c;MEM32(inkpos+8)=1;MEM32(inkpos+12)=2;
+ for(unsigned i=0;i<256*256;i++){
+  MEM32(0x100010+i*4)=0xff8ca0b4;MEM32(0x200010+i*4)=0xff8ca0b4;
+ }
+ unsigned old_calls=calls;assert(story_caf_begin(0x10000));missing=1;
+ story_caf_lookup(0x100000,0,0);story_caf_convert(0x100000,0x200000);missing=0;
+ source_alpha_pattern=1;story_caf_lookup(ink,0,0);story_caf_layer(0x200000,ink,place);
+ MEM32(0x200010+(2*256+1)*4)=0xff000000u|((180u*127+128)>>8)|(((160u*127+128)>>8)<<8)|(((140u*127+128)>>8)<<16);
+ story_caf_layer_done(0x200000);assert(s_verified==1 && !find(0x200000)->failed);
+ story_caf_convert(0x200000,0x300000);expect_alpha_pattern=1;
+ story_caf_end();assert(calls==old_calls+1);source_alpha_pattern=expect_alpha_pattern=0;
  return 0;
 }
 '''

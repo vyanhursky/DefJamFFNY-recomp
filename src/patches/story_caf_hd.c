@@ -19,6 +19,7 @@ static uint32_t s_visual;
 static int s_failed;
 static unsigned s_nested;
 static unsigned s_reports;
+static unsigned s_trace_reports;
 static unsigned s_loaded,s_native,s_verified;
 static uint32_t s_published[32];
 /* Palette paint mutates borrowed archives in place. Keep their first, unpainted
@@ -158,8 +159,9 @@ void story_caf_lookup(uint32_t p,uint32_t view,uint32_t name) {
     }
     if(memo)strcpy(s->id,memo->id);
     else if(!texture_pack_hash(&d,s->id)){s->failed=1;return;}
-    /* Keep the unpainted native baseline for palette-aligned RGB correction. */
-    if(d.format==0xb && !decode_palette(p,&s->image,memo?memo->palette:NULL,memo?memo->count:0))s->failed=1;
+    /* Keep the unpainted baseline in all four channels. Layer alpha can carry
+     * the artwork itself (tattoo ink, facial hair), not just material coverage. */
+    if(!decode_palette(p,&s->image,memo?memo->palette:NULL,memo?memo->count:0))s->failed=1;
     budget();
 }
 static int materialize(Shadow *s,StoryCafImage *out) {
@@ -173,12 +175,15 @@ static int materialize(Shadow *s,StoryCafImage *out) {
     if(scale<1||scale>4){free(hd);return 0;}
     {
         StoryCafImage painted={0};if(!decode(s->bitmap,&painted)){free(hd);return 0;}
+        unsigned alpha_detail=0;
         for(unsigned y=0;y<h;y++)for(unsigned x=0;x<w;x++) {
             size_t at=((size_t)(y/scale)*d.width+x/scale)*4,hi=((size_t)y*w+x)*4;
-            if(s->image.pixels)for(unsigned c=0;c<3;c++){int v=(int)hd[hi+c]+painted.pixels[at+c]-s->image.pixels[at+c];hd[hi+c]=(uint8_t)(v<0?0:v>255?255:v);}
-            /* Native source alpha controls composition, for BGRA and indexed
-             * sources alike. PNG alpha never invents a new coverage mask. */
-            hd[hi+3]=painted.pixels[at+3];
+            if(s->image.pixels)for(unsigned c=0;c<4;c++){int v=(int)hd[hi+c]+painted.pixels[at+c]-s->image.pixels[at+c];hd[hi+c]=(uint8_t)(v<0?0:v>255?255:v);}
+            if(hd[hi+3]!=painted.pixels[at+3])alpha_detail++;
+        }
+        const char *trace=getenv("RECOMP_STORY_HD_TRACE");
+        if(trace && *trace && strcmp(trace,"0") && s_trace_reports++<512) {
+            fprintf(stderr,"[STORYHD] source=%s native=%ux%u scale=%u alpha-detail=%u\n",s->id,d.width,d.height,scale,alpha_detail);
         }
         story_caf_image_free(&painted);
     }

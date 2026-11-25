@@ -26,8 +26,10 @@ Resource identity includes the canonical archive/member path, entry name and
 index-data fingerprint. The first unpainted source ID and palette are retained
 across subsequent palette changes. A reused address or numeric handle alone
 cannot establish identity. Retained palettes provide the original baseline for
-source-aligned RGB color changes; composition coverage uses the current native
-palette alpha. Native rectangular swizzle is decoded separately from identity.
+source-aligned palette changes in all four channels. Restored layer alpha is
+used during composition; replacing it with native-resolution alpha would erase
+alpha-only artwork such as tattoo ink and facial hair. Native rectangular
+swizzle is decoded separately from identity.
 Image and palette data each honor their own indirect-data flag. Signed relative
 attachment links and indirect buffers are checked at their actual guest RAM
 addresses, rather than assuming all data follows its header.
@@ -47,6 +49,11 @@ assumption about how a filename should be placed.
 
 Final material alpha comes from decoding the **final native bitmap**, after any
 palette quantization. It is copied by nearest sampling to the host image.
+This is separate from each source layer's alpha: the selected PNG's restored
+opacity controls its blend into the host RGB image. The current native palette
+delta relative to the retained original palette is applied to RGBA, so palette
+selection remains native without discarding subtexel ink. Source images already
+held at native alpha therefore retain that alpha after palette adjustment.
 Host RGB retains the selected PNG detail. Registration uses
 `xbox_PhysRamName` on the actual final pixel allocation, with its native format
 and dimensions; native texture coordinates and allocation sizes remain intact.
@@ -94,7 +101,8 @@ Source packs use ordinary `[textures]` content IDs and add
 that capability and recomp **v1.2.4 or newer**. Static maps can also name their
 content-derived native-format IDs; they do not need a profile-specific atlas.
 
-Synthetic tests cover exact blend endpoints/all alpha values, clipped copy,
+Synthetic tests cover alpha-only ink changing final skin RGB while native final
+material alpha stays exact, exact blend endpoints/all alpha values, clipped copy,
 2x/3x/4x images, independent clones, native final alpha in indexed/BGRA outputs,
 palette changes across builds, resource/handle reuse, allocation failure,
 negative attachment/data offsets, invalid memory ranges, authored-CAF exclusion,
