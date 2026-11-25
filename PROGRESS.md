@@ -8,7 +8,7 @@
 
 ## 0. Status at a glance
 
-- v1.2.4: ⏳ owner-authorized minimal-test merge/tag of #318 and #299 (D470-D475); local merges clean, focused Mac178pass/6skip. #31835/35CI + fresh Macquick5/5/CribGym2/2 retained; approved Story visual baseline unavailable, no new full native regression or real packaged install/update. Toolkitd15f727 published on defjam/release-1.2.4. Release CI, merge and tag pending; stable publication not requested. #300/#301/#303 remain excluded.
+- v1.2.4: ✅ #318/#299 merged via PR320; annotated immutable tag `v1.2.4` at `76c88e2474f39ee8a6be2d9b9f17e017fea7dad3`. Combined CI45714624786 passes35/35; source/tree/tag policy verified. D470 minimal scope: focused Mac178pass/6skip, toolkit3/3, records88/88; no new full native suite or real install/update. Approved Story visual baseline still unavailable. Source workflow45715763881 builds the draft; stable publication not requested. Milestone20 closed, v1.3.0 remains open.
 
 - v1.2.3: ✅ published stable/Latest at 2026-11-25T04:50:16Z under D459-D468. PR316 and #295/#309/#311/#314 merged; immutable annotated tag `v1.2.3` at `d505b7c`. Tagged Source45548147507 passes37/37. All9 app/checksum/provenance assets match GitHub SHA-256, source/toolkit and inspected game-free inventories (windows-x64 4740, macos-arm64 5455, linux-x86_64 10010). Mac21 default checks qualified with original failures/retries retained; native imported cash/save/reload2/2 and speech-size renders3/3 pass. Real CI-payload fresh221.42s/baseline223.61s/Clean Update106.35s, all12 protected files unchanged. Windows/Linux native tests waived; native pickers/physical/audible/external catalogue remain unqualified. Milestone19 closed; v1.3.0(18) remains open. Cleanup 2026-11-25: 10.46 GB (9.74 GiB) reclaimed; full evidence is a checksum-verified 103 MB private archive, with small summaries retained locally. Original dump/saves and active worktrees unchanged.
 
@@ -681,7 +681,7 @@ defjam-recomp/
 
 ## 5. Open questions for Vlad
 
-- v1.2.4: D470 authorizes the minimal-test merge/tag. Approved Story visual baselines and owner/native platform acceptance remain unperformed and are explicitly recorded, not release-blocking questions under this instruction. Stable publication was not requested; the tag prepares a draft.
+- v1.2.4: D470 merge/tag complete; no merge/tag approval pending. Source workflow prepares the draft. Stable publication was not requested. Approved Story visual baseline and owner/native platform/real install acceptance remain unperformed and explicit in the release notes.
 
 - v1.2.3 is published stable/Latest under D468; no release approval pending. Milestone19 closed; v1.3.0(18) remains open. Native pickers, physical controls/audible output and external RecompLauncher catalogue application remain unqualified; Windows/Linux native tests were waived by the owner.
 
@@ -712,7 +712,6 @@ Upstream PR submissions still need the owner's separate approval.
 
 > Recent entries only; older entries remain unchanged in the local `docs/worklog/` archive.
 
-- 2026-11-24 19:55 — #309 integrated: three live subtitle sizes (D464); prior MSVC46/46 and owner live check retained; candidate Mac qualification pending.
 - 2026-11-24 19:55 — #311 integrated: silent signed-catalogue update notice (D465); prior Windows helper/UI evidence retained; POSIX bridge and candidate UI checks pending.
 - 2026-11-24 19:55 — #314 integrated: repository RecompLauncher manifest only (D466), six source tests; external catalogue application untested. Toolkit d108a64 unchanged across all four PRs. D459 authorizes Mac qualification and release, waiving Windows/Linux native checks. Analysis log logs/release-1.2.3/analyze.txt.
 - 2026-11-24 21:27 — D467: runtime03181df Mac21 default checks qualified across first unit/goldens, resumed16/17 (regress-20261124-205015.txt) and prepared-Options replay80/1800 (regress-20261124-205422.txt); original headless/interrupted/tutorial74 failures retained. CI4553642844135/35; units2867/78skip. Real CI-payload fresh221.42s/baseline223.61s/update106.35s all12 protected files identical. Packaged import/backup/preferences/mod-notice UI pass; native pickers unqualified after CUA tool failure. Focused imported lifecycle and rendered sizes pending in logs/release-1.2.3/.
@@ -720,40 +719,50 @@ Upstream PR submissions still need the owner's separate approval.
 - 2026-11-25 08:08 — D469: GitHub v1.2.3 Latest/9 unchanged digests, Source37/37, Pages/live site and closed milestone verified. Archived569 evidence files to private103MB v1.2.3-macos-20261125.tar.gz, SHA256300aab875b64152ce368c00272c7681f990673687848edb4b127bf0fde6c5d30, verified every member. Removed rc123 QA/generated outputs/heavy logs/downloads, merged PR295 worktree/branch and4 stale registrations; reclaimed10,460,114,944 bytes. Small summaries remain; dump/saves/active worktrees unchanged. Receipt in /Users/vlad/Code/defjam-release-evidence/v1.2.3-macos-20261125-cleanup.json.
 - 2026-11-25 15:34 — v1.2.4 #318 integrated: Story customization HD composition/alpha correction, source packs capability; PR35/35CI/Macquick5/5/CribGym2/2 retained. D471-D474; approved visual baseline absent, minimal-test qualification D470.
 - 2026-11-25 15:34 — v1.2.4 #299 integrated: retain active+actual predecessor after durable activation; prior Windows real install468.4s/CI35/35 retained. D475; combined focused Mac178pass/6skip, toolkitd15f727. Release CI/merge/tag pending; no new full/native packaged install.
+- 2026-11-25 15:45 — D470 complete: #299/#318 MERGED via PR320, identical-tree merge76c88e2, annotatedv1.2.4 pushed after CI45714624786 passes35/35 and source/tag policy1047files/0failures. Milestone20 closed; Source45715763881 builds draft, stable publication not requested. Focused178pass/6skip, toolkit3/3, records88/88; missing visual baseline/new full-native/real-install limits preserved. Logs release-1.2.4/tag-ref.json and tag-workflow.json.
 
 ## 7. Hand-off
 
-### v1.2.4 minimal-test merge/tag — 2026-11-25
+### v1.2.4 merged and tagged — 2026-11-25
 
-Owner instruction D470: include #299 with #318, merge both and then tag. Stable
-publication was not requested; allow Source workflow to prepare its normal draft.
-Release branch `release/v1.2.4`, milestone20. #318 head32971cab and #299 head421f954d
-merge cleanly. Toolkitd15f7275c88daa8cd9f58d987ce498d639448917 is published on
-`vyanhursky/xboxrecomp` branch `defjam/release-1.2.4`, named by .gitmodules.
+Owner instruction D470 completed: #299 moved from v1.3.0 to milestone20, both
+#318/#299 MERGED through release PR320, annotated immutable `v1.2.4` pushed at
+`76c88e2474f39ee8a6be2d9b9f17e017fea7dad3`. Milestone20 closed; v1.3.0(18) open.
+Source workflow 45715763881: https://github.com/vyanhursky/DefJamFFNY-recomp/actions/runs/45715763881
+Tag builds the normal draft. Stable publication was not requested; do not infer it.
+Latest remains v1.2.3 until a separately authorized stable publication.
 
-PR318 has35/35CI, fresh Mac quick5/5 and Crib/Gym2/2, representative final High3x
-opacity-correction shop checks. Earlier all-tier checks precede that correction;
-post-correction CPU tests cover2x/3x/4x. Approved Story visual baseline absent;
-no replacement approved and no owner/platform acceptance inferred. PR299 has35/35CI,
-Windows real install468.4s, unit/package/retention evidence. Runtime code matches
-PR318 exactly; #299 changes setup only. D471-D475 carry feature decisions.
+Combined CI45714624786 passes35/35 at eeac4e1; merge76c88e2 has the identical
+source tree. Source policy1047files/zero failures and exact tag/version/main
+ancestry verified before pushing. Local checks: Mac178pass/6skip (ASan/UBSan
+compositor + actual filesystem/activation retention), toolkit Release fixtures3/3,
+release/source/progress/site88/88. Reports logs/release-1.2.4/ focused.txt/xml,
+toolkit-tests.txt, release-records.txt/xml, tag-ref.json and tag-workflow.json.
 
-Combined-tree focused Mac178pass/6skip, with ASan/UBSan compositor fixtures and real
-filesystem retention/activation/protected-path cases. Reports logs/release-1.2.4/focused.txt
-and focused.xml. Toolkit texture-pack3/3 and release/source/progress/site88/88 pass; source policy
-zero failures. Release CI to finish.
-No new full native game regression, local game rebuild or fresh real packaged
-install/update under minimal-testing direction. The v1.2.3 full report does not
-qualify this compositor/toolkit change. Record every omission in release notes/PR.
+Runtime/compositor matches #318 head32971cab exactly; #299 head421f954d changes
+setup only; records/version/site are later. Toolkitd15f7275c88daa8cd9f58d987ce498d639448917
+is published on `vyanhursky/xboxrecomp` branch `defjam/release-1.2.4`, named in
+.gitmodules. The four commits add/harden bounded CPU PNG source lookup.
 
-Next: complete focused checks, commit records, push release PR, wait all required CI,
-merge with a merge commit, verify both train PRs MERGED, annotate/push immutablev1.2.4
-at the release merge. Verify Source workflow/draft state; do not silently publish stable.
-Keep unrelated PRs #300/#301/#303 and other unqueued work out. #180 stays open.
-Owner-approved issue closures #189/#268 are done; #248 and #166 were already closed.
+Retained #31835/35CI, fresh Macquick5/5/CribGym2/2, final representative High3x
+shop checks. Earlier all-tier native sampling precedes final alpha correction;
+post-correction native CPU fixtures cover2x/3x/4x. Approved Story visual baseline
+is unavailable; no replacement approved, no owner visual/play-test inferred.
+Retained #299 Windows install468.4s/package/retention checks. Under the explicit
+minimal-test instruction, no new full native suite, local game build or fresh real
+packaged install/Clean Update ran. v1.2.3's full report does not qualify the changed
+compositor/toolkit. Windows/Linux native compositor and Mac/Deck end-user install
+acceptance remain unperformed. Keep all these limits in docs/releases/v1.2.4.md.
 
-No local full game build exists after the owner's cleanup. Original dump/saves and
-other active worktrees remain untouched. v1.2.3 evidence/archive SHA and restore
-instructions are retained in D469, the previous handoff archive and
-`logs/RELEASE-EVIDENCE.md`; private archive path:
-`/Users/vlad/Code/defjam-release-evidence/v1.2.3-macos-20261125.tar.gz`.
+Next, if stable publication is requested: inspect Source45715763881 and all nine app/
+SHA/provenance assets; preserve source/toolkit identities and game-free inventory,
+then publish the verified draft and check Pages. Do not silently publish packs or
+catalogue entries; those are separate. Full tests are not rerun for tag/docs alone.
+#300/#301/#303 and all other unqueued PRs remain excluded; #180 stays open.
+
+Owner-approved #189/#268 closures are done; #248/#166 were already closed.
+The completed release branch was deleted locally and GitHub pruned its remote.
+Other active worktrees, original dump and owner saves remain untouched. No local
+full game build exists after cleanup. The v1.2.3 private archive and restore pointers
+remain in D469, logs/RELEASE-EVIDENCE.md and the historical handoff; its SHA is
+300aab875b64152ce368c00272c7681f990673687848edb4b127bf0fde6c5d30.
