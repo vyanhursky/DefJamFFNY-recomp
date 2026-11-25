@@ -7,6 +7,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Discord](https://img.shields.io/badge/Discord-Join%20the%20community-5865F2?logo=discord&logoColor=white)](https://discord.gg/xNvBs23ZBw)
 
+<a href="https://recomplauncher.com/game/defjamffny-recomp"><picture><source media="(prefers-color-scheme: dark)" srcset="https://recomplauncher.com/assets/press/launcher/badge-light.svg"><img alt="Get it on RecompLauncher" src="https://recomplauncher.com/assets/press/launcher/badge-dark.svg" height="48"></picture></a>
+
 Bring **Def Jam: Fight for NY** to Windows, macOS and Linux, including the Steam Deck.
 This unofficial native port recompiles the original Xbox game for your computer,
 with higher rendering resolution, modern controller support, extensive mod support, and other PC-specific enhancements.
@@ -117,7 +119,7 @@ the older [setup installers](docs/setup-installer.md) remain available on earlie
 [Build and play](docs/build-and-play.md) for Windows or
 [Build on macOS and Linux](docs/build-macos-linux.md).
 
-[v1.2.2](docs/releases/v1.2.2.md) fixes custom fighters in Team Match, improves voice subtitle state handling and adds a Windows Game logs shortcut.
+[v1.2.3](docs/releases/v1.2.3.md) adds Xbox and PS2 save import, adjustable subtitle sizes and launcher mod update notices.
 
 [v1.2.1](docs/releases/v1.2.1.md) adds reviewed custom-fighter victory lip sync and left-finger poses, paired with [Fighter Workshop 0.3.1](https://github.com/vyanhursky/defjam-ffny-fighter-workshop/releases/tag/v0.3.1).
 
@@ -153,6 +155,11 @@ find an original texture, edit it, write a manifest, test the result and share i
 The [format reference](docs/hd-textures.md) and [mod-manager reference](docs/mod-manager.md)
 cover the technical details. Language mods have their own
 [delta format](docs/language-packs.md).
+
+**Save import:** bring Xbox or PS2 Story profiles into your
+installation from **Help → Saves → Import saves…** in the launcher. Preview the
+import and back up any matching profiles before replacement; see
+[Import Xbox and PS2 saves](docs/importing-saves.md).
 
 Your own music is supported separately on the Songs page: [add and manage songs](docs/custom-songs.md).
 

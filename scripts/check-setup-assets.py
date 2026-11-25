@@ -56,15 +56,22 @@ def fighter_import_probe(folder,python,*,env=None):
     subprocess.run([python,'-B','-I','-c',script,folder/'source/setup'],check=True,env=env)
 
 
+def save_import_probe(folder, python):
+    """All importer modules load in the actual isolated bundled interpreter."""
+    import subprocess
+    subprocess.run([python, '-B', '-I', folder / 'source/scripts/save-import.py', '--help'],
+                   check=True, stdout=subprocess.DEVNULL)
+
+
 def inspect_payload(archive):
     with tempfile.TemporaryDirectory() as temporary:
         folder = Path(temporary)
         package.safe_unpack(archive, folder)
         manifest = engine.verify_payload(folder, platform_of(archive))
         verify_fighter_sources(manifest)
-        for name in package.HD_SOURCES + package.MOD_SOURCES:
+        for name in package.HD_SOURCES + package.MOD_SOURCES + package.SAVE_IMPORT_SOURCES:
             if 'source/' + name not in manifest['files']:
-                raise ValueError('Required HD setup source missing: ' + name)
+                raise ValueError('Required setup source missing: ' + name)
         for name in manifest['files']:
             if name.startswith('source/setup-deps/'):
                 continue  # exact, hashed upstream SDL/ImGui source archives
@@ -98,6 +105,7 @@ def inspect_payload(archive):
                     check=True, env={'PATH': '/usr/bin:/bin'})
                 subprocess.run([python, '-B', folder / 'source/scripts/build-hd-pack.py', '--help'], check=True,
                                stdout=subprocess.DEVNULL, env={'PATH': '/usr/bin:/bin'})
+                save_import_probe(folder,python)
                 fighter_import_probe(folder,python,env={'PATH':'/usr/bin:/bin'})
                 check_linux_toolchain(folder)
         elif manifest['platform'] == 'macos-arm64':
@@ -111,6 +119,7 @@ def inspect_payload(archive):
                                stdout=subprocess.DEVNULL, env={'PATH': '/usr/bin:/bin'})
                 subprocess.run([folder / 'tools/bin/cmake', '--version'], check=True, stdout=subprocess.DEVNULL)
                 subprocess.run([folder / 'tools/bin/ninja', '--version'], check=True, stdout=subprocess.DEVNULL)
+                save_import_probe(folder,python)
                 fighter_import_probe(folder,python)
         elif sys.platform == 'win32':
             import subprocess
@@ -122,6 +131,7 @@ def inspect_payload(archive):
             subprocess.run([folder / 'python/python.exe', '-B',
                             folder / 'source/setup/mods.py', '--help'], check=True,
                            stdout=subprocess.DEVNULL)
+            save_import_probe(folder,folder/'python/python.exe')
             fighter_import_probe(folder,folder/'python/python.exe')
         return manifest
 

@@ -15,7 +15,7 @@
 //   Named controls: "<ms>:ui:<id>" clicks; "<ms>:hover:<id>" hovers, revealing scrolled controls.
 //   "<ms>:uiopt:<id>" clicks it if it is there and says nothing if not: a control that only exists in
 //   one layout, such as the On/Off item of an on/off choice (`<section>.<key>.on`), which a narrow or
-//   large-text window shows in place of a checkbox. "<ms>:uiwait:<id>" clicks it once it appears,
+//   large-text window shows in place of a checkbox. "<ms>:text:<value>" types into the focused field. "<ms>:uiwait:<id>" clicks it once it appears,
 //   waiting up to half an hour (the app's setup and update screens, which follow minutes of work).
 //   RECOMP_WINDOW_SHOT       a file to write the first full frame to, as a BMP
 
@@ -62,6 +62,7 @@ struct ScriptStep {
         RESIZE,
         MOVE,
         SHOT,
+        TEXT,
         PLAY,
         QUIT
     } kind;
@@ -97,6 +98,10 @@ std::vector<ScriptStep> parse_script(const char *text)
                 st.file = file;
                 st.optional = !strcmp(kind, "uiopt");
                 if (!strcmp(kind, "uiwait")) st.max_attempts = 9000;     // 200 ms apart: half an hour
+            }
+            else if (!strcmp(kind, "text") && sscanf(item.c_str(), "%llu:text:%511[^;]", &ms, file) == 2) {
+                st.kind = ScriptStep::TEXT;
+                st.file = file;
             }
             else if (!strcmp(kind, "resize"))
                 st.kind = ScriptStep::RESIZE;
@@ -272,7 +277,14 @@ extern "C" int pc_launcher_window(int *open_setup_out)
                     continue;
                 }
             }
-            if (st.kind == ScriptStep::RESIZE)
+            if (st.kind == ScriptStep::TEXT) {
+                SDL_Event text;
+                SDL_zero(text);
+                text.type = SDL_EVENT_TEXT_INPUT;
+                text.text.text = st.file.c_str();
+                ui_lock(); ui_sdl_event(&text, 1.0f, 1.0f); ui_unlock();
+            }
+            else if (st.kind == ScriptStep::RESIZE)
                 SDL_SetWindowSize(window, (int)st.x, (int)st.y);
             else if (st.kind == ScriptStep::CLICK || st.kind == ScriptStep::TARGET)
             {

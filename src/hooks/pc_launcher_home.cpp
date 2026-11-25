@@ -2,6 +2,7 @@
 #include "pc_ui_theme.h"
 #include "pc_ui_actions.h"
 #include "pc_mods.h"
+#include "pc_save_import.h"
 #include "pc_ui_internal.h"
 #include <algorithm>
 #include <cstring>
@@ -61,6 +62,7 @@ UiHomeResult ui_launcher_home(float width, float height, const char *focus)
 #endif
     if (pcui::mod_recovery_needed())
         ImGui::TextWrapped("Play is unavailable until an interrupted mod installation is recovered. Open Mods to fix it.");
+    else if (pcui::save_import_busy()) ImGui::TextWrapped("Finishing save import. Play will be available when it finishes.");
     else if (pcui::mod_busy()) ImGui::TextWrapped("Finishing a mod operation. Play will be available when it finishes.");
     {
         std::string stopped = last_error();
@@ -73,7 +75,9 @@ UiHomeResult ui_launcher_home(float width, float height, const char *focus)
             ui_target("Dismiss error");
         }
     }
-    const char *labels[] = {"Settings", "Controls", "Mods", "Songs", "Help"};
+    // The Mods label says when a mod has an update. "##Mods" keeps the widget's identity (focus, navigation,
+    // automation) the same either way.
+    const char *labels[] = {"Settings", "Controls", pcui::mod_updates_available() > 0 ? "Mods (Updates Available)##Mods" : "Mods##Mods", "Songs", "Help"};
     const char *targets[] = {"Settings", "Configure", "Mods", "Songs", "Help"};
     int routes[] = {1, 2, 3, 5, 4};
     if (ImGui::BeginTable("destinations", 2, ImGuiTableFlags_SizingStretchSame)) {

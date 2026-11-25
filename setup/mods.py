@@ -33,6 +33,8 @@ import mod_catalogue as contract
 CATALOGUE_URL = 'https://vyanhursky.github.io/DefJamFFNY-mods/index.json'
 KEYS = Path(__file__).resolve().parents[1] / 'config/mods/catalogue-keys.json'
 MAX_INDEX = 8 * 1024**2
+CHECK_INTERVAL = 12 * 3600  # check-updates asks the network at most this often (as the app's own update check does)
+CHECK_TIMEOUT = 5           # seconds per request: a start-up check must never keep anyone waiting
 MAX_FILE = 512 * 1024**2
 MAX_ARCHIVE = 8 * 1024**3
 MAX_FILES = 65536
@@ -478,14 +480,14 @@ class SafeRedirect(urllib.request.HTTPRedirectHandler):
         return super().redirect_request(request, fp, code, msg, headers, newurl)
 
 
-def open_url(url, headers=None):
+def open_url(url, headers=None, timeout=20):
     contract.https(url)
     return urllib.request.build_opener(SafeRedirect()).open(
-        urllib.request.Request(url, headers={'User-Agent': 'DefJamMods/1', 'Accept-Encoding': 'identity', **(headers or {})}), timeout=20)
+        urllib.request.Request(url, headers={'User-Agent': 'DefJamMods/1', 'Accept-Encoding': 'identity', **(headers or {})}), timeout=timeout)
 
 
-def fetch_small(url, limit):
-    with open_url(url) as response:
+def fetch_small(url, limit, timeout=20):
+    with open_url(url, timeout=timeout) as response:
         check(response.status == 200, 'Unexpected catalogue response')
         data = response.read(limit + 1)
         check(len(data) <= limit, 'Catalogue response too large')
@@ -570,17 +572,42 @@ class Manager:
         return verify_index(base64.b64decode(saved['raw'], validate=True), base64.b64decode(saved['signature'], validate=True),
                             self.keys, saved['revision'], saved['sha256'], fresh=fresh)
 
-    def refresh(self, url=CATALOGUE_URL):
+    def refresh(self, url=CATALOGUE_URL, timeout=20):
         check(self.keys, 'Catalogue signing key has not been provisioned; local mods still work')
         self.progress('Checking project catalogue')
-        raw = fetch_small(url, MAX_INDEX)
-        signature = fetch_small(url + '.sig', 64)
+        raw = fetch_small(url, MAX_INDEX, timeout)
+        signature = fetch_small(url + '.sig', 64, timeout)
         previous = read_json(self.root / 'catalogue.json', {})
         index = verify_index(raw, signature, self.keys, previous.get('revision', 0), previous.get('sha256'), fresh=True)
         atomic_json(self.root / 'catalogue.json', dict(raw=base64.b64encode(raw).decode(),
                     signature=base64.b64encode(signature).decode(), revision=index['revision'],
                     sha256=hashlib.sha256(raw).hexdigest(), fetched=dt.datetime.now(dt.timezone.utc).isoformat()))
         self.progress('Catalogue verified and refreshed')
+
+    def catalogue_age(self):
+        """Seconds since the cached catalogue was fetched, or None when that is unknown."""
+        fetched = read_json(self.root / 'catalogue.json', {}).get('fetched')
+        try:
+            when = dt.datetime.fromisoformat(fetched)
+        except (TypeError, ValueError):
+            return None
+        return max(0.0, (dt.datetime.now(dt.timezone.utc) - when).total_seconds()) if when.tzinfo else None
+
+    def check_updates(self, url=CATALOGUE_URL):
+        """The launcher's start-up check behind "Mods (Updates Available)".
+
+        Fetches the signed catalogue when the cached one is older than CHECK_INTERVAL, with a short
+        timeout, and says nothing when that fails (offline, a bad signature, a rollback): the notice
+        then keeps showing what the last verified catalogue said. Installing still needs a fresh
+        catalogue and verifies it on its own, so this check only decides whether to mention updates.
+        """
+        age = self.catalogue_age()
+        if not self.keys or (age is not None and age < CHECK_INTERVAL):
+            return
+        try:
+            self.refresh(url, CHECK_TIMEOUT)
+        except (ValueError, OSError, ImportError, urllib.error.URLError):
+            pass
 
     def choose(self, mod_id, requested=None, prerelease=None):
         prerelease = self.prerelease if prerelease is None else prerelease
@@ -901,7 +928,7 @@ class Manager:
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=('status', 'refresh', 'install', 'remove', 'rollback', 'recover', 'install-local', 'fighter-enable', 'fighter-disable', 'fighter-prepare', 'fighter-digest'))
+    parser.add_argument('command', choices=('status', 'refresh', 'check-updates', 'install', 'remove', 'rollback', 'recover', 'install-local', 'fighter-enable', 'fighter-disable', 'fighter-prepare', 'fighter-digest'))
     parser.add_argument('--data-dir', type=Path, required=True)
     parser.add_argument('--runtime', default='0.0.0')
     parser.add_argument('--capability', action='append', default=['textures-v1'])
@@ -929,6 +956,13 @@ def main():
             print(json.dumps(dict(event='digest', schema=DIGEST_SCHEMA, digest=digest, packs=packs)), flush=True)
             return 0
         with file_lock(manager.root / 'writer.lock'):
+            if args.command == 'check-updates':
+                # The start-up check is only a notice. It never recovers an interrupted install (the launcher
+                # offers that on Mods), and it ends silently: the launcher shows no message for it.
+                if not (manager.root / 'journal.json').exists():
+                    manager.check_updates()
+                    manager.view()
+                return 0
             try:
                 if (manager.root / 'journal.json').exists():
                     with file_lock(manager.root / 'runtime.lock'):

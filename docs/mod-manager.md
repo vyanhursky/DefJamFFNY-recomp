@@ -30,6 +30,23 @@ python setup/mods.py rollback --id example-pack --data-dir /path/to/data
 python setup/mods.py remove --id example-pack --data-dir /path/to/data
 ```
 
+### Update notice on Home
+
+When the launcher opens (unless `[launcher] check_updates` is off) it starts `mods.py check-updates`
+once in the background. The helper asks for the signed catalogue only when the cached copy is more than
+twelve hours old, with a five-second timeout; offline, a bad signature or a rollback ends the check without
+a message and the last verified catalogue stays in use. It then rewrites `view.ini` like `status`. Home
+reads that: when at least one installed mod has a newer compatible, non-revoked stable version (the
+projection's `update=1` with `compatible=1`), the button reads **Mods (Updates Available)**. Nothing is
+downloaded or installed, local packs without a receipt are never counted, and testing versions count
+only after the Mods page's checkbox is ticked for a launcher session. The notice goes away when the
+installed version catches up.
+
+The check is invisible and never blocks anything: `mod_busy()` stays false while it runs, so Play and
+the Mods buttons work, and it never writes the status line. The next mod command (or the game starting)
+ends it first; the helper replaces its files atomically and its locks die with it. It does not run
+while an interrupted install needs recovery.
+
 Testing builds offer an explicit "Show testing versions (release candidates)" checkbox.
 It affects catalogue choices and installs for this launcher session; stable-only
 is the default. Turning it off does not remove an installed testing version.
@@ -140,6 +157,7 @@ python setup/mods.py COMMAND --data-dir DATA --runtime VERSION --game-dir GAME
 | `fighter-prepare` | Rebuilds the manifest for the current state (Play runs it only when the manifest is stale). |
 | `fighter-digest` | Prints the `fighter-set-1` digest of the enabled packs as one JSON line. Changes no state and takes no lock, so it works while the game runs. |
 | `status` | Refreshes `mod-manager/view.ini`. |
+| `check-updates` | The launcher's start-up check: refreshes the catalogue only if the cached one is over twelve hours old (five-second timeout), then rewrites `view.ini`. Prints nothing and exits 0 whatever the network does. |
 
 Each command prints JSON lines: `{"event": "progress", ...}` while it works, then
 `{"event": "complete", "message": ...}` with exit code 0, or `{"event": "error",

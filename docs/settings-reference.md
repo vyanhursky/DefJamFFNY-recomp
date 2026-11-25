@@ -22,7 +22,7 @@ and what to do when something misbehaves, see [Controllers, keyboard and mouse](
 | Key | Default | Meaning |
 |---|---|---|
 | `skip` | `false` | Skip the launcher and start the game at once. The launcher shows on every launch unless this is on. Hold **Shift** while the game starts, or start it with `--launcher`, to see it anyway; turn this off in the overlay's Interface page or the launcher's own checkbox. Env `RECOMP_NO_LAUNCHER=1` skips it for one run. |
-| `check_updates` | `true` | The app (`DefJamRecompiled`) checks GitHub for a newer release when it starts, at most every twelve hours, and Home offers the update. Off: no check. The game itself ignores it. Shown in the app's Advanced > Interface > Start-up as "Check for updates when the app starts". |
+| `check_updates` | `true` | The app (`DefJamRecompiled`) checks GitHub for a newer release when it starts, at most every twelve hours, and Home offers the update. The launcher also checks the project's signed mod catalogue the same way (at most every twelve hours, in the background, and silently when offline); Home then reads "Mods (Updates Available)" while an installed mod has a newer version. Off: neither check. The game itself ignores it. Shown in the app's Advanced > Interface > Start-up as "Check for updates when the app starts". |
 
 ## [ui]
 
@@ -104,6 +104,7 @@ settings (see [Launcher and overlay](launcher-and-overlay.md#cheats)). [How they
 | `pack` | *(empty)* | The language mod that is on: its folder in the mods folder (`<data>/mods`, or `RECOMP_TEXTURE_ROOT`); empty plays the game in its own English. The first start with a pack rebuilds its files from your dump into `<data>/cache/language`. Restart. Set by ticking the mod on the launcher's **Mods** page (one language at a time). Env `RECOMP_LANGUAGE_PACK`. [Language packs](language-packs.md). |
 | `story_subtitles` | `auto` | Story cutscene subtitles: `auto` (what the language mod asks for; without one, as the game does), `all cutscenes` (every cutscene, English included: the game has English subtitles for all of them), `as the game does` (the opening cutscene only). Restart. Shown in the launcher as **Interface → Language and subtitles**. Env `RECOMP_STORY_SUBTITLES`. |
 | `voice_subtitles` | `auto` | Voice subtitles (`speech_subtitles.txt` in a language mod) for fighter intros/extros, shops, taunts, tutorial and voicemail: `auto` (on when the active language mod ships `speech_subtitles.txt`), `on`, or `off`. Shown in the launcher as **Interface → Language and subtitles**. Env `RECOMP_VOICE_SUBTITLES`. |
+| `subtitle_size` | `normal` | Subtitle font size for in-game voice subtitles: `normal`, `large` (recommended for handhelds like Steam Deck), or `extra large` (for TV / couch play and accessibility). Applies at once. Shown in the launcher and overlay as **Interface → Language and subtitles → Subtitle size**. Env `RECOMP_SUBTITLE_SIZE`. |
 | `game` | `english` | The game's own language: `english`, or `french`, the translation built into the game (menus, memory-card messages and Story subtitles, which then show in every cutscene; the voices and the menu icon art stay English). Not used while a language mod is on. Restart. Shown in the launcher as **Interface → Language and subtitles**. Env `RECOMP_GAME_LANGUAGE`. [The game's own French](language-packs.md#the-games-own-french). |
 
 ## [songs]

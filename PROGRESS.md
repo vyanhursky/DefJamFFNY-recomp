@@ -8,6 +8,8 @@
 
 ## 0. Status at a glance
 
+- v1.2.3: ⏳ release candidate PR #316 combines #295/#309/#311/#314 on `codex/release-v1.2.3`; runtime03181df, unchanged toolkitd108a64 on published fork `defjam/release-1.2.3`. Mac21 default checks qualified across retained passes and focused replay retry (80/1800 unchanged golden); preserve first headless-launcher failure/interruption and tutorial-popup replay74/80. CI35/35; complete units2867/78skip, native fast units2870/74skip/1deselect. Real CI-payload fresh221.42s, baseline122223.61s and Clean Update106.35s pass with12 protected files unchanged. Packaged Unicode PS2 import, Xbox keep/replacement, Options backup/preferences and controlled mod notice pass. Final import lifecycle/three-size rendered checks and final CI/publication pending. Native pickers unverified after computer-use connection failure; D459 waives Windows/Linux native tests.
+
 - v1.2.2: published stable/Latest on 2026-11-23T18:51:16Z under D457-D458. PR #305 merged at `98446d2`; annotated tag `v1.2.2` is immutable. Source release 45239088484 passes 37/37. All nine app/checksum/provenance assets match GitHub digests, exact source/toolkit and inspected inventories. Windows default coverage 17 applicable passes/four platform skips plus final-menu29/29; real CI-payload fresh install and Clean Update pass with ten protected files unchanged. Toolkit `d108a64` unchanged. Native macOS/Deck, hands-on and OS shell-launch limits remain explicit in the release notes.
 
 - v1.2.1 / Workshop 0.3.1: published stable/Latest on 2026-11-20 (D447), game merge `2496bd3` / Workshop `2f0a317`; PRs #288/#289 and Workshop #40/#41 merged. Tagged game CI 37/37; Workshop four native packages audited. All nine game and ten Workshop asset digests match checksums/provenance. Toolkit `d108a64` unchanged; native qualification limits below still apply.
@@ -610,6 +612,15 @@ Run-log citations from retired status/planning prose remain protected by
 | D456 | 2026-11-22 | Monitor the toolchain-189 Codex session for the next few hours and start the prepared v1.2.2 regression only after its testing is finished. | Explicit overnight owner instruction; do not contend for game timing, input, audio or GPU, and do not terminate another lane. |
 | D457 | 2026-11-23 | Proceed with the Windows-qualified 1.2.2 patch under the owner’s conditional release instruction after successful local full-regression coverage; retain native macOS/Deck and hands-on limits explicitly. | Toolkit and default compiler output are unchanged; previous stock qualifications remain bounded to unchanged paths. New custom Team/subtitle configurations are not inferred qualified on other platforms from CI. |
 | D458 | 2026-11-23 | Publish the verified v1.2.2 draft stable/Latest after tagged CI and all nine asset audits pass; close milestone17. | D457 Windows qualification satisfies the conditional instruction. Source45239088484 passes37/37, tag98446d2 and toolkitd108a64 verified. Preserve all native and OS integration limits; no duplicate full run for publication. |
+| D459 | 2026-11-24 | Qualify and release v1.2.3 on this Mac after functional/full regression and CI/package checks; waive new Windows/Linux native tests. | Owner instruction on November 24. Preserve omitted native/manual coverage explicitly; publication is authorized once the candidate is good. |
+| D460 | 2026-11-24 | Ship #295 in v1.2.3: launcher Help imports Xbox/PS2 through one service and bundled interpreter. | Owner retargeted the PR to ship sooner. Legacy CLIs share discovery/conversion/publication rules. |
+| D461 | 2026-11-24 | Keep profiles by default; require preview and explicit backed-up replacement, revalidated under the runtime lock with staged rollback. | Avoid stale or concurrent writes and preserve exact complete-folder backups. |
+| D462 | 2026-11-24 | Import only known shared Options unlocks and strictly validate the observed PS2 layout, zero spans, CRCs and list bounds. | Retain native preferences/leaderboards/metadata; signatures alone cannot establish a correctly aligned profile. |
+| D463 | 2026-11-24 | Anchor Gym navigation to actual map entry. | Profile messages can consume an A press; prior absolute timing selected Clothing. |
+| D464 | 2026-11-24 | Offer normal/large/extra-large speech subtitles with live sizing and adaptive outlines (#309). | Owner requested handheld accessibility; default remains normal and no restart is required. |
+| D465 | 2026-11-24 | Home announces signed-catalogue mod updates; silently refresh at startup on a 12-hour cadence, preemptible by Play/mod commands (#311). | Reuse launcher.check_updates and verified catalogue policy without blocking Play or querying download hosts. |
+| D466 | 2026-11-24 | Ship the #314 RecompLauncher manifest as repository/catalogue data, limited to Modern/Original, Skip intro and optional copy check. | Owner preference; no package changes, prepare/start, save sync or folder-pack integration. External catalog application remains untested. |
+| D467 | 2026-11-24 | Carry the Mac candidate's qualified checks across release records, packaging, merge and tag; resolve fixture-only failures with focused retries. | Native runtime03181df/toolkitd108a64 is unchanged. First headless UI attempt suppressed launcher; replay fixture omitted native Options and paused at Weapon tutorial. Its74 records exactly prefix the earlier passing Mac stream; preserved Options80277dd8 restores80/1800 with no golden/threshold change. Retain all original failures. Final focused lifecycle/size checks and CI must finish before merge/tag/publication under D459. |
 
 ## 2. Historical environment inventory (2026-09-17)
 
@@ -659,6 +670,8 @@ defjam-recomp/
 
 ## 5. Open questions for Vlad
 
+- v1.2.3: no owner approval pending (D459); final checks and CI/publication remain. Mac default21 checks, real package install/update and import UI pass under D467. Windows/Linux native tests waived; native pickers, physical controls/audible device and external RecompLauncher catalogue behavior remain unqualified.
+
 - v1.2.2 is published stable/Latest under D457-D458; no release approval is pending. Milestone17 is closed; v1.3.0 (18) remains open. Preserve original failed/interrupted attempts and native/OS qualification limits in the release notes.
 
 - v1.2.1 and Workshop 0.3.1 are published stable/Latest under D447 on the owner's explicit instruction; no release approval is pending. Milestone 16 is closed; v1.2.2 supersedes the game under D458; Workshop remains0.3.1. Existing issues and unqualified native cases remain open.
@@ -686,67 +699,45 @@ Upstream PR submissions still need the owner's separate approval.
 
 > Recent entries only; older entries remain unchanged in the local `docs/worklog/` archive.
 
-- 2026-11-22 18:45 — v1.2.2 draft release PR #305 ready for later native qualification: candidate34ea7b6 CI45095489325 passes35/35; fresh analysis/lift21C/67MiB and MSVC19.29 release build/verify-build pass, executable9954806c. Initial unit1failed/2825pass/59skip while version metadata changed; frozen-source cache21pass/1skip and final full units2826pass/59skip (288.93s, logs/unit-rc-final.txt). Source1018/0 and whitespace pass. Full native regression/install/update/playtest remain pending; no release merge/tag/publication. Build/fixture identities recorded in PR and handoff.
-- 2026-11-22 22:19 — D456: owner authorized monitoring for the next few hours and deferred candidate regression start after the other Codex agent finishes testing. Toolchain-189 session active, game PID39960 plus run-serial driver23492 observed; queued visual/Unicode tests mean a game-process gap is insufficient. Verified RC executable9954806c and build state unchanged. Candidate waits; no foreign process terminated.
-- 2026-11-23 16:40 UTC — v1.2.2 Windows regression started from0efe068/executable9954806c after session resumed this morning. No regression ran during the overnight interruption. Other agent last reported game tests finished; no game/test driver present. Runner logs/run-overnight.ps1 uses own copied fixture and serial game-ownership guard; full console logs/overnight-20261123-093924-console.txt. Unit phase active; separate result-menu smoke follows. No release action.
-- 2026-11-23 16:56 UTC — Tool/session interruption stopped the first v1.2.2 aggregate during fight; retain logs/overnight-20261123-093924-console.txt (unit2022pass/862skip/1deselected, m2/m3/m4a pass,4WindowsUI skips). Triage original fight log ends mid-presentation with median120 and no terminal crash; not a completed passing check. Own-lane guard20261123-094411-ko8hvwdj restored, no unresolved guard remains. Detached hidden driver27200 resumes only remaining13 checks, then result-menu smoke; logs/resumed-20261123-095637-console.txt.
-- 2026-11-23 17:38 UTC — v1.2.2 Windows default coverage complete on0efe068: 17applicable passes/4platform skips, combining retained pre-interruption checks with resumed13/13 in41min (logs/regress-20261123-103744.txt; logs/overnight/combined-coverage.json). Combat28/28,versus27/27,replay80records/1800steps matchgolden, Story/soak3boots/French/subtitles/input modes pass; captures reviewed. No game overlap recorded. Extra result-menu smoke running; no release yet.
 - 2026-11-23 17:54 UTC — All Windows native checks complete: default17pass/4platformskip plus result-menu29/29 (finalmenu20.063s afterresult, fixtureunchanged), bothdriverexits0; no unresolvedsaveguard. InstallQA root code/rc122-qa-20261123: preserve first cache-lock denial and second system-Temp compiler denial. Isolated appdata/temp retry active after successful independent MSVC compile/link probe; no source/security changes.
 - 2026-11-23 18:20 UTC — D457 conditional release qualification: Windows17pass/4skip plus final-menu29/29; packaged engine fresh122355.90s,baseline121360.98s,update122213.49s all exit0, ten protected files identical. First cache/Temp denials retained, isolated paths probe/installs pass. Hosted app shell launch pending; local identical-code app Help layout/Copy path verified, Open returns OS-shell error under automation context; desktop-context check pending. Final notes preserve Windows-only new native scope and original platform/custom-mode limits; source-record CI next.
 - 2026-11-23 18:51 UTC — D458: PR305 merged98446d2; immutable annotatedv1.2.2, tagged Source45239088484 passes37/37. All9 asset digests/checksums/provenance and inventories verified before stable/Latest publication18:51:16Z; milestone17 closed. Windows17pass/4skip plus final-menu29/29, install/update pass, ten protected files unchanged; native/OS limits preserved. Audit logs/final-release-assets/audit.json; publication logs/publication-state.json.
+- 2026-11-24 19:55 — v1.2.3 train #295 integrated: launcher Xbox/PS2 import; prior Mac 54 importer/bridge tests, quick5/5 and lifecycle4/4 retained in PR. D460-D463; candidate qualification pending.
+- 2026-11-24 19:55 — #309 integrated: three live subtitle sizes (D464); prior MSVC46/46 and owner live check retained; candidate Mac qualification pending.
+- 2026-11-24 19:55 — #311 integrated: silent signed-catalogue update notice (D465); prior Windows helper/UI evidence retained; POSIX bridge and candidate UI checks pending.
+- 2026-11-24 19:55 — #314 integrated: repository RecompLauncher manifest only (D466), six source tests; external catalogue application untested. Toolkit d108a64 unchanged across all four PRs. D459 authorizes Mac qualification and release, waiving Windows/Linux native checks. Analysis log logs/release-1.2.3/analyze.txt.
+- 2026-11-24 21:27 — D467: runtime03181df Mac21 default checks qualified across first unit/goldens, resumed16/17 (regress-20261124-205015.txt) and prepared-Options replay80/1800 (regress-20261124-205422.txt); original headless/interrupted/tutorial74 failures retained. CI4553642844135/35; units2867/78skip. Real CI-payload fresh221.42s/baseline223.61s/update106.35s all12 protected files identical. Packaged import/backup/preferences/mod-notice UI pass; native pickers unqualified after CUA tool failure. Focused imported lifecycle and rendered sizes pending in logs/release-1.2.3/.
 
 ## 7. Hand-off
 
-### v1.2.2 published — 2026-11-23
+### v1.2.3 qualification / publication — 2026-11-24
 
-Stable/Latest: https://github.com/vyanhursky/DefJamFFNY-recomp/releases/tag/v1.2.2
-Release PR #305 merged at `98446d24b9d7d616242d0aedc941b22c63794c97`.
-Annotated tag v1.2.2 is immutable. Tagged Source45239088484 passes37/37.
-Exactly nine final app/checksum/provenance assets pass SHA-256 comparisons with
-GitHub digests, sidecars, exact source/toolkit and inspected game-free inventories
-(Windows4731, macOS5446, Linux10001 files). Draft tag lookup returned404;
-authenticated listing found release455842838; ID-based audit preceded publication.
-Published2026-11-23T18:51:16Z; Latest confirmed, milestone17 closed; v1.3.0 (18)
-remains open. Toolkitd108a64c0f272da2ab29016914f473018c3e2347 unchanged on both
-release/integration branches. Workshop remains0.3.1.
-Pages45243130640 passes2/2; live releases.json contains stablev1.2.2 and nine assets.
-Automatic tag deployment45242765221 was rejected by existing environment branch
-protection; dispatch from main succeeded without changing protection rules.
+Release PR #316 (`codex/release-v1.2.3`) includes #295/#311/#314/#309 with merge ancestry.
+Owner D459 authorizes release after Mac checks, waiving Windows/Linux native tests. D460-D467
+record train choices and evidence reuse. Toolkitd108a64 unchanged, published `defjam/release-1.2.3`.
+Runtime03181df09ace7b09bcf89264fe19302ec3f85c1f; CI synthetic20e77c6 has identical tree.
+Later records/site text preserve runtime and require no duplicate full suite.
 
-Train #259/#275/#294/#297/#298 merged preserving ancestry. #302 closed-unmerged
-excluded; #295/#299/#300/#301/#303 deferred. #172/#173/#175/#293/#296 closed
-by release; keep #98/#166/#247/#283/#285 open. Read docs/releases/v1.2.2.md
-and D448-D458 for standalone qualifications and preserved failures.
+Mac default21 qualified: retain unit+three goldens in `logs/release-1.2.3/full-driver.txt`,
+resumed16/17 `logs/regress-20261124-205015.txt`, and replay80/1800 retry
+`logs/regress-20261124-205422.txt`. Combined mapping `logs/release-1.2.3/combined-coverage.json`.
+Original headless-launcher failure/interrupted overlay and replay74/80 remain failures/incomplete.
+Replay capture shows Weapon tutorial at00:32: missing Options. Preserved Mac Options80277dd8
+(same as passing Nov19 replay) fixes fixture, not runtime. Initial fixture48e6b31b; retry8a501bab.
+Combat28/28, versus27/27, Story/Gym preview, soak3/3, language/subtitles/input both20pairs pass.
+Complete units2867/78skip; native fast2870/74skip/1deselect. CI45536428441 passes35/35.
 
-Runtime0efe0681e69bb3aec27d0421e37965b1456ddd20; candidate6251280 and final98446d2
-only add Markdown records. Windows MSVC19.29.30159.0, CMake3.20.21032501-MSVC_2,
-Ninja RelWithDebInfo/win-x64-release; receipt verified. Native exe SHA-256
-9954806cdfdf6fe06d9846b0a75e244a8ffdf29cb7b63594dabb6fc1f4d9da69.
-Default coverage17 applicable passes/four platform skips across retained completed
-checks and resumed13/13 aggregate; interrupted fight never counted as passing.
-Combat28/28, versus27/27, replay80/1800 golden, soak3/3; Story/language/subtitle/
-rapid input pass; captures reviewed. Extra final-menu29/29 reaches ordered menu
-20.063s after result, fixture unchanged. Frozen units2826/59skip. Preserve original
-cache failure, tool interruption and recovered save guard; no unresolved guard.
-Single-VY2 fixture manifest607fefd546119be9750ed0b071bbd4ee8f21d69a11593569640216c6c55a090a.
+Real verified CI payload fresh123221.42s, baseline122223.61s, update123106.35s, all12 protected
+files unchanged. QA `/private/tmp/defjam-rc123-20261124`; evidence `logs/release-1.2.3/`.
+Packaged Unicode PS2 import, Xbox keep/replacement, exact backups, Options preferences and projected
+mod-update notice pass. First import driver read wrong stdout; actual successful Play log retained.
+Native picker CUA connection failed; task-owned idle app closed. No native picker/physical/audible/
+external catalogue claim. No owner data, source exports or saves modified.
 
-Real CI-payload engine fresh122/baseline121/update122 pass355.90/360.98/213.49s,
-ten protected files identical. Private QA: C:/Users/Vlad/code/rc122-qa-20261123
-(results.json, protected manifests, retained attempt1/2 cache/Temp denials).
-Successful tests isolate task-owned data/Temp; no OS-security change. Same-code
-Help layout/copied Game logs path pass; Open returned shell error and hosted first
-shell launch exposed no window. Those OS operations remain unqualified. No fresh
-native macOS/Deck, hands-on or alternate fighter-range acceptance is inferred.
-
-Private evidence archive: C:/Users/Vlad/code/defjam-release-evidence/v1.2.2,
-including logs/overnight/combined-coverage.json, logs/regress-20261123-103744.txt,
-logs/scenarios/fight-result-menu-20261123-103744/report.json,
-logs/overnight/visual-review.json, logs/final-release-assets/audit.json and
-logs/publication-state.json. Preserve original failed/interrupted attempts and
-private fixtures. Unlink release-lane dump junctions before cleanup; never recurse
-the original dump or touch owner saves/other agents' worktrees. Release-only lane
-cleanup follows this records merge. No logs, captures, saves or built game publish.
-
-Never repeat a full native suite for records/merge/tag/publication metadata.
-Start future work from public main and the appropriate milestone; the canonical
-checkout has pre-existing state and must not be reset to clean this release lane.
+Remaining: focused `import-lifecycle.py` then `subtitle-probe.py` run serially; read their driver/results
+in the evidence folder, diagnose any failure. Finish final CI, update PR316 evidence, merge --merge,
+annotated immutable v1.2.3 at merge, push tag, wait Source workflow; verify exactly9 assets against
+GitHub digests/sidecars/provenance and game-free inventories before stable/Latest publication.
+Close milestone19; v1.3.0(18) remains open. Verify Pages, dispatch from main if tag environment
+protection rejects deploy (D458). Published baseline remains1.2.2 until successful publication.
+Workshop stays0.3.1. Preserve private evidence; never publish logs, captures, saves or built game.

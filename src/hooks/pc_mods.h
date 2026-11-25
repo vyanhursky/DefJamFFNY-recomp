@@ -23,7 +23,9 @@ struct ModView {
 };
 bool mod_start(const std::string &command, const std::string &id = "");
 bool mod_poll(); // true after a job completed; caller refreshes local inventory
-bool mod_busy();
+bool mod_busy(); // a job the player started; false during the start-up "check-updates" job
+// How many installed mods have a newer compatible version in the verified catalogue (Home shows "Mods (Updates Available)").
+int mod_updates_available();
 bool mod_prerelease();
 void mod_set_prerelease(bool enabled);
 // The language pack folder the launcher has chosen (empty for none). Fighter builds started from

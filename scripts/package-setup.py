@@ -22,6 +22,9 @@ import zipfile
 ROOT = Path(__file__).resolve().parents[1]
 PYTHON_VERSION = '3.13.5'
 PACKAGES = ['pyxbe==1.0.4', 'capstone==5.0.9', 'Pillow==12.3.0', 'numpy==2.5.2', 'cryptography==50.0.2', 'cffi==2.0.0', 'pycparser==2.23']
+SAVE_IMPORT_SOURCES = ('scripts/save-import.py', 'scripts/save_import.py',
+                       'scripts/xbox_save_format.py', 'scripts/ps2_save_format.py',
+                       'scripts/ps2_save_containers.py', 'scripts/ps2_lzari.py')
 MOD_SOURCES = ('setup/mods.py', 'setup/mod_catalogue.py', 'config/mods/catalogue-keys.json')
 HD_SOURCES = ('scripts/build-hd-pack.py', 'scripts/hd_assets.py',
               'scripts/hd_corpus.py', 'scripts/hd_corpus.html',
@@ -263,9 +266,9 @@ def main(argv=None):
         source.mkdir()
         copy_sources(ROOT, source, platform=args.platform)
         copy_sources(toolkit, source / 'tools/xboxrecomp', True)
-        for name in HD_SOURCES + MOD_SOURCES:
+        for name in HD_SOURCES + MOD_SOURCES + SAVE_IMPORT_SOURCES:
             if not (source / name).is_file():
-                raise ValueError('Required HD setup source is not tracked: ' + name)
+                raise ValueError('Required setup source is not tracked: ' + name)
         # Source archives contain no Git metadata and never receive the user's bytes.
         (source / 'src/recomp/gen').mkdir(parents=True, exist_ok=True)
         (source / 'src/recomp/gen/.gitkeep').touch()
