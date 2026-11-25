@@ -24,6 +24,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "host.h"
+#include "kernel/xbox_memory_layout.h"
 
 /* The generated register model: MEM8/16/32, XBOX_PTR, and the guest registers
  * declared RECOMP_TLS. Declaring them here by hand instead would resolve to
@@ -1951,15 +1952,20 @@ void recomp_icall_not_code_log(uint32_t va)
  */
 void sub_0021EB90_enter(void)
 {
-    static int on = -1;
+    static int on = -1, wait_on, stats;
     static LARGE_INTEGER freq;
-    static unsigned holds, timeouts;
+    static unsigned holds, timeouts, checks, waits, signals;
+    static double wall_ms;
     uint32_t dev, sem;
     LARGE_INTEGER t0, t1;
 
     if (on < 0) {
         const char *e = getenv("RECOMP_FENCE_HOLD");
         on = !(e && *e == '0');
+        e = getenv("RECOMP_FENCE_WAIT");
+        wait_on = e && *e == '1';
+        e = getenv("RECOMP_STREAM2_STATS");
+        stats = e && *e == '1';
         QueryPerformanceFrequency(&freq);
     }
     if (!on)
@@ -1972,7 +1978,20 @@ void sub_0021EB90_enter(void)
         return;
     QueryPerformanceCounter(&t0);
     for (;;) {
-        SwitchToThread();
+        if (wait_on) {
+            uint32_t epoch = xbox_Nv2aProgressEpoch();
+            unsigned remaining;
+            /* Snapshot before the predicate; notify between it and Wait is
+             * retained in the epoch. A 2 ms recheck covers guest-only writes. */
+            if ((uint32_t)(MEM32(dev + 0x2C) - MEM32(sem)) < 16u) break;
+            QueryPerformanceCounter(&t1);
+            if ((t1.QuadPart - t0.QuadPart) * 10 > freq.QuadPart) { timeouts++; break; }
+            remaining = (unsigned)(100 - (t1.QuadPart - t0.QuadPart) * 1000 / freq.QuadPart);
+            if (!remaining) remaining = 1;
+            waits++;
+            signals += xbox_Nv2aProgressWait(epoch, remaining < 2 ? remaining : 2) != 0;
+        } else SwitchToThread();
+        if (stats) checks++;
         if ((uint32_t)(MEM32(dev + 0x2C) - MEM32(sem)) < 16u)
             break;
         QueryPerformanceCounter(&t1);
@@ -1981,7 +2000,14 @@ void sub_0021EB90_enter(void)
             break;
         }
     }
+    if (stats) {
+        QueryPerformanceCounter(&t1);
+        wall_ms += (double)(t1.QuadPart - t0.QuadPart) * 1000.0 / freq.QuadPart;
+    }
     holds++;
+    if (stats && (holds <= 5 || (holds & (holds - 1)) == 0 || holds % 512 == 0))
+        fprintf(stderr, "[S2FENCE] wait=%d holds=%u checks=%u waits=%u signals=%u timeouts=%u wall_ms=%.3f\n",
+                wait_on, holds, checks, waits, signals, timeouts, wall_ms);
     if (holds <= 5 || (holds & (holds - 1)) == 0)
         fprintf(stderr, "[FENCE] held the title for the executor (#%u, %u timed out)\n",
                 holds, timeouts);
