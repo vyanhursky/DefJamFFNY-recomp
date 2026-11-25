@@ -8,7 +8,7 @@
 
 ## 0. Status at a glance
 
-- v1.2.3: ⏳ release candidate PR #316 combines #295/#309/#311/#314 on `codex/release-v1.2.3`; runtime03181df, unchanged toolkitd108a64 on published fork `defjam/release-1.2.3`. Mac21 default checks qualified across retained passes and focused replay retry (80/1800 unchanged golden); preserve first headless-launcher failure/interruption and tutorial-popup replay74/80. CI35/35; complete units2867/78skip, native fast units2870/74skip/1deselect. Real CI-payload fresh221.42s, baseline122223.61s and Clean Update106.35s pass with12 protected files unchanged. Packaged Unicode PS2 import, Xbox keep/replacement, Options backup/preferences and controlled mod notice pass. Final import lifecycle/three-size rendered checks and final CI/publication pending. Native pickers unverified after computer-use connection failure; D459 waives Windows/Linux native tests.
+- v1.2.3: ✅ published stable/Latest at 2026-11-25T04:50:16Z under D459-D468. PR316 and #295/#309/#311/#314 merged; immutable annotated tag `v1.2.3` at `d505b7c`. Tagged Source45548147507 passes37/37. All9 app/checksum/provenance assets match GitHub SHA-256, source/toolkit and inspected game-free inventories (windows-x64 4740, macos-arm64 5455, linux-x86_64 10010). Mac21 default checks qualified with original failures/retries retained; native imported cash/save/reload2/2 and speech-size renders3/3 pass. Real CI-payload fresh221.42s/baseline223.61s/Clean Update106.35s, all12 protected files unchanged. Windows/Linux native tests waived; native pickers/physical/audible/external catalogue remain unqualified. Milestone19 closed; v1.3.0(18) remains open.
 
 - v1.2.2: published stable/Latest on 2026-11-23T18:51:16Z under D457-D458. PR #305 merged at `98446d2`; annotated tag `v1.2.2` is immutable. Source release 45239088484 passes 37/37. All nine app/checksum/provenance assets match GitHub digests, exact source/toolkit and inspected inventories. Windows default coverage 17 applicable passes/four platform skips plus final-menu29/29; real CI-payload fresh install and Clean Update pass with ten protected files unchanged. Toolkit `d108a64` unchanged. Native macOS/Deck, hands-on and OS shell-launch limits remain explicit in the release notes.
 
@@ -30,14 +30,14 @@
 - v1.0.1: ✅ hotfix, release PR = main after v1.0.0 + #199 only (D341, D342): Linux ships only the AppImage, renamed `DefJamRecompiled-1.0.1-linux-x86_64.AppImage`; no game, setup-engine or toolkit change besides the release-asset name (toolkit `6c0bd55` unchanged). Gate: unit tests, source policy and CI (three app/setup builds); no regression rerun (owner asked to ship it now). Notes: docs/releases/v1.0.1.md.
 - v1.0.0: ✅ stable, release PR #197 = main after beta 2 + #190 (Shops border #162, venue pins) + #198 (combo call-out #196), toolkit `6c0bd55`. Windows results below are on `4b73e78` (before #198, toolkit `351e28a`); no full regression after #198 (owner). Qualified on Windows only (D340): stock full regression 17/17, 16:9 HD lane 16/17 (combat memory-growth check fails, post-fight transition sample, #166), Clean Update from v0.13.0 and a fresh install pass. macOS/Deck not rerun on this head. Notes: docs/releases/v1.0.0.md; results: docs/regression-v1.0.0.md.
 
-Current published baseline: **v1.2.2** (`98446d2`), stable/Latest. Workshop remains **0.3.1**. Historical rows below
+Current published baseline: **v1.2.3** (`d505b7c`), stable/Latest. Workshop remains **0.3.1**. Historical rows below
 describe their original builds; they do not override this baseline or the current source.
 Toolkit pin: `d108a64` on the current integration branch.
 
 | Area | State | Notes |
 |---|---|---|
 | Windows, Apple Silicon macOS, Linux/Steam Deck | ✅ released | Game-free Setup builds the supported dump locally; runtime/backend details are in the platform guides. |
-| Toolkit | ✅ published pin | `d108a64c0f272da2ab29016914f473018c3e2347`; `.gitmodules` integration branch `defjam/upstream-v0.16`; release fork branch `defjam/release-1.2.2` retains the same pin. |
+| Toolkit | ✅ published pin | `d108a64c0f272da2ab29016914f473018c3e2347`; `.gitmodules` integration branch `defjam/upstream-v0.16`; release fork branch `defjam/release-1.2.3` retains the same pin. |
 | Input, launcher/overlay, HD/mod management, updates, language, custom/restored songs | ✅ shipped | See current guides and versioned release notes; old draft-PR statuses have been retired. |
 | v0.13 acceptance | ⚠ qualified | Windows16/17; Mac16/21 then4/5; Deck memory/golden discrepancies. Preserve original failures and omissions in docs/releases/v0.13.0.md and its linked evidence. No all-green claim. |
 | Open bugs and future work | ⏳ tracked in GitHub | Memory-allocation investigation #166 carried to v1.1.2 (D370); passing settled memory gates does not close it. Deck replay #98 and recorded Zig cinema fixture failures remain. Other scope is owned by issues/milestones. |
@@ -621,6 +621,7 @@ Run-log citations from retired status/planning prose remain protected by
 | D465 | 2026-11-24 | Home announces signed-catalogue mod updates; silently refresh at startup on a 12-hour cadence, preemptible by Play/mod commands (#311). | Reuse launcher.check_updates and verified catalogue policy without blocking Play or querying download hosts. |
 | D466 | 2026-11-24 | Ship the #314 RecompLauncher manifest as repository/catalogue data, limited to Modern/Original, Skip intro and optional copy check. | Owner preference; no package changes, prepare/start, save sync or folder-pack integration. External catalog application remains untested. |
 | D467 | 2026-11-24 | Carry the Mac candidate's qualified checks across release records, packaging, merge and tag; resolve fixture-only failures with focused retries. | Native runtime03181df/toolkitd108a64 is unchanged. First headless UI attempt suppressed launcher; replay fixture omitted native Options and paused at Weapon tutorial. Its74 records exactly prefix the earlier passing Mac stream; preserved Options80277dd8 restores80/1800 with no golden/threshold change. Retain all original failures. Final focused lifecycle/size checks and CI must finish before merge/tag/publication under D459. |
+| D468 | 2026-11-24 | Publish the verified v1.2.3 draft stable/Latest after the owner-authorized Mac qualification, tagged Source37/37 and exact9 asset audits; close milestone19. | PR316 merge/tagd505b7c preserves runtime03181df and toolkitd108a64; all4 train PRs merged. All GitHub digests, sidecars, provenance and game-free inventories verified before publication. Native cash mutation/save/fresh reload2/2 and three speech-size renders pass; retain original test-driver/fixture failures and all native/manual limits. Windows/Linux native waiver remains D459. No duplicate full game run for records/merge/tag/publication. |
 
 ## 2. Historical environment inventory (2026-09-17)
 
@@ -670,7 +671,7 @@ defjam-recomp/
 
 ## 5. Open questions for Vlad
 
-- v1.2.3: no owner approval pending (D459); final checks and CI/publication remain. Mac default21 checks, real package install/update and import UI pass under D467. Windows/Linux native tests waived; native pickers, physical controls/audible device and external RecompLauncher catalogue behavior remain unqualified.
+- v1.2.3 is published stable/Latest under D468; no release approval pending. Milestone19 closed; v1.3.0(18) remains open. Native pickers, physical controls/audible output and external RecompLauncher catalogue application remain unqualified; Windows/Linux native tests were waived by the owner.
 
 - v1.2.2 is published stable/Latest under D457-D458; no release approval is pending. Milestone17 is closed; v1.3.0 (18) remains open. Preserve original failed/interrupted attempts and native/OS qualification limits in the release notes.
 
@@ -699,7 +700,6 @@ Upstream PR submissions still need the owner's separate approval.
 
 > Recent entries only; older entries remain unchanged in the local `docs/worklog/` archive.
 
-- 2026-11-23 17:54 UTC — All Windows native checks complete: default17pass/4platformskip plus result-menu29/29 (finalmenu20.063s afterresult, fixtureunchanged), bothdriverexits0; no unresolvedsaveguard. InstallQA root code/rc122-qa-20261123: preserve first cache-lock denial and second system-Temp compiler denial. Isolated appdata/temp retry active after successful independent MSVC compile/link probe; no source/security changes.
 - 2026-11-23 18:20 UTC — D457 conditional release qualification: Windows17pass/4skip plus final-menu29/29; packaged engine fresh122355.90s,baseline121360.98s,update122213.49s all exit0, ten protected files identical. First cache/Temp denials retained, isolated paths probe/installs pass. Hosted app shell launch pending; local identical-code app Help layout/Copy path verified, Open returns OS-shell error under automation context; desktop-context check pending. Final notes preserve Windows-only new native scope and original platform/custom-mode limits; source-record CI next.
 - 2026-11-23 18:51 UTC — D458: PR305 merged98446d2; immutable annotatedv1.2.2, tagged Source45239088484 passes37/37. All9 asset digests/checksums/provenance and inventories verified before stable/Latest publication18:51:16Z; milestone17 closed. Windows17pass/4skip plus final-menu29/29, install/update pass, ten protected files unchanged; native/OS limits preserved. Audit logs/final-release-assets/audit.json; publication logs/publication-state.json.
 - 2026-11-24 19:55 — v1.2.3 train #295 integrated: launcher Xbox/PS2 import; prior Mac 54 importer/bridge tests, quick5/5 and lifecycle4/4 retained in PR. D460-D463; candidate qualification pending.
@@ -707,37 +707,53 @@ Upstream PR submissions still need the owner's separate approval.
 - 2026-11-24 19:55 — #311 integrated: silent signed-catalogue update notice (D465); prior Windows helper/UI evidence retained; POSIX bridge and candidate UI checks pending.
 - 2026-11-24 19:55 — #314 integrated: repository RecompLauncher manifest only (D466), six source tests; external catalogue application untested. Toolkit d108a64 unchanged across all four PRs. D459 authorizes Mac qualification and release, waiving Windows/Linux native checks. Analysis log logs/release-1.2.3/analyze.txt.
 - 2026-11-24 21:27 — D467: runtime03181df Mac21 default checks qualified across first unit/goldens, resumed16/17 (regress-20261124-205015.txt) and prepared-Options replay80/1800 (regress-20261124-205422.txt); original headless/interrupted/tutorial74 failures retained. CI4553642844135/35; units2867/78skip. Real CI-payload fresh221.42s/baseline223.61s/update106.35s all12 protected files identical. Packaged import/backup/preferences/mod-notice UI pass; native pickers unqualified after CUA tool failure. Focused imported lifecycle and rendered sizes pending in logs/release-1.2.3/.
+- 2026-11-24 21:53 — D468: v1.2.3 stable/Latest published2026-11-25T04:50:16Z; PR316/all4 train PRs merged, immutable annotatedtagd505b7c. Source4554814750737/37; all9 asset digests/sidecars/provenance/game-free inventories verified. Mac21 qualified, native imported change/save/reload2/2, speech sizes3/3; preserve original fixture/driver failures and native picker/manual/OS limits. Milestone19 closed. Evidence logs/release-1.2.3/final-asset-audit.json and publication-state.json.
 
 ## 7. Hand-off
 
-### v1.2.3 qualification / publication — 2026-11-24
+### v1.2.3 published — 2026-11-24
 
-Release PR #316 (`codex/release-v1.2.3`) includes #295/#311/#314/#309 with merge ancestry.
-Owner D459 authorizes release after Mac checks, waiving Windows/Linux native tests. D460-D467
-record train choices and evidence reuse. Toolkitd108a64 unchanged, published `defjam/release-1.2.3`.
-Runtime03181df09ace7b09bcf89264fe19302ec3f85c1f; CI synthetic20e77c6 has identical tree.
-Later records/site text preserve runtime and require no duplicate full suite.
+Stable/Latest: https://github.com/vyanhursky/DefJamFFNY-recomp/releases/tag/v1.2.3
+PR316 merged/tagged at d505b7c64ecc4c5a298a0fc179bc56882745d9ce; all four train PRs
+#295/#309/#311/#314 are MERGED. Annotated v1.2.3 is immutable. Source45548147507 passes37/37.
+All9 asset GitHub digests, sidecars, exact source/toolkit and inspected game-free inventories
+(windows-x64 4740, macos-arm64 5455, linux-x86_64 10010) verified before publication at 2026-11-25T04:50:16Z.
+Milestone19 closed; v1.3.0(18) open. Workshop remains0.3.1. Toolkitd108a64 unchanged on
+integration and published defjam/release-1.2.3. Pages45549558962 passes2/2; live releases.json shows v1.2.3 and9 assets.
 
-Mac default21 qualified: retain unit+three goldens in `logs/release-1.2.3/full-driver.txt`,
-resumed16/17 `logs/regress-20261124-205015.txt`, and replay80/1800 retry
-`logs/regress-20261124-205422.txt`. Combined mapping `logs/release-1.2.3/combined-coverage.json`.
-Original headless-launcher failure/interrupted overlay and replay74/80 remain failures/incomplete.
-Replay capture shows Weapon tutorial at00:32: missing Options. Preserved Mac Options80277dd8
-(same as passing Nov19 replay) fixes fixture, not runtime. Initial fixture48e6b31b; retry8a501bab.
-Combat28/28, versus27/27, Story/Gym preview, soak3/3, language/subtitles/input both20pairs pass.
-Complete units2867/78skip; native fast2870/74skip/1deselect. CI45536428441 passes35/35.
+Tested runtime03181df09ace7b09bcf89264fe19302ec3f85c1f; final8760035 and merged/tagd505b7c
+only add records/site text. Apple Clang21, posix-release/RelWithDebInfo. Mac21 default checks
+qualified via retained unit/goldens + resumed16/17 + focused replay80/1800 unchanged golden.
+Original headless launcher failure/interrupted overlay and tutorial-popup replay74/80 remain
+failed/incomplete evidence. First74 records exactly prefix the passing stream; copying native
+Options80277dd8 from the prior passing Mac fixture removes the Weapon tutorial. Initial fixture
+48e6b31b; replay8a501bab. No runtime/golden/threshold change. Combat28/28, versus27/27,
+Story/Gym preview, soak3/3, French UI/English Story subtitles and both20-pair input modes pass.
+Complete units2867/78skip; native fast2870/74skip/1slow deselected. CI45546936210 passes35/35.
 
-Real verified CI payload fresh123221.42s, baseline122223.61s, update123106.35s, all12 protected
-files unchanged. QA `/private/tmp/defjam-rc123-20261124`; evidence `logs/release-1.2.3/`.
-Packaged Unicode PS2 import, Xbox keep/replacement, exact backups, Options preferences and projected
-mod-update notice pass. First import driver read wrong stdout; actual successful Play log retained.
-Native picker CUA connection failed; task-owned idle app closed. No native picker/physical/audible/
-external catalogue claim. No owner data, source exports or saves modified.
+Real CI-payload fresh123221.42s, baseline122223.61s, Clean Update123106.35s; all12 protected
+save/settings/mod/song files identical. QA /private/tmp/defjam-rc123-20261124. Packaged app
+imports ERICK/PS2 through Unicode path; Xbox keep/force replacement, exact whole-folder backups,
+Options native preferences and controlled mod-notice projection pass. First driver read stdout
+instead of redirected Play log; successful first import/log/captures retained. Idempotent native
+save passed but private changed-bytes assertion failed; retained. Explicit in-game cash test on
+copied imported career changes save, valid signatures, returns to menu, fresh process reloads
+cash999999 without override;2/2 complete guards identical. Speech-size3/3 actual overlays use a
+synthetic line and identity-delta language fixture; measured widths715/930/1181 (1.30x/1.65x),
+legible/unclipped. No live Mac F1 or physical handheld claim.
 
-Remaining: focused `import-lifecycle.py` then `subtitle-probe.py` run serially; read their driver/results
-in the evidence folder, diagnose any failure. Finish final CI, update PR316 evidence, merge --merge,
-annotated immutable v1.2.3 at merge, push tag, wait Source workflow; verify exactly9 assets against
-GitHub digests/sidecars/provenance and game-free inventories before stable/Latest publication.
-Close milestone19; v1.3.0(18) remains open. Verify Pages, dispatch from main if tag environment
-protection rejects deploy (D458). Published baseline remains1.2.2 until successful publication.
-Workshop stays0.3.1. Preserve private evidence; never publish logs, captures, saves or built game.
+Native picker computer-use connection failed before selection/cancel could be verified; idle
+app closed. Pasted-path packaged import is qualified. Windows/Linux native tests waived by owner;
+no physical/audible/manual or external RecompLauncher catalogue qualification. Keep issues
+#98/#166/#247/#283/#285 open; stock Mac success does not close Deck/HD/fighter investigations.
+
+Private evidence is logs/release-1.2.3/ in this task worktree: combined-coverage.json,
+full-attempt-1.json, package-qa-results.json, feature-ui-results.json, import-lifecycle-results.json,
+subtitle-probe-results.json, subtitle-size-metrics.json, visual-review.json, final-asset-audit.json,
+publication-state.json and latest-state.json. Full reports: regress-20261124-205015.txt and
+regress-20261124-205422.txt; combat/versus/replay reports under logs/scenarios/. Preserve source
+exports, original failures and fixture hashes. Never publish captures/saves/logs/built game.
+
+Start future work from public main and the correct milestone. No identical full native suite
+for these publication records. Task worktree/private evidence remains available; do not reset
+canonical checkout or touch other worktrees/owner saves. Unlink game before any worktree removal.
