@@ -147,7 +147,7 @@ int main(int argc,char **argv){
 
 @pytest.fixture(scope='module')
 def tool(tmp_path_factory):
-    cc=shutil.which('cc') or shutil.which('clang')
+    cc=shutil.which('cl') if os.name=='nt' else shutil.which('cc') or shutil.which('clang')
     if not cc:pytest.skip('C compiler unavailable')
     if not (ROOT/'tools/xboxrecomp/src/nv2a/texture_pack.h').is_file():
         pytest.skip('native Story compositor fixture needs the initialized toolkit submodule')
@@ -159,9 +159,11 @@ def tool(tmp_path_factory):
     (p/'texture_pack.h').write_text(header)
     ownership=definition((ROOT/'src/patches/fighter_caf.c').read_text(),'defjam_fighter_caf_visual')
     (p/'main.c').write_text(DRIVER.replace('@CORE@',(ROOT/'src/patches/story_caf_pixels.c').as_posix()).replace('@ADAPTER@',(ROOT/'src/patches/story_caf_hd.c').as_posix()).replace('@OWNERSHIP@',ownership))
-    exe=p/'test'
-    cmd=[cc,'-std=c11','-Wall','-Wextra','-Werror','-I',str(p),'-I',str(ROOT/'src'),str(p/'main.c'),'-o',str(exe)]
-    if os.name!='nt':cmd[1:1]=['-fsanitize=address,undefined','-fno-omit-frame-pointer']
+    exe=p/('test.exe' if os.name=='nt' else 'test')
+    if os.name=='nt':
+        cmd=[cc,'/nologo','/std:c11','/W3','/I'+str(p),'/I'+str(ROOT/'src'),str(p/'main.c'),'/Fe:'+str(exe),'/Fo:'+str(p/'main.obj')]
+    else:
+        cmd=[cc,'-fsanitize=address,undefined','-fno-omit-frame-pointer','-std=c11','-Wall','-Wextra','-Werror','-I',str(p),'-I',str(ROOT/'src'),str(p/'main.c'),'-o',str(exe)]
     r=subprocess.run(cmd,capture_output=True,text=True);assert r.returncode==0,r.stdout+r.stderr
     return exe
 
