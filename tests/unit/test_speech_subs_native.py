@@ -36,12 +36,19 @@ static const char OTHER[8] = { 'S', 'C', 'C', 'l', 0, 0, 0, 0 };
 
 int main(int argc, char **argv)
 {
-    RecompSetting settings[4];
+    RecompSetting settings[8];
     void *h2 = (void *)(uintptr_t)0x1002, *h3 = (void *)(uintptr_t)0x1003;
     uint64_t t0;
-    size_t n = pc_language_settings(settings, 4);
+    size_t n = pc_language_settings(settings, 8);
     recomp_settings_register(settings, n);
     if (argc < 3) return 2;
+
+    printf("sub_size_default %d\n", recomp_settings_get("language", "subtitle_size", 0));
+    recomp_settings_set("language", "subtitle_size", 1);
+    printf("sub_size_large %d\n", recomp_settings_get("language", "subtitle_size", 0));
+    recomp_settings_set("language", "subtitle_size", 2);
+    printf("sub_size_xl %d\n", recomp_settings_get("language", "subtitle_size", 0));
+    recomp_settings_set("language", "subtitle_size", 0);
 
     pc_speech_subs_load(NULL);
     printf("null enabled %d\n", pc_speech_subs_enabled());
@@ -215,3 +222,10 @@ def test_tsv_name_is_also_read(subs_tool, tmp_path):
     out, err = run(subs_tool, tmp_path, name='speech_subtitles.tsv')
     assert out['loaded'] == 'enabled 1'
     assert 'speech_subtitles.tsv' in err
+
+
+def test_subtitle_size_setting(subs_tool, tmp_path):
+    out, _ = run(subs_tool, tmp_path)
+    assert out['sub_size_default'] == '0'
+    assert out['sub_size_large'] == '1'
+    assert out['sub_size_xl'] == '2'

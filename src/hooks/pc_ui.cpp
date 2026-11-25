@@ -221,6 +221,7 @@ static const char *friendly(const char *section, const char *key)
         {"language", "pack", "Language mod"},
         {"language", "story_subtitles", "Story cutscene subtitles"},
         {"language", "voice_subtitles", "Voice subtitles (intros, fights, shops)"},
+        {"language", "subtitle_size", "Subtitle size"},
         {"language", "game", "Game language"},
         {"display", "fullscreen", "Full screen"},
         {"display", "window_width", "Window width"},
@@ -1534,7 +1535,7 @@ static void page_general(UiMode mode)
                            "sees no input and keeps running.");
     }
     ImGui::SeparatorText("Language and subtitles");
-    settings_group("language", { "game", "story_subtitles", "voice_subtitles" });
+    settings_group("language", { "game", "story_subtitles", "voice_subtitles", "subtitle_size" });
     if (!get_text("language", "pack").empty())
         ImGui::TextWrapped("A language mod is on (Mods page), so the game uses its language; the game language "
                            "above applies when no language mod is on.");
@@ -2807,15 +2808,22 @@ static void draw_speech_subtitle(const char *sub_text)
     ImGuiIO &io = ImGui::GetIO();
     ImDrawList *bg = ImGui::GetBackgroundDrawList();
     ImFont *font = ImGui::GetFont();
-    float font_size = ImGui::GetFontSize() * 1.35f;
-    float wrap_w = io.DisplaySize.x * 0.82f;
+
+    // Subtitle size option: 0 = normal (1.0x), 1 = large (1.30x), 2 = extra large (1.65x)
+    int size_choice = recomp_settings_get("language", "subtitle_size", 0);
+    float size_mult = 1.0f;
+    if (size_choice == 1) size_mult = 1.30f;
+    else if (size_choice == 2) size_mult = 1.65f;
+
+    float font_size = ImGui::GetFontSize() * 1.35f * size_mult;
+    float wrap_w = io.DisplaySize.x * 0.86f;
     ImVec2 sz = font->CalcTextSizeA(font_size, FLT_MAX, wrap_w, sub_text);
     float tx_x = (io.DisplaySize.x - sz.x) * 0.5f;
     float tx_y = io.DisplaySize.y * 0.86f - sz.y;
     if (tx_y < 16.0f) tx_y = 16.0f;
 
     // Cutscene-style "loose letters": strong solid black outline in 8 directions, no container box
-    const float o = (font_size >= 24.0f) ? 2.0f : 1.5f;
+    const float o = (font_size >= 32.0f) ? 2.5f : (font_size >= 24.0f) ? 2.0f : 1.5f;
     const ImU32 outline_col = IM_COL32(0, 0, 0, 255);
     const ImVec2 offsets[] = {
         {-o, -o}, { 0, -o}, { o, -o},
