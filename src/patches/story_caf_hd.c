@@ -75,10 +75,12 @@ void story_caf_resource_reset(uint32_t manager) {
     for(unsigned i=0;i<256;i++)if(s_handles[i].resource[0]&&s_handles[i].manager==manager){memset(&s_handles[i],0,sizeof s_handles[i]);s_handle_count--;}
 }
 void story_caf_destroy(uint32_t p) {
-    if(!s_visual||s_nested)return;Shadow *s=find(p);if(s){story_caf_image_free(&s->image);story_caf_image_free(&s->native);memset(s,0,sizeof *s);}
+    if(!s_visual||s_nested)return;
+    Shadow *s=find(p);if(s){story_caf_image_free(&s->image);story_caf_image_free(&s->native);memset(s,0,sizeof *s);}
 }
 static Shadow *fresh(uint32_t p) {
-    if(!p)return NULL;story_caf_destroy(p);
+    if(!p)return NULL;
+    story_caf_destroy(p);
     for(unsigned i=0;i<SHADOWS;i++)if(!s_images[i].bitmap){s_images[i].bitmap=p;return &s_images[i];}
     s_failed=1;return NULL;
 }
@@ -97,7 +99,8 @@ static uint32_t attachment(uint32_t p,unsigned kind) {
 /* Native decoder for the byte-indexed sources and BGRA working images. Other
  * source encodings retain the game's native compositor output. */
 static int descriptor(uint32_t p,RecompTextureSource *out,uint32_t *flags) {
-    if(!span(p,20))return 0;unsigned kind=MEM8(p),w=MEM16(p+4),h=MEM16(p+6);
+    if(!span(p,20))return 0;
+    unsigned kind=MEM8(p),w=MEM16(p+4),h=MEM16(p+6);
     if(!w||!h||w>256||h>256)return 0;
     uint32_t f=MEM32(p+12),offset=(f&0x1000u)?MEM32(p+16):16,fmt,n;
     if(f>>28)return 0;
@@ -129,7 +132,8 @@ static int decode_palette(uint32_t p,StoryCafImage *out,const void *palette,unsi
 }
 static int decode(uint32_t p,StoryCafImage *out) {return decode_palette(p,out,NULL,0);}
 void story_caf_lookup(uint32_t p,uint32_t view,uint32_t name) {
-    if(!s_visual||s_failed)return;RecompTextureSource d;uint32_t flags;
+    if(!s_visual||s_failed)return;
+    RecompTextureSource d;uint32_t flags;
     if(!descriptor(p,&d,&flags))return;
     Shadow *s=fresh(p);if(!s)return;s->raw=1;
     const char *resource=NULL;char entry[5]={0};SourceMemo *memo=NULL;
@@ -190,7 +194,8 @@ void story_caf_convert(uint32_t src,uint32_t dest) {
     s->image=pixels;s->native=native;s->failed=!ok;budget();
 }
 void story_caf_layer(uint32_t dest,uint32_t src,uint32_t placement) {
-    if(!s_visual||s_failed)return;Shadow *d=find(dest);if(!d){s_failed=1;return;}
+    if(!s_visual||s_failed)return;
+    Shadow *d=find(dest);if(!d){s_failed=1;return;}
     StoryCafImage pixels={0};Shadow *source=find(src);
     if(!source){story_caf_lookup(src,0,0);source=find(src);}
     uint32_t pos=attachment(src,0x7c);int x=0,y=0;
@@ -207,7 +212,8 @@ void story_caf_layer(uint32_t dest,uint32_t src,uint32_t placement) {
     story_caf_image_free(&native);
 }
 void story_caf_layer_done(uint32_t dest) {
-    if(!s_visual||s_failed)return;Shadow *d=find(dest);if(!d||d->failed)return;
+    if(!s_visual||s_failed)return;
+    Shadow *d=find(dest);if(!d||d->failed)return;
     StoryCafImage actual={0};
     if(!decode(dest,&actual)||actual.width!=d->native.width||actual.height!=d->native.height||
        memcmp(actual.pixels,d->native.pixels,image_bytes(&actual))) {
