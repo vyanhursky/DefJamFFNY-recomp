@@ -59,6 +59,58 @@
 #include "patches/fighter_graph_proof.h"
 #include "patches/fighter_film_proof.h"
 #include "patches/fighter_film_async.h"
+#include "patches/story_caf_hd.h"
+
+/* Observe the original retail compositor. Native functions still run with
+ * their exact original ABI and stack cleanup; host hooks never call guests. */
+extern void sub_0009A050_gen(void);
+void sub_0009A050(void) {
+    int scope=story_caf_begin(g_ecx);
+    sub_0009A050_gen();
+    if(scope)story_caf_end();
+}
+extern void sub_000213F0_gen(void);
+void sub_000213F0(void) {
+    uint32_t view=g_ecx,name=MEM32(g_esp+4);
+    sub_000213F0_gen();
+    story_caf_lookup(g_eax,view,name);
+}
+extern void sub_0006EC50_gen(void);
+void sub_0006EC50(void) {
+    uint32_t manager=g_ecx,path=MEM32(g_esp+4);
+    sub_0006EC50_gen();story_caf_resource_open(manager,g_eax,path);
+}
+extern void sub_0006EE30_gen(void);
+void sub_0006EE30(void) {
+    uint32_t manager=g_ecx,handle=MEM32(g_esp+4),output=MEM32(g_esp+8);
+    sub_0006EE30_gen();story_caf_resource_data(manager,handle,output);
+}
+void sub_0006EDC0_enter(void) {story_caf_resource_close(g_ecx,MEM32(g_esp+4));}
+void sub_0006EB20_enter(void) {story_caf_resource_reset(g_ecx);}
+extern void sub_00092BE0_gen(void);
+void sub_00092BE0(void) {
+    uint32_t source=MEM32(g_esp+4);
+    sub_00092BE0_gen();story_caf_convert(source,g_eax);
+}
+extern void sub_00092C80_gen(void);
+void sub_00092C80(void) {
+    uint32_t source=MEM32(g_esp+4);
+    sub_00092C80_gen();story_caf_convert(source,g_eax);
+}
+extern void sub_001DF5C2_gen(void);
+void sub_001DF5C2(void) {
+    uint32_t source=MEM32(g_esp+4);
+    sub_001DF5C2_gen();story_caf_convert(source,g_eax);
+}
+extern void sub_000A4740_gen(void);
+void sub_000A4740(void) {
+    uint32_t dest=MEM32(g_esp+4);
+    story_caf_layer(dest,MEM32(g_esp+8),MEM32(g_esp+12));
+    sub_000A4740_gen();story_caf_layer_done(dest);
+}
+void sub_001DE887_enter(void) {story_caf_destroy(MEM32(g_esp+4));}
+void sub_00099CC0_enter(void) {story_caf_invalidate(g_ecx,(int32_t)MEM32(g_esp+4));}
+void sub_00098470_enter(void) {story_caf_invalidate(g_ecx,-1);}
 
 void sub_000E68A0_enter(void) {
     if (!defjam_fighter_graph_preconstruct(MEM32(g_esp+4)) || !defjam_fighter_film_preconstruct(MEM32(g_esp+4))) {

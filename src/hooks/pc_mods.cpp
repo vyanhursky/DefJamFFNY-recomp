@@ -256,6 +256,7 @@ static bool start_job(const std::string &requested, const std::string &id) {
 #endif
     // Language mods (src/hooks/pc_language.c): every build with this launcher loads them.
     args.insert(args.end(), {"--capability", "language-v1"});
+    args.insert(args.end(), {"--capability", "story-caf-v1"});
     args.insert(args.end(), {"--capability", "fighters-v1", "--game-dir", path_utf8(fs::current_path() / "game")});
     if (testing_versions) args.push_back("--prerelease");
     if (!id.empty()) args.insert(args.end(), {command == "install-local" ? "--archive" : "--id",id});
