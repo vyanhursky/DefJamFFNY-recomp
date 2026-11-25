@@ -215,6 +215,8 @@ jobs:
         run: python -m pytest -q tests/unit/test_fighter_caf.py tests/unit/test_fighter_caf_extras.py tests/unit/test_fighter_caf_extras_native.py tests/unit/test_fighter_caf_portrait.py tests/unit/test_fighter_caf_composition.py tests/unit/test_fighter_caf_mixed_native.py tests/unit/test_fighter_match_teardown_native.py tests/unit/test_fighter_voice_native.py tests/unit/test_fighter_unlock_projection_native.py tests/unit/test_fighter_caf_layout.py tests/unit/test_fighter_fatal_native.py tests/unit/test_fighter_caf_outfits_native.py tests/unit/test_fighter_caf_face_native.py tests/unit/test_fighter_caf_story_native.py
       - name: Native legacy-save compatibility (MSVC, synthetic data)
         run: python -m pytest -q tests/unit/test_save_compat.py
+      - name: Story HD compositor and authored HD priority (MSVC, synthetic data)
+        run: python -m pytest -q tests/unit/test_story_caf_hd_native.py tests/unit/test_fighter_caf_hd_native.py
       - name: Input, startup and launcher fixtures (MSVC)
         run: python -m pytest -q tests/unit/test_input_native.py tests/unit/test_skip_intro.py tests/unit/test_launcher_model.py tests/unit/test_launcher_actions.py tests/unit/test_mod_manager.py tests/unit/test_mod_bridge.py
       - name: Controller edge retention, late refresh and tracing (MSVC)
@@ -260,6 +262,8 @@ jobs:
         run: python -m pytest -q tests/unit/test_fighter_caf.py tests/unit/test_fighter_caf_extras.py tests/unit/test_fighter_caf_extras_native.py tests/unit/test_fighter_caf_portrait.py tests/unit/test_fighter_caf_composition.py tests/unit/test_fighter_caf_mixed_native.py tests/unit/test_fighter_match_teardown_native.py tests/unit/test_fighter_voice_native.py tests/unit/test_fighter_unlock_projection_native.py tests/unit/test_fighter_caf_layout.py tests/unit/test_fighter_fatal_native.py tests/unit/test_fighter_caf_outfits_native.py tests/unit/test_fighter_caf_face_native.py tests/unit/test_fighter_caf_story_native.py
       - name: Startup skip settings and guest-call ABI
         run: python -m pytest -q tests/unit/test_skip_intro.py
+      - name: Story HD compositor and authored HD priority (sanitized, synthetic data)
+        run: python -m pytest -q tests/unit/test_story_caf_pixels.py tests/unit/test_story_caf_hd_native.py tests/unit/test_fighter_caf_hd_native.py
       - name: Dependencies (Linux)
         if: runner.os == 'Linux'
         run: |

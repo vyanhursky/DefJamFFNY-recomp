@@ -1,6 +1,7 @@
 /* Versioned, sealed HD CAF RGB. Original native bitmaps and guest allocation
  * sizes stay unchanged; host replacements are owned by each live visual. */
 #include "fighter_caf_hd.h"
+#include "story_caf_hd.h"
 #include "fighter_caf_layout.h"
 #include "fighter_fatal.h"
 #include "hooks/guest_call.h"
@@ -105,7 +106,9 @@ void defjam_caf_hd_apply(uint32_t visual,uint32_t selection,uint32_t outfit) {
         uint32_t flags=MEM32(bitmap+12),pixels=bitmap+((flags&0x1000u)?MEM32(bitmap+16):16u);
         if(!hd_span(pixels,256u*256u*4u))hd_stop("native alpha exceeds guest memory");
         uint32_t tag=hd_word(s_hd+offset),edge=tag&0x3fffffffu,scale=edge/256;
-        uint8_t *bgra=malloc((size_t)edge*edge*4);if(!bgra)hd_stop("HD material allocation failed");
+        uint8_t *bgra=malloc((size_t)edge*edge*4);
+        if(!bgra && story_caf_evict())bgra=malloc((size_t)edge*edge*4);
+        if(!bgra)hd_stop("HD material allocation failed");
         if(tag&0x80000000u) {
             const uint8_t *rgb=s_hd+offset+4;uint8_t *decoded=NULL;
             if(tag&0x40000000u) {
@@ -131,6 +134,7 @@ void defjam_caf_hd_apply(uint32_t visual,uint32_t selection,uint32_t outfit) {
          * configurable alias; never guess by stripping/adding address bits. */
         uint32_t address=xbox_PhysRamName(pixels);
         int ok=texture_pack_memory_register(visual,address,(flags&0x2000u)?0x06:0x12,256,256,bgra,edge,edge);
+        if(!ok && story_caf_evict())ok=texture_pack_memory_register(visual,address,(flags&0x2000u)?0x06:0x12,256,256,bgra,edge,edge);
         free(bgra);if(!ok)hd_stop("HD material exceeds renderer budget or source ownership");
         fprintf(stderr,"[FIGHTERS] CAF HD logical=%u outfit=%u slot=%u %ux%u source=%08X original-alpha=held\n",selection,outfit,slot,edge,edge,address);
     }

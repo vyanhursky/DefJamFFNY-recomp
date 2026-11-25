@@ -344,6 +344,8 @@ def validate_textures(folder):
     check(not parser.defaults() and set(parser.sections()) <= {'pack', 'textures', 'wide'}, 'Unsupported manifest section')
     check(parser.get('pack', 'schema', fallback='') == '1', 'Unsupported manifest schema')
     check(parser.get('pack', 'png_mips', fallback='opacity') in ('channels', 'opacity'), 'Invalid PNG mip policy')
+    compositor = parser.get('pack', 'compositor', fallback='')
+    check(compositor in ('', 'story-caf-v1'), 'Unsupported texture compositor')
     check(parser.has_section('textures') and 0 < len(parser['textures']) <= MAX_FILES, 'Missing texture entries')
     refs, dimensions = set(), {}
     def reference(value, png_only=False):
@@ -368,7 +370,7 @@ def validate_textures(folder):
                 check(separator and (shift == 'inner' or re.fullmatch(r'-?[0-9]+', shift)), 'Invalid wide shift')
                 check(shift == 'inner' or -16384 <= int(shift) <= 16384, 'Wide shift exceeds limits')
                 check(reference(relative, True) == dimensions[key], 'Wide slab/anchor dimensions differ')
-    return {'capabilities': ['textures-v1'] + (['wide-v1'] if parser.has_section('wide') else []),
+    return {'capabilities': ['textures-v1'] + (['story-caf-v1'] if compositor else []) + (['wide-v1'] if parser.has_section('wide') else []),
             'texture_ids': list(dimensions), 'wide_ids': list(parser['wide']) if parser.has_section('wide') else []}
 
 
