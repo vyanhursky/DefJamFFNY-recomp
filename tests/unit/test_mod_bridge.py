@@ -54,6 +54,23 @@ int main(int argc,char **argv) {
    std::cout<<"locked"<<std::endl;
    std::string input;std::getline(std::cin,input);return 0;
  }
+ if(std::string(argv[2]).rfind("check",0)==0) {
+   std::string mode=argv[2];
+   if(!pcui::mod_start("check-updates"))return 3;
+   std::cout<<"busy="<<pcui::mod_busy()<<" status="<<pcui::mod_status().size()<<std::endl;
+   if(mode=="check") {
+     bool done=false;
+     for(int i=0;i<1000 && !done;i++) {done=pcui::mod_poll();std::this_thread::sleep_for(std::chrono::milliseconds(10));}
+     std::cout<<"done="<<done<<" updates="<<pcui::mod_updates_available()<<" status="<<pcui::mod_status().size()<<std::endl;
+     return done?0:4;
+   }
+   std::this_thread::sleep_for(std::chrono::milliseconds(700)); // the helper is running by now
+   if(mode=="check-then-lock") {std::cout<<"lock="<<pc_mods_game_lock()<<std::endl;return 0;}
+   if(!pcui::mod_start("status"))return 3;
+   for(int i=0;i<1000 && pcui::mod_busy();i++) {pcui::mod_poll();std::this_thread::sleep_for(std::chrono::milliseconds(10));}
+   std::cout<<"status-done busy="<<pcui::mod_busy()<<std::endl;
+   return pcui::mod_busy()?4:0;
+ }
  if(!pcui::mod_start(argv[2],argc>3?argv[3]:""))return 3;
  for(int i=0;i<1000 && pcui::mod_busy();i++) {pcui::mod_poll();std::this_thread::sleep_for(std::chrono::milliseconds(10));}
  std::cout<<pcui::mod_status()<<"\n"<<pcui::mod_view().catalogue<<std::endl;
@@ -529,3 +546,54 @@ def test_fighter_packs_cannot_change_while_the_game_runs(bridge, tmp_path):
         game.communicate('done\n', timeout=10)
     after = {path.name: path.read_bytes() for path in root.iterdir() if path.is_file() and path.name in before}
     assert after == before
+
+
+CHECK_HELPER = r'''
+import sys, time
+from pathlib import Path
+root = Path(sys.argv[sys.argv.index('--data-dir') + 1]) / 'mod-manager'
+root.mkdir(parents=True, exist_ok=True)
+with (root / 'commands.txt').open('a') as record:
+    record.write(sys.argv[1] + '\n')
+(root / 'view.ini').write_text(
+    '[manager]\nmessage=Verified\ncatalogue=ok\n'
+    '[catalogue.alpha]\nid=alpha\nname=Alpha\ninstalled=1.0.0\nlatest=1.1.0\ncompatible=1\nupdate=1\n'
+    '[catalogue.beta]\nid=beta\nname=Beta\ninstalled=1.0.0\nlatest=1.0.0\ncompatible=1\nupdate=0\n'
+    '[catalogue.gamma]\nid=gamma\nname=Gamma\ninstalled=1.0.0\nlatest=2.0.0\ncompatible=0\nupdate=1\n')
+if sys.argv[1] == 'check-updates':
+    (root / 'progress.ini').write_text('[progress]\nmessage=Catalogue verified and refreshed\ndone=0\ntotal=0\n')
+    if SLOW:
+        time.sleep(3)
+        (root / 'finished.txt').write_text('finished')
+'''
+
+
+def check_run(bridge, tmp_path, mode, slow):
+    source = tmp_path / 'helper source'
+    (source / 'setup').mkdir(parents=True)
+    (source / 'setup/mods.py').write_text(CHECK_HELPER.replace('SLOW', repr(slow)), encoding='utf-8')
+    env = {**os.environ, 'DEFJAM_MOD_PYTHON': sys.executable}
+    env.pop('DEFJAM_INSTALL_DIR', None)
+    data = tmp_path / 'data'
+    result = subprocess.run([str(bridge), str(data), mode], cwd=source, env=env, capture_output=True, text=True, timeout=30)
+    return result, data / 'mod-manager'
+
+
+def test_startup_update_check_is_invisible_and_counts_only_installable_updates(bridge, tmp_path):
+    result, state = check_run(bridge, tmp_path, 'check', False)
+    assert result.returncode == 0, result.stdout + result.stderr
+    # Not busy (Play and the Mods buttons stay usable), and the helper's own message never reaches the status line.
+    assert result.stdout.splitlines() == ['busy=0 status=0', 'done=1 updates=1 status=0']
+    assert (state / 'commands.txt').read_text().split() == ['check-updates']
+
+
+@pytest.mark.parametrize('mode', ['check-then-status', 'check-then-lock'])
+def test_startup_update_check_is_ended_by_the_next_mod_command_and_by_the_game(bridge, tmp_path, mode):
+    result, state = check_run(bridge, tmp_path, mode, True)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert ('status-done busy=0' if mode == 'check-then-status' else 'lock=1') in result.stdout
+    # The check would have finished after three seconds: it must have been ended, not left running.
+    time.sleep(4)
+    assert not (state / 'finished.txt').exists()
+    expected = ['check-updates', 'status'] if mode == 'check-then-status' else ['check-updates']
+    assert (state / 'commands.txt').read_text().split() == expected
