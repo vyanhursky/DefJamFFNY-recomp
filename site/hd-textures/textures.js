@@ -100,7 +100,7 @@
   }).then(function (data) {
     document.getElementById('empty-comparisons').hidden = Boolean(data.comparisons.length);
     data.comparisons.forEach(comparison);
-    if (data.status === 'published') document.getElementById('release-status').textContent = 'Available now · High is the recommended quality';
+    if (data.status === 'published') document.getElementById('release-status').textContent = 'Requires recomp 1.2.4+ · High is the recommended quality';
     if (data.status === 'review') document.getElementById('release-status').textContent = 'Review draft · Native comparisons and references prepared. Downloads pending.';
     Object.keys(data.packages || {}).forEach(function (key) {
       var a = document.querySelector('[data-package="' + key + '"]'); if (a) { a.href = data.packages[key]; a.hidden = false; }

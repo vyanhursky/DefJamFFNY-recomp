@@ -10,7 +10,7 @@ step of its own. It is served at `https://vyanhursky.github.io/DefJamFFNY-recomp
 | `hd-fighter-portraits/` | Portrait page: 17 before/after sliders for full-body compositions, heads and roster textures. |
 | `hd-menus-ui/` | Menu/UI page: nine before/after sliders, an ultrawide showcase, coverage, installation and credits. |
 | `hd-fighters/` | Dedicated HD Fighters page: eight interactive before/after comparisons, coverage, installation and credits. |
-| `hd-textures/` | Draft customization page: selectable Original/Medium/High/Ultra comparisons, slider or hold controls, reference triptychs and quality guidance. |
+| `hd-textures/` | Story customization page: 17 clothing comparisons, slider or hold controls, six reference triptychs and three quality editions. |
 | `app.js` | Live details: the latest release line, the download button for the visitor's OS, the news list and the before/after sliders. The page still works without it. |
 
 ## Images
@@ -27,13 +27,13 @@ A new picture needs the owner's approval and a fingerprint, like any README medi
 
 A slider is a pair: a 16:9 after picture and a 4:3 before picture, of the same moment.
 
-## HD Textures draft
+## HD Textures
 
-`hd-textures/` follows the existing static Pages build. It is intentionally not
-linked from the home page until release media and runtime compatibility are
-finalized. The checked-in `comparisons.json` is an empty draft; private review
-previews supply native captures separately. Do not commit those captures or
-machine-specific review selections.
+`hd-textures/` follows the existing static Pages build and links from the home
+page. The checked-in `comparisons.json` contains reviewed immutable media URLs,
+17 sequential clothing comparisons and six real-photo reference triptychs.
+Image bytes and private review selections remain outside this repository.
+All three quality editions require recomp 1.2.4 or newer.
 
 The data file supplies `packages` (quality keys to released download URLs),
 `comparisons` and `references`. A comparison has a title, caption, full capture
