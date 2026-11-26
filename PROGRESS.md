@@ -625,14 +625,12 @@ Run-log citations from retired status/planning prose remain protected by
 | D467 | 2026-11-24 | Carry the Mac candidate's qualified checks across release records, packaging, merge and tag; resolve fixture-only failures with focused retries. | Native runtime03181df/toolkitd108a64 is unchanged. First headless UI attempt suppressed launcher; replay fixture omitted native Options and paused at Weapon tutorial. Its74 records exactly prefix the earlier passing Mac stream; preserved Options80277dd8 restores80/1800 with no golden/threshold change. Retain all original failures. Final focused lifecycle/size checks and CI must finish before merge/tag/publication under D459. |
 | D468 | 2026-11-24 | Publish the verified v1.2.3 draft stable/Latest after the owner-authorized Mac qualification, tagged Source37/37 and exact9 asset audits; close milestone19. | PR316 merge/tagd505b7c preserves runtime03181df and toolkitd108a64; all4 train PRs merged. All GitHub digests, sidecars, provenance and game-free inventories verified before publication. Native cash mutation/save/fresh reload2/2 and three speech-size renders pass; retain original test-driver/fixture failures and all native/manual limits. Windows/Linux native waiver remains D459. No duplicate full game run for records/merge/tag/publication. |
 | D469 | 2026-11-25 | On the owner's request, verify GitHub, archive release evidence and remove completed local release workspaces/generated outputs. | Latest v1.2.3 still has the same nine audited digests; Source37/37, Pages green, PRs316/317 merged and milestone19 closed. Preserve569 evidence files (741,636,249 bytes) in102,705,870-byte private archive SHA-256 `300aab875b64152ce368c00272c7681f990673687848edb4b127bf0fde6c5d30`. Remove disposable rc123 installs/data, current generated build/lift/analysis/cache files, archived heavy logs/downloads, clean merged PR295 worktree/branch and four missing-worktree registrations. Net free increase10,460,114,944 bytes; current source worktree about60MiB. Never touch original dump, owner saves or active worktrees. |
-
 | D470 | 2026-11-25 | Owner approves moving #299 into v1.2.4, merging it with #318 and then tagging, with minimal testing. | Carry the PR-specific native/CI evidence plus focused combined-tree checks; do not run a new full native suite or fresh packaged install/update. Preserve the missing approved Story visual baseline and unperformed platform/owner checks as explicit limits. Prepare the normal tag-generated draft; stable publication is a separate action. |
 | D471 | 2026-11-25 | PR #318: mirror native Story customization composition into bounded host images with byte-exact native-layer replay checks. | Static finished-outfit aliases cannot generalize across skin, palette, injury and outfit combinations. |
 | D472 | 2026-11-25 | PR #318: require story-caf-v1 capability and recomp1.2.4 for source packs. | Earlier runtimes cannot render them correctly; packs/catalogue publication stays separate. |
 | D473 | 2026-11-25 | PR #318: keep native final material alpha, allocations and authored-fighter HD ownership authoritative. | Optional Story detail must preserve native coverage and existing authored HD budget/priority, with native fallback. |
 | D474 | 2026-11-25 | PR #318: preserve restored source-layer alpha during host blending, separately from final native material alpha. | Tattoo ink can exist entirely in opacity; substituting the native source mask loses restored linework. |
 | D475 | 2026-11-25 | PR #299: retain the active build and its actual immediate predecessor only after durable activation; defer unsafe/failed cleanup. | Bound obsolete-build disk use while preserving rollback, dump/data/redirected paths and the running setup host. #180 remains broader and open. |
-
 | D476 | 2026-11-26 | Owner explicitly authorizes publishing v1.2.4 stable/Latest after the minimal-test merge/tag. | Tagged Source45715763881 passes37/37; audit every byte/digest, sidecar, exact source76c88e2/toolkitd15f727 and game-free inventory of exactly9 app assets before publication. Preserve D470 reduced-testing and missing visual/native/install qualifications; no new full game regression for publication. Publish verified draft458738642, verify Latest, deploy Pages from allowed main; no texture packs/catalogue entries published. |
 
 ## 2. Historical environment inventory (2026-09-17)
@@ -766,8 +764,8 @@ and the intended milestone. Texture packs/catalogue publication remains separate
 No duplicate full game run for tag/docs/publication. Preserve D470 omissions.
 Private publication evidence: logs/release-1.2.4/final-asset-audit.json,
 publication-state.json, latest-state.json and pages-state.json; small provenance/
-SHA sidecars retained under published-assets/. Remove temporary downloaded apps
-once checks finish, keeping the owner-requested disk cleanup intact.
+SHA sidecars retained under published-assets/. Temporary downloaded apps were
+removed after verification, preserving the owner-requested disk cleanup.
 #300/#301/#303 and all other unqueued PRs remain excluded; #180 stays open.
 
 Owner-approved #189/#268 closures are done; #248/#166 were already closed.
