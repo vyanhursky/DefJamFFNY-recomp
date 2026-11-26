@@ -1,0 +1,695 @@
+{
+  "status": "published",
+  "packages": {
+    "medium": "https://thunderstore.io/c/def-jam-fight-for-ny-recompiled/p/DefJamRecompiled/HD_Textures_Medium/",
+    "high": "https://thunderstore.io/c/def-jam-fight-for-ny-recompiled/p/DefJamRecompiled/HD_Textures_High/",
+    "ultra": "https://thunderstore.io/c/def-jam-fight-for-ny-recompiled/p/DefJamRecompiled/HD_Textures_Ultra/"
+  },
+  "comparisons": [
+    {
+      "id": "ecko-stonewash",
+      "title": "Ecko Stonewash Jean Jacket · Open with T-Shirt",
+      "width": 1920,
+      "height": 1440,
+      "variants": {
+        "original": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/e8878a0fd4314f02b8ecaee31f3f217b412577b1d5126a97e5dede1fb9c2f4ce/ecko-original.png",
+        "medium": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/5dc17278dd3162d52fade50742ed4c7a6c1764e7d96b6988fac34b418db70295/ecko-medium.png",
+        "high": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/3a641f669fbe471aeba7200ef536a0bd0c6a1d3f6e7ee48fa0daa39af462be45/ecko-high.png",
+        "ultra": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/f83afe74054f3fc4c6296203af8cbb6efdc15be6574a6a54516fc78d4be34fc9/ecko-ultra.png"
+      },
+      "crops": {
+        "jacket": [
+          930,
+          320,
+          880,
+          830
+        ],
+        "patches": [
+          1180,
+          570,
+          470,
+          370
+        ],
+        "full": [
+          0,
+          0,
+          1920,
+          1440
+        ]
+      },
+      "caption": "Native clothing-store captures at fixed 1920×1440 rendering. Only the jacket texture changes; other art is Original. Minor idle-pose differences remain. The fixed browsing label is not the identity of the harness-selected garment."
+    },
+    {
+      "id": "v2cp_121_0008_a01_04",
+      "title": "Jeans, belt and twin rear-pocket atlas · 04",
+      "resource": "V2CP_121_0008_A01_04",
+      "width": 1920,
+      "height": 1440,
+      "variants": {
+        "original": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/0cb1ed87672acde5a7bab8065ba19c1cbb6f417bbe92f041ac2062f7e598905d/v2cp_121_0008_a01_04-original.png",
+        "medium": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/1d3acf4f78c82c81660fba1b176898e91611a9cb639334d0567fd1f722542033/v2cp_121_0008_a01_04-medium.png",
+        "high": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/ee1edfd2dffa539263266b8ee9f4b74e1d337e1ea209aa2f8dfb6db7f93714b4/v2cp_121_0008_a01_04-high.png",
+        "ultra": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/d60e0631a262689bf31136a31859b2fa6370cca0a5264633fb04aaea5fc00b92/v2cp_121_0008_a01_04-ultra.png"
+      },
+      "crops": {
+        "detail": [
+          990,
+          300,
+          850,
+          980
+        ],
+        "patches": [
+          1050,
+          370,
+          730,
+          610
+        ],
+        "full": [
+          0,
+          0,
+          1920,
+          1440
+        ]
+      },
+      "caption": "Native clothing-store captures at fixed 1920×1440 rendering. Only the selected garment or headwear receives the tested HD replacement; the same supporting outfit and other art remain Original. Minor idle-pose differences remain. The scripted outfit differs from the fixed shop browsing labels."
+    },
+    {
+      "id": "v2cp_121_0013_a02_04",
+      "title": "Baggy Stonewash Jeans · Square Buckle Underwear Showing · 04",
+      "resource": "V2CP_121_0013_A02_04",
+      "width": 1920,
+      "height": 1440,
+      "variants": {
+        "original": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/2013ec2fae7b9089467e021d1a27bfa7e55deb3e556b71ec028127be86d9373f/v2cp_121_0013_a02_04-original.png",
+        "medium": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/d778fcd5a66a2b06fc38f4ab6bc11889151787277e8075ade31e35519c1d14c6/v2cp_121_0013_a02_04-medium.png",
+        "high": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/16db708de7ae2791809890db50193ffe13720735d9b18582cffef3b5ea0b3514/v2cp_121_0013_a02_04-high.png",
+        "ultra": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/a1bce1659353bb03fef70a1c63561a28e043e038a10e38dd403fca9a7723580a/v2cp_121_0013_a02_04-ultra.png"
+      },
+      "crops": {
+        "detail": [
+          990,
+          300,
+          850,
+          980
+        ],
+        "patches": [
+          1050,
+          370,
+          730,
+          610
+        ],
+        "full": [
+          0,
+          0,
+          1920,
+          1440
+        ]
+      },
+      "caption": "Native clothing-store captures at fixed 1920×1440 rendering. Only the selected garment or headwear receives the tested HD replacement; the same supporting outfit and other art remain Original. Minor idle-pose differences remain. The scripted outfit differs from the fixed shop browsing labels."
+    },
+    {
+      "id": "v2cp_121_0029_a03_04",
+      "title": "Camo Baggy Cargo Denim · 1 Ankle Up · 04",
+      "resource": "V2CP_121_0029_A03_04",
+      "width": 1920,
+      "height": 1440,
+      "variants": {
+        "original": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/ac9cf41300ddfca8e5aaa2a9ec2c14d06a1d5f020d40210847afde58a2a41d29/v2cp_121_0029_a03_04-original.png",
+        "medium": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/2ee8d2904afd4aca2a1455998f18ccdb51efa86efb6ff5ab4989f5291a78e53c/v2cp_121_0029_a03_04-medium.png",
+        "high": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/8e5509dcbc0b95e4098130ad888c1669901ad04f507d606d84669677d57c64d6/v2cp_121_0029_a03_04-high.png",
+        "ultra": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/b9389818ed80b7b41674c94be9b125296110a6ed247378cd38fc2eddcbe55b14/v2cp_121_0029_a03_04-ultra.png"
+      },
+      "crops": {
+        "detail": [
+          990,
+          300,
+          850,
+          980
+        ],
+        "patches": [
+          1050,
+          370,
+          730,
+          610
+        ],
+        "back": [
+          990,
+          300,
+          850,
+          980
+        ],
+        "full": [
+          0,
+          0,
+          1920,
+          1440
+        ]
+      },
+      "caption": "Native clothing-store captures at fixed 1920×1440 rendering. Only the selected garment or headwear receives the tested HD replacement; the same supporting outfit and other art remain Original. Minor idle-pose differences remain. The scripted outfit differs from the fixed shop browsing labels.",
+      "views": {
+        "back": {
+          "variants": {
+            "original": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/b2c896a1b01afeb4f47389ef82948e9fb552abdf9fc908120954b15ce413ae33/v2cp_121_0029_a03_04-back-original.png",
+            "medium": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/a1cb47d7e3c7a6b1f60b34b72c6be103f2d53e5810357f17c53a5324ac986bfb/v2cp_121_0029_a03_04-back-medium.png",
+            "high": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/59640543773e15edd61ca75e1bd7e2272f8dcc0d30751c7d533105d01a2bd5ad/v2cp_121_0029_a03_04-back-high.png",
+            "ultra": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/f55b8b0ff6c87c670cdc6872d86324aa58fce09f167b2ea98f954d14322d1df6/v2cp_121_0029_a03_04-back-ultra.png"
+          }
+        }
+      }
+    },
+    {
+      "id": "v2cp_121_0019_a03_04",
+      "title": "Baggy Distressed Jeans · Round Buckle 1 Ankle Up, Underwear Showing · 04",
+      "resource": "V2CP_121_0019_A03_04",
+      "width": 1920,
+      "height": 1440,
+      "variants": {
+        "original": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/76647e2fb8a49bb39b220e3f1872eb2545a1cf4b8b1f7ac750021b3a3299c1eb/v2cp_121_0019_a03_04-original.png",
+        "medium": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/adf1d4f213e9f28edcf14329de7956a171477e7786d62fbf528516fcd99a5401/v2cp_121_0019_a03_04-medium.png",
+        "high": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/ca81d269901aaf7af7220e16f7c55bafc5c99f8651c917477c5e793519d47899/v2cp_121_0019_a03_04-high.png",
+        "ultra": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/fa6ed45ef4969cc7656e5c2a8a03deec512f0f72b771218748dbfd0bc4e2fb3c/v2cp_121_0019_a03_04-ultra.png"
+      },
+      "crops": {
+        "detail": [
+          990,
+          300,
+          850,
+          980
+        ],
+        "patches": [
+          1050,
+          370,
+          730,
+          610
+        ],
+        "full": [
+          0,
+          0,
+          1920,
+          1440
+        ]
+      },
+      "caption": "Native clothing-store captures at fixed 1920×1440 rendering. Only the selected garment or headwear receives the tested HD replacement; the same supporting outfit and other art remain Original. Minor idle-pose differences remain. The scripted outfit differs from the fixed shop browsing labels."
+    },
+    {
+      "id": "v2cp_121_0005_h01_01",
+      "title": "Sean John Signature Jeans · Square Belt Buckle · 01",
+      "resource": "V2CP_121_0005_H01_01",
+      "width": 1920,
+      "height": 1440,
+      "variants": {
+        "original": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/c1f8f91b44ccb2f817427073985bf0fc93ab0cd148378bdc2ab5a9303705ce13/v2cp_121_0005_h01_01-original.png",
+        "medium": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/12fbb7e5459d70582211dd1251a7eee703d97fb22f1044fa864e2532c2025ab5/v2cp_121_0005_h01_01-medium.png",
+        "high": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/46aa3d4e5543f8e1746a007d25f9ad1211da22067ec92b7482b6e932ea7cc2b0/v2cp_121_0005_h01_01-high.png",
+        "ultra": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/65af8f6b82aef36945e32e4eaa80a30d083bbd96baa3fcbe129e096e683dc10d/v2cp_121_0005_h01_01-ultra.png"
+      },
+      "crops": {
+        "detail": [
+          990,
+          300,
+          850,
+          980
+        ],
+        "patches": [
+          1050,
+          370,
+          730,
+          610
+        ],
+        "full": [
+          0,
+          0,
+          1920,
+          1440
+        ]
+      },
+      "caption": "Native clothing-store captures at fixed 1920×1440 rendering. Only the selected garment or headwear receives the tested HD replacement; the same supporting outfit and other art remain Original. Minor idle-pose differences remain. The scripted outfit differs from the fixed shop browsing labels."
+    },
+    {
+      "id": "v2cp_121_0003_e03_01",
+      "title": "Enyce Leather Quilted Jeans · 1 Ankle Up · 01",
+      "resource": "V2CP_121_0003_E03_01",
+      "width": 1920,
+      "height": 1440,
+      "variants": {
+        "original": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/f40c1ec5d3150a896f8b8c95fa755d85141c87f2e18a3a55a75736135576e878/v2cp_121_0003_e03_01-original.png",
+        "medium": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/c8e70ec824262c33641c70b021d62aaafe8ef08dfbdef599b7b3ff77d5770948/v2cp_121_0003_e03_01-medium.png",
+        "high": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/8fde6cec78f24107e0fc8b9157149ae306095d3a73e7881dc2632c73e55f2e68/v2cp_121_0003_e03_01-high.png",
+        "ultra": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/e25cfcd3396cc7f4383605c9e942321057098e40a66a7b79a2e50506346ea3d5/v2cp_121_0003_e03_01-ultra.png"
+      },
+      "crops": {
+        "detail": [
+          990,
+          300,
+          850,
+          980
+        ],
+        "patches": [
+          1050,
+          370,
+          730,
+          610
+        ],
+        "back": [
+          990,
+          300,
+          850,
+          980
+        ],
+        "full": [
+          0,
+          0,
+          1920,
+          1440
+        ]
+      },
+      "caption": "Native clothing-store captures at fixed 1920×1440 rendering. Only the selected garment or headwear receives the tested HD replacement; the same supporting outfit and other art remain Original. Minor idle-pose differences remain. The scripted outfit differs from the fixed shop browsing labels.",
+      "views": {
+        "back": {
+          "variants": {
+            "original": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/b682b5debc2bc3fba2141ddcf0d5dcedc36bd7df4bac5c5e1ac9ea4b7274a1fc/v2cp_121_0003_e03_01-back-original.png",
+            "medium": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/afc2c0392a09695fba6b96526e8fa20d51e47895698e0d831b8f195b59720a4b/v2cp_121_0003_e03_01-back-medium.png",
+            "high": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/e3a944c4feedf08c9cb1bbbd1eebcc7540207fb320cef8b57dfe0295b94e901e/v2cp_121_0003_e03_01-back-high.png",
+            "ultra": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/bbbe0851ee6006c38b7c1ce334be04504ae230ed5472445b228eb70135afb5e2/v2cp_121_0003_e03_01-back-ultra.png"
+          }
+        }
+      }
+    },
+    {
+      "id": "v2cp_111_0003_a01_03",
+      "title": "Denim Jacket · Buttoned Up · Gray",
+      "resource": "V2CP_111_0003_A01_03",
+      "width": 1920,
+      "height": 1440,
+      "variants": {
+        "original": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/1eafbab695254bf5b75840babf1014de9e5009cb6c045cb882c4e23d0b6f751e/v2cp_111_0003_a01_03-original.png",
+        "medium": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/619d3e2a613f22cab6604ec08ef9264ea696d85c579d706177cd220a62b472ef/v2cp_111_0003_a01_03-medium.png",
+        "high": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/30a02a8aca6e8fcf9c50f8fa99ff9d9049615719ed14423e49c92078b5fde141/v2cp_111_0003_a01_03-high.png",
+        "ultra": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/913a0ca6d442061a887a1796d22f89ea779a8fbf4b7268e427fea27427260264/v2cp_111_0003_a01_03-ultra.png"
+      },
+      "crops": {
+        "detail": [
+          970,
+          300,
+          880,
+          880
+        ],
+        "patches": [
+          1100,
+          430,
+          680,
+          600
+        ],
+        "full": [
+          0,
+          0,
+          1920,
+          1440
+        ]
+      },
+      "caption": "Native clothing-store captures at fixed 1920×1440 rendering. Only the selected garment or headwear receives the tested HD replacement; the same supporting outfit and other art remain Original. Minor idle-pose differences remain. The scripted outfit differs from the fixed shop browsing labels."
+    },
+    {
+      "id": "v2cp_111_0037_a01_01",
+      "title": "Army Jacket · Zipped Up, Hood Down · 01",
+      "resource": "V2CP_111_0037_A01_01",
+      "width": 1920,
+      "height": 1440,
+      "variants": {
+        "original": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/e763d3d6989948cc9821e14ee63a831520838ac3158bd3f81bf1d04e36b39782/v2cp_111_0037_a01_01-original.png",
+        "medium": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/a5a46a9d77a5b1407d96cacbf45069e984ecc24e7f3125a8003f5880512e7f0c/v2cp_111_0037_a01_01-medium.png",
+        "high": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/c05af942cf48b74c830dd9429feedbbe2a4f043b5ddc89358ce676959a6a3ff4/v2cp_111_0037_a01_01-high.png",
+        "ultra": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/9ecfb33a675ee21e2f7818f3653e3fe404340966f792057f2da3e4e9ff896e57/v2cp_111_0037_a01_01-ultra.png"
+      },
+      "crops": {
+        "detail": [
+          970,
+          300,
+          880,
+          880
+        ],
+        "patches": [
+          1100,
+          430,
+          680,
+          600
+        ],
+        "full": [
+          0,
+          0,
+          1920,
+          1440
+        ]
+      },
+      "caption": "Native clothing-store captures at fixed 1920×1440 rendering. Only the selected garment or headwear receives the tested HD replacement; the same supporting outfit and other art remain Original. Minor idle-pose differences remain. The scripted outfit differs from the fixed shop browsing labels."
+    },
+    {
+      "id": "v2cp_115_0003_f04_02",
+      "title": "Phat Farm Trackathon Tee · Long · 02",
+      "resource": "V2CP_115_0003_F04_02",
+      "width": 1920,
+      "height": 1440,
+      "variants": {
+        "original": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/c8dc325fc4d15d4b73ab71437eb53ee1b8152dfb61d42a4b5a604f2c28a0361f/v2cp_115_0003_f04_02-original.png",
+        "medium": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/62fd90dd1f59124e0941525b0bf462ae9b110d19d324bf6dd94b6d6283e8f7cd/v2cp_115_0003_f04_02-medium.png",
+        "high": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/68647cfac0082364429cf7b9ba6f42788185ab768e38201d277652fede97e42b/v2cp_115_0003_f04_02-high.png",
+        "ultra": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/ba0ce7946ab08762e4291bd5d6eb83c8535465ae656d7be936f9400c1353e200/v2cp_115_0003_f04_02-ultra.png"
+      },
+      "crops": {
+        "detail": [
+          970,
+          300,
+          880,
+          880
+        ],
+        "patches": [
+          1100,
+          430,
+          680,
+          600
+        ],
+        "back": [
+          970,
+          300,
+          880,
+          880
+        ],
+        "full": [
+          0,
+          0,
+          1920,
+          1440
+        ]
+      },
+      "caption": "Native clothing-store captures at fixed 1920×1440 rendering. Only the selected garment or headwear receives the tested HD replacement; the same supporting outfit and other art remain Original. Minor idle-pose differences remain. The scripted outfit differs from the fixed shop browsing labels.",
+      "views": {
+        "back": {
+          "variants": {
+            "original": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/cb7ff624fd42a32fcb2387c9dc9287d4db91c0ba727286ac4ba006fd71bf7a12/v2cp_115_0003_f04_02-back-original.png",
+            "medium": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/5a62d0bdf577845bdcbf9450701554705a68585565010205fd2077d450ce7f42/v2cp_115_0003_f04_02-back-medium.png",
+            "high": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/c7e82ad310b407d20e8875709c683c901976ff247d84ffdbffa60825349e56b6/v2cp_115_0003_f04_02-back-high.png",
+            "ultra": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/0d982a1d1623c3e80a9e293f533aebd55fbb4ab5b0e6fc2fc4cfd57d152a6e7e/v2cp_115_0003_f04_02-back-ultra.png"
+          }
+        }
+      }
+    },
+    {
+      "id": "v2cp_115_0016_h02_01",
+      "title": "Sean John Classic Chain Longsleeve · Tucked Tight · 01",
+      "resource": "V2CP_115_0016_H02_01",
+      "width": 1920,
+      "height": 1440,
+      "variants": {
+        "original": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/aa635059519b4c9548053ec410f182b38b7d50302b53844961141c2c3676ee96/v2cp_115_0016_h02_01-original.png",
+        "medium": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/b3a627e4a57ebec07e6f895136dbb691c4bd9e74921e8fa3a65bccb06eeb7664/v2cp_115_0016_h02_01-medium.png",
+        "high": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/cf992ffc5627877d32c977d09710a0f598eb51a4259a47bc3e13c2dc1bdc701c/v2cp_115_0016_h02_01-high.png",
+        "ultra": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/3ca6f40759de0a9c5d70187ceec78252a8b5d8cfe7af7d5111133689a0f2ced2/v2cp_115_0016_h02_01-ultra.png"
+      },
+      "crops": {
+        "detail": [
+          970,
+          300,
+          880,
+          880
+        ],
+        "patches": [
+          1100,
+          430,
+          680,
+          600
+        ],
+        "full": [
+          0,
+          0,
+          1920,
+          1440
+        ]
+      },
+      "caption": "Native clothing-store captures at fixed 1920×1440 rendering. Only the selected garment or headwear receives the tested HD replacement; the same supporting outfit and other art remain Original. Minor idle-pose differences remain. The scripted outfit differs from the fixed shop browsing labels."
+    },
+    {
+      "id": "v2cp_111_0004_i01_01",
+      "title": "Fila Velour Jacket · Half Zipped with T-Shirt · 01",
+      "resource": "V2CP_111_0004_I01_01",
+      "width": 1920,
+      "height": 1440,
+      "variants": {
+        "original": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/190582ae2510ccba41ff29f095c717832b58652587d5ac4a15fa78652a8ca2ae/v2cp_111_0004_i01_01-original.png",
+        "medium": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/e3766bce636d7876ae5c20678d86b5390c3a6c961814c403ba0d85c655f1779c/v2cp_111_0004_i01_01-medium.png",
+        "high": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/98462060fe31ea5a0a911a96230acb74123507758fb8487c06618f55eec51a88/v2cp_111_0004_i01_01-high.png",
+        "ultra": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/55f775611d00555bd32f3126f37cb95a80d1ab7654afaebdb8df58e443003cf8/v2cp_111_0004_i01_01-ultra.png"
+      },
+      "crops": {
+        "detail": [
+          970,
+          300,
+          880,
+          880
+        ],
+        "patches": [
+          1100,
+          430,
+          680,
+          600
+        ],
+        "full": [
+          0,
+          0,
+          1920,
+          1440
+        ]
+      },
+      "caption": "Native clothing-store captures at fixed 1920×1440 rendering. Only the selected garment or headwear receives the tested HD replacement; the same supporting outfit and other art remain Original. Minor idle-pose differences remain. The scripted outfit differs from the fixed shop browsing labels."
+    },
+    {
+      "id": "v2cp_111_0028_e02_01",
+      "title": "Enyce Motorcycle Jacket · Open, Shirtless · 01",
+      "resource": "V2CP_111_0028_E02_01",
+      "width": 1920,
+      "height": 1440,
+      "variants": {
+        "original": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/5ab986c5255d233734f0536a603ce5592bd427ce26bd2c00c21a49a9dd887089/v2cp_111_0028_e02_01-original.png",
+        "medium": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/8c6eff12f6fce82a8bc249706ad4c682498477f5cfeb2e4d6d767c1648c63735/v2cp_111_0028_e02_01-medium.png",
+        "high": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/556e4fd777acdb848ade59bd1c4a2b66929ce6446f0770d83187d28c07c4f95e/v2cp_111_0028_e02_01-high.png",
+        "ultra": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/7c6211ce7fcfdff031db8f38748852a7ef445cbbd6b2ebab18d16a1cc47019cd/v2cp_111_0028_e02_01-ultra.png"
+      },
+      "crops": {
+        "detail": [
+          970,
+          300,
+          880,
+          880
+        ],
+        "patches": [
+          1100,
+          430,
+          680,
+          600
+        ],
+        "full": [
+          0,
+          0,
+          1920,
+          1440
+        ]
+      },
+      "caption": "Native clothing-store captures at fixed 1920×1440 rendering. Only the selected garment or headwear receives the tested HD replacement; the same supporting outfit and other art remain Original. Minor idle-pose differences remain. The scripted outfit differs from the fixed shop browsing labels."
+    },
+    {
+      "id": "v2cp_114_0001_e02_01",
+      "title": "Enyce Leather Quilted Sweater · Tight · 01",
+      "resource": "V2CP_114_0001_E02_01",
+      "width": 1920,
+      "height": 1440,
+      "variants": {
+        "original": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/164866a15ea4b23767fd962e0f453246d1fcb444b146b9426cb3a9e2e987e373/v2cp_114_0001_e02_01-original.png",
+        "medium": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/c9898f417ad4ba8f087e5c90b0aa06ccda111a4cf4d53846f929340e569f314d/v2cp_114_0001_e02_01-medium.png",
+        "high": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/36c02d7ed773d29c795e07b23ab27611362afaed3681713db71c81bd98287028/v2cp_114_0001_e02_01-high.png",
+        "ultra": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/bd47344edcac172a0ba55033320276a543adb02c7af5acd56f1c9c97edd41e98/v2cp_114_0001_e02_01-ultra.png"
+      },
+      "crops": {
+        "detail": [
+          970,
+          300,
+          880,
+          880
+        ],
+        "patches": [
+          1100,
+          430,
+          680,
+          600
+        ],
+        "full": [
+          0,
+          0,
+          1920,
+          1440
+        ]
+      },
+      "caption": "Native clothing-store captures at fixed 1920×1440 rendering. Only the selected garment or headwear receives the tested HD replacement; the same supporting outfit and other art remain Original. Minor idle-pose differences remain. The scripted outfit differs from the fixed shop browsing labels."
+    },
+    {
+      "id": "v2cp_111_0033_d01_01",
+      "title": "Def Jam U Letter Jacket · Open with Long T-Shirt · 01",
+      "resource": "V2CP_111_0033_D01_01",
+      "width": 1920,
+      "height": 1440,
+      "variants": {
+        "original": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/67ff840dfa0a7517a1af2d3ab8b7975e8629798bad3f233d0f9463dd484e8ae8/v2cp_111_0033_d01_01-original.png",
+        "medium": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/ddf9324929c94cff2d633f6eeaa12fdeaf0f0e985a78a2c75714094c6ff49655/v2cp_111_0033_d01_01-medium.png",
+        "high": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/c2a7c5cc617ae3f4773515f39ef7da29b30d3c728c91b2ffa6ad6d91c0b7c92f/v2cp_111_0033_d01_01-high.png",
+        "ultra": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/533e51330d02691aa21c44e0d0aa07ad653bde959fae8120350a7a7ee33f1d38/v2cp_111_0033_d01_01-ultra.png"
+      },
+      "crops": {
+        "detail": [
+          970,
+          300,
+          880,
+          880
+        ],
+        "patches": [
+          1100,
+          430,
+          680,
+          600
+        ],
+        "back": [
+          970,
+          300,
+          880,
+          880
+        ],
+        "full": [
+          0,
+          0,
+          1920,
+          1440
+        ]
+      },
+      "caption": "Native clothing-store captures at fixed 1920×1440 rendering. Only the selected garment or headwear receives the tested HD replacement; the same supporting outfit and other art remain Original. Minor idle-pose differences remain. The scripted outfit differs from the fixed shop browsing labels.",
+      "views": {
+        "back": {
+          "variants": {
+            "original": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/305e17b733d9c4ab13d02c09863cbfb38d7e8229500ec33da9f406377aff98e0/v2cp_111_0033_d01_01-back-original.png",
+            "medium": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/34b670dcdc58cb9d70631492f59c9a73fc9462bcabfac9fb3640b3ed2109341a/v2cp_111_0033_d01_01-back-medium.png",
+            "high": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/2b56f02bee65f2261a0eaa53a82419df0980279d3befc11f879b51d5dce2a1ae/v2cp_111_0033_d01_01-back-high.png",
+            "ultra": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/b97037584560b03b9cd58342d0ddd50cc1b174bebfdec21a2c939c62e5a79843/v2cp_111_0033_d01_01-back-ultra.png"
+          }
+        }
+      }
+    },
+    {
+      "id": "v2cp_111_0035_c02_01",
+      "title": "Ecko Pinstripe Wool Leather Jacket · Buttoned Up · 01",
+      "resource": "V2CP_111_0035_C02_01",
+      "width": 1920,
+      "height": 1440,
+      "variants": {
+        "original": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/3135da39df86edc17ab7f8efa3b8bbdf2c5fdc13528c43fe5faf42ef133e84f8/v2cp_111_0035_c02_01-original.png",
+        "medium": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/e90b8ada7c73483f986040918a3c71f1b8220e1bec2bf96dfa92aae7e86c90b2/v2cp_111_0035_c02_01-medium.png",
+        "high": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/0b904278173ff36625d7a4cfd60071dfbefb3426a5e964d39df284027394c6aa/v2cp_111_0035_c02_01-high.png",
+        "ultra": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/f721d11db1186dbb2bc41478ce4192f005b20fb226c7fa0967424b95db240920/v2cp_111_0035_c02_01-ultra.png"
+      },
+      "crops": {
+        "detail": [
+          970,
+          300,
+          880,
+          880
+        ],
+        "patches": [
+          1100,
+          430,
+          680,
+          600
+        ],
+        "full": [
+          0,
+          0,
+          1920,
+          1440
+        ]
+      },
+      "caption": "Native clothing-store captures at fixed 1920×1440 rendering. Only the selected garment or headwear receives the tested HD replacement; the same supporting outfit and other art remain Original. Minor idle-pose differences remain. The scripted outfit differs from the fixed shop browsing labels."
+    },
+    {
+      "id": "v2cp_115_0013_h01_01",
+      "title": "Sean John Contemporary Felt Longsleeve · Long · 01",
+      "resource": "V2CP_115_0013_H01_01",
+      "width": 1920,
+      "height": 1440,
+      "variants": {
+        "original": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/cadc96e597a4241a22d4c4d689f3e7e9851f31de9fb5beac1f06a295bc80cf1f/v2cp_115_0013_h01_01-original.png",
+        "medium": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/221ccee842755f45a805da71342a9dcdb5139e8f70ad4d4023c45557b24aecc7/v2cp_115_0013_h01_01-medium.png",
+        "high": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/4aeea21039796a1e41a0c1d885d9f5af5e70fd132906c988caa28b281d1a5414/v2cp_115_0013_h01_01-high.png",
+        "ultra": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/b8dc05701629599f59a7539e8c934e6329ac0ac84c5e3a037fadafa3e5309396/v2cp_115_0013_h01_01-ultra.png"
+      },
+      "crops": {
+        "detail": [
+          970,
+          300,
+          880,
+          880
+        ],
+        "patches": [
+          1100,
+          430,
+          680,
+          600
+        ],
+        "full": [
+          0,
+          0,
+          1920,
+          1440
+        ]
+      },
+      "caption": "Native clothing-store captures at fixed 1920×1440 rendering. Only the selected garment or headwear receives the tested HD replacement; the same supporting outfit and other art remain Original. Minor idle-pose differences remain. The scripted outfit differs from the fixed shop browsing labels."
+    }
+  ],
+  "references": [
+    {
+      "title": "Ecko Pinstripe Wool Leather Jacket",
+      "original": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/6e15d3e3e403600d67145b6e960b50f062c9d60b279c2e299edc91c9c1115348/showcase-reference-01-original.png",
+      "ultra": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/5467a5e065bc45c86541ab08046e99250f58da40af1baa4056d4428c5b6222ab/showcase-reference-01-ultra.png",
+      "reference": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/d4318456bf353f339d597d2df88a842a1a3cef5b1164c4ea28a8d4118fff1bd1/showcase-reference-01-photo.png",
+      "caption": "Original and Ultra native store captures, alongside the owner-selected real-life reference. The reference has its own lighting, camera and garment fit; it guided artwork details rather than changing game geometry."
+    },
+    {
+      "title": "Sean John Contemporary Felt Longsleeve",
+      "original": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/04083a7fe40ace51a6205a3c28d7bec1468e41e84248b1a97acb5b089bf981eb/showcase-reference-02-original.png",
+      "ultra": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/134783c3d70c3c4027cbf924a933e4bc268cbcbdb3633a4c2c93d8b1190697c1/showcase-reference-02-ultra.png",
+      "reference": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/f0945931abba517cd3b9ba51148167e6dff5e2973923ed5e9368f625ffa2c4ed/showcase-reference-02-photo.png",
+      "caption": "Original and Ultra native store captures, alongside the owner-selected real-life reference. The reference has its own lighting, camera and garment fit; it guided artwork details rather than changing game geometry."
+    },
+    {
+      "title": "Enyce Leather Quilted Sweater",
+      "original": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/2e8268719226435353768dedbded81d075405dfee10a2e59730f9b2c00457455/showcase-reference-03-original.png",
+      "ultra": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/9f26b470dadfd17686462ec87424b5a9a60a15298a84529d3f583258cacde17c/showcase-reference-03-ultra.png",
+      "reference": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/8c0ca2b495164c8cd29a650a0055988e2ae8f51d371a9104d7362071915172ad/showcase-reference-03-photo.png",
+      "caption": "Original and Ultra native store captures, alongside the owner-selected real-life reference. The reference has its own lighting, camera and garment fit; it guided artwork details rather than changing game geometry."
+    },
+    {
+      "title": "Fila Velour Jacket",
+      "original": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/1250e0c23a21b78e86d576e02c358f9be893e6118a440e464e156993d988807a/showcase-reference-04-original.png",
+      "ultra": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/211a341f21ff1f0878e6ea094f4052377fd91fe84012dbb5de6e7767818b78e7/showcase-reference-04-ultra.png",
+      "reference": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/8b0f0ef3013d0614072b5f0cdfca03f0ba43c4de3c5c4980741b668c1f95bb48/showcase-reference-04-photo.png",
+      "caption": "Original and Ultra native store captures, alongside the owner-selected real-life reference. The reference has its own lighting, camera and garment fit; it guided artwork details rather than changing game geometry."
+    },
+    {
+      "title": "Def Jam University back badge",
+      "original": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/7eda127654b936d0163f60719c6132515723a04a43cc179ffd6975c1571d95ac/showcase-reference-05-original.png",
+      "ultra": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/161ffb7df396dfadcf385f7a0143aa3f722ec75b64d69d953f7f5692056250ff/showcase-reference-05-ultra.png",
+      "reference": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/59cff09bcecf0566668c1b2e21067e86c20c9d1712c19beeb4406936420cc83d/showcase-reference-05-photo.png",
+      "caption": "Rear view. Original and Ultra native store captures, alongside the owner-selected real-life reference. The reference has its own lighting, camera and garment fit; it guided artwork details rather than changing game geometry."
+    },
+    {
+      "title": "Ecko Stonewash Jean Jacket",
+      "original": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/401aef04e05a72260d00c76356691ee02ed530cdb808a53b6478f944a63d57ee/ecko-stonewash-reference-original.png",
+      "ultra": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/2462364cb7c707dc810ab210454ff4c59925d05f19f331477d7bdcdf5b4a6922/ecko-stonewash-reference-ultra.png",
+      "reference": "https://pub-9167b11f83f24f2a9e21af7f0e225057.r2.dev/hd-textures/gallery/1.0.0/4cbfb7c55dfcd45c5a0d22dfdbb31ead698e5a933bd1099dc79543c805ad9493/ecko-stonewash-reference-photo.png",
+      "caption": "Original and Ultra in-game clothing-store captures, alongside the saved real-life reference photograph. The photograph guided patches and lettering; the original game geometry is preserved."
+    }
+  ]
+}

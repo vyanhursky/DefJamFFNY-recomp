@@ -10,6 +10,7 @@ step of its own. It is served at `https://vyanhursky.github.io/DefJamFFNY-recomp
 | `hd-fighter-portraits/` | Portrait page: 17 before/after sliders for full-body compositions, heads and roster textures. |
 | `hd-menus-ui/` | Menu/UI page: nine before/after sliders, an ultrawide showcase, coverage, installation and credits. |
 | `hd-fighters/` | Dedicated HD Fighters page: eight interactive before/after comparisons, coverage, installation and credits. |
+| `hd-textures/` | Story customization page: 17 clothing comparisons, slider or hold controls, six reference triptychs and three quality editions. |
 | `app.js` | Live details: the latest release line, the download button for the visitor's OS, the news list and the before/after sliders. The page still works without it. |
 
 ## Images
@@ -25,6 +26,40 @@ A new picture needs the owner's approval and a fingerprint, like any README medi
 `docs/media/` and the allowlist in `scripts/check-source-tree.py`, then add a line to `MEDIA`.
 
 A slider is a pair: a 16:9 after picture and a 4:3 before picture, of the same moment.
+
+## HD Textures
+
+`hd-textures/` follows the existing static Pages build and links from the home
+page. The checked-in `comparisons.json` contains reviewed immutable media URLs,
+17 sequential clothing comparisons and six real-photo reference triptychs.
+Image bytes and private review selections remain outside this repository.
+All three quality editions require recomp 1.2.4 or newer.
+
+The data file supplies `packages` (quality keys to released download URLs),
+`comparisons` and `references`. A comparison has a title, caption, full capture
+width/height, four `variants` (`original`, `medium`, `high`, `ultra`) and named
+`crops` as `[x, y, width, height]`. Both SVG layers use the same crop; the control
+changes clipping only. Captures must use matching render settings, and captions
+must disclose pose or framing differences. A reference case supplies title,
+caption and `original`, `ultra`, `reference` image URLs. Host owner-selected media
+externally and record its provenance and fingerprints before publication.
+
+Each comparison renders as its own article in a scrolling gallery, with an
+independent quality pair, view, slider and Hold A/B controls. There is no subject
+selector. SVG image URLs are assigned near the viewport to avoid decoding every
+full-size capture on first load.
+
+High (3× PNG) is recommended; Medium is 2× and Ultra is 4×. Either side is
+selectable. Hold mode supports pointer, Space and Enter, returning to A on
+release, cancellation, lost capture, focus loss or a hidden page. Slider mode
+retains native range keyboard controls. Empty draft data hides download links
+and displays preparation text rather than implying a published release.
+
+A crop can optionally select another set of captured images through
+`views[cropName].variants`, such as a rear view. Those images retain the same
+capture dimensions and quality keys. Full-image links follow the selected view.
+Comparison dimensions come from each capture rather than a fixed canvas.
+The data request revalidates its cache so updated media selections are visible.
 
 ## Preview
 

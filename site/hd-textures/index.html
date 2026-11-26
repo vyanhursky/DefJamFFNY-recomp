@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HD Textures — Def Jam Recompiled</title>
+  <meta name="description" content="Restored Story Mode customization textures. Explore clothing comparisons at Original, Medium, High and Ultra with sliders or hold-to-compare controls.">
+  <meta name="theme-color" content="#0c0b0a">
+  <link rel="canonical" href="https://vyanhursky.github.io/DefJamFFNY-recomp/hd-textures/">
+  <link rel="icon" href="../media/icon-64.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles.css">
+  <link rel="stylesheet" href="textures.css">
+  <script src="textures.js" defer></script>
+</head>
+<body class="textures-page">
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="nav"><div class="nav__inner">
+    <a class="nav__brand" href="../"><img src="../media/icon-64.png" alt="" width="32" height="32"><span>Def Jam <b>Recompiled</b></span></a>
+    <nav class="texture-nav" aria-label="Page sections"><a href="#coverage">What's included</a><a href="#compare">Compare</a><a href="#quality">Choose quality</a><a href="#reference">References</a><a href="#install">Install</a></nav>
+  </div></header>
+  <main id="main">
+    <section class="texture-hero section-wrap">
+      <div><p class="kicker">Story Mode Customization</p><h1>HD <span>Textures</span></h1><p class="texture-tagline">Your fighter.<br>Restored detail.</p></div>
+      <div class="hero-copy"><p>Sharper clothing, shoes and accessories for the fighter you create.</p><p>Restored fabric, stitching, embroidery and logos bring the original customization designs into focus. The same reviewed artwork is available in three PNG quality levels.</p><p>Choose <strong>High · 3×</strong> for the recommended balance of detail and download size. Medium · 2× and Ultra · 4× use the same restorations at different resolutions.</p><a class="btn btn--primary" href="#compare">Compare the detail</a><p class="release-status" id="release-status">Release preparation · final screenshots and downloads are being selected.</p></div>
+    </section>
+    <section class="section-wrap texture-section" id="coverage">
+      <p class="kicker">Story Mode Customization</p><h2>What's <span>included</span></h2>
+      <p>This texture pack contains 4961 upscaled customization textures for Story Mode characters - clothes, tattoos, jewelry, and hair. All 5000 textures were meticulously reviewed to stay faithful to the original game while restoring lost detail to the 2000's era fashion.</p>
+      <p>This work was done with AI-assisted restoration - OpenAI Imagegen, source-aligned assembly and repeated manual review. The original geometry, outfit construction and gameplay remain unchanged.</p>
+    </section>
+    <section class="section-wrap texture-section" id="compare">
+      <p class="kicker">See the difference</p><h2>Explore the clothing.<br><span>Compare every detail.</span></h2>
+      <p>Scroll through each clothing item below. Choose Original, Medium, High or Ultra for either side of its comparison, then drag the slider or press and hold to toggle A/B.</p>
+      <p id="empty-comparisons">Comparison captures are being prepared for this release.</p>
+      <div id="comparison-gallery"></div>
+      <template id="comparison-template">
+        <article class="comparison-case">
+          <h3 data-control="title"></h3>
+          <div class="comparison-toolbar">
+            <label>A<select data-control="quality-a"><option value="original">Original · 1×</option><option value="medium">Medium · 2×</option><option value="high">High · 3× · Recommended</option><option value="ultra">Ultra · 4×</option></select></label>
+            <label>B<select data-control="quality-b"><option value="high">High · 3× · Recommended</option><option value="original">Original · 1×</option><option value="medium">Medium · 2×</option><option value="ultra">Ultra · 4×</option></select></label>
+            <label>Compare with<select data-control="mode"><option value="slider">Image slider</option><option value="hold">Hold A/B</option></select></label>
+            <label>View<select data-control="crop"></select></label>
+            <button data-control="swap" type="button">Swap A / B</button>
+          </div>
+          <div class="comparison-stage" data-control="stage" style="--split:50%;aspect-ratio:1">
+            <svg class="comparison-image" data-control="image-b" role="img" aria-label="Comparison B"><image></image></svg>
+            <svg class="comparison-image comparison-before" data-control="image-a" role="img" aria-label="Comparison A"><image></image></svg>
+            <span class="comparison-tag tag-a" data-control="tag-a">Original</span><span class="comparison-tag tag-b" data-control="tag-b">High · 3×</span>
+            <div class="comparison-divider" data-control="divider" aria-hidden="true"><span>↔</span></div>
+            <input type="range" class="comparison-split" data-control="split" min="0" max="100" value="50" aria-label="A and B image split" aria-valuetext="50 percent A, 50 percent B">
+          </div>
+          <div class="comparison-actions"><button data-control="hold" type="button" aria-pressed="false" hidden>Hold to show B</button><p data-control="help">Drag the line. Arrow keys, Home and End work when the slider is focused.</p><a data-control="full-a" target="_blank" rel="noopener">Open full A</a><a data-control="full-b" target="_blank" rel="noopener">Open full B</a></div>
+          <p class="capture-note" data-control="caption"></p><p class="comparison-error" data-control="error" role="status" hidden>One image could not load. Use the full-image links above.</p>
+        </article>
+      </template>
+      <noscript><p>The interactive controls need JavaScript. The release includes static comparison screenshots too.</p></noscript>
+    </section>
+    <section class="section-wrap texture-section" id="quality">
+      <p class="kicker">One restoration. Three resolutions.</p><h2>Choose your <span>quality.</span></h2><p>Install one quality level at a time. Switching tiers changes texture resolution; the restored designs stay the same.</p>
+      <div class="quality-cards">
+        <article><p class="kicker">2× · 4× the native pixels</p><h3>Medium</h3><p>A smaller download with clearer designs and lighter texture memory demands.</p><p class="quality-size">About 1.06 GB</p><p class="example">256×256 source → 512×512</p><a data-package="medium" class="btn" hidden>Get Medium</a></article>
+        <article class="recommended"><p class="recommended-label">Recommended</p><p class="kicker">3× · 9× the native pixels</p><h3>High</h3><p>The recommended balance: most of the fine detail, with a smaller download than Ultra.</p><p class="quality-size">About 2.30 GB</p><p class="example">256×256 source → 768×768</p><a data-package="high" class="btn btn--primary" hidden>Get High</a></article>
+        <article><p class="kicker">4× · 16× the native pixels</p><h3>Ultra</h3><p>The full approved master resolution, preserving the finest fabric and embroidery detail.</p><p class="quality-size">About 3.88 GB</p><p class="example">256×256 source → 1024×1024</p><a data-package="ultra" class="btn" hidden>Get Ultra</a></article>
+      </div><p class="capture-note">Rounded final ZIP download sizes. All tiers use PNG.</p>
+    </section>
+    <section class="section-wrap texture-section" id="reference">
+      <p class="kicker">Reference-guided restoration</p><h2>From the original.<br><span>With the details restored.</span></h2><p>Real clothing photographs helped identify logos, lettering and patch construction. These are references for the artwork, not replacements for the game's garment shapes.</p><div id="reference-cards"></div><p id="empty-references">Reference showcases are being selected for this release.</p>
+    </section>
+    <section class="section-wrap texture-section" id="install"><p class="kicker">Get started</p><h2>Install <span>one tier.</span></h2><h3>Def Jam Recompiled launcher</h3><ol><li>Open <strong>Mods → Textures → Browse</strong> and refresh the catalogue.</li><li>Choose <strong>HD Textures - High</strong>, or choose Medium or Ultra instead.</li><li>Install and enable that tier. Disable another copy or quality level of this pack.</li><li>Give it priority over a local Faithful/Recomp HD pack, then restart the game.</li></ol><h3>Manual Thunderstore installation</h3><ol><li>Download one quality level and open its ZIP.</li><li>Extract the included pack folder into <code>mods</code> inside your Def Jam Recompiled data folder. Keep <code>manifest.ini</code> and its texture folders together.</li><li>Refresh local mods, enable that tier and restart. Manual local copies do not receive managed catalogue updates.</li></ol><p>Requires Def Jam Recompiled <strong>v1.2.4 or newer</strong>. Other ports and emulators need separate format and identifier validation.</p></section>
+    <section class="section-wrap texture-section"><h2>Credits and <span>licence</span></h2><p>By Vlad Yanhursky / vyanhursky, with AI-assisted texture restoration.</p><p>CC BY-NC 4.0 applies to original, legally protectable contributions by Vlad Yanhursky. Original game artwork, brand marks, reference photos and other third-party rights are excluded. See the bundled licence notices for the exact terms.</p></section>
+  </main><footer class="section-wrap texture-footer"><a href="../hd-fighters/">HD Fighters</a><a href="../hd-fighter-portraits/">HD Fighter Portraits</a><a href="../hd-menus-ui/">HD Menus and UI</a><a href="https://github.com/vyanhursky/DefJamFFNY-recomp">Def Jam Recompiled</a></footer>
+</body>
+</html>
