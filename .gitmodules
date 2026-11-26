@@ -1,4 +1,4 @@
 [submodule "tools/xboxrecomp"]
 	path = tools/xboxrecomp
 	url = https://github.com/vyanhursky/xboxrecomp.git
-	branch = perf/runtime-stream3-bulk
+	branch = perf/runtime-stream3-draw-bridge

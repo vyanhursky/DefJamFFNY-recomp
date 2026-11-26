@@ -14,6 +14,8 @@ confidence labels and disproved hypotheses remain distinct from measured facts.
 
 ## Runtime performance
 
+- [Stream 3 raw GPU draw bridge](runtime-stream3-draw-bridge.md) — separate default-off prototype; Windows CPU measurements, typed input conversion, safe fallback and native platform qualifications.
+
 - [Stream 3 packet batching](runtime-stream3-batching.md) — shared D3D11/Vulkan decoder batching on top of Stream 2; opt-in controls and native retest instructions.
 
 - [Stream 2 runtime overhead experiments](runtime-stream2.md) — opt-in D3D11 shader persistence, immutable state reuse and fence notifications; measurements, retained failures and cross-machine retest commands.
