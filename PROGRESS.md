@@ -8,7 +8,7 @@
 
 ## 0. Status at a glance
 
-- v1.2.4: ✅ #318/#299 merged via PR320; annotated immutable tag `v1.2.4` at `76c88e2474f39ee8a6be2d9b9f17e017fea7dad3`. Combined CI45714624786 passes35/35; source/tree/tag policy verified. D470 minimal scope: focused Mac178pass/6skip, toolkit3/3, records88/88; no new full native suite or real install/update. Approved Story visual baseline still unavailable. Source workflow45715763881 builds the draft; stable publication not requested. Milestone20 closed, v1.3.0 remains open.
+- v1.2.4: ✅ published stable/Latest at 2026-11-26T16:55:26Z under D476. PR320/#318/#299 merged; immutable annotatedtag76c88e2. Source45715763881 passes37/37; all9 asset SHA-256/sidecar/provenance and game-free inventories verified (windows-x64 4744, macos-arm64 5459, linux-x86_64 10014). D470 minimal qualification unchanged: Mac178pass/6skip, toolkit3/3, records88/88, retained PRquick/scoped evidence; no new full native suite/real install-update and approved Story visual baseline absent. Pages45863182466 passes2/2; live site serves v1.2.4/9assets. Milestone20 closed; v1.3.0 open.
 
 - v1.2.3: ✅ published stable/Latest at 2026-11-25T04:50:16Z under D459-D468. PR316 and #295/#309/#311/#314 merged; immutable annotated tag `v1.2.3` at `d505b7c`. Tagged Source45548147507 passes37/37. All9 app/checksum/provenance assets match GitHub SHA-256, source/toolkit and inspected game-free inventories (windows-x64 4740, macos-arm64 5455, linux-x86_64 10010). Mac21 default checks qualified with original failures/retries retained; native imported cash/save/reload2/2 and speech-size renders3/3 pass. Real CI-payload fresh221.42s/baseline223.61s/Clean Update106.35s, all12 protected files unchanged. Windows/Linux native tests waived; native pickers/physical/audible/external catalogue remain unqualified. Milestone19 closed; v1.3.0(18) remains open. Cleanup 2026-11-25: 10.46 GB (9.74 GiB) reclaimed; full evidence is a checksum-verified 103 MB private archive, with small summaries retained locally. Original dump/saves and active worktrees unchanged.
 
@@ -625,13 +625,13 @@ Run-log citations from retired status/planning prose remain protected by
 | D467 | 2026-11-24 | Carry the Mac candidate's qualified checks across release records, packaging, merge and tag; resolve fixture-only failures with focused retries. | Native runtime03181df/toolkitd108a64 is unchanged. First headless UI attempt suppressed launcher; replay fixture omitted native Options and paused at Weapon tutorial. Its74 records exactly prefix the earlier passing Mac stream; preserved Options80277dd8 restores80/1800 with no golden/threshold change. Retain all original failures. Final focused lifecycle/size checks and CI must finish before merge/tag/publication under D459. |
 | D468 | 2026-11-24 | Publish the verified v1.2.3 draft stable/Latest after the owner-authorized Mac qualification, tagged Source37/37 and exact9 asset audits; close milestone19. | PR316 merge/tagd505b7c preserves runtime03181df and toolkitd108a64; all4 train PRs merged. All GitHub digests, sidecars, provenance and game-free inventories verified before publication. Native cash mutation/save/fresh reload2/2 and three speech-size renders pass; retain original test-driver/fixture failures and all native/manual limits. Windows/Linux native waiver remains D459. No duplicate full game run for records/merge/tag/publication. |
 | D469 | 2026-11-25 | On the owner's request, verify GitHub, archive release evidence and remove completed local release workspaces/generated outputs. | Latest v1.2.3 still has the same nine audited digests; Source37/37, Pages green, PRs316/317 merged and milestone19 closed. Preserve569 evidence files (741,636,249 bytes) in102,705,870-byte private archive SHA-256 `300aab875b64152ce368c00272c7681f990673687848edb4b127bf0fde6c5d30`. Remove disposable rc123 installs/data, current generated build/lift/analysis/cache files, archived heavy logs/downloads, clean merged PR295 worktree/branch and four missing-worktree registrations. Net free increase10,460,114,944 bytes; current source worktree about60MiB. Never touch original dump, owner saves or active worktrees. |
-
 | D470 | 2026-11-25 | Owner approves moving #299 into v1.2.4, merging it with #318 and then tagging, with minimal testing. | Carry the PR-specific native/CI evidence plus focused combined-tree checks; do not run a new full native suite or fresh packaged install/update. Preserve the missing approved Story visual baseline and unperformed platform/owner checks as explicit limits. Prepare the normal tag-generated draft; stable publication is a separate action. |
 | D471 | 2026-11-25 | PR #318: mirror native Story customization composition into bounded host images with byte-exact native-layer replay checks. | Static finished-outfit aliases cannot generalize across skin, palette, injury and outfit combinations. |
 | D472 | 2026-11-25 | PR #318: require story-caf-v1 capability and recomp1.2.4 for source packs. | Earlier runtimes cannot render them correctly; packs/catalogue publication stays separate. |
 | D473 | 2026-11-25 | PR #318: keep native final material alpha, allocations and authored-fighter HD ownership authoritative. | Optional Story detail must preserve native coverage and existing authored HD budget/priority, with native fallback. |
 | D474 | 2026-11-25 | PR #318: preserve restored source-layer alpha during host blending, separately from final native material alpha. | Tattoo ink can exist entirely in opacity; substituting the native source mask loses restored linework. |
 | D475 | 2026-11-25 | PR #299: retain the active build and its actual immediate predecessor only after durable activation; defer unsafe/failed cleanup. | Bound obsolete-build disk use while preserving rollback, dump/data/redirected paths and the running setup host. #180 remains broader and open. |
+| D476 | 2026-11-26 | Owner explicitly authorizes publishing v1.2.4 stable/Latest after the minimal-test merge/tag. | Tagged Source45715763881 passes37/37; audit every byte/digest, sidecar, exact source76c88e2/toolkitd15f727 and game-free inventory of exactly9 app assets before publication. Preserve D470 reduced-testing and missing visual/native/install qualifications; no new full game regression for publication. Publish verified draft458738642, verify Latest, deploy Pages from allowed main; no texture packs/catalogue entries published. |
 
 ## 2. Historical environment inventory (2026-09-17)
 
@@ -681,7 +681,7 @@ defjam-recomp/
 
 ## 5. Open questions for Vlad
 
-- v1.2.4: D470 merge/tag complete; no merge/tag approval pending. Source workflow prepares the draft. Stable publication was not requested. Approved Story visual baseline and owner/native platform/real install acceptance remain unperformed and explicit in the release notes.
+- v1.2.4 is published stable/Latest under D476; no publication approval pending. D470 minimal-testing and missing approved Story visual baseline/native/real-install acceptance remain explicit. Milestone20 closed; v1.3.0(18) remains open.
 
 - v1.2.3 is published stable/Latest under D468; no release approval pending. Milestone19 closed; v1.3.0(18) remains open. Native pickers, physical controls/audible output and external RecompLauncher catalogue application remain unqualified; Windows/Linux native tests were waived by the owner.
 
@@ -712,7 +712,6 @@ Upstream PR submissions still need the owner's separate approval.
 
 > Recent entries only; older entries remain unchanged in the local `docs/worklog/` archive.
 
-- 2026-11-24 19:55 — #311 integrated: silent signed-catalogue update notice (D465); prior Windows helper/UI evidence retained; POSIX bridge and candidate UI checks pending.
 - 2026-11-24 19:55 — #314 integrated: repository RecompLauncher manifest only (D466), six source tests; external catalogue application untested. Toolkit d108a64 unchanged across all four PRs. D459 authorizes Mac qualification and release, waiving Windows/Linux native checks. Analysis log logs/release-1.2.3/analyze.txt.
 - 2026-11-24 21:27 — D467: runtime03181df Mac21 default checks qualified across first unit/goldens, resumed16/17 (regress-20261124-205015.txt) and prepared-Options replay80/1800 (regress-20261124-205422.txt); original headless/interrupted/tutorial74 failures retained. CI4553642844135/35; units2867/78skip. Real CI-payload fresh221.42s/baseline223.61s/update106.35s all12 protected files identical. Packaged import/backup/preferences/mod-notice UI pass; native pickers unqualified after CUA tool failure. Focused imported lifecycle and rendered sizes pending in logs/release-1.2.3/.
 - 2026-11-24 21:53 — D468: v1.2.3 stable/Latest published2026-11-25T04:50:16Z; PR316/all4 train PRs merged, immutable annotatedtagd505b7c. Source4554814750737/37; all9 asset digests/sidecars/provenance/game-free inventories verified. Mac21 qualified, native imported change/save/reload2/2, speech sizes3/3; preserve original fixture/driver failures and native picker/manual/OS limits. Milestone19 closed. Evidence logs/release-1.2.3/final-asset-audit.json and publication-state.json.
@@ -720,17 +719,23 @@ Upstream PR submissions still need the owner's separate approval.
 - 2026-11-25 15:34 — v1.2.4 #318 integrated: Story customization HD composition/alpha correction, source packs capability; PR35/35CI/Macquick5/5/CribGym2/2 retained. D471-D474; approved visual baseline absent, minimal-test qualification D470.
 - 2026-11-25 15:34 — v1.2.4 #299 integrated: retain active+actual predecessor after durable activation; prior Windows real install468.4s/CI35/35 retained. D475; combined focused Mac178pass/6skip, toolkitd15f727. Release CI/merge/tag pending; no new full/native packaged install.
 - 2026-11-25 15:45 — D470 complete: #299/#318 MERGED via PR320, identical-tree merge76c88e2, annotatedv1.2.4 pushed after CI45714624786 passes35/35 and source/tag policy1047files/0failures. Milestone20 closed; Source45715763881 builds draft, stable publication not requested. Focused178pass/6skip, toolkit3/3, records88/88; missing visual baseline/new full-native/real-install limits preserved. Logs release-1.2.4/tag-ref.json and tag-workflow.json.
+- 2026-11-26 09:56 — D476: owner-authorized v1.2.4 stable/Latest published2026-11-26T16:55:26Z, immutabletag76c88e2/toolkitd15f727, Source4571576388137/37. All9 GitHubdigests/sidecars/provenance/game-free inventories verified (windows-x64 4744, macos-arm64 5459, linux-x86_64 10014); D470 minimal-native/visual/install limits unchanged. Pages45863182466 passes2/2; live feed serves v1.2.4/9assets. Audit final-asset-audit.json; publication publication-state.json.
 
 ## 7. Hand-off
 
-### v1.2.4 merged and tagged — 2026-11-25
+### v1.2.4 published — 2026-11-26
 
 Owner instruction D470 completed: #299 moved from v1.3.0 to milestone20, both
 #318/#299 MERGED through release PR320, annotated immutable `v1.2.4` pushed at
 `76c88e2474f39ee8a6be2d9b9f17e017fea7dad3`. Milestone20 closed; v1.3.0(18) open.
 Source workflow 45715763881: https://github.com/vyanhursky/DefJamFFNY-recomp/actions/runs/45715763881
-Tag builds the normal draft. Stable publication was not requested; do not infer it.
-Latest remains v1.2.3 until a separately authorized stable publication.
+Owner publication authorization D476 completed at 2026-11-26T16:55:26Z:
+https://github.com/vyanhursky/DefJamFFNY-recomp/releases/tag/v1.2.4
+Stable/Latest, not draft/prerelease; Source45715763881 passes37/37.
+All9 asset GitHub SHA-256 digests, sidecars and exact source/toolkit provenance
+verified before publication, with inspected game-free inventories: windows-x64 4744, macos-arm64 5459, linux-x86_64 10014.
+Pages45863182466 passes2/2 from main; live releases.json serves v1.2.4/9assets.
+The permitted main deployment preserves the existing main-only Pages policy.
 
 Combined CI45714624786 passes35/35 at eeac4e1; merge76c88e2 has the identical
 source tree. Source policy1047files/zero failures and exact tag/version/main
@@ -754,10 +759,13 @@ packaged install/Clean Update ran. v1.2.3's full report does not qualify the cha
 compositor/toolkit. Windows/Linux native compositor and Mac/Deck end-user install
 acceptance remain unperformed. Keep all these limits in docs/releases/v1.2.4.md.
 
-Next, if stable publication is requested: inspect Source45715763881 and all nine app/
-SHA/provenance assets; preserve source/toolkit identities and game-free inventory,
-then publish the verified draft and check Pages. Do not silently publish packs or
-catalogue entries; those are separate. Full tests are not rerun for tag/docs alone.
+Publication and Pages verification are complete. Start future code work from public main
+and the intended milestone. Texture packs/catalogue publication remains separate.
+No duplicate full game run for tag/docs/publication. Preserve D470 omissions.
+Private publication evidence: logs/release-1.2.4/final-asset-audit.json,
+publication-state.json, latest-state.json and pages-state.json; small provenance/
+SHA sidecars retained under published-assets/. Temporary downloaded apps were
+removed after verification, preserving the owner-requested disk cleanup.
 #300/#301/#303 and all other unqueued PRs remain excluded; #180 stays open.
 
 Owner-approved #189/#268 closures are done; #248/#166 were already closed.
