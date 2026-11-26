@@ -1,7 +1,7 @@
 {
   "schema": "defjam-stream3-draw-results/1",
   "date": "2026-11-25",
-  "status": "local opt-in prototype; Windows and software Vulkan checks complete; native Linux/macOS gameplay and hardware acceptance pending",
+  "status": "published opt-in prototype; Windows and software Vulkan checks complete; native Linux/macOS gameplay and hardware acceptance pending",
   "host": {
     "cpu": "Intel Core i7-13700K",
     "logical_cpus": 24,
@@ -995,8 +995,9 @@
     },
     "whole_frame_fight_parity": "qualified due to crowd variation also present with bridge disabled"
   },
-  "toolkit_local_commit": "79d27867c4c4e4728ad5c2be83c197ee6f927a8a",
   "toolkit_branch": "perf/runtime-stream3-draw-bridge",
   "batching_pr": "https://github.com/vyanhursky/DefJamFFNY-recomp/pull/322",
-  "toolkit_published": false
+  "toolkit_published": true,
+  "toolkit_commit": "79d27867c4c4e4728ad5c2be83c197ee6f927a8a",
+  "toolkit_url": "https://github.com/vyanhursky/xboxrecomp/commit/79d27867c4c4e4728ad5c2be83c197ee6f927a8a"
 }

@@ -6,8 +6,8 @@ This is a separate default-off prototype on Stream 2 plus packet batching.
 The Windows prototype has passed scoped correctness checks and serial performance
 comparisons. Vulkan fallback stress checks also pass. Whole-frame fight captures
 retain the crowd-variation qualification below. Keep it default-off pending
-native Linux/macOS acceptance. This prototype is separate from the published
-batching-only PR; its toolkit changes are committed locally, not published/pinned.
+native Linux/macOS acceptance. This draft builds on the published batching-only
+PR #322 and pins the published bridge toolkit for native cross-machine testing.
 
 ## Boundary
 
@@ -211,15 +211,69 @@ On Vulkan, exhausted raw layout/module/pipeline capacity keeps using the normal
 path for unavailable variants; 99% coverage in one scene is not a whole-game
 coverage guarantee. The bounded caches favor correctness over unbounded growth.
 
-## Local hand-off
+## Native Linux/macOS hand-off
 
-Toolkit commit `79d27867c4c4e4728ad5c2be83c197ee6f927a8a`, branch
-`perf/runtime-stream3-draw-bridge`, is committed locally. The game worktree uses
-that toolkit through its local junction. The parent gitlink remains at the
-published batching commit, `46981e0e9cd60fba94663c3fda9b3297f5d64592`; no
-unpublished toolkit commit is pinned in the parent, and no bridge changes have
-been pushed to PR #322. Publish a reviewed toolkit commit before recording its
-gitlink when this prototype is prepared for other machines.
+Toolkit commit [`79d27867c4c4e4728ad5c2be83c197ee6f927a8a`](https://github.com/vyanhursky/xboxrecomp/commit/79d27867c4c4e4728ad5c2be83c197ee6f927a8a)
+is published on `perf/runtime-stream3-draw-bridge` and pinned by this game branch.
+The game PR is stacked on batching PR #322, which remains batching-only. Checking
+out this bridge branch gives Stream 2, packet batching and the raw GPU bridge.
+
+Use the [native build prerequisites](../build-macos-linux.md) and your own dump:
+
+```bash
+git fetch origin perf/runtime-stream3-draw-bridge
+git switch --detach origin/perf/runtime-stream3-draw-bridge
+git submodule sync --recursive
+git submodule update --init --recursive
+git -C tools/xboxrecomp rev-parse HEAD
+# Must print 79d27867c4c4e4728ad5c2be83c197ee6f927a8a.
+
+export DEFJAM_DATA=/absolute/path/to/your/disposable-test-data
+python scripts/pipeline.py analyze
+python scripts/pipeline.py recomp
+python scripts/pipeline.py build --preset posix-release
+python scripts/check-runtime-stream2.py --quick --env RECOMP_D3D_HLE=0 --env RECOMP_D3D_HLE_BULK=3 --env RECOMP_GPU_DRAW_BRIDGE=1
+```
+
+Use a disposable copy of your saves, with `extracted/` pointing to your dump.
+The fixture/save bytes used on Windows are private and are not in the PR. For
+longer gameplay/replay checks use your local hashed fixture:
+
+```bash
+python scripts/check-runtime-stream2.py --only fight,ffa,replay,repeat --fixture /absolute/path/to/fixture --env RECOMP_D3D_HLE=0 --env RECOMP_D3D_HLE_BULK=3 --env RECOMP_GPU_DRAW_BRIDGE=1
+```
+
+Run the game-free fixtures too. CI includes the portable fixtures on Linux and
+macOS, WARP on Windows, and validation-enabled software Vulkan on Linux:
+
+```bash
+cmake -S tools/xboxrecomp/tests/nv2a_raw_draw -B build/raw-draw -DCMAKE_BUILD_TYPE=Release
+cmake --build build/raw-draw
+ctest --test-dir build/raw-draw --output-on-failure
+```
+
+The [toolkit fixture guide](../../tools/xboxrecomp/tests/nv2a_raw_draw/README.md)
+also covers actual offscreen Vulkan/MSAA and sanitizer testing. For a scene
+comparison, use the same settings and cache directory in both configurations:
+
+```bash
+common=(--hle 0 --bulk 3 --env RECOMP_D3D11_SHADER_CACHE=1 --env RECOMP_D3D11_STATE_CACHE=1
+        --env RECOMP_FENCE_WAIT=0 --env RECOMP_GPU_DRAW_STATS=0 --env RECOMP_STREAM2_STATS=0
+        --env RECOMP_PRESENT_PACING=0 --env "RECOMP_SHADER_CACHE=$DEFJAM_DATA/cache/vulkan")
+python scripts/benchmark-runtime-stream3.py --label bridge-warm-control --env RECOMP_GPU_DRAW_BRIDGE=0 "${common[@]}"
+python scripts/benchmark-runtime-stream3.py --label bridge-warm-native --env RECOMP_GPU_DRAW_BRIDGE=1 "${common[@]}"
+python scripts/benchmark-runtime-stream3.py --label bridge-a1 --env RECOMP_GPU_DRAW_BRIDGE=0 "${common[@]}"
+python scripts/benchmark-runtime-stream3.py --label bridge-b1 --env RECOMP_GPU_DRAW_BRIDGE=1 "${common[@]}"
+python scripts/benchmark-runtime-stream3.py --label bridge-b2 --env RECOMP_GPU_DRAW_BRIDGE=1 "${common[@]}"
+python scripts/benchmark-runtime-stream3.py --label bridge-a2 --env RECOMP_GPU_DRAW_BRIDGE=0 "${common[@]}"
+```
+
+Exclude the two warm-up runs from measurements. Run serially and use fresh labels
+if repeating. Results go under `logs/stream2/LABEL`. The CPU sampler supports
+Linux and Windows; on macOS CPU is unavailable in this runner, so use a native
+profiler for CPU and retain its frame-time results. Missing CPU is not zero usage.
+D3D11 cache flags affect Windows; native Vulkan uses its existing shader/pipeline
+cache. Share machine/GPU/driver, effective flags and summaries with the results.
 
 Native acceptance still needs Linux hardware and macOS/MoltenVK builds, focused
 fixtures, game correctness/visual checks and repeated CPU/frame-time comparisons.

@@ -264,7 +264,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y ninja-build pkg-config libsdl2-dev libepoxy-dev libssl-dev libvulkan-dev libshaderc-dev \
+          sudo apt-get install -y ninja-build pkg-config libsdl2-dev libepoxy-dev libssl-dev libvulkan-dev libshaderc-dev mesa-vulkan-drivers vulkan-validationlayers \
             libxtst-dev libfribidi-dev libthai-dev libusb-1.0-0-dev libpipewire-0.3-dev libdecor-0-dev liburing-dev
       - name: Dependencies (macOS)
         if: runner.os == 'macOS'
@@ -310,11 +310,20 @@ jobs:
           fi
       - name: Hardware-free fixtures
         run: |
-          for t in mmio_trap_posix guest_cpu_posix memory_layout_posix windows_guest_layout kernel_memory_posix kernel_path_posix kernel_bridge nv2a_progress nv2a_vsh nv2a_pb_walk nv2a_ffp_backend settings texture_pack nv2a_texture_signature nv2a_small_capture nv2a_ws_left_tag d3d8_vk_cache; do
+          for t in mmio_trap_posix guest_cpu_posix memory_layout_posix windows_guest_layout kernel_memory_posix kernel_path_posix kernel_bridge nv2a_progress nv2a_vsh nv2a_raw_draw nv2a_pb_walk nv2a_ffp_backend settings texture_pack nv2a_texture_signature nv2a_small_capture nv2a_ws_left_tag d3d8_vk_cache; do
             cmake -S tools/xboxrecomp/tests/$t -B build/fx-$t -G Ninja -DCMAKE_BUILD_TYPE=Release
             cmake --build build/fx-$t
             ctest --test-dir build/fx-$t --output-on-failure --no-tests=error
           done
+      - name: Raw draw bridge Vulkan validation (Linux software driver)
+        if: runner.os == 'Linux'
+        run: |
+          cmake -S tools/xboxrecomp/tests/nv2a_raw_draw -B build/fx-nv2a_raw_draw -G Ninja -DCMAKE_BUILD_TYPE=Release -DXBOXRECOMP_RAW_VULKAN_TEST=ON
+          cmake --build build/fx-nv2a_raw_draw
+          lavapipe_icd=$(find /usr/share/vulkan/icd.d -name 'lvp_icd*.json' -print -quit)
+          test -n "$lavapipe_icd"
+          VK_ICD_FILENAMES="$lavapipe_icd" VK_INSTANCE_LAYERS=VK_LAYER_KHRONOS_validation \
+            ctest --test-dir build/fx-nv2a_raw_draw --output-on-failure --no-tests=error -R 'nv2a-raw-(validation-runner|vulkan)'
 
   native-fixtures:
     name: Release fixture (${{ matrix.fixture }})
@@ -324,7 +333,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        fixture: [nv2a_progress, kernel_bridge, kernel_directory, usb_transfer, nv2a_vsh, nv2a_pb_walk, nv2a_ffp_backend, settings, d3d8_present_fit, d3d8_thin_dxt, d3d8_readback, input_map, input_host, kernel_events, memory_regressions, windows_guest_layout, kernel_regressions, kernel_object_paths, kernel_dispatch, kernel_irql_abi, kernel_physical_address, texture_pack, nv2a_texture_signature, nv2a_small_capture, nv2a_ws_left_tag, input_edges, input_host_edges]
+        fixture: [nv2a_progress, kernel_bridge, kernel_directory, usb_transfer, nv2a_vsh, nv2a_raw_draw, nv2a_pb_walk, nv2a_ffp_backend, settings, d3d8_present_fit, d3d8_thin_dxt, d3d8_readback, input_map, input_host, kernel_events, memory_regressions, windows_guest_layout, kernel_regressions, kernel_object_paths, kernel_dispatch, kernel_irql_abi, kernel_physical_address, texture_pack, nv2a_texture_signature, nv2a_small_capture, nv2a_ws_left_tag, input_edges, input_host_edges]
         include:
           - fixture: usb_transfer
             configure_args: -DXBOXRECOMP_SDL3=ON
