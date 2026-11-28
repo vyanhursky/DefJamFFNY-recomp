@@ -209,7 +209,8 @@ def bridge(tmp_path_factory, request):
     if msvc:
         cmd = [compiler, '/nologo', '/std:' + request.param, '/EHsc', '/utf-8', '/DNOMINMAX',
                '/I' + str(ROOT / 'src/hooks'),
-               '/DDEFJAM_SAVE_SOURCE_DIR="' + str(ROOT) + '"', str(main), str(native), '/Fe:' + str(exe),
+               # Forward slashes: a backslash path in a string-literal define becomes escape sequences.
+               '/DDEFJAM_SAVE_SOURCE_DIR="' + ROOT.as_posix() + '"', str(main), str(native), '/Fe:' + str(exe),
                '/link', 'shell32.lib', 'comdlg32.lib', 'ole32.lib', 'user32.lib']
     else:
         if not shutil.which('pkg-config'):
@@ -218,7 +219,7 @@ def bridge(tmp_path_factory, request):
         if pkg.returncode:
             pytest.skip('SDL3 development package required')
         cmd = [compiler, '-std=' + request.param, '-pthread', '-I' + str(ROOT / 'src/hooks'),
-               '-DDEFJAM_SAVE_SOURCE_DIR="' + str(ROOT) + '"', str(main), str(native), '-o', str(exe)] + shlex.split(pkg.stdout)
+               '-DDEFJAM_SAVE_SOURCE_DIR="' + ROOT.as_posix() + '"', str(main), str(native), '-o', str(exe)] + shlex.split(pkg.stdout)
     result = subprocess.run(cmd, cwd=folder, capture_output=True, text=True)
     assert result.returncode == 0, result.stdout + result.stderr
     return exe
