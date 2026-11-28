@@ -43,6 +43,12 @@ class Plan:
     token: str
 
 
+
+def linked(path):
+    """A symbolic link, or on Windows a junction: both lead outside the folder the player chose."""
+    path = Path(path)
+    return path.is_symlink() or path.is_junction()
+
 def safe_name(name):
     require(xbox.NAME_RE.fullmatch(name) and not any(c in name for c in '/\\:"<>|?*') and
             not name.endswith(('.', ' ')) and name not in ('.', '..') and
@@ -94,14 +100,14 @@ def source_files(paths):
 
     for item in paths:
         source = Path(item)
-        require(not source.is_symlink(), 'source must not be a symbolic link')
+        require(not linked(source), 'source must not be a symbolic link')
         require(source.exists(), 'source does not exist: %s' % source)
         files = source.rglob('*') if source.is_dir() else [source]
         seen = 0
         for file in files:
             seen += 1
             require(seen <= MAX_FILES, 'source folder has too many entries; select just the FFNY saves')
-            require(not file.is_symlink(), 'linked source paths are not supported')
+            require(not linked(file), 'linked source paths are not supported')
             if file.is_dir():
                 continue
             with file.open('rb') as stream:
@@ -169,7 +175,7 @@ def read_candidates(paths, key=xbox.PORT_KEY):
 
 
 def ordinary(path):
-    require(not path.is_symlink(), 'save target contains a symbolic link')
+    require(not linked(path), 'save target contains a symbolic link')
 
 
 def target_for(title, name):
