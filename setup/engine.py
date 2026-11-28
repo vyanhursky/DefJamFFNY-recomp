@@ -33,6 +33,11 @@ IS_LINUX = sys.platform.startswith('linux')
 # The payload manifest names the platform it was built for; a payload for
 # another one is refused before anything in it runs.
 HOST_PLATFORM = 'windows-x64' if IS_WINDOWS else 'macos-arm64' if IS_MACOS else 'linux-x64'
+# Windows: the longest version folder (<install>\\versions\\<name>) a build works in. cl, rc and the linker
+# stop at 260 characters whatever LongPathsEnabled says: measured with CMake 3.20/Ninja 1.10 and
+# CMake 3.31/Ninja 1.12, SDL3's longest object builds at 134 and fails at 136. The longest file in the
+# payload's source (129 characters below this folder) needs 129 without long-path support.
+WINDOWS_VERSION_ROOT_MAX = 128
 PRESET = 'win-x64-release' if IS_WINDOWS else 'posix-release'
 HD_SUPPORTED = IS_WINDOWS or IS_MACOS or IS_LINUX  # Direct3D 11 on Windows; Vulkan on macOS (v0.6.1) and Linux (v0.7.2)
 LAUNCHER_BUNDLE = 'Def Jam Recompiled.app'
@@ -212,6 +217,33 @@ def nearest_existing(path):
     return path
 
 
+def windows_path_length(path):
+    """A path's length as Windows counts it, in UTF-16 units."""
+    return len(str(path).encode('utf-16-le')) // 2
+
+
+def in_ansi_code_page(path):
+    try:
+        str(path).encode('mbcs')
+        return True
+    except UnicodeEncodeError:
+        return False
+
+
+def windows_path_options(source):
+    """CMake options a build folder's name calls for. With older tools the precompiled header SDL3 uses
+    breaks outside ASCII (C1083): CMake writes the include path in ANSI and cl reads it as UTF-8."""
+    return [] if str(source).isascii() else ['-DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON']
+
+
+def check_build_path(version_root):
+    """Refuse a folder the toolchain cannot build in now, not after extraction, analysis and lift."""
+    over = windows_path_length(version_root) - WINDOWS_VERSION_ROOT_MAX
+    if over > 0:
+        raise SetupError('The install folder path is %d characters too long for the C++ build tools. '
+                         'Choose, or move it to, a shorter path: %s' % (over, version_root.parent.parent), 2)
+
+
 def validate_locations(install, data, dump):
     install, data = (Path(p).resolve() for p in (install, data))
     dump = Path(dump).resolve() if dump else None
@@ -320,7 +352,12 @@ class Engine:
         identity = self.manifest['source_commit'][:12] + '-' + self.manifest['toolkit_commit'][:12]
         self.operation = getattr(args, 'operation', 'auto')
         suffix = ('-attempt-' + uuid.uuid4().hex[:8]) if hasattr(args, 'operation') else ''
-        self.version_root = self.install / 'versions' / (self.manifest['version'] + '-' + identity + suffix)
+        name = self.manifest['version'] + '-' + identity + suffix
+        if IS_WINDOWS and suffix:
+            # Every character here comes off the install folder the player may choose. The random suffix
+            # alone makes the folder unique; installed.json records both commits.
+            name = self.manifest['version'] + suffix
+        self.version_root = self.install / 'versions' / name
         self.source = self.version_root / 'source'
         if IS_WINDOWS and not windows_long_paths_enabled():
             validate_windows_copy_paths(self.version_root, self.manifest['files'])
@@ -875,8 +912,10 @@ class Engine:
         # Import VsDevCmd through a fixed script with an environment-supplied path.
         devcmd = vs / 'Common7/Tools/VsDevCmd.bat'
         self.env['DEFJAM_SETUP_VSDEVCMD'] = str(devcmd)
+        # SET writes in the console's code page, and run() reads UTF-8: hence chcp before it, or every
+        # value with an accent (TEMP under an accented user name, DEFJAM_DATA) reaches the build broken.
         batch = self.version_root / 'toolchain.cmd'
-        batch.write_text('@echo off\ncall "%DEFJAM_SETUP_VSDEVCMD%" -arch=amd64 -host_arch=amd64 -no_logo\nif errorlevel 1 exit /b %errorlevel%\nset\n', encoding='utf-8')
+        batch.write_text('@echo off\ncall "%DEFJAM_SETUP_VSDEVCMD%" -arch=amd64 -host_arch=amd64 -no_logo\nif errorlevel 1 exit /b %errorlevel%\nchcp 65001 >nul\nset\n', encoding='utf-8')
         # CMD does not understand list2cmdline's backslash-escaped inner quotes.
         # Expand one quoted environment value after parsing a constant command;
         # omit CALL, whose second expansion would reinterpret percent characters.
@@ -935,6 +974,25 @@ class Engine:
         return [f'-DCMAKE_TOOLCHAIN_FILE={self.source / "cmake/llvm-mingw-x64.cmake"}',
                 f'-DCMAKE_MAKE_PROGRAM={tools / "ninja/ninja.exe"}',
                 f'-DPython3_EXECUTABLE={self.python}', '-DFETCHCONTENT_FULLY_DISCONNECTED=ON']
+
+    def check_path_encoding(self):
+        """Outside the ANSI code page a build needs UTF-8 build files: CMake 3.21 or newer writes them,
+        Ninja 1.11 or newer reads them. Visual Studio 2019 has 3.20 and 1.10, and either alone fails, so
+        say it before analysis and lift."""
+        if in_ansi_code_page(self.source):
+            return
+        found = re.search(r'cmake version (\d+)\.(\d+)', self.run(['cmake', '--version'], capture=True))
+        able = bool(found) and (int(found[1]), int(found[2])) >= (3, 21)
+        if able:
+            try:
+                able = 'UTF-8' in self.run(['ninja', '-t', 'wincodepage'], capture=True)
+            except SetupError as ex:
+                if ex.code == 6:
+                    raise
+                able = False            # no such tool: older than 1.11
+        if not able:
+            raise SetupError('These C++ Build Tools cannot build in a folder with these characters: ' + str(self.install) +
+                             '. Use a folder with a simpler name, or install Visual Studio 2022 Build Tools.', 2)
 
     def install_prerequisites(self):
         self.event('Installing Microsoft Build Tools; Windows may request administrator consent')
@@ -1005,6 +1063,7 @@ class Engine:
                                  for name, item in zip(('sdl3', 'imgui'), [d for d in deps if 'source_dir' in d])]
                     if getattr(self, 'windows_bundled', False):
                         overrides += self.windows_bundled_overrides()
+                    overrides += windows_path_options(self.source)
                 else:
                     # SDL3, MoltenVK and shaderc come prebuilt with the setup; nothing is
                     # looked for in /opt/homebrew, /usr/local or any other prefix.
@@ -1271,6 +1330,8 @@ class Engine:
                 self.event('Setup ' + json.dumps({k: self.manifest[k] for k in ('version', 'source_commit', 'toolkit_commit')}))
                 check_launcher_closed(self.install)
                 transaction.Activation(self.install, self.data).recover()
+                if IS_WINDOWS:
+                    check_build_path(self.version_root)
                 self.check_install_destination()
                 self.check_existing_install()
                 previous = self.install / 'installed.json'
@@ -1293,6 +1354,8 @@ class Engine:
                 self.timed('Prepare source', self.prepare_source)
                 self.timed('Verify and extract dump', self.extract)
                 self.timed('Check toolchain', self.toolchain)
+                if IS_WINDOWS:
+                    self.check_path_encoding()
                 self.link_game()
                 self.pipeline()
                 self.timed('HD textures', self.build_hd_textures)

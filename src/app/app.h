@@ -152,6 +152,17 @@ Placement place_app(std::string *error);
 // The installed copy: make sure payload\ beside it is the one built into it. False with the reason.
 bool ensure_payload(std::string *error);
 
+// Windows: the install page makes one folder that holds everything, as a portable install: the app
+// (with payload\), the game in game\ and the dump copy, saves and settings in data\. This file in
+// it says so, and makes game\ and data\ the first run's locations.
+inline constexpr const char *k_portable_marker = ".defjam-portable";
+inline constexpr const char *k_shortcut_name = "Def Jam Recompiled.lnk";
+
+// The install page started the installed copy with --first-setup: start setting up the game at once
+// with this experience (1 Modern, 0 Original), Upscaled Original Textures or not (Modern only) and
+// dump, once the Build Tools check has answered.
+void first_setup(int experience, bool hd, const std::string &dump);
+
 // The install page, while it is up; drawn before anything else. And whether it is copying files.
 bool install_screen_draw(float width, float height, UiResult *result);
 bool install_busy();
