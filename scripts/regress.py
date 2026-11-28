@@ -34,8 +34,9 @@ Checks, in order:
            the winner put out once
   replay   one step-timed, seed-pinned fight: the first thirty seconds of game state
            must hash to tests/golden/fight-stream.json (how the fight plays)
-  visual   (--only) crib and Learn Moves against the locally approved images in
-           <data folder>/test-baselines/story-tour-v1; blocked when there are none
+  visual   (--only) the crib menu against the locally approved image in
+           <data folder>/test-baselines/story-tour-v1; blocked when there is none.
+           Learn Moves is not compared (retired 2026-11-27)
   repeat   (--only) the same step-timed, seed-pinned fight twice: the first thirty
            seconds of game state must be identical record for record, and match
            the recorded hash in tests/golden/fight-stream.json
