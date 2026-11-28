@@ -666,6 +666,12 @@ void maintenance_page(float width, float height, UiResult *result)
     if (older)
         ImGui::TextDisabled("Repair and Clean Rebuild work on v%s, the version this app builds: update first.",
                             app::payload_version().c_str());
+    ImGui::SeparatorText("Disk space");
+    ImGui::TextWrapped("Check for unused space in save images and reclaim it while keeping your saves.");
+    ImGui::BeginDisabled(!in.installed || screen_busy());
+    if (ImGui::Button("Optimize disk usage")) screen_open_optimization();
+    ui_target("setup.optimize");
+    ImGui::EndDisabled();
 #if defined(_WIN32) || defined(__linux__)
     if (in.installed) steam_section();
 #endif
@@ -1028,6 +1034,14 @@ void finished_page(float width, float height, UiResult *result)
             ImGui::TextWrapped("The installed game is unchanged and still playable.");
     }
     ImGui::Spacing();
+    bool updated = g_run.operation == "update" ||
+        (g_run.operation == "rebuild" && g_run.title.rfind("Updating to ", 0) == 0);
+    if (ok && updated && !disk_optimization_completed()) {
+        ImGui::SeparatorText("Free up disk space");
+        ImGui::TextWrapped("Older installations may have unused space in their save images. You can check it now or later in Maintenance.");
+        if (ImGui::Button("Optimize disk usage")) screen_open_optimization();
+        ui_target("setup.optimize-after-update");
+    }
     page_actions();
     if (!ok && g_run.exit_code != 3010) {
         if (ImGui::Button("Try again")) {
@@ -1115,6 +1129,7 @@ bool screen_draw(float width, float height, UiResult *result)
     take_pick();
     poll_tools_check();
     poll();
+    if (optimization_screen_draw(width, height, result)) return true;
 #if defined(_WIN32) || defined(__linux__)
     if (install_screen_draw(width, height, result)) return true;
 #endif
@@ -1174,14 +1189,15 @@ void start_update_build()
 #if defined(_WIN32) || defined(__linux__)
 bool screen_busy()
 {
-    return g_run.process.id != 0 || update_busy() || install_busy() || steam_busy() || g_removal.state == 1;
+    return g_run.process.id != 0 || optimization_busy() || update_busy() || install_busy() || steam_busy() || g_removal.state == 1;
 }
 #else
-bool screen_busy() { return g_run.process.id != 0 || update_busy() || g_removal.state == 1; }
+bool screen_busy() { return g_run.process.id != 0 || optimization_busy() || update_busy() || g_removal.state == 1; }
 #endif
 
 void screen_request_cancel()
 {
+    optimization_request_cancel();
     update_request_cancel();
     if (!g_run.process.id || g_run.cancelling) return;
     std::ofstream(g_run.cancel) << "cancel";

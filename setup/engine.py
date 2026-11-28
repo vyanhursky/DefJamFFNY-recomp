@@ -1417,6 +1417,103 @@ def size_text(size):
     return '%.1f GB' % (size / 1e9) if size >= 1e9 else '%d MB' % round(size / 1e6)
 
 
+def compact_save_images(install, apply=False, report=print, cancelled=None):
+    if apply and not IS_WINDOWS:
+        raise ValueError('Experimental compaction apply is Windows-only; allocation reporting is available here')
+    root = Path(install).resolve()
+    if root == Path(root.anchor):
+        raise SetupError('Choose a recognized installation folder', 2)
+    with install_lock(root):
+        receipt_file = root / 'installed.json'
+        receipt = json.loads(receipt_file.read_text(encoding='utf-8'))
+        versions = root / 'versions'
+        if (receipt.get('schema') != 1 or versions.resolve() != versions
+                or versions not in Path(receipt['source']).parents):
+            raise SetupError('Invalid installation ownership receipt', 2)
+        data = Path(receipt['data']).resolve()
+        with install_lock(data), game_lock(root):
+            transaction.Activation(root, data).recover()
+            if json.loads(receipt_file.read_text(encoding='utf-8')) != receipt:
+                raise SetupError('Installation recovered; run compaction again', 2)
+            storage = load_module('setup_save_storage', Path(__file__).with_name('save_storage.py'))
+            save = storage.ordinary(data / 'save')
+            results = []
+            for number in range(6):
+                if cancelled:
+                    cancelled()
+                path = storage.ordinary(save / ('Partition%d.img' % number))
+                if not path.exists():
+                    continue
+                if not path.is_file():
+                    raise SetupError('Partition image must be a regular file: ' + path.name, 2)
+                if apply:
+                    report('Optimizing save images (%d of 6)' % (number + 1))
+                    results.append(storage.compact_image(path, report, cancelled=cancelled))
+                else:
+                    allocated = storage.allocated_bytes(path)
+                    results.append(dict(image=path.name, logical=path.stat().st_size,
+                                        before=allocated, after=allocated, changed=False))
+                    report('%s: logical %d bytes, allocated %d bytes (report only)' %
+                           (path.name, path.stat().st_size, allocated))
+            if apply:
+                if cancelled:
+                    cancelled()
+                marker = storage.ordinary(data / 'disk-optimization.json')
+                write_json(marker, dict(kind='disk-optimization-v1', status='complete', platform=HOST_PLATFORM))
+            if not apply:
+                report('No images changed. Add --apply-compaction to deallocate verified zero ranges on Windows.')
+            return results
+
+
+def run_disk_optimization(args):
+    """Shared app/CLI result contract. A failed/cancelled run never publishes completion."""
+    def report(message):
+        print(message, flush=True)
+        if args.log:
+            path = Path(args.log)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            with path.open('a', encoding='utf-8') as stream:
+                stream.write(message + '\n')
+
+    def cancelled():
+        if args.cancel_file and Path(args.cancel_file).exists():
+            raise SetupError('Disk optimization cancelled', 6)
+
+    try:
+        cancelled()
+        if args.apply_compaction and not IS_WINDOWS:
+            raise SetupError('Disk optimization is not available on this operating system yet. No image data was changed.', 2)
+        rows = compact_save_images(args.install_dir, apply=args.apply_compaction, report=report, cancelled=cancelled)
+        used = sum(row['after'] for row in rows)
+        freed = sum(max(0, row['before'] - row['after']) for row in rows)
+        if args.apply_compaction:
+            message = ('Freed %s. Your save contents are unchanged.' % size_text(freed) if freed else
+                       'No extra space was reclaimed. Your save contents are unchanged.')
+            status = 'complete'
+        elif not IS_WINDOWS:
+            message = ('Save images use %s on disk. Disk optimization is not available on this operating system yet. '
+                       'No image data was changed.' % size_text(used))
+            status = 'unavailable'
+        else:
+            message = ('Save images use %s on disk. Optimization checks for unused space without changing your saves. '
+                       'This may take a minute.' % size_text(used))
+            status = 'ready'
+        result = dict(kind='disk-optimization-v1', status=status, apply_supported=IS_WINDOWS,
+                      message=message, freed_bytes=freed, allocated_bytes=used)
+        if args.optimization_result:
+            write_json(args.optimization_result, result)
+        report(message)
+        return result
+    except (OSError, ValueError, SetupError) as ex:
+        status = 'cancelled' if isinstance(ex, SetupError) and ex.code == 6 else 'failed'
+        message = ('Optimization stopped. Your save contents are unchanged; you can run it again.'
+                   if status == 'cancelled' else 'Disk optimization stopped: ' + str(ex))
+        if args.optimization_result:
+            write_json(args.optimization_result, dict(kind='disk-optimization-v1', status=status,
+                       apply_supported=IS_WINDOWS, message=message))
+        raise
+
+
 def uninstall(install, report=None, backup_dir=None):
     """Remove the application from `install`, never the data folder. `report` gets one line for each
     thing found, removed or kept; main() sends the lines to the screen and to the --log file."""
@@ -1611,6 +1708,9 @@ def main(argv=None):
     parser.add_argument('--data-dir')
     parser.add_argument('--uninstall', action='store_true')
     parser.add_argument('--backup-dir', help='Uninstall: make a verified sparse-preserving saves/settings backup first')
+    parser.add_argument('--compact-save-images', action='store_true', help='Experimental: report installed partition image allocation')
+    parser.add_argument('--apply-compaction', action='store_true', help='With --compact-save-images: verify zero ranges and deallocate them (experimental Windows-only)')
+    parser.add_argument('--optimization-result', help='Disk optimization: atomic JSON result for the app')
     parser.add_argument('--no-shortcuts', action='store_true', help='Do not create desktop/Start-menu shortcuts')
     parser.add_argument('--no-desktop-shortcut', action='store_true', help='Create only the Start-menu shortcut')
     parser.add_argument('--install-prerequisites', action='store_true')
@@ -1637,6 +1737,12 @@ def main(argv=None):
     args = parser.parse_args(argv)
     if args.backup_dir and not args.uninstall:
         parser.error('--backup-dir requires --uninstall')
+    if args.apply_compaction and not args.compact_save_images:
+        parser.error('--apply-compaction requires --compact-save-images')
+    if args.optimization_result and not args.compact_save_images:
+        parser.error('--optimization-result requires --compact-save-images')
+    if args.compact_save_images and (args.uninstall or args.release or args.dump or args.steam_art or args.steam):
+        parser.error('--compact-save-images cannot be combined with another operation')
     if args.check_toolchain:
         # Needs nothing from the payload or the network, so it answers in a moment.
         return 0 if not IS_WINDOWS or windows_toolchain_present() else 3
@@ -1753,6 +1859,9 @@ def main(argv=None):
                 return releases.run_selected(args, HOST_PLATFORM, selected, cancelled)
             finally:
                 shutil.rmtree(scratch)
+        if args.compact_save_images:
+            run_disk_optimization(args)
+            return 0
         if args.uninstall:
             verify_payload(Path(args.payload))
 

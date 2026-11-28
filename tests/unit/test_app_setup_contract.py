@@ -7,6 +7,7 @@ import re
 ROOT = Path(__file__).resolve().parents[2]
 APP = (ROOT / 'src/app/app_setup.cpp').read_text(encoding='utf-8')
 UPDATE = (ROOT / 'src/app/app_update.cpp').read_text(encoding='utf-8')
+OPTIMIZE = (ROOT / 'src/app/app_optimize.cpp').read_text(encoding='utf-8')
 ENGINE = (ROOT / 'setup/engine.py').read_text(encoding='utf-8')
 
 
@@ -20,7 +21,8 @@ def test_every_option_the_app_passes_is_an_engine_option():
     operation = APP[APP.index('std::vector<std::string> args = {"--bundled-only"'):APP.index('if (!spawn_engine(args')]
     update = ''.join(re.findall(r'spawn_engine\(\{(.*?)\}', UPDATE, re.S))
     removal = APP[APP.index('void removal_work('):APP.index('void start_removal(')]
-    passed = set(re.findall(r'"(--[a-z-]+)"', spawn + operation + update + removal))
+    passed = set(re.findall(r'"(--[a-z-]+)"', spawn + operation + update + removal + OPTIMIZE))
+    assert {'--compact-save-images', '--apply-compaction', '--optimization-result'} <= passed
     assert {'--uninstall', '--backup-dir'} <= passed
     assert {'--payload', '--operation', '--install-dir', '--data-dir', '--dump', '--status-file', '--cancel-file',
             '--log', '--bundled-only', '--no-shortcuts', '--install-prerequisites', '--check-app-update',
