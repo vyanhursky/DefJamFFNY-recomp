@@ -68,6 +68,8 @@ def inspect_payload(archive):
         folder = Path(temporary)
         package.safe_unpack(archive, folder)
         manifest = engine.verify_payload(folder, platform_of(archive))
+        if 'engine/save_storage.py' not in manifest['files']:
+            raise ValueError('Required save backup helper missing: engine/save_storage.py')
         verify_fighter_sources(manifest)
         for name in package.HD_SOURCES + package.MOD_SOURCES + package.SAVE_IMPORT_SOURCES:
             if 'source/' + name not in manifest['files']:

@@ -743,20 +743,6 @@ void removal_stop(const std::string &text)
     g_removal.state = 3;
 }
 
-// How many files are under `dir`, and how many bytes they hold.
-std::pair<uintmax_t, uintmax_t> tally(const fs::path &dir)
-{
-    uintmax_t files = 0, bytes = 0;
-    std::error_code ec;
-    for (auto it = fs::recursive_directory_iterator(dir, ec); !ec && it != fs::recursive_directory_iterator();
-         it.increment(ec))
-        if (it->is_regular_file(ec)) {
-            files++;
-            bytes += it->file_size(ec);
-        }
-    return {files, bytes};
-}
-
 // "Def Jam Recompiled saves <date time>" in the player's Documents folder.
 fs::path backup_folder()
 {
@@ -765,7 +751,7 @@ fs::path backup_folder()
     if (base.empty()) base = app::os::user_base();
     char stamp[32];
     time_t now = time(nullptr);
-    strftime(stamp, sizeof stamp, "%Y-%m-%d %H.%M", localtime(&now));
+    strftime(stamp, sizeof stamp, "%Y-%m-%d %H.%M.%S", localtime(&now));
     return base / (std::string("Def Jam Recompiled saves ") + stamp);
 }
 
@@ -786,30 +772,6 @@ bool removable_data(const fs::path &data, const fs::path &root, std::string *why
     return why->empty();
 }
 
-bool same_file_contents(const fs::path &a, const fs::path &b)
-{
-    std::ifstream first(a, std::ios::binary), second(b, std::ios::binary);
-    if (!first || !second) return false;
-    char x[65536], y[65536];
-    do {
-        first.read(x, sizeof x); second.read(y, sizeof y);
-        if (first.bad() || second.bad() || first.gcount() != second.gcount() ||
-            memcmp(x, y, (size_t)first.gcount())) return false;
-    } while (first.gcount());
-    return true;
-}
-bool same_save_tree(const fs::path &a, const fs::path &b)
-{
-    try {
-        if (tally(a) != tally(b)) return false;
-        for (auto &entry : fs::recursive_directory_iterator(a)) {
-            if (entry.is_symlink()) return false; // Never promise a backup of an external target.
-            if (entry.is_regular_file() && !same_file_contents(entry.path(), b / fs::relative(entry.path(), a))) return false;
-        }
-        return true;
-    } catch (...) { return false; }
-}
-
 void removal_work(fs::path root, fs::path data, bool with_data, fs::path backup)
 {
     std::error_code ec;
@@ -820,43 +782,30 @@ void removal_work(fs::path root, fs::path data, bool with_data, fs::path backup)
         return removal_stop("The Steam shortcut could not be removed" + (message.empty() ? std::string() : ": " + message) +
                             ". Nothing else was changed.");
 #endif
-    if (with_data) {
-        fs::path save = data / "save";
-        bool has_saves = fs::is_directory(save, ec);
-        if (ec && ec != std::errc::no_such_file_or_directory) return removal_stop("Could not inspect your saves. Your data was not deleted.");
-        ec.clear();
-        if (has_saves) {
-            removal_step("Copying your saves to " + backup.string());
-            fs::create_directories(backup, ec);
-            fs::copy(save, backup / "save", fs::copy_options::recursive, ec);
-            if (ec)
-                return removal_stop("Your saves could not be copied (" + ec.message() + "). Your game and data were not deleted.");
-            if (!same_save_tree(save, backup / "save"))
-                return removal_stop("The copy of your saves does not match them. Your game and data were not deleted.");
-            g_removal.saves_copied = true;
-        }
-        bool has_settings = fs::is_regular_file(data / "settings.ini", ec);
-        if (ec && ec != std::errc::no_such_file_or_directory) return removal_stop("Could not inspect your settings. Your data was not deleted.");
-        ec.clear();
-        if (has_settings) {
-            fs::create_directories(backup, ec);
-            fs::copy_file(data / "settings.ini", backup / "settings.ini", fs::copy_options::overwrite_existing, ec);
-            if (ec) return removal_stop("Your settings could not be copied (" + ec.message() + "). Your data was not deleted.");
-            if (!same_file_contents(data / "settings.ini", backup / "settings.ini")) return removal_stop("The settings backup could not be verified. Your data was not deleted.");
-            g_removal.settings_copied = true;
-        }
-    }
-    removal_step("Uninstalling the game");
+    removal_step(with_data ? "Backing up your saves and uninstalling the game" : "Uninstalling the game");
     char stamp[32];
     time_t now = time(nullptr);
     strftime(stamp, sizeof stamp, "%Y%m%d-%H%M%S", localtime(&now));
     std::string error;
     os::Process process;
-    if (!spawn_engine({"--uninstall", "--install-dir", root.string(), "--log",
-                       (app::log_dir() / ("uninstall-" + std::string(stamp) + ".log")).string()},
-                      &process, &error))
+    std::vector<std::string> args = {"--uninstall", "--install-dir", root.string(), "--log",
+                                   (app::log_dir() / ("uninstall-" + std::string(stamp) + ".log")).string()};
+    if (with_data) {
+        args.push_back("--backup-dir");
+        args.push_back(backup.string());
+    }
+    if (!spawn_engine(args, &process, &error))
         return removal_stop(error);
-    if (int code = os::wait(process); code != 0)
+    int code = os::wait(process);
+    if (with_data && fs::is_regular_file(backup / "backup.json", ec)) {
+        // The engine verifies under setup/data/play locks before removing any game build.
+        // Its completion manifest also survives a later uninstall failure. Partial copies
+        // have no manifest, so they are never presented as verified backups.
+        g_removal.saves_copied = fs::is_directory(backup / "save", ec) || fs::is_directory(backup / "fighter-state", ec);
+        g_removal.settings_copied = fs::is_regular_file(backup / "settings.ini", ec);
+        ec.clear();
+    }
+    if (code != 0)
         return removal_stop("Setup's uninstall stopped (exit " + std::to_string(code) + "); its log is in " +
                             app::log_dir().string() + ".");
     // What the install folder still holds: the locks and records setup and the app keep there.
@@ -947,8 +896,8 @@ void uninstall_page(float width, float height, UiResult *result)
         ui_target("uninstall.data");
         ImGui::TextDisabled("%s", in.data.string().c_str());
         if (g_removal.data)
-            ImGui::TextWrapped("It holds the copy of your dump, your saves, settings, mods and Upscaled Original Textures. Your saves "
-                               "and settings are copied first, to:\n%s", g_removal.backup.string().c_str());
+            ImGui::TextWrapped("It holds the copy of your dump, your saves, settings, mods and Upscaled Original Textures. Your saves, "
+                               "custom fighter unlocks and settings are copied and verified first, to:\n%s", g_removal.backup.string().c_str());
         else
             ImGui::TextWrapped("It stays, with your saves, settings and mods, for when you install again.");
         ImGui::Spacing();

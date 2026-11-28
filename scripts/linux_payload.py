@@ -93,7 +93,7 @@ def stage(staging, cache):
     """The engine, the wizard, the launcher template and Python."""
     (staging / 'engine').mkdir()
     # steam_shortcuts.py: the app's Add to Steam (engine.py --steam), as on Windows.
-    for name in ('engine.py', 'releases.py', 'transaction.py', 'steam_shortcuts.py'):
+    for name in ('engine.py', 'releases.py', 'transaction.py', 'save_storage.py', 'steam_shortcuts.py'):
         shutil.copyfile(ROOT / 'setup' / name, staging / 'engine' / name)
     shutil.copyfile(ROOT / 'setup/linux/wizard.py', staging / 'engine/wizard.py')
     (staging / 'launcher').mkdir()

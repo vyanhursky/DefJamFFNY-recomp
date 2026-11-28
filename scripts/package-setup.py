@@ -157,7 +157,7 @@ def stage_macos(args, staging, source, toolkit):
     cache = args.cache / 'macos'
     cache.mkdir(parents=True, exist_ok=True)
     (staging / 'engine').mkdir()
-    for name in ('engine.py', 'releases.py', 'transaction.py'):
+    for name in ('engine.py', 'releases.py', 'transaction.py', 'save_storage.py'):
         shutil.copyfile(ROOT / 'setup' / name, staging / 'engine' / name)
     if not (args.launcher / 'Contents/MacOS/DefJamLauncher').is_file():
         raise ValueError('--launcher must be the built Def Jam Recompiled.app')
@@ -201,7 +201,7 @@ def stage_linux(args, staging, source, toolkit):
 def stage_windows(args, staging, source, toolkit):
     """Embedded Python, wheels, offline SDL3/ImGui source and the native launcher."""
     (staging / 'engine').mkdir()
-    for name in ('engine.py', 'releases.py', 'transaction.py', 'steam_shortcuts.py', 'install-prerequisites.ps1',
+    for name in ('engine.py', 'releases.py', 'transaction.py', 'save_storage.py', 'steam_shortcuts.py', 'install-prerequisites.ps1',
                  'shortcuts.ps1'):
         shutil.copyfile(ROOT / 'setup' / name, staging / 'engine' / name)
     shutil.copyfile(args.launcher, staging / 'DefJamLauncher.exe')
