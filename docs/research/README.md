@@ -1,5 +1,11 @@
 # Research and validation evidence
 
+- [Windows bundled toolchain qualification plan](windows-toolchain-setup-plan.md) —
+  tracked installer integration, clean-guest scenarios, failure recovery and evidence.
+
+- [Windows toolchain issue #189 spike](windows-toolchain-189.md) — LLVM-MinGW
+  build findings, prototype, retained fixture failures and pending runtime/setup gates.
+
 These references explain non-obvious game/runtime behavior and preserve measured
 acceptance, controls and failed results. Test dates, source/toolkit pins and
 original platform limits matter. Historical proposals and negative searches are
@@ -63,6 +69,10 @@ confidence labels and disproved hypotheses remain distinct from measured facts.
 - [v0.13.0 RC â€” macOS observations, 2026-10-31](rc-v0.13.0-macos.md)
 
 ## Controller input: boundaries, corrections and source evidence
+
+- [Photo Mode scene qualification](photo-mode-scene-paths.md) — fight freeze, paused rendering, entrance support and rejected victory experiments.
+- [Photo Mode audio pause audit](photo-mode-audio-audit.md) — entrance playback continues independently; coordinated cursor-preserving pause is on hold.
+- [Photo Mode crowd visibility audit](photo-mode-crowd-audit.md) — culling and animation are coupled; full spectator visibility is on hold.
 
 - [Guest input read and fighter-cache boundaries](input-consumption-boundaries.md)
 - [Controller input investigation â€” 2026-10-30](input-latency-2026-10-30.md)

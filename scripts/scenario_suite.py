@@ -244,10 +244,23 @@ def route_assertions(route, run, preset, expected_characters=None):
     return checks
 
 
+# Learn Moves still screens are not compared, in this release or any later one (owner, 2026-11-27).
+# Older local manifests may still list them; they are skipped, never failed or passed. The gym check
+# (Learn Moves opens and a preview is requested) is unaffected.
+RETIRED_VISUAL_CAPTURES = {'gym': None, 'story-tour': {'story-tour-13s.bmp', 'story-tour-23s.bmp'}}
+
+
+def retired_visual(route, item):
+    if route not in RETIRED_VISUAL_CAPTURES:
+        return False
+    names = RETIRED_VISUAL_CAPTURES[route]
+    return names is None or item.get('capture') in names
+
+
 def visual_assertions(manifest_path, route, run, folder):
     manifest_path = Path(manifest_path).resolve()
     manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
-    items = manifest['routes'].get(route, [])
+    items = [item for item in manifest['routes'].get(route, []) if not retired_visual(route, item)]
     if not items:
         return [evidence.assertion('visual.baselines', False, 'no approved checkpoints for route')]
     checks = []

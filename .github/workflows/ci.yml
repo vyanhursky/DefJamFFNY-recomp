@@ -39,6 +39,7 @@ jobs:
     needs: changes
     if: needs.changes.outputs.code == 'true'
     runs-on: windows-latest
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
         with: { submodules: recursive }
@@ -48,10 +49,28 @@ jobs:
       - uses: ilammy/msvc-dev-cmd@v1
         with: { arch: x64 }
       - name: Installer recovery and input boundaries
-        run: python -m pytest -q --junitxml=build/setup-unit-results.xml tests/unit/test_setup_updates.py tests/unit/test_setup_engine.py tests/unit/test_setup_status.py tests/unit/test_linux_setup.py tests/unit/test_hd_assets.py tests/unit/test_hd_corpus.py tests/unit/test_hd_setup.py tests/unit/test_app_package.py tests/unit/test_app_updates.py tests/unit/test_app_setup_contract.py tests/unit/test_steam_shortcuts.py tests/unit/test_setup_handoff.py
+        run: python -m pytest -q --junitxml=build/setup-unit-results.xml tests/unit/test_setup_updates.py tests/unit/test_setup_engine.py tests/unit/test_windows_bundled_setup.py tests/unit/test_setup_status.py tests/unit/test_linux_setup.py tests/unit/test_hd_assets.py tests/unit/test_hd_corpus.py tests/unit/test_hd_setup.py tests/unit/test_app_package.py tests/unit/test_app_updates.py tests/unit/test_app_setup_contract.py tests/unit/test_steam_shortcuts.py tests/unit/test_setup_handoff.py tests/unit/test_app_folder_native.py tests/unit/test_setup_paths.py
       - name: Build and inventory standalone setup and app (no dump)
         shell: pwsh
         run: ./scripts/build-setup.ps1
+      - name: Real bundled-engine native marker install, update, rollback and repair
+        timeout-minutes: 12
+        shell: pwsh
+        run: |
+          $payload = Join-Path $env:RUNNER_TEMP 'bundled-qualification-payload'
+          python -B -c "import sys,zipfile; zipfile.ZipFile('build/setup-payload.zip').extractall(sys.argv[1])" $payload
+          if ($LASTEXITCODE) { throw 'Qualification payload extraction failed' }
+          python -B scripts/qualification/windows-native-setup.py --payload $payload --work "$env:RUNNER_TEMP/Café bundled-native-setup"
+          if ($LASTEXITCODE) { throw 'Bundled native setup qualification failed' }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: windows-bundled-native-evidence
+          path: |
+            ${{ runner.temp }}/Café bundled-native-setup/results.json
+            ${{ runner.temp }}/Café bundled-native-setup/*.out
+          retention-days: 7
+          if-no-files-found: warn
       - name: Packaged silent-mode invalid input exits safely
         shell: pwsh
         run: |

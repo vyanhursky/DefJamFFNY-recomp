@@ -546,8 +546,9 @@ ROUTES = {
 
 # One process already traverses the crib on the way to the gym. Capture and
 # evaluate both rather than rebooting once per checkpoint.
+# Only the crib is captured: Learn Moves is not compared visually (scenario_suite.RETIRED_VISUAL_CAPTURES).
 ROUTES['story-tour'] = dict(ROUTES['gym'], help='Story profile -> crib -> gym in one launch',
-                           shots='@getscreeninfo(story/crib,9,@getscreeninfo(story/gym,13,23')
+                           shots='@getscreeninfo(story/crib,9')
 for _name, _required in {'crib': ('crib',), 'gym': ('crib', 'gym'),
                          'story-tour': ('crib', 'gym'), 'story-map-shops': ('crib', 'map-shops'),
                          'unlock': ('unlock',)}.items():

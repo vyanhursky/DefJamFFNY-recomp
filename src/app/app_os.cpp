@@ -10,6 +10,7 @@
 
 #if defined(_WIN32)
 #include <windows.h>
+#include <winioctl.h>
 #include <io.h>
 #include <shlobj.h>
 #else
@@ -26,6 +27,7 @@ extern char **environ;
 
 #include <algorithm>
 #include <fstream>
+#include <vector>
 
 namespace fs = std::filesystem;
 
@@ -181,6 +183,14 @@ std::string run_in_place(const std::vector<std::string> &argv, const fs::path &d
 std::string replace_with(const std::vector<std::string> &argv) { return exec_program(argv, {}, false); }
 
 bool writable(const fs::path &dir) { return access(dir.c_str(), W_OK) == 0; }
+
+fs::path desktop_folder() { return {}; }
+bool make_shortcut(const fs::path &, const fs::path &, std::string *error)
+{
+    *error = "not on this system";
+    return false;
+}
+fs::path shortcut_target(const fs::path &) { return {}; }
 
 #else // _WIN32
 
@@ -423,6 +433,223 @@ bool writable(const fs::path &dir)
     if (h == INVALID_HANDLE_VALUE) return false;
     CloseHandle(h);
     return true;
+}
+
+fs::path desktop_folder()
+{
+    if (const char *base = getenv("DEFJAM_APP_USER_BASE"); base && *base) return fs::path(base) / "Desktop";
+    PWSTR value = nullptr;
+    if (FAILED(SHGetKnownFolderPath(FOLDERID_Desktop, 0, nullptr, &value))) return {};
+    fs::path out(value);
+    CoTaskMemFree(value);
+    return out;
+}
+
+// COM for this thread for as long as it is in scope (the shell link is an STA object).
+struct ComScope
+{
+    HRESULT hr = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+    ~ComScope() { if (SUCCEEDED(hr)) CoUninitialize(); }
+};
+
+bool make_shortcut(const fs::path &link, const fs::path &target, std::string *error)
+{
+    ComScope com;
+    IShellLinkW *shell = nullptr;
+    IPersistFile *file = nullptr;
+    HRESULT hr = CoCreateInstance(CLSID_ShellLink, nullptr, CLSCTX_INPROC_SERVER, IID_IShellLinkW, (void **)&shell);
+    if (SUCCEEDED(hr)) {
+        shell->SetPath(target.wstring().c_str());
+        shell->SetWorkingDirectory(target.parent_path().wstring().c_str());
+        shell->SetIconLocation(target.wstring().c_str(), 0);
+        shell->SetDescription(L"Def Jam Recompiled");
+        hr = shell->QueryInterface(IID_IPersistFile, (void **)&file);
+    }
+    if (SUCCEEDED(hr)) hr = file->Save(link.wstring().c_str(), TRUE);
+    if (file) file->Release();
+    if (shell) shell->Release();
+    if (FAILED(hr)) {
+        char code[16];
+        snprintf(code, sizeof code, "0x%08lx", (unsigned long)hr);
+        *error = code;
+    }
+    return SUCCEEDED(hr);
+}
+
+fs::path shortcut_target(const fs::path &link)
+{
+    std::error_code ec;
+    if (!fs::is_regular_file(link, ec)) return {};
+    ComScope com;
+    IShellLinkW *shell = nullptr;
+    IPersistFile *file = nullptr;
+    wchar_t path[MAX_PATH * 2] = {0};
+    HRESULT hr = CoCreateInstance(CLSID_ShellLink, nullptr, CLSCTX_INPROC_SERVER, IID_IShellLinkW, (void **)&shell);
+    if (SUCCEEDED(hr)) hr = shell->QueryInterface(IID_IPersistFile, (void **)&file);
+    if (SUCCEEDED(hr)) hr = file->Load(link.wstring().c_str(), STGM_READ);
+    if (SUCCEEDED(hr)) hr = shell->GetPath(path, MAX_PATH * 2, nullptr, SLGP_RAWPATH);
+    if (file) file->Release();
+    if (shell) shell->Release();
+    if (FAILED(hr) || !path[0]) return {};
+    fs::path out = fs::weakly_canonical(fs::path(path), ec);
+    return ec ? fs::path(path) : out;
+}
+
+bool remove_after_exit(const fs::path &program, const fs::path &shortcut, const fs::path &user_folder,
+                       std::string *error)
+{
+    // cmd expands %NAME% in a script's text, and a path may hold % (or ! under delayed expansion). So no
+    // path is written into the script: it is constant ASCII, and the paths reach it in environment
+    // variables, whose values cmd does not expand again (/v:off), in Unicode whatever the code page.
+    // Keep the script free of CALL and of FOR: both would substitute inside the values (%i, %%).
+    static const char script_text[] =
+        "@echo off\r\n"
+        "if not defined DEFJAM_REMOVE_PROGRAM exit /b 1\r\n"
+        "if not defined DEFJAM_REMOVE_FOLDER exit /b 1\r\n"
+        "if not defined DEFJAM_REMOVE_USER exit /b 1\r\n"
+        // Windows does not delete a running program: wait for it, and if it never ends remove nothing.
+        "set DEFJAM_REMOVE_TRIES=0\r\n"
+        ":again\r\n"
+        "del /f /q \"%DEFJAM_REMOVE_PROGRAM%\" >nul 2>&1\r\n"
+        "if not exist \"%DEFJAM_REMOVE_PROGRAM%\" goto ended\r\n"
+        "set /a DEFJAM_REMOVE_TRIES+=1\r\n"
+        "if %DEFJAM_REMOVE_TRIES% geq 60 goto done\r\n"
+        "ping -n 2 127.0.0.1 >nul\r\n"
+        "goto again\r\n"
+        ":ended\r\n"
+        "del /f /q \"%DEFJAM_REMOVE_PROGRAM%.old\" 2>nul\r\n"
+        "del /f /q \"%DEFJAM_REMOVE_FOLDER%\\payload.sha256\" 2>nul\r\n"
+        "del /f /q \"%DEFJAM_REMOVE_FOLDER%\\.defjam-portable\" 2>nul\r\n"
+        "rmdir /s /q \"%DEFJAM_REMOVE_FOLDER%\\payload\" 2>nul\r\n"
+        "rmdir /s /q \"%DEFJAM_REMOVE_FOLDER%\\payload.old\" 2>nul\r\n"
+        "rmdir /s /q \"%DEFJAM_REMOVE_FOLDER%\\payload.new\" 2>nul\r\n"
+        "rmdir \"%DEFJAM_REMOVE_FOLDER%\\game\" 2>nul\r\n"
+        "rmdir \"%DEFJAM_REMOVE_FOLDER%\" 2>nul\r\n"
+        "if defined DEFJAM_REMOVE_LINK del /f /q \"%DEFJAM_REMOVE_LINK%\" 2>nul\r\n"
+        "rmdir /s /q \"%DEFJAM_REMOVE_USER%\\logs\" 2>nul\r\n"
+        "rmdir \"%DEFJAM_REMOVE_USER%\" 2>nul\r\n"
+        ":done\r\n"
+        "del \"%~f0\"\r\n";
+    // An empty or relative path would make the script delete relative to wherever it runs.
+    if (!program.is_absolute() || !user_folder.is_absolute() || program.parent_path() == program.root_path()) {
+        *error = "its folders are not known";
+        return false;
+    }
+    std::error_code ec;
+    fs::path script = fs::temp_directory_path(ec) /
+                      (L"DefJamRecompiled-uninstall-" + std::to_wstring(GetCurrentProcessId()) + L".cmd");
+    {
+        std::ofstream out(script, std::ios::binary | std::ios::trunc);
+        out << script_text;
+        out.close();
+        if (!out) {
+            *error = "its clean-up script could not be written";
+            return false;
+        }
+    }
+    // Every variable is set or cleared here, so none can come from the environment the app started in.
+    const std::pair<const wchar_t *, std::wstring> values[] = {
+        {L"DEFJAM_REMOVE_PROGRAM", program.wstring()},
+        {L"DEFJAM_REMOVE_FOLDER", program.parent_path().wstring()},
+        {L"DEFJAM_REMOVE_LINK", shortcut.wstring()},
+        {L"DEFJAM_REMOVE_USER", user_folder.wstring()},
+        {L"DEFJAM_REMOVE_SCRIPT", L"\"" + script.wstring() + L"\""},
+    };
+    for (const auto &value : values)
+        if (!SetEnvironmentVariableW(value.first, value.second.empty() ? nullptr : value.second.c_str()) &&
+            !value.second.empty()) {
+            *error = windows_error(GetLastError());
+            return false;
+        }
+    // The script's own path is expanded from the environment too, so this command line is written out
+    // here: start() quotes every argument, and cmd does not read its switches as a C program does. /d: no
+    // AutoRun commands. /s: cmd takes off exactly the outer quotes, and the value brings its own.
+    wchar_t system[MAX_PATH];
+    if (!GetSystemDirectoryW(system, MAX_PATH)) {
+        *error = windows_error(GetLastError());
+        return false;
+    }
+    std::wstring cmd = (fs::path(system) / L"cmd.exe").wstring();
+    std::wstring command = L"\"" + cmd + L"\" /d /v:off /s /c \"%DEFJAM_REMOVE_SCRIPT%\"";
+    STARTUPINFOW si{};
+    si.cb = sizeof si;
+    PROCESS_INFORMATION pi{};
+    // Not in the folder it removes, which Windows keeps while a process works in it.
+    if (!CreateProcessW(cmd.c_str(), command.data(), nullptr, nullptr, FALSE, CREATE_NO_WINDOW, nullptr, system,
+                        &si, &pi)) {
+        *error = windows_error(GetLastError());
+        return false;
+    }
+    CloseHandle(pi.hThread);
+    CloseHandle(pi.hProcess);
+    return true;
+}
+
+namespace
+{
+
+// Whether `path` itself is a junction or a directory link. A real folder is not, nor is a cloud
+// placeholder, which is a reparse point too.
+bool is_folder_link(const fs::path &path)
+{
+    WIN32_FIND_DATAW found;
+    HANDLE h = FindFirstFileW(path.c_str(), &found);
+    if (h == INVALID_HANDLE_VALUE) return false;
+    FindClose(h);
+    return (found.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && (found.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) &&
+           (found.dwReserved0 == IO_REPARSE_TAG_MOUNT_POINT || found.dwReserved0 == IO_REPARSE_TAG_SYMLINK);
+}
+
+// A directory junction at `link`, which must not exist, to `target`, as setup's New-Item makes one.
+bool make_junction(const fs::path &link, const fs::path &target)
+{
+    if (!CreateDirectoryW(link.c_str(), nullptr)) return false;
+    HANDLE h = CreateFileW(link.c_str(), GENERIC_WRITE, 0, nullptr, OPEN_EXISTING,
+                           FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT, nullptr);
+    if (h == INVALID_HANDLE_VALUE) {
+        RemoveDirectoryW(link.c_str());
+        return false;
+    }
+    std::wstring sub = L"\\??\\" + target.wstring(), print = target.wstring();
+    size_t names = (sub.size() + 1 + print.size() + 1) * sizeof(wchar_t);
+    std::vector<BYTE> buffer(16 + names, 0);
+    auto put16 = [&](size_t at, size_t v) { buffer[at] = (BYTE)(v & 0xff); buffer[at + 1] = (BYTE)(v >> 8); };
+    DWORD tag = IO_REPARSE_TAG_MOUNT_POINT;
+    memcpy(buffer.data(), &tag, 4);
+    put16(4, 8 + names);                                          // ReparseDataLength
+    put16(8, 0);                                                  // SubstituteNameOffset
+    put16(10, sub.size() * sizeof(wchar_t));                      // SubstituteNameLength
+    put16(12, (sub.size() + 1) * sizeof(wchar_t));                // PrintNameOffset
+    put16(14, print.size() * sizeof(wchar_t));                    // PrintNameLength
+    memcpy(buffer.data() + 16, sub.c_str(), (sub.size() + 1) * sizeof(wchar_t));
+    memcpy(buffer.data() + 16 + (sub.size() + 1) * sizeof(wchar_t), print.c_str(), (print.size() + 1) * sizeof(wchar_t));
+    DWORD returned = 0;
+    BOOL ok = DeviceIoControl(h, FSCTL_SET_REPARSE_POINT, buffer.data(), (DWORD)buffer.size(), nullptr, 0, &returned, nullptr);
+    CloseHandle(h);
+    if (!ok) RemoveDirectoryW(link.c_str());
+    return ok != 0;
+}
+
+} // namespace
+
+Relink relink_game(const fs::path &link, const fs::path &target)
+{
+    std::error_code ec;
+    if (!is_folder_link(link)) return Relink::Unneeded;
+    // Follows the link: the same folder, however its path is written. That the link has a default.xbe
+    // proves nothing, for a copy's still has the original's.
+    if (fs::equivalent(link, target, ec)) return Relink::Unneeded;
+    if (!fs::is_regular_file(target / "default.xbe", ec)) return Relink::Unneeded;
+    fs::path next = link;
+    next += L".relink";
+    if (is_folder_link(next)) RemoveDirectoryW(next.c_str());    // left by a start that was interrupted
+    if (!make_junction(next, target)) return Relink::Failed;
+    // RemoveDirectoryW takes away the link itself, not what it leads to.
+    if (!RemoveDirectoryW(link.c_str())) {
+        RemoveDirectoryW(next.c_str());
+        return Relink::Failed;
+    }
+    return MoveFileExW(next.c_str(), link.c_str(), 0) || make_junction(link, target) ? Relink::Done : Relink::Failed;
 }
 
 #endif

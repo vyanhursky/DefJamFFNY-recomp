@@ -116,6 +116,13 @@ bool g_resume_setup = false, g_handoff_started = false, g_resume_tools = false;
 // and whether setup should install them first.
 os::Process g_tools_check;
 bool g_tools_missing = false, g_install_tools = true;
+bool g_tools_known = false;     // the check has answered (or there is none to wait for)
+
+// The install page's choices, to set up the game with as soon as the Build Tools are known.
+bool g_first_setup = false;
+int g_first_experience = 1;
+bool g_first_hd = false;
+std::string g_first_dump;
 
 // A folder or file chosen in the system's dialog arrives on another thread.
 std::mutex g_pick_lock;
@@ -345,11 +352,15 @@ void start_tools_check()
 {
 #if defined(_WIN32)
     fs::path python = python_in(app::payload());
-    if (python.empty()) return;
+    if (python.empty()) { g_tools_known = true; return; }
     std::string error;
     if (!os::start({python.string(), "-B", (app::payload() / "engine/engine.py").string(), "--payload",
-                    app::payload().string(), "--check-toolchain"}, nullptr, &g_tools_check, &error))
+                    app::payload().string(), "--check-toolchain"}, nullptr, &g_tools_check, &error)) {
         fprintf(stderr, "[APP] Build Tools check: %s\n", error.c_str());
+        g_tools_known = true;
+    }
+#else
+    g_tools_known = true;
 #endif
 }
 
@@ -357,8 +368,10 @@ void poll_tools_check()
 {
     int code = os::finished(g_tools_check);
     if (code < 0) return;
+    g_tools_known = true;
     g_tools_missing = code == 3;
-    fprintf(stderr, "[APP] Microsoft C++ Build Tools: %s\n", g_tools_missing ? "missing" : "installed");
+    fprintf(stderr, "[APP] Build tools check: %s\n", g_tools_missing ? "host MSVC required" :
+            code == 0 ? "available for bundled payload" : "failed; setup will report the payload error");
 }
 
 // The Build Tools choice, when they are missing (Windows).
@@ -666,6 +679,12 @@ void maintenance_page(float width, float height, UiResult *result)
     if (older)
         ImGui::TextDisabled("Repair and Clean Rebuild work on v%s, the version this app builds: update first.",
                             app::payload_version().c_str());
+    ImGui::SeparatorText("Disk space");
+    ImGui::TextWrapped("Check for unused space in save images and reclaim it while keeping your saves.");
+    ImGui::BeginDisabled(!in.installed || screen_busy());
+    if (ImGui::Button("Optimize disk usage")) screen_open_optimization();
+    ui_target("setup.optimize");
+    ImGui::EndDisabled();
 #if defined(_WIN32) || defined(__linux__)
     if (in.installed) steam_section();
 #endif
@@ -743,20 +762,6 @@ void removal_stop(const std::string &text)
     g_removal.state = 3;
 }
 
-// How many files are under `dir`, and how many bytes they hold.
-std::pair<uintmax_t, uintmax_t> tally(const fs::path &dir)
-{
-    uintmax_t files = 0, bytes = 0;
-    std::error_code ec;
-    for (auto it = fs::recursive_directory_iterator(dir, ec); !ec && it != fs::recursive_directory_iterator();
-         it.increment(ec))
-        if (it->is_regular_file(ec)) {
-            files++;
-            bytes += it->file_size(ec);
-        }
-    return {files, bytes};
-}
-
 // "Def Jam Recompiled saves <date time>" in the player's Documents folder.
 fs::path backup_folder()
 {
@@ -765,7 +770,7 @@ fs::path backup_folder()
     if (base.empty()) base = app::os::user_base();
     char stamp[32];
     time_t now = time(nullptr);
-    strftime(stamp, sizeof stamp, "%Y-%m-%d %H.%M", localtime(&now));
+    strftime(stamp, sizeof stamp, "%Y-%m-%d %H.%M.%S", localtime(&now));
     return base / (std::string("Def Jam Recompiled saves ") + stamp);
 }
 
@@ -786,30 +791,6 @@ bool removable_data(const fs::path &data, const fs::path &root, std::string *why
     return why->empty();
 }
 
-bool same_file_contents(const fs::path &a, const fs::path &b)
-{
-    std::ifstream first(a, std::ios::binary), second(b, std::ios::binary);
-    if (!first || !second) return false;
-    char x[65536], y[65536];
-    do {
-        first.read(x, sizeof x); second.read(y, sizeof y);
-        if (first.bad() || second.bad() || first.gcount() != second.gcount() ||
-            memcmp(x, y, (size_t)first.gcount())) return false;
-    } while (first.gcount());
-    return true;
-}
-bool same_save_tree(const fs::path &a, const fs::path &b)
-{
-    try {
-        if (tally(a) != tally(b)) return false;
-        for (auto &entry : fs::recursive_directory_iterator(a)) {
-            if (entry.is_symlink()) return false; // Never promise a backup of an external target.
-            if (entry.is_regular_file() && !same_file_contents(entry.path(), b / fs::relative(entry.path(), a))) return false;
-        }
-        return true;
-    } catch (...) { return false; }
-}
-
 void removal_work(fs::path root, fs::path data, bool with_data, fs::path backup)
 {
     std::error_code ec;
@@ -820,43 +801,30 @@ void removal_work(fs::path root, fs::path data, bool with_data, fs::path backup)
         return removal_stop("The Steam shortcut could not be removed" + (message.empty() ? std::string() : ": " + message) +
                             ". Nothing else was changed.");
 #endif
-    if (with_data) {
-        fs::path save = data / "save";
-        bool has_saves = fs::is_directory(save, ec);
-        if (ec && ec != std::errc::no_such_file_or_directory) return removal_stop("Could not inspect your saves. Your data was not deleted.");
-        ec.clear();
-        if (has_saves) {
-            removal_step("Copying your saves to " + backup.string());
-            fs::create_directories(backup, ec);
-            fs::copy(save, backup / "save", fs::copy_options::recursive, ec);
-            if (ec)
-                return removal_stop("Your saves could not be copied (" + ec.message() + "). Your game and data were not deleted.");
-            if (!same_save_tree(save, backup / "save"))
-                return removal_stop("The copy of your saves does not match them. Your game and data were not deleted.");
-            g_removal.saves_copied = true;
-        }
-        bool has_settings = fs::is_regular_file(data / "settings.ini", ec);
-        if (ec && ec != std::errc::no_such_file_or_directory) return removal_stop("Could not inspect your settings. Your data was not deleted.");
-        ec.clear();
-        if (has_settings) {
-            fs::create_directories(backup, ec);
-            fs::copy_file(data / "settings.ini", backup / "settings.ini", fs::copy_options::overwrite_existing, ec);
-            if (ec) return removal_stop("Your settings could not be copied (" + ec.message() + "). Your data was not deleted.");
-            if (!same_file_contents(data / "settings.ini", backup / "settings.ini")) return removal_stop("The settings backup could not be verified. Your data was not deleted.");
-            g_removal.settings_copied = true;
-        }
-    }
-    removal_step("Uninstalling the game");
+    removal_step(with_data ? "Backing up your saves and uninstalling the game" : "Uninstalling the game");
     char stamp[32];
     time_t now = time(nullptr);
     strftime(stamp, sizeof stamp, "%Y%m%d-%H%M%S", localtime(&now));
     std::string error;
     os::Process process;
-    if (!spawn_engine({"--uninstall", "--install-dir", root.string(), "--log",
-                       (app::log_dir() / ("uninstall-" + std::string(stamp) + ".log")).string()},
-                      &process, &error))
+    std::vector<std::string> args = {"--uninstall", "--install-dir", root.string(), "--log",
+                                   (app::log_dir() / ("uninstall-" + std::string(stamp) + ".log")).string()};
+    if (with_data) {
+        args.push_back("--backup-dir");
+        args.push_back(backup.string());
+    }
+    if (!spawn_engine(args, &process, &error))
         return removal_stop(error);
-    if (int code = os::wait(process); code != 0)
+    int code = os::wait(process);
+    if (with_data && fs::is_regular_file(backup / "backup.json", ec)) {
+        // The engine verifies under setup/data/play locks before removing any game build.
+        // Its completion manifest also survives a later uninstall failure. Partial copies
+        // have no manifest, so they are never presented as verified backups.
+        g_removal.saves_copied = fs::is_directory(backup / "save", ec) || fs::is_directory(backup / "fighter-state", ec);
+        g_removal.settings_copied = fs::is_regular_file(backup / "settings.ini", ec);
+        ec.clear();
+    }
+    if (code != 0)
         return removal_stop("Setup's uninstall stopped (exit " + std::to_string(code) + "); its log is in " +
                             app::log_dir().string() + ".");
     // What the install folder still holds: the locks and records setup and the app keep there.
@@ -900,31 +868,24 @@ void start_removal()
     std::thread(removal_work, in.root, in.data, g_removal.data, g_removal.backup).detach();
 }
 
-// Windows: once the window has closed, remove the app's own folder (only an installed app: the
-// program with payload\ and payload.sha256 beside it) and its logs, then its per-user folder if
-// nothing is left in it.
+// Windows: once the window has closed, remove an installed app (the program with payload\ and
+// payload.sha256 beside it) and its logs. Only the app's own files go, in a one-folder install as in
+// an older home: a folder that holds anything else (the kept data\, the player's files) stays.
 void removal_cleanup()
 {
 #if defined(_WIN32)
     std::error_code ec;
-    fs::path folder = app::program().parent_path();
-    bool installed_app = fs::is_regular_file(folder / "payload.sha256", ec) && fs::is_directory(folder / "payload", ec) &&
-                         folder != folder.root_path();
-    fs::path base = app::os::user_base() / "DefJamRecompiled";
-    fs::path script = fs::temp_directory_path(ec) /
-                      ("DefJamRecompiled-uninstall-" + std::to_string(app::os::process_id()) + ".cmd");
-    {
-        std::ofstream out(script, std::ios::binary | std::ios::trunc);
-        out << "@echo off\r\nping -n 4 127.0.0.1 >nul\r\n";
-        if (installed_app) out << "rmdir /s /q \"" << folder.string() << "\"\r\n";
-        out << "rmdir /s /q \"" << (base / "logs").string() << "\"\r\n";
-        out << "rmdir \"" << base.string() << "\" 2>nul\r\n";
-        out << "del \"%~f0\"\r\n";
+    fs::path program = app::program(), folder = program.parent_path(), shortcut;
+    if (!fs::is_regular_file(folder / "payload.sha256", ec) || !fs::is_directory(folder / "payload", ec) ||
+        folder == folder.root_path())
+        return;
+    if (fs::is_regular_file(folder / app::k_portable_marker, ec)) {
+        fs::path link = app::os::desktop_folder() / app::k_shortcut_name;
+        fs::path points_at = app::os::shortcut_target(link);
+        if (!points_at.empty() && fs::equivalent(points_at, program, ec)) shortcut = link;
     }
-    const char *shell = getenv("ComSpec");
-    os::Process process;
     std::string error;
-    if (!os::start({shell && *shell ? shell : "cmd.exe", "/c", script.string()}, nullptr, &process, &error))
+    if (!app::os::remove_after_exit(program, shortcut, app::os::user_base() / "DefJamRecompiled", &error))
         fprintf(stderr, "[APP] uninstall: the app could not remove itself: %s\n", error.c_str());
 #endif
 }
@@ -940,15 +901,15 @@ void uninstall_page(float width, float height, UiResult *result)
 #if defined(_WIN32)
         ImGui::BulletText("its Steam shortcut and artwork, if this app added them (Steam is closed and started "
                           "again if it is running)");
-        ImGui::BulletText("this app, when you close it afterwards");
+        ImGui::BulletText("this app and its desktop shortcut, when you close it afterwards");
 #endif
         ImGui::Spacing();
         ImGui::Checkbox("Also delete the data folder", &g_removal.data);
         ui_target("uninstall.data");
         ImGui::TextDisabled("%s", in.data.string().c_str());
         if (g_removal.data)
-            ImGui::TextWrapped("It holds the copy of your dump, your saves, settings, mods and Upscaled Original Textures. Your saves "
-                               "and settings are copied first, to:\n%s", g_removal.backup.string().c_str());
+            ImGui::TextWrapped("It holds the copy of your dump, your saves, settings, mods and Upscaled Original Textures. Your saves, "
+                               "custom fighter unlocks and settings are copied and verified first, to:\n%s", g_removal.backup.string().c_str());
         else
             ImGui::TextWrapped("It stays, with your saves, settings and mods, for when you install again.");
         ImGui::Spacing();
@@ -1079,6 +1040,14 @@ void finished_page(float width, float height, UiResult *result)
             ImGui::TextWrapped("The installed game is unchanged and still playable.");
     }
     ImGui::Spacing();
+    bool updated = g_run.operation == "update" ||
+        (g_run.operation == "rebuild" && g_run.title.rfind("Updating to ", 0) == 0);
+    if (ok && updated && !disk_optimization_completed()) {
+        ImGui::SeparatorText("Free up disk space");
+        ImGui::TextWrapped("Older installations may have unused space in their save images. You can check it now or later in Maintenance.");
+        if (ImGui::Button("Optimize disk usage")) screen_open_optimization();
+        ui_target("setup.optimize-after-update");
+    }
     page_actions();
     if (!ok && g_run.exit_code != 3010) {
         if (ImGui::Button("Try again")) {
@@ -1162,10 +1131,27 @@ bool screen_draw(float width, float height, UiResult *result)
             else g_screen = Screen::UpdateReady;
         }
         start_tools_check();
+        if (g_first_setup && (in.installed || g_screen != Screen::FirstRun)) g_first_setup = false;
+        if (g_first_setup) {
+            snprintf(g_dump, sizeof g_dump, "%s", g_first_dump.c_str());
+            g_experience = g_first_experience;
+            g_hd = g_first_experience && g_first_hd;     // as the first run's step 3: Modern only
+        }
     }
     take_pick();
     poll_tools_check();
+    // From the install page: its choices were the whole first run, so setup starts by itself once the
+    // Build Tools are known (installed with it when missing; Windows asks for permission).
+    if (g_first_setup && g_tools_known) {
+        g_first_setup = false;
+        g_form_error.clear();
+        g_apply_experience = true;
+        app::install().root = g_root;
+        if (!start("install", "SETTING UP YOUR GAME", g_root, g_data, g_dump, g_hd))
+            g_screen = Screen::FirstRun;
+    }
     poll();
+    if (optimization_screen_draw(width, height, result)) return true;
 #if defined(_WIN32) || defined(__linux__)
     if (install_screen_draw(width, height, result)) return true;
 #endif
@@ -1191,6 +1177,14 @@ void resume_setup(const std::string &operation, const std::string &title, const 
     g_request = {operation, title, root, data, dump, hd};
     g_resume_tools = install_tools;
     g_resume_setup = true;
+}
+
+void first_setup(int experience, bool hd, const std::string &dump)
+{
+    g_first_setup = !dump.empty();
+    g_first_experience = experience;
+    g_first_hd = hd;
+    g_first_dump = dump;
 }
 
 void screen_open_maintenance()
@@ -1225,14 +1219,15 @@ void start_update_build()
 #if defined(_WIN32) || defined(__linux__)
 bool screen_busy()
 {
-    return g_run.process.id != 0 || update_busy() || install_busy() || steam_busy() || g_removal.state == 1;
+    return g_run.process.id != 0 || optimization_busy() || update_busy() || install_busy() || steam_busy() || g_removal.state == 1;
 }
 #else
-bool screen_busy() { return g_run.process.id != 0 || update_busy() || g_removal.state == 1; }
+bool screen_busy() { return g_run.process.id != 0 || optimization_busy() || update_busy() || g_removal.state == 1; }
 #endif
 
 void screen_request_cancel()
 {
+    optimization_request_cancel();
     update_request_cancel();
     if (!g_run.process.id || g_run.cancelling) return;
     std::ofstream(g_run.cancel) << "cancel";

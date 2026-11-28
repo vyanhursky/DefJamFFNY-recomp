@@ -19,6 +19,7 @@
  */
 
 #include "hooks/save_activity.h"
+#include "patches/photo_mode.h"
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
@@ -666,6 +667,7 @@ static void ws_hud_heartbeat(void)
  * Read-only, except that RECOMP_TEST_RNG_SEED replaces the seed argument. */
 void sub_00087700_enter(void)
 {
+    photo_mode_simulation_step();
     if (!s_ws_hud_live)
         pc_speech_subs_reset();
     defjam_crowd_step();
@@ -690,7 +692,136 @@ void sub_0008BE60_enter(void)
  * through a pause that began in a live fight (issue #95); otherwise no change. */
 void sub_00079B60_enter(void) { if (s_ws_hud_live) ws_hud_heartbeat(); }
 void sub_0007A8F0_enter(void) { if (s_ws_hud_live) ws_hud_heartbeat(); }
-void sub_001A4D90_enter(void) { defjam_test_match_start(); defjam_crowd_match_start(); cheats_match_start(); song_cursor_match_start(); pc_speech_subs_clear_match(); }
+extern void sub_00079B60_gen(void);
+void sub_00079B60(void)
+{
+    if (photo_mode_freeze(g_ecx)) {
+        if (s_ws_hud_live) ws_hud_heartbeat();
+        g_esp += 8; return; /* thiscall ret 4 */
+    }
+    sub_00079B60_gen();
+}
+extern void sub_0007A8F0_gen(void);
+void sub_0007A8F0(void)
+{
+    if (photo_mode_freeze(g_ecx)) {
+        if (s_ws_hud_live) ws_hud_heartbeat();
+        g_esp += 8; return;
+    }
+    sub_0007A8F0_gen();
+}
+extern void sub_00079E40_gen(void);
+void sub_00079E40(void) { photo_mode_render(g_ecx); sub_00079E40_gen(); }
+/* The measured Battle screen uses 796A0; 79E40 belongs to the other screen
+ * family. Route its indirect render callback without renaming the guest body. */
+extern void sub_000796A0(void);
+static void photo_battle_render(void) { photo_mode_render(g_ecx); sub_000796A0(); }
+extern void sub_00079A50(void);
+static void photo_battle_leave(void) { photo_mode_clear(); sub_00079A50(); }
+/* These are the fight renderer's UI passes, after the world passes. Their
+ * frame counters remain frozen too; other consumers of 6AFD0 are untouched. */
+extern void sub_000B5AD0_gen(void);
+void sub_000B5AD0(void)
+{
+    if (photo_mode_hide_hud()) { g_esp += 4; return; }
+    sub_000B5AD0_gen();
+}
+extern void sub_000B70D0_gen(void);
+void sub_000B70D0(void)
+{
+    if (photo_mode_hide_hud()) { g_esp += 4; return; }
+    sub_000B70D0_gen();
+}
+extern void sub_0006AFD0_gen(void);
+void sub_0006AFD0(void)
+{
+    if (photo_mode_hide_panel(g_ecx)) { g_esp += 4; return; }
+    sub_0006AFD0_gen();
+}
+/* Native PauseTar quads, including the dimmer, are drawn here. Despite the
+ * analysis category game_audio, this is the CCE60/CDDC0 pause object's paint.
+ * Preserve its state and selection; suppress only this fight's owned object. */
+extern void sub_000CE200_gen(void);
+void sub_000CE200(void)
+{
+    if (photo_mode_hide_pause(g_ecx)) { g_esp += 4; return; }
+    sub_000CE200_gen();
+}
+/* Root render continues through a pause. Guest calls must run here, never on
+ * the GPU executor's frame-end/presentation callback (which has its own TLS). */
+extern void sub_00077740_gen(void);
+void sub_00077740(void)
+{
+    if (photo_mode_frame()) { g_esp += 4; return; }
+    sub_00077740_gen();
+}
+/* DirectSound's AC'97 bus-master channel reset (the PCM and S/PDIF outputs; the
+ * channel table at 0x27C4C8 holds 0x10 and 0x70). It writes RR, bit 1, to the
+ * channel's control byte (0xFEC0011B or 0xFEC0017B), reads the byte back ONCE and
+ * spins on that single read:
+ *
+ *     mov cl, [eax-0x13FFEF5] ; and cl, 2 ; L: test cl, cl ; jne L
+ *
+ * On hardware the controller has finished the reset before the read. Here the
+ * toolkit's write trap (xbox_memory_layout.c, ac97_write_veh) clears RR when it
+ * single-steps the faulting write, but while the page is open for one thread's
+ * write, another guest thread's write lands without a fault, and its read-back
+ * can still hold RR: that thread spins forever. Measured on the v1.3.0 candidate:
+ * an untouched title screen's attract movie stalled after 8 to 12 loops on the
+ * LLVM build (three runs out of three; the page was read-only and every RR bit
+ * clear in the stalled process, the worker still spinning here), and not in 17
+ * loops on MSVC or v1.2.4, which only makes the window less likely.
+ *
+ * The lifted body below is unchanged except at that read: the reset counts as
+ * complete, as on hardware. */
+extern void sub_00256A8C(void);
+extern void sub_00267880(void);
+extern void sub_00256AAE(void);
+void sub_00267B3D(void)
+{
+    uint32_t ebp = g_ebp;   /* prologue saves caller's frame */
+    PUSH32(g_esp, ebp);
+    ebp = g_esp;
+    g_ebp = ebp; g_seh_ebp = ebp;
+    PUSH32(g_esp, g_ecx);
+    PUSH32(g_esp, g_ecx);
+    MEM32(ebp - 4) = MEM32(ebp - 4) & 0;
+    PUSH32(g_esp, g_esi);
+    g_esi = g_ecx;
+    g_ecx = ebp - 8;
+    g_ebp = ebp; g_seh_ebp = ebp;
+    PUSH32(g_esp, 0x00267B51u); RECOMP_ABI_CALL(0x00256A8Cu, sub_00256A8C);   /* raise IRQL */
+    g_eax = MEM32(g_esi);
+    g_eax = MEM32(g_eax * 4 + 0x27C4C8);
+    MEM8(g_eax - 0x13FFEF5u) = 2;                    /* RR: reset this channel's registers */
+    g_eax = MEM32(g_esi);
+    g_eax = MEM32(g_eax * 4 + 0x27C4C8);
+    (void)MEM8(g_eax - 0x13FFEF5u);                  /* the title's single read-back ... */
+    SET_LO8(g_ecx, 0);                               /* ... sees RR already clear, as on hardware */
+    g_ecx = MEM32(g_esi + 0x1C);
+    MEM32(g_eax - 0x13FFF00u) = g_ecx;               /* buffer descriptor list base */
+    if (MEM32(g_esi) == 1) {
+        g_eax = MEM32(g_esi + 0x28);
+        MEM32(0xFEC0017Cu) = g_eax;
+    }
+    g_eax = MEM8(g_esi + 0x24);
+    PUSH32(g_esp, 1);
+    PUSH32(g_esp, 1);
+    g_ecx = g_esi;
+    PUSH32(g_esp, g_eax);
+    g_eax = MEM8(g_esi + 0x25);
+    PUSH32(g_esp, g_eax);
+    g_ebp = ebp; g_seh_ebp = ebp;
+    PUSH32(g_esp, 0x00267BA4u); RECOMP_ABI_CALL(0x00267880u, sub_00267880);
+    g_ecx = ebp - 8;
+    g_ebp = ebp; g_seh_ebp = ebp;
+    PUSH32(g_esp, 0x00267BACu); RECOMP_ABI_CALL(0x00256AAEu, sub_00256AAE);   /* lower IRQL */
+    POP32(g_esp, g_esi);
+    g_esp = ebp;
+    POP32(g_esp, ebp);                               /* leave */
+    g_esp += 4;                                      /* ret */
+}
+void sub_001A4D90_enter(void) { photo_mode_clear(); defjam_test_match_start(); defjam_crowd_match_start(); cheats_match_start(); song_cursor_match_start(); pc_speech_subs_clear_match(); }
 /* sub_0001D2C0 is the engine's internal sound/speech channel halt/reset function.
  * When called with argument 0 (channel 0), active speech audio is halted, so we
  * reset the active voice subtitle state to match. */
@@ -1773,6 +1904,8 @@ static void speech_wrap_stop_extro(void)
 
 recomp_func_t recomp_lookup_manual(uint32_t xbox_va)
 {
+    if (xbox_va == 0x000796A0u) return photo_battle_render;
+    if (xbox_va == 0x00079A50u) return photo_battle_leave;
     if (xbox_va == 0xFE000064u) return speech_wrap_NtReadFile;
     if (xbox_va == 0xFE000068u) return speech_wrap_NtCreateFile;
     if (xbox_va == 0xFE00006Cu) return speech_wrap_NtClose;

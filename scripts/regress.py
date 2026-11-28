@@ -34,8 +34,9 @@ Checks, in order:
            the winner put out once
   replay   one step-timed, seed-pinned fight: the first thirty seconds of game state
            must hash to tests/golden/fight-stream.json (how the fight plays)
-  visual   (--only) crib and Learn Moves against the locally approved images in
-           <data folder>/test-baselines/story-tour-v1; blocked when there are none
+  visual   (--only) the crib menu against the locally approved image in
+           <data folder>/test-baselines/story-tour-v1; blocked when there is none.
+           Learn Moves is not compared (retired 2026-11-27)
   repeat   (--only) the same step-timed, seed-pinned fight twice: the first thirty
            seconds of game state must be identical record for record, and match
            the recorded hash in tests/golden/fight-stream.json
@@ -575,6 +576,25 @@ def check_ffa_result(a):
     return scenario_check(a, "ffa-result", "ffa-result", ("combat.eliminations", "combat.result"))
 
 
+def visual_fixture(manifest, override, suite):
+    """Use the profiles approved with the images, independent of live save progress."""
+    if override:
+        return str(override)
+    manifest = Path(manifest).resolve()
+    pinned = json.loads(manifest.read_text(encoding='utf-8')).get('fixture')
+    if pinned is None:
+        return str(suite.default_fixture())
+    if not isinstance(pinned, dict) or not isinstance(pinned.get('path'), str):
+        raise ValueError('invalid visual baseline fixture')
+    fixture = (manifest.parent / pinned['path']).resolve()
+    if fixture == manifest.parent or not fixture.is_relative_to(manifest.parent):
+        raise ValueError('visual fixture must be inside its baseline folder')
+    identity = suite.evidence.fixture_identity(fixture)
+    if identity['manifest_sha256'] != pinned.get('manifest_sha256'):
+        raise ValueError('visual fixture differs from the approved profile snapshot')
+    return str(fixture)
+
+
 def check_visual(a):
     spec = importlib.util.spec_from_file_location("scenario_suite", os.path.join(HERE, "scenario_suite.py"))
     suite = importlib.util.module_from_spec(spec)
@@ -584,7 +604,7 @@ def check_visual(a):
         # Baselines are the game's artwork and are made and approved on each machine.
         return False, "blocked: no approved baselines at %s (docs/09-testing-harness.md, Visual baselines)" % manifest
     try:
-        fixture = a.fixture or str(suite.default_fixture())
+        fixture = visual_fixture(manifest, a.fixture, suite)
     except (OSError, ValueError) as ex:
         return False, "no fixture: %s" % ex
     folder = os.path.join(REPO, "logs", "scenarios", "regress-visual-" + time.strftime("%Y%m%d-%H%M%S"))

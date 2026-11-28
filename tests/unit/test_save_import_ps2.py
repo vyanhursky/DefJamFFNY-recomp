@@ -1,3 +1,4 @@
+import os
 """PS2 converter: invented save bytes only, never downloaded game/save fixtures."""
 import importlib.util
 import struct
@@ -208,7 +209,14 @@ def test_unsafe_zip_refused(tmp_path,danger):
 def test_linked_target_and_oversized_source_refused(tmp_path):
     source=tmp_path/'source';source.write_bytes(mc02(story()))
     save=tmp_path/'save';other=tmp_path/'other';other.mkdir();save.mkdir()
-    (save/'UserData').symlink_to(other,target_is_directory=True)
+    try:
+        (save/'UserData').symlink_to(other,target_is_directory=True)
+    except OSError:
+        if os.name != 'nt':
+            raise
+        # Without the symlink privilege (Developer Mode off) a junction is the link a player's folder can hold.
+        import _winapi
+        _winapi.CreateJunction(str(other), str(save/'UserData'))
     assert ps2.main([str(source),'--save-dir',str(save)]) == 2
     assert list(other.iterdir()) == []
     source.write_bytes(bytes(containers.MAX_FILE+1))

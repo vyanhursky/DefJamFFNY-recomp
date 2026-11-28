@@ -24,7 +24,7 @@ files: it checks your own copy and builds the game on your computer.
 
 | Platform | What the game is built with |
 |---|---|
-| Windows | Microsoft's C++ Build Tools. If they're missing, the app offers to install them (a few GB from Microsoft, and Windows asks for your permission). |
+| Windows | New Windows payloads include LLVM-MinGW, CMake and Ninja. They build as your normal user without Visual Studio or a Windows SDK. Published releases through v1.2.2 still need Microsoft's C++ Build Tools and may offer their installer. |
 | macOS | Apple's Command Line Tools. If they're missing, the app tells you how to install them. You can also run `xcode-select --install` in Terminal. |
 | Linux and Steam Deck | Nothing to install. The app carries its own toolchain. |
 
@@ -48,10 +48,35 @@ The app isn't code-signed yet, so your system may ask you to confirm the first t
 ### Windows
 
 1. Open the `.exe`. If SmartScreen appears, choose **More info**, then **Run anyway**.
-2. Choose where to keep the app. The default is `%LOCALAPPDATA%\Programs\DefJamRecompiled`.
+2. Choose the install folder with **CHOOSE FOLDER...**: an empty folder, or type a new folder name at the end
+   of the path and it is created. If you choose a folder that already has other files in it, the app uses a
+   `DefJamRecompiled` folder inside it. The whole path can have at most 70 characters, because
+   Windows' build tools can't build the game deeper than that. Accented names and other alphabets are fine.
+3. Choose your game copy with **SELECT ISO...** (a disc image) or **SELECT FOLDER...** (an extracted folder
+   that holds `default.xbe`). It must not be inside the install folder.
+4. Choose **Modern** or **Original** (see [step 2](#step-2-choose-your-experience)). With Modern, you can tick
+   **Upscaled Original Textures** (see [step 3](#step-3-review-and-start)): they're generated during setup, adding
+   several minutes and 15 GiB of working space, or later in **Mods**. Then choose **INSTALL**.
 
-Nothing is added to the Start menu or the desktop. To open the app again, open that file, or use
-[Add to Steam](#add-to-steam).
+The app copies itself into the folder, adds a **Def Jam Recompiled** shortcut to your desktop, and starts
+setting up the game straight away ([While it builds](#while-it-builds)). The compiler it needs comes with the
+app, so nothing else is installed and Windows doesn't ask for permission. The downloaded `.exe` can be deleted
+afterwards.
+
+The install folder holds everything:
+
+| In the folder | What it is |
+|---|---|
+| `DefJamRecompiled.exe`, `payload\` | the app and the setup files it builds the game with |
+| `game\` | the game built from your copy |
+| `data\` | the copy of your disc, your saves, settings and mods |
+
+To move the game to another place or another PC, move or copy the whole folder. Keep the `.defjam-portable`
+file in it: it tells the app that the game and data are in that folder. Your original disc image isn't needed
+to play.
+
+An app installed by v1.2.0 or older keeps its game and data where its first run put them, and opening a newer
+download updates it in place.
 
 ### macOS
 
@@ -73,7 +98,8 @@ No menu entry or desktop shortcut is made. To open the app again, open that file
 
 ## 3. Set up your game
 
-With nothing installed, the app opens on three short steps.
+On Windows, the install page above already covers this section, and setup starts by itself. On macOS and
+Linux, with nothing installed, the app opens on three short steps.
 
 ### Step 1: Choose your game copy
 
@@ -108,13 +134,13 @@ Both keep the same game speed and content, and you can change your choice or any
 
 | Platform | Game | Data and saves |
 |---|---|---|
-| Windows | `%LOCALAPPDATA%\DefJamRecompiled\app` | `%LOCALAPPDATA%\DefJamRecompiled\data` |
+| Windows | `game\` in the install folder | `data\` in the install folder |
 | macOS | `~/Library/Application Support/DefJamRecompiled/app` | `~/Library/Application Support/DefJamRecompiled/data` |
 | Linux and Steam Deck | `~/Games/DefJamRecompiled/App` | `~/Games/DefJamRecompiled/Data` |
 
 - **Free space** is checked here. If there isn't enough, free some up or change locations, then choose
   **Recheck space**.
-- **On Windows**, if the Build Tools are missing, a checkbox offers to install them first.
+- **On Windows**, historical payloads can offer to install missing Microsoft Build Tools. Bundled-compiler payloads do not need that step. If a path-length warning appears, choose a shorter writable install folder, such as `C:\Games\DefJam\App`.
 
 Choose **Set up game** when you're ready.
 
@@ -166,7 +192,9 @@ Open **Help** on Home.
   again from nothing. Your saves and settings are kept.
 - **Uninstall...** removes the game build, and its Steam shortcut if the app added one. Your data folder stays
   unless you tick **Also delete the data folder**. If you do, your saves and settings are first copied to a
-  `Def Jam Recompiled saves <date>` folder in Documents. On macOS and Linux, you then delete the app file yourself.
+  `Def Jam Recompiled saves <date>` folder in Documents. On Windows, closing the app afterwards removes the app and
+  its desktop shortcut. Only the app's own files go: a folder that still holds your data or any other file
+  stays. On macOS and Linux, you then delete the app file yourself.
 
 ## If something goes wrong
 

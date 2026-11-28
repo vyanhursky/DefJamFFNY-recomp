@@ -12,7 +12,7 @@ import hashlib
 import importlib.util
 import json
 import os
-from pathlib import Path, PurePosixPath
+from pathlib import Path, PurePosixPath, PureWindowsPath
 import platform
 import re
 import shlex
@@ -33,11 +33,16 @@ IS_LINUX = sys.platform.startswith('linux')
 # The payload manifest names the platform it was built for; a payload for
 # another one is refused before anything in it runs.
 HOST_PLATFORM = 'windows-x64' if IS_WINDOWS else 'macos-arm64' if IS_MACOS else 'linux-x64'
+# Windows: the longest version folder (<install>\\versions\\<name>) a build works in. cl, rc and the linker
+# stop at 260 characters whatever LongPathsEnabled says: measured with CMake 3.20/Ninja 1.10 and
+# CMake 3.31/Ninja 1.12, SDL3's longest object builds at 134 and fails at 136. The longest file in the
+# payload's source (129 characters below this folder) needs 129 without long-path support.
+WINDOWS_VERSION_ROOT_MAX = 128
 PRESET = 'win-x64-release' if IS_WINDOWS else 'posix-release'
 HD_SUPPORTED = IS_WINDOWS or IS_MACOS or IS_LINUX  # Direct3D 11 on Windows; Vulkan on macOS (v0.6.1) and Linux (v0.7.2)
 LAUNCHER_BUNDLE = 'Def Jam Recompiled.app'
 # Linux and macOS: the payload's build tools (tools/) and the libraries the game links (deps/) too.
-RUNTIME_FOLDERS = ('source/', 'python/') if IS_WINDOWS else ('source/', 'python/', 'tools/', 'deps/')
+RUNTIME_FOLDERS = ('source/', 'python/', 'tools/') if IS_WINDOWS else ('source/', 'python/', 'tools/', 'deps/')
 # Linux: the launcher script setup writes into the install folder, and the
 # desktop entries and Steam shortcut that point at it.
 LINUX_LAUNCHER = 'Def Jam Recompiled'
@@ -127,6 +132,11 @@ def verify_payload(payload, platform=None):
     if extra:
         shown = ', '.join(extra[:5]) + (' and %d more' % (len(extra) - 5) if len(extra) > 5 else '')
         raise SetupError('Unexpected files in setup payload: ' + shown, 2)
+    if 'windows_toolchain' in manifest:
+        try:
+            windows_contract().validate(manifest)
+        except ValueError as ex:
+            raise SetupError(str(ex), 2) from ex
     return manifest
 
 
@@ -160,6 +170,38 @@ def load_module(name, path):
     return module
 
 
+def windows_long_paths_enabled():
+    if os.name != 'nt':
+        return True
+    import winreg
+    try:
+        with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r'SYSTEM\CurrentControlSet\Control\FileSystem') as key:
+            return winreg.QueryValueEx(key, 'LongPathsEnabled')[0] == 1
+    except OSError:
+        return False
+
+
+def validate_windows_copy_paths(version_root, files):
+    """Reject unsupported destinations before copying or touching an active install.
+
+    Windows without long-path opt-in limits both files and CreateDirectory.
+    Count UTF-16 code units, including supplementary characters in folder names.
+    """
+    def units(path):
+        return len(str(path).encode('utf-16-le', errors='surrogatepass')) // 2
+    for name in files:
+        if not name.startswith(('source/', 'python/', 'tools/')):
+            continue
+        target = PureWindowsPath(version_root) / PureWindowsPath(name)
+        if units(target) > 259 or units(target.parent) > 247:
+            raise SetupError('Choose a shorter writable install folder: this payload exceeds Windows path '
+                             'limits while long paths are disabled on this computer.', 2)
+
+
+def windows_contract():
+    return load_module('setup_windows_toolchain', Path(__file__).with_name('windows_toolchain.py'))
+
+
 def validate_dump(folder, source):
     module = load_module('setup_verify_dump', source / 'scripts/verify-dump.py')
     manifest = json.loads((source / 'config/dump-manifest.json').read_text(encoding='utf-8'))
@@ -173,6 +215,33 @@ def nearest_existing(path):
     while not path.exists():
         path = path.parent
     return path
+
+
+def windows_path_length(path):
+    """A path's length as Windows counts it, in UTF-16 units."""
+    return len(str(path).encode('utf-16-le')) // 2
+
+
+def in_ansi_code_page(path):
+    try:
+        str(path).encode('mbcs')
+        return True
+    except UnicodeEncodeError:
+        return False
+
+
+def windows_path_options(source):
+    """CMake options a build folder's name calls for. With older tools the precompiled header SDL3 uses
+    breaks outside ASCII (C1083): CMake writes the include path in ANSI and cl reads it as UTF-8."""
+    return [] if str(source).isascii() else ['-DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON']
+
+
+def check_build_path(version_root):
+    """Refuse a folder the toolchain cannot build in now, not after extraction, analysis and lift."""
+    over = windows_path_length(version_root) - WINDOWS_VERSION_ROOT_MAX
+    if over > 0:
+        raise SetupError('The install folder path is %d characters too long for the C++ build tools. '
+                         'Choose, or move it to, a shorter path: %s' % (over, version_root.parent.parent), 2)
 
 
 def validate_locations(install, data, dump):
@@ -283,8 +352,15 @@ class Engine:
         identity = self.manifest['source_commit'][:12] + '-' + self.manifest['toolkit_commit'][:12]
         self.operation = getattr(args, 'operation', 'auto')
         suffix = ('-attempt-' + uuid.uuid4().hex[:8]) if hasattr(args, 'operation') else ''
-        self.version_root = self.install / 'versions' / (self.manifest['version'] + '-' + identity + suffix)
+        name = self.manifest['version'] + '-' + identity + suffix
+        if IS_WINDOWS and suffix:
+            # Every character here comes off the install folder the player may choose. The random suffix
+            # alone makes the folder unique; installed.json records both commits.
+            name = self.manifest['version'] + suffix
+        self.version_root = self.install / 'versions' / name
         self.source = self.version_root / 'source'
+        if IS_WINDOWS and not windows_long_paths_enabled():
+            validate_windows_copy_paths(self.version_root, self.manifest['files'])
         self.env = os.environ.copy()
         # Do not inherit the developer's test switches or another installation's data.
         for key in list(self.env):
@@ -313,6 +389,7 @@ class Engine:
             self.python = self.version_root / 'python/bin/python3'
         self.container_image = None     # Linux: the build container, when setup is asked to use it
         self.bundled = False            # Linux: the payload's own Zig toolchain (the default)
+        self.windows_bundled = False
         self.log = None
 
     def event(self, message):
@@ -811,6 +888,11 @@ class Engine:
             return self.toolchain_linux()
         if not IS_WINDOWS:
             return self.toolchain_macos()
+        choice = getattr(self.args, 'toolchain', 'auto')
+        if choice == 'container':
+            raise SetupError('The build container is supported on Linux only', 2)
+        if choice == 'bundled' or (choice == 'auto' and 'windows_toolchain' in self.manifest):
+            return self.toolchain_windows_bundled()
         self.event('Checking C++ compiler, Windows SDK, CMake and Ninja')
         vswhere = Path(os.environ.get('ProgramFiles(x86)', 'C:/Program Files (x86)')) / 'Microsoft Visual Studio/Installer/vswhere.exe'
         if not vswhere.is_file():
@@ -830,8 +912,10 @@ class Engine:
         # Import VsDevCmd through a fixed script with an environment-supplied path.
         devcmd = vs / 'Common7/Tools/VsDevCmd.bat'
         self.env['DEFJAM_SETUP_VSDEVCMD'] = str(devcmd)
+        # SET writes in the console's code page, and run() reads UTF-8: hence chcp before it, or every
+        # value with an accent (TEMP under an accented user name, DEFJAM_DATA) reaches the build broken.
         batch = self.version_root / 'toolchain.cmd'
-        batch.write_text('@echo off\ncall "%DEFJAM_SETUP_VSDEVCMD%" -arch=amd64 -host_arch=amd64 -no_logo\nif errorlevel 1 exit /b %errorlevel%\nset\n', encoding='utf-8')
+        batch.write_text('@echo off\ncall "%DEFJAM_SETUP_VSDEVCMD%" -arch=amd64 -host_arch=amd64 -no_logo\nif errorlevel 1 exit /b %errorlevel%\nchcp 65001 >nul\nset\n', encoding='utf-8')
         # CMD does not understand list2cmdline's backslash-escaped inner quotes.
         # Expand one quoted environment value after parsing a constant command;
         # omit CALL, whose second expansion would reinterpret percent characters.
@@ -853,6 +937,62 @@ class Engine:
                 raise SetupError('Missing toolchain component: ' + executable, 3)
         self.run(['cmake', '--version'])
         self.run(['ninja', '--version'])
+        self.record_toolchain('msvc:' + str(vs.resolve()))
+
+    def toolchain_windows_bundled(self):
+        declared = windows_contract().validate(self.manifest)
+        if declared is None:
+            raise SetupError('This historical payload has no bundled Windows compiler; use its host MSVC tools', 3)
+        # Recheck the installed copy before executing any tools; prepare_source
+        # repairs missing/corrupt files from the already verified payload.
+        for name, sha in self.manifest['files'].items():
+            if name.startswith('tools/'):
+                path = self.version_root / safe_relative(name)
+                if path.is_symlink() or not path.is_file() or digest(path) != sha:
+                    raise SetupError('Installed bundled toolchain verification failed: ' + name, 2)
+        for key in list(self.env):
+            if key.upper().startswith(('CMAKE_', 'LLVM_', 'VSCMD_', 'VSINSTALL', 'VCINSTALL')) or key.upper() in {
+                    'CC', 'CXX', 'CFLAGS', 'CXXFLAGS', 'LDFLAGS', 'CPPFLAGS', 'CPATH', 'LIBRARY_PATH',
+                    'INCLUDE', 'LIB', 'LIBPATH', 'CL', '_CL_', 'RC', 'RCFLAGS'}:
+                self.env.pop(key)
+        tools = (self.version_root / 'tools').resolve()
+        windows = Path(os.environ.get('SystemRoot', 'C:/Windows'))
+        self.env['PATH'] = os.pathsep.join(map(str, (
+            tools / 'cmake/bin', tools / 'ninja', tools / 'llvm-mingw/bin',
+            self.python.parent, windows / 'System32', windows)))
+        self.env['LLVM_MINGW_ROOT'] = str((tools / 'llvm-mingw').resolve())
+        self.env['LLVM_MINGW_PYTHON'] = str(self.python.resolve())
+        self.windows_bundled = True
+        self.record_toolchain(declared['backend'] + ':' + declared['fingerprint'])
+        self.event('Checking the bundled Windows compiler, CMake and Ninja')
+        self.run([tools / 'llvm-mingw/bin/clang.exe', '--version'])
+        self.run([tools / 'cmake/bin/cmake.exe', '--version'])
+        self.run([tools / 'ninja/ninja.exe', '--version'])
+
+    def windows_bundled_overrides(self):
+        tools = (self.version_root / 'tools').resolve()
+        return [f'-DCMAKE_TOOLCHAIN_FILE={self.source / "cmake/llvm-mingw-x64.cmake"}',
+                f'-DCMAKE_MAKE_PROGRAM={tools / "ninja/ninja.exe"}',
+                f'-DPython3_EXECUTABLE={self.python}', '-DFETCHCONTENT_FULLY_DISCONNECTED=ON']
+
+    def check_path_encoding(self):
+        """Outside the ANSI code page a build needs UTF-8 build files: CMake 3.21 or newer writes them,
+        Ninja 1.11 or newer reads them. Visual Studio 2019 has 3.20 and 1.10, and either alone fails, so
+        say it before analysis and lift."""
+        if in_ansi_code_page(self.source):
+            return
+        found = re.search(r'cmake version (\d+)\.(\d+)', self.run(['cmake', '--version'], capture=True))
+        able = bool(found) and (int(found[1]), int(found[2])) >= (3, 21)
+        if able:
+            try:
+                able = 'UTF-8' in self.run(['ninja', '-t', 'wincodepage'], capture=True)
+            except SetupError as ex:
+                if ex.code == 6:
+                    raise
+                able = False            # no such tool: older than 1.11
+        if not able:
+            raise SetupError('These C++ Build Tools cannot build in a folder with these characters: ' + str(self.install) +
+                             '. Use a folder with a simpler name, or install Visual Studio 2022 Build Tools.', 2)
 
     def install_prerequisites(self):
         self.event('Installing Microsoft Build Tools; Windows may request administrator consent')
@@ -921,6 +1061,9 @@ class Engine:
                     deps = json.loads((self.payload / 'dependencies.json').read_text())
                     overrides = [f'-DFETCHCONTENT_SOURCE_DIR_{name.upper()}={self.source / item["source_dir"]}'
                                  for name, item in zip(('sdl3', 'imgui'), [d for d in deps if 'source_dir' in d])]
+                    if getattr(self, 'windows_bundled', False):
+                        overrides += self.windows_bundled_overrides()
+                    overrides += windows_path_options(self.source)
                 else:
                     # SDL3, MoltenVK and shaderc come prebuilt with the setup; nothing is
                     # looked for in /opt/homebrew, /usr/local or any other prefix.
@@ -1088,6 +1231,11 @@ class Engine:
         previous = self.install / 'installed.json'
         old = json.loads(previous.read_text()) if previous.exists() else {}
         receipt = {key: self.manifest[key] for key in ('version', 'source_commit', 'toolkit_commit')}
+        toolchain_note = self.source.parent / 'toolchain.txt'
+        if toolchain_note.is_file():
+            receipt['build_toolchain'] = toolchain_note.read_text(encoding='utf-8')
+        if getattr(self, 'windows_bundled', False):
+            receipt['windows_toolchain'] = self.manifest['windows_toolchain']
         receipt['hd_packs'] = getattr(self, 'hd_packs', old.get('hd_packs', []))
         receipt['shortcuts'] = old.get('shortcuts', [])
         receipt['shortcut_hashes'] = old.get('shortcut_hashes', {})
@@ -1182,6 +1330,8 @@ class Engine:
                 self.event('Setup ' + json.dumps({k: self.manifest[k] for k in ('version', 'source_commit', 'toolkit_commit')}))
                 check_launcher_closed(self.install)
                 transaction.Activation(self.install, self.data).recover()
+                if IS_WINDOWS:
+                    check_build_path(self.version_root)
                 self.check_install_destination()
                 self.check_existing_install()
                 previous = self.install / 'installed.json'
@@ -1204,6 +1354,8 @@ class Engine:
                 self.timed('Prepare source', self.prepare_source)
                 self.timed('Verify and extract dump', self.extract)
                 self.timed('Check toolchain', self.toolchain)
+                if IS_WINDOWS:
+                    self.check_path_encoding()
                 self.link_game()
                 self.pipeline()
                 self.timed('HD textures', self.build_hd_textures)
@@ -1417,7 +1569,104 @@ def size_text(size):
     return '%.1f GB' % (size / 1e9) if size >= 1e9 else '%d MB' % round(size / 1e6)
 
 
-def uninstall(install, report=None):
+def compact_save_images(install, apply=False, report=print, cancelled=None):
+    if apply and not IS_WINDOWS:
+        raise ValueError('Experimental compaction apply is Windows-only; allocation reporting is available here')
+    root = Path(install).resolve()
+    if root == Path(root.anchor):
+        raise SetupError('Choose a recognized installation folder', 2)
+    with install_lock(root):
+        receipt_file = root / 'installed.json'
+        receipt = json.loads(receipt_file.read_text(encoding='utf-8'))
+        versions = root / 'versions'
+        if (receipt.get('schema') != 1 or versions.resolve() != versions
+                or versions not in Path(receipt['source']).parents):
+            raise SetupError('Invalid installation ownership receipt', 2)
+        data = Path(receipt['data']).resolve()
+        with install_lock(data), game_lock(root):
+            transaction.Activation(root, data).recover()
+            if json.loads(receipt_file.read_text(encoding='utf-8')) != receipt:
+                raise SetupError('Installation recovered; run compaction again', 2)
+            storage = load_module('setup_save_storage', Path(__file__).with_name('save_storage.py'))
+            save = storage.ordinary(data / 'save')
+            results = []
+            for number in range(6):
+                if cancelled:
+                    cancelled()
+                path = storage.ordinary(save / ('Partition%d.img' % number))
+                if not path.exists():
+                    continue
+                if not path.is_file():
+                    raise SetupError('Partition image must be a regular file: ' + path.name, 2)
+                if apply:
+                    report('Optimizing save images (%d of 6)' % (number + 1))
+                    results.append(storage.compact_image(path, report, cancelled=cancelled))
+                else:
+                    allocated = storage.allocated_bytes(path)
+                    results.append(dict(image=path.name, logical=path.stat().st_size,
+                                        before=allocated, after=allocated, changed=False))
+                    report('%s: logical %d bytes, allocated %d bytes (report only)' %
+                           (path.name, path.stat().st_size, allocated))
+            if apply:
+                if cancelled:
+                    cancelled()
+                marker = storage.ordinary(data / 'disk-optimization.json')
+                write_json(marker, dict(kind='disk-optimization-v1', status='complete', platform=HOST_PLATFORM))
+            if not apply:
+                report('No images changed. Add --apply-compaction to deallocate verified zero ranges on Windows.')
+            return results
+
+
+def run_disk_optimization(args):
+    """Shared app/CLI result contract. A failed/cancelled run never publishes completion."""
+    def report(message):
+        print(message, flush=True)
+        if args.log:
+            path = Path(args.log)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            with path.open('a', encoding='utf-8') as stream:
+                stream.write(message + '\n')
+
+    def cancelled():
+        if args.cancel_file and Path(args.cancel_file).exists():
+            raise SetupError('Disk optimization cancelled', 6)
+
+    try:
+        cancelled()
+        if args.apply_compaction and not IS_WINDOWS:
+            raise SetupError('Disk optimization is not available on this operating system yet. No image data was changed.', 2)
+        rows = compact_save_images(args.install_dir, apply=args.apply_compaction, report=report, cancelled=cancelled)
+        used = sum(row['after'] for row in rows)
+        freed = sum(max(0, row['before'] - row['after']) for row in rows)
+        if args.apply_compaction:
+            message = ('Freed %s. Your save contents are unchanged.' % size_text(freed) if freed else
+                       'No extra space was reclaimed. Your save contents are unchanged.')
+            status = 'complete'
+        elif not IS_WINDOWS:
+            message = ('Save images use %s on disk. Disk optimization is not available on this operating system yet. '
+                       'No image data was changed.' % size_text(used))
+            status = 'unavailable'
+        else:
+            message = ('Save images use %s on disk. Optimization checks for unused space without changing your saves. '
+                       'This may take a minute.' % size_text(used))
+            status = 'ready'
+        result = dict(kind='disk-optimization-v1', status=status, apply_supported=IS_WINDOWS,
+                      message=message, freed_bytes=freed, allocated_bytes=used)
+        if args.optimization_result:
+            write_json(args.optimization_result, result)
+        report(message)
+        return result
+    except (OSError, ValueError, SetupError) as ex:
+        status = 'cancelled' if isinstance(ex, SetupError) and ex.code == 6 else 'failed'
+        message = ('Optimization stopped. Your save contents are unchanged; you can run it again.'
+                   if status == 'cancelled' else 'Disk optimization stopped: ' + str(ex))
+        if args.optimization_result:
+            write_json(args.optimization_result, dict(kind='disk-optimization-v1', status=status,
+                       apply_supported=IS_WINDOWS, message=message))
+        raise
+
+
+def uninstall(install, report=None, backup_dir=None):
     """Remove the application from `install`, never the data folder. `report` gets one line for each
     thing found, removed or kept; main() sends the lines to the screen and to the --log file."""
     if report is None:
@@ -1440,6 +1689,9 @@ def uninstall(install, report=None):
     with install_lock(root), install_lock(Path(receipt['data'])), game_lock(root):
         transaction.Activation(root, receipt['data']).recover()
         receipt = json.loads(receipt_file.read_text(encoding='utf-8'))
+        if backup_dir is not None:
+            storage = load_module('setup_save_storage', Path(__file__).with_name('save_storage.py'))
+            storage.backup(Path(receipt['data']), backup_dir, report, forbidden=(root,))
         active = Path(receipt['source']).parent.name
         # Python 3.13 rmtree does not traverse Windows junction contents. Data is
         # outside versions by contract; verify the final target before deletion.
@@ -1607,11 +1859,15 @@ def main(argv=None):
     parser.add_argument('--handoff-parent', type=int, help=argparse.SUPPRESS)
     parser.add_argument('--data-dir')
     parser.add_argument('--uninstall', action='store_true')
+    parser.add_argument('--backup-dir', help='Uninstall: make a verified sparse-preserving saves/settings backup first')
+    parser.add_argument('--compact-save-images', action='store_true', help='Experimental: report installed partition image allocation')
+    parser.add_argument('--apply-compaction', action='store_true', help='With --compact-save-images: verify zero ranges and deallocate them (experimental Windows-only)')
+    parser.add_argument('--optimization-result', help='Disk optimization: atomic JSON result for the app')
     parser.add_argument('--no-shortcuts', action='store_true', help='Do not create desktop/Start-menu shortcuts')
     parser.add_argument('--no-desktop-shortcut', action='store_true', help='Create only the Start-menu shortcut')
     parser.add_argument('--install-prerequisites', action='store_true')
     parser.add_argument('--check-toolchain', action='store_true',
-                        help='Windows: exit 0 when the C++ Build Tools are installed, 3 when they are not')
+                        help='Windows: exit 0 when this payload has verified bundled tools or host MSVC, 3 if missing')
     parser.add_argument('--hd-textures', action='store_true', help='Generate and enable Lanczos 4x HD textures locally (extra time/space)')
     parser.add_argument('--toolchain', choices=['auto', 'bundled', 'host', 'container'], default='auto',
                         help='Linux: build with the compiler and libraries that came with setup (bundled; what '
@@ -1631,8 +1887,26 @@ def main(argv=None):
     parser.add_argument('--status-file')
     parser.add_argument('--cancel-file')
     args = parser.parse_args(argv)
+    if args.backup_dir and not args.uninstall:
+        parser.error('--backup-dir requires --uninstall')
+    if args.apply_compaction and not args.compact_save_images:
+        parser.error('--apply-compaction requires --compact-save-images')
+    if args.optimization_result and not args.compact_save_images:
+        parser.error('--optimization-result requires --compact-save-images')
+    if args.compact_save_images and (args.uninstall or args.release or args.dump or args.steam_art or args.steam):
+        parser.error('--compact-save-images cannot be combined with another operation')
     if args.check_toolchain:
-        # Needs nothing from the payload or the network, so it answers in a moment.
+        if IS_WINDOWS and (Path(args.payload) / 'manifest.json').is_file():
+            try:
+                manifest = json.loads((Path(args.payload) / 'manifest.json').read_text(encoding='utf-8'))
+                if 'windows_toolchain' in manifest and args.toolchain != 'host':
+                    verify_payload(Path(args.payload))
+                    return 0
+                if args.toolchain == 'bundled':
+                    return 3
+            except (SetupError, OSError, ValueError, KeyError) as ex:
+                print('Setup stopped: ' + str(ex), file=sys.stderr)
+                return 2
         return 0 if not IS_WINDOWS or windows_toolchain_present() else 3
     if args.steam:
         # The shortcut and artwork only: nothing from the network, the dump or the install's lock.
@@ -1747,6 +2021,9 @@ def main(argv=None):
                 return releases.run_selected(args, HOST_PLATFORM, selected, cancelled)
             finally:
                 shutil.rmtree(scratch)
+        if args.compact_save_images:
+            run_disk_optimization(args)
+            return 0
         if args.uninstall:
             verify_payload(Path(args.payload))
 
@@ -1755,7 +2032,7 @@ def main(argv=None):
                 if args.log:
                     with Path(args.log).open('a', encoding='utf-8') as stream:
                         stream.write(message + '\n')
-            uninstall(args.install_dir, report)
+            uninstall(args.install_dir, report, backup_dir=args.backup_dir)
             return 0
         if args.steam_art:
             return apply_steam_art(args.install_dir)

@@ -335,15 +335,25 @@ for what legitimately varies, and pass the manifest with `--baselines`. Approval
 locked to the image's hash; nothing is approved automatically.
 
 **Still screens work now.** `python scripts/regress.py --only visual` compares the
-crib menu, the Learn Moves list and the move preview playing against
-`<data folder>/test-baselines/story-tour-v1/manifest.json`, and is `blocked` when
-that does not exist. What two healthy runs of those screens differed by:
+crib menu against `<data folder>/test-baselines/story-tour-v1/manifest.json`, and is
+`blocked` when that does not exist. The crib's "now playing" strip (the track is
+chosen at random) is masked.
 
-- the crib's "now playing" strip (the track is chosen at random): masked;
-- the Learn Moves list: 0.4 percent of pixels;
-- the preview movie's frame, which depends on timing: masked for a strict
-  comparison of everything else, plus a loose unmasked comparison that a blank
-  preview screen fails.
+Learn Moves (the list and the move preview) is **not** compared, in this release or
+any later one (owner decision, 2026-11-27). `story-tour` no longer captures it, and
+Learn Moves entries an older local manifest still lists are skipped, never counted
+as passed or failed. The `gym` check, which confirms Learn Moves opens and a move
+preview is requested, is unchanged.
+
+Keep the profile snapshot with approved still-screen images: move unlocks and
+development points change as the player progresses. A manifest may name a
+fixture inside its own folder with `"fixture": {"path": "fixture",
+"manifest_sha256": "<fixture_identity manifest_sha256>"}`. `regress.py --only
+visual` uses that verified snapshot instead of live profiles; changed fixture
+bytes or a different profile fingerprint fail before launching. An explicit
+`--fixture` still overrides it. Older manifests without this field keep their
+existing live-profile behavior. The snapshot contains game save data and stays
+local with the images.
 
 **Fights are a different matter.** `--step-shots` captures the frame at a fight
 step, and in a repeatable fight (above) the fighters, the health bars, the clock,

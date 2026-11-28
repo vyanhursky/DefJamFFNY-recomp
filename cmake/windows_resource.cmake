@@ -1,8 +1,14 @@
-# defjam_windows_resource(<out-var> NAME <file-name> DESCRIPTION <text> VERSION <x.y.z>)
+# defjam_windows_resource(<out-var> NAME <file-name> DESCRIPTION <text> VERSION <x.y.z> [MANIFEST <path>])
 # Writes the .rc for one executable from cmake/app.rc.in (icon + file properties) and returns
 # its path in <out-var>. Windows only.
 function(defjam_windows_resource out)
-    cmake_parse_arguments(RC "" "NAME;DESCRIPTION;VERSION" "" ${ARGN})
+    cmake_parse_arguments(RC "" "NAME;DESCRIPTION;VERSION;MANIFEST" "" ${ARGN})
+    set(RC_MANIFEST_ENTRY "")
+    if(MINGW AND RC_MANIFEST)
+        # MinGW does not embed .manifest sources as MSVC's linker does.
+        file(TO_CMAKE_PATH "${RC_MANIFEST}" _manifest)
+        set(RC_MANIFEST_ENTRY "1 24 \"${_manifest}\"")
+    endif()
     set(RC_ICON "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../branding/icon/defjam.ico")
     cmake_path(NORMAL_PATH RC_ICON)
     if(NOT EXISTS "${RC_ICON}")
@@ -17,6 +23,13 @@ function(defjam_windows_resource out)
     set(RC_DESCRIPTION "${RC_DESCRIPTION}")
     set(RC_NAME "${RC_NAME}")
     set(target "${CMAKE_CURRENT_BINARY_DIR}/${RC_NAME}.rc")
+    # rc.exe reads the .rc in the ANSI code page and CMake writes it in UTF-8, so a path in it breaks in
+    # a folder named with accents. The icon is copied beside the .rc and named there by file name alone.
+    configure_file("${RC_ICON}" "${CMAKE_CURRENT_BINARY_DIR}/${RC_NAME}.ico" COPYONLY)
+    set(RC_ICON "${RC_NAME}.ico")
     configure_file("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/app.rc.in" "${target}" @ONLY)
+    if(MINGW AND RC_MANIFEST)
+        set_property(SOURCE "${target}" APPEND PROPERTY OBJECT_DEPENDS "${_manifest}")
+    endif()
     set(${out} "${target}" PARENT_SCOPE)
 endfunction()

@@ -53,6 +53,7 @@
 #define TRANSLATOR_HEIGHT  480
 
 static void capture_backbuffer(IDirect3DDevice8 *dev);
+extern void photo_capture_frame(void *device);
 
 static int   s_ready;
 
@@ -217,7 +218,7 @@ static LRESULT CALLBACK translator_wndproc(HWND h, UINT msg, WPARAM wp, LPARAM l
         s_mouse_moved = GetTickCount64();
         if (s_cursor_hidden) {
             s_cursor_hidden = 0;
-            SetCursor(LoadCursorW(NULL, IDC_ARROW));
+            SetCursor(LoadCursor(NULL, IDC_ARROW));
         }
         break;
     case WM_TIMER:
@@ -284,7 +285,7 @@ static HWND make_window(void)
     wc.cbSize        = sizeof(wc);
     wc.lpfnWndProc   = translator_wndproc;
     wc.hInstance     = GetModuleHandleW(NULL);
-    wc.hCursor       = LoadCursorW(NULL, IDC_ARROW);
+    wc.hCursor       = LoadCursor(NULL, IDC_ARROW);
     /* The shield from the exe's own resources (src/defjam.rc.in, id 1): title bar, taskbar, Alt+Tab. */
     wc.hIcon         = LoadIconW(wc.hInstance, MAKEINTRESOURCEW(1));
     wc.hIconSm       = (HICON)LoadImageW(wc.hInstance, MAKEINTRESOURCEW(1), IMAGE_ICON,
@@ -664,6 +665,7 @@ void d3d11_translator_frame_end(void)
     if (dev) {
         double capture_ms = 0.0, present_at = 0.0;
         int recording = recorder_on();
+        photo_capture_frame(dev);
         capture_backbuffer(dev);
         if (recording) {
             recorder_frame_begin();
