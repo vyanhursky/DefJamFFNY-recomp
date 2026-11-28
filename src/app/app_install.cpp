@@ -583,8 +583,20 @@ bool install_screen_draw(float width, float height, UiResult *result)
     }
     ImGui::EndDisabled();
     ImGui::Spacing();
-    if (!g_error.empty()) ImGui::TextColored(ImVec4(1, 0.45f, 0.4f, 1), "%s", g_error.c_str());
-    if (g_working) ImGui::TextDisabled("Copying the app into the folder...");
+    // The page scrolls at the app's default window size, and these lines come last: bring each one
+    // into view once when it appears, or a refused folder and a slow copy show nothing at all.
+    static std::string shown_error;
+    static bool shown_working = false;
+    if (!g_error.empty()) {
+        ImGui::TextColored(ImVec4(1, 0.45f, 0.4f, 1), "%s", g_error.c_str());
+        if (g_error != shown_error) ImGui::SetScrollHereY(1.0f);
+    }
+    shown_error = g_error;
+    if (g_working) {
+        ImGui::TextDisabled("Copying the app into the folder...");
+        if (!shown_working) ImGui::SetScrollHereY(1.0f);
+    }
+    shown_working = g_working;
     page_actions();
     ImGui::BeginDisabled(g_working || !g_folder[0] || (!g_retry_update && !g_dump[0]));
     if (pcui::play_button(g_retry_update ? "TRY AGAIN" : "INSTALL", ImVec2(ImGui::GetFontSize() * 10, ImGui::GetFrameHeight() * 1.8f), 26))
