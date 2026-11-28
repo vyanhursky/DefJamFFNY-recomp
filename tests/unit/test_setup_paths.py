@@ -174,6 +174,7 @@ def test_the_imported_toolchain_environment_keeps_non_ascii_values(tmp_path):
     state = engine.Engine.__new__(engine.Engine)
     state.args = SimpleNamespace(status_file=None, cancel_file=None, install_prerequisites=False)
     state.log, state.payload, state.version_root, state.python = None, tmp_path, tmp_path, tmp_path / 'python.exe'
+    state.manifest = {}             # a payload without a bundled compiler: the host MSVC path this test imports
     state.env = dict(os.environ, **given)
     state.event = lambda message: None
     state.toolchain()
