@@ -19,7 +19,9 @@ def test_every_option_the_app_passes_is_an_engine_option():
     spawn = APP[APP.index('bool spawn_engine('):APP.index('std::vector<std::string> env_text')]
     operation = APP[APP.index('std::vector<std::string> args = {"--bundled-only"'):APP.index('if (!spawn_engine(args')]
     update = ''.join(re.findall(r'spawn_engine\(\{(.*?)\}', UPDATE, re.S))
-    passed = set(re.findall(r'"(--[a-z-]+)"', spawn + operation + update))
+    removal = APP[APP.index('void removal_work('):APP.index('void start_removal(')]
+    passed = set(re.findall(r'"(--[a-z-]+)"', spawn + operation + update + removal))
+    assert {'--uninstall', '--backup-dir'} <= passed
     assert {'--payload', '--operation', '--install-dir', '--data-dir', '--dump', '--status-file', '--cancel-file',
             '--log', '--bundled-only', '--no-shortcuts', '--install-prerequisites', '--check-app-update',
             '--stage-app', '--stage-dir'} <= passed
