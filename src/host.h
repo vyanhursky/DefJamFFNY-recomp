@@ -15,7 +15,11 @@
 
 #include <windows.h>
 
+#if defined(_MSC_VER)
 #define HOST_TLS        __declspec(thread)
+#else
+#define HOST_TLS        __thread
+#endif
 #define HOST_SEP        "\\"
 #define HOST_SEP_CHAR   '\\'
 /* The faulting instruction's address, from a vectored handler's context. */

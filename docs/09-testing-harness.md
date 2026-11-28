@@ -345,6 +345,22 @@ that does not exist. What two healthy runs of those screens differed by:
   comparison of everything else, plus a loose unmasked comparison that a blank
   preview screen fails.
 
+Keep the profile snapshot with approved still-screen images: move unlocks and
+development points change as the player progresses. A manifest may name a
+fixture inside its own folder with `"fixture": {"path": "fixture",
+"manifest_sha256": "<fixture_identity manifest_sha256>"}`. `regress.py --only
+visual` uses that verified snapshot instead of live profiles; changed fixture
+bytes or a different profile fingerprint fail before launching. An explicit
+`--fixture` still overrides it. Older manifests without this field keep their
+existing live-profile behavior. The snapshot contains game save data and stays
+local with the images.
+
+[Issue #181](https://github.com/vyanhursky/DefJamFFNY-recomp/issues/181) confirmed
+that grey LOCKED-row backgrounds belong on Learn Moves. Reapprove stale images
+only after reviewing the current captures; preserve their previous versions,
+update approval hashes, and keep the existing thresholds/masks. The historical
+console reference does not establish exact shade or opacity.
+
 **Fights are a different matter.** `--step-shots` captures the frame at a fight
 step, and in a repeatable fight (above) the fighters, the health bars, the clock,
 the arena and the camera came out pixel-identical between two runs. The crowd did

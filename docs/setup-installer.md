@@ -21,15 +21,25 @@ Choose an empty install folder or an existing recognized Def Jam installation.
 Setup copies the dump into the data location and leaves the original untouched.
 Saves/settings stay in the data location through updates and uninstall.
 
-Folders must be writable and at most 140 characters because the game/toolchain
-still have path-length limits. Allow 12 GiB build headroom plus extracted dump
-storage and compiler disk space. Exact clean-machine peak usage is still to be measured.
+Folders must be writable and at most 140 characters. When Windows long paths
+are disabled, the selected payload can require a shorter folder; setup rejects
+unsupported destinations before staging. Allow 12 GiB build headroom plus
+extracted dump storage and compiler disk space. Candidate measurements and
+qualification limits are in the [Windows toolchain plan](research/windows-toolchain-setup-plan.md).
 
-**Install missing Microsoft Build Tools** allows Microsoft's publisher-verified
-installer to request consent/UAC. Without that option, missing tools stop setup.
+Historical Windows payloads (including published releases through v1.2.2) use
+MSVC. **Install missing Microsoft Build Tools** permits Microsoft's verified
+installer to request consent/UAC; otherwise missing tools stop setup. New
+payloads explicitly declaring the bundled Windows toolchain include LLVM-MinGW,
+CMake and Ninja and build without Visual Studio, a Windows SDK, elevation or a
+restart. A damaged bundle stops verification; it does not trigger a Microsoft
+installer. Selecting an older release retains that release's prerequisites.
+`--toolchain host` explicitly selects MSVC for developer comparisons.
+
 Setup runs as your user. Python, dependencies and source/toolkit are bundled;
-no Git or system Python installation is needed. Missing compiler installation
-requires internet; SDL3/ImGui source is packaged for offline configuration.
+no Git or system Python installation is needed. With a complete bundled payload
+and the player's dump available, compilation needs no network. SDL3/ImGui source
+is packaged for offline configuration.
 
 Install / Repair runs verification, extraction, analysis, lift and compile.
 Status shows the stage; **Open logs** reveals detailed output. **Cancel** stops

@@ -358,7 +358,8 @@ void poll_tools_check()
     int code = os::finished(g_tools_check);
     if (code < 0) return;
     g_tools_missing = code == 3;
-    fprintf(stderr, "[APP] Microsoft C++ Build Tools: %s\n", g_tools_missing ? "missing" : "installed");
+    fprintf(stderr, "[APP] Build tools check: %s\n", g_tools_missing ? "host MSVC required" :
+            code == 0 ? "available for bundled payload" : "failed; setup will report the payload error");
 }
 
 // The Build Tools choice, when they are missing (Windows).

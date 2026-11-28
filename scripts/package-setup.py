@@ -43,6 +43,8 @@ def digest(path):
 def source_allowed(name, toolkit=False):
     """Conservative source inventory; binaries and generated data cannot sneak in."""
     path = PurePosixPath(name)
+    if not toolkit and name.startswith('scripts/qualification/'):
+        return False  # host-only private VM orchestration is not part of a client payload
     if not toolkit and path.parts[0] == 'branding':
         return True  # the approved icons and Steam artwork; check-source-tree.py pins every file (D98)
     if path.suffix.lower() in {'.xbe', '.iso', '.viv', '.mad', '.xsh', '.exe', '.dll', '.obj', '.pdb',
@@ -201,8 +203,8 @@ def stage_linux(args, staging, source, toolkit):
 def stage_windows(args, staging, source, toolkit):
     """Embedded Python, wheels, offline SDL3/ImGui source and the native launcher."""
     (staging / 'engine').mkdir()
-    for name in ('engine.py', 'releases.py', 'transaction.py', 'save_storage.py', 'steam_shortcuts.py', 'install-prerequisites.ps1',
-                 'shortcuts.ps1'):
+    for name in ('engine.py', 'releases.py', 'transaction.py', 'save_storage.py', 'windows_toolchain.py', 'steam_shortcuts.py',
+                 'install-prerequisites.ps1', 'shortcuts.ps1'):
         shutil.copyfile(ROOT / 'setup' / name, staging / 'engine' / name)
     shutil.copyfile(args.launcher, staging / 'DefJamLauncher.exe')
     provenance = []
@@ -232,6 +234,10 @@ def stage_windows(args, staging, source, toolkit):
         args, source, 'sdl3', toolkit / 'cmake/xbox_sdl3.cmake', 'XBOX_SDL3_VERSION', 'XBOX_SDL3_SHA256',
         'https://github.com/libsdl-org/SDL/releases/download/release-{version}/SDL3-{version}.tar.gz'))
     provenance.append(stage_imgui_source(args, source))
+    spec = importlib.util.spec_from_file_location('windows_payload', ROOT / 'scripts/windows_payload.py')
+    windows = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(windows)
+    provenance += windows.stage(staging, args.cache / 'windows-tools', download, safe_unpack)
     return provenance
 
 
@@ -279,6 +285,12 @@ def main(argv=None):
         manifest = {'schema': 1, 'platform': args.platform, 'version': version,
                     'source_commit': commit, 'toolkit_commit': pin,
                     'development': args.development, 'updater': {'protocol': 1, 'data_schema': 1}, 'files': inventory}
+        if args.platform == 'windows-x64':
+            spec = importlib.util.spec_from_file_location('windows_contract', ROOT / 'setup/windows_toolchain.py')
+            windows = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(windows)
+            manifest['windows_toolchain'] = windows.descriptor(inventory)
+            windows.validate(manifest)
         (staging / 'manifest.json').write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
         with zipfile.ZipFile(args.output, 'w', zipfile.ZIP_DEFLATED) as package:
             for p in sorted(staging.rglob('*')):
