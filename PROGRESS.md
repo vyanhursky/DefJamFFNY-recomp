@@ -8,6 +8,8 @@
 
 ## 0. Status at a glance
 
+- v1.3.0 candidate: ⏳ release PR #329 (`release/v1.3.0`) = main v1.2.4 + #300, #301, #313, #290 (@danfreitas97's commits kept) and #303, D477–D499; toolkit `372b899` on fork `defjam/release-1.3.0`. Windows qualified on the owner's PC 2026-11-27/28: LLVM full regress 14/17 + 4 skips, crib/gym 2/2, replay/repeat 2/2 on both compilers, visual 1/1, two-matches 35/36 (D479), photo probes pass; after the AC'97 (D498) and log-gate (D499) fixes, LLVM focused 6/6, MSVC quick 5/5, 50-min idle clean. Real packaged install/update/optimize/backup/restore pass. Clean-VM install deferred to the final Windows re-test. macOS and Linux parity next, on #329.
+
 - v1.2.4: ✅ published stable/Latest at 2026-11-26T16:55:26Z under D476. PR320/#318/#299 merged; immutable annotatedtag76c88e2. Source45715763881 passes37/37; all9 asset SHA-256/sidecar/provenance and game-free inventories verified (windows-x64 4744, macos-arm64 5459, linux-x86_64 10014). D470 minimal qualification unchanged: Mac178pass/6skip, toolkit3/3, records88/88, retained PRquick/scoped evidence; no new full native suite/real install-update and approved Story visual baseline absent. Pages45863182466 passes2/2; live site serves v1.2.4/9assets. Milestone20 closed; v1.3.0 open.
 
 - v1.2.3: ✅ published stable/Latest at 2026-11-25T04:50:16Z under D459-D468. PR316 and #295/#309/#311/#314 merged; immutable annotated tag `v1.2.3` at `d505b7c`. Tagged Source45548147507 passes37/37. All9 app/checksum/provenance assets match GitHub SHA-256, source/toolkit and inspected game-free inventories (windows-x64 4740, macos-arm64 5455, linux-x86_64 10010). Mac21 default checks qualified with original failures/retries retained; native imported cash/save/reload2/2 and speech-size renders3/3 pass. Real CI-payload fresh221.42s/baseline223.61s/Clean Update106.35s, all12 protected files unchanged. Windows/Linux native tests waived; native pickers/physical/audible/external catalogue remain unqualified. Milestone19 closed; v1.3.0(18) remains open. Cleanup 2026-11-25: 10.46 GB (9.74 GiB) reclaimed; full evidence is a checksum-verified 103 MB private archive, with small summaries retained locally. Original dump/saves and active worktrees unchanged.
@@ -632,6 +634,29 @@ Run-log citations from retired status/planning prose remain protected by
 | D474 | 2026-11-25 | PR #318: preserve restored source-layer alpha during host blending, separately from final native material alpha. | Tattoo ink can exist entirely in opacity; substituting the native source mask loses restored linework. |
 | D475 | 2026-11-25 | PR #299: retain the active build and its actual immediate predecessor only after durable activation; defer unsafe/failed cleanup. | Bound obsolete-build disk use while preserving rollback, dump/data/redirected paths and the running setup host. #180 remains broader and open. |
 | D476 | 2026-11-26 | Owner explicitly authorizes publishing v1.2.4 stable/Latest after the minimal-test merge/tag. | Tagged Source45715763881 passes37/37; audit every byte/digest, sidecar, exact source76c88e2/toolkitd15f727 and game-free inventory of exactly9 app assets before publication. Preserve D470 reduced-testing and missing visual/native/install qualifications; no new full game regression for publication. Publish verified draft458738642, verify Latest, deploy Pages from allowed main; no texture packs/catalogue entries published. |
+| D477 | 2026-11-27 | Owner: v1.3.0 release candidate = main v1.2.4 + #313, #290, #300, #301, #303 (release PR #329). Windows is qualified first on the owner's PC (VMs or host, builds sequential, freezes recorded); macOS and Linux agents then add platform parity and run their own regressions; Windows is re-tested if needed before publication. Toolkit `defjam/release-1.3.0` pushed to the fork. #290 stays on the contributor's fork (no pushes there), with his commits/authorship kept and credit in the release notes. #312 closed as superseded; #304 left out. | The setup optimisation train ships together; one Windows gate, then platform parity, matches the release-train process. |
+| D478 | 2026-11-27 | Owner: the Learn Moves still-screen comparison is removed from the checks for this and every future release. `story-tour` captures only the crib; Learn Moves entries in older local manifests are skipped, never passed or failed. The functional `gym` check stays. | The comparison kept failing on row shading the console reference cannot settle (#181), and every release carried a waiver for it. |
+| D479 | 2026-11-27 | Owner: #303's `combat.eliminations.match2` failure and the disabled victory-scene entry are recorded as known; the assertion is not weakened and neither blocks the candidate. Photo Mode ships for fight entrances and fights only. | Both predate Photo Mode or need a natural reproducer; they are documented in #303. |
+| D480 | 2026-11-27 | PR #290 (@danfreitas97): the Windows app installs into one folder the player chooses (portable `game\`, `data\`, marker `.defjam-portable`) from one page that starts setup directly, and makes one desktop shortcut (replacing the 2026-10-27 no-shortcut choice). Install folder at most 70 UTF-16 characters. | The three-folder flow refused the natural choices with one generic message; one folder matches what players expect and can be moved or copied whole. |
+| D481 | 2026-11-27 | PR #300: an uninstall that deletes data backs up the entire save tree, custom fighter state and settings first; only verified zero blocks become holes. | Raw images are not disposable; sparse copies keep the backup small. |
+| D482 | 2026-11-27 | PR #300: the backup runs inside the engine's install/data/play locks, needs a new destination, verifies every byte and publishes a completion manifest; game builds and data are never removed after a backup failure. | A half-made backup must never look complete. |
+| D483 | 2026-11-27 | PR #301: one shared optional Maintenance and post-update flow, inspect first, explicit apply; only verified success is persisted; Maintenance stays available after the one-time offer. | No automatic image rewriting; the player chooses. |
+| D484 | 2026-11-27 | PR #301: Windows apply uses OS writer exclusion and in-place proved-zero deallocation; POSIX apply stays disabled until a runtime-held save-root lock and native backends are qualified (macOS/Linux agents, release PR #329). | Another install or an older runtime could otherwise write an image while it is compacted. |
+| D485 | 2026-11-27 | PR #313: compiler selection is per payload. New Windows payloads carry pinned LLVM-MinGW UCRT x64, CMake and Ninja and build as a standard user without Visual Studio, the SDK, elevation or a restart; historical payloads keep their MSVC engine; a corrupt declared bundle fails instead of installing Microsoft tools. | Removes the largest setup prerequisite; per-version tools avoid shared mutable state and stale objects. |
+| D486 | 2026-11-27 | PR #312 (via #313): native x64 UCRT LLVM-MinGW is the Windows toolchain; the compiler root is normalised to its physical path rather than refusing Unicode paths. | Small portability changes, working diagnostics, no measured performance regression; the aliased-layout stall reproduced and was avoided. |
+| D487 | 2026-11-27 | PR #303: Photo Mode's first version has features 1–9; 10–18 stay on hold. | Owner added feature 9 after play-testing 1–8. |
+| D488 | 2026-11-27 | PR #303: R3 + D-pad Down activates at once and latches until release. | The 500 ms hold was too slow. |
+| D489 | 2026-11-27 | PR #303: photos go to Pictures (macOS/XDG equivalents), with the SDL preferences folder as fallback. | Valid user paths through the pinned SDL platform code. |
+| D490 | 2026-11-27 | PR #303: entrance audio synchronisation and full crowd visibility are deferred. | Coupled audio state and crowd animation/culling need more work than a straightforward fix. |
+| D491 | 2026-11-27 | PR #303: Photo Mode targets fight entrances and victory scenes, never Story cutscenes or ordinary menus. | Owner scope correction. |
+| D492 | 2026-11-27 | PR #303: Photo Mode keeps the existing paused state rather than setting the title's time scale. | Native Battle pause keeps scale 1.00 while the simulation stops. |
+| D493 | 2026-11-27 | PR #303: captured PNGs always exclude the HUD and UI, even when the preview shows them. | Clean images need preview and capture visibility kept apart. |
+| D494 | 2026-11-27 | PR #303: guest camera/render calls stay on the guest thread; only readback and encoding run on GPU/worker threads. | Guest register/TLS ownership is not shared with presentation. |
+| D495 | 2026-11-27 | PR #303: entrances and combat are enabled; victory entry stays disabled until a natural reproducer exists. | Natural Battle skipped the victory scene and forced setups reached uninitialised objects. |
+| D496 | 2026-11-27 | PR #303: right-stick X decreases yaw in the game's right-handed camera basis. | Aligns turning with positive strafe X (`E46C0`, `EAD40`). |
+| D497 | 2026-11-27 | PR #303: failed focused qualifications are kept, not weakened (elimination/HP mismatch, Learn Moves differences). | Both reproduce without Photo Mode; see D478/D479. |
+| D498 | 2026-11-28 | Candidate fix: DirectSound's AC'97 channel reset (`sub_00267B3D`) is overridden to complete RR at its single read-back, as hardware does. | The toolkit write trap opens the page for one thread's write; another guest thread's write in that window kept RR in DirectSound's read-back. The LLVM build hung on an idle title screen after 8–12 attract loops (3/3); MSVC and v1.2.4 ran 17 without it. A race-free trap is left to the toolkit. |
+| D499 | 2026-11-28 | Candidate fix: toolkit `372b899` makes all 54 "log the first N" gates saturate (`if (n < N && ++n)`). | `NtWaitForSingleObjectEx`'s `logged++ < 20` wrapped after 2³¹ calls (~37 min idle on LLVM) and logged every wait at ~20 MB/s; every build reaches it eventually. Toolkit `-fwrapv`/`-fno-strict-aliasing` under clang was tested as the cause, did not change it, and was not kept. |
 
 ## 2. Historical environment inventory (2026-09-17)
 
@@ -712,7 +737,6 @@ Upstream PR submissions still need the owner's separate approval.
 
 > Recent entries only; older entries remain unchanged in the local `docs/worklog/` archive.
 
-- 2026-11-24 19:55 — #314 integrated: repository RecompLauncher manifest only (D466), six source tests; external catalogue application untested. Toolkit d108a64 unchanged across all four PRs. D459 authorizes Mac qualification and release, waiving Windows/Linux native checks. Analysis log logs/release-1.2.3/analyze.txt.
 - 2026-11-24 21:27 — D467: runtime03181df Mac21 default checks qualified across first unit/goldens, resumed16/17 (regress-20261124-205015.txt) and prepared-Options replay80/1800 (regress-20261124-205422.txt); original headless/interrupted/tutorial74 failures retained. CI4553642844135/35; units2867/78skip. Real CI-payload fresh221.42s/baseline223.61s/update106.35s all12 protected files identical. Packaged import/backup/preferences/mod-notice UI pass; native pickers unqualified after CUA tool failure. Focused imported lifecycle and rendered sizes pending in logs/release-1.2.3/.
 - 2026-11-24 21:53 — D468: v1.2.3 stable/Latest published2026-11-25T04:50:16Z; PR316/all4 train PRs merged, immutable annotatedtagd505b7c. Source4554814750737/37; all9 asset digests/sidecars/provenance/game-free inventories verified. Mac21 qualified, native imported change/save/reload2/2, speech sizes3/3; preserve original fixture/driver failures and native picker/manual/OS limits. Milestone19 closed. Evidence logs/release-1.2.3/final-asset-audit.json and publication-state.json.
 - 2026-11-25 08:08 — D469: GitHub v1.2.3 Latest/9 unchanged digests, Source37/37, Pages/live site and closed milestone verified. Archived569 evidence files to private103MB v1.2.3-macos-20261125.tar.gz, SHA256300aab875b64152ce368c00272c7681f990673687848edb4b127bf0fde6c5d30, verified every member. Removed rc123 QA/generated outputs/heavy logs/downloads, merged PR295 worktree/branch and4 stale registrations; reclaimed10,460,114,944 bytes. Small summaries remain; dump/saves/active worktrees unchanged. Receipt in /Users/vlad/Code/defjam-release-evidence/v1.2.3-macos-20261125-cleanup.json.
@@ -720,57 +744,39 @@ Upstream PR submissions still need the owner's separate approval.
 - 2026-11-25 15:34 — v1.2.4 #299 integrated: retain active+actual predecessor after durable activation; prior Windows real install468.4s/CI35/35 retained. D475; combined focused Mac178pass/6skip, toolkitd15f727. Release CI/merge/tag pending; no new full/native packaged install.
 - 2026-11-25 15:45 — D470 complete: #299/#318 MERGED via PR320, identical-tree merge76c88e2, annotatedv1.2.4 pushed after CI45714624786 passes35/35 and source/tag policy1047files/0failures. Milestone20 closed; Source45715763881 builds draft, stable publication not requested. Focused178pass/6skip, toolkit3/3, records88/88; missing visual baseline/new full-native/real-install limits preserved. Logs release-1.2.4/tag-ref.json and tag-workflow.json.
 - 2026-11-26 09:56 — D476: owner-authorized v1.2.4 stable/Latest published2026-11-26T16:55:26Z, immutabletag76c88e2/toolkitd15f727, Source4571576388137/37. All9 GitHubdigests/sidecars/provenance/game-free inventories verified (windows-x64 4744, macos-arm64 5459, linux-x86_64 10014); D470 minimal-native/visual/install limits unchanged. Pages45863182466 passes2/2; live feed serves v1.2.4/9assets. Audit final-asset-audit.json; publication publication-state.json.
+- 2026-11-28 08:30 — D477–D499: v1.3.0 candidate #329 Windows-qualified on the owner's PC. LLVM regress 14/17+4 skips, crib/gym 2/2, replay/repeat 2/2 (both), visual 1/1, two-matches 35/36 (D479); two LLVM idle-title bugs found and fixed (AC'97 reset spin D498, log-gate wrap flood D499), then focused 6/6, MSVC quick 5/5, 50-min idle 21 loops/31 MB. Packaged app: fresh 386 s, 70-char non-ANSI 427 s, 71 refused, move/copy/Repair 160 s, v1.2.4→1.3.0 update 239 s, optimize 5.24 GB→143,910 B, backup byte-identical 1.06 MB, restore→menu+fight. No freezes (heartbeat 21:09–08:20). Clean VM deferred.
 
 ## 7. Hand-off
 
-### v1.2.4 published — 2026-11-26
+### v1.3.0 candidate, Windows qualified — 2026-11-28
 
-Owner instruction D470 completed: #299 moved from v1.3.0 to milestone20, both
-#318/#299 MERGED through release PR320, annotated immutable `v1.2.4` pushed at
-`76c88e2474f39ee8a6be2d9b9f17e017fea7dad3`. Milestone20 closed; v1.3.0(18) open.
-Source workflow 45715763881: https://github.com/vyanhursky/DefJamFFNY-recomp/actions/runs/45715763881
-Owner publication authorization D476 completed at 2026-11-26T16:55:26Z:
-https://github.com/vyanhursky/DefJamFFNY-recomp/releases/tag/v1.2.4
-Stable/Latest, not draft/prerelease; Source45715763881 passes37/37.
-All9 asset GitHub SHA-256 digests, sidecars and exact source/toolkit provenance
-verified before publication, with inspected game-free inventories: windows-x64 4744, macos-arm64 5459, linux-x86_64 10014.
-Pages45863182466 passes2/2 from main; live releases.json serves v1.2.4/9assets.
-The permitted main deployment preserves the existing main-only Pages policy.
+Release PR #329, branch `release/v1.3.0`, worktree `F:\defjam-rc\defjam-release-1.3.0` (data
+junction `game` → `C:\Users\Vlad\code\defjam\extracted`). It merges, in order, #300, #301,
+#313, #290 and #303 onto main v1.2.4, then adds the release commits: Learn Moves retired
+(D478), install page wording and visibility, junction refusal in save import,
+`photo-probe.py --preset`, the AC'97 reset override (D498) and toolkit `372b899` (D499).
+The version is 1.3.0. #290 lives on @danfreitas97's fork: do not push there. #312 is
+closed as superseded; #304 is out of this release.
 
-Combined CI45714624786 passes35/35 at eeac4e1; merge76c88e2 has the identical
-source tree. Source policy1047files/zero failures and exact tag/version/main
-ancestry verified before pushing. Local checks: Mac178pass/6skip (ASan/UBSan
-compositor + actual filesystem/activation retention), toolkit Release fixtures3/3,
-release/source/progress/site88/88. Reports logs/release-1.2.4/ focused.txt/xml,
-toolkit-tests.txt, release-records.txt/xml, tag-ref.json and tag-workflow.json.
+Toolkit: `vyanhursky/xboxrecomp` branch `defjam/release-1.3.0` = `d15f727` + `c7eab6d`
+(cherry-picked `274e6fb`, Windows TLS) + `372b899` (54 saturating log gates).
+`.gitmodules` names that branch. Worktree `F:\defjam-rc\xboxrecomp-release-1.3.0`.
 
-Runtime/compositor matches #318 head32971cab exactly; #299 head421f954d changes
-setup only; records/version/site are later. Toolkitd15f7275c88daa8cd9f58d987ce498d639448917
-is published on `vyanhursky/xboxrecomp` branch `defjam/release-1.2.4`, named in
-.gitmodules. The four commits add/harden bounded CPU PNG source lookup.
+Windows evidence is in the worktree's `logs/` (`rc130-*.txt`, `regress-2026112[78]-*.txt`,
+`scenarios/`) and `F:\defjam-rc\idle-*.txt`. LLVM build: `python F:\defjam-rc\scripts\build_llvm_game.py`
+→ `build/llvm-mingw-game` (`--preset llvm-mingw-game`), using the payload's tools copied to
+`F:\defjam-rc\payload-tools`. Package: `. .\scripts\env.ps1; .\scripts\build-setup.ps1`.
 
-Retained #31835/35CI, fresh Macquick5/5/CribGym2/2, final representative High3x
-shop checks. Earlier all-tier native sampling precedes final alpha correction;
-post-correction native CPU fixtures cover2x/3x/4x. Approved Story visual baseline
-is unavailable; no replacement approved, no owner visual/play-test inferred.
-Retained #299 Windows install468.4s/package/retention checks. Under the explicit
-minimal-test instruction, no new full native suite, local game build or fresh real
-packaged install/Clean Update ran. v1.2.3's full report does not qualify the changed
-compositor/toolkit. Windows/Linux native compositor and Mac/Deck end-user install
-acceptance remain unperformed. Keep all these limits in docs/releases/v1.2.4.md.
-
-Publication and Pages verification are complete. Start future code work from public main
-and the intended milestone. Texture packs/catalogue publication remains separate.
-No duplicate full game run for tag/docs/publication. Preserve D470 omissions.
-Private publication evidence: logs/release-1.2.4/final-asset-audit.json,
-publication-state.json, latest-state.json and pages-state.json; small provenance/
-SHA sidecars retained under published-assets/. Temporary downloaded apps were
-removed after verification, preserving the owner-requested disk cleanup.
-#300/#301/#303 and all other unqueued PRs remain excluded; #180 stays open.
-
-Owner-approved #189/#268 closures are done; #248/#166 were already closed.
-The completed release branch was deleted locally and GitHub pruned its remote.
-Other active worktrees, original dump and owner saves remain untouched. No local
-full game build exists after cleanup. The v1.2.3 private archive and restore pointers
-remain in D469, logs/RELEASE-EVIDENCE.md and the historical handoff; its SHA is
-300aab875b64152ce368c00272c7681f990673687848edb4b127bf0fde6c5d30.
+Next:
+1. macOS and Linux/Deck agents work on #329: POSIX optimize apply (D484: runtime save-root
+   lock plus native hole punching), native backup/restore and app-UI acceptance
+   (`docs/research/disk-space-platform-handoff.md`), Photo Mode captures into
+   Pictures/XDG, and their own regressions. They also check the AC'97 override and the
+   log gates on clang builds (the toolkit is built without `-fwrapv` there).
+2. If their changes touch shared code, re-run Windows: full regress on LLVM, the idle check
+   (`watch_idle2.py`, 50 min), and the deferred clean-VM install (no Visual Studio).
+3. Open, not blocking: `tar` falls back to Expand-Archive for non-ANSI folders (100–150 s);
+   the uninstall backup defaults to Documents (OneDrive here); the toolkit AC'97 trap is
+   still racy for other writes; the app font lacks CJK glyphs.
+4. On publication: records stay D477–D499; tag `v1.3.0` at the merge; follow
+   `docs/releasing.md` and keep the limits in `docs/releases/v1.3.0.md`.
