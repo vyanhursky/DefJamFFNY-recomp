@@ -579,7 +579,7 @@ bool install_screen_draw(float width, float height, UiResult *result)
             : "Upscaled Original Textures go with Modern. Downloadable texture packs are in Mods after setup.");
         ImGui::Spacing();
         ImGui::TextDisabled("A Def Jam Recompiled shortcut is added to your desktop. Building takes several minutes; "
-                            "if Microsoft's C++ Build Tools are missing they are installed first (Windows asks for permission).");
+                            "the compiler it needs comes with the app.");
     }
     ImGui::EndDisabled();
     ImGui::Spacing();

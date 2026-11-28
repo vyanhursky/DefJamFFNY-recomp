@@ -51,8 +51,7 @@ The app isn't code-signed yet, so your system may ask you to confirm the first t
 2. Choose the install folder with **CHOOSE FOLDER...**: an empty folder, or type a new folder name at the end
    of the path and it is created. If you choose a folder that already has other files in it, the app uses a
    `DefJamRecompiled` folder inside it. The whole path can have at most 70 characters, because
-   Microsoft's C++ tools can't build the game deeper than that. Accented names are fine. For names in an alphabet
-   your Windows language doesn't use, you need the Visual Studio 2022 Build Tools (setup tells you).
+   Windows' build tools can't build the game deeper than that. Accented names and other alphabets are fine.
 3. Choose your game copy with **SELECT ISO...** (a disc image) or **SELECT FOLDER...** (an extracted folder
    that holds `default.xbe`). It must not be inside the install folder.
 4. Choose **Modern** or **Original** (see [step 2](#step-2-choose-your-experience)). With Modern, you can tick
@@ -60,8 +59,8 @@ The app isn't code-signed yet, so your system may ask you to confirm the first t
    several minutes and 15 GiB of working space, or later in **Mods**. Then choose **INSTALL**.
 
 The app copies itself into the folder, adds a **Def Jam Recompiled** shortcut to your desktop, and starts
-setting up the game straight away ([While it builds](#while-it-builds)). If Microsoft's C++ Build Tools are
-missing, they're installed first, and Windows asks for your permission. The downloaded `.exe` can be deleted
+setting up the game straight away ([While it builds](#while-it-builds)). The compiler it needs comes with the
+app, so nothing else is installed and Windows doesn't ask for permission. The downloaded `.exe` can be deleted
 afterwards.
 
 The install folder holds everything:
