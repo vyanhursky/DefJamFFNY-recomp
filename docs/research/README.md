@@ -70,6 +70,10 @@ confidence labels and disproved hypotheses remain distinct from measured facts.
 
 ## Controller input: boundaries, corrections and source evidence
 
+- [Photo Mode scene qualification](photo-mode-scene-paths.md) — fight freeze, paused rendering, entrance support and rejected victory experiments.
+- [Photo Mode audio pause audit](photo-mode-audio-audit.md) — entrance playback continues independently; coordinated cursor-preserving pause is on hold.
+- [Photo Mode crowd visibility audit](photo-mode-crowd-audit.md) — culling and animation are coupled; full spectator visibility is on hold.
+
 - [Guest input read and fighter-cache boundaries](input-consumption-boundaries.md)
 - [Controller input investigation â€” 2026-10-30](input-latency-2026-10-30.md)
 - [Controller transition preservation â€” 2026-10-30](input-transition-fix-2026-10-30.md)

@@ -53,6 +53,7 @@
 #define TRANSLATOR_HEIGHT  480
 
 static void capture_backbuffer(IDirect3DDevice8 *dev);
+extern void photo_capture_frame(void *device);
 
 static int   s_ready;
 
@@ -664,6 +665,7 @@ void d3d11_translator_frame_end(void)
     if (dev) {
         double capture_ms = 0.0, present_at = 0.0;
         int recording = recorder_on();
+        photo_capture_frame(dev);
         capture_backbuffer(dev);
         if (recording) {
             recorder_frame_begin();

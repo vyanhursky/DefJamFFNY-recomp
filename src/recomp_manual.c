@@ -19,6 +19,7 @@
  */
 
 #include "hooks/save_activity.h"
+#include "patches/photo_mode.h"
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
@@ -666,6 +667,7 @@ static void ws_hud_heartbeat(void)
  * Read-only, except that RECOMP_TEST_RNG_SEED replaces the seed argument. */
 void sub_00087700_enter(void)
 {
+    photo_mode_simulation_step();
     if (!s_ws_hud_live)
         pc_speech_subs_reset();
     defjam_crowd_step();
@@ -690,7 +692,70 @@ void sub_0008BE60_enter(void)
  * through a pause that began in a live fight (issue #95); otherwise no change. */
 void sub_00079B60_enter(void) { if (s_ws_hud_live) ws_hud_heartbeat(); }
 void sub_0007A8F0_enter(void) { if (s_ws_hud_live) ws_hud_heartbeat(); }
-void sub_001A4D90_enter(void) { defjam_test_match_start(); defjam_crowd_match_start(); cheats_match_start(); song_cursor_match_start(); pc_speech_subs_clear_match(); }
+extern void sub_00079B60_gen(void);
+void sub_00079B60(void)
+{
+    if (photo_mode_freeze(g_ecx)) {
+        if (s_ws_hud_live) ws_hud_heartbeat();
+        g_esp += 8; return; /* thiscall ret 4 */
+    }
+    sub_00079B60_gen();
+}
+extern void sub_0007A8F0_gen(void);
+void sub_0007A8F0(void)
+{
+    if (photo_mode_freeze(g_ecx)) {
+        if (s_ws_hud_live) ws_hud_heartbeat();
+        g_esp += 8; return;
+    }
+    sub_0007A8F0_gen();
+}
+extern void sub_00079E40_gen(void);
+void sub_00079E40(void) { photo_mode_render(g_ecx); sub_00079E40_gen(); }
+/* The measured Battle screen uses 796A0; 79E40 belongs to the other screen
+ * family. Route its indirect render callback without renaming the guest body. */
+extern void sub_000796A0(void);
+static void photo_battle_render(void) { photo_mode_render(g_ecx); sub_000796A0(); }
+extern void sub_00079A50(void);
+static void photo_battle_leave(void) { photo_mode_clear(); sub_00079A50(); }
+/* These are the fight renderer's UI passes, after the world passes. Their
+ * frame counters remain frozen too; other consumers of 6AFD0 are untouched. */
+extern void sub_000B5AD0_gen(void);
+void sub_000B5AD0(void)
+{
+    if (photo_mode_hide_hud()) { g_esp += 4; return; }
+    sub_000B5AD0_gen();
+}
+extern void sub_000B70D0_gen(void);
+void sub_000B70D0(void)
+{
+    if (photo_mode_hide_hud()) { g_esp += 4; return; }
+    sub_000B70D0_gen();
+}
+extern void sub_0006AFD0_gen(void);
+void sub_0006AFD0(void)
+{
+    if (photo_mode_hide_panel(g_ecx)) { g_esp += 4; return; }
+    sub_0006AFD0_gen();
+}
+/* Native PauseTar quads, including the dimmer, are drawn here. Despite the
+ * analysis category game_audio, this is the CCE60/CDDC0 pause object's paint.
+ * Preserve its state and selection; suppress only this fight's owned object. */
+extern void sub_000CE200_gen(void);
+void sub_000CE200(void)
+{
+    if (photo_mode_hide_pause(g_ecx)) { g_esp += 4; return; }
+    sub_000CE200_gen();
+}
+/* Root render continues through a pause. Guest calls must run here, never on
+ * the GPU executor's frame-end/presentation callback (which has its own TLS). */
+extern void sub_00077740_gen(void);
+void sub_00077740(void)
+{
+    if (photo_mode_frame()) { g_esp += 4; return; }
+    sub_00077740_gen();
+}
+void sub_001A4D90_enter(void) { photo_mode_clear(); defjam_test_match_start(); defjam_crowd_match_start(); cheats_match_start(); song_cursor_match_start(); pc_speech_subs_clear_match(); }
 /* sub_0001D2C0 is the engine's internal sound/speech channel halt/reset function.
  * When called with argument 0 (channel 0), active speech audio is halted, so we
  * reset the active voice subtitle state to match. */
@@ -1773,6 +1838,8 @@ static void speech_wrap_stop_extro(void)
 
 recomp_func_t recomp_lookup_manual(uint32_t xbox_va)
 {
+    if (xbox_va == 0x000796A0u) return photo_battle_render;
+    if (xbox_va == 0x00079A50u) return photo_battle_leave;
     if (xbox_va == 0xFE000064u) return speech_wrap_NtReadFile;
     if (xbox_va == 0xFE000068u) return speech_wrap_NtCreateFile;
     if (xbox_va == 0xFE00006Cu) return speech_wrap_NtClose;
