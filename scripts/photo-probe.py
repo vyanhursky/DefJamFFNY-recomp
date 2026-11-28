@@ -79,6 +79,8 @@ def main():
     ap.add_argument('context', choices=['live', 'paused', 'entrance', 'controller', 'controller-paused',
                                        'reject-menu', 'reject-cutscene'])
     ap.add_argument('--expect-save-failure', action='store_true')
+    ap.add_argument('--preset', default=os.environ.get('RECOMP_PRESET', harness.RELEASE_PRESET),
+                    help='build to run (for example llvm-mingw-game for the bundled-compiler build)')
     args = ap.parse_args()
     data = Path(os.environ.get('DEFJAM_DATA', '')).resolve()
     expected = Path(harness.REPO) / 'logs/runtime-data'
@@ -130,7 +132,7 @@ def main():
     run = harness.run_game('photo-' + args.context, stages=stages, tail=tail,
         shots=('@' + anchor + ',6,12' if negative else '@game.startgame(,10,12,14,16,19,21,23,25,28,33,36,40,44,47'),
         secs=150 if negative else 420, until=None if negative else 'game.startgame(',
-        after=48 if virtual and not negative else 40, env=env,
+        after=48 if virtual and not negative else 40, env=env, preset=args.preset,
         until_file=str(Path(harness.REPO) / 'logs/shots' / ('photo-' + args.context) /
                        ('photo-' + args.context + '-12s.bmp')) if negative else None)
     # Read the bounded PHOTO records; leave the large raw log to triage.py.
