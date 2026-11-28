@@ -755,6 +755,72 @@ void sub_00077740(void)
     if (photo_mode_frame()) { g_esp += 4; return; }
     sub_00077740_gen();
 }
+/* DirectSound's AC'97 bus-master channel reset (the PCM and S/PDIF outputs; the
+ * channel table at 0x27C4C8 holds 0x10 and 0x70). It writes RR, bit 1, to the
+ * channel's control byte (0xFEC0011B or 0xFEC0017B), reads the byte back ONCE and
+ * spins on that single read:
+ *
+ *     mov cl, [eax-0x13FFEF5] ; and cl, 2 ; L: test cl, cl ; jne L
+ *
+ * On hardware the controller has finished the reset before the read. Here the
+ * toolkit's write trap (xbox_memory_layout.c, ac97_write_veh) clears RR when it
+ * single-steps the faulting write, but while the page is open for one thread's
+ * write, another guest thread's write lands without a fault, and its read-back
+ * can still hold RR: that thread spins forever. Measured on the v1.3.0 candidate:
+ * an untouched title screen's attract movie stalled after 8 to 12 loops on the
+ * LLVM build (three runs out of three; the page was read-only and every RR bit
+ * clear in the stalled process, the worker still spinning here), and not in 17
+ * loops on MSVC or v1.2.4, which only makes the window less likely.
+ *
+ * The lifted body below is unchanged except at that read: the reset counts as
+ * complete, as on hardware. */
+extern void sub_00256A8C(void);
+extern void sub_00267880(void);
+extern void sub_00256AAE(void);
+void sub_00267B3D(void)
+{
+    uint32_t ebp = g_ebp;   /* prologue saves caller's frame */
+    PUSH32(g_esp, ebp);
+    ebp = g_esp;
+    g_ebp = ebp; g_seh_ebp = ebp;
+    PUSH32(g_esp, g_ecx);
+    PUSH32(g_esp, g_ecx);
+    MEM32(ebp - 4) = MEM32(ebp - 4) & 0;
+    PUSH32(g_esp, g_esi);
+    g_esi = g_ecx;
+    g_ecx = ebp - 8;
+    g_ebp = ebp; g_seh_ebp = ebp;
+    PUSH32(g_esp, 0x00267B51u); RECOMP_ABI_CALL(0x00256A8Cu, sub_00256A8C);   /* raise IRQL */
+    g_eax = MEM32(g_esi);
+    g_eax = MEM32(g_eax * 4 + 0x27C4C8);
+    MEM8(g_eax - 0x13FFEF5u) = 2;                    /* RR: reset this channel's registers */
+    g_eax = MEM32(g_esi);
+    g_eax = MEM32(g_eax * 4 + 0x27C4C8);
+    (void)MEM8(g_eax - 0x13FFEF5u);                  /* the title's single read-back ... */
+    SET_LO8(g_ecx, 0);                               /* ... sees RR already clear, as on hardware */
+    g_ecx = MEM32(g_esi + 0x1C);
+    MEM32(g_eax - 0x13FFF00u) = g_ecx;               /* buffer descriptor list base */
+    if (MEM32(g_esi) == 1) {
+        g_eax = MEM32(g_esi + 0x28);
+        MEM32(0xFEC0017Cu) = g_eax;
+    }
+    g_eax = MEM8(g_esi + 0x24);
+    PUSH32(g_esp, 1);
+    PUSH32(g_esp, 1);
+    g_ecx = g_esi;
+    PUSH32(g_esp, g_eax);
+    g_eax = MEM8(g_esi + 0x25);
+    PUSH32(g_esp, g_eax);
+    g_ebp = ebp; g_seh_ebp = ebp;
+    PUSH32(g_esp, 0x00267BA4u); RECOMP_ABI_CALL(0x00267880u, sub_00267880);
+    g_ecx = ebp - 8;
+    g_ebp = ebp; g_seh_ebp = ebp;
+    PUSH32(g_esp, 0x00267BACu); RECOMP_ABI_CALL(0x00256AAEu, sub_00256AAE);   /* lower IRQL */
+    POP32(g_esp, g_esi);
+    g_esp = ebp;
+    POP32(g_esp, ebp);                               /* leave */
+    g_esp += 4;                                      /* ret */
+}
 void sub_001A4D90_enter(void) { photo_mode_clear(); defjam_test_match_start(); defjam_crowd_match_start(); cheats_match_start(); song_cursor_match_start(); pc_speech_subs_clear_match(); }
 /* sub_0001D2C0 is the engine's internal sound/speech channel halt/reset function.
  * When called with argument 0 (channel 0), active speech audio is halted, so we
